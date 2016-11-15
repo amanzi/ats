@@ -724,7 +724,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
   }
 
   // Seepage face pressure boundary condition
-  if (bc_seepage_head_->size() > 0) {
+  if (bc_seepage_pressure_->size() > 0) {
     S->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S.ptr(), name_);
 
     const Epetra_MultiVector& h_cells = *S->GetFieldData("ponded_depth")->ViewComponent("cell");
