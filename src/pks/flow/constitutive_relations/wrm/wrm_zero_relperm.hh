@@ -23,8 +23,8 @@ class WRMZeroRelPerm : public WRM {
  public:
   explicit WRMZeroRelPerm(Teuchos::ParameterList& plist);
 
-  double k_relative(double pc) { return 0.0; }
-  double d_k_relative(double pc) { return 0.0; }
+  double k_relative(double s) { return 0.0; }
+  double d_k_relative(double s) { return 0.0; }
   double saturation(double pc) { return wrm_->saturation(pc); }
   double d_saturation(double pc) { return wrm_->d_saturation(pc); }
   double capillaryPressure(double sat) { return wrm_->capillaryPressure(sat); }

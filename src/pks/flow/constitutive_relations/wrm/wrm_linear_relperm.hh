@@ -23,8 +23,8 @@ class WRMLinearRelPerm : public WRM {
  public:
   explicit WRMLinearRelPerm(Teuchos::ParameterList& plist);
 
-  double k_relative(double pc) { return wrm_->saturation(pc); }
-  double d_k_relative(double pc) { return wrm_->d_saturation(pc); }
+  double k_relative(double s) { s; }
+  double d_k_relative(double s) { 1.0; }
   double saturation(double pc) { return wrm_->saturation(pc); }
   double d_saturation(double pc) { return wrm_->d_saturation(pc); }
   double capillaryPressure(double sat) { return wrm_->capillaryPressure(sat); }

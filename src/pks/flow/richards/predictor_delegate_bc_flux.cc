@@ -79,7 +79,7 @@ PredictorDelegateBCFlux::CreateFunctor_(int f,
   std::cout << std::endl << "   lambda = ";
   for (unsigned int i=0; i!=faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
   std::cout << std::endl << "   p_cell = " << (*pres)("cell",c) << std::endl;
-  std::cout << "    and init K_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(101325. - (*lambda)[n]) << std::endl;
+  std::cout << "    and init K_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(wrms_->second[(*wrms_->first)[c]]->saturation(101325. - (*lambda)[n])) << std::endl;
   std::cout << "    to match fluxes: bc = " << bc_flux << " and grav = " << gflux << std::endl;
 #endif
 
@@ -160,7 +160,7 @@ int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   ASSERT(cells.size() == 1);
   int c = cells[0];
 
-  std::cout << "      with k_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(101325. - lambda) << std::endl;
+  std::cout << "      with k_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(wrms_->second[(*wrms_->first)[c]]->saturation(101325. - lambda)) << std::endl;
 
 
 #endif

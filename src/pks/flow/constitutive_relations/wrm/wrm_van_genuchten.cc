@@ -7,6 +7,8 @@
 
 #include <cmath>
 #include "dbc.hh"
+#include "Spline.hh"
+
 #include "wrm_van_genuchten.hh"
 
 namespace Amanzi {
@@ -25,24 +27,22 @@ WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist) :
 
 
 /* ******************************************************************
-* Relative permeability formula: input is capillary pressure pc.
-* The original curve is regulized on interval (0, pc0) using the
+* Relative permeability formula: input is liquid saturation.
+* The original curve is regulized on interval (s0, 1) using the
 * Hermite interpolant of order 3. Formulas (3.11)-(3.12).
 ****************************************************************** */
-double WRMVanGenuchten::k_relative(double pc) {
-  if (pc >= pc0_) {
-    double se = pow(1.0 + pow(alpha_*pc, n_), -m_);
+double WRMVanGenuchten::k_relative(double s) {
+  if (s <= s0_) {
+    double se = (s - sr_)/(1-sr_);
     if (function_ == FLOW_WRM_MUALEM) {
       return pow(se, l_) * pow(1.0 - pow(1.0 - pow(se, 1.0/m_), m_), 2.0);
     } else {
       return se * se * (1.0 - pow(1.0 - pow(se, 1.0/m_), m_));
     }
-  } else if (pc <= 0.0) {
+  } else if (s == 1.0) {
     return 1.0;
   } else {
-    double pc_2 = pc * pc;
-    double pc_3 = pc_2 * pc;
-    return 1.0 + a_ * pc_2 + b_ * pc_3;
+    return fit_(s);
   }
 }
 
@@ -50,10 +50,9 @@ double WRMVanGenuchten::k_relative(double pc) {
 /* ******************************************************************
  * D Relative permeability / D capillary pressure pc.
  ****************************************************************** */
-double WRMVanGenuchten::d_k_relative(double pc) {
-  if (pc >= pc0_) {
-    double se = pow(1.0 + pow(alpha_*pc, n_), -m_);
-    double dsdp = d_saturation(pc);
+double WRMVanGenuchten::d_k_relative(double s) {
+  if (s <= s0_) {
+    double se = (s - sr_)/(1-sr_);
 
     double x = pow(se, 1.0 / m_);
     if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
@@ -65,12 +64,12 @@ double WRMVanGenuchten::d_k_relative(double pc) {
     else
       dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
 
-    return dkdse * dsdp / (1 - sr_);
+    return dkdse / (1 - sr_);
 
-  } else if (pc <= 0.0) {
+  } else if (s == 1.0) {
     return 0.0;
   } else {
-    return 2*a_*pc + 3*b_*pc*pc; 
+    return fit_.Derivative(s);
   }
 }
 
@@ -142,8 +141,8 @@ void WRMVanGenuchten::InitializeFromPlist_() {
   alpha_ = plist_.get<double>("van Genuchten alpha");
   sr_ = plist_.get<double>("residual saturation", 0.0);
   l_ = plist_.get<double>("Mualem exponent l", 0.5);
-  pc0_ = plist_.get<double>("smoothing interval width", 0.0);
 
+  // map to n,m
   if (plist_.isParameter("van Genuchten m")) {
     m_ = plist_.get<double>("van Genuchten m");
     if (function_ == FLOW_WRM_MUALEM) {
@@ -160,17 +159,12 @@ void WRMVanGenuchten::InitializeFromPlist_() {
     }
   }
 
-  a_ = b_ = 0.;
-  if (pc0_ > 0) {
-    double k0 = k_relative(pc0_) - 1.0;
-    double k0p = d_k_relative(pc0_);
-    double pc0_2 = pc0_ * pc0_;
-    double pc0_3 = pc0_2 * pc0_;
-
-    a_ = (3 * k0 - k0p * pc0_) / pc0_2;
-    b_ = (k0p * pc0_ - 2 * k0) / pc0_3;
-  }
-
+  s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);
+  if (s0_ < 1.) {
+    fit_.Setup(s0_, k_relative(s0_), d_k_relative(s0_),
+	       1.0, 1.0, 0.0);
+  }  
+  
 };
 
 }  // namespace

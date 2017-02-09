@@ -159,8 +159,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   int ncells = res_c.MyLength();
   for (unsigned int c=0; c!=ncells; ++c) {
     int index = (*wrms_->first)[c];
-    double pc = wrms_->second[index]->capillaryPressure(sat_c[0][c]);
-    res_c[0][c] = std::max(wrms_->second[index]->k_relative(pc), min_val_);
+    res_c[0][c] = std::max(wrms_->second[index]->k_relative(sat_c[0][c]), min_val_);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
@@ -183,8 +182,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];
-      double pc = wrms_->second[index]->capillaryPressure(sat_bf[0][bf]);
-      res_bf[0][bf] = std::max(wrms_->second[index]->k_relative(pc), min_val_);
+      res_bf[0][bf] = std::max(wrms_->second[index]->k_relative(sat_bf[0][bf]), min_val_);
     }
   }
 
@@ -263,11 +261,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     int ncells = res_c.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
       int index = (*wrms_->first)[c];
-      double pc = wrms_->second[index]->capillaryPressure(sat_c[0][c]);
-      double dpc_dsl = wrms_->second[index]->d_capillaryPressure(sat_c[0][c]);
-      double kr = wrms_->second[index]->k_relative(pc);
-
-      res_c[0][c] = kr < 1. ? kr > min_val_ ? dpc_dsl * wrms_->second[index]->d_k_relative(pc) : 0. : 0.;
+      res_c[0][c] = wrms_->second[index]->d_k_relative(sat_c[0][c]);
       ASSERT(res_c[0][c] >= 0.);
     }
 
@@ -291,11 +285,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
         ASSERT(cells.size() == 1);
 
         int index = (*wrms_->first)[cells[0]];
-        double pc = wrms_->second[index]->capillaryPressure(sat_bf[0][bf]);
-        double dpc_dsl = wrms_->second[index]->d_capillaryPressure(sat_bf[0][bf]);
-        double kr = wrms_->second[index]->k_relative(pc);
-
-        res_bf[0][bf] = kr < 1. ? kr > min_val_ ? dpc_dsl * wrms_->second[index]->d_k_relative(pc) : 0. : 0.;
+        res_bf[0][bf] = wrms_->second[index]->d_k_relative(sat_bf[0][bf]);
         ASSERT(res_bf[0][bf] >= 0.);
       }
     }
