@@ -29,6 +29,10 @@ BGCSimple::BGCSimple(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     PKDefaultBase(plist, FElist, solution),
     ncells_per_col_(-1) {
 
+  // collect key names
+  shortwave_incoming_key_ = plist->get<std::string>("incoming shortwave radiation key", "incoming_shortwave_radiation");
+  shortwave_shaded_key_ = plist->get<std::string>("shaded shortwave radiation key", "shaded_shortwave_radiation");
+
   // set up additional primary variables -- this is very hacky...
   // -- transpiration
   Teuchos::ParameterList& trans_sublist =
@@ -38,8 +42,8 @@ BGCSimple::BGCSimple(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 
   // -- shortwave incoming shading
   Teuchos::ParameterList& sw_sublist =
-      FElist.sublist("shortwave_radiation_to_surface");
-  sw_sublist.set("evaluator name", "shortwave_radiation_to_surface");
+      FElist.sublist(shortwave_shaded_key_);
+  sw_sublist.set("evaluator name", shortwave_shaded_key_);
   sw_sublist.set("field evaluator type", "primary variable");
 
   // -- lai
@@ -47,7 +51,7 @@ BGCSimple::BGCSimple(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       FElist.sublist("total_leaf_area_index");
   lai_sublist.set("evaluator name", "total_leaf_area_index");
   lai_sublist.set("field evaluator type", "primary variable");
-  
+
 }
 
 // is a PK
@@ -145,11 +149,11 @@ void BGCSimple::setup(const Teuchos::Ptr<State>& S) {
     Exceptions::amanzi_throw(message);
   }
 
-  S->RequireField("shortwave_radiation_to_surface", name_)->SetMesh(surf_mesh_)
+  S->RequireField(shortwave_shaded_key_, name_)->SetMesh(surf_mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator("shortwave_radiation_to_surface");
+  S->RequireFieldEvaluator(shortwave_shaded_key_);
   sw_eval_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(
-      S->GetFieldEvaluator("shortwave_radiation_to_surface"));
+      S->GetFieldEvaluator(shortwave_shaded_key_));
   if (sw_eval_ == Teuchos::null) {
     Errors::Message message("BGC: error, failure to initialize primary variable for shaded shortwave");
     Exceptions::amanzi_throw(message);
@@ -192,8 +196,8 @@ void BGCSimple::setup(const Teuchos::Ptr<State>& S) {
   S->RequireFieldEvaluator("surface_cell_volume");
 
   // requirements: Met data
-  S->RequireFieldEvaluator("incoming_shortwave_radiation");
-  S->RequireField("incoming_shortwave_radiation")->SetMesh(surf_mesh_)
+  S->RequireFieldEvaluator(shortwave_incoming_key_);
+  S->RequireField(shortwave_incoming_key_)->SetMesh(surf_mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S->RequireFieldEvaluator("air_temperature");
@@ -355,7 +359,7 @@ bool BGCSimple::advance(double dt) {
       ->ViewComponent("cell",false);
   Epetra_MultiVector& trans = *S_next_->GetFieldData("transpiration", name_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& sw = *S_next_->GetFieldData("shortwave_radiation_to_surface", name_)
+  Epetra_MultiVector& sw = *S_next_->GetFieldData(shortwave_shaded_key_, name_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& biomass = *S_next_->GetFieldData("total_biomass", name_)
       ->ViewComponent("cell",false);
@@ -378,8 +382,8 @@ bool BGCSimple::advance(double dt) {
   const Epetra_MultiVector& pres = *S_inter_->GetFieldData("pressure")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("incoming_shortwave_radiation")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& qSWin = *S_inter_->GetFieldData("incoming_shortwave_radiation")
+  S_inter_->GetFieldEvaluator(shortwave_incoming_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  const Epetra_MultiVector& qSWin = *S_inter_->GetFieldData(shortwave_incoming_key_)
       ->ViewComponent("cell",false);
 
   S_inter_->GetFieldEvaluator("air_temperature")->HasFieldChanged(S_inter_.ptr(), name_);

@@ -109,6 +109,10 @@ class BGCSimple : public PKPhysicalBase {
   Teuchos::RCP<PrimaryVariableFieldEvaluator> sw_eval_;
   Teuchos::RCP<PrimaryVariableFieldEvaluator> lai_eval_;
   
+  // keys
+  Key shortwave_incoming_key_;
+  Key shortwave_shaded_key_;
+
   // extras
   double lat_;
   double wind_speed_ref_ht_;
