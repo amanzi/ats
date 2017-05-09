@@ -397,9 +397,9 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
   if (precon_type_ == PRECON_NONE) {
     // nothing to do
   } else if (precon_type_ == PRECON_BLOCK_DIAGONAL) {
-    StrongMPC::UpdatePreconditioner(t,up,h);
+    StrongMPC<PKPhysicalBDFBase>::UpdatePreconditioner(t,up,h);
   } else if (precon_type_ == PRECON_PICARD || precon_type_ == PRECON_EWC) {
-    StrongMPC::UpdatePreconditioner(t,up,h);
+    StrongMPC<PKPhysicalBDFBase>::UpdatePreconditioner(t,up,h);
 
     // Update operators for off-diagonals
     dWC_dT_block_->Init();
@@ -644,7 +644,7 @@ int MPCSubsurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
     *Pu = *u;
     ierr = 1;
   } else if (precon_type_ == PRECON_BLOCK_DIAGONAL) {
-    ierr = StrongMPC::ApplyPreconditioner(u,Pu);
+    ierr = StrongMPC<PKPhysicalBDFBase>::ApplyPreconditioner(u,Pu);
   } else if (precon_type_ == PRECON_PICARD) {
     ierr = linsolve_preconditioner_->ApplyInverse(*u, *Pu);
   } else if (precon_type_ == PRECON_EWC) {
