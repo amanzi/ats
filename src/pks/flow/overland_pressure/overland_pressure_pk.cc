@@ -153,6 +153,10 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   mfd_plist.set("nonlinear coefficient", coef_location);
   if (!mfd_plist.isParameter("scaled constraint equation"))
     mfd_plist.set("scaled constraint equation", true);
+  if (mfd_plist.isParameter("Newton correction")) {
+    Errors::Message message("OverlandPressureFlow PK: The forward operator for Diffusion should not set a \"Newton correction\" term, perhaps you meant to put this in a \"Diffusion PC\" sublist.");
+    Exceptions::amanzi_throw(message);
+  }    
   
   Operators::OperatorDiffusionFactory opfactory;
   matrix_diff_ = opfactory.Create(mfd_plist, mesh_, bc_);
