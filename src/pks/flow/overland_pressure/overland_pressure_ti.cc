@@ -212,9 +212,11 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
   Teuchos::RCP<const CompositeVector> pres_elev = S_next_->GetFieldData("pres_elev");
   preconditioner_diff_->UpdateMatrices(Teuchos::null, pres_elev.ptr());
   if (jacobian_) { // && preconditioner_->RangeMap().HasComponent("face")) {
+//  if (jacobian_ && preconditioner_->RangeMap().HasComponent("face")) {
     Teuchos::RCP<CompositeVector> flux = S_next_->GetFieldData("surface-mass_flux", name_);
     preconditioner_diff_->UpdateFlux(*pres_elev, *flux);
-    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
+    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), pres_elev.ptr());
+//    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), Teuchos::null);
   }
 
   // 2. Accumulation shift
