@@ -143,7 +143,8 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
     S->RequireField("upwind_overland_conductivity", name_)->SetMesh(mesh_)
         ->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
   } else {
-    Errors::Message message("Unknown upwind coefficient location in overland flow.");
+    Errors::Message message;
+    message << name_ << ": Unknown upwind coefficient location in overland flow.";
     Exceptions::amanzi_throw(message);
   }
   S->GetField("upwind_overland_conductivity",name_)->set_io_vis(false);
@@ -154,7 +155,8 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   if (!mfd_plist.isParameter("scaled constraint equation"))
     mfd_plist.set("scaled constraint equation", true);
   if (mfd_plist.isParameter("Newton correction")) {
-    Errors::Message message("OverlandPressureFlow PK: The forward operator for Diffusion should not set a \"Newton correction\" term, perhaps you meant to put this in a \"Diffusion PC\" sublist.");
+    Errors::Message message;
+    message << name_ << ": The forward operator for Diffusion should not set a \"Newton correction\" term, perhaps you meant to put this in a \"Diffusion PC\" sublist.");
     Exceptions::amanzi_throw(message);
   }    
   
