@@ -23,15 +23,14 @@ PFT::PFT(std::string pft_type_, int ncells, double* brootcells_) :
 
 void PFT::Init(double col_area)
 {
+  Bleaf = 0.;
+  Bleafmemory = 0.;
+  Broot = 0.;
+  Bstem = 0.;
+  Bstore = 0.;
+
   
   SLA = 30;
-  leaf2rootratio = 1.0;
-  leaf2stemratio = 5;
-  Vcmax25 = 100;
-  Jmax25 = 200;
-  GDDleafon = 100;
-  GDDbase = 0.0;
-  GDD = 0.0;
   leaflitterfrc[0] = 0.1;
   leaflitterfrc[1] = 0.5;
   leaflitterfrc[1] = 0.4;
@@ -41,39 +40,69 @@ void PFT::Init(double col_area)
   stemlitterfrc[0] = 0.05;
   stemlitterfrc[1] = 0.15;
   stemlitterfrc[1] = 0.8;
-  LUE = 0.06;
-  LER = 0.8;
-  mp = 9.0;
-  GPP = 0.0;
-  ET = 0.0; 
-  annNPP = 0.0;
-  NPP = 0.0;
+
+  leaf2rootratio = 1.0;
+  leaf2stemratio = 5;
   root2leafrespratio = 0.8;
   stem2leafrespratio = 0.05;
-  maxRootD = 0.5;
-  minLeafWP = -2.0;
-  storagecleaf2sw = 1.5;
-  storagecroot2sw = 15;
   rootlongevity = 10.0;
   leaflongevity = 4.0;
   stemlongevity = 100.0;
-  tar_leafstorageccon = 0.2;
+
+  Vcmax25 = 100;
   Emax25 = 0.1*Vcmax25;
+  Jmax25 = 200;
+  
+  GDDleafon = 100;
+  GDDbase = 0.0;
+  GDD = 0.0;
+
+  mResp = 0.;
+  gResp = 0.;
+
+  annNPP = 0.0;
+  GPP = 0.0;
+  NPP = 0.0;
+  ET = 0.0; 
+
+  leafstatus = 1;
+  evergreen = false;
+  
+  LUE = 0.06;
+  LER = 0.8;
+  mp = 9.0;
+  swpo = -0.5;
+  swpc = -2.5; 
+
+  lai = 0.;
+  laimemory = 0.;
+  totalBiomass = 0.;
+  maxRootD = 0.5;
+  rootD = 0.;
+
+  minLeafWP = -2.0;
+  storagecleaf2sw = 1.5;
+  storagecroot2sw = 15;
+  tar_leafstorageccon = 0.2;
   gRespF = 0.25;
   storagecRspFrc = 0.8;
-  leafstatus = 1;
+
+  bleafon = 0.;
+  bleafoff = 0;
   leafondays = 5;
   leafoffdays = 5;
   leafoffdaysi = 365.25;
   leafondaysi = 0;
+
   CSinkLimit = 0.0;
   seedrainlai = 0.01;
   maxLAI = 1;
-  swpo = -0.5;
-  swpc = -2.5; 
 
   for (int i = 0; i < 10; i++){
     annCBalance[i] = 0;
+  }
+  for (int c = 0; c != BRootSoil.Length(); ++c) {
+    BRootSoil[c] = 0.;
   }
 }
 
@@ -124,7 +153,7 @@ void PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
   int nSoilLayers = SoilTArr.Length();
   double initPermD = PermafrostDepth(SoilTArr,SoilThicknessArr,273.15);
   //rootD = std::min(maxRootD, initPermD);
-  rootD = std::min(maxRootD, 0.3);//es following Xu's advice - 0.3m accounts for the previous year root depth that will contribute to this yr Broot. Note that if spinning data exists feed in last year's root depth instead of 0.3.
+  rootD = 0.8*maxRootD; //es following Xu's advice - 0.8 * maxRootD accounts for the previous year root depth that will contribute to this yr Broot. Note that if spinning data exists feed in last year's root depth instead of this.
  
   double totalweights = 0.0;
   for (int c=0; c!=nSoilLayers; ++c) {
