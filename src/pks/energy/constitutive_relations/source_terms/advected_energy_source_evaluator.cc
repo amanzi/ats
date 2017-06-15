@@ -48,7 +48,7 @@ AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       ->ViewComponent("cell",false);
   const Epetra_MultiVector& int_dens = *S->GetFieldData(internal_density_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& ext_dens = *S->GetFieldData(internal_density_key_)
+  const Epetra_MultiVector& ext_dens = *S->GetFieldData(external_density_key_)
       ->ViewComponent("cell",false);
 
   const Epetra_MultiVector& cv = *S->GetFieldData(cell_vol_key_)
