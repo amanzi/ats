@@ -156,7 +156,7 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
     mfd_plist.set("scaled constraint equation", true);
   if (mfd_plist.isParameter("Newton correction")) {
     Errors::Message message;
-    message << name_ << ": The forward operator for Diffusion should not set a \"Newton correction\" term, perhaps you meant to put this in a \"Diffusion PC\" sublist.");
+    message << name_ << ": The forward operator for Diffusion should not set a \"Newton correction\" term, perhaps you meant to put this in a \"Diffusion PC\" sublist.";
     Exceptions::amanzi_throw(message);
   }    
   
