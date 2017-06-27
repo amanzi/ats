@@ -7,8 +7,6 @@
 
 
 include_directories(${Amanzi_TPL_MSTK_INCLUDE_DIRS})
-#include($ENV{AMANZI_SRC_DIR}/tools/cmake/RegisterEvaluators.cmake)
-#message($ENV{AMANZI_SRC_DIR}/tools/cmake)
 add_definitions("-DMSTK_HAVE_MPI")
 
 list(APPEND subdirs wrm porosity overland_conductivity elevation water_content)
