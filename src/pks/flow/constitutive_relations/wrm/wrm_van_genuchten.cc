@@ -42,7 +42,7 @@ double WRMVanGenuchten::k_relative(double s) {
   } else if (s == 1.0) {
     return 1.0;
   } else {
-    return fit_(s);
+    return fit_kr_(s);
   }
 }
 
@@ -69,7 +69,7 @@ double WRMVanGenuchten::d_k_relative(double s) {
   } else if (s == 1.0) {
     return 0.0;
   } else {
-    return fit_.Derivative(s);
+    return fit_kr_.Derivative(s);
   }
 }
 
@@ -78,10 +78,12 @@ double WRMVanGenuchten::d_k_relative(double s) {
  * Saturation formula (3.5)-(3.6).
  ****************************************************************** */
 double WRMVanGenuchten::saturation(double pc) {
-  if (pc > 0.0) {
+  if (pc > pc0_) {
     return std::pow(1.0 + std::pow(alpha_*pc, n_), -m_) * (1.0 - sr_) + sr_;
-  } else {
+  } else if (pc <= 0.) {
     return 1.0;
+  } else {
+    return fit_s_(pc);
   }
 }
 
@@ -90,10 +92,12 @@ double WRMVanGenuchten::saturation(double pc) {
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
 double WRMVanGenuchten::d_saturation(double pc) {
-  if (pc > 0.0) {
+  if (pc > pc0_) {
     return -m_*n_ * std::pow(1.0 + std::pow(alpha_*pc, n_), -m_-1.0) * std::pow(alpha_*pc, n_-1) * alpha_ * (1.0 - sr_);
-  } else {
+  } else if (pc <= 0.) {
     return 0.0;
+  } else {
+    return fit_s_.Derivative(pc);
   }
 }
 
@@ -167,10 +171,14 @@ void WRMVanGenuchten::InitializeFromPlist_() {
   
   s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);
   if (s0_ < 1.) {
-    fit_.Setup(s0_, k_relative(s0_), d_k_relative(s0_),
+    fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_),
 	       1.0, 1.0, 0.0);
   }  
-  
+
+  pc0_ = plist_.get<double>("saturation smoothing interval [Pa]", 0.0);
+  if (pc0_ > 0.) {
+    fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_));
+  }  
 };
 
 }  // namespace

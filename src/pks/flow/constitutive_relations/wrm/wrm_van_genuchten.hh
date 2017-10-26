@@ -61,7 +61,10 @@ public:
 
   int function_;
   double s0_;  // regularization threshold in saturation
-  Amanzi::Utils::Spline fit_;
+  Amanzi::Utils::Spline fit_kr_;
+
+  double pc0_;
+  Amanzi::Utils::Spline fit_s_;
   
 
   static Utils::RegisteredFactory<WRM,WRMVanGenuchten> factory_;
