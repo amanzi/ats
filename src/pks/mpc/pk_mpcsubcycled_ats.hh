@@ -49,6 +49,7 @@ public:
   double master_dt_;
   double slave_dt_;
   double min_dt_;
+  bool subcycling;
 
   // states
   Teuchos::RCP<State> S_;

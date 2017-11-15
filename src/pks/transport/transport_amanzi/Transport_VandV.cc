@@ -132,7 +132,7 @@ void Transport_PK_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
           int dir, c = cells[0];
 
           const AmanziGeometry::Point& normal = mesh_->face_normal(f, false, c, &dir);
-          double u = (*flux)[0][f] * dir;
+          double u = (*flux_)[0][f] * dir;
           if (u > 0) solute_flux += u * tcc_next[i][c];
         }
       }
@@ -208,7 +208,7 @@ void Transport_PK_ATS::VV_CheckInfluxBC() const
         if (i == tcc_index[k]) {
           for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
             int f = it->first;
-            if ((*flux)[0][f] < 0 && influx_face[f] == 0) {
+            if ((*flux_)[0][f] < 0 && influx_face[f] == 0) {
               char component[3];
               std::sprintf(component, "%3d", i);
 
@@ -306,7 +306,7 @@ double Transport_PK_ATS::VV_SoluteVolumeChangePerSecond(int idx_tracer)
           int c2 = (*downwind_cell_)[f];
 
           if (f < nfaces_owned && c2 >= 0) {
-            double u = fabs((*flux)[0][f]);
+            double u = fabs((*flux_)[0][f]);
             volume += u * values[i];
           }
         }
@@ -341,7 +341,10 @@ double Transport_PK_ATS::ComputeSolute(const Epetra_MultiVector& tcc_next, int i
   double mass_solute(0.0);
   for (int c = 0; c < ncells_owned; c++) {
     double vol = mesh_->cell_volume(c);
-    mass_solute += (*ws_)[0][c] * (*phi_)[0][c] * tcc_next[i][c] * vol * (*mol_dens_)[0][c];
+    mass_solute += (*ws_end)[0][c] * (*phi_)[0][c] * tcc_next[i][c] * vol * (*mol_dens_end)[0][c];
+    // if (tcc_next[i][c] > 1e-16)
+    //   std::cout<<std::setprecision(12)<<"masscompute "<<MyPID<<" cell "<<c<<": "<<(*phi_)[0][c]<<" "
+    //            <<(*ws_end)[0][c]<<" "<< (*mol_dens_end)[0][c]<<" "<<tcc_next[i][c]<<"--"<<mesh_->cell_centroid(c)<<"\n";
   }
   //mass_solute /= units_.concentration_factor();
 

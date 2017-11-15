@@ -248,11 +248,11 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   Teuchos::RCP<CompositeVector> tcc_tmp;  // next tcc
   Teuchos::RCP<CompositeVector> tcc;  // smart mirrow of tcc 
-  Teuchos::RCP<Epetra_MultiVector> vol_flux;
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_;
-  Teuchos::RCP<const Epetra_MultiVector> flux;
+  Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
-  
+  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
+    
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
   Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine_;

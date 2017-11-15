@@ -16,12 +16,13 @@
 
 #include "Teuchos_RCP.hpp"
 
-#include "pk_mpcsubcycled_ats.hh"
+//#include "pk_mpcsubcycled_ats.hh"
+#include "weak_mpc.hh"
 #include "PK.hh"
 
 namespace Amanzi {
 
-  class CoupledTransport_PK: public PK_MPCSubcycled_ATS {
+  class CoupledTransport_PK: public WeakMPC{
 
   public: 
     CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
@@ -33,16 +34,16 @@ namespace Amanzi {
     // PK methods
     // -- dt is the minimum of the sub pks
     virtual double get_dt();
-    virtual void set_dt(double dt);
+    //virtual void set_dt(double dt);
     virtual void Setup(const Teuchos::Ptr<State>& S);
     virtual void Initialize(const Teuchos::Ptr<State>& S);
 
     // -- advance each sub pk from t_old to t_new.
     virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
 
-    virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+    //virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
 
-    std::string name() { return "surface subsurface transport";} 
+    std::string name() { return name_;} 
 
   private:
 
@@ -56,9 +57,9 @@ namespace Amanzi {
 
     Teuchos::RCP<Teuchos::ParameterList> surface_transport_list_;
     Teuchos::RCP<Teuchos::ParameterList> subsurface_transport_list_;
+    int subsurf_id_, surf_id_;
 
-
-    Key vol_darcy_key_, surf_vol_darcy_key_;
+    Key subsurface_flux_key_, surface_flux_key_;
     Key surface_name_, subsurface_name_;
     Key mass_darcy_key, surf_mass_darcy_key;
     Key mol_density_key, surf_mol_density_key;

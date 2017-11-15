@@ -82,13 +82,15 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
   fail = sub_pks_[master_]->AdvanceStep(t_old, t_new, reinit);
   fail |= !sub_pks_[master_]->ValidStep();
   
-  if (fail) return fail;
+  if (fail) {
+    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os()<<"Master step is failed\n";
+    return fail;
+  }
 
   //return fail;
-
   master_dt_ = t_new - t_old;
-
   sub_pks_[master_]->CommitStep(t_old, t_new, S_next_);
+  if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os()<<"Master step is successful\n";
 
   slave_dt_ = sub_pks_[slave_]->get_dt();
 
@@ -119,9 +121,9 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
       // -- etc: unclear if state should be commited or not?
       // set the intermediate time
       S_ -> set_intermediate_time(t_old + dt_done + dt_next);
-      S_next_ -> set_intermediate_time(t_old + dt_done + dt_next);
-      //sub_pks_[slave_]->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_);
-      sub_pks_[slave_]->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
+      //S_next_ -> set_intermediate_time(t_old + dt_done + dt_next);
+      sub_pks_[slave_]->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_);
+      //sub_pks_[slave_]->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
       dt_done += dt_next;
     }
 
@@ -133,8 +135,10 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
 
   if (std::abs(t_old + dt_done - t_new) / (t_new - t_old) < 0.1*min_dt_) {
     // done, success
+    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os()<<"Slave step is successful\n";
     return false;
   } else {
+    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os()<<"Slave step is failed\n";
     return true;
   }  
 }
