@@ -5,6 +5,22 @@ ATS
 
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
+
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="diffusive flux">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="outward diffusive flux">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0."/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
 ------------------------------------------------------------------------- */
 
 #ifndef AMANZI_ENERGY_BC_FACTORY_HH_

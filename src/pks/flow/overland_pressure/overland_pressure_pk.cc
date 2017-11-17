@@ -113,6 +113,7 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   Teuchos::ParameterList bc_plist = plist_->sublist("boundary conditions", true);
   FlowBCFactory bc_factory(mesh_, bc_plist);
   bc_head_ = bc_factory.CreateHead();
+  bc_pressure_ = bc_factory.CreatePressure();
   bc_zero_gradient_ = bc_factory.CreateZeroGradient();
   bc_flux_ = bc_factory.CreateMassFlux();
   bc_seepage_head_ = bc_factory.CreateWithFunction("seepage face head", "boundary head");
@@ -429,6 +430,7 @@ void OverlandPressureFlow::initialize(const Teuchos::Ptr<State>& S) {
 
   // Initialize BC values
   bc_head_->Compute(S->time());
+  bc_pressure_->Compute(S->time());
   bc_zero_gradient_->Compute(S->time());
   bc_flux_->Compute(S->time());
   bc_seepage_head_->Compute(S->time());
@@ -470,6 +472,7 @@ void OverlandPressureFlow::commit_state(double dt, const Teuchos::RCP<State>& S)
 
   // update boundary conditions
   bc_head_->Compute(S->time());
+  bc_pressure_->Compute(S->time());
   bc_flux_->Compute(S->time());
   bc_seepage_head_->Compute(S->time());
   bc_seepage_pressure_->Compute(S->time());
@@ -689,6 +692,64 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     int f = bc->first;
     bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
     bc_values_[f] = bc->second + elevation[0][f];
+  }
+
+  // Pressure BCs require a change in coordinates from pressure to head
+  if (bc_pressure_->size() > 0) {
+
+    S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
+
+    const Epetra_MultiVector& h_cells = *S->GetFieldData(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell");
+    const Epetra_MultiVector& elevation_cells = *S->GetFieldData(Keys::getKey(domain_,"elevation"))->ViewComponent("cell");
+    const Epetra_MultiVector& rho_l = *S->GetFieldData(Keys::getKey(domain_,"mass_density_liquid"))->ViewComponent("cell");
+    double gz = -(*S->GetConstantVectorData("gravity"))[2];
+    const double& p_atm = *S->GetScalarData("atmospheric_pressure");
+
+    if (S->HasFieldEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+      // thermal model of height
+      const Epetra_MultiVector& eta = *S->GetFieldData(Keys::getKey(domain_,"unfrozen_fraction"))->ViewComponent("cell");
+      const Epetra_MultiVector& rho_i = *S->GetFieldData(Keys::getKey(domain_,"mass_density_ice"))->ViewComponent("cell");
+
+      for (Functions::BoundaryFunction::Iterator bc = bc_pressure_->begin(); 
+           bc != bc_pressure_->end(); ++bc) {
+        int f = bc->first;
+        mesh_->face_get_cells(f, AmanziMesh::USED, &cells);
+        int c = cells[0];
+
+        double p0 = bc->second > p_atm ? bc->second : p_atm;
+        double h0 = (p0 - p_atm) / ((eta[0][c]*rho_l[0][c] + (1.-eta[0][c])*rho_i[0][c]) * gz);
+        double dz = elevation_cells[0][c] - elevation[0][f];
+
+        bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
+        bc_values_[f] = h0 + elevation[0][f];
+      }
+
+    } else {
+      // non-thermal model
+      for (Functions::BoundaryFunction::Iterator bc = bc_pressure_->begin(); 
+           bc != bc_pressure_->end(); ++bc) {
+        int f = bc->first;
+        mesh_->face_get_cells(f, AmanziMesh::USED, &cells);
+        int c = cells[0];
+
+        double p0 = bc->second > p_atm ? bc->second : p_atm;
+        double h0 = (p0 - p_atm) / (rho_l[0][c] * gz);
+        double dz = elevation_cells[0][c] - elevation[0][f];
+
+        bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
+        bc_values_[f] = h0 + elevation[0][f];
+      }
+    }
+  }
+  
+  // Head BCs for fixed water level
+  for (Functions::BoundaryFunction::Iterator bc=bc_level_->begin();
+       bc!=bc_level_->end(); ++bc) {
+    int f = bc->first;
+    bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
+    double val = bc->second;
+    if (elevation[0][f] > val) bc_values_[f] = 0;
+    else bc_values_[f] = val;
   }
 
   // Standard Neumann data for flux
