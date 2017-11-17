@@ -237,6 +237,8 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
         *S->GetFieldData(enthalpy_key_)->ViewComponent("cell",false);
     const Epetra_MultiVector& enth_subsurf =
         *S->GetFieldData("enthalpy")->ViewComponent("cell",false);
+    const Epetra_MultiVector& pd =
+        *S->GetFieldData("ponded_depth")->ViewComponent("cell",false);
 
     AmanziMesh::Entity_ID_List cells;
 
@@ -251,7 +253,11 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
         S->GetMesh()->face_get_cells(f, AmanziMesh::USED, &cells);
         ASSERT(cells.size() == 1);
 
-        g_c[0][c] -= flux * enth_subsurf[0][cells[0]];
+        if (pd[0][c] > 0) {
+          g_c[0][c] -= flux * enth_subsurf[0][cells[0]];
+        } else {
+          g_c[0][c] -= flux * enth_surf[0][c];
+        }
       } else { // infiltration
         g_c[0][c] -= flux * enth_surf[0][c];
       }
