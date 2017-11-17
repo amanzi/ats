@@ -277,18 +277,21 @@ void UpdateMassBalance(const SEB& seb, MassBalance& mb, EnergyBalance& eb, SnowP
     mb.MWg_temp = (seb.in.met.vp_air.temp > 273.15) ? seb.in.met.vp_air.temp: 273.15;
     mb.MWg = seb.in.met.Pr;
     mb.MWg_subsurf = 0.;
-    if (mb.Me > 0.) {
-      mb.MWg += mb.Me;
 
-    } else {
-      double surf_p = seb.in.vp_ground.pressure;
-      double trans_factor = surf_p > seb.params.Apa*1000. ? 0. :
-          surf_p < seb.params.Apa*1000. - seb.params.evap_transition_width ? 1. :
-          (seb.params.Apa*1000. - surf_p) / seb.params.evap_transition_width;
 
-      mb.MWg += (1-trans_factor) * mb.Me;
-      mb.MWg_subsurf += trans_factor * mb.Me;
-    }
+    mb.MWg += mb.Me;    
+    // if (mb.Me > 0.) {
+    //   mb.MWg += mb.Me;
+
+    // } else {
+    //   double surf_p = seb.in.vp_ground.pressure;
+    //   double trans_factor = surf_p > seb.params.Apa*1000. ? 0. :
+    //       surf_p < seb.params.Apa*1000. - seb.params.evap_transition_width ? 1. :
+    //       (seb.params.Apa*1000. - surf_p) / seb.params.evap_transition_width;
+
+    //      mb.MWg += (1-trans_factor) * mb.Me;
+    //      mb.MWg_subsurf += trans_factor * mb.Me;
+    // }
   }
 
   if (debug) {
