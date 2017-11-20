@@ -584,13 +584,19 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
 
-  bool update_perm = S->GetFieldEvaluator("overland_conductivity")
-      ->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S, name_);
+  // this is an ugly hack to get boundary conditions into conductivities
+  bool update_perm = S->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S, name_);
+  Teuchos::RCP<CompositeVector> pd = S->GetFieldData("ponded_depth","ponded_depth");
+  Teuchos::RCP<const CompositeVector> elev = S->GetFieldData("elevation");
+  ApplyBoundaryConditions_(pd.ptr(), elev.ptr());
+
   update_perm |= S->GetFieldEvaluator("pres_elev")->HasFieldChanged(S, name_);
+  update_perm |= S->GetFieldEvaluator("overland_conductivity")
+      ->HasFieldChanged(S, name_);
   update_perm |= perm_update_required_;
 
   if (update_perm) {
+  
     // Update the perm only if needed.
     perm_update_required_ = false;
 
@@ -603,25 +609,6 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
         S->GetFieldData("surface-mass_flux_direction", name_);
     Teuchos::RCP<const CompositeVector> pres_elev = S->GetFieldData("pres_elev");
     face_matrix_diff_->UpdateFlux(*pres_elev, *flux_dir);
-
-    // get conductivity data
-    Teuchos::RCP<const CompositeVector> cond = S->GetFieldData("overland_conductivity");
-    const Epetra_MultiVector& cond_c = *cond->ViewComponent("cell",false);
-
-    // place internal cell's value on faces -- this should be fixed to be the boundary data
-    { // place boundary_faces on faces
-      Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face",false);
-
-      AmanziMesh::Entity_ID_List cells;
-      int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::OWNED);
-      for (int f=0; f!=nfaces_owned; ++f) {
-        mesh_->face_get_cells(f, AmanziMesh::USED, &cells);
-        if (cells.size() == 1) {
-          int c = cells[0];
-          uw_cond_f[0][f] = cond_c[0][c];
-        }
-      }
-    }
 
     // Then upwind.  This overwrites the boundary if upwinding says so.
     upwinding_->Update(S);
@@ -696,19 +683,18 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
   // Pressure BCs require a change in coordinates from pressure to head
   if (bc_pressure_->size() > 0) {
+    S->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S.ptr(), name_);
 
-    S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
-
-    const Epetra_MultiVector& h_cells = *S->GetFieldData(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell");
-    const Epetra_MultiVector& elevation_cells = *S->GetFieldData(Keys::getKey(domain_,"elevation"))->ViewComponent("cell");
-    const Epetra_MultiVector& rho_l = *S->GetFieldData(Keys::getKey(domain_,"mass_density_liquid"))->ViewComponent("cell");
+    const Epetra_MultiVector& h_cells = *S->GetFieldData("ponded_depth")->ViewComponent("cell");
+    const Epetra_MultiVector& elevation_cells = *S->GetFieldData("elevation")->ViewComponent("cell");
+    const Epetra_MultiVector& rho_l = *S->GetFieldData("surface-mass_density_liquid")->ViewComponent("cell");
     double gz = -(*S->GetConstantVectorData("gravity"))[2];
     const double& p_atm = *S->GetScalarData("atmospheric_pressure");
 
-    if (S->HasFieldEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+    if (S->HasFieldEvaluator("surface-mass_density_ice")) {
       // thermal model of height
-      const Epetra_MultiVector& eta = *S->GetFieldData(Keys::getKey(domain_,"unfrozen_fraction"))->ViewComponent("cell");
-      const Epetra_MultiVector& rho_i = *S->GetFieldData(Keys::getKey(domain_,"mass_density_ice"))->ViewComponent("cell");
+      const Epetra_MultiVector& eta = *S->GetFieldData("surface-unfrozen_fraction")->ViewComponent("cell");
+      const Epetra_MultiVector& rho_i = *S->GetFieldData("surface-mass_density_ice")->ViewComponent("cell");
 
       for (Functions::BoundaryFunction::Iterator bc = bc_pressure_->begin(); 
            bc != bc_pressure_->end(); ++bc) {
@@ -718,7 +704,6 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
         double p0 = bc->second > p_atm ? bc->second : p_atm;
         double h0 = (p0 - p_atm) / ((eta[0][c]*rho_l[0][c] + (1.-eta[0][c])*rho_i[0][c]) * gz);
-        double dz = elevation_cells[0][c] - elevation[0][f];
 
         bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
         bc_values_[f] = h0 + elevation[0][f];
@@ -734,7 +719,6 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
         double p0 = bc->second > p_atm ? bc->second : p_atm;
         double h0 = (p0 - p_atm) / (rho_l[0][c] * gz);
-        double dz = elevation_cells[0][c] - elevation[0][f];
 
         bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
         bc_values_[f] = h0 + elevation[0][f];
@@ -742,16 +726,6 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     }
   }
   
-  // Head BCs for fixed water level
-  for (Functions::BoundaryFunction::Iterator bc=bc_level_->begin();
-       bc!=bc_level_->end(); ++bc) {
-    int f = bc->first;
-    bc_markers_[f] = Operators::OPERATOR_BC_DIRICHLET;
-    double val = bc->second;
-    if (elevation[0][f] > val) bc_values_[f] = 0;
-    else bc_values_[f] = val;
-  }
-
   // Standard Neumann data for flux
   for (Functions::BoundaryFunction::Iterator bc=bc_flux_->begin();
        bc!=bc_flux_->end(); ++bc) {
@@ -885,6 +859,40 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     }
   } 
 }
+
+
+// -----------------------------------------------------------------------------
+// Add a boundary marker to owned faces.
+// -----------------------------------------------------------------------------
+void
+OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u,
+        const Teuchos::Ptr<const CompositeVector>& elev) {
+  if (u->HasComponent("face")) {
+    const Epetra_MultiVector& elevation = *elev->ViewComponent("face");
+
+    Epetra_MultiVector& u_f = *u->ViewComponent("face",false);
+    unsigned int nfaces = u_f.MyLength();
+    for (unsigned int f=0; f!=nfaces; ++f) {
+      if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {
+        u_f[0][f] = (bc_values_[f] - elevation[0][f]);
+      }
+    }
+  } else if (u->HasComponent("boundary_face")) {
+    const Epetra_MultiVector& elevation = *elev->ViewComponent("face");
+
+    const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
+    const Epetra_Map& face_map = mesh_->face_map(false);
+
+    Epetra_MultiVector& u_bf = *u->ViewComponent("boundary_face",false);
+    unsigned int nfaces = u_bf.MyLength();
+    for (unsigned int bf=0; bf!=nfaces; ++bf) {
+      AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+      if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {
+        u_bf[0][bf] = (bc_values_[f] - elevation[0][f]);
+      }
+    }
+  }    
+};
 
 
 void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S) {

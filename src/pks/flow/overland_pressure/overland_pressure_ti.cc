@@ -81,10 +81,13 @@ void OverlandPressureFlow::Functional( double t_old,
   solution_to_state(*u_new, S_next_);
 
   // update boundary conditions
-  bc_head_->Compute(t_new);
-  bc_flux_->Compute(t_new);
-  bc_seepage_head_->Compute(t_new);
-  bc_seepage_pressure_->Compute(t_new);
+  bc_head_->Compute(S_next_->time());
+  bc_pressure_->Compute(S_next_->time());
+  bc_zero_gradient_->Compute(S_next_->time());
+  bc_flux_->Compute(S_next_->time());
+  bc_seepage_head_->Compute(S_next_->time());
+  bc_seepage_pressure_->Compute(S_next_->time());
+  bc_critical_depth_->Compute(S_next_->time());
   UpdateBoundaryConditions_(S_next_.ptr());
 
   // diffusion term, treated implicitly
