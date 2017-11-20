@@ -693,7 +693,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
     if (S->HasFieldEvaluator("surface-mass_density_ice")) {
       // thermal model of height
-      const Epetra_MultiVector& eta = *S->GetFieldData("surface-unfrozen_fraction")->ViewComponent("cell");
+      const Epetra_MultiVector& eta = *S->GetFieldData("unfrozen_fraction")->ViewComponent("cell");
       const Epetra_MultiVector& rho_i = *S->GetFieldData("surface-mass_density_ice")->ViewComponent("cell");
 
       for (Functions::BoundaryFunction::Iterator bc = bc_pressure_->begin(); 
