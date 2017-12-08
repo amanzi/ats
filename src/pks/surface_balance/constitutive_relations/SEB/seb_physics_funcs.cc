@@ -120,11 +120,11 @@ void UpdateEnergyBalance(const SEB& seb, const ThermoProperties& vp_surf, Energy
 
   // Calculate heat conducted to ground, if snow
   if (seb.in.snow_old.ht > 0.) {
-    double Ks = 2.9e-6 * std::pow(seb.in.snow_old.density,2);
+    double Ks = seb.params.snoK * 1e-4 * std::pow(seb.in.snow_old.density,seb.params.snoKX);
     double snow_hoar_density = 0;
     if(seb.in.snow_old.density>150){
       snow_hoar_density = 1/((0.90/seb.in.snow_old.density)+(0.10/150));
-      Ks = 2.9e-6 * std::pow(snow_hoar_density,2);
+      Ks = seb.params.snoK * 1e-4 * std::pow(snow_hoar_density,seb.params.snoKX);
     }
     eb.fQc = Ks * (vp_surf.temp - seb.in.vp_ground.temp) / seb.in.snow_old.ht;
   }

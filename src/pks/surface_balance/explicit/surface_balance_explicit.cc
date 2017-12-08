@@ -58,6 +58,10 @@ SurfaceBalanceExplicit::SurfaceBalanceExplicit(
   // min wind speed
   min_wind_speed_ = plist_->get<double>("minimum wind speed", 1.0);
 
+  // snow thermal conductivity model parameters
+  snow_lambda_fresh_ = plist_->get<double>("thermal conductivity of fresh snow [W/m K]", 0.029);
+  snow_lambda_exponent_ = plist_->get<double>("thermal conductivity aging exponent for snow", 2.0);
+
   // transition snow depth
   snow_ground_trans_ = plist_->get<double>("snow-ground transitional depth", 0.02);
   min_snow_trans_ = plist_->get<double>("minimum snow transitional depth", 1.e-8);
@@ -338,6 +342,10 @@ SurfaceBalanceExplicit::advance(double dt) {
 
       seb.in.vp_snow.temp = 273.15;
 
+      // -- snow thermal conductivity parameters
+      seb.params.snoK = snow_lambda_fresh_;
+      seb.params.snoKX = snow_lambda_exponent_;
+
       // -- met data
       seb.in.met.Us = std::max(wind_speed[0][c], min_wind_speed_);
       seb.in.met.QswIn = incoming_shortwave[0][c];
@@ -430,6 +438,10 @@ SurfaceBalanceExplicit::advance(double dt) {
       seb.in.met.Pr = precip_rain[0][c];
       seb.in.met.vp_air.temp = air_temp[0][c];
       seb.in.met.vp_air.relative_humidity = relative_humidity[0][c];
+
+      // -- snow thermal conductivity parameters
+      seb.params.snoK = snow_lambda_fresh_;
+      seb.params.snoKX = snow_lambda_exponent_;
 
       // -- smoothed/interpolated surface properties
       SEBPhysics::SurfaceParams surf_pars;

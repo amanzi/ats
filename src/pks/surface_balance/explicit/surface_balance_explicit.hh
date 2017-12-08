@@ -62,6 +62,8 @@ public:
   double min_wind_speed_;
   double snow_ground_trans_;
   double min_snow_trans_;
+  double snow_lambda_fresh_;
+  double snow_lambda_exponent_;
 
   Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh_;
 

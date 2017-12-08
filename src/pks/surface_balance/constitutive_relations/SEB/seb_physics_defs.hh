@@ -119,6 +119,10 @@ struct ModelParams {
   double evap_transition_width;
   double gravity;
 
+  // snow thermal conductivity parameters
+  double snoK;
+  double snoKX;
+
   ModelParams() :
       density_air(1.275),       // [kg/m^3]
       density_freshsnow(100.),  // [kg/m^3]
@@ -132,7 +136,9 @@ struct ModelParams {
       stephB(0.00000005670373), // Stephan-Boltzmann constant ------- [W/m^2 K^4]
       Apa(101.325),             // atmospheric pressure ------------- [kPa]
       evap_transition_width(100.), // transition on evaporation from surface to evaporation from subsurface [m]
-      gravity(9.807) {}         // gravity [kg m / s^2]
+      gravity(9.807),           // gravity [kg m / s^2]
+      snoK(0.029),              // thermal conductivity of snow at rho=100kg/m^3  [W/m K]
+      snoKX(2) {}               // exponent used to describe thermal conductivity as a function of snow density [-]
 };
 
 
