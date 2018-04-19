@@ -31,32 +31,32 @@ UpwindGravityFlux::UpwindGravityFlux(std::string pkname,
 void UpwindGravityFlux::Update(const Teuchos::Ptr<State>& S,
                                const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const Epetra_Vector> g_vec = S->GetConstantVectorData("gravity");
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *g_vec, face.ptr());
+  const CompositeVector& cell = S->Get<CompositeVector>(cell_coef_);
+  const Epetra_Vector& g_vec = S->Get<Epetra_Vector>("gravity");
+  CompositeVector& face = S->GetW<CompositeVector>(face_coef_, pkname_);
+  CalculateCoefficientsOnFaces(cell, g_vec, face);
 };
 
 
 void UpwindGravityFlux::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const Epetra_Vector& g_vec,
-        const Teuchos::Ptr<CompositeVector>& face_coef) {
+        CompositeVector& face_coef) {
 
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> dirs;
   double flow_eps = 1.e-10;
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // set up gravity
   AmanziGeometry::Point gravity(g_vec.MyLength());
   for (int i=0; i!=g_vec.MyLength(); ++i) gravity[i] = g_vec[i];
 
   // initialize the face coefficients
-  face_coef->ViewComponent("face",true)->PutScalar(0.0);
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  face_coef.ViewComponent("face",true)->PutScalar(0.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // Note that by scattering, and then looping over all USED cells, we
@@ -68,7 +68,7 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   // communicate ghosted cells
   cell_coef.ScatterMasterToGhosted("cell");
 
-  Epetra_MultiVector& face_coef_v = *face_coef->ViewComponent("face",true);
+  Epetra_MultiVector& face_coef_v = *face_coef.ViewComponent("face",true);
   const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent("cell",true);
 
 

@@ -35,24 +35,24 @@ UpwindFluxHarmonicMean::UpwindFluxHarmonicMean(std::string pkname,
 
 void UpwindFluxHarmonicMean::Update(const Teuchos::Ptr<State>& S,
                              const Teuchos::Ptr<Debugger>& db) {
-
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *flux, face.ptr(), db);
+  
+  const CompositeVector& cell = S->Get<CompositeVector>(cell_coef_);
+  const CompositeVector& flux = S->Get<CompositeVector>(flux_);
+  CompositeVector& face = S->GetW<CompositeVector>(face_coef_, pkname_);
+  CalculateCoefficientsOnFaces(cell, flux, face, db);
 };
 
 
 void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const CompositeVector& flux,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
+        CompositeVector& face_coef,
         const Teuchos::Ptr<Debugger>& db) {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // communicate needed ghost values
@@ -60,14 +60,14 @@ void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
 
   // pull out vectors
   const Epetra_MultiVector& flux_v = *flux.ViewComponent("face",false);
-  Epetra_MultiVector& coef_faces = *face_coef->ViewComponent("face",false);
+  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face",false);
   const Epetra_MultiVector& coef_cells = *cell_coef.ViewComponent("cell",true);
 
   // Identify upwind/downwind cells for each local face.  Note upwind/downwind
   // may be a ghost cell.
-  Epetra_IntVector upwind_cell(*face_coef->ComponentMap("face",true));
+  Epetra_IntVector upwind_cell(*face_coef.ComponentMap("face",true));
   upwind_cell.PutValue(-1);
-  Epetra_IntVector downwind_cell(*face_coef->ComponentMap("face",true));
+  Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face",true));
   downwind_cell.PutValue(-1);
 
   AmanziMesh::Entity_ID_List faces;
@@ -103,7 +103,7 @@ void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
   // These parameters may be key to a smooth convergence rate near zero flux.
   double coefs[2];
 
-  int nfaces = face_coef->size("face",false);
+  int nfaces = face_coef.size("face",false);
   for (int f=0; f!=nfaces; ++f) {
     int uw = upwind_cell[f];
     int dw = downwind_cell[f];

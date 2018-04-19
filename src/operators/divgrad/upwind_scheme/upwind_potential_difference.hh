@@ -40,7 +40,7 @@ public:
         const CompositeVector& cell_coef,
         const CompositeVector& potential,
         const CompositeVector& overlap,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+        CompositeVector& face_coef);
 
   virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S, 

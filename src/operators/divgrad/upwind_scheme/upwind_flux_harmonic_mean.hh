@@ -38,7 +38,7 @@ public:
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const CompositeVector& flux,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
+        CompositeVector& face_coef,
         const Teuchos::Ptr<Debugger>& db);
 
   virtual void

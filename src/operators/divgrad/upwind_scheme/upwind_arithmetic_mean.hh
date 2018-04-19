@@ -38,7 +38,7 @@ public:
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+        CompositeVector& face_coef);
 
   virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S, 

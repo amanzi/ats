@@ -30,12 +30,12 @@ UpwindCellCentered::UpwindCellCentered(std::string pkname,
 void UpwindCellCentered::Update(const Teuchos::Ptr<State>& S,
                                   const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  const CompositeVector& cell = S->Get<CompositeVector>(cell_coef_);
+  CompositeVector& face = S->GetW<CompositeVector>(face_coef_, pkname_);
 
-  *face->ViewComponent("cell") = *cell->ViewComponent("cell");
-  if (face->HasComponent("face")) {
-    face->ViewComponent("face",true)->PutScalar(1.0);
+  *face.ViewComponent("cell") = *cell.ViewComponent("cell");
+  if (face.HasComponent("face")) {
+    face.ViewComponent("face",true)->PutScalar(1.0);
   }
 };
 

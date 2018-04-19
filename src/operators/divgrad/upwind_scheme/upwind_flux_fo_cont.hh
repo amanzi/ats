@@ -45,7 +45,7 @@ public:
         const CompositeVector& slope,
         const CompositeVector& manning_coef,
         const CompositeVector& elevation,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
+        CompositeVector& face_coef,
         const Teuchos::Ptr<Debugger>& db);
 
   virtual void
