@@ -17,41 +17,44 @@ namespace Relations {
 
 
 SurfaceTopCellsEvaluator::SurfaceTopCellsEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondary(plist) {
+  
   if (boost::starts_with(my_key_, "surface"))
     dependency_key_ = plist_.get<std::string>("subsurface key", my_key_.substr(8,my_key_.size()));
   else
     dependency_key_ = plist_.get<std::string>("subsurface key");
-  dependencies_.insert(dependency_key_);
+
+  dependency_tag_key_ = plist_.get<std::string>("subsurface tag key", "");
+  
+  dependencies_.insert(dependencies_.end(), std::make_pair(dependency_key_, dependency_tag_key_));
 }
 
 SurfaceTopCellsEvaluator::SurfaceTopCellsEvaluator(const SurfaceTopCellsEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondary(other),
     dependency_key_(other.dependency_key_) {}
 
-Teuchos::RCP<FieldEvaluator>
-SurfaceTopCellsEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> SurfaceTopCellsEvaluator::Clone() const {
   return Teuchos::rcp(new SurfaceTopCellsEvaluator(*this));
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
-void
-SurfaceTopCellsEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-  Teuchos::RCP<const CompositeVector> sub_vector = S->GetFieldData(dependency_key_);
-  const Epetra_MultiVector& sub_vector_cells = *sub_vector->ViewComponent("cell",false);
-  Epetra_MultiVector& result_cells = *result->ViewComponent("cell",false);
+// Required methods from EvaluatorSecondary
+void SurfaceTopCellsEvaluator::Evaluate_(const State& S,
+                                         CompositeVector& result) {
+  
+  const CompositeVector& sub_vector = S.Get<CompositeVector>(dependency_key_);
+  const Epetra_MultiVector& sub_vector_cells = *sub_vector.ViewComponent("cell",false);
+  Epetra_MultiVector& result_cells = *result.ViewComponent("cell",false);
 
 
-  int ncells_surf = result->Mesh()->num_entities(AmanziMesh::CELL,
-          AmanziMesh::OWNED);
+  int ncells_surf = result.Mesh()->num_entities(AmanziMesh::CELL,
+                                                AmanziMesh::OWNED);
   for (unsigned int c=0; c!=ncells_surf; ++c) {
     // get the face on the subsurface mesh
-    AmanziMesh::Entity_ID f = result->Mesh()->entity_get_parent(AmanziMesh::CELL, c);
+    AmanziMesh::Entity_ID f = result.Mesh()->entity_get_parent(AmanziMesh::CELL, c);
 
     // get the cell interior to the face
     AmanziMesh::Entity_ID_List cells;
-    sub_vector->Mesh()->face_get_cells(f, AmanziMesh::USED, &cells);
+    sub_vector.Mesh()->face_get_cells(f, AmanziMesh::USED, &cells);
     ASSERT(cells.size() == 1);
 
     result_cells[0][c] = sub_vector_cells[0][cells[0]];
@@ -60,16 +63,19 @@ SurfaceTopCellsEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-SurfaceTopCellsEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
+SurfaceTopCellsEvaluator::EnsureCompatibility(State& S) {
   // Ensure my field exists.  Requirements should be already set.  Claim ownership.
   ASSERT(!my_key_.empty());
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  
+  CompositeVectorSpace& my_fac =
+    S.Require<CompositeVector,CompositeVectorSpace>(my_key_, my_tag_, my_key_);
 
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
+  S.GetRecordW(my_key_, my_tag_, my_key_).set_io_vis(io_my_key);
   bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+my_key_, false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
+  S.GetRecordW(my_key_, my_tag_, my_key_).set_io_checkpoint(checkpoint_my_key);
+
 }
 
 

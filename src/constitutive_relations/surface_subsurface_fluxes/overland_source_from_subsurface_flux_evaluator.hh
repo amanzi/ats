@@ -10,14 +10,14 @@
 #ifndef AMANZI_RELATIONS_OVERLAND_SOURCE_FROM_SUBSURFACE_FLUX_EVALUATOR_HH_
 #define AMANZI_RELATIONS_OVERLAND_SOURCE_FROM_SUBSURFACE_FLUX_EVALUATOR_HH_
 
-#include "FieldEvaluator_Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "Evaluator_Factory.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Relations {
 
 class OverlandSourceFromSubsurfaceFluxEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondary<CompositeVector, CompositeVectorSpace> {
 
  public:
   explicit
@@ -25,19 +25,20 @@ class OverlandSourceFromSubsurfaceFluxEvaluator :
 
   OverlandSourceFromSubsurfaceFluxEvaluator(const OverlandSourceFromSubsurfaceFluxEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
   // custom ensure compatibility as all data is not just on the same components
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual void EnsureCompatibility(State& S);
 
 protected:
   // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+                         CompositeVector& result);
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key, const Key& wrt_tag,
+                                          CompositeVector& result);
 
-  void IdentifyFaceAndDirection_(const Teuchos::Ptr<State>& S);
+  void IdentifyFaceAndDirection_(const State& S);
 
   typedef std::pair<int, double> FaceDir;
   Teuchos::RCP<std::vector<FaceDir> > face_and_dirs_;
@@ -50,7 +51,7 @@ protected:
   Key subsurface_mesh_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,OverlandSourceFromSubsurfaceFluxEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,OverlandSourceFromSubsurfaceFluxEvaluator> fac_;
 
 };
 

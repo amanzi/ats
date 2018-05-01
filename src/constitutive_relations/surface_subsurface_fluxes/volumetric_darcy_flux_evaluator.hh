@@ -8,14 +8,14 @@
 #ifndef AMANZI_RELATIONS_VOL_DARCY_FLUX_HH_
 #define AMANZI_RELATIONS_VOL_DARCY_FLUX_HH_
 
-#include "FieldEvaluator_Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "Evaluator_Factory.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Relations {
 
 class Volumetric_FluxEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondary<CompositeVector, CompositeVectorSpace> {
 
  public:
   explicit
@@ -24,23 +24,23 @@ class Volumetric_FluxEvaluator :
   Volumetric_FluxEvaluator(const Volumetric_FluxEvaluator& other);
 
   // custom ensure compatibility as all data is not just on the same components
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual void EnsureCompatibility(State& S) override;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from SecondaryVariableEvaluator
+  virtual void Evaluate_(const State& S,
+                         CompositeVector& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key, const Key& wrt_tag, CompositeVector& result) override;
 
-  Key flux_key_;
-  Key dens_key_;
-  Key mesh_key_;
+  Key flux_key_, flux_tag_key_;
+  Key dens_key_, dens_tag_key_;
+  Key mesh_key_, mesh_tag_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,Volumetric_FluxEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,Volumetric_FluxEvaluator> fac_;
 
 };
 
