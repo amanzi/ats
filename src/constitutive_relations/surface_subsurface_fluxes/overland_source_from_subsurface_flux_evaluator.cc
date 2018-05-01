@@ -25,7 +25,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvalu
   // since we cannot have flux as a dependency (it has no model), we have to
   // use pressure as a proxy.
   Key pres_key = plist_.get<std::string>("pressure key", "pressure");
-  dependencies_.insert(dependencies_.end(), std::make_pair(pres_key,my_tag_));
+  dependencies_.emplace_back( std::make_pair(pres_key,my_tag_));
 
   // this can be used by both OverlandFlow PK, which uses a volume basis to
   // conserve mass, or OverlandHeadPK, which uses the standard molar basis.
@@ -34,7 +34,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvalu
   volume_basis_ = plist_.get<bool>("volume basis", false);
   if (volume_basis_) {
     dens_key_ = plist_.get<std::string>("molar density key", "molar_density_liquid");
-    dependencies_.insert(dependencies_.end(), std::make_pair(dens_key_, my_tag_));
+    dependencies_.emplace_back( std::make_pair(dens_key_, my_tag_));
   }
 
   surface_mesh_key_ = plist_.get<std::string>("surface mesh key", "surface");

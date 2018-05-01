@@ -26,7 +26,7 @@ SurfaceTopCellsEvaluator::SurfaceTopCellsEvaluator(Teuchos::ParameterList& plist
 
   dependency_tag_key_ = plist_.get<std::string>("subsurface tag key", "");
   
-  dependencies_.insert(dependencies_.end(), std::make_pair(dependency_key_, dependency_tag_key_));
+  dependencies_.emplace_back(std::make_pair(dependency_key_, dependency_tag_key_));
 }
 
 SurfaceTopCellsEvaluator::SurfaceTopCellsEvaluator(const SurfaceTopCellsEvaluator& other) :
