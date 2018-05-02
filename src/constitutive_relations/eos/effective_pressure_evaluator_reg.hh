@@ -13,7 +13,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,EffectivePressureEvaluator> EffectivePressureEvaluator::factory_("effective_pressure");
+Utils::RegisteredFactory<Evaluator,EffectivePressureEvaluator> EffectivePressureEvaluator::factory_("effective_pressure");
 
 }
 }

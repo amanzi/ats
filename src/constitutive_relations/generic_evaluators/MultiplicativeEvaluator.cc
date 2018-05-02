@@ -10,38 +10,38 @@ namespace Amanzi {
 namespace Relations {
 
 MultiplicativeEvaluator::MultiplicativeEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondary(plist) {
   coef_ = plist_.get<double>("coefficient", 1.0);
 }
 
 MultiplicativeEvaluator::MultiplicativeEvaluator(const MultiplicativeEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondary(other),
     coef_(other.coef_)
 {}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 MultiplicativeEvaluator::Clone() const
 {
   return Teuchos::rcp(new MultiplicativeEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondary
 void
-MultiplicativeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+MultiplicativeEvaluator::Evaluate_(const State& S,
+                                   CompositeVector& result)
 {
   ASSERT(dependencies_.size() > 1);
-  KeySet::const_iterator key = dependencies_.begin();
-  *result = *S->GetFieldData(*key);
-  result->Scale(coef_);
+  auto  key = dependencies_.begin();
+  result = S.Get<CompositeVector>((*key).first, (*key).second);
+  result.Scale(coef_);
   key++;
 
   for (; key!=dependencies_.end(); ++key) {
-    Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(*key);
-    for (CompositeVector::name_iterator lcv=result->begin(); lcv!=result->end(); ++lcv) {
-      Epetra_MultiVector& res_c = *result->ViewComponent(*lcv, false);
-      const Epetra_MultiVector& dep_c = *dep->ViewComponent(*lcv, false);
+    const CompositeVector& dep = S.Get<CompositeVector>((*key).first, (*key).second);
+    for (CompositeVector::name_iterator lcv=result.begin(); lcv!=result.end(); ++lcv) {
+      Epetra_MultiVector& res_c = *result.ViewComponent(*lcv, false);
+      const Epetra_MultiVector& dep_c = *dep.ViewComponent(*lcv, false);
 
       for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
     }
@@ -49,23 +49,25 @@ MultiplicativeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 void
-MultiplicativeEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
+                                                    const Key& wrt_key,
+                                                    const Key& wrt_tag,
+                                                    CompositeVector& result)
 {
   ASSERT(dependencies_.size() > 1);
 
-  KeySet::const_iterator key = dependencies_.begin();
-  while (*key == wrt_key) key++;
-  *result = *S->GetFieldData(*key);
-  result->Scale(coef_);
+  auto  key = dependencies_.begin();
+  while ((*key).first == wrt_key) key++;
+  result = S.Get<CompositeVector>((*key).first, (*key).second);;
+  result.Scale(coef_);
   key++;
 
   for (; key!=dependencies_.end(); ++key) {
-    if (*key != wrt_key) {
-      Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(*key);
-      for (CompositeVector::name_iterator lcv=result->begin(); lcv!=result->end(); ++lcv) {
-        Epetra_MultiVector& res_c = *result->ViewComponent(*lcv, false);
-        const Epetra_MultiVector& dep_c = *dep->ViewComponent(*lcv, false);
+    if ((*key).first != wrt_key) {
+      const CompositeVector& dep = S.Get<CompositeVector>((*key).first, (*key).second);
+      for (CompositeVector::name_iterator lcv=result.begin(); lcv!=result.end(); ++lcv) {
+        Epetra_MultiVector& res_c = *result.ViewComponent(*lcv, false);
+        const Epetra_MultiVector& dep_c = *dep.ViewComponent(*lcv, false);
 
         for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
       }

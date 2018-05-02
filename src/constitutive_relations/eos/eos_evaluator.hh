@@ -30,23 +30,25 @@ class EOSEvaluator : public EvaluatorSecondaries {
   EOSEvaluator(const EOSEvaluator& other);
   virtual Teuchos::RCP<Evaluator> Clone()  const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void Update_(State& S) override;
-  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Key& wrt_tag) override;
 
-  virtual bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Key& wrt_tag) const override {
-    return false;
-  }
-  
-  virtual void EnsureCompatibility(State& S) override {};
-  
+  // Required methods from SecondaryVariableFieldEvaluator
+  // virtual void Update_(State& S) override;
+  // virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Key& wrt_tag) override;
+    
   Teuchos::RCP<EOS> get_EOS() { return eos_; }
  protected:
-  // the actual model
+
+  // These do the actual work
+  virtual void Evaluate_(const State& S,
+                         const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key, const Key& wrt_tag,
+                                          const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+
+    // the actual model
   Teuchos::RCP<EOS> eos_;
   EOSMode mode_;
 
-  Key tag_;
   // Keys for fields
   // dependencies
   Key temp_key_;

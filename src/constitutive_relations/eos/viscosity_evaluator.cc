@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondary(plist) {
 
   // my keys
   if (my_key_ == std::string("")) {
@@ -27,7 +27,7 @@ ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist) :
   // -- temperature
   temp_key_ = plist_.get<std::string>("temperature key",
           Keys::getKey(domain_name, "temperature"));
-  dependencies_.insert(temp_key_);
+  dependencies_.emplace_back(std::make_pair(temp_key_, my_tag_));
 
   // Construct my Viscosity model
   ASSERT(plist_.isSublist("viscosity model parameters"));
@@ -37,28 +37,27 @@ ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist) :
 
 
 ViscosityEvaluator::ViscosityEvaluator(const ViscosityEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondary(other),
     visc_(other.visc_),
     temp_key_(other.temp_key_) {}
 
 
-Teuchos::RCP<FieldEvaluator> ViscosityEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> ViscosityEvaluator::Clone() const {
   return Teuchos::rcp(new ViscosityEvaluator(*this));
 }
 
 
-void ViscosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-                         const Teuchos::Ptr<CompositeVector>& result) {
+void ViscosityEvaluator::Evaluate_(const State& S,
+                                   CompositeVector& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  const CompositeVector& temp = S.Get<CompositeVector>(temp_key_);
 
   // evaluate p_s / p_atm
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp=result.begin(); comp!=result.end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp.ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result.ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result.size(*comp);
     for (int id=0; id!=count; ++id) {
       ASSERT(temp_v[0][id] > 200.);
       result_v[0][id] = visc_->Viscosity(temp_v[0][id]);
@@ -67,21 +66,22 @@ void ViscosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void ViscosityEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void ViscosityEvaluator::EvaluatePartialDerivative_(
+                                                    const State& S, const Key& wrt_key, const Key& wrt_tag,
+                                                    CompositeVector& result) {
   ASSERT(wrt_key == temp_key_);
-
+  ASSERT(wrt_tag == my_tag_);
+  
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  const CompositeVector& temp = S.Get<CompositeVector>(temp_key_);
 
   // evaluate d/dT( p_s / p_atm )
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp=result.begin();
+       comp!=result.end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp.ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result.ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result.size(*comp);
     for (int id=0; id!=count; ++id) {
       result_v[0][id] = visc_->DViscosityDT(temp_v[0][id]);
     }

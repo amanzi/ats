@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,MolarFractionGasEvaluator> MolarFractionGasEvaluator::factory_("molar fraction gas");
+Utils::RegisteredFactory<Evaluator,MolarFractionGasEvaluator> MolarFractionGasEvaluator::factory_("molar fraction gas");
 
 } // namespace
 } // namespace

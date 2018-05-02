@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,MultiplicativeEvaluator> MultiplicativeEvaluator::factory_("multiplicative evaluator");
+Utils::RegisteredFactory<Evaluator,MultiplicativeEvaluator> MultiplicativeEvaluator::factory_("multiplicative evaluator");
 
 } // namespace
 } // namespace

@@ -8,12 +8,12 @@
 #define AMANZI_RELATIONS_MULTIPLICATIVE_EVALUATOR_
 
 #include "factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class MultiplicativeEvaluator : public SecondaryVariableFieldEvaluator {
+class MultiplicativeEvaluator : public EvaluatorSecondary<CompositeVector, CompositeVectorSpace> {
 
  public:
   // constructor format for all derived classes
@@ -21,19 +21,19 @@ class MultiplicativeEvaluator : public SecondaryVariableFieldEvaluator {
   MultiplicativeEvaluator(Teuchos::ParameterList& plist);
   MultiplicativeEvaluator(const MultiplicativeEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  void EvaluateField_(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<CompositeVector>& result);
-  void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondary
+  void Evaluate_(const State& S,
+                      CompositeVector& result);
+  void EvaluatePartialDerivative_(const State& S,
+                                       const Key& wrt_key, const Key& wrt_tag, CompositeVector& result);
 
  protected:
   double coef_;
   
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,MultiplicativeEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,MultiplicativeEvaluator> factory_;
 };
 
 } // namespace

@@ -1,7 +1,7 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 
 /*
-  EOSFieldEvaluator is the interface between state/data and the model, an EOS.
+  EOSEvaluator is the interface between state/data and the model, an EOS.
 
   License: BSD
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,IsobaricEOSEvaluator> IsobaricEOSEvaluator::factory_("isobaric eos");
+Utils::RegisteredFactory<Evaluator,IsobaricEOSEvaluator> IsobaricEOSEvaluator::factory_("isobaric eos");
 
 } // namespace
 } // namespace

@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 MolarFractionGasEvaluator::MolarFractionGasEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondary(plist) {
 
   // set up the actual model
   ASSERT(plist_.isSublist("vapor pressure model parameters"));
@@ -39,35 +39,35 @@ MolarFractionGasEvaluator::MolarFractionGasEvaluator(Teuchos::ParameterList& pli
   
   temp_key_= plist_.get<std::string>("temperature key",
                                      Keys::getKey(domain_name,"temperature"));
-  dependencies_.insert(temp_key_);
+  dependencies_.emplace_back(std::make_pair(temp_key_, my_tag_));
 }
 
 
 MolarFractionGasEvaluator::MolarFractionGasEvaluator(const MolarFractionGasEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondary(other),
     sat_vapor_model_(other.sat_vapor_model_),
     temp_key_(other.temp_key_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 MolarFractionGasEvaluator::Clone() const {
   return Teuchos::rcp(new MolarFractionGasEvaluator(*this));
 }
 
 
-void MolarFractionGasEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+void MolarFractionGasEvaluator::Evaluate_(const State& S,
+                                          CompositeVector& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  const double& p_atm = *(S->GetScalarData("atmospheric_pressure"));
+  const CompositeVector& temp = S.Get<CompositeVector>(temp_key_, my_tag_);
+  const double& p_atm = S.Get<double>("atmospheric_pressure");
 
   // evaluate p_s / p_atm
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp=result.begin();
+       comp!=result.end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp.ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result.ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result.size(*comp);
     for (int id=0; id!=count; ++id) {
       ASSERT(temp_v[0][id] > 200.);
       result_v[0][id] = sat_vapor_model_->SaturatedVaporPressure(temp_v[0][id]) / p_atm;
@@ -76,22 +76,23 @@ void MolarFractionGasEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void MolarFractionGasEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void MolarFractionGasEvaluator::EvaluatePartialDerivative_(
+                                                           const State& S, const Key& wrt_key, const Key& wrt_tag,
+                                                           CompositeVector& result) {
   ASSERT(wrt_key == temp_key_);
+  ASSERT(wrt_tag == my_tag_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  const double& p_atm = *(S->GetScalarData("atmospheric_pressure"));
+  const CompositeVector& temp = S.Get<CompositeVector>(temp_key_, wrt_tag);
+  const double& p_atm = S.Get<double>("atmospheric_pressure");
 
   // evaluate d/dT( p_s / p_atm )
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp=result.begin();
+       comp!=result.end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp.ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result.ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result.size(*comp);
     for (int id=0; id!=count; ++id) {
       result_v[0][id] = sat_vapor_model_->DSaturatedVaporPressureDT(temp_v[0][id]) / p_atm;
     }

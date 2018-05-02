@@ -11,26 +11,27 @@
 #define AMANZI_RELATIONSRELATIONS_MOLAR_FRACTION_GAS_
 
 #include "vapor_pressure_relation.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Relations {
 
 // Equation of State model
-class MolarFractionGasEvaluator : public SecondaryVariableFieldEvaluator {
+class MolarFractionGasEvaluator : public EvaluatorSecondary<CompositeVector, CompositeVectorSpace> {
 
  public:
   explicit
   MolarFractionGasEvaluator(Teuchos::ParameterList& plist);
 
   MolarFractionGasEvaluator(const MolarFractionGasEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondary
+  virtual void Evaluate_(const State& S,
+                         CompositeVector& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key, const Key& wrt_tag,
+                                          CompositeVector& result) override;
 
   Teuchos::RCP<VaporPressureRelation> get_VaporPressureRelation() {
     return sat_vapor_model_; }
@@ -41,7 +42,7 @@ class MolarFractionGasEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<VaporPressureRelation> sat_vapor_model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,MolarFractionGasEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,MolarFractionGasEvaluator> factory_;
 
 };
 
