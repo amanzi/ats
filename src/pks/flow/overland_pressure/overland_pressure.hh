@@ -90,6 +90,7 @@ May inherit options from PKPhysicalBDFBase_.
 #include "Operator.hh"
 #include "OperatorDiffusion.hh"
 #include "OperatorAccumulation.hh"
+#include "LinearOperatorFactory.hh"
 
 //#include "pk_factory_ats.hh"
 //#include "pk_physical_bdf_base.hh"

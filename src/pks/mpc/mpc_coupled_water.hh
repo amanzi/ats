@@ -38,7 +38,7 @@ directly added into the subsurface discrete equations.
 #include "Operator.hh"
 #include "mpc_delegate_water.hh"
 #include "pk_physical_bdf_default.hh"
-
+#include "LinearOperatorFactory.hh"
 #include "strong_mpc.hh"
 
 namespace Amanzi {

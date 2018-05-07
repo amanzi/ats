@@ -114,6 +114,7 @@ May inherit options from PKPhysicalBDFBase_
 #include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
+#include "LinearOperatorFactory.hh"
 #include "OperatorDiffusionFactory.hh"
 #include "OperatorAccumulation.hh"
 
