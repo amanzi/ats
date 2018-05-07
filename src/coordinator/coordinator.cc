@@ -21,6 +21,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 
+#include "InputAnalysis.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "checkpoint.hh"
@@ -125,7 +126,22 @@ void Coordinator::coordinator_init() {
           ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension()); 
       }
     }
+
+    
+  // -------------- ANALYSIS --------------------------------------------
+    if (parameter_list_->isSublist("analysis")){
+      Amanzi::InputAnalysis analysis(mesh->second.first);
+      //analysis.Init(parameter_list_->sublist(mesh->first));
+      //std::cout<<mesh->first<<"\n";
+      analysis.Init(parameter_list_->sublist("analysis").sublist(mesh->first));
+      analysis.RegionAnalysis();
+      analysis.OutputBCs();
+    }
   }
+
+
+
+  
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
   
@@ -309,6 +325,9 @@ void Coordinator::initialize() {
   // set the states in the PKs
   //Teuchos::RCP<const State> cS = S_; // ensure PKs get const reference state
   pk_->set_states(S_, S_inter_, S_next_); // note this does not allow subcycling
+
+
+  
 }
 
 void Coordinator::finalize() {

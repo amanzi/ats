@@ -127,13 +127,14 @@ set(AMANZI_LIBS
                       amanzi_output
                       amanzi_mstk_mesh
 		      amanzi_mesh_logical
-              amanzi_geochemrxns
+                      amanzi_geochemrxns
 		      amanzi_geochembase
 		      amanzi_geochemutil
 		      amanzi_geochemsolvers
 		      amanzi_chemistry_pk
 		      amanzi_mpc_tree
 		      amanzi_transport
+                      amanzi_dbg
 )
 
 # set(GEOCHEM_LIBS 
