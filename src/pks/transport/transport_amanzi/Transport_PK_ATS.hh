@@ -121,7 +121,11 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   void VV_CheckInfluxBC() const;
   void VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
   double VV_SoluteVolumeChangePerSecond(int idx_solute);
-  double ComputeSolute(const Epetra_MultiVector& tcc_next, int idx);
+  double ComputeSolute(const Epetra_MultiVector& tcc, int idx);
+  double ComputeSolute(const Epetra_MultiVector& tcc,
+                       const Epetra_MultiVector& ws,
+                       const Epetra_MultiVector& den,
+                       int idx);
 
   void CalculateLpErrors(AnalyticFunction f, double t, Epetra_Vector* sol, double* L1, double* L2);
 
@@ -143,13 +147,13 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   // advection members
   void AdvanceDonorUpwind(double dT);
-  void AdvanceSecondOrderUpwindGeneric(double dT);
+  void AdvanceSecondOrderUpwindRKn(double dT);
   void AdvanceSecondOrderUpwindRK1(double dT);
   void AdvanceSecondOrderUpwindRK2(double dT);
   void Advance_Dispersion_Diffusion(double t_old, double t_new);
 
   // time integration members
-    void Functional(const double t, const Epetra_Vector& component, Epetra_Vector& f_component);
+  void Functional(const double t, const Epetra_Vector& component, Epetra_Vector& f_component);
     //  void Functional(const double t, const Epetra_Vector& component, TreeVector& f_component);
 
   void IdentifyUpwindCells();
@@ -233,6 +237,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
     Key porosity_key_;
     Key tcc_matrix_key_;
     Key molar_density_key_;
+    Key solid_residue_mass_key_;
 
   
  
@@ -248,7 +253,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   Teuchos::RCP<CompositeVector> tcc_tmp;  // next tcc
   Teuchos::RCP<CompositeVector> tcc;  // smart mirrow of tcc 
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_;
+  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
@@ -311,6 +316,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   std::vector<std::string> component_names_;  // details of components
   std::vector<double> mol_masses_;
   int num_aqueous, num_gaseous;
+  double water_tolerance_, max_tcc_;  
 
   // io
   Utils::Units units_;

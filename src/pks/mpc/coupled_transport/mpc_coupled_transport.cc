@@ -69,10 +69,10 @@ double CoupledTransport_PK::get_dt() {
   double subsurf_dt = sub_pks_[subsurf_id_]->get_dt();
 
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) {
+  //if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) {
     *vo_->os()<< "surface transport dt = "<<surf_dt<<"\n";
     *vo_->os()<< "sub surface transport dt = "<<subsurf_dt<<"\n";
-  }
+   //}
 
   double dt = std::min(surf_dt, subsurf_dt);
   set_dt(dt);

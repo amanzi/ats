@@ -24,6 +24,11 @@ namespace Transport {
  ****************************************************************** */
 void Transport_PK_ATS::Functional(const double t, const Epetra_Vector& component, Epetra_Vector& f_component)
 {
+
+  // distribute vector
+  
+  
+  
   // transport routines need an RCP pointer
   Teuchos::RCP<const Epetra_Vector> component_rcp(&component, false);
 
@@ -89,13 +94,24 @@ void Transport_PK_ATS::Functional(const double t, const Epetra_Vector& component
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
       f_component[c2] += tcc_flux;
-    } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
+    } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned)) {
       upwind_tcc = lifting_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
 
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
+    } else if (c1 >= 0 && c1 < ncells_owned && (c2 < 0)) {
+      upwind_tcc = component[c1];
+      upwind_tcc = std::max(upwind_tcc, umin);
+      upwind_tcc = std::min(upwind_tcc, umax);
+
+      tcc_flux = u * upwind_tcc;
+      f_component[c1] -= tcc_flux;
+      //if (abs(tcc_flux) > 1e-9)
+      // if ((mesh_->face_centroid(f)[0]>9.5)&&(mesh_->face_centroid(f)[0]<10.5)&& (abs(mesh_->face_centroid(f)[1]-0.5)<1e-6))
+      //   std::cout<<mesh_->get_comm()->MyPID()<<" c "<<c1<<" mass "<<tcc_flux<<" "<<mesh_->face_centroid(f)<<"\n";
+      
     } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
       upwind_tcc = lifting_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
@@ -105,15 +121,28 @@ void Transport_PK_ATS::Functional(const double t, const Epetra_Vector& component
       f_component[c2] += tcc_flux;
     }
   }
+                                                
 
   // process external sources
   if (srcs_.size() != 0) {
-    ComputeAddSourceTerms(t, 1.0, f_component, current_component_, current_component_);
+    ComputeAddSourceTerms(t, 1., f_component, current_component_, current_component_);
   }
 
-  for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity
+  // if (domain_name_ == "surface"){
+  //   double mass = 0., mass_mov_loc = 0;
+  //   for (int c = 0; c < ncells_owned; c++)  mass_mov_loc += f_component[c];
+  //   mesh_->get_comm()->SumAll(&mass_mov_loc, &mass, 1);
+  //   *vo_->os()<<"mass mov "<< mass<<"\n";
+  // }
+
+  for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity   
     double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
-    f_component[c] /= vol_phi_ws_den;
+    if ((*ws_start)[0][c] < 1e-12)
+      vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
+
+    if (vol_phi_ws_den > water_tolerance_){
+      f_component[c] /= vol_phi_ws_den;
+    }
   }
 
   // BOUNDARY CONDITIONS for ADVECTION
@@ -131,8 +160,19 @@ void Transport_PK_ATS::Functional(const double t, const Epetra_Vector& component
           if (c2 >= 0 && f < nfaces_owned) {
             u = fabs((*flux_)[0][f]);
             double vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_start)[0][c2] * (*mol_dens_start)[0][c2];
+            if ((*ws_start)[0][c2] < 1e-12)
+              vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_end)[0][c2] * (*mol_dens_end)[0][c2];
+
             tcc_flux = u * values[i];
-            f_component[c2] += tcc_flux / vol_phi_ws_den;
+
+            //if (abs(tcc_flux) > 1e-9)
+            // if ((mesh_->face_centroid(f)[0]>9.5)&&(mesh_->face_centroid(f)[0]<10.5))              
+            //   std::cout<<mesh_->get_comm()->MyPID()<<" c2 "<<c2<<" mass "<<tcc_flux<<" "<<mesh_->face_centroid(f)<<"\n";
+            
+            if (vol_phi_ws_den > water_tolerance_ ){
+              f_component[c2] += tcc_flux / vol_phi_ws_den;            
+            }
+            
           }
         }
       }
