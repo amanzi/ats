@@ -212,9 +212,13 @@ void Transport_PK_ATS::Setup(const Teuchos::Ptr<State>& S)
     S->RequireFieldEvaluator(porosity_key_);
   }
 
+  int ncomponents = component_names_.size();
+  std::vector<std::vector<std::string> > subfield_names(1);
+  subfield_names[0] = component_names_;
+  
   if (!S->HasField(solid_residue_mass_key_)){
     S->RequireField(solid_residue_mass_key_,  passwd_)->SetMesh(mesh_)->SetGhosted(true)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::CELL, ncomponents);
   }
 
   if (!S->HasField(molar_density_key_)){
@@ -230,9 +234,7 @@ void Transport_PK_ATS::Setup(const Teuchos::Ptr<State>& S)
     Exceptions::amanzi_throw(msg);  
   }
 
-  int ncomponents = component_names_.size();
-  std::vector<std::vector<std::string> > subfield_names(1);
-  subfield_names[0] = component_names_;
+
 
   S->RequireField(tcc_key_, passwd_, subfield_names)
       ->SetMesh(mesh_)->SetGhosted(true)

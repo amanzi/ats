@@ -142,6 +142,10 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
                              Teuchos::RCP<CompositeVector>& gradient, 
                              Teuchos::RCP<Epetra_Vector>& limiter);
 
+  const std::vector<std::string>  component_names(){return component_names_;};
+    int num_aqueous_component() {return num_aqueous;};
+    int num_gaseous_component() {return num_gaseous;};
+    
  private:
   void InitializeFields_(const Teuchos::Ptr<State>& S);
 

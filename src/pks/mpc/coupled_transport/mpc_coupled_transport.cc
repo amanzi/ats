@@ -140,8 +140,11 @@ bool CoupledTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit) {
   const Epetra_MultiVector& surf_tcc = *S_->GetFieldCopyData("surface-total_component_concentration", "subcycling")->ViewComponent("cell",false);  
   const Epetra_MultiVector& tcc = *S_->GetFieldCopyData("total_component_concentration", "subcycling")->ViewComponent("cell",false);
 
-  int num_components = 1;
-  std::vector<double> mass_subsurface(num_components, 0.), mass_surface(num_components, 0.);
+  const std::vector<std::string>&  component_names_sub =
+    Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[subsurf_id_])->component_names();
+
+  int num_components =  Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[subsurf_id_]) -> num_aqueous_component();
+   std::vector<double> mass_subsurface(num_components, 0.), mass_surface(num_components, 0.);
 
   
   if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM){

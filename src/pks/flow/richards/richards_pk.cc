@@ -361,6 +361,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
                                 ->SetComponent("face", AmanziMesh::FACE, 1);
   S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
                                 ->SetComponent("cell", AmanziMesh::CELL, 3);
+  //S->RequireFieldCopy(flux_key_, "next_timestep2", name_);
 
   
 }
@@ -833,6 +834,8 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr) 
   bc_counts.push_back(bc_flux_->size());
   bc_names.push_back(Keys::getKey(domain_,"flux"));
 
+  const Epetra_MultiVector& flux_test = *S->GetFieldData(flux_key_)->ViewComponent("face", true);
+
   if (!infiltrate_only_if_unfrozen_) {
     // Standard Neuman boundary conditions
     for (bc=bc_flux_->begin(); bc!=bc_flux_->end(); ++bc) {
@@ -845,7 +848,9 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr) 
 #endif
       bc_markers_[f] = Operators::OPERATOR_BC_NEUMANN;
       bc_values_[f] = bc->second;
+      //std::cout<<"BCval "<<f<<" "<< bc_values_[f]<<" flux "<<flux_test[0][f]<<" pnt "<<mesh_->face_centroid(f)<<"\n";
       if (!kr && rel_perm[0][f] > 0.) bc_values_[f] /= rel_perm[0][f];
+
     }
   } else {
     // Neumann boundary conditions that turn off if temp < freezing
