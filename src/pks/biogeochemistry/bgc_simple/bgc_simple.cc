@@ -389,24 +389,24 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   const Epetra_MultiVector& pres = *S_inter_->GetFieldData("pressure")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("surface-incoming_shortwave_radiation")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& qSWin = *S_inter_->GetFieldData("surface-incoming_shortwave_radiation")
+  S_next_->GetFieldEvaluator("surface-incoming_shortwave_radiation")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& qSWin = *S_next_->GetFieldData("surface-incoming_shortwave_radiation")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("surface-air_temperature")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& air_temp = *S_inter_->GetFieldData("surface-air_temperature")
+  S_next_->GetFieldEvaluator("surface-air_temperature")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& air_temp = *S_next_->GetFieldData("surface-air_temperature")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("surface-relative_humidity")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& rel_hum = *S_inter_->GetFieldData("surface-relative_humidity")
+  S_next_->GetFieldEvaluator("surface-relative_humidity")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& rel_hum = *S_next_->GetFieldData("surface-relative_humidity")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("surface-wind_speed")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& wind_speed = *S_inter_->GetFieldData("surface-wind_speed")
+  S_next_->GetFieldEvaluator("surface-wind_speed")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& wind_speed = *S_next_->GetFieldData("surface-wind_speed")
       ->ViewComponent("cell",false);
 
-  S_inter_->GetFieldEvaluator("surface-co2_concentration")->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& co2 = *S_inter_->GetFieldData("surface-co2_concentration")
+  S_next_->GetFieldEvaluator("surface-co2_concentration")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& co2 = *S_next_->GetFieldData("surface-co2_concentration")
       ->ViewComponent("cell",false);
 
   // note that this is used as the column area, which is maybe not always

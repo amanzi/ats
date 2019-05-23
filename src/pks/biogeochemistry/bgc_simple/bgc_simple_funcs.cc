@@ -68,10 +68,10 @@ namespace BGC {
   }
 
 
-  double PAR = met.qSWin * 2.3 * 24.0 *60.0 / daylen; // convert to PAR at the daytime
+  const double PAR = met.qSWin * 2.3 * 24.0 *60.0 / daylen; // convert to PAR at the daytime
 
   // determine the thaw depth
-  double thawD = PermafrostDepth(SoilTArr,SoilThicknessArr,273.15);
+  const double thawD = PermafrostDepth(SoilTArr,SoilThicknessArr,273.15);
 
 
   //----------------------------------------------------------------------
@@ -187,6 +187,8 @@ namespace BGC {
       //---------------------------------------------------------------------------------
       //calculate leaf projections and light attenuations
       double PARi0 = PAR;
+      // note loop dimensions range from 0 to current PFT.  This could be
+      // tracked and refactored out. --etc
       for (std::vector<Teuchos::RCP<PFT> >::iterator pft_other_iter=pftarr.begin();
            pft_other_iter!=pft_iter; ++pft_other_iter) {
         PARi0 *= std::exp(-(*pft_other_iter)->LER * (*pft_other_iter)->lai);
@@ -195,7 +197,7 @@ namespace BGC {
       //----------------------------------------------------------------
       // photosynthesis and respiration, no soil water limitation yet and need
       // to be implemented for more realistic simulation
-      double nleaflayers = std::ceil(pft.lai);
+      const double nleaflayers = std::ceil(pft.lai);
       double leafresptotal = 0.0;
 
       double psn = 0.;
@@ -219,9 +221,9 @@ namespace BGC {
       //=========================================================================
       //do photosynthesis and respirations
       double  Vcmax25 = pft.Vcmax25 * (1.0 - pft.CSinkLimit);
-      double  relRad; //relative radiation compared to the top of canopy
-      double  relCLNCa;  //relative leaf nitrogen content comapred to the top canopy
-      double  Vcmax25i; //Vcmax at each leaf layers 
+      double  relRad; // relative radiation compared to the top of canopy
+      double  relCLNCa; // relative leaf nitrogen content comapred to the top canopy
+      double  Vcmax25i; // Vcmax at each leaf layers 
       if (PAR>0.0) {
 	  for (int leaf_layer=0; leaf_layer!=max_leaf_layers; ++leaf_layer){
 	    relRad   = PARi/PAR;
@@ -277,7 +279,7 @@ namespace BGC {
 
         Photosynthesis(PARi, pft.LUE, pft.LER, p_atm,
                        met.windv,double(met.tair - 273.15), met.relhum, met.CO2a, pft.mp, Vcmax25i,
-                       &psn, &tleaf, &leafresp,&ET);
+                       &psn, &tleaf, &leafresp, &ET);
 
         if(met.tair<273.15) leafresp = leafresp/10.0; //winter hypbernation
 
