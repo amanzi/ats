@@ -569,7 +569,7 @@ void OverlandPressureFlow::CommitStep(double t_old, double t_new, const Teuchos:
   matrix_->Init();
   matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  FixBCsForOperator_(S.ptr()); // deals with zero gradient case
+  FixBCsForOperator_(S.ptr(), matrix_diff_.ptr()); // deals with zero gradient case
   matrix_diff_->ApplyBCs(true, true, true);
   
   // derive the fluxes
@@ -595,7 +595,7 @@ void OverlandPressureFlow::CalculateDiagnostics(const Teuchos::RCP<State>& S) {
   // update the stiffness matrix
   matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  FixBCsForOperator_(S.ptr()); // deals with zero gradient case
+  FixBCsForOperator_(S.ptr(), matrix_diff_.ptr()); // deals with zero gradient case
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
@@ -667,42 +667,45 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   bool update_perm = S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S, name_);
   
   // this is an ugly hack to get boundary conditions into conductivities
-  Teuchos::RCP<CompositeVector> pd = S->GetFieldData(Keys::getKey(domain_,"ponded_depth"),
-          Keys::getKey(domain_,"ponded_depth"));
+  Teuchos::RCP<CompositeVector> pd = S->GetFieldData(Keys::getKey(domain_,"ponded_depth"), Keys::getKey(domain_,"ponded_depth"));
   Teuchos::RCP<const CompositeVector> elev = S->GetFieldData(Keys::getKey(domain_,"elevation"));
   ApplyBoundaryConditions_(pd.ptr(), elev.ptr());
 
   update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"overland_conductivity"))
-      ->HasFieldChanged(S, name_);
-
+  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"overland_conductivity"))->HasFieldChanged(S, name_);
   update_perm |= perm_update_required_;
 
   if (update_perm) {
-  
     // Update the perm only if needed.
     perm_update_required_ = false;
     
-    // update the direction of the flux -- note this is NOT the flux
-    Teuchos::RCP<CompositeVector> flux_dir =
-      S->GetFieldData(Keys::getKey(domain_,"mass_flux_direction"), name_);
+    // update the direction of the flux -- note this is NOT the flux, but grad(h+z).
+    Teuchos::RCP<CompositeVector> flux_dir = S->GetFieldData(Keys::getKey(domain_,"mass_flux_direction"), name_);
     Teuchos::RCP<const CompositeVector> pres_elev = S->GetFieldData(Keys::getKey(domain_,"pres_elev"));
+
+    // -- note the matrices are constant coefficient, and do not change, but
+    //    the boundary local matrices have been overwritten with 0 by the last
+    //    call to ApplyBCs().  Recover the shadow matrices.
+    face_matrix_diff_->local_matrices()->CopyShadowToMaster();
+
+    // -- need to apply BCs to get boundary flux directions correct
+    FixBCsForOperator_(S.ptr(), face_matrix_diff_.ptr()); // deals with zero gradient condition
+    face_matrix_diff_->ApplyBCs(true, true, true);
+
+    // -- now we can calculate the flux direction
     face_matrix_diff_->UpdateFlux(pres_elev.ptr(), flux_dir.ptr());
 
-    // Then upwind.  This overwrites the boundary if upwinding says so.
+    // upwind
     // -- get upwind conductivity data
-    Teuchos::RCP<CompositeVector> uw_cond =
-      S->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity"), name_);
+    Teuchos::RCP<CompositeVector> uw_cond = S->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity"), name_);
 
     // -- get conductivity data
-    Teuchos::RCP<const CompositeVector> cond =
-      S->GetFieldData(Keys::getKey(domain_,"overland_conductivity"));
+    Teuchos::RCP<const CompositeVector> cond = S->GetFieldData(Keys::getKey(domain_,"overland_conductivity"));
     
     // -- Move rel perm on boundary_faces into uw_rel_perm on faces
-    const Epetra_Import& vandelay = mesh_->exterior_face_importer();
-    const Epetra_MultiVector& cond_bf =
-        *cond->ViewComponent("boundary_face",false);
     {
+      const Epetra_Import& vandelay = mesh_->exterior_face_importer();
+      const Epetra_MultiVector& cond_bf = *cond->ViewComponent("boundary_face",false);
       Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face",false);
       uw_cond_f.Export(cond_bf, vandelay, Insert);
     }
@@ -1002,24 +1005,33 @@ OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVecto
     const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
     const Epetra_Map& face_map = mesh_->face_map(false);
 
+    const Epetra_MultiVector& u_c = *u->ViewComponent("cell",false);
     Epetra_MultiVector& u_bf = *u->ViewComponent("boundary_face",false);
     unsigned int nfaces = u_bf.MyLength();
     for (unsigned int bf=0; bf!=nfaces; ++bf) {
       AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
       if (markers[f] == Operators::OPERATOR_BC_DIRICHLET) {
         u_bf[0][bf] = (values[f] - elevation[0][f]);
+      } else if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
+        // NOTE: this is not really the correct value, but it is close.  Doing
+        //  this simply makes the upwinded conductivities make more sense, and
+        //  changes no answers as boundary faces and their resulting
+        //  conductivity are not used in Neumann conditions.
+        AmanziMesh::Entity_ID_List cells;
+        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        u_bf[0][bf] = u_c[0][cells[0]];
       }
     }
   }    
 };
 
 
-void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S) {
+void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S,
+        const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op) {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "    Tweaking BCs for the Operator." << std::endl;
 
-  
   auto& markers = bc_markers();
   auto& values = bc_values();
 
@@ -1030,9 +1042,7 @@ void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S) {
   const Epetra_MultiVector& elevation_f = *elev->ViewComponent("face",false);
   const Epetra_MultiVector& elevation_c = *elev->ViewComponent("cell",false);
 
-  std::vector<WhetStone::DenseMatrix>& Aff =
-      matrix_diff_->local_matrices()->matrices;
-
+  std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_matrices()->matrices;
   int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
   int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
   for (Functions::BoundaryFunction::Iterator bc=bc_zero_gradient_->begin();

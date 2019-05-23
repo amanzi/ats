@@ -25,7 +25,7 @@ void OverlandPressureFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   matrix_->Init();
   matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  FixBCsForOperator_(S_next_.ptr()); // deals with zero gradient case
+  FixBCsForOperator_(S_next_.ptr(), matrix_diff_.ptr()); // deals with zero gradient case
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes -- this gets done independently fo update as precon does
