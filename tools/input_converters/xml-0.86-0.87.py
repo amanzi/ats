@@ -344,6 +344,9 @@ def update(xml):
     snow_distribution(xml)
     seb(xml)
 
+    import verbose_object
+    verbose_object.fixVerboseObject(xml)
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 0.86 to 0.9x")

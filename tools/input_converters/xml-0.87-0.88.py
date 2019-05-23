@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-"""ATS input converter from 0.87 to dev"""
+"""ATS input converter from 0.87 to 0.88"""
 
 import sys, os
 try:
@@ -122,9 +121,29 @@ def snow_distribution(xml):
             asearch.childByName(ssk, "height key").set("value", "snow-precipitation")
 
 def end_time_units(xml):
+    """yr --> y"""
     for end_time in asearch.generateElementByNamePath(xml, "cycle driver/end time units"):
         if end_time.get("value") == "yr":
             end_time.set("value", "y")
+
+
+def surface_rel_perm_one(xml):
+    """Add units, changed to pressure."""
+    for surf_rel_perm in asearch.generateElementByNamePath(xml, "surface rel perm model"):
+        pres_above = None
+        if surf_rel_perm.isElement("unfrozen rel perm cutoff depth"):
+            height_el = surf_rel_perm.pop("unfrozen rel perm cutoff height")
+            pres_above = height_el.get("value") * 1000 * 10
+        if surf_rel_perm.isElement("unfrozen rel pres cutoff pressure"):
+            pres_el = surf_rel_perm.pop("unfrozen rel perm cutoff pressure")
+            pres_above = pres_el.get("value")
+        if surf_rel_perm.isElement("unfrozen rel pres cutoff pressure [Pa]"):
+            continue
+        else:
+            if pres_above is not None:
+                surf_rel_perm.append(parameter.DoubleParameter("unfrozen rel pres cutoff pressure [Pa]", pres_above)
+            
+            
             
 def update(xml):
     linear_operator(xml)
@@ -145,9 +164,14 @@ def update(xml):
     snow_distribution(xml)
     end_time_units(xml)
 
+    import verbose_object
+    verbose_object.fixVerboseObject(xml)
+
+    
+
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 0.86 to 0.9x")
+    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 0.86 to 0.88")
     parser.add_argument("infile", help="input filename")
 
     group = parser.add_mutually_exclusive_group()
