@@ -288,7 +288,7 @@ class RegressionTest(object):
             proc = subprocess.Popen(command,
                                     shell=False,
                                     stdout=run_stdout,
-                                    stderr=subprocess.STDOUT)
+                                    stderr=run_stdout)
             while proc.poll() is None:
                 time.sleep(0.1)
                 if time.time() - start > self._timeout:
