@@ -172,7 +172,6 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
   
   const Epetra_MultiVector& enth_bf =
     *S->GetFieldData(enthalpy_key_)->ViewComponent("boundary_face",false);
-
   const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
   const Epetra_Map& face_map = mesh_->face_map(false);
   

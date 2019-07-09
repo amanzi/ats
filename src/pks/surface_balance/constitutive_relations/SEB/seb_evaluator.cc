@@ -140,18 +140,22 @@ SEBEvaluator::SEBEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(surf_temp_key_);
   surf_pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   dependencies_.insert(surf_pres_key_);
-
+  
   // -- subsurface properties for evaporating bare soil
   sat_gas_key_ = Keys::readKey(plist, domain_ss_, "gas saturation", "saturation_gas");
   dependencies_.insert(sat_gas_key_);
   poro_key_ = Keys::readKey(plist, domain_ss_, "porosity", "porosity");
   dependencies_.insert(poro_key_);
+  ss_pres_key_ = Keys::readKey(plist, domain_ss_, "subsurface pressure", "pressure");
+  dependencies_.insert(ss_pres_key_);
 
   // parameters
   min_wind_speed_ = plist.get<double>("minimum wind speed [m/s]?", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
-  dessicated_zone_thickness_ = plist.get<double>("dessicated zone thickness [m]", 0.025);
+  dessicated_zone_thickness_ = plist.get<double>("dessicated zone thickness [m]", 0.1);
   AMANZI_ASSERT(dessicated_zone_thickness_ > 0.);
+
+  ss_topcell_based_evap_ = plist.get<bool>("subsurface top cell based evaporation", false);
 
   roughness_bare_ground_ = plist.get<double>("roughness length of bare ground [m]", 0.04);
   roughness_snow_covered_ground_ = plist.get<double>("roughness length of snow-covered ground [m]", 0.004);
@@ -167,7 +171,7 @@ void
 SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                              const std::vector<Teuchos::Ptr<CompositeVector> >& results)
 {
-  const SEBPhysics::ModelParams params;
+  const SEBPhysics::ModelParams params(plist_);
   double snow_eps = 1.e-5;
 
   // collect met data
@@ -196,6 +200,7 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // collect subsurface properties
   const auto& sat_gas = *S->GetFieldData(sat_gas_key_)->ViewComponent("cell",false);
   const auto& poro = *S->GetFieldData(poro_key_)->ViewComponent("cell",false);
+  const auto& ss_pres = *S->GetFieldData(ss_pres_key_)->ViewComponent("cell",false);
 
   // collect output vecs
   auto& mass_source = *results[0]->ViewComponent("cell",false);
@@ -261,6 +266,8 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       SEBPhysics::GroundProperties surf;
       surf.temp = surf_temp[0][c];
       surf.pressure = surf_pres[0][c];
+      if (ss_topcell_based_evap_)
+        surf.pressure = ss_pres[0][cells[0]];
       surf.roughness = roughness_bare_ground_;
       surf.density_w = params.density_water; // NOTE: could update this to use true density! --etc
       surf.dz = dessicated_zone_thickness_;
@@ -325,6 +332,8 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       SEBPhysics::GroundProperties surf;
       surf.temp = surf_temp[0][c];
       surf.pressure = surf_pres[0][c];
+      if (ss_topcell_based_evap_)
+        surf.pressure = ss_pres[0][cells[0]];
       surf.roughness = roughness_bare_ground_;
       surf.density_w = params.density_water; // NOTE: could update this to use true density! --etc
       surf.dz = dessicated_zone_thickness_;

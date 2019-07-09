@@ -96,6 +96,7 @@ public:
   //    will get replaced by a better system when we get maps on the boundary
   //    faces.
   virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
+  virtual void ApplyDirichletBCsToBoundaryFace_(const Teuchos::Ptr<CompositeVector>& temp);
 
   // -- Add any source terms into the residual.
   virtual void AddSources_(const Teuchos::Ptr<State>& S,
@@ -125,7 +126,6 @@ public:
   virtual void ApplyDiffusion_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& f);
 
-  virtual double BoundaryFaceValue(int f, const CompositeVector& u);
   virtual int BoundaryFaceGetCell(int f) const;
 
 
@@ -167,8 +167,6 @@ public:
   bool flux_exists_;
   bool jacobian_;
 
-  bool compute_boundary_values_;
-  
   double T_limit_;
   double mass_atol_;
   double soil_atol_;
@@ -192,7 +190,7 @@ public:
   Key source_key_;
   //  Key mass_source_key_;
   Key ss_flux_key_;
-
+  bool bc_surf_temp_dependent_;
 };
 
 } // namespace Energy

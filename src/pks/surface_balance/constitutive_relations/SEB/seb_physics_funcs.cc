@@ -159,16 +159,15 @@ double LatentHeat(double resistance_coef,
 }
 
 double ConductedHeatIfSnow(double ground_temp,
-                           const SnowProperties& snow)
+                           const SnowProperties& snow, const ModelParams& params)
 {
   // Calculate heat conducted to ground, if snow
-  double Ks = -1;
-  if (snow.density > 150) { // frost hoar
-    double snow_hoar_density = 1. / ((0.90/snow.density) + (0.10/150));
-    Ks = 2.9e-6 * std::pow(snow_hoar_density,2);
-  } else {
-    Ks = 2.9e-6 * std::pow(snow.density,2);
+  double density = snow.density;
+  if (density > 150) {
+    // adjust for frost hoar
+    density = 1. / ((0.90/density) + (0.10/150));
   }
+  double Ks = params.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
   return Ks * (snow.temp - ground_temp) / snow.height;
 }
 
@@ -196,7 +195,7 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
                       params.Apa);
 
   // conducted heat
-  eb.fQc = ConductedHeatIfSnow(surf.temp, snow);
+  eb.fQc = ConductedHeatIfSnow(surf.temp, snow, params);
 
   // balance of energy goes into melting
   eb.fQm = eb.fQswIn + eb.fQlwIn - eb.fQlwOut + eb.fQh - eb.fQc + eb.fQe;

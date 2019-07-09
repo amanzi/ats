@@ -12,7 +12,7 @@
 #define SURFACEBALANCE_SEB_PHYSICS_DEFS_HH_
 
 #include <limits>
-
+#include "Teuchos_ParameterList.hpp"
 #if 0
 #define MY_LOCAL_NAN std::numeric_limits<double>::signaling_NaN()
 #else
@@ -109,9 +109,12 @@ struct ModelParams {
 
   ModelParams() :
       density_air(1.275),       // [kg/m^3]
+      density_water(1000.),     // [kg/m^3]
       density_freshsnow(100.),  // [kg/m^3]
       density_frost(200.),      // [kg/m^3]
-      density_water(1000.),     // [kg/m^3]
+      density_snow_max(325.),   // [kg/m^3] // based on observations at Barrow, AK
+      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m K]
+      thermalK_snow_exp(2),     // exponent in thermal conductivity of snow model [-]
       Hf(333500.0),             // Heat of fusion for melting snow -- [J/kg]
       Ls(2834000.0),            // Latent heat of sublimation ------- [J/kg]
       Le(2497848.),             // Latent heat of vaporization ------ [J/kg]
@@ -126,11 +129,22 @@ struct ModelParams {
       Clapp_Horn_b(1.),          // Clapp and Hornberger "b" [-]
       R_ideal_gas(461.52)       // ideal gas law R? [Pa m^3 kg^-1 K^-1]
   {}         // gravity [kg m / s^2]
-
+  
+  ModelParams(Teuchos::ParameterList& plist) :
+      ModelParams() {
+    thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
+    thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
+    density_snow_max = plist.get<double>("max density of snow [kg m^-3]", density_snow_max);
+  }
+  
   double density_air;
+  double density_water;
   double density_freshsnow;
   double density_frost;
-  double density_water;
+  double density_snow_max;
+  double thermalK_freshsnow;
+  double thermalK_snow_exp;
+  
   double Hf, Ls, Le, Cp_air, Cv_water;
   double R_ideal_gas;
 
