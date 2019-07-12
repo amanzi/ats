@@ -182,6 +182,9 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
   // diffusion term, treated implicitly
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
 
+  // evaulate water content, because otherwise it is never done.
+  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  
 
 #if DEBUG_FLAG
   // dump s_old, s_new
