@@ -71,7 +71,7 @@ All instructions assume you use bash.  Change as needed for other shells.
 
     Note two things here -- first, you may want to build both a ATS_BUILD_TYPE=Debug and ATS_BUILD_TYPE=Release builds.  Debug is extremely useful for catching errors in your input files, while Release is significantly faster.  I HIGHLY RECOMMEND BUILDING BOTH, then using Debug until your input files work and give reasonable results, then swapping to Release to do production runs.
 
-    You may want to put these lines in your ~/.bashrc or similar files (~/.bash_profile on Mac OS X), or better yet use Environment modules.
+    You may want to put these lines in your `~/.bashrc` or similar files (`~/.bash_profile` on Mac OS X), or better yet use Environment modules.
 
     Then make your base directory and go there:
     ```
@@ -121,12 +121,13 @@ All instructions assume you use bash.  Change as needed for other shells.
   * Run a test problem.
     ```
     cd ats-demos
-    python regression_tests.py -n richards-steadystate
+    cd 01_richards_steadystate/richards_steadystate
+    ats --xml_file=../richards_steadystate.xml &> out.log
     ```
 
   * Visualize the results
     ```
-    cd richards-steadystate
+    cd ..    
     jupyter notebook richards-steadystate.ipynb
     ```
    

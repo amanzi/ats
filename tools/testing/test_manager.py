@@ -35,7 +35,6 @@ import numpy
 import collections
 import h5py
 
-
 aliases = dict()
 
 
@@ -419,6 +418,12 @@ class RegressionTest(object):
         then create the gold file by copying the current regression
         file to gold.
         """
+        # this needs some extra things...
+        import parse_logfile
+        import amanzi_xml.utils.io as aio
+        import amanzi_xml.utils.search as asearch
+        import amanzi_xml.utils.errors as aerrors
+        
         gold_dir = self.dirname(True)
         run_dir = self.dirname(False)
 
@@ -446,8 +451,8 @@ class RegressionTest(object):
                                                            reg_name), file=testlog)
                 status.fail = 1
 
-        # move the run to gold
         if not status.error and not status.fail:
+            # move the run to gold
             print("  creating gold directory '{0}'... ".format(self.name()),
                   file=testlog)
             try:
@@ -460,6 +465,63 @@ class RegressionTest(object):
                 message += "    mv {0} {1}".format(run_dir, gold_dir)
                 print(message, file=testlog)
                 status.fail = 1
+
+            # build the dt history
+            with open(os.path.join(gold_dir, self.name()+'.stdout'),'r') as fid:
+                good, bad = parse_logfile.parse_logfile(fid)
+
+            if not os.path.isdir('data'):
+                os.mkdir('data')
+
+            with h5py.File(os.path.join('data', "{0}_dts.h5".format(self.name())), 'w') as fid:
+                fid.create_dataset("timesteps", data=86400.*good[:,2]) # note conversion from days back to seconds
+            print("Wrote file: data/{0}_dts.h5".format(self.name()), file=testlog)
+
+            # build a new xml file with these specific timestep history
+            print("Renaming: {0}.xml to {0}_orig.xml".format(self.name()), file=testlog)
+            os.rename(self.name()+".xml", self.name()+"_orig.xml")
+
+            xml = aio.fromFile(self.name()+"_orig.xml", True)
+
+            # -- checkpoint by list of cycles
+            filenames = self.filenames(gold_dir)
+            chp_cycles = [int(os.path.split(f)[-1][10:-3]) for f in filenames]
+            try:
+                chp = asearch.getElementByNamePath(xml, "checkpoint")
+            except aerrors.MissingXMLError:
+                pass
+            else:
+                # empty the checkpoint list
+                for i in range(len(chp)):
+                    chp.pop(chp[0].get('name'))
+
+                chp.setParameter('cycles', 'Array(int)', chp_cycles)
+
+            # -- update timestep controller, nonlinear solvers
+            for ti in asearch.generateElementByNamePath(xml, "time integrator"):
+                asearch.generateElementByNamePath(ti, "limit iterations").next().setValue(100)
+                asearch.generateElementByNamePath(ti, "diverged tolerance").next().setValue(1.e10)
+
+                asearch.getElementByNamePath(ti, "timestep controller type").setValue("from file")
+                ts_hist = ti.sublist("timestep controller from file parameters")
+                ts_hist.setParameter("file name", "string", "../data/{0}_dts.h5".format(self.name()))
+
+            # -- write the new xml
+            print("Writing: {0}.xml".format(self.name()), file=testlog)
+            aio.toFile(xml, '{0}.xml'.format(self.name()))
+
+            # clean the gold directory
+            filenames.append(os.path.join(gold_dir, 'ats_version.txt'))
+            for f in os.listdir(gold_dir):
+                if not os.path.join(gold_dir, f) in filenames:
+                    os.remove(os.path.join(gold_dir, f))
+
+            # git add stuff
+            filenames.append('{}_orig.xml'.format(self.name()))
+            filenames.append('{}.xml'.format(self.name()))
+            filenames.append(os.path.join('data','{}_dts.h5'.format(self.name())))
+            msg = subprocess.check_output(['git', 'add', '-f',]+filenames)
+            print(msg, file=testlog)
 
         print("done", file=testlog)
 
