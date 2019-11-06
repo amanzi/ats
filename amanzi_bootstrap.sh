@@ -30,8 +30,9 @@ ${AMANZI_SRC_DIR}/bootstrap.sh \
    --disable-stk_mesh --enable-mstk_mesh \
    --enable-hypre \
    --enable-silo \
-   --disable-physics \
    --disable-petsc \
+   --disable-physics \
+   --enable-ats \
    --amanzi-install-prefix=${AMANZI_DIR} \
    --amanzi-build-dir=${AMANZI_BUILD_DIR} \
    --tpl-install-prefix=${AMANZI_TPLS_DIR} \

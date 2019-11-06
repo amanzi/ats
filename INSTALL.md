@@ -1,21 +1,22 @@
 ATS Installation Guide
 ==================================
 
+NOTE: This has changed significantly since ATS version 0.88.  If you are building the latest **RELEASE** of ATS, version 0.88, do not follow these instructions, but follow those at: https://github.com/amanzi/ats/blob/ats-0.88/INSTALL.md .  This file describes installation of master and versions of ATS newer than 0.88 (future releases).
+
 First, a word of warning -- please be patient.  Amanzi and therefore ATS depend upon a lot of third party libraries.  This allows us to use existing, mature code to make ATS a much better software tool.  It also means installing the code and its dependencies can be quite painful and time/labor intensive.  Installation time is a very bimodal distribution -- if it "just works" this process will take 10=20 minutes.  If it doesn't "just work" it can take much longer.
 
 The basics of the process are these.
 
 0. Install pre-reqs.
 1. Download source.
-2. Use bootstrap to build Amanzi and its TPLs
-3. Use cmake to build ATS.
-4. Download test problems, test ATS.
+2. Use bootstrap to build TPLs, Amanzi, and ATS in one go.
+3. Download test problems, test ATS.
 
 All instructions assume you use bash.  Change as needed for other shells.
 
 0. Ensure you have cmake and an MPI installation.
 
-  * cmake >= 3.3
+  * cmake >= 3.10
     ```
     which cmake  # this will test if you have any cmake installed
     ``` 
@@ -53,20 +54,23 @@ All instructions assume you use bash.  Change as needed for other shells.
     # EDIT THESE!
     export ATS_BASE=/my/path/to/all/things/ats
     export ATS_BUILD_TYPE=Release
+    export ATS_VERSION master
     # END EDIT THESE!
 
-    export ATS_SRC_DIR=${ATS_BASE}/repos/ats
-    export ATS_BUILD_DIR=${ATS_BASE}/ats-build-${ATS_BUILD_TYPE}
-    export ATS_DIR=${ATS_BASE}/ats-install-${ATS_BUILD_TYPE}
+    export AMANZI_TPLS_BUILD_DIR=${ATS_BASE}/amanzi_tpls-build-${ATS_VERSION}-${ATS_BUILD_TYPE}
+    export AMANZI_TPLS_DIR=${ATS_BASE}/amanzi_tpls-install-${ATS_VERSION}-${ATS_BUILD_TYPE}
 
     export AMANZI_SRC_DIR=${ATS_BASE}/repos/amanzi
-    export AMANZI_BUILD_DIR=${ATS_BASE}/amanzi-build-${ATS_BUILD_TYPE}
-    export AMANZI_DIR=${ATS_BASE}/amanzi-install-${ATS_BUILD_TYPE}
+    export AMANZI_BUILD_DIR=${ATS_BASE}/amanzi-build-${ATS_VERSION}-${ATS_BUILD_TYPE}
+    export AMANZI_DIR=${ATS_BASE}/amanzi-install-${ATS_VERSION}-${ATS_BUILD_TYPE}
 
-    export AMANZI_TPLS_BUILD_DIR=${ATS_BASE}/amanzi-tpls-build-${ATS_BUILD_TYPE}
-    export AMANZI_TPLS_DIR=${ATS_BASE}/amanzi-tpls-install-${ATS_BUILD_TYPE}
-    export PATH=${ATS_DIR}/bin:${AMANZI_TPLS_DIR}/bin:${PATH}
+    export ATS_SRC_DIR=${AMANZI_SRC_DIR}/src/physics/ats
+    export ATS_DIR=${AMANZI_DIR}
+
+    export PATH=${ATS_DIR}/bin:${PATH}
+    export PATH=${AMANZI_TPLS_DIR}/bin:${PATH}
     export PYTHONPATH=${ATS_SRC_DIR}/tools/utils:${PYTHONPATH}
+    export PYTHONPATH=${AMANZI_TPLS_DIR}/SEACAS/lib:${PYTHONPATH}
     ```    
 
     Note two things here -- first, you may want to build both a ATS_BUILD_TYPE=Debug and ATS_BUILD_TYPE=Release builds.  Debug is extremely useful for catching errors in your input files, while Release is significantly faster.  I HIGHLY RECOMMEND BUILDING BOTH, then using Debug until your input files work and give reasonable results, then swapping to Release to do production runs.
@@ -82,15 +86,10 @@ All instructions assume you use bash.  Change as needed for other shells.
   * Clone the Amanzi source for the latest release.  Currently this is ``0.88``
     ```
     git clone -b amanzi-0.88 http://github.com/amanzi/amanzi $AMANZI_SRC_DIR
+    git submodule --init --remote
     ```
 
-  * Clone the ATS source for the latest release.
-    ```
-    git clone -b ats-0.88 http://github.com/amanzi/ats $ATS_SRC_DIR
-    ```
-
-
-2. Configure and build the Amanzi TPLs and Amanzi.
+2. Configure and build the Amanzi TPLs, Amanzi, and ATS.
 
   * Run bootstrap.  An example usage of bootstrap is in ${ATS_SRC_DIR} at amanzi_bootstrap.sh.  If you follow the above instructions exactly, you can use that file as is, but maybe read it anyway, so you see what is happening.
     ```
@@ -99,16 +98,7 @@ All instructions assume you use bash.  Change as needed for other shells.
 
   * Go get a cup of coffee.  This will take a bit, from 10-15 minutes on a fast workstation to much longer on a cluster.
 
-3. Configure and build ATS.
-
-  * Configure and build.  Unfortunately, we have no bootstrap here, so you have to write your own cmake script.  Again, if you follow these instructions exactly, you can use the sample at ${ATS_SRC_DIR} at configure-ats.sh
-    ```
-    . ${ATS_SRC_DIR}/configure-ats.sh
-    ```
-
-  * Twiddle your thumbs.  ~1-5 minutes?
-
-4. Download ats-demos to get at some examples, and run one!
+3. Download ats-demos to get at some examples, and run one!
 
   * Get the example repo:
     ```
