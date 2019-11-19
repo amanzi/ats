@@ -42,7 +42,7 @@ class MDM_LichtnerKelkarRobinson : public MDM {
   bool is_valid() const { return (alphaLH_ + alphaLV_ + alphaTH_ + alphaTV_ != 0.0); }
 
   // -- simple check of model applicability
-  void set_dim(int dim) { ASSERT(dim == 3); dim_ = dim; }
+  void set_dim(int dim) { AMANZI_ASSERT(dim == 3); dim_ = dim; }
 
  private:
   double alphaLH_, alphaLV_, alphaTH_, alphaTV_;

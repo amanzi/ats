@@ -40,7 +40,7 @@ MDM_LichtnerKelkarRobinson::MDM_LichtnerKelkarRobinson(Teuchos::ParameterList& p
 WhetStone::Tensor MDM_LichtnerKelkarRobinson::mech_dispersion(
     const AmanziGeometry::Point& u, int axi_symmetry, double s, double phi) const
 {
-  ASSERT(axi_symmetry >= 0 && axi_symmetry < 3);
+  AMANZI_ASSERT(axi_symmetry >= 0 && axi_symmetry < 3);
   WhetStone::Tensor D(dim_, 2);
   D.PutScalar(0.0);
 

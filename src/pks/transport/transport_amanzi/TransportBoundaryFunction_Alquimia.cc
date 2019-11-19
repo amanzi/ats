@@ -71,7 +71,7 @@ void TransportBoundaryFunction_Alquimia::Init_(const std::vector<std::string>& r
     assert(mesh_->valid_set_name(regions[i], AmanziMesh::FACE));
 
     AmanziMesh::Entity_ID_List block;
-    mesh_->get_set_entities(regions[i], AmanziMesh::FACE, AmanziMesh::OWNED, &block);
+    mesh_->get_set_entities(regions[i], AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED, &block);
     int nblock = block.size();
 
     // Now get the cells that are attached to these faces.
@@ -81,7 +81,7 @@ void TransportBoundaryFunction_Alquimia::Init_(const std::vector<std::string>& r
       //value_[f] = WhetStone::DenseVector(chem_engine_->NumPrimarySpecies());
       value_[f].resize(chem_engine_->NumPrimarySpecies());
 
-      mesh_->face_get_cells(f, AmanziMesh::OWNED, &cells);
+      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
 
       cell_for_face_[f] = cells[0];
     }

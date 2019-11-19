@@ -37,7 +37,7 @@ class TransportDomainFunction {
   ~TransportDomainFunction() {};
 
   // source term on time interval (t0, t1]
-  virtual void Compute(double t0, double t1) { ASSERT(false); }
+  virtual void Compute(double t0, double t1) { AMANZI_ASSERT(false); }
 
   // model name
   virtual std::string name() const { return "undefined"; } 

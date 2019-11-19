@@ -42,7 +42,7 @@ Teuchos::RCP<MDMPartition> CreateMDMPartition(
       flag |= mdm->is_valid();
       mdm_list.push_back(mdm);
     } else {
-      ASSERT(0);
+      AMANZI_ASSERT(0);
     }
   }
 

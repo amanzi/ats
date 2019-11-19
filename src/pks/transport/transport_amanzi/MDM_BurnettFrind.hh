@@ -42,7 +42,7 @@ class MDM_BurnettFrind : public MDM {
   bool is_valid() const { return (alphaL_ + alphaTH_ + alphaTV_ != 0.0); }
 
   // -- check model applicability
-  void set_dim(int dim) { ASSERT(dim == 3); dim_ = dim; }
+  void set_dim(int dim) { AMANZI_ASSERT(dim == 3); dim_ = dim; }
 
  private:
   double alphaL_, alphaTH_, alphaTV_;

@@ -24,10 +24,13 @@ namespace Transport {
 typedef std::vector<Teuchos::RCP<MultiscaleTransportPorosity> > MsTList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, MsTList> MultiscaleTransportPorosityPartition;
 
-// Non-member factory
+// Non-member factory takes the global trnsport list
 Teuchos::RCP<MultiscaleTransportPorosityPartition> CreateMultiscaleTransportPorosityPartition(
     Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
-    Teuchos::RCP<Teuchos::ParameterList> plist);
+    Teuchos::RCP<Teuchos::ParameterList> tplist);
+
+// Non-member function quering partition
+int NumberMatrixNodes(Teuchos::RCP<MultiscaleTransportPorosityPartition>& msp);
 
 }  // namespace Transport
 }  // namespace Amanzi

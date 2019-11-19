@@ -121,14 +121,14 @@ void Transport_PK_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
       if (mesh_->valid_set_name(runtime_regions_[k], AmanziMesh::FACE)) {
         flag = true;
         AmanziMesh::Entity_ID_List block;
-        mesh_->get_set_entities(runtime_regions_[k], AmanziMesh::FACE, AmanziMesh::OWNED, &block);
+        mesh_->get_set_entities(runtime_regions_[k], AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED, &block);
         int nblock = block.size();
 
         for (int m = 0; m < nblock; m++) {
           int f = block[m];
 
           Amanzi::AmanziMesh::Entity_ID_List cells;
-          mesh_->face_get_cells(f, Amanzi::AmanziMesh::USED, &cells);
+          mesh_->face_get_cells(f, Amanzi::AmanziMesh::Parallel_type::ALL, &cells);
           int dir, c = cells[0];
 
           const AmanziGeometry::Point& normal = mesh_->face_normal(f, false, c, &dir);
@@ -146,17 +146,9 @@ void Transport_PK_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
     double ws_min, ws_max;
     ws_->MinValue(&ws_min);
     ws_->MaxValue(&ws_max);
-    
-    // *vo_->os() << runtime_solutes_[n] << ": min=" << units_.OutputConcentration(tccmin) 
-    //              << " max=" << units_.OutputConcentration(tccmax);
-    
+       
     *vo_->os() << runtime_solutes_[n] << ": min=" << tccmin  << " max=" << tccmax<<" ws: "<<"min="<<ws_min<<" max="<<ws_max<<"\n";
     if (flag) *vo_->os() << ", flux=" << solute_flux << " mol/s";
-
-    if ((tccmin < 0)||(tccmax > 1)) {
-      //std::cout << tcc_next <<"\n";
-      exit(0);
-    }
 
     // old capability
     //mass_solutes_exact_[i] += VV_SoluteVolumeChangePerSecond(i) * dT_MPC;
