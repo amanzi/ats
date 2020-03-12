@@ -1,8 +1,0 @@
-<ParameterList name="Main">
-  <ParameterList name="EOS 1">
-    <Parameter name="EOS Type" type="string" value="liquid water"/>
-  </ParameterList>
-  <ParameterList name="EOS 2">
-    <Parameter name="EOS Type" type="string" value="ideal gas"/>
-  </ParameterList>
-</ParameterList>

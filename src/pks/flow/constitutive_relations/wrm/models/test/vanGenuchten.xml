@@ -1,6 +1,0 @@
-<ParameterList name="Main">
-  <Parameter name="WRM Type" type="string" value="van Genuchten"/>
-  <Parameter name="van Genuchten alpha" type="double" value="1.5e-4"/>
-  <Parameter name="van Genuchten m" type="double" value="0.8"/>
-  <Parameter name="van Genuchten residual saturation" type="double" value="0.0"/>
-</ParameterList>
