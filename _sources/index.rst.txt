@@ -20,7 +20,8 @@ View our Gallery of Demo problems.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
+             
+   input_spec
 
 Indices and tables
 ==================

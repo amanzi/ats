@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Advanced Terrestrial Simulator &mdash; ATS 1.0 documentation</title>
+  <title>Input Specification &mdash; ATS 1.0 documentation</title>
   
 
   
@@ -38,7 +38,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Input Specification" href="input_spec.html" /> 
+    <link rel="next" title="ATS Native XML Input Specification V1.0" href="input_spec/ATSNativeSpec_dev.html" />
+    <link rel="prev" title="Advanced Terrestrial Simulator" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -52,7 +53,7 @@
           
 
           
-            <a href="#" class="icon icon-home"> ATS
+            <a href="index.html" class="icon icon-home"> ATS
           
 
           
@@ -87,8 +88,11 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="input_spec.html">Input Specification</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Input Specification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="input_spec/ATSNativeSpec_dev.html">ATS Native XML Input Specification V1.0</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -103,7 +107,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">ATS</a>
+          <a href="index.html">ATS</a>
         
       </nav>
 
@@ -132,15 +136,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="#">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Advanced Terrestrial Simulator</li>
+      <li>Input Specification</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/input_spec.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -177,28 +181,15 @@
     text-align: unset;
 }
 </style>
-<div class="section" id="advanced-terrestrial-simulator">
-<h1>Advanced Terrestrial Simulator<a class="headerlink" href="#advanced-terrestrial-simulator" title="Permalink to this headline">¶</a></h1>
-<img alt="static/images/coweeta.png" src="static/images/coweeta.png" />
-<p>The Advanced Terrestrial Simulator is a code for solving ecosystem-based, integrated, distributed hydrology.</p>
-<p>Capabilities are largely based on solving various forms of Richards equation coupled to a surface flow equation, along with the needed sources and sinks for ecosystem and climate models. This can (but need not) include thermal processes (especially ice for frozen soils), evapo-transpiration, albedo-driven surface energy balances, snow, biogeochemistry, plant dynamics, deformation, transport, and much more.</p>
-<p>ATS is a suite of physics processes built for Amanzi.  As such documentation is split between process documentation here and framework documentation in Amanzi.  Links across the related projects attempt to build a uniform interface for the user.</p>
-<p>View our Gallery of Demo problems.</p>
+<div class="section" id="input-specification">
+<h1>Input Specification<a class="headerlink" href="#input-specification" title="Permalink to this headline">¶</a></h1>
+<p>ATS input files are xml files, which can be quite annoying for a human to create from scratch.  xml is great from the code’s perspective, but it can be quite unintuitive to a human.  That said, is it really that much worse than structured text with meaningful whitespace and other nightmares from other codebases?  There really isn’t a perfect solution yet.</p>
+<p>We have several approaches in the works to simplify working with ATS input files.  This includes python-based front-ends for creating them, higher level specs using YAML or other formats, and more.  Contributions in this front would be fantastic!  In the meantime, the input spec is what it is, making this critical.</p>
+<p>The input spec changes slightly from version to version, but an input file should never stop working due to commits within the same ATS release version.  Furthermore, whenever possible, we try to include python scripts for taking an input file that worked in one version and updating it to the next newer version.  These are available at <a class="reference external" href="https://github.com/amanzi/ats/tree/master/tools/input_converters">https://github.com/amanzi/ats/tree/master/tools/input_converters</a></p>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Versions</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="input_spec.html">Input Specification</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="input_spec/ATSNativeSpec_dev.html">ATS Native XML Input Specification V1.0</a></li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section" id="indices-and-tables">
-<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+<li class="toctree-l1"><a class="reference internal" href="input_spec/ATSNativeSpec_dev.html">ATS Native XML Input Specification V1.0</a></li>
 </ul>
 </div>
 </div>
@@ -211,8 +202,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="input_spec.html" class="btn btn-neutral float-right" title="Input Specification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="input_spec/ATSNativeSpec_dev.html" class="btn btn-neutral float-right" title="ATS Native XML Input Specification V1.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Advanced Terrestrial Simulator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

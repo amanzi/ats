@@ -1,5 +1,5 @@
-ATS Native XML Input Specification V1
-#######################################
+ATS Native XML Input Specification V1.0
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 .. contents:: **Table of Contents**
 
