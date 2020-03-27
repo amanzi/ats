@@ -12,8 +12,12 @@
 
 #include "eos_linear.hh"
 
-namespace Amanzi {
+namespace ATS {
 namespace Relations {
+
+template <>
+const Utils::RegisteredFactory<Evaluator,EvaluatorModel_CompositeVector<EOSLinear<MultiVectorView_type, cMultiVectorView_type> > fac_cv_("eos linear");
+
 
 // registry of method
 Utils::RegisteredFactory<EOS,EOSLinear> EOSLinear::factory_("linear");

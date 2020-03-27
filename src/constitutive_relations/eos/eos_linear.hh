@@ -84,13 +84,13 @@ class EOSLinearMass {
 
   KOKKOS_INLINE_FUNCTION void operator()(const int& i) const
   {
-    rho_(i) = rho0_ + beta_ * max(p_(i) - p_atm_, 0.);
+    rho_(i,0) = rho0_ + beta_ * max(p_(i,0) - p_atm_, 0.);
   }
 
   class dd1 {};
   KOKKOS_INLINE_FUNCTION void operator()(dAdB, const int& i) const
   {
-    rho_(i) = p_(i) > p_atm_ ? beta_ : 0.;
+    rho_(i,0) = p_(i,0) > p_atm_ ? beta_ : 0.;
   }
 
  private:
@@ -110,10 +110,6 @@ class EOSLinearMass {
 
 template <class cView_type, class View_type>
 const std::string EOSLinear<cView_type, View_type>::name("eos linear");
-
-template <class cView_type, class View_type>
-const Utils::RegisteredFactory<Evaluator,EvaluatorModel_CompositeVector<EOSLinear> > fac_cv_("eos linear");
-
 
 
 } // namespace Relations
