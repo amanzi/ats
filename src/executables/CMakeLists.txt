@@ -31,36 +31,28 @@ include_directories(${DBG_SOURCE_DIR})
 #include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
 #include_directories(${ATS_SOURCE_DIR}/constitutive_relations/surface_subsurface_fluxes)
 #include_directories(${ATS_SOURCE_DIR}/constitutive_relations/generic_evaluators)
-include_directories(${ATS_SOURCE_DIR}/pks)
+#include_directories(${ATS_SOURCE_DIR}/pks)
 #include_directories(${ATS_SOURCE_DIR}/pks/mpc)
 #include_directories(${ATS_SOURCE_DIR}/pks/energy)
 #include_directories(${ATS_SOURCE_DIR}/pks/flow)
 #include_directories(${ATS_SOURCE_DIR}/pks/deformation)
 #include_directories(${ATS_SOURCE_DIR}/pks/transport)
-include_directories(${ATS_SOURCE_DIR}/operators/upwinding)
-include_directories(${ATS_SOURCE_DIR}/operators/advection)
-include_directories(${ATS_SOURCE_DIR}/operators/deformation)
-
-if (ENABLE_FATES)
-  link_directories(/nh/u/dasvyat/Coastal/ats-fates-new/install/lib/)
-  link_directories(/nh/u/dasvyat/Coastal/ParallelIO/install/lib/)
-  link_directories(/nh/u/dasvyat/Coastal/pnetcdf-1.11.2/install/lib)
-  set (VEG_LIB pk_veg)
-endif()
-
+#include_directories(${ATS_SOURCE_DIR}/operators/upwinding)
+#include_directories(${ATS_SOURCE_DIR}/operators/advection)
+#include_directories(${ATS_SOURCE_DIR}/operators/deformation)
 
 include_evaluators_directories(LISTNAME REGISTER_AMANZI_STATE_EVALUATORS_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_RELATIONS_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_TRANSPORT_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_ENERGY_PKS_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_ENERGY_RELATIONS_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_FLOW_PKS_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_FLOW_RELATIONS_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_DEFORMATION_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_SURFACE_BALANCE_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_BGC_REG_INCLUDES)
-include_evaluators_directories(LISTNAME ATS_MPC_REG_INCLUDES)
-include_evaluators_directories(LISTNAME SED_TRANSPORT_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_RELATIONS_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_TRANSPORT_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_ENERGY_PKS_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_ENERGY_RELATIONS_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_FLOW_PKS_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_FLOW_RELATIONS_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_DEFORMATION_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_SURFACE_BALANCE_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_BGC_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME ATS_MPC_REG_INCLUDES)
+# include_evaluators_directories(LISTNAME SED_TRANSPORT_REG_INCLUDES)
 
 set(ats_src_files
   coordinator.cc
@@ -90,36 +82,27 @@ set(amanzi_link_libs
   functions
   geometry
   mesh_factory
-  interface
   output
   mstk_mesh
-  mesh_logical
-  geochemrxns
-  geochembase
-  geochemutil
-  geochemsolvers
-  chemistry_pk
-  mpc_tree
-  transport
   )
   
 set(ats_link_libs
-  ats_operators
-  ats_generic_evals
-  ats_surf_subsurf
-  ats_eos
-  ats_pks
-  ats_transport
-  ats_sed_transport  
-  ats_energy
-  ats_energy_relations
-  ats_flow
-  ats_flow_relations
-  ats_deform
-  ats_bgc
-  ats_surface_balance
-  ats_mpc
-  ats_mpc_relations
+  # ats_operators
+  # ats_generic_evals
+  # ats_surf_subsurf
+  # ats_eos
+  # ats_pks
+  # ats_transport
+  # ats_sed_transport  
+  # ats_energy
+  # ats_energy_relations
+  # ats_flow
+  # ats_flow_relations
+  # ats_deform
+  # ats_bgc
+  # ats_surface_balance
+  # ats_mpc
+  # ats_mpc_relations
   )
 
 # note, we can be inclusive here, because if they aren't enabled,
@@ -138,14 +121,8 @@ set(tpl_link_libs
   ${CLM_LIBRARIES}
   )
 
-if (ENABLE_FATES)
-  set(fates_link_libs -lfates -lparteh -lshared  -lpiof -lpioc -lpnetcdf -lgptl)
-#  link_directories(ats /nh/u/dasvyat/Coastal/ats-fates-new/install/lib/)
-endif()
-
-
 add_amanzi_executable(ats
   SOURCE ${ats_src_files}
-  LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs} 
+  LINK_LIBS ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs} 
   OUTPUT_NAME ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})

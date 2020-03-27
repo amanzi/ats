@@ -17,13 +17,13 @@ include_directories(${SOLVERS_SOURCE_DIR})
 include_directories(${TIME_INTEGRATION_SOURCE_DIR})
 include_directories(${PKS_SOURCE_DIR})
 
-# operators -- layer between discretization and PK
-add_subdirectory(operators)
+# # operators -- layer between discretization and PK
+# add_subdirectory(operators)
 
 add_subdirectory(constitutive_relations)
 
-# Process Kernels
-add_subdirectory(pks)
+# # Process Kernels
+# add_subdirectory(pks)
 
 # main
 add_subdirectory(executables)

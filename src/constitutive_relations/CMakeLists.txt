@@ -2,18 +2,13 @@
 
 # operators -- layer between discretization and PK
 add_subdirectory(eos)
-add_subdirectory(surface_subsurface_fluxes)
-add_subdirectory(generic_evaluators)
+#add_subdirectory(surface_subsurface_fluxes)
+#add_subdirectory(generic_evaluators)
 
 #================================================================
 # register evaluators/factories/pks
 
 # eos/
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_constant_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
 
 register_evaluator_with_factory(
   HEADERFILE eos/eos_linear_reg.hh
@@ -86,46 +81,46 @@ register_evaluator_with_factory(
 
 # constitutive_relations/surface_subsurface_fluxes/
 
-register_evaluator_with_factory(
-  HEADERFILE surface_subsurface_fluxes/volumetric_darcy_flux_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE surface_subsurface_fluxes/volumetric_darcy_flux_evaluator_reg.hh
+#   LISTNAME   ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE surface_subsurface_fluxes/surface_top_cells_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE surface_subsurface_fluxes/surface_top_cells_evaluator_reg.hh
+#   LISTNAME   ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE surface_subsurface_fluxes/top_cells_surface_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE surface_subsurface_fluxes/top_cells_surface_evaluator_reg.hh
+#   LISTNAME   ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE surface_subsurface_fluxes/overland_source_from_subsurface_flux_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE surface_subsurface_fluxes/overland_source_from_subsurface_flux_evaluator_reg.hh
+#   LISTNAME   ATS_RELATIONS_REG
+#   )
 
 
-register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/MultiplicativeEvaluator_reg.hh
-  LISTNAME ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE generic_evaluators/MultiplicativeEvaluator_reg.hh
+#   LISTNAME ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/AdditiveEvaluator_reg.hh
-  LISTNAME ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE generic_evaluators/AdditiveEvaluator_reg.hh
+#   LISTNAME ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/SubgridDisaggregateEvaluator_reg.hh
-  LISTNAME ATS_RELATIONS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE generic_evaluators/SubgridDisaggregateEvaluator_reg.hh
+#   LISTNAME ATS_RELATIONS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/ColumnSumEvaluator_reg.hh
-  LISTNAME CONSTITUTIVE_RELATIONS_GENERIC_EVALUATORS
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE generic_evaluators/ColumnSumEvaluator_reg.hh
+#   LISTNAME CONSTITUTIVE_RELATIONS_GENERIC_EVALUATORS
+#   )
 
 generate_evaluators_registration_header(
   HEADERFILE ats_relations_registration.hh

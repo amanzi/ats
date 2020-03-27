@@ -19,9 +19,9 @@
 
 #include "MeshAudit.hh"
 #include "MeshFactory.hh"
-#include "MeshLogicalFactory.hh"
-#include "MeshColumn.hh"
-#include "MeshSurfaceCell.hh"
+//#include "MeshLogicalFactory.hh"
+//#include "MeshColumn.hh"
+//#include "MeshSurfaceCell.hh"
 #include "GeometricModel.hh"
 
 #include "ats_mesh_factory.hh"
@@ -107,6 +107,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
     std::string name = mesh_plist.name();
     S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
 
+#if 0
   } else if (mesh_type == "logical mesh") {
     // -- from logical mesh file
     Amanzi::AmanziMesh::MeshLogicalFactory fac(comm, gm);
@@ -123,7 +124,8 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     checkVerifyMesh(mesh_plist, mesh);
     S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
-
+#endif
+    
   } else if (mesh_type == "aliased") {
     S.AliasMesh(mesh_plist.sublist("aliased parameters").get<std::string>("alias"), Amanzi::Keys::cleanPListName(mesh_plist.name()));    
   } else if (mesh_type == "surface") {
@@ -166,6 +168,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
     checkVerifyMesh(mesh_plist, surface_mesh);
     S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), surface_mesh, deformable);
 
+#if 0    
   } else if (mesh_type == "column") {
     Teuchos::ParameterList& column_list = mesh_plist.sublist("column parameters");
     int lid = column_list.get<int>("entity LID");
@@ -175,7 +178,9 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     checkVerifyMesh(mesh_plist, mesh);
     S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
+#endif
 
+#if 0    
   } else if (mesh_type == "column surface") {
     Teuchos::ParameterList& column_list = mesh_plist.sublist("column surface parameters");
     std::string surface_setname = column_list.get<std::string>("subgrid set name", "surface");
@@ -189,7 +194,10 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     checkVerifyMesh(mesh_plist, mesh);
     S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
+#endif
 
+#if 0    
+    
   } else if (mesh_type == "subgrid") {
     Teuchos::ParameterList& subgrid = mesh_plist.sublist("subgrid parameters");
     auto kind_str = subgrid.get<std::string>("entity kind");
@@ -240,13 +248,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
       createMesh(subgrid_i_list, comm_self, gm, S);
     }
-
-  } else if (mesh_type == "Sperry 1D column") {
-    // auto mesh = Testing::plantMesh(comm, gm, true);
-    // bool deformable = mesh_plist.get<bool>("deformable mesh",false);
-
-    // checkVerifyMesh(mesh_plist, mesh);
-    // S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
+#endif
     
   } else {
     Errors::Message msg;
