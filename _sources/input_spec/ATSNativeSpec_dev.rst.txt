@@ -1,5 +1,5 @@
-ATS Native XML Input Specification V1.0
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ATS Native XML Input Specification V1
+#######################################
 
 .. contents:: **Table of Contents**
 
@@ -63,25 +63,7 @@ Conventions:
 Symbol Index
 #############
 
-:math:`|E|` | volume of a cell :math:`[m^X]` (where :math:`X` is the dimension of the mesh)
-:math:`g` | gravitational acceleration vector :math:`[m s^-2]`
-:math:`h` | ponded depth, or the water head over the surface :math:`[m]`
-:math:`` | alternative, in context of the subsurface, water head :math:`[m]`
-:math:`h_{snow}` | snow depth :math:`[m]`
-:math:`K` | absolute permeability :math:`[m^2]`
-:math:`k_r` | relative permeability :math:`[-]`
-:math:`n_X` | molar density of phase X :math:`[mol m^-3]`
-:math:`p` | pressure of the liquid phase :math:`[Pa]`
-:math:`P_{s,r}` | precipitation of rain or snow, noting that snow is always a precipitation rate in snow-water-equivalent (SWE) basis.  :math:`[m s^-1]`
-:math:`Q_w` | mass source of water :math:`[mol s^-1]`
-:math:`s_X` | saturation of phase X :math:`[-]`
-:math:`t` | time variable :math:`[s]`
-:math:`z` | elevation :math:`[m]`
-:math:`\nu` | dynamic viscosity of water :math:`[Pa s]`
-:math:`\phi` | porosity of the soil :math:`[-]`
-:math:`\rho` | mass density of a phase :math:`[kg m^-3]`
-:math:`\Theta` | extensive water content of a cell :math:`[mol]`
-
+.. include:: symbol_table.rst
    
 
   
@@ -600,9 +582,6 @@ Example:
 
 
 
-Color Function
-===============
-** DOC GENERATION ERROR: file not found ' RegionColorFunction ' **
 
 
 Coordinator
@@ -728,7 +707,38 @@ name generation and writing frequency, by numerical cycle number.
 Unlike `"visualization`", there is only one `"checkpoint`" list for
 all domains/meshes.
 
-** DOC GENERATION ERROR: file not found ' checkpoint ' **  
+ Manages checkpoint/restart capability.
+
+Parameters:
+
+* `"file name base`" ``[string]`` **"checkpoint"**
+
+* `"file name digits`" ``[int]`` **5**
+
+INCLUDES:
+
+* ``[io-event-spec]`` An IOEvent_ spec
+
+  Write mesh data for every visualization dump, this facilitates visualizing deforming meshes.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="checkpoint">
+    <Parameter name="cycles start period stop" type="Array(int)" value="{{0, 100, -1}}" />
+    <Parameter name="cycles" type="Array(int)" value="{{999, 1001}}" />
+    <Parameter name="times start period stop 0" type="Array(double)" value="{{0.0, 10.0, 100.0}}"/>
+    <Parameter name="times start period stop 1" type="Array(double)" value="{{100.0, 25.0, -1.0}}"/>
+    <Parameter name="times" type="Array(double)" value="{{101.0, 303.0, 422.0}}"/>
+  </ParameterList>
+
+In this example, checkpoint files are written when the cycle number is
+a multiple of 100, every 10 seconds for the first 100 seconds, and
+every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be written in the form: `"checkpoint00000.h5`".
+
+
+  
 
 
  
@@ -1318,35 +1328,35 @@ example:
 Field Evaluators
 =================
 
-Many field evaluators exist, but most derive from one of four base types.
-
-Field Evaluator Base Classes
--------------------------------
 
 PrimaryVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
-SecondaryVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-SecondaryVariablesEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 IndependentVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
-While these provide base functionality, all of the physics are in the
-following derived classes.
+Independent variables are provided either by a function or directly loaded from a file.
+
+From Function
+^^^^^^^^^^^^^
+
+
+From File
+^^^^^^^^^
+
+
 
 Water Content
------------------
+-------------
 
 Water content is the conserved quantity in most flow equations, including
 Richard's equation with and without ice.  A variety of evaluators are provided
 for inclusion of multiple phases.
 
-RichardsWaterContentEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Richards Equation water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  The Richards water content evaluator is an algebraic evaluator for liquid only water content
   Generated via evaluator_generator with:
 Richards water content evaluator: the standard form as a function of liquid saturation.
@@ -1369,16 +1379,53 @@ EVALUATORS:
 
 
 
-RichardsWaterContentWithVaporEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' richards_water_content_with_vapor_evaluator ' **
-PermafrostWaterContentEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' permafrost_water_content ' **
+
+Liquid+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Liquid+Ice water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Liquid+Ice+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Three phase water content: vapor, liquid, and ice.
+
+.. math::
+  Theta = (n_l * s_l + n_i * s_i + n_g * s_g * \omega_g ) * \phi * |E|
+
+* `"porosity key`" ``[string]`` **DOMAIN-porosity** 
+
+* `"molar density liquid key`" ``[string]`` **DOMAIN-molar_density_liquid** 
+* `"saturation liquid key`" ``[string]`` **DOMAIN-saturation_liquid** 
+
+* `"molar density ice key`" ``[string]`` **DOMAIN-molar_density_ice** 
+* `"saturation ice key`" ``[string]`` **DOMAIN-saturation_ice** 
+
+* `"molar density gas key`" ``[string]`` **DOMAIN-molar_density_gas** 
+* `"saturation gas key`" ``[string]`` **DOMAIN-saturation_gas** 
+* `"mol frac gas key`" ``[string]`` **DOMAIN-mol_frac_gas** The molar fraction of water vapor in the gaseous phase.
+
+* `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
+
+EVALUATORS:
+- `"porosity`"
+- `"molar density liquid`"
+- `"saturation liquid`"
+- `"molar density ice`"
+- `"saturation ice`"
+- `"molar density gas`"
+- `"saturation gas`"
+- `"molar fraction gas`"
+- `"cell volume`"
+
+
+
 
 
 Surface Water potential surfaces
----------------------------------
+--------------------------------
 
 Evaluators for 
 
@@ -1457,19 +1504,45 @@ Example:
 
 
 
+Surface water content
+^^^^^^^^^^^^^^^^^^^^^
 
 
+
+..
+    KEEP GOING!
+
+    
 Generic Evaluators
 ---------------------------------
 
 Several generic evaluators are provided.
 
-AdditiveEvaluator
+Additive
+^^^^^^^^
+
+
+Multiplicative
+^^^^^^^^^^^^^^
+
+
+Column summation
+^^^^^^^^^^^^^^^^
+
+
+Subgrid disaggregation
 ^^^^^^^^^^^^^^^^^^^^^^
+ SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
 
+ * `"source domain name`" ``[string]`` Domain name of the source mesh.
 
-MultiplicativeEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^
+ONE OF:
+* `"field key suffix`" ``[string]`` **FIELD_SUFFIX from this** Set the suffix of the variable
+OR
+* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
+
+  
+ 
 
 
 
@@ -2420,60 +2493,475 @@ It is straightforward to add new functions as needed.
 
 Constant Function
 -------------------------
-** DOC GENERATION ERROR: file not found ' ConstantFunction ' **  
+ FunctionConstant: Implements the Function interface using a constant value.
+
+Constant function is defined as :math:`f(x) = a`, for all :math:`x`. 
+
+* `"value`" ``[double]`` The constant to be applied.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-constant">
+    <Parameter name="value" type="double" value="1.0"/>
+  </ParameterList>
+
+
+  
 
 Tabular Function
 -------------------------
-** DOC GENERATION ERROR: file not found ' TabularFunction ' **
+ FunctionTabular: Piecewise-defined function.
+
+A piecewise function of one variable.
+
+A tabular function is tabulated on a series of intervals; given values
+:math:`{{x_i}}, {{y_i}},, i=0, ... n-1` and functional forms :math:`{{f_j}},,
+j=0, ... n-2` a tabular function :math:`f(x)` is defined as:
+
+.. math::
+  \begin{matrix}
+  f(x) &=& y_0, & x \le x_0,\\
+  f(x) &=& f_{{i-1}}(x)  & x \in (x_{{i-1}}, x_i],\\
+  f(x) &=& y_{{n-1}}, & x > x_{{n-1}}.
+  \end{matrix}
+
+The functional forms :math:`{f_j}` may be constant, which uses the left endpoint, i.e.
+
+:math:`f_i(x) = y_i`,
+
+linear, i.e.
+
+:math:`f_i(x) = ( y_i * (x - x_i) + y_{{i+1}} * (x_{{i+1}} - x) ) / (x_{{i+1}} - x_i)`
+
+or arbitrary, in which the :math:`f_j` must be provided.
+
+The :math:`x_i` and :math:`y_i` may be provided in one of two ways -- explicitly in the input spec or from an HDF5 file.  The length of these must be equal, and the :math:`x_i` must be monotonically increasing.  Forms, as defined on intervals, must be of length equal to the length of the :math:`x_i` less one.
+
+Explicitly specifying the data:
+
+* `"x values`" ``[Array(double)]`` the :math:`x_i`
+* `"y values`" ``[Array(double)]`` the :math:`y_i`
+* `"forms`" ``[Array(string)]`` **{linear,...}** Form of the interpolant, either `"constant`", `"linear`", or `"USER_DEFINED`"
+* `"USER_DEFINED`" ``[function-spec]`` user-provided functional forms on the interval
+* `"x coordinate`" ``[string]`` **t**, `"x`", `"y`", `"z`" defines which coordinate direction the :math:`x_i` are formed, defaulting to time.
+
+The below example defines a function that is zero on interval :math:`(-\infty,\,0]`,
+linear on interval :math:`(0,\,1]`, constant (`f(x)=1`) on interval :math:`(1,\,2]`, 
+square root of `t` on interval :math:`(2,\,3]`,
+and constant (`f(x)=2`) on interval :math:`(3,\,\infty]`.
+
+Example:
+
+.. code-block:: xml
+  
+  <ParameterList name="function-tabular">
+    <Parameter name="x values" type="Array(double)" value="{0.0, 1.0, 2.0, 3.0}"/>
+    <Parameter name="x coordinate" type="string" value="t"/>
+    <Parameter name="y values" type="Array(double)" value="{0.0, 1.0, 2.0, 2.0}"/>
+    <Parameter name="forms" type="Array(string)" value="{linear, constant, USER_FUNC}"/>
+
+    <ParameterList name="USER_FUNC">
+      <ParameterList name="function-standard-math">
+        <Parameter name="operator" type="string" value="sqrt"/>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+  
+
+Loading table from file (note that `"USER_DEFINED`" is not an option here, but could be made so if requested):
+
+
+* `"file`" ``[string]`` filename of the HDF5 data
+* `"x header`" ``[string]`` name of the dataset for the :math:`x_i` in the file
+* `"y header`" ``[string]`` name of the dataset for the :math:`y_i` in the file
+* `"forms`" ``[Array(string)]`` **{linear,...}**, Form of the interpolant, either `"constant`", `"linear`", or `"USER_DEFINED`".
+
+The example below would perform linear-interpolation on the intervals provided by data within the hdf5 file `"my_data.h5`".
+
+Example:
+
+.. code-block:: xml
+  
+  <ParameterList name="function-tabular">
+    <Parameter name="file" type="string" value="my_data.h5"/>
+    <Parameter name="x coordinate" type="string" value="t"/>
+    <Parameter name="x header" type="string" value="/time"/>
+    <Parameter name="y header" type="string" value="/data"/>
+  </ParameterList>
+
+
+
 
 Smooth step Function
 -------------------------
-** DOC GENERATION ERROR: file not found ' SmoothStepFunction ' **
+ FunctionSmoothStep: a smoothed discontinuity.
+
+A smooth :math:`C^2` function `f(x)` on interval :math:`[x_0,\,x_1]` is
+defined such that `f(x) = y_0` for `x < x0`, `f(x) = y_1` for `x > x_1`, and
+monotonically increasing for :math:`x \in [x_0, x_1]` through cubic
+interpolation.
+
+* `"x0`" ``[double]`` First fitting point
+* `"y0`" ``[double]`` First fitting value
+* `"x1`" ``[double]`` Second fitting point
+* `"y1`" ``[double]`` Second fitting value
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-smooth-step">
+    <Parameter name="x0" type="double" value="0.0"/>
+    <Parameter name="y0" type="double" value="0.0"/>
+    <Parameter name="x1" type="double" value="1.0"/>
+    <Parameter name="y1" type="double" value="2.0"/>
+  </ParameterList>
+
+
+
 
 Polynomial Function
 -------------------------
-** DOC GENERATION ERROR: file not found ' PolynomialFunction ' **  
+ FunctionPolynomial: a polynomial
+
+A generic polynomial function is given by the following expression:
+
+.. math::
+  f(x) = \sum_{{j=0}}^n c_j (x - x_0)^{{p_j}}
+
+where :math:`c_j` are coefficients of monomials,
+:math:`p_j` are integer exponents, and :math:`x_0` is the reference point.
+
+* `"coefficients`" ``[Array(double)]`` c_j polynomial coefficients
+* `"exponents`" ``[Array(int)]`` p_j polynomail exponents
+* `"reference point`" ``[double]`` x0 to which polynomial argument is normalized.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-polynomial">
+    <Parameter name="coefficients" type="Array(double)" value="{1.0, 1.0}"/>
+    <Parameter name="exponents" type="Array(int)" value="{2, 4}"/>
+    <Parameter name="reference point" type="double" value="0.0"/>
+  </ParameterList>
+
+
+  
 
 Multi-variable linear Function
 ------------------------------
-** DOC GENERATION ERROR: file not found ' LinearFunction ' **  
+ FunctionLinear: a multivariate linear function.
+
+A multi-variable linear function is formally defined by
+ 
+.. math::
+  f(x) = y_0 + \sum_{{j=0}}^{{n-1}} g_j (x_j - x_{{0,j}}) 
+
+with the constant term "math:`y_0` and gradient :math:`g_0,\, g_1\,..., g_{{n-1}}`.
+If the reference point :math:`x_0` is specified, it must have the same
+number of values as the gradient.  Otherwise, it defaults to zero.
+Note that one of the parameters in a multi-valued linear function can be time.
+
+* `"y0`" ``[double]`` y_0 in f = y0 + g * (x - x0)
+* `"gradient`" ``[Array(double)]`` g in f = y0 + g * (x - x0)
+* `"x0`" ``[Array(double)]`` x0 in f = y0 + g * (x - x0)
+
+Conditions:
+
+.. code-block:: python
+
+  len(x0) == len(gradient)
+
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-linear">
+    <Parameter name="y0" type="double" value="1.0"/>
+    <Parameter name="gradient" type="Array(double)" value="{{1.0, 2.0, 3.0}}"/>
+    <Parameter name="x0" type="Array(double)" value="{{2.0, 3.0, 1.0}}"/>
+  </ParameterList>
+
+
+  
 
 Separable Function
 ------------------
-** DOC GENERATION ERROR: file not found ' SeparableFunction ' **
+ FunctionSeparable: f(x,y) = f1(x)*f2(y)
+
+A separable function is defined as the product of other functions such as
+
+.. math::
+  f(x_0, x_1,...,x_{{n-1}}) = f_1(x_0)\, f_2(x_1,...,x_{{n-1}})
+
+where :math:`f_1` is defined by the `"function1`" sublist, and 
+:math:`f_2` by the `"function2`" sublist.
+
+* `"function1`" ``[function-spec]`` f_1 in f(x) = f_1(x0) * f_2(x1...)
+* `"function2`" ``[function-spec]`` f_2 in f(x) = f_1(x0) * f_2(x1...)
+
+
+.. code-block:: xml
+
+  <ParameterList name="function-separable">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
+
 
 Additive Function
 ------------------
-** DOC GENERATION ERROR: file not found ' AdditiveFunction ' **
+ FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)
+
+An additive function simply adds two other function results together.
+
+.. math::
+  f(x) = f_1(x) + f_2(x)
+
+where :math:`f_1` is defined by the `"function1`" sublist, and 
+:math:`f_2` by the `"function2`" sublist.
+
+* `"function1`" ``[function-spec]`` f_1 in f(x) = f_1(x) + f_2(x)
+* `"function2`" ``[function-spec]`` f_2 in f(x) = f_1(x) + f_2(x)
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-additive">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
 
 Multiplicative Function
 --------------------------
-** DOC GENERATION ERROR: file not found ' MultiplicativeFunction ' **
+ FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)
+
+A multiplicative function simply multiplies two other function results together.
+
+.. math::
+  f(x) = f_1(x) * f_2(x)
+
+where :math:`f_1` is defined by the `"function1`" sublist, and 
+:math:`f_2` by the `"function2`" sublist.
+
+* `"function1`" ``[function-spec]`` f_1 in f(x) = f_1(x) + f_2(x)
+* `"function2`" ``[function-spec]`` f_2 in f(x) = f_1(x) + f_2(x)
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-multiplicative">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
 
 Composition Function
 --------------------------
-** DOC GENERATION ERROR: file not found ' CompositionFunction ' **
+ FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)
+
+Function composition simply applies one function to the result of another.
+
+.. math::
+  f(x) = f_1( f_2(x) )
+
+where :math:`f_1` is defined by the `"function1`" sublist, and 
+:math:`f_2` by the `"function2`" sublist.
+
+* `"function1`" ``[function-spec]`` f_1 in f(x) = f_1(f_2(x))
+* `"function2`" ``[function-spec]`` f_2 in f(x) = f_1(f_2(x))
+
+
+.. code-block:: xml
+
+  <ParameterList name="function-composition">
+    <ParameterList name="function1">
+      function-specification
+    </ParameterList>
+    <ParameterList name="function2">
+      function-specification
+    </ParameterList>
+  </ParameterList>
+
+
 
 Piecewise Bilinear Function
 ---------------------------
-** DOC GENERATION ERROR: file not found ' BilinearFunction ' **
+ FunctionBilinear: a piecewise bilinear function.
+
+A piecewise bilinear function extends the linear form of the tabular function to two variables.
+
+Define :math:`i(x) = i : x_i < x <= x_{{i+1}}` and similarly :math:`j(y) = j : y_j < y <= y_{{j+1}}` for monotonically increasing :math:`x_i` and :math:`y_j`.
+
+Given a two-dimensional array :math:`u_{{i,j}}`, :math:`f` is then defined by
+bilinear interpolation on :math:`u_{{i(x),j(y)}}, u_{{i(x)+1,j(y)}},
+u_{{i(x),j(y)+1}}, u_{{i(x)+1,j(y)+1}}, if :math:`(x,y)` is in
+:math:`[x_0,x_n] \times [y_0,y_m]`, linear interpolation if one of :math:`x,y`
+are out of those bounds, and constant at the corner value if both are out of
+bounds.
+ 
+* `"file`" ``[string]`` HDF5 filename of the data
+* `"row header`" ``[string]`` name of the row dataset, the :math:`x_i`
+* `"row coordinate`" ``[string]`` one of `"t`",`"x`",`"y`",`"z`"
+* `"column header`" ``[string]`` name of the column dataset, the :math:`y_i`
+* `"column coordinate`" ``[string]`` one of `"t`",`"x`",`"y`",`"z`"
+* `"value header`" ``[string]`` name of the values dataset, the :math:`u_{{i,j}}`
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-bilinear">
+    <Parameter name="file" type="string" value="pressure.h5"/>
+    <Parameter name="row header" type="string" value="/time"/>
+    <Parameter name="row coordinate" type="string" value="t"/>
+    <Parameter name="column header" type="string" value="/x"/>
+    <Parameter name="column coordinate" type="string" value="x"/>
+    <Parameter name="value header" type="string" value="/pressure"/>
+  </ParameterList>
+
+
+
 
 Distance Function
--------------------
-** DOC GENERATION ERROR: file not found ' DistanceFunction ' **
+-----------------
+ FunctionDistance: distance from a reference point.
+
+A distance function calculates distance from reference point :math:`x_0`
+using by the following expression:
+
+.. math::
+  f(x) = \sqrt( \sum_{j=0}^{n} m_j (x_j - x_{0,j})^2 )
+
+Note that the first parameter in :math:`x` can be time.
+
+* `"x0`" ``[Array(double)]`` Point from which distance is measured.
+* `"metric`" ``[Array(double)]`` Linear scaling metric, typically all 1s.
+
+Here is an example of a distance function using isotropic metric:
+
+Example:
+.. code-block:: xml
+
+  <ParameterList name="function-distance">
+    <Parameter name="x0" type="Array(double)" value="{1.0, 3.0, 0.0}"/>
+    <Parameter name="metric" type="Array(double)" value="{1.0, 1.0, 1.0}"/>
+  </ParameterList>
+
+
+
 
 Monomial Function
--------------------
-** DOC GENERATION ERROR: file not found ' MonomialFunction ' **
+-----------------
+ FunctionMonomial: a multivariate monomial function.
+
+A multi-variable monomial function is given by the following expression:
+
+.. math::
+  f(x) = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}
+
+with the constant factor :math:`c`, the reference point :math:`x_0`, and
+integer exponents :math:`p_j`. 
+Note that the first parameter in :math:`x` can be time.
+
+* `"c`" ``[double]`` c in f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}
+* `"x0`" ``[Array(double)]`` x0 in f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}
+* `"exponents`" ``[Array(int)]`` p in f = c \prod_{j=0}^{n} (x_j - x_{0,j})^{p_j}
+
+Conditions:
+
+.. code-block:: python
+
+  len(x0) == len(exponents)
+
+Here is an example of monomial of degree 6 in three variables:
+
+.. code-block:: xml
+
+  <ParameterList name="function-monomial">
+    <Parameter name="c" type="double" value="1.0"/>
+    <Parameter name="x0" type="Array(double)" value="{1.0, 3.0, 0.0}"/>
+    <Parameter name="exponents" type="Array(int)" value="{2, 3, 1}"/>
+  </ParameterList>
+
+
+
 
 Standard Math Function
--------------------------
-** DOC GENERATION ERROR: file not found ' StandardMathFunction ' **
+----------------------
+ FunctionStandardMath: provides access to many common mathematical functions.
+These functions allow to set up non-trivial time-dependent boundary conditions 
+which increases a set of analytic solutions that can be used in convergence 
+analysis tests.
+
+.. math::
+  f(x) = A * operator( p * (x - s) )
+
+or
+
+.. math::
+  f(x) = A * operator(x-s, p)
+
+Note that these operate only on the first coordinate, which is often time.
+Function composition can be used to apply these to other coordinates (or
+better yet a dimension could/should be added upon request).
+
+* `"operator`" ``[string]`` specifies the name of a standard mathematical function.
+  Available options are `"cos`", `"sin`", `"tan`", `"acos`", `"asin`", `"atan`", 
+  `"cosh`", `"sinh`", `"tanh`", `"exp`", `"log`", `"log10`", `"sqrt`", `"ceil`",
+  `"fabs`", `"floor`", `"mod`", and `"pow`".
+
+* `"amplitude`" ``[double]`` specifies a multiplication factor `a` in formula `a f(x)`. 
+  The multiplication factor is ignored by function `mod`. Default value is 1.
+
+* `"parameter`" ``[double]`` **1.0** specifies additional parameter `p` for
+  math functions with two arguments. These functions are `"a pow(x[0], p)`"
+  and `"a mod(x[0], p)`".  Alternative, scales the argument before
+  application, for use in changing the period of trig functions.
+
+* `"shift`" ``[double]`` specifies a shift of the function argument. Default is 0.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="function-standard-math">
+    <Parameter name="operator" type="string" value="sqrt"/>
+    <Parameter name="amplitude" type="double" value="1e-7"/>
+    <Parameter name="shift" type="double" value="0.1"/>
+  </ParameterList>
+
+This example defines function `1e-7 sqrt(t-0.1)`.
+ 
+
 
 
 
 Operator
-===================
+========
 
  Operator represents a linear map, and typically encapsulates a discretization.
 ``Operator`` represents a map from linear space X to linear space Y.  Typically,
@@ -2502,23 +2990,179 @@ with nearly singular operators:
 OperatorAccumulation
 -------------------------
 
-** DOC GENERATION ERROR: file not found ' OperatorAccumulation ' **
+``PDE_Accumulation`` assembles the discrete form of :math:`\frac{\partial A}{\partial t}`.
+
+This class is usually used as part of a preconditioner, providing the linearization:
+
+.. math::
+  \frac{\partial}{\partial A} \left[ \frac{\partial A}{\partial t} \right]_{A_0} i
+  = \frac{|\Omega_E|}{\Delta t}
+
+for a grid element :math:`\Omega_E`.
+
+No options are available here.
+
+
 
 OperatorDiffusion
-------------------
-** DOC GENERATION ERROR: file not found ' OperatorDiffusionFactory ' **
+-----------------
 
-** DOC GENERATION ERROR: file not found ' OperatorDiffusionMFD ' **
 
-** DOC GENERATION ERROR: file not found ' OperatorDiffusionMFDwithGravity ' **
+``PDE_Diffusion`` forms local ``Op`` s and global ``Operator`` s for elliptic equations:
 
-** DOC GENERATION ERROR: file not found ' OperatorDiffusion ' **
+.. math::
+  \nabla \cdot k \nabla u
+
+with a variety of discretizations. Note also, for reasons that are one part historical 
+and potentially not that valid, this also supports and implementation with an advective 
+source, i.e.:
+
+.. math::
+  \nabla \cdot k (\nabla u + \hat{z})
+
+for gravitational terms in Richards equations.
+
+The input spec for a diffusion operator consists of:
+
+* `"discretization primary`" ``[string]`` See below for supported options.
+
+ - `"fv: default`" the standard two-point flux finite volume discretization
+ - `"nlfv: default`" the nonlinear finite volume method of ???
+ - MFD methods, including:
+  - `"mfd: default`"
+  - `"mfd: monotone for hex`"
+  - `"mfd: optimized for monotonicity`"
+  - `"mfd: two-point flux approximation`"
+  - `"mfd: optimized for sparsity`"
+  - `"mfd: support operator`"
+
+ Note that the most commonly used are `"fv: default`" for simple test
+ problems (this method is not particularly accurate for distorted
+ meshes), `"mfd: optimized for sparsity`" for most real problems on
+ unstructured meshes, and `"mfd: optimized for monotonicity`" for
+ orthogonal meshes with diagonal tensor/scalar coefficients.
+
+* `"gravity`" ``[bool]`` **false** specifies if the gravitational flow term is included
+
+* `"Newton correction`" ``[string]`` specifies a model for non-physical terms 
+  that must be added to the matrix. These terms represent Jacobian and are needed 
+  for the preconditioner. Available options are `"true Jacobian`" and `"approximate Jacobian`".
+  The FV scheme accepts only the first options. The other schemes accept only the second option.
+
+* `"scaled constraint equation`" ``[bool]`` **false** rescales flux continuity equations
+  on mesh faces.  These equations are formed without the nonlinear
+  coefficient. This option allows us to treat the case of zero nonlinear
+  coefficient, which otherwise generates zero rows in the operator, which is
+  then singular.  At moment this feature does not work with non-zero gravity
+  term.
+
+* `"constraint equation scaling cutoff`" ``[double]`` specifies the cutoff value for
+  applying rescaling strategy described above.
+
+
+
+ Diffusion generates local Ops and global Operators for an elliptic operator.
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="OPERATOR_NAME">
+      <Parameter name="discretization primary" type="string" value="mfd: optimized for monotonicity"/>
+      <Parameter name="discretization secondary" type="string" value="mfd: two-point flux approximation"/>
+      <Parameter name="schema" type="Array(string)" value="{face, cell}"/>
+      <Parameter name="preconditioner schema" type="Array(string)" value="{face}"/>
+      <Parameter name="gravity" type="bool" value="true"/>
+      <Parameter name="gravity term discretization" type="string" value="hydraulic head"/>
+      <Parameter name="nonlinear coefficient" type="string" value="upwind: face"/>
+      <Parameter name="Newton correction" type="string" value="true Jacobian"/>
+
+      <ParameterList name="consistent faces">
+        <ParameterList name="linear solver">
+          ...
+        </ParameterList>
+        <ParameterList name="preconditioner">
+          ...
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+
+
+
+
+Additional options available only for the MFD family of discretizations include:
+  
+* `"nonlinear coefficient`" ``[string]`` specifies a method for treating nonlinear
+  diffusion coefficient, if any. Available options are `"none`", `"upwind:
+  face`", `"divk: cell-face`" (default), `"divk: face`", `"standard: cell`",
+  `"divk: cell-face-twin`" and `"divk: cell-grad-face-twin`".  Symmetry
+  preserving methods are the divk-family of methods and the classical
+  cell-centered method (`"standard: cell`"). The first part of the name
+  indicates the base scheme.  The second part (after the semi-column)
+  indicates required components of the composite vector that must be provided
+  by a physical PK.
+
+* `"discretization secondary`" ``[string]`` specifies the most robust
+  discretization method that is used when the primary selection fails to
+  satisfy all a priori conditions.  This is typically `"mfd: default`", and is
+  used only when an MFD `"discretization primary`" is used.
+
+* `"schema`" ``[Array(string)]`` defines the operator stencil. It is a collection of 
+  geometric objects.  Typically this is set by the implementation and is not provided.
+
+* `"preconditioner schema`" ``[Array(string)]`` **{face,cell}** Defines the
+  preconditioner stencil.  It is needed only when the default assembling
+  procedure is not desirable. If skipped, the `"schema`" is used instead.
+  In addition to the default, **{face}** may be used, which forms the Schur
+  complement.
+   
+* `"consistent faces`" ``[list]`` may contain a `"preconditioner`" and
+  `"linear operator`" list (see sections Preconditioners_ and LinearSolvers_
+  respectively).  If these lists are provided, and the `"discretization
+  primary`" is of type `"mfd: *`", then the diffusion method
+  UpdateConsistentFaces() can be used.  This method, given a set of cell
+  values, determines the faces constraints that satisfy the constraint
+  equation in MFD by assembling and inverting the face-only system.  This is
+  not currently used by any Amanzi PKs.
+
+* `"diffusion tensor`" ``[string]`` allows us to solve problems with symmetric and 
+  non-symmetric (but positive definite) tensors. Available options are *symmetric* 
+  (default) and *nonsymmetric*.
+
+
+
+
+Additional options for MFD with the gravity term include:
+  
+* `"gravity term discretization`" ``[string]`` selects a model for discretizing the 
+  gravity term. Available options are `"hydraulic head`" (default) and `"finite volume`". 
+  The first option starts with equation for the shifted solution, i.e. the hydraulic 
+  head, and derives gravity discretization by the reserve shifting.
+  The second option is based on the divergence formula.
+
+
+
+
+
+
 
 
 OperatorAdvection
 -------------------------
 
-** DOC GENERATION ERROR: file not found ' OperatorAdvection ' **
+
+
+
+``PDE_AdvectionUpwind`` assembles the discrete form of:
+
+.. math::
+  \nabla \cdot (q C)
+
+which advects quantity :math:`C` with fluxes :math:`q`.
+
+This is a simple, first-order donor-upwind scheme, and is recommended
+for use in diffusion-dominated advection-diffusion equations.
+
+
 
 
 

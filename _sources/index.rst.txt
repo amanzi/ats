@@ -19,9 +19,16 @@ View our Gallery of Demo problems.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-             
+   :caption: User Guide:
+
+   demos
    input_spec
+
+..   
+.. toctree::
+   :maxdepth: 2
+   :caption: Developers Guide:
+             
 
 Indices and tables
 ==================

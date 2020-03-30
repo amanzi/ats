@@ -1,0 +1,316 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ATS Demo Problems &mdash; ATS 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input Specification" href="input_spec.html" />
+    <link rel="prev" title="Advanced Terrestrial Simulator" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> ATS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ATS Demo Problems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#richards-equation-steady-state">Richards Equation: Steady state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#richards-equation-transient">Richards Equation: Transient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#surface-water">Surface Water</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integrated-hydrology">Integrated Hydrology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ecohydrology">Ecohydrology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arctic-hydrology">Arctic Hydrology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reactive-transport">Reactive Transport</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="input_spec.html">Input Specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ATS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ATS Demo Problems</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/demos.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="ats-demo-problems">
+<h1>ATS Demo Problems<a class="headerlink" href="#ats-demo-problems" title="Permalink to this headline">¶</a></h1>
+<p>The best way to learn how to use ATS is by looking at our suite of
+demonstration problems.  This is a suite of problems that look to
+provide many simple, and some complex, examples of how to link
+together the various physics capabilities in ATS.</p>
+<p>In all, for every process in ATS, we try to provide at least one
+example, and preferably two – one that is simple and shows how the
+process works, and one that is complex and shows how it links to other
+processes in a real problem.  In addition to input files for these
+examples, we strive to include a Jupyter notebook which explains all
+needed inputs and outputs of that example, and shows some plots that
+demonstrate how the process works.  This is somewhat aspirational at
+the moment – our demos do not cover the entire suite of processes –
+but new demos are always welcome contributions.</p>
+<p>The problems are organized by type of capability, and include
+multiple examples.  For instance, the ecohydrology notebook includes
+examples of evaporation and transpiration through a broad range of
+complexity of approaches, from prescribed values to Priestly-Taylor
+evaporation to fully biogeophysical models.</p>
+<p>Note that ats-demos is its own repo.  This repo can be checked out
+(either standalone or as a submodule of ATS), and the demos can be
+run, modified, etc.  Installation notes for the demos are included in
+that repository in its <a class="reference external" href="https://github.com/amanzi/ats-demos.git">README</a>.</p>
+<div class="section" id="richards-equation-steady-state">
+<h2>Richards Equation: Steady state<a class="headerlink" href="#richards-equation-steady-state" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/01_richards_steadystate/richards_steadystate.html"><span class="doc">ats_demos/01_richards_steadystate/richards_steadystate.ipynb</span></a></p>
+<p>This shows examples of solving Richards equation to steadystate.
+Typically this is used to establish a water column that satisfies
+hydrostatic balance.</p>
+</div>
+<div class="section" id="richards-equation-transient">
+<h2>Richards Equation: Transient<a class="headerlink" href="#richards-equation-transient" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/02_richards/richards.html"><span class="doc">ats_demos/02_richards/richards.ipynb</span></a></p>
+<p>Transient problems show a variety of variably saturated cases, and
+demonstrate seepage faces and other common boundary conditions for the
+flow of water in a porous media.</p>
+</div>
+<div class="section" id="surface-water">
+<h2>Surface Water<a class="headerlink" href="#surface-water" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/03_surface_water/surface_water.html"><span class="doc">ats_demos/03_surface_water/surface_water.ipynb</span></a></p>
+<p>Overland flow is solved through a diffusion wave equation.  This
+demonstrates that as a standalone capability, solving surface water
+problems to demonstrate common usages of boundary conditions and
+forcing.</p>
+</div>
+<div class="section" id="integrated-hydrology">
+<h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/04_integrated_hydro/integrated_hydro.html"><span class="doc">ats_demos/04_integrated_hydro/integrated_hydro.ipynb</span></a></p>
+<p>Integrated hydrology brings the previous two examples together,
+solving both surface and subsurface flow of water.</p>
+</div>
+<div class="section" id="ecohydrology">
+<h2>Ecohydrology<a class="headerlink" href="#ecohydrology" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/05_ecohydrology/ecohydrology.html"><span class="doc">ats_demos/05_ecohydrology/ecohydrology.ipynb</span></a></p>
+<p>Ecohydrogy brings in the effects of other ecological processes, here
+loosely used to include all surface processes like evaporation,
+transpiration, and canopy processes like interception and storage, and
+even simplified biogeochemistry processes for a full carbon cycle.</p>
+</div>
+<div class="section" id="arctic-hydrology">
+<h2>Arctic Hydrology<a class="headerlink" href="#arctic-hydrology" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="ats_demos/06_arctic_hydrology/arctic_hydrology.html"><span class="doc">ats_demos/06_arctic_hydrology/arctic_hydrology.ipynb</span></a></p>
+<p>ATS was originally developed as an Arctic hydrology simulator.  It
+includes state-of-the art constitutive models and numerical methods
+for solving coupled freeze-thaw processes in Arctic environments.</p>
+</div>
+<div class="section" id="reactive-transport">
+<h2>Reactive Transport<a class="headerlink" href="#reactive-transport" title="Permalink to this headline">¶</a></h2>
+<p><cite>&lt;ats_demos/07_reactive_transport/reactive_transport.ipynb&gt;</cite> (Work in progress)</p>
+<p>ATS’s sister code Amanzi was designed for solving problems of reactive
+transport.  Interoperability of ATS and Amanzi allows ATS to leverage
+this work to solve problems of nonreactive and reactive transport in
+both the surface and subsurface, and even in frozen environments.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="input_spec.html" class="btn btn-neutral float-right" title="Input Specification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Advanced Terrestrial Simulator" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, jointly shared by contributor institutions
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

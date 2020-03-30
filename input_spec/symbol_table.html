@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>&lt;no title&gt; &mdash; ATS 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> ATS
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">ATS Demo Problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input_spec.html">Input Specification</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ATS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>&lt;no title&gt;</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/input_spec/symbol_table.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Symbol</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(g\)</span></td>
+<td>gravitational acceleration vector <span class="math notranslate nohighlight">\([m s^-2]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(h\)</span></td>
+<td>ponded depth, or the water head over the surface <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-even"><td></td>
+<td>alternative, in context of the subsurface, water head <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(h_{snow}\)</span></td>
+<td>snow depth <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(K\)</span></td>
+<td>absolute permeability <span class="math notranslate nohighlight">\([m^2]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
+<td>relative permeability <span class="math notranslate nohighlight">\([-]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
+<td>molar density of phase X <span class="math notranslate nohighlight">\([mol m^-3]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(p\)</span></td>
+<td>pressure of the liquid phase <span class="math notranslate nohighlight">\([Pa]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{s,r}\)</span></td>
+<td>precipitation of rain or snow, noting that snow is always a precipitation rate in snow-water-equivalent (SWE) basis.  <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(Q_w\)</span></td>
+<td>mass source of water <span class="math notranslate nohighlight">\([mol s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(s_X\)</span></td>
+<td>saturation of phase X <span class="math notranslate nohighlight">\([-]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(t\)</span></td>
+<td>time variable <span class="math notranslate nohighlight">\([s]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(z\)</span></td>
+<td>elevation <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\nu\)</span></td>
+<td>dynamic viscosity of water <span class="math notranslate nohighlight">\([Pa s]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\phi\)</span></td>
+<td>porosity of the soil <span class="math notranslate nohighlight">\([-]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho\)</span></td>
+<td>mass density of a phase <span class="math notranslate nohighlight">\([kg m^-3]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\Theta\)</span></td>
+<td>extensive water content of a cell <span class="math notranslate nohighlight">\([mol]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\vert E \vert\)</span></td>
+<td>volume of a discrete element <span class="math notranslate nohighlight">\(E\)</span></td>
+</tr>
+</tbody>
+</table>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, jointly shared by contributor institutions
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
