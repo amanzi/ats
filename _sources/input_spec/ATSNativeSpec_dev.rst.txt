@@ -587,7 +587,7 @@ Example:
 Coordinator
 ############
 
- Coordinator: Simulation controller and top-level driver
+ Simulation controller and top-level driver
 
 In the `"cycle driver`" sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.
@@ -649,15 +649,17 @@ Example:
 Visualization
 ##############
 
-A user may request periodic writes of field data for the purposes of
-visualization in the `"visualization`" sublists.  ATS accepts a visualization
-list for each domain/mesh, including surface and column meshes.  These are in
-separate ParameterLists, entitled `"visualization`" for the main mesh, and
-`"visualization surface`" on the surface mesh.  It is expected that, for any
-addition meshes, each will have a domain name and therefore admit a spec of
-the form: `"visualization DOMAIN-NAME`".
+ Manages simulation output to disk.
 
- Visualization: a class for controlling simulation output.
+A user may request periodic writes of field data for the purposes of
+visualization in the `"visualization`" sublists.
+
+ATS accepts a visualization list for each domain/mesh, including surface and
+column meshes.  These are in separate ParameterLists, entitled
+`"visualization`" for the main mesh, and `"visualization surface`" on the
+surface mesh.  It is expected that, for any addition meshes, each will have a
+domain name and therefore admit a spec of the form: `"visualization
+DOMAIN-NAME`".
 
 Each list contains all parameters as in a IOEvent_ spec, and also:
 
@@ -697,6 +699,8 @@ Example:
 Checkpoint
 ##############
 
+ Manages checkpoint/restart capability.
+
 A user may request periodic dumps of ATS Checkpoint Data in the
 `"checkpoint`" sublist.  The user has no explicit control over the
 content of these files, but has the guarantee that the ATS run will be
@@ -706,8 +710,6 @@ Therefore, output controls for Checkpoint Data are limited to file
 name generation and writing frequency, by numerical cycle number.
 Unlike `"visualization`", there is only one `"checkpoint`" list for
 all domains/meshes.
-
- Manages checkpoint/restart capability.
 
 Parameters:
 
@@ -1859,8 +1861,8 @@ be prescribed, to be enforced until the water table rises to the surface, at
 which point the precip is turned off and water seeps into runoff.  This
 capability is experimental and has not been well tested.
 
-  - if :math:`q \cdot \hat{n} < q0`, then :math:`q = q0`
-  - if :math:`p > p_atm`, then :math:`p = p_atm`
+  - if :math:`q \cdot \hat{n} < q_0`, then :math:`q = q_0`
+  - if :math:`p > p_{atm}`, then :math:`p = p_{atm}`
 
 Example: seepage with infiltration
 
@@ -1986,10 +1988,12 @@ Example:
 
 
 Dynamic boundary condutions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The type of boundary conditions maybe changed in time depending on the switch function of TIME.
-<ParameterList name="dynamic">
-          
+
+.. code-block:: xml
+
+   <ParameterList name="dynamic">
      <Parameter name="regions" type="Array(string)" value="{surface west}"/>
      <ParameterList name="switch function">
        <ParameterList name="function-tabular">
@@ -2032,9 +2036,8 @@ The type of boundary conditions maybe changed in time depending on the switch fu
           </ParameterList>
         </ParameterList>
      </ParameterList>
-                 
- </ParameterList> 
-<!-- dynamic -->
+
+   </ParameterList>
 
  
 
@@ -2045,13 +2048,13 @@ The type of boundary conditions maybe changed in time depending on the switch fu
 
 
 Time integrators, solvers, and other mathematical specs
-####################################################################################
+#######################################################
 
 Common specs for all solvers and time integrators, used in PKs.
 
 
 TimeIntegrator
-=================
+==============
 
  Factory for creating TimestepController objects
 
@@ -2075,7 +2078,7 @@ Available types include:
 
 
 TimestepControllerFixed
---------------------------
+-----------------------
   Timestep controller providing constant timestep size.
 
 ``TimestepControllerFixed`` is a simple timestep control mechanism which sets
@@ -2087,7 +2090,7 @@ minimum of PK's initial timestep sizes.
 
 
 TimestepControllerStandard
-----------------------------
+--------------------------
  Simple timestep control based upon previous iteration count.
 
 ``TimestepControllerStandard`` is a simple timestep control mechanism
@@ -2114,7 +2117,7 @@ nonlinear iterations required to solve step :math:`k`:.
 
 
 TimestepControllerSmarter
-----------------------------
+-------------------------
   Slightly smarter timestep controller based upon a history of previous timesteps.
 
 ``TimestepControllerSmarter`` is based on ``TimestepControllerStandard``, but
@@ -2136,7 +2139,7 @@ recover from tricky nonlinearities.
 
 
 TimestepControllerFromFile
-----------------------------
+--------------------------
   Timestep controller which loads a timestep history from file.
 
 ``TimestepControllerFromFile`` loads a timestep history from a file, then
@@ -2156,37 +2159,117 @@ solutions which are enough different to cause doubt over their correctness.
 
 
 
-Linear Solver Spec
-===================
+Linear Solver
+=============
 
-For each solver, a few parameters are used:
+Linear solver are almost exclusively iterative methods with a separate provided preconditioner.
 
-* `"iterative method`" ``[string]`` `"pcg`", `"gmres`", or `"nka`"
+Linear Solver: PCG
+--------------------
+ Preconditioned conjugate gradient method for a linear solver.
 
-  defines which method to use.
+Parameters:
 
-* `"error tolerance`" ``[double]`` **1.e-6** is used in the convergence test.
+* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** is used in the convergence test.
+* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"convergence criteria`" ``[Array(string)]``  **{"relative rhs"}** specifies multiple convergence criteria. The list
-  may include `"relative residual`", `"relative rhs`", and `"absolute residual`", and `"???? force once????`"
+* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"size of Krylov space`" ``[int]`` is used in GMRES iterative method. The default value is 10.
+* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+  criteria, any of which can be applied.  Valid include:
 
-.. code-block:: xml
+  - `"relative rhs`" : measure error relative to the norm of the RHS vector
+  - `"relative residual`" : measure error relative to the norm of the residual
+  - `"absolute residual`" : measure error directly, norm of error
+  - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
-     <ParameterList name="my solver">
-       <Parameter name="iterative method" type="string" value="gmres"/>
-       <Parameter name="error tolerance" type="double" value="1e-12"/>
-       <Parameter name="maximum number of iterations" type="int" value="400"/>
-       <Parameter name="convergence criteria" type="Array(string)" value="{relative residual}"/>
-       <Parameter name="size of Krylov space" type="int" value="10"/>
 
-       <ParameterList name="VerboseObject">
-         <Parameter name="Verbosity Level" type="string" value="high"/>
-       </ParameterList>
-     </ParameterList>
+
+
+Linear Solver: GMRES
+--------------------
+ Generalized minimum residual method for a linear solver.
+
+Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
+GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
+W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
+
+Parameters:
+
+* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+
+* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+
+* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+
+* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+  criteria, any of which can be applied.  Valid include:
+
+  - `"relative rhs`" : measure error relative to the norm of the RHS vector
+  - `"relative residual`" : measure error relative to the norm of the residual
+  - `"absolute residual`" : measure error directly, norm of error
+  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+
+* `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
+
+* `"controller training start`" ``[int]`` **0** Start iteration for determining
+  convergence rates. (Add more please!)
+
+* `"controller training end`" ``[int]`` **3** Start iteration for determining
+  convergence rates. (Add more please!)
+
+* `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
+  "right"-type preconditioning (see Saad 1986)
+
+* `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
+
+
+
+
+Linear Solver: NKA
+--------------------
+ Uses NKA method as a linear solver.
+
+This is effectively equivalent to GMRES with a rolling restart, where vectors
+fall off the end of the space.
+
+Parameters:
+
+* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+
+* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+
+* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+
+* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+  criteria, any of which can be applied.  Valid include:
+
+  - `"relative rhs`" : measure error relative to the norm of the RHS vector
+  - `"relative residual`" : measure error relative to the norm of the residual
+  - `"absolute residual`" : measure error directly, norm of error
+  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+
+* `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
+
+* `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
+
+
+
+
+Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
+
+
+
+
+
+Linear Solver: Amesos
+---------------------
+
+
+Linear Solver: Belos GMRES
+--------------------------
+
 
 
 Preconditioner

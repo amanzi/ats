@@ -173,7 +173,14 @@
 <li class="toctree-l4"><a class="reference internal" href="#timestepcontrollerfromfile">TimestepControllerFromFile</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#linear-solver-spec">Linear Solver Spec</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linear-solver">Linear Solver</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#linear-solver-pcg">Linear Solver: PCG</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#linear-solver-gmres">Linear Solver: GMRES</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#linear-solver-nka">Linear Solver: NKA</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#linear-solver-amesos">Linear Solver: Amesos</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#linear-solver-belos-gmres">Linear Solver: Belos GMRES</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#preconditioner">Preconditioner</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#hypre-s-boomer-amg">Hypre’s Boomer AMG</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#trilinos-ml">Trilinos ML</a></li>
@@ -449,40 +456,47 @@
 <li><a class="reference internal" href="#timestepcontrollerfromfile" id="id100">TimestepControllerFromFile</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#linear-solver-spec" id="id101">Linear Solver Spec</a></li>
-<li><a class="reference internal" href="#preconditioner" id="id102">Preconditioner</a><ul>
-<li><a class="reference internal" href="#hypre-s-boomer-amg" id="id103">Hypre’s Boomer AMG</a></li>
-<li><a class="reference internal" href="#trilinos-ml" id="id104">Trilinos ML</a></li>
-<li><a class="reference internal" href="#block-ilu" id="id105">Block ILU</a></li>
-<li><a class="reference internal" href="#indentity" id="id106">Indentity</a></li>
+<li><a class="reference internal" href="#linear-solver" id="id101">Linear Solver</a><ul>
+<li><a class="reference internal" href="#linear-solver-pcg" id="id102">Linear Solver: PCG</a></li>
+<li><a class="reference internal" href="#linear-solver-gmres" id="id103">Linear Solver: GMRES</a></li>
+<li><a class="reference internal" href="#linear-solver-nka" id="id104">Linear Solver: NKA</a></li>
+<li><a class="reference internal" href="#linear-solver-amesos" id="id105">Linear Solver: Amesos</a></li>
+<li><a class="reference internal" href="#linear-solver-belos-gmres" id="id106">Linear Solver: Belos GMRES</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#nonlinearsolver" id="id107">NonlinearSolver</a></li>
+<li><a class="reference internal" href="#preconditioner" id="id107">Preconditioner</a><ul>
+<li><a class="reference internal" href="#hypre-s-boomer-amg" id="id108">Hypre’s Boomer AMG</a></li>
+<li><a class="reference internal" href="#trilinos-ml" id="id109">Trilinos ML</a></li>
+<li><a class="reference internal" href="#block-ilu" id="id110">Block ILU</a></li>
+<li><a class="reference internal" href="#indentity" id="id111">Indentity</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#other-common-specs" id="id108">Other Common Specs</a><ul>
-<li><a class="reference internal" href="#ioevent" id="id109">IOEvent</a></li>
-<li><a class="reference internal" href="#verboseobject" id="id110">VerboseObject</a></li>
-<li><a class="reference internal" href="#function" id="id111">Function</a><ul>
-<li><a class="reference internal" href="#constant-function" id="id112">Constant Function</a></li>
-<li><a class="reference internal" href="#tabular-function" id="id113">Tabular Function</a></li>
-<li><a class="reference internal" href="#smooth-step-function" id="id114">Smooth step Function</a></li>
-<li><a class="reference internal" href="#polynomial-function" id="id115">Polynomial Function</a></li>
-<li><a class="reference internal" href="#multi-variable-linear-function" id="id116">Multi-variable linear Function</a></li>
-<li><a class="reference internal" href="#separable-function" id="id117">Separable Function</a></li>
-<li><a class="reference internal" href="#additive-function" id="id118">Additive Function</a></li>
-<li><a class="reference internal" href="#multiplicative-function" id="id119">Multiplicative Function</a></li>
-<li><a class="reference internal" href="#composition-function" id="id120">Composition Function</a></li>
-<li><a class="reference internal" href="#piecewise-bilinear-function" id="id121">Piecewise Bilinear Function</a></li>
-<li><a class="reference internal" href="#distance-function" id="id122">Distance Function</a></li>
-<li><a class="reference internal" href="#monomial-function" id="id123">Monomial Function</a></li>
-<li><a class="reference internal" href="#standard-math-function" id="id124">Standard Math Function</a></li>
+<li><a class="reference internal" href="#nonlinearsolver" id="id112">NonlinearSolver</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#operator" id="id125">Operator</a><ul>
-<li><a class="reference internal" href="#operatoraccumulation" id="id126">OperatorAccumulation</a></li>
-<li><a class="reference internal" href="#operatordiffusion" id="id127">OperatorDiffusion</a></li>
-<li><a class="reference internal" href="#operatoradvection" id="id128">OperatorAdvection</a></li>
+<li><a class="reference internal" href="#other-common-specs" id="id113">Other Common Specs</a><ul>
+<li><a class="reference internal" href="#ioevent" id="id114">IOEvent</a></li>
+<li><a class="reference internal" href="#verboseobject" id="id115">VerboseObject</a></li>
+<li><a class="reference internal" href="#function" id="id116">Function</a><ul>
+<li><a class="reference internal" href="#constant-function" id="id117">Constant Function</a></li>
+<li><a class="reference internal" href="#tabular-function" id="id118">Tabular Function</a></li>
+<li><a class="reference internal" href="#smooth-step-function" id="id119">Smooth step Function</a></li>
+<li><a class="reference internal" href="#polynomial-function" id="id120">Polynomial Function</a></li>
+<li><a class="reference internal" href="#multi-variable-linear-function" id="id121">Multi-variable linear Function</a></li>
+<li><a class="reference internal" href="#separable-function" id="id122">Separable Function</a></li>
+<li><a class="reference internal" href="#additive-function" id="id123">Additive Function</a></li>
+<li><a class="reference internal" href="#multiplicative-function" id="id124">Multiplicative Function</a></li>
+<li><a class="reference internal" href="#composition-function" id="id125">Composition Function</a></li>
+<li><a class="reference internal" href="#piecewise-bilinear-function" id="id126">Piecewise Bilinear Function</a></li>
+<li><a class="reference internal" href="#distance-function" id="id127">Distance Function</a></li>
+<li><a class="reference internal" href="#monomial-function" id="id128">Monomial Function</a></li>
+<li><a class="reference internal" href="#standard-math-function" id="id129">Standard Math Function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operator" id="id130">Operator</a><ul>
+<li><a class="reference internal" href="#operatoraccumulation" id="id131">OperatorAccumulation</a></li>
+<li><a class="reference internal" href="#operatordiffusion" id="id132">OperatorDiffusion</a></li>
+<li><a class="reference internal" href="#operatoradvection" id="id133">OperatorAdvection</a></li>
 </ul>
 </li>
 </ul>
@@ -800,7 +814,7 @@ entity local ID, in a provided region of the provided entity type.</p>
 <div class="section" id="columnmeshes">
 <h2><a class="toc-backref" href="#id14">ColumnMeshes</a><a class="headerlink" href="#columnmeshes" title="Permalink to this headline">¶</a></h2>
 <p>Note these are never? created manually by a user.  Instead use SubgridMeshes,
-which generate a <a href="#id129"><span class="problematic" id="id130">ColumnMesh_</span></a> spec for every face of the surface mesh.</p>
+which generate a <a href="#id134"><span class="problematic" id="id135">ColumnMesh_</span></a> spec for every face of the surface mesh.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“column</cite>”.</p>
 <p><code class="docutils literal notranslate"><span class="pre">[mesh-type-column-spec]</span></code></p>
 <ul class="simple">
@@ -1065,7 +1079,7 @@ associated with the entities in the indicated set.</p>
 <div class="section" id="coordinator">
 <h1><a class="toc-backref" href="#id21">Coordinator</a><a class="headerlink" href="#coordinator" title="Permalink to this headline">¶</a></h1>
 <blockquote>
-<div>Coordinator: Simulation controller and top-level driver</div></blockquote>
+<div>Simulation controller and top-level driver</div></blockquote>
 <p>In the <cite>“cycle driver</cite>” sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.</p>
 <ul class="simple">
@@ -1109,15 +1123,16 @@ of a time step crash, we do not continue on forever spewing output.</p>
 </div>
 <div class="section" id="visualization">
 <h1><a class="toc-backref" href="#id22">Visualization</a><a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h1>
-<p>A user may request periodic writes of field data for the purposes of
-visualization in the <cite>“visualization</cite>” sublists.  ATS accepts a visualization
-list for each domain/mesh, including surface and column meshes.  These are in
-separate ParameterLists, entitled <cite>“visualization</cite>” for the main mesh, and
-<cite>“visualization surface</cite>” on the surface mesh.  It is expected that, for any
-addition meshes, each will have a domain name and therefore admit a spec of
-the form: <cite>“visualization DOMAIN-NAME</cite>”.</p>
 <blockquote>
-<div>Visualization: a class for controlling simulation output.</div></blockquote>
+<div>Manages simulation output to disk.</div></blockquote>
+<p>A user may request periodic writes of field data for the purposes of
+visualization in the <cite>“visualization</cite>” sublists.</p>
+<p>ATS accepts a visualization list for each domain/mesh, including surface and
+column meshes.  These are in separate ParameterLists, entitled
+<cite>“visualization</cite>” for the main mesh, and <cite>“visualization surface</cite>” on the
+surface mesh.  It is expected that, for any addition meshes, each will have a
+domain name and therefore admit a spec of the form: <cite>“visualization
+DOMAIN-NAME</cite>”.</p>
 <p>Each list contains all parameters as in a <a class="reference internal" href="#ioevent">IOEvent</a> spec, and also:</p>
 <ul class="simple">
 <li><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>visdump_DOMAIN_data</strong></li>
@@ -1146,6 +1161,8 @@ into for output files.  One of <cite>“s</cite>”, <cite>“d</cite>”, <cite
 </div>
 <div class="section" id="checkpoint">
 <h1><a class="toc-backref" href="#id23">Checkpoint</a><a class="headerlink" href="#checkpoint" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div>Manages checkpoint/restart capability.</div></blockquote>
 <p>A user may request periodic dumps of ATS Checkpoint Data in the
 <cite>“checkpoint</cite>” sublist.  The user has no explicit control over the
 content of these files, but has the guarantee that the ATS run will be
@@ -1155,8 +1172,6 @@ Therefore, output controls for Checkpoint Data are limited to file
 name generation and writing frequency, by numerical cycle number.
 Unlike <cite>“visualization</cite>”, there is only one <cite>“checkpoint</cite>” list for
 all domains/meshes.</p>
-<blockquote>
-<div>Manages checkpoint/restart capability.</div></blockquote>
 <p>Parameters:</p>
 <ul class="simple">
 <li><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“checkpoint”</strong></li>
@@ -1319,7 +1334,7 @@ all leaves of the PK tree will inherit from <code class="docutils literal notran
 </div></blockquote>
 </li>
 </ul>
-<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id131"><span class="problematic" id="id132">PKDefaultBase_</span></a></p>
+<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id136"><span class="problematic" id="id137">PKDefaultBase_</span></a></p>
 </div>
 <div class="section" id="pkbdfbase">
 <h3><a class="toc-backref" href="#id28">PKBDFBase</a><a class="headerlink" href="#pkbdfbase" title="Permalink to this headline">¶</a></h3>
@@ -1353,7 +1368,7 @@ Note that this is only used if this PK is not strongly coupled to other PKs.</p>
 <p>This spec describes how to form the (approximate) inverse of the preconditioner.</p>
 </li>
 </ul>
-<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKBDFBase</span>&#160; <span class="pre">(v)--&gt;</span></code> <a href="#id133"><span class="problematic" id="id134">PKDefaultBase_</span></a></p>
+<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKBDFBase</span>&#160; <span class="pre">(v)--&gt;</span></code> <a href="#id138"><span class="problematic" id="id139">PKDefaultBase_</span></a></p>
 </div>
 <div class="section" id="pkphysicalbdfbase">
 <h3><a class="toc-backref" href="#id29">PKPhysicalBDFBase</a><a class="headerlink" href="#pkphysicalbdfbase" title="Permalink to this headline">¶</a></h3>
@@ -1383,7 +1398,7 @@ code, so these need not be supplied.</p>
 <dl class="docutils">
 <dt>NOTE: <code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkbdfbase">PKBDFBase</a></dt>
 <dd><code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkphysicalbase">PKPhysicalBase</a>
-<code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id135"><span class="problematic" id="id136">PKDefaultBase_</span></a></dd>
+<code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id140"><span class="problematic" id="id141">PKDefaultBase_</span></a></dd>
 </dl>
 </div>
 </div>
@@ -1401,10 +1416,10 @@ code, so these need not be supplied.</p>
 \[\frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w\]</div>
 <p>Includes options from:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code> <a href="#id137"><span class="problematic" id="id138">PKPhysicalDefault_</span></a></li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code> <a href="#id142"><span class="problematic" id="id143">PKPhysicalDefault_</span></a></li>
 </ul>
-<p># <code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <a href="#id139"><span class="problematic" id="id140">PKBDFDefault_</span></a>
-* <code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> <a href="#id141"><span class="problematic" id="id142">PKPhysicalBDFDefault_</span></a></p>
+<p># <code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <a href="#id144"><span class="problematic" id="id145">PKBDFDefault_</span></a>
+* <code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> <a href="#id146"><span class="problematic" id="id147">PKPhysicalBDFDefault_</span></a></p>
 <p>Other variable names, typically not set as the default is basically always good:</p>
 <ul class="simple">
 <li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong> Typically not set, default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
@@ -1421,9 +1436,9 @@ code, so these need not be supplied.</p>
 </ul>
 <p>Discretization control:</p>
 <ul class="simple">
-<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id143"><span class="problematic" id="id144">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
-<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id145"><span class="problematic" id="id146">PDE_Diffusion_</span></a> spec describing the diffusive parts of the preconditioner.</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id147"><span class="problematic" id="id148">LinearSolver_</span></a> spec.  Note
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id148"><span class="problematic" id="id149">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id150"><span class="problematic" id="id151">PDE_Diffusion_</span></a> spec describing the diffusive parts of the preconditioner.</li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id152"><span class="problematic" id="id153">LinearSolver_</span></a> spec.  Note
 that this is only used if this PK is not strongly coupled to other PKs.</li>
 </ul>
 <p>Boundary conditions:</p>
@@ -1468,15 +1483,15 @@ that this is only used if this PK is not strongly coupled to other PKs.</li>
 </ul>
 <p>Discretization control:</p>
 <ul class="simple">
-<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id149"><span class="problematic" id="id150">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
-<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id151"><span class="problematic" id="id152">PDE_Diffusion_</span></a> spec describing the diffusive parts of the preconditioner.</li>
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id154"><span class="problematic" id="id155">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id156"><span class="problematic" id="id157">PDE_Diffusion_</span></a> spec describing the diffusive parts of the preconditioner.</li>
 </ul>
 <p>Time integration and timestep control:</p>
 <ul class="simple">
 <li><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong> Max initial time step size <code class="docutils literal notranslate"><span class="pre">[s]</span></code>.</li>
 <li><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[implicit-time-integrator-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#timeintegrator">TimeIntegrator</a> spec.
 Note that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id153"><span class="problematic" id="id154">LinearSolver_</span></a> spec.  Note
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id158"><span class="problematic" id="id159">LinearSolver_</span></a> spec.  Note
 that this is only used if this PK is not strongly coupled to other PKs.</li>
 <li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
 Note that this is only used if this PK is not strongly coupled to other PKs.</li>
@@ -1568,7 +1583,7 @@ directly added into the subsurface discrete equations.</p>
 <ul class="simple">
 <li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Supplies the names of the coupled PKs.
 The order must be {subsurface_flow_pk, surface_flow_pk} (subsurface first).</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id155"><span class="problematic" id="id156">LinearSolver_</span></a> spec.  Note
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id160"><span class="problematic" id="id161">LinearSolver_</span></a> spec.  Note
 that this is only used if this PK is not strongly coupled to other PKs.</li>
 <li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
 Note that this is only used if this PK is not strongly coupled to other PKs.</li>
@@ -1761,7 +1776,7 @@ for inclusion of multiple phases.</p>
 the input spec.  However, we include it here because this could easily be
 abstracted for new potential surfaces, kinematic wave, etc, at which point it
 would need to be added to the factory and the input spec.</p>
-<p>NOTE: This could easily be replaced by a generic <a href="#id157"><span class="problematic" id="id158">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This could easily be replaced by a generic <a href="#id162"><span class="problematic" id="id163">AdditiveEvaluator_</span></a></p>
 </div>
 <div class="section" id="snowsurfacepotential">
 <h4><a class="toc-backref" href="#id72">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline">¶</a></h4>
@@ -1778,7 +1793,7 @@ would need to be added to the factory and the input spec.</p>
 <li><cite>“elevation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>elevation</strong> Names the elevation variable. [m]</li>
 <li><cite>“dt factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]</li>
 </ul>
-<p>NOTE: This is equivalent to a generic <a href="#id159"><span class="problematic" id="id160">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This is equivalent to a generic <a href="#id164"><span class="problematic" id="id165">AdditiveEvaluator_</span></a></p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;snow_skin_potential&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;field evaluator type&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;snow skin potential&quot;</span> <span class="nt">/&gt;</span>
@@ -2082,8 +2097,8 @@ which point the precip is turned off and water seeps into runoff.  This
 capability is experimental and has not been well tested.</p>
 <blockquote>
 <div><ul class="simple">
-<li>if <span class="math notranslate nohighlight">\(q \cdot \hat{n} &lt; q0\)</span>, then <span class="math notranslate nohighlight">\(q = q0\)</span></li>
-<li>if <span class="math notranslate nohighlight">\(p &gt; p_atm\)</span>, then <span class="math notranslate nohighlight">\(p = p_atm\)</span></li>
+<li>if <span class="math notranslate nohighlight">\(q \cdot \hat{n} &lt; q_0\)</span>, then <span class="math notranslate nohighlight">\(q = q_0\)</span></li>
+<li>if <span class="math notranslate nohighlight">\(p &gt; p_{atm}\)</span>, then <span class="math notranslate nohighlight">\(p = p_{atm}\)</span></li>
 </ul>
 </div></blockquote>
 <p>Example: seepage with infiltration</p>
@@ -2188,88 +2203,54 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </div>
 <div class="section" id="dynamic-boundary-condutions">
 <h4><a class="toc-backref" href="#id94">Dynamic boundary condutions</a><a class="headerlink" href="#dynamic-boundary-condutions" title="Permalink to this headline">¶</a></h4>
-<p>The type of boundary conditions maybe changed in time depending on the switch function of TIME.
-&lt;ParameterList name=”dynamic”&gt;</p>
-<blockquote>
-<div><blockquote>
-<div><p>&lt;Parameter name=”regions” type=”Array(string)” value=”{surface west}”/&gt;
-&lt;ParameterList name=”switch function”&gt;</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>&lt;ParameterList name=”function-tabular”&gt;</dt>
-<dd>&lt;Parameter name=”file” type=”string” value=”../data/floodplain2.h5” /&gt;
-&lt;Parameter name=”x header” type=”string” value=”Time” /&gt;
-&lt;Parameter name=”y header” type=”string” value=”Switch” /&gt;
-&lt;Parameter name=”form” type=”Array(string)” value=”{constant}”/&gt;</dd>
-</dl>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-<p>&lt;/ParameterList&gt;</p>
-<dl class="docutils">
-<dt>&lt;ParameterList name=”bcs”&gt;</dt>
-<dd><p class="first">&lt;Parameter name=”bc types” type=”Array(string)” value=”{head, mass flux}”/&gt;
-&lt;Parameter name=”bc functions” type=”Array(string)” value=”{boundary head, outward mass flux}”/&gt;</p>
-<dl class="docutils">
-<dt>&lt;ParameterList name=”mass flux”&gt;</dt>
-<dd><dl class="first last docutils">
-<dt>&lt;ParameterList name=”BC west”&gt;</dt>
-<dd><blockquote class="first">
-<div><p>&lt;Parameter name=”regions” type=”Array(string)” value=”{surface west}”/&gt;
-&lt;ParameterList name=”outward mass flux”&gt;</p>
-<blockquote>
-<div><blockquote>
-<div><dl class="docutils">
-<dt>&lt;ParameterList name=”function-tabular”&gt;</dt>
-<dd>&lt;Parameter name=”file” type=”string” value=”../data/floodplain2.h5” /&gt;
-&lt;Parameter name=”x header” type=”string” value=”Time” /&gt;
-&lt;Parameter name=”y header” type=”string” value=”Flux” /&gt;
-&lt;Parameter name=”form” type=”Array(string)” value=”{linear}”/&gt;</dd>
-</dl>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-</div></blockquote>
-<p class="last">&lt;/ParameterList&gt;</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p>&lt;/ParameterList&gt;</p>
-<dl class="last docutils">
-<dt>&lt;ParameterList name=”head”&gt;</dt>
-<dd><blockquote class="first">
-<div><dl class="docutils">
-<dt>&lt;ParameterList name=”BC west”&gt;</dt>
-<dd><p class="first">&lt;Parameter name=”regions” type=”Array(string)” value=”{surface west}”/&gt;
-&lt;ParameterList name=”boundary head”&gt;</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>&lt;ParameterList name=”function-tabular”&gt;</dt>
-<dd><blockquote class="first">
-<div>&lt;Parameter name=”file” type=”string” value=”../data/floodplain2.h5” /&gt;
-&lt;Parameter name=”x header” type=”string” value=”Time” /&gt;
-&lt;Parameter name=”y header” type=”string” value=”Head” /&gt;
-&lt;Parameter name=”form” type=”Array(string)” value=”{linear}”/&gt;</div></blockquote>
-<p class="last">&lt;/ParameterList&gt;</p>
-</dd>
-</dl>
-</div></blockquote>
-<p class="last">&lt;/ParameterList&gt;</p>
-</dd>
-</dl>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-<p class="last">&lt;/ParameterList&gt;</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-<p>&lt;/ParameterList&gt;</p>
-</div></blockquote>
-<p>&lt;!– dynamic –&gt;</p>
+<p>The type of boundary conditions maybe changed in time depending on the switch function of TIME.</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;dynamic&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;regions&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+  <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;switch function&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;x header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Time&quot;</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;y header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Switch&quot;</span> <span class="nt">/&gt;</span>
+      <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;form&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{constant}&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/ParameterList&gt;</span>
+  <span class="nt">&lt;/ParameterList&gt;</span>
+
+  <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;bcs&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;bc types&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{head, mass flux}&quot;</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;bc functions&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{boundary head, outward mass flux}&quot;</span><span class="nt">/&gt;</span>
+
+    <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;mass flux&quot;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;regions&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+        <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;outward mass flux&quot;</span><span class="nt">&gt;</span>
+          <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span> <span class="nt">/&gt;</span>
+            <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;x header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Time&quot;</span> <span class="nt">/&gt;</span>
+            <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;y header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Flux&quot;</span> <span class="nt">/&gt;</span>
+            <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;form&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{linear}&quot;</span><span class="nt">/&gt;</span>
+          <span class="nt">&lt;/ParameterList&gt;</span>
+         <span class="nt">&lt;/ParameterList&gt;</span>
+       <span class="nt">&lt;/ParameterList&gt;</span>
+    <span class="nt">&lt;/ParameterList&gt;</span>
+
+    <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;head&quot;</span><span class="nt">&gt;</span>
+       <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;BC west&quot;</span><span class="nt">&gt;</span>
+         <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;regions&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
+         <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;boundary head&quot;</span><span class="nt">&gt;</span>
+           <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;function-tabular&quot;</span><span class="nt">&gt;</span>
+              <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;file&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;../data/floodplain2.h5&quot;</span> <span class="nt">/&gt;</span>
+              <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;x header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Time&quot;</span> <span class="nt">/&gt;</span>
+              <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;y header&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;Head&quot;</span> <span class="nt">/&gt;</span>
+              <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;form&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{linear}&quot;</span><span class="nt">/&gt;</span>
+            <span class="nt">&lt;/ParameterList&gt;</span>
+         <span class="nt">&lt;/ParameterList&gt;</span>
+       <span class="nt">&lt;/ParameterList&gt;</span>
+     <span class="nt">&lt;/ParameterList&gt;</span>
+  <span class="nt">&lt;/ParameterList&gt;</span>
+
+<span class="nt">&lt;/ParameterList&gt;</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -2293,7 +2274,7 @@ control, to adapter based upon simple nonlinear iteration counts.</p>
 <li><a class="reference internal" href="#timestepcontrollerfixed">TimestepControllerFixed</a>  (type <cite>“fixed</cite>”), a constant timestep</li>
 <li><a class="reference internal" href="#timestepcontrollerstandard">TimestepControllerStandard</a> (type <cite>‘standard</cite>”), an adaptive timestep based upon nonlinear iterations</li>
 <li><a class="reference internal" href="#timestepcontrollersmarter">TimestepControllerSmarter</a> (type <cite>‘smarter</cite>”), an adaptive timestep based upon nonlinear iterations with more control</li>
-<li><a href="#id161"><span class="problematic" id="id162">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
+<li><a href="#id166"><span class="problematic" id="id167">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
 <li><a class="reference internal" href="#timestepcontrollerfromfile">TimestepControllerFromFile</a> (type <cite>“from file</cite>”), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)</li>
 </ul>
 <div class="section" id="timestepcontrollerfixed">
@@ -2363,39 +2344,91 @@ solutions which are enough different to cause doubt over their correctness.</p>
 </ul>
 </div>
 </div>
-<div class="section" id="linear-solver-spec">
-<h2><a class="toc-backref" href="#id101">Linear Solver Spec</a><a class="headerlink" href="#linear-solver-spec" title="Permalink to this headline">¶</a></h2>
-<p>For each solver, a few parameters are used:</p>
-<ul>
-<li><p class="first"><cite>“iterative method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <cite>“pcg</cite>”, <cite>“gmres</cite>”, or <cite>“nka</cite>”</p>
-<p>defines which method to use.</p>
-</li>
-<li><p class="first"><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> is used in the convergence test.</p>
-</li>
-<li><p class="first"><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> is used in the convergence test.</p>
-</li>
-<li><p class="first"><cite>“convergence criteria</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code>  <strong>{“relative rhs”}</strong> specifies multiple convergence criteria. The list
-may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>”, and <cite>“absolute residual</cite>”, and <cite>“???? force once????</cite>”</p>
-</li>
-<li><p class="first"><cite>“size of Krylov space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> is used in GMRES iterative method. The default value is 10.</p>
+<div class="section" id="linear-solver">
+<h2><a class="toc-backref" href="#id101">Linear Solver</a><a class="headerlink" href="#linear-solver" title="Permalink to this headline">¶</a></h2>
+<p>Linear solver are almost exclusively iterative methods with a separate provided preconditioner.</p>
+<div class="section" id="linear-solver-pcg">
+<h3><a class="toc-backref" href="#id102">Linear Solver: PCG</a><a class="headerlink" href="#linear-solver-pcg" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Preconditioned conjugate gradient method for a linear solver.</div></blockquote>
+<p>Parameters:</p>
+<ul class="simple">
+<li><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</li>
+<li><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</li>
+<li><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</li>
+<li><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>“{relative rhs}”</strong> A list of
+criteria, any of which can be applied.  Valid include:<ul>
+<li><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</li>
+<li><cite>“relative residual</cite>” : measure error relative to the norm of the residual</li>
+<li><cite>“absolute residual</cite>” : measure error directly, norm of error</li>
+<li><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</li>
+</ul>
 </li>
 </ul>
-<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;my solver&quot;</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;iterative method&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;gmres&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;error tolerance&quot;</span> <span class="na">type=</span><span class="s">&quot;double&quot;</span> <span class="na">value=</span><span class="s">&quot;1e-12&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;maximum number of iterations&quot;</span> <span class="na">type=</span><span class="s">&quot;int&quot;</span> <span class="na">value=</span><span class="s">&quot;400&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;convergence criteria&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{relative residual}&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;size of Krylov space&quot;</span> <span class="na">type=</span><span class="s">&quot;int&quot;</span> <span class="na">value=</span><span class="s">&quot;10&quot;</span><span class="nt">/&gt;</span>
-
-  <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;VerboseObject&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;Verbosity Level&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;high&quot;</span><span class="nt">/&gt;</span>
-  <span class="nt">&lt;/ParameterList&gt;</span>
-<span class="nt">&lt;/ParameterList&gt;</span>
-</pre></div>
+</div>
+<div class="section" id="linear-solver-gmres">
+<h3><a class="toc-backref" href="#id103">Linear Solver: GMRES</a><a class="headerlink" href="#linear-solver-gmres" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Generalized minimum residual method for a linear solver.</div></blockquote>
+<p>Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
+GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
+W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</li>
+<li><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</li>
+<li><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</li>
+<li><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>“{relative rhs}”</strong> A list of
+criteria, any of which can be applied.  Valid include:<ul>
+<li><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</li>
+<li><cite>“relative residual</cite>” : measure error relative to the norm of the residual</li>
+<li><cite>“absolute residual</cite>” : measure error directly, norm of error</li>
+<li><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</li>
+</ul>
+</li>
+<li><cite>“size of Krylov space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>10</strong> Size of the Krylov space used to span the residual.</li>
+<li><cite>“controller training start</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Start iteration for determining
+convergence rates. (Add more please!)</li>
+<li><cite>“controller training end</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>3</strong> Start iteration for determining
+convergence rates. (Add more please!)</li>
+<li><cite>“preconditioning strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>left</strong> Valid are “left” and
+“right”-type preconditioning (see Saad 1986)</li>
+<li><cite>“maximum size of deflation space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> Size of the deflation space, see Rollin et al.</li>
+</ul>
+</div>
+<div class="section" id="linear-solver-nka">
+<h3><a class="toc-backref" href="#id104">Linear Solver: NKA</a><a class="headerlink" href="#linear-solver-nka" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Uses NKA method as a linear solver.</div></blockquote>
+<p>This is effectively equivalent to GMRES with a rolling restart, where vectors
+fall off the end of the space.</p>
+<p>Parameters:</p>
+<ul class="simple">
+<li><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> Tolerance on which to declare success.</li>
+<li><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> Maximum iterations before declaring failure.</li>
+<li><cite>“overflow tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>3.e50</strong> Error above this value results in failure.</li>
+<li><cite>“convergence criterial</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>“{relative rhs}”</strong> A list of
+criteria, any of which can be applied.  Valid include:<ul>
+<li><cite>“relative rhs</cite>” : measure error relative to the norm of the RHS vector</li>
+<li><cite>“relative residual</cite>” : measure error relative to the norm of the residual</li>
+<li><cite>“absolute residual</cite>” : measure error directly, norm of error</li>
+<li><cite>“make one iteration</cite>” : require at least one iteration to be performed before declaring success</li>
+</ul>
+</li>
+<li><cite>“max nka vectors</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>10</strong> Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.</li>
+<li><cite>“nka vector tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.05</strong> Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.</li>
+</ul>
+<p>Calef et al. “Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem.” JCP 238 (2013): 188-209.</p>
+</div>
+<div class="section" id="linear-solver-amesos">
+<h3><a class="toc-backref" href="#id105">Linear Solver: Amesos</a><a class="headerlink" href="#linear-solver-amesos" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="linear-solver-belos-gmres">
+<h3><a class="toc-backref" href="#id106">Linear Solver: Belos GMRES</a><a class="headerlink" href="#linear-solver-belos-gmres" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="preconditioner">
-<h2><a class="toc-backref" href="#id102">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id107">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline">¶</a></h2>
 <p>These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2413,7 +2446,7 @@ may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>�
 </pre></div>
 </div>
 <div class="section" id="hypre-s-boomer-amg">
-<h3><a class="toc-backref" href="#id103">Hypre’s Boomer AMG</a><a class="headerlink" href="#hypre-s-boomer-amg" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id108">Hypre’s Boomer AMG</a><a class="headerlink" href="#hypre-s-boomer-amg" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerBoomerAMG: HYPRE’s multigrid preconditioner.</div></blockquote>
 <p>Internal parameters for Boomer AMG include</p>
@@ -2469,7 +2502,7 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="trilinos-ml">
-<h3><a class="toc-backref" href="#id104">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id109">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerML: Trilinos ML multigrid.</div></blockquote>
 <p>Internal parameters of Trilinos ML includes</p>
@@ -2497,7 +2530,7 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="block-ilu">
-<h3><a class="toc-backref" href="#id105">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id110">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerBlockILU:   Incomplete LU preconditioner.</div></blockquote>
 <p>The internal parameters for block ILU are as follows:</p>
@@ -2515,18 +2548,18 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="indentity">
-<h3><a class="toc-backref" href="#id106">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id111">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline">¶</a></h3>
 <p>The default, no PC applied.</p>
 </div>
 </div>
 <div class="section" id="nonlinearsolver">
-<h2><a class="toc-backref" href="#id107">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id112">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 <div class="section" id="other-common-specs">
-<h1><a class="toc-backref" href="#id108">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id113">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="ioevent">
-<h2><a class="toc-backref" href="#id109">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id114">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>IOEvent: base time/timestep control determing when in time to do something.</div></blockquote>
 <p>The IOEvent is used for multiple objects that need to indicate simulation times or cycles on which to do something.</p>
@@ -2594,7 +2627,7 @@ shall be written.</p>
 </ul>
 </div>
 <div class="section" id="verboseobject">
-<h2><a class="toc-backref" href="#id110">VerboseObject</a><a class="headerlink" href="#verboseobject" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id115">VerboseObject</a><a class="headerlink" href="#verboseobject" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>VerboseObject: a controller for writing log files on multiple cores with varying verbosity.</div></blockquote>
 <p>This allows control of log-file verbosity for a wide variety of objects
@@ -2622,7 +2655,7 @@ Instead, developers can use them to control output.</p>
 </div>
 </div>
 <div class="section" id="function">
-<h2><a class="toc-backref" href="#id111">Function</a><a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id116">Function</a><a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>Function: base class for all functions of space and time.</div></blockquote>
 <p>Analytic, algabraic functions of space and time are used for a variety of
@@ -2667,7 +2700,7 @@ OR:
 END</p>
 <p>It is straightforward to add new functions as needed.</p>
 <div class="section" id="constant-function">
-<h3><a class="toc-backref" href="#id112">Constant Function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id117">Constant Function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionConstant: Implements the Function interface using a constant value.</div></blockquote>
 <p>Constant function is defined as <span class="math notranslate nohighlight">\(f(x) = a\)</span>, for all <span class="math notranslate nohighlight">\(x\)</span>.</p>
@@ -2682,7 +2715,7 @@ END</p>
 </div>
 </div>
 <div class="section" id="tabular-function">
-<h3><a class="toc-backref" href="#id113">Tabular Function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id118">Tabular Function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionTabular: Piecewise-defined function.</div></blockquote>
 <p>A piecewise function of one variable.</p>
@@ -2747,7 +2780,7 @@ and constant (<cite>f(x)=2</cite>) on interval <span class="math notranslate noh
 </div>
 </div>
 <div class="section" id="smooth-step-function">
-<h3><a class="toc-backref" href="#id114">Smooth step Function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id119">Smooth step Function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionSmoothStep: a smoothed discontinuity.</div></blockquote>
 <p>A smooth <span class="math notranslate nohighlight">\(C^2\)</span> function <cite>f(x)</cite> on interval <span class="math notranslate nohighlight">\([x_0,\,x_1]\)</span> is
@@ -2771,7 +2804,7 @@ interpolation.</p>
 </div>
 </div>
 <div class="section" id="polynomial-function">
-<h3><a class="toc-backref" href="#id115">Polynomial Function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id120">Polynomial Function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionPolynomial: a polynomial</div></blockquote>
 <p>A generic polynomial function is given by the following expression:</p>
@@ -2794,7 +2827,7 @@ interpolation.</p>
 </div>
 </div>
 <div class="section" id="multi-variable-linear-function">
-<h3><a class="toc-backref" href="#id116">Multi-variable linear Function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id121">Multi-variable linear Function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionLinear: a multivariate linear function.</div></blockquote>
 <p>A multi-variable linear function is formally defined by</p>
@@ -2823,7 +2856,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="separable-function">
-<h3><a class="toc-backref" href="#id117">Separable Function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id122">Separable Function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionSeparable: f(x,y) = f1(x)*f2(y)</div></blockquote>
 <p>A separable function is defined as the product of other functions such as</p>
@@ -2847,7 +2880,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="additive-function">
-<h3><a class="toc-backref" href="#id118">Additive Function</a><a class="headerlink" href="#additive-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id123">Additive Function</a><a class="headerlink" href="#additive-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)</div></blockquote>
 <p>An additive function simply adds two other function results together.</p>
@@ -2872,7 +2905,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="multiplicative-function">
-<h3><a class="toc-backref" href="#id119">Multiplicative Function</a><a class="headerlink" href="#multiplicative-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id124">Multiplicative Function</a><a class="headerlink" href="#multiplicative-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)</div></blockquote>
 <p>A multiplicative function simply multiplies two other function results together.</p>
@@ -2897,7 +2930,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="composition-function">
-<h3><a class="toc-backref" href="#id120">Composition Function</a><a class="headerlink" href="#composition-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id125">Composition Function</a><a class="headerlink" href="#composition-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)</div></blockquote>
 <p>Function composition simply applies one function to the result of another.</p>
@@ -2921,7 +2954,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="piecewise-bilinear-function">
-<h3><a class="toc-backref" href="#id121">Piecewise Bilinear Function</a><a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id126">Piecewise Bilinear Function</a><a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionBilinear: a piecewise bilinear function.</div></blockquote>
 <p>A piecewise bilinear function extends the linear form of the tabular function to two variables.</p>
@@ -2953,7 +2986,7 @@ bounds.</p>
 </div>
 </div>
 <div class="section" id="distance-function">
-<h3><a class="toc-backref" href="#id122">Distance Function</a><a class="headerlink" href="#distance-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id127">Distance Function</a><a class="headerlink" href="#distance-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionDistance: distance from a reference point.</div></blockquote>
 <p>A distance function calculates distance from reference point <span class="math notranslate nohighlight">\(x_0\)</span>
@@ -2978,7 +3011,7 @@ using by the following expression:</p>
 </div></blockquote>
 </div>
 <div class="section" id="monomial-function">
-<h3><a class="toc-backref" href="#id123">Monomial Function</a><a class="headerlink" href="#monomial-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id128">Monomial Function</a><a class="headerlink" href="#monomial-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionMonomial: a multivariate monomial function.</div></blockquote>
 <p>A multi-variable monomial function is given by the following expression:</p>
@@ -3006,7 +3039,7 @@ Note that the first parameter in <span class="math notranslate nohighlight">\(x\
 </div>
 </div>
 <div class="section" id="standard-math-function">
-<h3><a class="toc-backref" href="#id124">Standard Math Function</a><a class="headerlink" href="#standard-math-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id129">Standard Math Function</a><a class="headerlink" href="#standard-math-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionStandardMath: provides access to many common mathematical functions.</div></blockquote>
 <p>These functions allow to set up non-trivial time-dependent boundary conditions
@@ -3045,7 +3078,7 @@ application, for use in changing the period of trig functions.</li>
 </div>
 </div>
 <div class="section" id="operator">
-<h2><a class="toc-backref" href="#id125">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id130">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>Operator represents a linear map, and typically encapsulates a discretization.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">Operator</span></code> represents a map from linear space X to linear space Y.  Typically,
@@ -3067,7 +3100,7 @@ of the <code class="docutils literal notranslate"><span class="pre">Operator</sp
 near-singular.</li>
 </ul>
 <div class="section" id="operatoraccumulation">
-<h3><a class="toc-backref" href="#id126">OperatorAccumulation</a><a class="headerlink" href="#operatoraccumulation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id131">OperatorAccumulation</a><a class="headerlink" href="#operatoraccumulation" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Accumulation</span></code> assembles the discrete form of <span class="math notranslate nohighlight">\(\frac{\partial A}{\partial t}\)</span>.</p>
 <p>This class is usually used as part of a preconditioner, providing the linearization:</p>
 <div class="math notranslate nohighlight">
@@ -3077,7 +3110,7 @@ near-singular.</li>
 <p>No options are available here.</p>
 </div>
 <div class="section" id="operatordiffusion">
-<h3><a class="toc-backref" href="#id127">OperatorDiffusion</a><a class="headerlink" href="#operatordiffusion" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id132">OperatorDiffusion</a><a class="headerlink" href="#operatordiffusion" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Diffusion</span></code> forms local <code class="docutils literal notranslate"><span class="pre">Op</span></code> s and global <code class="docutils literal notranslate"><span class="pre">Operator</span></code> s for elliptic equations:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot k \nabla u\]</div>
@@ -3175,7 +3208,7 @@ procedure is not desirable. If skipped, the <cite>“schema</cite>” is used in
 In addition to the default, <strong>{face}</strong> may be used, which forms the Schur
 complement.</li>
 <li><cite>“consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> may contain a <cite>“preconditioner</cite>” and
-<cite>“linear operator</cite>” list (see sections <a href="#id163"><span class="problematic" id="id164">Preconditioners_</span></a> and <a href="#id165"><span class="problematic" id="id166">LinearSolvers_</span></a>
+<cite>“linear operator</cite>” list (see sections <a href="#id168"><span class="problematic" id="id169">Preconditioners_</span></a> and <a href="#id170"><span class="problematic" id="id171">LinearSolvers_</span></a>
 respectively).  If these lists are provided, and the <cite>“discretization
 primary</cite>” is of type <cite>“mfd: *</cite>”, then the diffusion method
 UpdateConsistentFaces() can be used.  This method, given a set of cell
@@ -3196,7 +3229,7 @@ The second option is based on the divergence formula.</li>
 </ul>
 </div>
 <div class="section" id="operatoradvection">
-<h3><a class="toc-backref" href="#id128">OperatorAdvection</a><a class="headerlink" href="#operatoradvection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id133">OperatorAdvection</a><a class="headerlink" href="#operatoradvection" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_AdvectionUpwind</span></code> assembles the discrete form of:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot (q C)\]</div>
