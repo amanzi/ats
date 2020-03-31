@@ -489,7 +489,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     photo_input.oair = o2a * patm * 1.e-6;                    // Oxygen partial pressure
     //photo_input.oair = 21280;
     
-    photo_input.cair = 370.0 * patm * 1.e-6;             // CO2 partial pressure
+    photo_input.cair = co2a[0][0] * patm * 1.e-6;             // CO2 partial pressure
     //photo_input.cair = 5985;
     
     photo_input.rb = std::min(10., 1./wind[0][0]);             // Boundary layer resistance (s/m)
