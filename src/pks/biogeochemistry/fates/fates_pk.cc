@@ -448,7 +448,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     std::cout<<"\n";
     
     int array_size = t_soil_.size();
-    wrap_btran(&array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data());
+    wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data());
 
     PhotoSynthesisInput photo_input;
     // calculate fractional day length
@@ -489,7 +489,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     photo_input.oair = o2a * patm * 1.e-6;                    // Oxygen partial pressure
     //photo_input.oair = 21280;
     
-    photo_input.cair = co2a[0][0] * patm * 1.e-6;             // CO2 partial pressure
+    photo_input.cair = 370.0 * patm * 1.e-6;             // CO2 partial pressure
     //photo_input.cair = 5985;
     
     photo_input.rb = std::min(10., 1./wind[0][0]);             // Boundary layer resistance (s/m)
@@ -508,10 +508,10 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     photo_input.solai[1] = 0.2*longwave_rad[0][0];    
     jday = 1.0 + (t_new - t_site_dym_)/dt_site_dym_;
 
-    wrap_sunfrac(&radnum, photo_input.solad, photo_input.solai);
-    wrap_canopy_radiation(&jday, &radnum, photo_input.albgrd, photo_input.albgri);           
-    wrap_photosynthesis( &dt_photosynthesis_, &patm, &array_size, t_soil_.data(), &photo_input);  
-  
+    wrap_sunfrac(&clump_, &radnum, photo_input.solad, photo_input.solai);
+    wrap_canopy_radiation(&clump_, &jday, &radnum, photo_input.albgrd, photo_input.albgri);           
+    wrap_photosynthesis( &clump_, &dt_photosynthesis_, &patm, &array_size, t_soil_.data(), &photo_input);  
+    wrap_accumulatefluxes(&clump_, &dt_photosynthesis_);
     
     t_photosynthesis_ = t_new;
     

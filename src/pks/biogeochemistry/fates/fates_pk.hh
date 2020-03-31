@@ -67,10 +67,11 @@ namespace BGC {
                                 double*, double*, double*, double*,
                                 double*);
 
-    void wrap_btran(int*, double*, double*, double*, double*, double*);
-    void wrap_photosynthesis(double*, double*, int*, double*, PhotoSynthesisInput*);
-    void wrap_sunfrac(int* array_size, double *forc_solad, double *forc_solai);
-    void wrap_canopy_radiation(double* jday, int* array_size, double* albgrd, double *albgri);    
+    void wrap_btran(int*, int*, double*, double*, double*, double*, double*);
+    void wrap_photosynthesis(int*, double*, double*, int*, double*, PhotoSynthesisInput*);
+    void wrap_sunfrac(int*, int* array_size, double *forc_solad, double *forc_solai);
+    void wrap_canopy_radiation(int*, double* jday, int* array_size, double* albgrd, double *albgri);    
+    void wrap_accumulatefluxes(int*, double*);
     
     void calculate_biomass(double*  ats_biomass_array, int nsites, int num_scls);
   
