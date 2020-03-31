@@ -61,59 +61,65 @@ Conventions:
 
 
 Symbol Index
-#############
+############
 
 .. include:: symbol_table.rst
-   
-
   
 Main
-#######################################
+####
 
-The `"main`" ParameterList frames the entire input spec, and must contain
-one sublist for each of the following sections.
 
-* `"mesh`" ``[mesh-spec]``  See the Mesh_ spec.
+ATS's top-level main accepts an XML list including a few required elements.
 
-* `"regions`" ``[list]``
+* `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ spec objects, with
+  domain names given by the name of the sublist.
 
-  List of multiple Region_ specs, each in its own sublist named uniquely by the user.
+* `"regions`" ``[region-spec-list]`` A list of geometric Region_
+  specs, with names given by the name of the sublist.
 
-* `"coordinator`" ``[coordinator-spec]``  See the Coordinator_ spec.
+* `"cycle driver`" ``[coordinator-spec]``  See the Coordinator_ spec.
 
-* `"visualization`" ``[visualization-spec]`` A Visualization_ spec for the main mesh/domain.
+* `"visualization`" ``[visualization-spec-list]`` A list of
+  Visualization_ specs, one for each mesh/domain, controlling
+  simulation output that is sparse in time but across the entirety
+  of the domain.
 
-* `"visualization XX`" ``[visualization-spec]``
+* `"observations`" ``[observation-spec-list]`` An list of Observation_
+  specs, output that is sparse/local in space but across the entirety
+  of time.
 
-  Potentially more than one other Visualization_ specs, one for each domain `"XX`".  e.g. `"surface`"
+* `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec, controlling
+  output intended for restart.
 
-* `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec.
+* `"PKs`" ``[list]``  List of all PKs to be used in the simulation.
 
-* `"observations`" ``[observation-spec]`` An Observation_ spec.
+* `"state`" ``[state-spec]`` A State_ spec controlling evaluators and
+  other data.
 
-* `"PKs`" ``[list]``
-
-  A list containing exactly one sublist, a PK_ spec with the top level PK.
-
-* `"state`" ``[list]`` A State_ spec.
+ 
 
   
-Mesh
-#####
 
- Simple wrapper that takes a ParameterList and generates all needed meshes.
+Mesh
+####
+ A list of mesh objects and their domain names.
+
 All processes are simulated on a domain, which is discretized through a mesh.
 
 Multiple domains and therefore meshes can be used in a single simulation, and
-multiple meshes can be constructed on the fly.
+multiple meshes can be constructed on the fly.  The top level `"mesh`" is a
+list of ``[mesh-typed-spec]`` sublists whose name indicate the mesh or domain
+name.
 
-The base mesh represents the primary domain of simulation.  Simple, structured
-meshes may be generated on the fly, or complex unstructured meshes are
-provided as ``Exodus II`` files.  The base *mesh* list includes either a
-GeneratedMesh_,  MeshFromFile_, or LogicalMesh_ spec, as described below.
+Included in that list is at least one mesh: the `"domain`" mesh.  The
+`"domain`" mesh represents the primary domain of simulation -- usually the
+subsurface.  Simple, structured meshes may be generated on the fly, or complex
+unstructured meshes are provided as Exodus II files.  The `"domain`" mesh list
+includes either a `Generated Mesh`_, `Mesh From File`_, or `Logical Mesh`_ spec, as
+described below.
 
-Additionally, a SurfaceMesh_ may be formed by lifting the surface of a
-provided mesh and then flattening that mesh to a 2D surface.  ColumnMeshes_
+Additionally, a `Surface Mesh`_ may be formed by lifting the surface of a
+provided mesh and then flattening that mesh to a 2D surface.  `Column Meshes`_
 which split a base mesh into vertical columns of cells for use in 1D models
 may also be generated automatically.
 
@@ -124,15 +130,20 @@ through providing a "verify mesh" option.
 
 ``[mesh-typed-spec]``
 
-* `"mesh type`" ``[string]`` One of `"generate mesh`", `"read mesh file`",
-   `"logical`", `"surface`", `"subgrid`", or `"column`".
+* `"mesh type`" ``[string]`` One of `"generate mesh`", `"read mesh file`", `"logical`", `"surface`", `"subgrid`", or `"column`".
 * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
   associated with the type.
 * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
 * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+* `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
+  mesh.  Note this only makes sense on the domain mesh.  One of:
+
+  * `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
+  * `"metis`" uses the METIS graph partitioner
+  * `"zoltan`" uses the default Zoltan graph-based partitioner.
 
 
-GeneratedMesh
+Generated Mesh
 ==============
 
 Generated mesh are by definition structured, with uniform dx, dy, and dz.
@@ -163,25 +174,26 @@ Example:
    </ParameterList>   
 
 
-MeshFromFile
+Mesh From File
 ==============
 
-Meshes can be pre-generated in a multitude of ways, then written to "Exodus
-II" file format, and loaded in ATS.
+Meshes can be pre-generated in a multitude of ways, then written to
+Exodus II file format, and loaded in ATS.
 
 Specified by `"mesh type`" of `"read mesh file`".
 
 ``[mesh-type-read-mesh-file-spec]``
 
-* `"file`" ``[string]`` name of pre-generated mesh file. Note that in the case of an
-   Exodus II mesh file, the suffix of the serial mesh file must be .exo and 
-   the suffix of the parallel mesh file must be .par.
-   When running in serial the code will read this the indicated file directly.
-   When running in parallel and the suffix is .par, the code will instead read
-   the partitioned files, that have been generated with a Nemesis tool and
-   named as filename.par.N.r where N is the number of processors and r is the rank.
-   When running in parallel and the suffix is .exo, the code will partition automatically
-   the serial file.
+* `"file`" ``[string]`` name of pre-generated mesh file. Note that in
+  the case of an Exodus II mesh file, the suffix of the serial mesh
+  file must be .exo and the suffix of the parallel mesh file must be
+  .par.  When running in serial the code will read this the indicated
+  file directly.  When running in parallel with a prepartitioned mesh,
+  the suffix is .par and the code will instead read the partitioned
+  files that have been generated with a Nemesis tool and named as
+  filename.par.N.r where N is the number of processors and r is the
+  rank.  When running in parallel and the suffix is .exo, the code
+  will partition automatically the serial file.
      
 * `"format`" ``[string]`` format of pre-generated mesh file (`"MSTK`" or `"Exodus II`")
 
@@ -201,17 +213,26 @@ Example:
    </ParameterList>
 
 
-LogicalMesh
-==============
+Logical Mesh
+============
 
-** Document me! **
+Logical meshes are meshes for whom nodal coordinates may not be
+specified, but sufficient information about the geometry of the
+conceptual domain can be specified to allow solving problems.  This
+allows for the conceptual generation of domains that "act" like a mesh
+and can be used like a mesh, but don't fit MSTK's view of an
+unstructured mesh.
+
+This is an active research and development area, and is used most
+frequently for river networks, root networks, and crack networks.
 
 Specified by `"mesh type`" of `"logical`".
 
+.. note::
+   WIP: add spec!
 
-
-SurfaceMesh
-==============
+Surface Mesh
+============
 
 To lift a surface off of the mesh, a side-set specifying all surface faces
 must be given.  These faces are lifted locally, so the partitioning of the
@@ -226,8 +247,16 @@ Specified by `"mesh type`" of `"surface`".
 
 ``[mesh-type-surface-spec]``
 
+ONE OF
+
 * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
-* `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.  Either this or the singular version must be specified.
+
+OR
+
+* `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
+END
+
 * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
 * `"export mesh to file`" ``[string]`` Export the lifted surface mesh to this filename.
 
@@ -254,7 +283,7 @@ Example:
     </ParameterList>
 
 
-SubgridMeshes
+Subgrid Meshes
 ==============
 
 A collection of meshes formed by associating a new mesh with each entity of a
@@ -265,31 +294,36 @@ meshes off of each surface cell as a subgrid model, etc.
 The subgrid meshes are then named `"MESH_NAME_X"` for each X, which is an
 entity local ID, in a provided region of the provided entity type.
 
-**DOCUMENT ME How is the subgrid mesh type specified?  Add examples for Columns and Transport Subgrid model!**
-
 Specified by `"mesh type`" of `"subgrid`".
 
 ``[mesh-type-subgrid-spec]``
 
 * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
-* `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the region (usually
-   `"cell`") on which each subgrid mesh will be associated.
+* `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+  region (usually `"cell`") on which each subgrid mesh will be associated.
 * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-* `"flyweight mesh`" ``[bool]`` **False** NOT SUPPORTED?  Allows a single mesh instead of one per entity.
+* `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
+  mesh instead of one per entity.
 
-    
-ColumnMeshes
-==============
+.. note::
+   WIP: Add examples (intermediate scale model, transport subgrid model)
 
-Note these are never? created manually by a user.  Instead use SubgridMeshes,
-which generate a ColumnMesh_ spec for every face of the surface mesh.
+
+  
+Column Meshes
+=============
+
+.. note::
+   Note these are rarely if ever created manually by a user.  Instead use
+   `Subgrid Meshes`_, which generate a column mesh spec for every face
+   of a set.
 
 Specified by `"mesh type`" of `"column`".
 
 ``[mesh-type-column-spec]``
 
 * `"parent domain`" ``[string]`` The Mesh_ name of the 3D mesh from which columns are generated.
-   Note that the `"build columns from set`" parameter must be set in that mesh.
+  Note that the `"build columns from set`" parameter must be set in that mesh.
 * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
 * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
 * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
@@ -314,90 +348,88 @@ Example:
       </ParameterList>
     </ParameterList>
 
-SperryMesh
-==============
-
-A mesh based on the Sperry et al 98 and Christoffersen et al 16 papers.  Hard
-coded currently for simplicity, this is ongoing work and will change a lot.
-
-Example:
-
-.. code-block:: xml
-
-    <ParameterList name="mesh" type="ParameterList">
-      <ParameterList name="domain" type="ParameterList">
-        <Parameter name="mesh type" type="string" value="Sperry 1D column" />
-      </ParameterList>
-    </ParameterList>
-    
 
 
 
 
 Region
-##########
+######
+  A geometric or discrete subdomain of the full domain.
 
-
-  Region: a geometric or discrete subdomain (abstract)
-
-Regions are geometrical constructs used in Amanzi to define subsets of
+Regions are geometrical constructs used to define subsets of
 the computational domain in order to specify the problem to be solved, and the
 output desired. Regions may represents zero-, one-, two- or three-dimensional
-subsets of physical space.  for a three-dimensional problem, the simulation
+subsets of physical space.  For a three-dimensional problem, the simulation
 domain will be a three-dimensional region bounded by a set of two-dimensional
 regions.  If the simulation domain is N-dimensional, the boundary conditions
 must be specified over a set of regions are (N-1)-dimensional.
 
-Amanzi automatically defines the special region labeled *All*, which is the 
-entire simulation domain. Currently, the unstructured framework does
-not support the *All* region, but it is expected to do so in the
-near future.
+Region specs are **not** denoted by a "type" parameter for legacy reasons.
+Instead, they take a single sublist whose name defines the type.
 
-Amanzi supports parameterized forms for a number of analytic shapes, as well
-as more complex definitions based on triangulated surface files.
-
+``[region-spec]``
 
 ONE OF:
-* `"region: box`" ``[region-box-spec]``
-OR:
-* `"region: plane`" ``[region-plane-spec]``
-OR:
-* `"region: labeled set`" ``[region-labeled-set-spec]``
-OR:
-* `"region: color function`" ``[region-color-function-spec]``
-OR:
-* `"region: point`" ``[region-point-spec]``
-OR:
-* `"region: logical`" ``[region-logical-spec]``
-OR:
-* `"region: polygon`" ``[region-polygon-spec]``
-OR:
-* `"region: enumerated`" ``[region-enumerated-spec]``
-OR:
+
 * `"region: all`" ``[list]``
+
 OR:
+
+* `"region: box`" ``[region-box-spec]``
+
+OR:
+
+* `"region: plane`" ``[region-plane-spec]``
+
+OR:
+
+* `"region: labeled set`" ``[region-labeled-set-spec]``
+
+OR:
+
+* `"region: color function`" ``[region-color-function-spec]``
+
+OR:
+
+* `"region: point`" ``[region-point-spec]``
+
+OR:
+
+* `"region: logical`" ``[region-logical-spec]``
+
+OR:
+
+* `"region: polygon`" ``[region-polygon-spec]``
+
+OR:
+
+* `"region: enumerated`" ``[region-enumerated-spec]``
+
+OR:
+
 * `"region: boundary`" ``[region-boundary-spec]``
+
 OR:
+
 * `"region: box volume fractions`" ``[region-box-volume-fractions-spec]``
+
 OR:
+
 * `"region: line segment`" ``[region-line-segment-spec]``
+
 END
 
 
-Notes:
+.. note:: Surface files contain labeled triangulated face sets.  The user is
+    responsible for ensuring that the intersections with other surfaces in the
+    problem, including the boundaries, are *exact* (*i.e.* that surface
+    intersections are *watertight* where applicable), and that the surfaces are
+    contained within the computational domain.  If nodes in the surface fall
+    outside the domain, the elements they define are ignored.
 
-- Surface files contain labeled triangulated face sets.  The user is
-  responsible for ensuring that the intersections with other surfaces
-  in the problem, including the boundaries, are *exact* (*i.e.* that
-  surface intersections are *watertight* where applicable), and that
-  the surfaces are contained within the computational domain.  If
-  nodes in the surface fall outside the domain, the elements they
-  define are ignored.
+    Examples of surface files are given in the *Exodus II* file format here.
 
-  Examples of surface files are given in the *Exodus II* file 
-  format here.
-
-- Region names must NOT be repeated.
+.. note:: Region names must NOT be repeated.
 
 Example:
 
@@ -456,7 +488,7 @@ Example:
      </ParameterList>
    </ParameterList>
 
-In this example, *TOP SESCTION*, *MIDDLE SECTION* and *BOTTOM SECTION*
+In this example, *TOP SECTION*, *MIDDLE SECTION* and *BOTTOM SECTION*
 are three box-shaped volumetric regions. *INFLOW SURFACE* is a
 surface region defined in an Exodus II-formatted labeled set
 file and *OUTFLOW PLANE* is a planar region. *BLOODY SAND* is a volumetric
@@ -465,35 +497,33 @@ region defined by the value 25 in color function file.
 
 
 
+All
+===
+  A region consisting of all entities on a mesh.
 
-Point
-======
- RegionPoint: a point in space.
-List *region: point* defines a point in space. 
-This region consists of cells containing this point.
-
-* `"coordinate`" ``[Array(double)]`` Location of point in space.
+No parameters required.
 
 Example:
 
 .. code-block:: xml
 
-   <ParameterList name="DOWN_WIND150"> <!-- parent list defining the name -->
-     <ParameterList name="region: point">
-       <Parameter name="coordinate" type="Array(double)" value="{-150.0, 0.0, 0.0}"/>
+   <ParameterList name="domain">  <!-- parent list -->
+     <ParameterList name="region: all">
      </ParameterList>
    </ParameterList>
-
+  
 
 
 
 Box
-======
+===
  RegionBox: a rectangular region in space, defined by two corners
 
 List *region: box* defines a region bounded by coordinate-aligned
 planes. Boxes are allowed to be of zero thickness in only one
 direction in which case they are equivalent to planes.
+
+``[region-box-spec]``
 
 * `"low coordinate`" ``[Array(double)]`` Location of the boundary point with the lowest coordinates.
 
@@ -514,9 +544,11 @@ Example:
 
 
 Plane
-======
+=====
  RegionPlane: A planar (infinite) region in space, defined by a point and a normal.
 List *region: plane* defines a plane using a point lying on the plane and normal to the plane.
+
+``[region-plane-spec]``
 
 * `"normal`" ``[Array(double)]`` Normal to the plane.
 
@@ -540,7 +572,7 @@ Example:
 
 
 Labeled Set
-============
+===========
  RegionLabeledSet: A region defined by a set of mesh entities in a mesh file
 The list *region: labeled set* defines a named set of mesh entities
 existing in an input mesh file. This is the same file that contains
@@ -557,6 +589,8 @@ necessary to specify a unique set.  For example, an Exodus file
 requires *cell*, *face* or *node* as well as a label (which is
 an integer).  The resulting region will have the dimensionality 
 associated with the entities in the indicated set. 
+
+``[region-labeled-set-spec]``
 
 * `"label`" ``[string]`` Set per label defined in the mesh file.
 
@@ -582,11 +616,271 @@ Example:
 
 
 
+Function Color
+==============
+ RegionFunctionColor: A region defined by the value of an indicator function in a file.
+
+The list *region: color function* defines a region based a specified integer
+color, *value*, in a structured color function file, *file*.  The format of
+the color function file is given below in the "Tabulated function file format"
+section. As shown in the file, the color values may be specified at the nodes
+or cells of the color function grid. A computational cell is assigned the
+'color' of the data grid cell containing its cell centroid (cell-based colors)
+or the data grid nearest its cell-centroid (node-based colors). Computational
+cells sets are then built from all cells with the specified color *Value*.
+
+In order to avoid, gaps and overlaps in specifying materials, it is strongly
+recommended that regions be defined using a single color function file.
+
+``[region-color-function-spec]``
+
+* `"file`" ``[string]`` File name.
+
+* `"value`" ``[int]`` Color that defines the set in a tabulated function file.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="SOIL_TOP">
+     <ParameterList name="region: color function">
+       <Parameter name="file" type="string" value="geology_resamp_2D.tf3"/>
+       <Parameter name="value" type="int" value="1"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Point
+=====
+ RegionPoint: a point in space.
+List *region: point* defines a point in space. 
+This region consists of cells containing this point.
+
+``[region-point-spec]``
+
+* `"coordinate`" ``[Array(double)]`` Location of point in space.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="DOWN_WIND150"> <!-- parent list defining the name -->
+     <ParameterList name="region: point">
+       <Parameter name="coordinate" type="Array(double)" value="{-150.0, 0.0, 0.0}"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Logical
+=======
+ RegionLogical: A region defined by a logical operation on one or two other regions
+
+The list *region: logical* defines logical operations on regions allow for
+more advanced region definitions. At this time the logical region allows for
+logical operations on a list of regions.  *union* and *intersection* are
+self-evident. In the case of *subtraction*, subtraction is performed from the
+first region in the list.  The *complement* is a special case in that it is
+the only case that operates on single region, and returns the complement to it
+within the domain ENTIRE_DOMAIN.  Currently, multi-region booleans are not
+supported in the same expression.
+
+``[region-logical-spec]``
+
+* `"operation`" ``[string]`` defines operation on the list of regions.
+  Available options are *union*, *intersect*, *subtract*, *complement*
+
+* `"regions`" ``[Array(string)]`` specifies the list of involved regions.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="LOWER_LAYERs">
+    <ParameterList name="region: logical">
+      <Parameter name="operation" type="string" value="union"/>
+      <Parameter name="regions" type="Array(string)" value="{Middle1, Middle2, Bottom}"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Polygon
+=======
+ RegionPolygon: A closed polygonal segment of a plane.
+
+The list *region: polygon* defines a polygonal region on which mesh faces and
+nodes can be queried. NOTE that one cannot ask for cells in a polygonal surface
+region. In 2D, the polygonal region is a line and is specified by 2 points.
+In 3D, the polygonal region is specified by an arbitrary number of points.
+In both cases the point coordinates are given as a linear array. The polygon
+can be non-convex.
+
+This provides a set of faces with a normal for computing flux.
+
+The polygonal surface region can be queried for a normal. In 2D, the normal is
+defined as [Vy,-Vx] where [Vx,Vy] is the vector from point 1 to point 2.
+In 3D, the normal of the polygon is defined by the order in which points 
+are specified.
+
+``[region-polygon-spec]``
+
+* `"number of points`" ``[int]`` Number of polygon points.
+
+* `"points`" ``[Array(double)]`` Point coordinates in a linear array. 
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="XY_PENTAGON">
+     <ParameterList name="region: polygon">
+       <Parameter name="number of points" type="int" value="5"/>
+       <Parameter name="points" type="Array(double)" value="{-0.5, -0.5, -0.5, 
+                                                              0.5, -0.5, -0.5,
+                                                              0.8, 0.0, 0.0,
+                                                              0.5,  0.5, 0.5,
+                                                             -0.5, 0.5, 0.5}"/>
+       <ParameterList name="expert parameters">
+         <Parameter name="tolerance" type="double" value="1.0e-3"/>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Enumerated
+==========
+ RegionEnumerated: A region enumerated as a list of IDs.
+
+List *region: enumerated set* defines a set of mesh entities via the list 
+of input global ids. Note that global ids are not defined correctly when
+parallel mesh is created on a fly.
+
+``[region-enumerated-spec]``
+
+* `"entity`" ``[string]`` Type of the mesh object.  Valid are *cell*, *face*, *edge*, *node*
+
+* `"entity gids`" ``[Array(int)]`` List of the global IDs of the entities.
+  
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="WELL"> <!-- parent list -->
+     <ParameterList name="region: enumerated set">
+       <Parameter name="entity" type="string" value="face"/>
+       <Parameter name="entity gids" type="Array(int)" value="{1, 12, 23, 34}"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Boundary
+========
+ RegionBoundary:  A region consisting of all entities on the domain boundary
+
+List *region: boundary* defines a set of all boundary faces. 
+Using this definition, faces located on the domain boundary are extracted.
+
+``[region-boundary-spec]``
+
+* `"entity`" ``[string]`` Type of the mesh object.  Unclear whether this is
+          used or can be other things than `"face`"?
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="DOMAIN_BOUNDARY"> <!-- parent list names the region -->
+     <ParameterList name="region: boundary">
+       <Parameter name="entity" type="string" value="face"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Box Volume Fraction
+===================
+ RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.
+
+List *region: box volume fraction* defines a region bounded by a box *not* 
+aligned with coordinate axes. 
+Boxes are allowed to be of zero thickness in only one direction in which case 
+they are equivalent to rectangles on a plane or segments on a line.
+
+``[region-box-volume-fractions-spec]``
+
+* `"corner coordinate`" ``[Array(double)]`` Location of one box corner.
+
+* `"opposite corner coordinate`" ``[Array(double)]`` Location of the opposite box corner.
+
+* `"normals`" ``[Array(double)]`` Normals to sides in a linear array. Default is columns of
+  the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
+  one another and form the right coordinate frame.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="BASIN">  <!-- parent list -->
+     <ParameterList name="region: box volume fractions">
+       <Parameter name="corner coordinate" type="Array(double)" value="{-1.0,-1.0, 1.0}"/>
+       <Parameter name="opposite corner coordinate" type="Array(double)" value="{1.0, 1.0, 1.0}"/>
+       <Parameter name="normals" type="Array(double)" value="{1.0, 0.0, 0.0
+                                                              0.0, 2.0, 0.0,
+                                                              0.0, 0.0, 3.0}"/>
+     </ParameterList>
+   </ParameterList>
+
+This example defines a degenerate box, a square on a surface *z=1*.
+
+ 
+
+
+Line Segment
+============
+ RegionLineSegment: A line segment, defined by two points in space.
+
+List *region: line segment* desribes a region defined by a line
+segment. This region is a set of cells which intersect with a line
+segment.  The line segment is allowed to intersect with one or more cells. Zero length
+line segments are allowed. The line segment is defined by its ends
+points.
+
+``[region-line-segment-spec]``
+
+* `"end coordinate`" ``[Array(double)]`` Location of one end of a line
+  segment.
+
+* `"opposite end coordinate`" ``[Array(double)]`` Location of the opposite
+  end of a line segment.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="WELL"> <!-- parent list -->
+      <ParameterList name="region: line segment">
+        <Parameter name="end coordinate" type="Array(double)" value="{497542.44, 5393755.77, 0.0}"/>
+        <Parameter name="opposite end coordinate" type="Array(double)" value="{497542.44, 5393755.77, 100.0}"/>
+      </ParameterList>
+    </ParameterList>     
+
+
+
 
 
 Coordinator
 ############
-
  Simulation controller and top-level driver
 
 In the `"cycle driver`" sublist, the user specifies global control of the
@@ -596,42 +890,49 @@ simulation, including starting and ending times and restart options.
  
 * `"start time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
+ONE OF
+
 * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
  
 * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
-* `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
-   simulation in timestep cycles.
+OR
 
+* `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
+  simulation in timestep cycles.
+
+END
+  
 * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
-   specifies a path to the checkpoint file to continue a stopped simulation.
+  specifies a path to the checkpoint file to continue a stopped simulation.
 
 * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
-   simulation will checkpoint and end.
+  simulation will checkpoint and end.
 
 * `"required times`" ``[io-event-spec]`` **optional** An IOEvent_ spec that
-   sets a collection of times/cycles at which the simulation is guaranteed to
-   hit exactly.  This is useful for situations such as where data is provided
-   at a regular interval, and interpolation error related to that data is to
-   be minimized.
+  sets a collection of times/cycles at which the simulation is guaranteed to
+  hit exactly.  This is useful for situations such as where data is provided at
+  a regular interval, and interpolation error related to that data is to be
+  minimized.
 
-* `"PK tree`" ``[pk-type-spec-list]`` List of length one, the top level PK spec.
+* `"PK tree`" ``[pk-typed-spec-list]`` List of length one, the top level PK spec.
    
 Note: Either `"end cycle`" or `"end time`" are required, and if
 both are present, the simulation will stop with whichever arrives
 first.  An `"end cycle`" is commonly used to ensure that, in the case
 of a time step crash, we do not continue on forever spewing output.
 
-``[pk-type-spec]`` is a pk type and a list of subpks.
+``[pk-typed-spec]``
+
 * `"PK type`" ``[string]`` One of the registered PK types
-* `"sub PKs`" ``[pk-type-spec-list]`` **optional** If there are sub pks, list them.
+* `"sub PKs`" ``[pk-typed-spec-list]`` **optional** If there are sub pks, list them.
+
 
 Example:
 
-.. code-block::xml
+.. code-block:: xml
 
-   <!-- simulation control -->
-   <ParameterList name="coordinator">
+   <ParameterList name="cycle driver">
      <Parameter  name="end cycle" type="int" value="6000"/>
      <Parameter  name="start time" type="double" value="0."/>
      <Parameter  name="start time units" type="string" value="s"/>
@@ -639,6 +940,11 @@ Example:
      <Parameter  name="end time units" type="string" value="yr"/>
      <ParameterList name="required times">
        <Parameter name="start period stop" type="Array(double)" value="{0,-1,86400}" />
+     </ParameterList>
+     <ParameterList name="PK tree">
+       <ParameterList name="my richards pk">
+         <Parameter name="PK type" type="string" value="richards" />
+       </ParameterList>
      </ParameterList>
    </ParameterList>
 
@@ -648,7 +954,6 @@ Example:
 
 Visualization
 ##############
-
  Manages simulation output to disk.
 
 A user may request periodic writes of field data for the purposes of
@@ -672,6 +977,7 @@ Each list contains all parameters as in a IOEvent_ spec, and also:
   into for output files.  One of `"s`", `"d`", `"y`", or `"yr 365`"
   
 INCLUDES:
+
 * ``[io-event-spec]`` An IOEvent_ spec
 
 
@@ -695,10 +1001,9 @@ Example:
 
 
 
-  
+
 Checkpoint
 ##############
-
  Manages checkpoint/restart capability.
 
 A user may request periodic dumps of ATS Checkpoint Data in the
@@ -746,53 +1051,61 @@ every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be 
  
 Observation
 ##############
+ Collects, reduces, and writes observations during a simulation.
 
- Observable: Collects, reduces, and writes observations during a simulation.
-Observations are a localized-in-space but frequent in time view of
-data, designed to get at useful diagnostic quantities such as
-hydrographs, total water content, quantities at a point, etc.  These
-are designed to allow frequent collection in time without saving huge
-numbers of visualization files to do postprocessing.  In fact, these
-should be though of as orthogonal data queries to visualization -- vis
-is pointwise in time but complete in space, while observations are
-pointwise/finite in space but complete in time.
+Observations are a localized-in-space but frequent-in-time view of simulation
+output, designed to get at useful diagnostic quantities such as hydrographs,
+total water content, quantities at a point, etc.  These allow frequent
+collection in time without saving huge numbers of visualization files to do
+postprocessing.  In fact, these should be though of as orthogonal data queries
+to visualization -- vis is pointwise in time but complete in space, while
+observations are pointwise/finite in space but complete in time.
 
-A user may request any number of specific observations from ATS.  Each
-observation spec involves a field quantity, a functional reduction
-operator, a region from which it will extract its source data, and a
-list of discrete times for its evaluation.  The observations are
-evaluated during the simulation and written to disk.
+A user may request any number of specific observations.  Each observation spec
+involves a field quantity, a functional reduction operator, a region from which
+it will extract its source data, and a list of discrete times for its
+evaluation.  The observations are evaluated during the simulation and written
+to disk.
 
-``[observation-spec]`` consists of the following quantities:
+``[observation-spec]``
 
-* `"observation output filename`" ``[string]`` user-defined name for the file that the observations are written to.
+* `"observation output filename`" ``[string]`` user-defined name for the file
+  that the observations are written to.
 
-* `"variable`" ``[string]`` any ATS variable used by any PK, e.g. `"pressure`" or `"surface-water_content`"
+* `"variable`" ``[string]`` any ATS variable used by any PK, e.g. `"pressure`"
+  or `"surface-water_content`"
 
 * `"region`" ``[string]`` the label of a user-defined region
 
-* `"location name`" ``[string]`` the mesh location of the thing to be measured, i.e. `"cell`", `"face`", or `"node`"
+* `"location name`" ``[string]`` the mesh location of the thing to be measured,
+  i.e. `"cell`", `"face`", or `"node`"
 
-* `"functional`" ``[string]`` the label of a function to apply to the variable across the region.  Valid functionals include:
- - `"observation data: point`" returns the value of the field quantity at a point.  The region and location name must result in a single entity being selected.
- - `"observation data: extensive integral`" returns the sum of an (extensive) variable over the region.  This should be used for extensive quantities such as `"water_content`" or `"energy`".
- - `"observation data: intensive integral`" returns the volume-weighted average of an (intensive) variable over the region.  This should be used for intensive quantities such as `"temperature`" or `"saturation_liquid`".
+* `"functional`" ``[string]`` the label of a function to apply to the variable
+  across the region.  Valid functionals include:
 
-For flux observations, additional options are available:
+  - `"observation data: point`" returns the value of the field quantity at a
+    point.  The region and location name must result in a single entity being
+    selected.
+  - `"observation data: extensive integral`" returns the sum of an (extensive)
+    variable over the region.  This should be used for extensive quantities
+    such as `"water_content`" or `"energy`".
+  - `"observation data: intensive integral`" returns the volume-weighted
+    average of an (intensive) variable over the region.  This should be used
+    for intensive quantities such as `"temperature`" or `"saturation_liquid`".
 
-* `"direction normalized flux`" ``[bool]`` **optional** Dots the face-normal flux with a vector to ensure fluxes are integrated pointing the same direction.
+* `"direction normalized flux`" ``[bool]`` **optional** For flux observations,
+  dots the face-normal flux with a vector to ensure fluxes are integrated
+  pointing the same direction.
 
-* `"direction normalized flux direction`" ``[Array(double)]`` **optional**
-  Provides the vector to dot the face normal with.  If this is not provided,
-  then it is assumed that the faces integrated over are all boundary faces and
-  that the default vector is the outward normal direction for each face.
-
-Additionally, each ``[observation-spec]`` contains all parameters as in a IOEvent_ spec, which are used to specify at which times/cycles the observation is collected.
+* `"direction normalized flux direction`" ``[Array(double)]`` **optional** For
+  flux observations, provides the vector to dot the face normal with.  If this
+  is not provided, then it is assumed that the faces integrated over are all
+  boundary faces and that the default vector is the outward normal direction
+  for each face.
 
 INCLUDES:
-* ``[io-event-spec]`` An IOEvent_ spec
 
-  
+* ``[io-event-spec]`` An IOEvent_ spec
 
 
 Example:
@@ -839,7 +1152,6 @@ Example:
 
 PK
 #####
-
  The interface for a Process Kernel, an equation or system of equations.
 A process kernel represents a single or system of partial/ordinary
 differential equation(s) or conservation law(s), and is used as the
@@ -852,9 +1164,10 @@ which represents a single equation.
 
 All PKs have the following parameters in their spec:
 
-* `"PK type`" ``[string]``
+``[pk-spec]``
 
-  The PK type is a special key-word which corresponds to a given class in the PK factory.  See available PK types listed below.
+* `"PK type`" ``[string]`` The PK type is a special key-word which corresponds
+  to a given class in the PK factory.  See available PK types listed below.
 
 Example:
 
@@ -879,13 +1192,14 @@ Example:
 
 
 Base PKs
-===============
-
-There are several types of PKs, and each PK has its own valid input spec.  However, there are three main types of PKs, from which nearly all PKs derive.  Note that none of these are true PKs and cannot stand alone.
+========
+There are several types of PKs, and each PK has its own valid input
+spec.  However, there are three main types of PKs, from which nearly
+all PKs derive.  Note that none of these are true PKs and cannot stand
+alone.
 
 PKPhysicalBase
-----------------
-
+--------------
  A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
 
 ``PKPhysicalBase`` is a base class providing some functionality for PKs which
@@ -913,8 +1227,7 @@ NOTE: ``PKPhysicalBase (v)-->`` PKDefaultBase_
 
 
 PKBDFBase
-----------------
-
+---------
  A base class with default implementations of methods for a PK that can be implicitly integrated in time.
 
 ``PKBDFBase`` is a base class from which PKs that want to use the ``BDF``
@@ -951,10 +1264,8 @@ NOTE: ``PKBDFBase  (v)-->`` PKDefaultBase_
 
 
 
-
 PKPhysicalBDFBase
--------------------
-
+-----------------
  Standard base for most implemented PKs, this combines both domains/meshes of PKPhysicalBase and BDF methods of PKBDFBase.
 
 A base class for all PKs that are both physical, in the sense that they
@@ -992,16 +1303,15 @@ NOTE: ``PKPhysicalBDFBase -->`` PKBDFBase_
 
 
 Physical PKs
-===============
-
+============
 Physical PKs are the physical capability implemented within ATS.
 
 Flow PKs
------------
+--------
+Flow PKs include the flow of water both above and below-ground.
 
 Richards PK
-^^^^^^^^^^^^^^^
-
+^^^^^^^^^^^
  Two-phase, variable density Richards equation.
 
 Solves Richards equation:
@@ -1018,52 +1328,66 @@ Includes options from:
 
 Other variable names, typically not set as the default is basically always good:
 
-* `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically not set, default is good. ``[mol]``
-
-* `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water density ``[kg m^-3]``
-
-* `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid water density ``[mol m^-3]``
-
-* `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the soil medium ``[m^2]``
-
-* `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar coefficient of the permeability ``[-]``
-
-* `"upwind conductivity key`" ``[string]`` **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar coefficient of the permeability.  Note the units of this are strange, but this represents :math:`\frac{n_l k_r}{\mu}`  ``[mol kg^-1 s^1 m^-2]``
-
+* `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+  not set, as the default is good. ``[mol]``
+* `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water
+  density ``[kg m^-3]``
+* `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid
+  water density ``[mol m^-3]``
+* `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the
+  soil medium ``[m^2]``
+* `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar
+  coefficient of the permeability ``[-]``
+* `"upwind conductivity key`" ``[string]``
+  **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
+  coefficient of the permeability.  Note the units of this are strange, but
+  this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
 * `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-
-* `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction** direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
-
-* `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity vector, interpolated from faces to cells ``[m s^-1]``
-
+* `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction**
+  direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
+* `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity
+  vector, interpolated from faces to cells ``[m s^-1]``
 * `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-
 * `"saturation key`" ``[string]`` **DOMAIN-saturation_liquid** volume fraction of the liquid phase ``[-]``
 
 Discretization control:
 
 * `"diffusion`" ``[list]`` An PDE_Diffusion_ spec describing the (forward) diffusion operator
 
-* `"diffusion preconditioner`" ``[list]`` An PDE_Diffusion_ spec describing the diffusive parts of the preconditioner.
+* `"diffusion preconditioner`" ``[list]`` An PDE_Diffusion_ spec describing the
+  diffusive parts of the preconditioner.
 
 * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
   that this is only used if this PK is not strongly coupled to other PKs.
 
 Boundary conditions:
 
-//* `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.  See `Flow-specific Boundary Conditions`_
+..
+    * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.  See `Flow-specific Boundary Conditions`_
 
 Physics control:
 
-* `"permeability rescaling`" ``[double]`` **1** Typically 1e7 or order :math:`sqrt(K)` is about right.  This rescales things to stop from multiplying by small numbers (permeability) and then by large number (:math:`\rho / \mu`).
+* `"permeability rescaling`" ``[double]`` **1** Typically 1e7 or order
+  :math:`sqrt(K)` is about right.  This rescales things to stop from
+  multiplying by small numbers (permeability) and then by large number
+  (:math:`\rho / \mu`).
 
-* `"permeability type`" ``[string]`` **'scalar'** The permeability type can be 'scalar', 'horizontal and vertical', 'diagonal tensor', or 'full tensor'. This key is placed in state->field evaluators->permeability. The 'scalar' option requires 1 permeability value, 'horizontal and vertical' requires 2 values, 'diagonal tensor' requires 2 (2D) or 3 (3D) values, and 'full tensor' requires 3 (2D) or 6 (3D) values. The ordering of the permeability values in the input script is important: 'horizontal and vertical'={xx/yy,zz}, 'diagonal tensor'={xx,yy} or {xx,yy,zz}, 'full tensor'={xx,yy,xy/yx} or {xx,yy,zz,xy/yx,xz/zx,yz/zy}.
+* `"permeability type`" ``[string]`` **scalar** This key is placed in
+  state->field evaluators->permeability, and controls the number of values
+  needed to specify the absolute permeability.  One of:
 
-* `"water retention evaluator`" ``[wrm-evaluator-spec]`` The WRM.  This needs to go away!
+  - `"scalar`" Requires one scalar value.
+  - `"horizontal and vertical`" Requires two values, horizontal then vertical.
+  - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
+  - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
+
+* `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
+  curve.  This needs to go away, and should get moved to State.
 
 This PK additionally requires the following:
 
 EVALUATORS:
+
 - `"conserved quantity`"
 - `"mass density`"
 - `"molar density`"
@@ -1075,14 +1399,11 @@ EVALUATORS:
 
 
 Permafrost Flow PK
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
 
-Overland Flow, head primary variable PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Overland Flow, pressure primary variable, PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  Overland flow using the diffusion wave equation.
 
 Solves the diffusion wave equation for overland flow with pressure as a primary variable:
@@ -1147,31 +1468,34 @@ May inherit options from PKPhysicalBDFBase_.
 
 
 
+Overland Flow with Ice
+^^^^^^^^^^^^^^^^^^^^^^
+
 
 Snow Distribution PK
 ^^^^^^^^^^^^^^^^^^^^
 
 
+
 Energy PKs
 -----------
-
-Advection Diffusion PK
-^^^^^^^^^^^^^^^^^^^^^^^
+Advection and diffusion of energy, including phase change.
 
 Energy Base PK
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
+
 
 Two-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 Three-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Three-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Surface Ice Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Overland energy with Ice
+^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 
 
@@ -2255,10 +2579,7 @@ Parameters:
 * `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
 
 
-
-
 Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
-
 
 
 
