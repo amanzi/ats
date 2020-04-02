@@ -12,25 +12,28 @@
 
 /*!
 
-``PKPhysicalBase`` is a base class providing some functionality for PKs which
+`PKPhysicalBase` is a base class providing some functionality for PKs which
 are defined on a single mesh, and represent a single process model.  Typically
-all leaves of the PK tree will inherit from ``PKPhysicalBase``.
+all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
-* `"domain name`" ``[string]`` e.g. `"surface`".
+.. _pk-physical-default-spec:
+.. admonition:: pk-physical-default-spec
 
-  Domains and meshes are 1-to-1, and the empty string refers to the main domain or mesh.  PKs defined on other domains must specify which domain/mesh they refer to.
+    * `"domain name`" ``[string]`` Name from the Mesh_ list on which this PK is defined.
 
-* `"primary variable key`" ``[string]`` Sets the primary variable.
+    * `"primary variable key`" ``[string]`` The primary variable
+      e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
 
-  The primary variable associated with this PK, i.e. `"pressure`", `"temperature`", `"surface_pressure`", etc.
+    * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
 
-* `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
+    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
+      valid change in a single timestep.  Changes larger than this are declared
+      invalid and the timestep shrinks.  By default, any change is valid.
+      Units are the same as the primary variable.
 
+    INCLUDES:
 
-   Indicates that the primary variable field has both CELL and FACE objects, and the FACE values are calculated as the average of the neighboring cells.
-
-
-NOTE: ``PKPhysicalBase (v)-->`` PKDefaultBase_
+    - ``[pk-typed-spec]`` This *is a* PK_.
 
 */
 

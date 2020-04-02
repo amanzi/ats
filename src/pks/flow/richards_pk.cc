@@ -59,7 +59,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     modify_predictor_bc_flux_(false),
     modify_predictor_first_bc_flux_(false),
     upwind_from_prev_flux_(false),
-    precon_wc_(false),
     dynamic_mesh_(false),
     clobber_boundary_flux_dir_(false),
     vapor_diffusion_(false),
@@ -128,7 +127,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
   bc_seepage_infilt_->Compute(0.); // compute at t=0 to set up
 
   // scaling for permeability
-  perm_scale_ = plist_->get<double>("permeability rescaling", 1.0);
+  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
 
   // permeability type - scalar or tensor?
   Teuchos::ParameterList& perm_list_ = S->FEList().sublist("permeability");
@@ -323,9 +322,6 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
     }
   }
 
-  // -- PC control
-  precon_wc_ = plist_->get<bool>("precondition using WC", false);
-  
   // source terms
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_) {

@@ -71,30 +71,17 @@ Main
 
 ATS's top-level main accepts an XML list including a few required elements.
 
-* `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ spec objects, with
-  domain names given by the name of the sublist.
+.. _main-spec:
+.. admonition:: main-spec
 
-* `"regions`" ``[region-spec-list]`` A list of geometric Region_
-  specs, with names given by the name of the sublist.
-
-* `"cycle driver`" ``[coordinator-spec]``  See the Coordinator_ spec.
-
-* `"visualization`" ``[visualization-spec-list]`` A list of
-  Visualization_ specs, one for each mesh/domain, controlling
-  simulation output that is sparse in time but across the entirety
-  of the domain.
-
-* `"observations`" ``[observation-spec-list]`` An list of Observation_
-  specs, output that is sparse/local in space but across the entirety
-  of time.
-
-* `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec, controlling
-  output intended for restart.
-
-* `"PKs`" ``[list]``  List of all PKs to be used in the simulation.
-
-* `"state`" ``[state-spec]`` A State_ spec controlling evaluators and
-  other data.
+    * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
+    * `"regions`" ``[region-spec-list]`` A list of Region_ objects.
+    * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
+    * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
+    * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
+    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.      
+    * `"PKs`" ``[pk-typed-spec-list]`` A list of PK_ objects.
+    * `"state`" ``[state-spec]`` See State_.
 
  
 
@@ -128,19 +115,27 @@ which checks for many common geometric and topologic errors in mesh
 generation.  This is reasonably fast, even for big meshes, and can be done
 through providing a "verify mesh" option.
 
-``[mesh-typed-spec]``
+.. _mesh-typed-spec:
+.. admonition:: mesh-typed-spec
 
-* `"mesh type`" ``[string]`` One of `"generate mesh`", `"read mesh file`", `"logical`", `"surface`", `"subgrid`", or `"column`".
-* `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
-  associated with the type.
-* `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
-* `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
-* `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
-  mesh.  Note this only makes sense on the domain mesh.  One of:
-
-  * `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
-  * `"metis`" uses the METIS graph partitioner
-  * `"zoltan`" uses the default Zoltan graph-based partitioner.
+    * `"mesh type`" ``[string]`` One of:
+    
+      - `"generate mesh`" See `Generated Mesh`_.
+      - `"read mesh file`" See `Read Mesh File`_.
+      - `"logical`" See `Logical Mesh`_.
+      - `"surface`" See `Surface Mesh`_.
+      - `"subgrid`" See `Subgrid Meshes`_.
+      - `"column`" See `Column Meshes`_.
+    * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
+      associated with the type.
+    * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
+    * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+    * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
+      mesh.  Note this only makes sense on the domain mesh.  One of:
+      
+      - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
+      - `"metis`" uses the METIS graph partitioner
+      - `"zoltan`" uses the default Zoltan graph-based partitioner.
 
 
 Generated Mesh
@@ -152,11 +147,12 @@ of number of cells in each direction.
 
 Specified by `"mesh type`" of `"generate mesh`".
 
-``[mesh-type-generate-mesh-spec]``
+.. _mesh-type-generate-mesh-spec:
+.. admonition:: mesh-type-generate-mesh-spec
 
-* `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
-* `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
-* `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
+    * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
+    * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
+    * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
 
 Example:
 
@@ -174,28 +170,29 @@ Example:
    </ParameterList>   
 
 
-Mesh From File
+Read Mesh File
 ==============
 
-Meshes can be pre-generated in a multitude of ways, then written to
-Exodus II file format, and loaded in ATS.
+Meshes can be pre-generated in a multitude of ways, then written to file, and
+loaded in ATS. Note that in the case of an Exodus II mesh file, the suffix of
+the serial mesh file must be .exo and the suffix of the parallel mesh file must
+be .par.  When running in serial the code will read this the indicated file
+directly.  When running in parallel with a prepartitioned mesh, the suffix is
+.par and the code will instead read the partitioned files that have been
+generated with a Nemesis tool and named as filename.par.N.r where N is the
+number of processors and r is the rank.  When running in parallel and the
+suffix is .exo, the code will partition automatically the serial file.
 
 Specified by `"mesh type`" of `"read mesh file`".
 
-``[mesh-type-read-mesh-file-spec]``
+.. _mesh-type-read-mesh-file-spec:
+.. admonition:: mesh-type-read-mesh-file-spec
 
-* `"file`" ``[string]`` name of pre-generated mesh file. Note that in
-  the case of an Exodus II mesh file, the suffix of the serial mesh
-  file must be .exo and the suffix of the parallel mesh file must be
-  .par.  When running in serial the code will read this the indicated
-  file directly.  When running in parallel with a prepartitioned mesh,
-  the suffix is .par and the code will instead read the partitioned
-  files that have been generated with a Nemesis tool and named as
-  filename.par.N.r where N is the number of processors and r is the
-  rank.  When running in parallel and the suffix is .exo, the code
-  will partition automatically the serial file.
-     
-* `"format`" ``[string]`` format of pre-generated mesh file (`"MSTK`" or `"Exodus II`")
+    * `"file`" ``[string]`` filename of a pre-generated mesh file
+    * `"format`" ``[string]`` format of pre-generated mesh file. One of:
+    
+      - `"MSTK`"
+      - `"Exodus II`"
 
 Example:
 
@@ -228,9 +225,13 @@ frequently for river networks, root networks, and crack networks.
 
 Specified by `"mesh type`" of `"logical`".
 
-.. note::
+.. todo::
    WIP: add spec!
 
+.. _mesh-type-logical-spec:
+.. admonition:: mesh-type-logical-spec
+
+   
 Surface Mesh
 ============
 
@@ -245,20 +246,20 @@ computation.
 
 Specified by `"mesh type`" of `"surface`".
 
-``[mesh-type-surface-spec]``
+.. _mesh-type-surface-spec:
+.. admonition:: mesh-type-surface-spec
 
-ONE OF
+    ONE OF
 
-* `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+    * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+    OR
 
-OR
+    * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+    END
 
-* `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
-
-END
-
-* `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-* `"export mesh to file`" ``[string]`` Export the lifted surface mesh to this filename.
+    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+    * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+      surface mesh to this filename.
 
 Example:
 
@@ -296,37 +297,38 @@ entity local ID, in a provided region of the provided entity type.
 
 Specified by `"mesh type`" of `"subgrid`".
 
-``[mesh-type-subgrid-spec]``
+.. _mesh-type-subgrid-spec:
+.. admonition:: mesh-type-subgrid-spec
 
-* `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
-* `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
-  region (usually `"cell`") on which each subgrid mesh will be associated.
-* `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-* `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
-  mesh instead of one per entity.
+    * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
+    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+      region (usually `"cell`") on which each subgrid mesh will be associated.
+    * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+    * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
+      mesh instead of one per entity.
 
-.. note::
+.. todo::
    WIP: Add examples (intermediate scale model, transport subgrid model)
-
 
   
 Column Meshes
 =============
 
-.. note::
+.. warning::
    Note these are rarely if ever created manually by a user.  Instead use
    `Subgrid Meshes`_, which generate a column mesh spec for every face
    of a set.
 
 Specified by `"mesh type`" of `"column`".
 
-``[mesh-type-column-spec]``
+.. _mesh-type-column-spec:
+.. admonition:: mesh-type-column-spec
 
-* `"parent domain`" ``[string]`` The Mesh_ name of the 3D mesh from which columns are generated.
-  Note that the `"build columns from set`" parameter must be set in that mesh.
-* `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-* `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
-* `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
+    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+      Note that the `"build columns from set`" parameter must be set in that mesh.
+    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+    * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
+    * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
 
 Example:
 
@@ -367,60 +369,49 @@ must be specified over a set of regions are (N-1)-dimensional.
 Region specs are **not** denoted by a "type" parameter for legacy reasons.
 Instead, they take a single sublist whose name defines the type.
 
-``[region-spec]``
+.. _region-spec:
+.. admonition:: region-spec
 
-ONE OF:
+    ONE OF:
 
-* `"region: all`" ``[list]``
+    * `"region: all`" ``[list]`` See All_.
+    OR:
 
-OR:
+    * `"region: box`" ``[region-box-spec]`` See Box_.
+    OR:
 
-* `"region: box`" ``[region-box-spec]``
+    * `"region: plane`" ``[region-plane-spec]`` See Plane_.
+    OR:
 
-OR:
+    * `"region: labeled set`" ``[region-labeled-set-spec]`` See `Labeled Set`_.
+    OR:
 
-* `"region: plane`" ``[region-plane-spec]``
+    * `"region: color function`" ``[region-color-function-spec]`` See `Color Function`_.
+    OR:
 
-OR:
+    * `"region: point`" ``[region-point-spec]`` See Point_.
+    OR:
 
-* `"region: labeled set`" ``[region-labeled-set-spec]``
+    * `"region: logical`" ``[region-logical-spec]`` See Logical_.
+    OR:
 
-OR:
+    * `"region: polygon`" ``[region-polygon-spec]`` See Polygon_.
+    OR:
 
-* `"region: color function`" ``[region-color-function-spec]``
+    * `"region: enumerated`" ``[region-enumerated-spec]`` See Enumerated_.
+    OR:
 
-OR:
+    * `"region: boundary`" ``[region-boundary-spec]`` See Boundary_.
+    OR:
 
-* `"region: point`" ``[region-point-spec]``
+    * `"region: box volume fractions`" ``[region-box-volume-fractions-spec]`` See `Box Volume Fractions`_.
+    OR:
 
-OR:
-
-* `"region: logical`" ``[region-logical-spec]``
-
-OR:
-
-* `"region: polygon`" ``[region-polygon-spec]``
-
-OR:
-
-* `"region: enumerated`" ``[region-enumerated-spec]``
-
-OR:
-
-* `"region: boundary`" ``[region-boundary-spec]``
-
-OR:
-
-* `"region: box volume fractions`" ``[region-box-volume-fractions-spec]``
-
-OR:
-
-* `"region: line segment`" ``[region-line-segment-spec]``
-
-END
+    * `"region: line segment`" ``[region-line-segment-spec]`` See `Line Segment`_.
+    END
 
 
-.. note:: Surface files contain labeled triangulated face sets.  The user is
+.. warning:: Surface files contain labeled triangulated face sets.  The user is
     responsible for ensuring that the intersections with other surfaces in the
     problem, including the boundaries, are *exact* (*i.e.* that surface
     intersections are *watertight* where applicable), and that the surfaces are
@@ -429,7 +420,7 @@ END
 
     Examples of surface files are given in the *Exodus II* file format here.
 
-.. note:: Region names must NOT be repeated.
+.. warning:: Region names must NOT be repeated.
 
 Example:
 
@@ -523,11 +514,11 @@ List *region: box* defines a region bounded by coordinate-aligned
 planes. Boxes are allowed to be of zero thickness in only one
 direction in which case they are equivalent to planes.
 
-``[region-box-spec]``
+.. _region-box-spec:
+.. admonition:: region-box-spec
 
-* `"low coordinate`" ``[Array(double)]`` Location of the boundary point with the lowest coordinates.
-
-* `"high coordinate`" ``[Array(double)]`` Location of the boundary points with the highest coordinates.
+    * `"low coordinate`" ``[Array(double)]`` Location of the boundary point with the lowest coordinates.
+    * `"high coordinate`" ``[Array(double)]`` Location of the boundary points with the highest coordinates.
 
 Example:
 
@@ -548,11 +539,11 @@ Plane
  RegionPlane: A planar (infinite) region in space, defined by a point and a normal.
 List *region: plane* defines a plane using a point lying on the plane and normal to the plane.
 
-``[region-plane-spec]``
+.. _region-plane-spec:
+.. admonition:: region-plane-spec
 
-* `"normal`" ``[Array(double)]`` Normal to the plane.
-
-* `"point`" ``[Array(double)]`` Point in space.
+    * `"normal`" ``[Array(double)]`` Normal to the plane.
+    * `"point`" ``[Array(double)]`` Point in space.
 
 Example:
 
@@ -590,15 +581,13 @@ requires *cell*, *face* or *node* as well as a label (which is
 an integer).  The resulting region will have the dimensionality 
 associated with the entities in the indicated set. 
 
-``[region-labeled-set-spec]``
+.. _region-labeled-set-spec:
+.. admonition:: region-labeled-set-spec
 
-* `"label`" ``[string]`` Set per label defined in the mesh file.
-
-* `"file`" ``[string]`` File name.
-
-* `"format`" ``[string]`` Currently, we only support mesh files in the "Exodus II" format.
-
-* `"entity`" ``[string]`` Type of the mesh object (cell, face, etc).
+    * `"label`" ``[string]`` Set per label defined in the mesh file.
+    * `"file`" ``[string]`` File name.
+    * `"format`" ``[string]`` Currently, we only support mesh files in the "Exodus II" format.
+    * `"entity`" ``[string]`` Type of the mesh object (cell, face, etc).
 
 Example:
 
@@ -632,11 +621,11 @@ cells sets are then built from all cells with the specified color *Value*.
 In order to avoid, gaps and overlaps in specifying materials, it is strongly
 recommended that regions be defined using a single color function file.
 
-``[region-color-function-spec]``
+.. _region-color-function-spec:
+.. admonition:: region-color-function-spec
 
-* `"file`" ``[string]`` File name.
-
-* `"value`" ``[int]`` Color that defines the set in a tabulated function file.
+    * `"file`" ``[string]`` File name containing color function.
+    * `"value`" ``[int]`` Color that defines the set in the tabulated function file.
 
 Example:
 
@@ -658,9 +647,10 @@ Point
 List *region: point* defines a point in space. 
 This region consists of cells containing this point.
 
-``[region-point-spec]``
+.. _region-point-spec:
+.. admonition:: region-point-spec
 
-* `"coordinate`" ``[Array(double)]`` Location of point in space.
+    * `"coordinate`" ``[Array(double)]`` Location of point in space.
 
 Example:
 
@@ -688,12 +678,12 @@ the only case that operates on single region, and returns the complement to it
 within the domain ENTIRE_DOMAIN.  Currently, multi-region booleans are not
 supported in the same expression.
 
-``[region-logical-spec]``
+.. _region-logical-spec:
+.. admonition:: region-logical-spec
 
-* `"operation`" ``[string]`` defines operation on the list of regions.
-  Available options are *union*, *intersect*, *subtract*, *complement*
-
-* `"regions`" ``[Array(string)]`` specifies the list of involved regions.
+    * `"operation`" ``[string]`` defines operation on the list of regions.
+      One of: `"union`", `"intersect`", `"subtract`", `"complement`"
+    * `"regions`" ``[Array(string)]`` specifies the list of involved regions.
 
 Example:
 
@@ -762,11 +752,11 @@ List *region: enumerated set* defines a set of mesh entities via the list
 of input global ids. Note that global ids are not defined correctly when
 parallel mesh is created on a fly.
 
-``[region-enumerated-spec]``
+.. _region-enumerated-spec:
+.. admonition:: region-enumerated-spec
 
-* `"entity`" ``[string]`` Type of the mesh object.  Valid are *cell*, *face*, *edge*, *node*
-
-* `"entity gids`" ``[Array(int)]`` List of the global IDs of the entities.
+    * `"entity`" ``[string]`` Type of the mesh object.  One of: `"cell`", `"face`", `"edge`", `"node`"
+    * `"entity gids`" ``[Array(int)]`` List of the global IDs of the entities.
   
 
 Example:
@@ -790,10 +780,11 @@ Boundary
 List *region: boundary* defines a set of all boundary faces. 
 Using this definition, faces located on the domain boundary are extracted.
 
-``[region-boundary-spec]``
+.. _region-boundary-spec:
+.. admonition:: region-boundary-spec
 
-* `"entity`" ``[string]`` Type of the mesh object.  Unclear whether this is
-          used or can be other things than `"face`"?
+    * `"entity`" ``[string]`` Type of the mesh object.  Unclear whether this is
+      used or can be other things than `"face`"?
 
 Example:
 
@@ -817,15 +808,14 @@ aligned with coordinate axes.
 Boxes are allowed to be of zero thickness in only one direction in which case 
 they are equivalent to rectangles on a plane or segments on a line.
 
-``[region-box-volume-fractions-spec]``
+.. _region-box-volume-fraction-spec:
+.. admonition:: region-box-volume-fraction-spec
 
-* `"corner coordinate`" ``[Array(double)]`` Location of one box corner.
-
-* `"opposite corner coordinate`" ``[Array(double)]`` Location of the opposite box corner.
-
-* `"normals`" ``[Array(double)]`` Normals to sides in a linear array. Default is columns of
-  the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
-  one another and form the right coordinate frame.
+    * `"corner coordinate`" ``[Array(double)]`` Location of one box corner.
+    * `"opposite corner coordinate`" ``[Array(double)]`` Location of the opposite box corner.
+    * `"normals`" ``[Array(double)]`` Normals to sides in a linear array. Default is columns of
+      the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
+      one another and form the right coordinate frame.
 
 Example:
 
@@ -856,13 +846,13 @@ segment.  The line segment is allowed to intersect with one or more cells. Zero 
 line segments are allowed. The line segment is defined by its ends
 points.
 
-``[region-line-segment-spec]``
+.. _region-line-segment-spec:
+.. admonition:: region-line-segment-spec
 
-* `"end coordinate`" ``[Array(double)]`` Location of one end of a line
-  segment.
-
-* `"opposite end coordinate`" ``[Array(double)]`` Location of the opposite
-  end of a line segment.
+    * `"end coordinate`" ``[Array(double)]`` Location of one end of a line
+      segment.
+    * `"opposite end coordinate`" ``[Array(double)]`` Location of the opposite
+      end of a line segment.
 
 Example:
 
@@ -885,48 +875,38 @@ Coordinator
 
 In the `"cycle driver`" sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.
- 
-* `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
- 
-* `"start time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
-ONE OF
+.. _coordinator-spec:
+.. admonition:: coordinator-spec
 
-* `"end time`" ``[double]`` Specifies the end of the simulation in model time.
- 
-* `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
+    * `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
+    * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
+    ONE OF
+    
+    * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
+    * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
+    OR
+    
+    * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
+      simulation in timestep cycles.
+    END
+    
+    * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
+      specifies a path to the checkpoint file to continue a stopped simulation.
+    * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
+      simulation will checkpoint and end.
+    * `"required times`" ``[io-event-spec]`` **optional** An IOEvent_ spec that
+      sets a collection of times/cycles at which the simulation is guaranteed to
+      hit exactly.  This is useful for situations such as where data is provided at
+      a regular interval, and interpolation error related to that data is to be
+      minimized.
+    * `"PK tree`" ``[pk-typed-spec-list]`` List of length one, the top level
+      PK_ spec.
 
-OR
-
-* `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
-  simulation in timestep cycles.
-
-END
-  
-* `"restart from checkpoint file`" ``[string]`` **optional** If provided,
-  specifies a path to the checkpoint file to continue a stopped simulation.
-
-* `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
-  simulation will checkpoint and end.
-
-* `"required times`" ``[io-event-spec]`` **optional** An IOEvent_ spec that
-  sets a collection of times/cycles at which the simulation is guaranteed to
-  hit exactly.  This is useful for situations such as where data is provided at
-  a regular interval, and interpolation error related to that data is to be
-  minimized.
-
-* `"PK tree`" ``[pk-typed-spec-list]`` List of length one, the top level PK spec.
-   
 Note: Either `"end cycle`" or `"end time`" are required, and if
 both are present, the simulation will stop with whichever arrives
 first.  An `"end cycle`" is commonly used to ensure that, in the case
 of a time step crash, we do not continue on forever spewing output.
-
-``[pk-typed-spec]``
-
-* `"PK type`" ``[string]`` One of the registered PK types
-* `"sub PKs`" ``[pk-typed-spec-list]`` **optional** If there are sub pks, list them.
-
 
 Example:
 
@@ -966,19 +946,18 @@ surface mesh.  It is expected that, for any addition meshes, each will have a
 domain name and therefore admit a spec of the form: `"visualization
 DOMAIN-NAME`".
 
-Each list contains all parameters as in a IOEvent_ spec, and also:
+.. _visualization-spec:
+.. admonition:: visualization-spec
 
-* `"file name base`" ``[string]`` **visdump_DOMAIN_data**
+    * `"file name base`" ``[string]`` **visdump_DOMAIN_data**
+    * `"dynamic mesh`" ``[bool]`` **false** Write mesh data for every
+      visualization dump; this facilitates visualizing deforming meshes.
+    * `"time units`" ``[string]`` **s** A valid time unit to convert time
+      into for output files.  One of `"s`", `"d`", `"y`", or `"yr 365`"
 
-* `"dynamic mesh`" ``[bool]`` **false** Write mesh data for every
-  visualization dump; this facilitates visualizing deforming meshes.
+    INCLUDES:
 
-* `"time units`" ``[string]`` **s** A valid time unit to convert time
-  into for output files.  One of `"s`", `"d`", `"y`", or `"yr 365`"
-  
-INCLUDES:
-
-* ``[io-event-spec]`` An IOEvent_ spec
+    * ``[io-event-spec]`` An IOEvent_ spec
 
 
 Example:
@@ -1016,17 +995,14 @@ name generation and writing frequency, by numerical cycle number.
 Unlike `"visualization`", there is only one `"checkpoint`" list for
 all domains/meshes.
 
-Parameters:
+.. _checkpoint-spec:
+.. admonition:: checkpoint-spec
 
-* `"file name base`" ``[string]`` **"checkpoint"**
+    * `"file name base`" ``[string]`` **"checkpoint"**
+    * `"file name digits`" ``[int]`` **5**
+    INCLUDES:
 
-* `"file name digits`" ``[int]`` **5**
-
-INCLUDES:
-
-* ``[io-event-spec]`` An IOEvent_ spec
-
-  Write mesh data for every visualization dump, this facilitates visualizing deforming meshes.
+    * ``[io-event-spec]`` An IOEvent_ spec
 
 Example:
 
@@ -1067,45 +1043,46 @@ it will extract its source data, and a list of discrete times for its
 evaluation.  The observations are evaluated during the simulation and written
 to disk.
 
-``[observation-spec]``
+.. _observation-spec:
+.. admonition:: observation-spec
 
-* `"observation output filename`" ``[string]`` user-defined name for the file
-  that the observations are written to.
+    * `"observation output filename`" ``[string]`` user-defined name for the file
+      that the observations are written to.
 
-* `"variable`" ``[string]`` any ATS variable used by any PK, e.g. `"pressure`"
-  or `"surface-water_content`"
+    * `"variable`" ``[string]`` any ATS variable used by any PK, e.g. `"pressure`"
+      or `"surface-water_content`"
 
-* `"region`" ``[string]`` the label of a user-defined region
+    * `"region`" ``[string]`` the label of a user-defined region
 
-* `"location name`" ``[string]`` the mesh location of the thing to be measured,
-  i.e. `"cell`", `"face`", or `"node`"
+    * `"location name`" ``[string]`` the mesh location of the thing to be measured,
+      i.e. `"cell`", `"face`", or `"node`"
 
-* `"functional`" ``[string]`` the label of a function to apply to the variable
-  across the region.  Valid functionals include:
+    * `"functional`" ``[string]`` the label of a function to apply to the variable
+      across the region.  One of:
 
-  - `"observation data: point`" returns the value of the field quantity at a
-    point.  The region and location name must result in a single entity being
-    selected.
-  - `"observation data: extensive integral`" returns the sum of an (extensive)
-    variable over the region.  This should be used for extensive quantities
-    such as `"water_content`" or `"energy`".
-  - `"observation data: intensive integral`" returns the volume-weighted
-    average of an (intensive) variable over the region.  This should be used
-    for intensive quantities such as `"temperature`" or `"saturation_liquid`".
+      - `"observation data: point`" returns the value of the field quantity at a
+        point.  The region and location name must result in a single entity being
+        selected.
+      - `"observation data: extensive integral`" returns the sum of an (extensive)
+        variable over the region.  This should be used for extensive quantities
+        such as `"water_content`" or `"energy`".
+      - `"observation data: intensive integral`" returns the volume-weighted
+        average of an (intensive) variable over the region.  This should be used
+        for intensive quantities such as `"temperature`" or `"saturation_liquid`".
 
-* `"direction normalized flux`" ``[bool]`` **optional** For flux observations,
-  dots the face-normal flux with a vector to ensure fluxes are integrated
-  pointing the same direction.
+    * `"direction normalized flux`" ``[bool]`` **optional** For flux observations,
+      dots the face-normal flux with a vector to ensure fluxes are integrated
+      pointing the same direction.
 
-* `"direction normalized flux direction`" ``[Array(double)]`` **optional** For
-  flux observations, provides the vector to dot the face normal with.  If this
-  is not provided, then it is assumed that the faces integrated over are all
-  boundary faces and that the default vector is the outward normal direction
-  for each face.
+    * `"direction normalized flux direction`" ``[Array(double)]`` **optional** For
+      flux observations, provides the vector to dot the face normal with.  If this
+      is not provided, then it is assumed that the faces integrated over are all
+      boundary faces and that the default vector is the outward normal direction
+      for each face.
 
-INCLUDES:
+    INCLUDES:
 
-* ``[io-event-spec]`` An IOEvent_ spec
+    * ``[io-event-spec]`` An IOEvent_ spec
 
 
 Example:
@@ -1151,7 +1128,7 @@ Example:
 
 
 PK
-#####
+###
  The interface for a Process Kernel, an equation or system of equations.
 A process kernel represents a single or system of partial/ordinary
 differential equation(s) or conservation law(s), and is used as the
@@ -1164,10 +1141,12 @@ which represents a single equation.
 
 All PKs have the following parameters in their spec:
 
-``[pk-spec]``
+.. _pk-typed-spec:
+.. admonition:: pk-typed-spec
 
-* `"PK type`" ``[string]`` The PK type is a special key-word which corresponds
-  to a given class in the PK factory.  See available PK types listed below.
+    * `"PK type`" ``[string]`` One of the registered PK types
+    * `"sub PKs`" ``[pk-typed-spec-list]`` **optional** If there are sub pks, list them.
+    * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
 
 Example:
 
@@ -1185,9 +1164,12 @@ Example:
   <ParameterList name="PKs">
     <ParameterList name="Top level MPC">
       <Parameter name="PK type" type="string" value="strong MPC"/>
-       ...
+      <ParameterList name="sub PKs">
+        ...   
+      </ParameterList>
     </ParameterList>
   </ParameterList>
+
 
 
 
@@ -1198,107 +1180,113 @@ spec.  However, there are three main types of PKs, from which nearly
 all PKs derive.  Note that none of these are true PKs and cannot stand
 alone.
 
-PKPhysicalBase
---------------
+PK: Physical
+------------
  A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
 
-``PKPhysicalBase`` is a base class providing some functionality for PKs which
+`PKPhysicalBase` is a base class providing some functionality for PKs which
 are defined on a single mesh, and represent a single process model.  Typically
-all leaves of the PK tree will inherit from ``PKPhysicalBase``.
+all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
-* `"domain name`" ``[string]`` e.g. `"surface`".
+.. _pk-physical-default-spec:
+.. admonition:: pk-physical-default-spec
 
-  Domains and meshes are 1-to-1, and the empty string refers to the main domain or mesh.  PKs defined on other domains must specify which domain/mesh they refer to.
+    * `"domain name`" ``[string]`` Name from the Mesh_ list on which this PK is defined.
 
-* `"primary variable key`" ``[string]`` Sets the primary variable.
+    * `"primary variable key`" ``[string]`` The primary variable
+      e.g. `"pressure`", or `"temperature`".  Most PKs supply sane defaults.
 
-  The primary variable associated with this PK, i.e. `"pressure`", `"temperature`", `"surface_pressure`", etc.
+    * `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
 
-* `"initial condition`" ``[initial-conditions-spec]``  See InitialConditions_.
+    * `"max valid change`" ``[double]`` **-1** Sets a limiter on what is a
+      valid change in a single timestep.  Changes larger than this are declared
+      invalid and the timestep shrinks.  By default, any change is valid.
+      Units are the same as the primary variable.
 
+    INCLUDES:
 
-   Indicates that the primary variable field has both CELL and FACE objects, and the FACE values are calculated as the average of the neighboring cells.
-
-
-NOTE: ``PKPhysicalBase (v)-->`` PKDefaultBase_
-
-
-
+    - ``[pk-typed-spec]`` This *is a* PK_.
 
 
-PKBDFBase
----------
+
+
+
+PK: BDF
+-------
  A base class with default implementations of methods for a PK that can be implicitly integrated in time.
 
-``PKBDFBase`` is a base class from which PKs that want to use the ``BDF``
+`PKBDFBase` is a base class from which PKs that want to use the `BDF`
 series of implicit time integrators must derive.  It specifies both the
-``BDFFnBase`` interface and implements some basic functionality for ``BDF``
+`BDFFnBase` interface and implements some basic functionality for `BDF`
 PKs.
 
-* `"initial time step`" ``[double]`` **1.**
+.. _pk-bdf-default-spec:
+.. admonition:: pk-bdf-default-spec
 
-  The initial timestep size for the PK, this ensures that the initial timestep
-  will not be **larger** than this value.
+    * `"initial time step`" ``[double]`` **1.** Initial time step size [s]
 
-* `"assemble preconditioner`" ``[bool]`` **true** 
+    * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
+      by user but by an MPC.
 
-  A flag for the PK to not assemble its preconditioner if it is not needed by
-  a controlling PK.  This is usually set by the MPC, not by the user.
+    * `"time integrator`" ``[implicit-time-integrator-typed-spec]`` **optional**
+      A TimeIntegrator_.  Note that this is only provided if this PK is not
+      strongly coupled to other PKs.
 
-In the top-most (in the PK tree) PK that is meant to be integrated implicitly,
-several additional specs are included.  For instance, in a strongly coupled
-flow and energy problem, these specs are included in the ``StrongMPC`` that
-couples the flow and energy PKs, not to the flow or energy PK itself.
-  
-* `"time integrator`" ``[implicit-time-integrator-typed-spec]`` **optional**
-  A TimeIntegrator_.  Note that this is only provided if this PK is not
-  strongly coupled to other PKs.
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** A Preconditioner_.
+      Note that this is only used if this PK is not strongly coupled to other PKs.
 
-* `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** is a Preconditioner_ spec.
-  Note that this is only used if this PK is not strongly coupled to other PKs.
+    INCLUDES:
 
-  This spec describes how to form the (approximate) inverse of the preconditioner.
-  
-NOTE: ``PKBDFBase  (v)-->`` PKDefaultBase_
+    - ``[pk-typed-spec]`` This *is a* PK_.
 
 
 
 
-PKPhysicalBDFBase
------------------
- Standard base for most implemented PKs, this combines both domains/meshes of PKPhysicalBase and BDF methods of PKBDFBase.
+
+PK: Physical and BDF
+--------------------
+ Default implementation of both BDF and Physical PKs.
 
 A base class for all PKs that are both physical, in the sense that they
-implement an equation and are not couplers, and support the implicit
-integration interface.  This largely just supplies a default error norm based
-on error in conservation relative to the extent of the conserved quantity.
-
-* `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
-  :math:`a_tol` in the equation below.  Note that this default is often
-  overridden by PKs with more physical values, and very rarely are these set
-  by the user.
-
-* `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
-  :math:`r_tol` in the equation below.  Note that this default is often
-  overridden by PKs with more physical values, and very rarely are these set
-  by the user.
-
-* `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
-  flux.  Note that this default is often overridden by PKs with more physical
-  values, and very rarely are these set by the user.
+implement an equation and are not couplers, and BDF, in the sense that they
+support the implicit integration interface.  This largely just supplies a
+default error norm based on error in conservation relative to the extent of the
+conserved quantity.
 
 By default, the error norm used by solvers is given by:
 
 :math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
 
 The defaults here are typically good, or else good defaults are set in the
-code, so these need not be supplied.
+code, so usually are not supplied by the user.
 
 
-NOTE: ``PKPhysicalBDFBase -->`` PKBDFBase_
-      ``PKPhysicalBDFBase -->`` PKPhysicalBase_
-      ``PKPhysicalBDFBase (v)-->`` PKDefaultBase_
+.. _pk-physical-bdf-default-spec:
+.. admonition:: pk-physical-bdf-default-spec
 
+    * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
+      Usually a sane default is set by the PK.
+
+    * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
+      :math:`a_tol` in the equation above.  Unit are the same as the conserved
+      quantity.  Note that this default is often overridden by PKs with more
+      physical values, and very rarely are these set by the user.
+
+    * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
+      :math:`r_tol` in the equation above.  ``[-]`` Note that this default can
+      be overridden by PKs with more physical values, and very rarely are these
+      set by the user.
+
+    * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
+      flux.  Note that this default is often overridden by PKs with more physical
+      values, and very rarely are these set by the user.
+
+    INCLUDES:
+
+    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
+    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
+    
+      
 
 
 
@@ -1319,81 +1307,193 @@ Solves Richards equation:
 .. math::
   \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w
 
+.. _richards-spec:
+.. admonition:: richards-spec
 
-Includes options from:
+    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
-* ``[pk-physical-default-spec]`` PKPhysicalDefault_
-# ``[pk-bdf-default-spec]`` PKBDFDefault_
-* ``[pk-physical-bdf-default-spec]`` PKPhysicalBDFDefault_
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+      must be provided by the user.
 
-Other variable names, typically not set as the default is basically always good:
+    * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman,
+      0 normal flux.  See `Flow-specific Boundary Conditions`_
 
-* `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
-  not set, as the default is good. ``[mol]``
-* `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water
-  density ``[kg m^-3]``
-* `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid
-  water density ``[mol m^-3]``
-* `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the
-  soil medium ``[m^2]``
-* `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar
-  coefficient of the permeability ``[-]``
-* `"upwind conductivity key`" ``[string]``
-  **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
-  coefficient of the permeability.  Note the units of this are strange, but
-  this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
-* `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-* `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction**
-  direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
-* `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity
-  vector, interpolated from faces to cells ``[m s^-1]``
-* `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-* `"saturation key`" ``[string]`` **DOMAIN-saturation_liquid** volume fraction of the liquid phase ``[-]``
+    * `"permeability type`" ``[string]`` **scalar** This controls the number of
+      values needed to specify the absolute permeability.  One of:
 
-Discretization control:
+      - `"scalar`" Requires one scalar value.
+      - `"horizontal and vertical`" Requires two values, horizontal then vertical.
+      - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
+      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
 
-* `"diffusion`" ``[list]`` An PDE_Diffusion_ spec describing the (forward) diffusion operator
+    * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
+      curve.  This needs to go away, and should get moved to State.
 
-* `"diffusion preconditioner`" ``[list]`` An PDE_Diffusion_ spec describing the
-  diffusive parts of the preconditioner.
+    IF
+    
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+    THEN
+    
+    * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
+      not set, as the default is good. ``[mol s^-1]``
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+    * `"explicit source term`" ``[bool]`` **false** Apply the source term from
+      the previous time step.
+    END
 
-* `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
-  that this is only used if this PK is not strongly coupled to other PKs.
+    Math and solver algorithm options:
+      
+    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+      see PDE_Diffusion_.
 
-Boundary conditions:
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
+      is only needed to set Jacobian options, as all others probably should
+      match those in `"diffusion`", and default to those values.
 
-..
-    * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.  See `Flow-specific Boundary Conditions`_
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
 
-Physics control:
+    * `"surface rel perm strategy`" ``[string]`` **none** Approach for
+      specifying the relative permeabiilty on the surface face.  `"clobber`" is
+      frequently used for cases where a surface rel perm will be provided.  One
+      of:
 
-* `"permeability rescaling`" ``[double]`` **1** Typically 1e7 or order
-  :math:`sqrt(K)` is about right.  This rescales things to stop from
-  multiplying by small numbers (permeability) and then by large number
-  (:math:`\rho / \mu`).
+      - `"none`" : use the upwind direction to determine whether to use the
+        boundary face or internal cell
+      - `"clobber`" : always use the boundary face rel perm
+      - `"max`" : use the max of the boundary face and internal cell values
+      - `"unsaturated`" : Uses the boundary face when the internal cell is not
+        saturated.
+      
+    * `"relative permeability method`" ``[string]`` **upwind with Darcy flux**
+      Relative permeability is defined on cells, but must be calculated on
+      faces to multiply a flux.  There are several methods commonly used.  Note
+      these can significantly change answers -- you don't want to change these
+      unless you know what they mena.  One of:
 
-* `"permeability type`" ``[string]`` **scalar** This key is placed in
-  state->field evaluators->permeability, and controls the number of values
-  needed to specify the absolute permeability.  One of:
+      - `"upwind with Darcy flux`" First-order upwind method that is most common
+      - `"upwind with gravity`" Upwinds according to the gravitational flux direction
+      - `"cell centered`" This corresponds to the harmonic mean, and is most
+        accurate if the problem is always wet, but has issues when it is dry.
+      - `"arithmetic mean`" Face value is the mean of the neighboring cells.
+        Not a good method.
 
-  - `"scalar`" Requires one scalar value.
-  - `"horizontal and vertical`" Requires two values, horizontal then vertical.
-  - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
-  - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
+    Globalization and other process-based hacks:
+        
+    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+      face+cell diffusion discretization, this modifies the predictor to make
+      sure that faces, which are a DAE, are consistent with the predicted cells
+      (i.e. face fluxes from each sides match).
 
-* `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
-  curve.  This needs to go away, and should get moved to State.
+    * `"modify predictor for flux BCs`" ``[bool]`` **false** Infiltration into
+      dry ground can be hard on solvers -- this tries to do the local nonlinear
+      problem to ensure that face pressures are consistent with the
+      prescribed flux in a predictor.
 
-This PK additionally requires the following:
+    * `"modify predictor via water content`" ``[bool]`` **false** Modifies the
+      predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+      change of variables, extrapolating not in pressure but in water content,
+      then takes the smaller of the two extrapolants.
 
-EVALUATORS:
+    * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+      Rejects timesteps whose max saturation change is greater than this value.
+      This can be useful to ensure temporally resolved solutions.  Usually a
+      good value is 0.1 or 0.2.
 
-- `"conserved quantity`"
-- `"mass density`"
-- `"molar density`"
-- `"permeability`"
-- `"conductivity`"
-- `"saturation`"
+    * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+      **-1** Rejects timesteps whose max ice saturation change is greater than
+      this value.  This can be useful to ensure temporally resolved solutions.
+      Usually a good value is 0.1 or 0.2.
+      
+    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+      this limits an iterate's max pressure change to this value.  Not usually
+      helpful.
+
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`"
+      ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+      to this value when they cross atmospheric pressure.  Not usually helpful.
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+
+      
+    Everything below this point is usually not provided by the user, but are
+    documented here for completeness.
+    
+    Keys name variables:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+      not set, as the default is good. ``[mol]``
+    * `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water
+      density ``[kg m^-3]``
+    * `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid
+      water density ``[mol m^-3]``
+    * `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the
+      soil medium ``[m^2]``
+    * `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar
+      coefficient of the permeability ``[-]``
+    * `"upwind conductivity key`" ``[string]``
+      **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
+      coefficient of the permeability.  Note the units of this are strange, but
+      this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
+    * `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
+    * `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction**
+      direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
+    * `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity
+      vector, interpolated from faces to cells ``[m s^-1]``
+    * `"saturation key`" ``[string]`` **DOMAIN-saturation_liquid** volume
+      fraction of the liquid phase ``[-]``
+    * `"saturation gas key`" ``[string]`` **DOMAIN-saturation_gas** volume
+      fraction of the gas phase ``[-]``
+
+    Discretization / operators / solver controls:
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+      
+    * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``    
+
+    * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
+      face unknowns on discretizations that are cell-only (e.g. FV).  This can
+      be useful for surface flow or other wierd boundary conditions.  Usually
+      provided by MPCs that need them.
+    
+    Physics control:
+
+    * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
+      :math:`sqrt(K)` is about right.  This rescales things to stop from
+      multiplying by small numbers (permeability) and then by large number
+      (:math:`\rho / \mu`).
+
+    IF
+    
+    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from an exchange flux.  Note, if this is a
+      coupled problem, it is probably set by the MPC.  No need for a user to
+      set it.
+    THEN
+
+    * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+    END
+
+    * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from the surface pressure (Dirichlet).
+      
+    EVALUATORS:
+
+    - `"conserved quantity`"
+    - `"mass density`"
+    - `"molar density`"
+    - `"permeability`"
+    - `"conductivity`"
+    - `"saturation`"
+    - `"primary variable`" = `"independent`"
 
 
 
@@ -1412,58 +1512,104 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
   \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
 
 
-Options:
+.. _overland-pressure-spec:
+.. admonition:: overland-pressure-spec
 
-Variable naming:
+    Keys name variables:
 
-* `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
+    * `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
 
-* `"primary variable`" ``[string]`` The primary variable associated with this PK, typically `"DOMAIN-pressure`"
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+      must be provided by the user.
 
+    * `"boundary conditions`" ``[surface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.
 
-Other variable names, typically not set as the default is basically always good:
+    * `"overland conductivity evaluator`" ``[overland-conductivity-eval-spec]``
+      See `Overland Conductivity Evaluator`_.
+    
+    IF
+    
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+    THEN
+    
+    * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
+      not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
+    * `"mass source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+    * `"explicit source term`" ``[bool]`` **false** Apply the source term from
+      the previous time step.
+    END
 
-* `"conserved quantity key`" ``[string]`` **"DOMAIN-water_content"** The conserved quantity name.
+    Math and solver algorithm options:
 
-Discretization control:
+    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+      see PDE_Diffusion_.
 
-* `"diffusion`" ``[list]`` An PDE_Diffusion_ spec describing the (forward) diffusion operator
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
+      is only needed to set Jacobian options, as all others probably should
+      match those in `"diffusion`", and default to those values.
 
-* `"diffusion preconditioner`" ``[list]`` An PDE_Diffusion_ spec describing the diffusive parts of the preconditioner.
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
 
-Time integration and timestep control:
+    * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
+      water.  A small, but significant, amount of water.
 
-* `"initial time step`" ``[double]`` **1.** Max initial time step size ``[s]``.
+    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+      this limits an iterate's max pressure change to this value.  Not usually
+      helpful.
 
-* `"time integrator`" ``[implicit-time-integrator-typed-spec]`` **optional** is a TimeIntegrator_ spec.
-  Note that this is only used if this PK is not strongly coupled to other PKs.
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`"
+      ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+      to this value when they cross atmospheric pressure.  Not usually helpful.
 
-* `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
-  that this is only used if this PK is not strongly coupled to other PKs.
+    * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all
+      correction updates to ensure only positive ponded depth is allowed.
 
-* `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** is a Preconditioner_ spec.
-  Note that this is only used if this PK is not strongly coupled to other PKs.
+    * `"min ponded depth for velocity calculation`" ``[double]`` **1.e-2** For
+      ponded depth below this height, declare the velocity 0.
 
-* `"initial condition`" ``[initial-conditions-spec]`` See InitialConditions_.
+    * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
+      tidal boundary condition.  TODO: This should live in the BC spec?
+      
+    INCLUDES:
 
-Error control:
+    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
-* `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of water.  A small, but significant, amount of water.
+    Everything below this point is usually not provided by the user, but are
+    documented here for completeness.
 
-* `"relative error tolerance`" ``[double]`` **1** Take the error relative to the amount of water present in that cell.
+    Keys name variables:
 
-* `"flux tolerance`" ``[double]`` **1** Multiplies the error in flux (on a face)
-  relative to the min of water in the neighboring cells.  Typically only
-  changed if infiltration is very small and the boundary condition is not
-  converging, at which point it can be decreased by an order of magnitude at a
-  time until the boundary condition is satisfied.
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+      not set, as the default is good. ``[mol]``
+    * `"elevation key`" ``[string]`` **DOMAIN-elevation** Typically
+      not set, as the default is good. ``[mol]``
+    * `"slope magnitude key`" ``[string]`` **DOMAIN-slope_magnitude** Typically
+      not set, as the default is good. ``[mol]``
 
-Boundary conditions:
+    Algorithmic parameters:
 
-xx* `"boundary conditions`" ``[surface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.
+    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
+    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
 
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+    
+    EVALUATORS:
 
-May inherit options from PKPhysicalBDFBase_.
+    - `"conserved quantity`"
+    - `"elevation`"
+    - `"slope magnitude`"
+    - `"overland_conductivity`"
+    - `"ponded_depth`"
+    - `"pres_elev`"
+    
 
 
 

@@ -1,5 +1,5 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Standard base for most implemented PKs, this combines both domains/meshes of PKPhysicalBase and BDF methods of PKBDFBase.
+//! Default implementation of both BDF and Physical PKs.
 
 /*
   ATS is released under the three-clause BSD License. 
@@ -13,36 +13,45 @@
 /*!
 
 A base class for all PKs that are both physical, in the sense that they
-implement an equation and are not couplers, and support the implicit
-integration interface.  This largely just supplies a default error norm based
-on error in conservation relative to the extent of the conserved quantity.
-
-* `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
-  :math:`a_tol` in the equation below.  Note that this default is often
-  overridden by PKs with more physical values, and very rarely are these set
-  by the user.
-
-* `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
-  :math:`r_tol` in the equation below.  Note that this default is often
-  overridden by PKs with more physical values, and very rarely are these set
-  by the user.
-
-* `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
-  flux.  Note that this default is often overridden by PKs with more physical
-  values, and very rarely are these set by the user.
+implement an equation and are not couplers, and BDF, in the sense that they
+support the implicit integration interface.  This largely just supplies a
+default error norm based on error in conservation relative to the extent of the
+conserved quantity.
 
 By default, the error norm used by solvers is given by:
 
 :math:`ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )`
 
 The defaults here are typically good, or else good defaults are set in the
-code, so these need not be supplied.
+code, so usually are not supplied by the user.
 
 
-NOTE: ``PKPhysicalBDFBase -->`` PKBDFBase_
-      ``PKPhysicalBDFBase -->`` PKPhysicalBase_
-      ``PKPhysicalBDFBase (v)-->`` PKDefaultBase_
+.. _pk-physical-bdf-default-spec:
+.. admonition:: pk-physical-bdf-default-spec
 
+    * `"conserved quantity key`" ``[string]`` Name of the conserved quantity.
+      Usually a sane default is set by the PK.
+
+    * `"absolute error tolerance`" ``[double]`` **1.0** Absolute tolerance,
+      :math:`a_tol` in the equation above.  Unit are the same as the conserved
+      quantity.  Note that this default is often overridden by PKs with more
+      physical values, and very rarely are these set by the user.
+
+    * `"relative error tolerance`" ``[double]`` **1.0** Relative tolerance,
+      :math:`r_tol` in the equation above.  ``[-]`` Note that this default can
+      be overridden by PKs with more physical values, and very rarely are these
+      set by the user.
+
+    * `"flux error tolerance`" ``[double]`` **1.0** Relative tolerance on the
+      flux.  Note that this default is often overridden by PKs with more physical
+      values, and very rarely are these set by the user.
+
+    INCLUDES:
+
+    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
+    - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
+    
+      
 */
 
 

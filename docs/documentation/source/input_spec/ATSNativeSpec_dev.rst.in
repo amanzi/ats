@@ -150,7 +150,7 @@ Observation
 
 
 PK
-#####
+###
 { PK }
 
 Base PKs
@@ -160,17 +160,17 @@ spec.  However, there are three main types of PKs, from which nearly
 all PKs derive.  Note that none of these are true PKs and cannot stand
 alone.
 
-PKPhysicalBase
---------------
+PK: Physical
+------------
 { pk_physical_default }
 
 
-PKBDFBase
----------
+PK: BDF
+-------
 { pk_bdf_default }
 
-PKPhysicalBDFBase
------------------
+PK: Physical and BDF
+--------------------
 { pk_physical_bdf_default }
 
 Physical PKs
