@@ -95,7 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#main">Main</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mesh">Mesh</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#generated-mesh">Generated Mesh</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mesh-from-file">Mesh From File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read-mesh-file">Read Mesh File</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#logical-mesh">Logical Mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#surface-mesh">Surface Mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#subgrid-meshes">Subgrid Meshes</a></li>
@@ -123,9 +123,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#observation">Observation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pk">PK</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#base-pks">Base PKs</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#pkphysicalbase">PKPhysicalBase</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pkbdfbase">PKBDFBase</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pkphysicalbdfbase">PKPhysicalBDFBase</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pk-physical">PK: Physical</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pk-bdf">PK: BDF</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pk-physical-and-bdf">PK: Physical and BDF</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#physical-pks">Physical PKs</a><ul>
@@ -328,7 +328,7 @@
 <li><a class="reference internal" href="#main" id="id6">Main</a></li>
 <li><a class="reference internal" href="#mesh" id="id7">Mesh</a><ul>
 <li><a class="reference internal" href="#generated-mesh" id="id8">Generated Mesh</a></li>
-<li><a class="reference internal" href="#mesh-from-file" id="id9">Mesh From File</a></li>
+<li><a class="reference internal" href="#read-mesh-file" id="id9">Read Mesh File</a></li>
 <li><a class="reference internal" href="#logical-mesh" id="id10">Logical Mesh</a></li>
 <li><a class="reference internal" href="#surface-mesh" id="id11">Surface Mesh</a></li>
 <li><a class="reference internal" href="#subgrid-meshes" id="id12">Subgrid Meshes</a></li>
@@ -356,9 +356,9 @@
 <li><a class="reference internal" href="#observation" id="id30">Observation</a></li>
 <li><a class="reference internal" href="#pk" id="id31">PK</a><ul>
 <li><a class="reference internal" href="#base-pks" id="id32">Base PKs</a><ul>
-<li><a class="reference internal" href="#pkphysicalbase" id="id33">PKPhysicalBase</a></li>
-<li><a class="reference internal" href="#pkbdfbase" id="id34">PKBDFBase</a></li>
-<li><a class="reference internal" href="#pkphysicalbdfbase" id="id35">PKPhysicalBDFBase</a></li>
+<li><a class="reference internal" href="#pk-physical" id="id33">PK: Physical</a></li>
+<li><a class="reference internal" href="#pk-bdf" id="id34">PK: BDF</a></li>
+<li><a class="reference internal" href="#pk-physical-and-bdf" id="id35">PK: Physical and BDF</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#physical-pks" id="id36">Physical PKs</a><ul>
@@ -640,25 +640,19 @@ is not provided.</li>
 <div class="section" id="main">
 <h1><a class="toc-backref" href="#id6">Main</a><a class="headerlink" href="#main" title="Permalink to this headline">¶</a></h1>
 <p>ATS’s top-level main accepts an XML list including a few required elements.</p>
-<ul class="simple">
-<li><cite>“mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[mesh-typed-spec-list]</span></code> A list of <a class="reference internal" href="#mesh">Mesh</a> spec objects, with
-domain names given by the name of the sublist.</li>
-<li><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-spec-list]</span></code> A list of geometric <a class="reference internal" href="#region">Region</a>
-specs, with names given by the name of the sublist.</li>
-<li><cite>“cycle driver</cite>” <code class="docutils literal notranslate"><span class="pre">[coordinator-spec]</span></code>  See the <a class="reference internal" href="#coordinator">Coordinator</a> spec.</li>
-<li><cite>“visualization</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec-list]</span></code> A list of
-<a class="reference internal" href="#visualization">Visualization</a> specs, one for each mesh/domain, controlling
-simulation output that is sparse in time but across the entirety
-of the domain.</li>
-<li><cite>“observations</cite>” <code class="docutils literal notranslate"><span class="pre">[observation-spec-list]</span></code> An list of <a class="reference internal" href="#observation">Observation</a>
-specs, output that is sparse/local in space but across the entirety
-of time.</li>
-<li><cite>“checkpoint</cite>” <code class="docutils literal notranslate"><span class="pre">[checkpoint-spec]</span></code> A <a class="reference internal" href="#checkpoint">Checkpoint</a> spec, controlling
-output intended for restart.</li>
-<li><cite>“PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code>  List of all PKs to be used in the simulation.</li>
-<li><cite>“state</cite>” <code class="docutils literal notranslate"><span class="pre">[state-spec]</span></code> A <a class="reference internal" href="#state">State</a> spec controlling evaluators and
-other data.</li>
+<div class="admonition-main-spec admonition" id="main-spec">
+<p class="first admonition-title">main-spec</p>
+<ul class="last simple">
+<li><cite>“mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[mesh-typed-spec-list]</span></code> A list of <a class="reference internal" href="#mesh">Mesh</a> objects.</li>
+<li><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-spec-list]</span></code> A list of <a class="reference internal" href="#region">Region</a> objects.</li>
+<li><cite>“cycle driver</cite>” <code class="docutils literal notranslate"><span class="pre">[coordinator-spec]</span></code>  See <a class="reference internal" href="#coordinator">Coordinator</a>.</li>
+<li><cite>“visualization</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec-list]</span></code> A list of <a class="reference internal" href="#visualization">Visualization</a> objects.</li>
+<li><cite>“observations</cite>” <code class="docutils literal notranslate"><span class="pre">[observation-spec-list]</span></code> An list of <a class="reference internal" href="#observation">Observation</a> objects.</li>
+<li><cite>“checkpoint</cite>” <code class="docutils literal notranslate"><span class="pre">[checkpoint-spec]</span></code> See <a class="reference internal" href="#checkpoint">Checkpoint</a>.</li>
+<li><cite>“PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> A list of <a class="reference internal" href="#pk">PK</a> objects.</li>
+<li><cite>“state</cite>” <code class="docutils literal notranslate"><span class="pre">[state-spec]</span></code> See <a class="reference internal" href="#state">State</a>.</li>
 </ul>
+</div>
 </div>
 <div class="section" id="mesh">
 <h1><a class="toc-backref" href="#id7">Mesh</a><a class="headerlink" href="#mesh" title="Permalink to this headline">¶</a></h1>
@@ -673,7 +667,7 @@ name.</p>
 <cite>“domain</cite>” mesh represents the primary domain of simulation – usually the
 subsurface.  Simple, structured meshes may be generated on the fly, or complex
 unstructured meshes are provided as Exodus II files.  The <cite>“domain</cite>” mesh list
-includes either a <a class="reference internal" href="#generated-mesh">Generated Mesh</a>, <a class="reference internal" href="#mesh-from-file">Mesh From File</a>, or <a class="reference internal" href="#logical-mesh">Logical Mesh</a> spec, as
+includes either a <a class="reference internal" href="#generated-mesh">Generated Mesh</a>, <a href="#id138"><span class="problematic" id="id139">`Mesh From File`_</span></a>, or <a class="reference internal" href="#logical-mesh">Logical Mesh</a> spec, as
 described below.</p>
 <p>Additionally, a <a class="reference internal" href="#surface-mesh">Surface Mesh</a> may be formed by lifting the surface of a
 provided mesh and then flattening that mesh to a 2D surface.  <a class="reference internal" href="#column-meshes">Column Meshes</a>
@@ -683,9 +677,18 @@ may also be generated automatically.</p>
 which checks for many common geometric and topologic errors in mesh
 generation.  This is reasonably fast, even for big meshes, and can be done
 through providing a “verify mesh” option.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-typed-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“mesh type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of <cite>“generate mesh</cite>”, <cite>“read mesh file</cite>”, <cite>“logical</cite>”, <cite>“surface</cite>”, <cite>“subgrid</cite>”, or <cite>“column</cite>”.</li>
+<div class="admonition-mesh-typed-spec admonition" id="mesh-typed-spec">
+<p class="first admonition-title">mesh-typed-spec</p>
+<ul class="last simple">
+<li><cite>“mesh type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of:<ul>
+<li><cite>“generate mesh</cite>” See <a class="reference internal" href="#generated-mesh">Generated Mesh</a>.</li>
+<li><cite>“read mesh file</cite>” See <a class="reference internal" href="#read-mesh-file">Read Mesh File</a>.</li>
+<li><cite>“logical</cite>” See <a class="reference internal" href="#logical-mesh">Logical Mesh</a>.</li>
+<li><cite>“surface</cite>” See <a class="reference internal" href="#surface-mesh">Surface Mesh</a>.</li>
+<li><cite>“subgrid</cite>” See <a class="reference internal" href="#subgrid-meshes">Subgrid Meshes</a>.</li>
+<li><cite>“column</cite>” See <a class="reference internal" href="#column-meshes">Column Meshes</a>.</li>
+</ul>
+</li>
 <li><cite>“_mesh_type_ parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[_mesh_type_-spec]</span></code> List of parameters
 associated with the type.</li>
 <li><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Perform a mesh audit.</li>
@@ -698,18 +701,21 @@ mesh.  Note this only makes sense on the domain mesh.  One of:<ul>
 </ul>
 </li>
 </ul>
+</div>
 <div class="section" id="generated-mesh">
 <h2><a class="toc-backref" href="#id8">Generated Mesh</a><a class="headerlink" href="#generated-mesh" title="Permalink to this headline">¶</a></h2>
 <p>Generated mesh are by definition structured, with uniform dx, dy, and dz.
 Such a mesh is specified by a bounding box high and low coordinate, and a list
 of number of cells in each direction.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“generate mesh</cite>”.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-type-generate-mesh-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-mesh-type-generate-mesh-spec admonition" id="mesh-type-generate-mesh-spec">
+<p class="first admonition-title">mesh-type-generate-mesh-spec</p>
+<ul class="last simple">
 <li><cite>“domain low coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of low corner of domain</li>
 <li><cite>“domain high coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of high corner of domain</li>
 <li><cite>“number of cells</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> the number of uniform cells in each coordinate direction</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="nt">&gt;</span>
@@ -724,25 +730,29 @@ of number of cells in each direction.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="mesh-from-file">
-<h2><a class="toc-backref" href="#id9">Mesh From File</a><a class="headerlink" href="#mesh-from-file" title="Permalink to this headline">¶</a></h2>
-<p>Meshes can be pre-generated in a multitude of ways, then written to
-Exodus II file format, and loaded in ATS.</p>
+<div class="section" id="read-mesh-file">
+<h2><a class="toc-backref" href="#id9">Read Mesh File</a><a class="headerlink" href="#read-mesh-file" title="Permalink to this headline">¶</a></h2>
+<p>Meshes can be pre-generated in a multitude of ways, then written to file, and
+loaded in ATS. Note that in the case of an Exodus II mesh file, the suffix of
+the serial mesh file must be .exo and the suffix of the parallel mesh file must
+be .par.  When running in serial the code will read this the indicated file
+directly.  When running in parallel with a prepartitioned mesh, the suffix is
+.par and the code will instead read the partitioned files that have been
+generated with a Nemesis tool and named as filename.par.N.r where N is the
+number of processors and r is the rank.  When running in parallel and the
+suffix is .exo, the code will partition automatically the serial file.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“read mesh file</cite>”.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-type-read-mesh-file-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of pre-generated mesh file. Note that in
-the case of an Exodus II mesh file, the suffix of the serial mesh
-file must be .exo and the suffix of the parallel mesh file must be
-.par.  When running in serial the code will read this the indicated
-file directly.  When running in parallel with a prepartitioned mesh,
-the suffix is .par and the code will instead read the partitioned
-files that have been generated with a Nemesis tool and named as
-filename.par.N.r where N is the number of processors and r is the
-rank.  When running in parallel and the suffix is .exo, the code
-will partition automatically the serial file.</li>
-<li><cite>“format</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> format of pre-generated mesh file (<cite>“MSTK</cite>” or <cite>“Exodus II</cite>”)</li>
+<div class="admonition-mesh-type-read-mesh-file-spec admonition" id="mesh-type-read-mesh-file-spec">
+<p class="first admonition-title">mesh-type-read-mesh-file-spec</p>
+<ul class="last simple">
+<li><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> filename of a pre-generated mesh file</li>
+<li><cite>“format</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> format of pre-generated mesh file. One of:<ul>
+<li><cite>“MSTK</cite>”</li>
+<li><cite>“Exodus II</cite>”</li>
 </ul>
+</li>
+</ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;mesh&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;domain&quot;</span><span class="nt">&gt;</span>
@@ -768,10 +778,6 @@ unstructured mesh.</p>
 <p>This is an active research and development area, and is used most
 frequently for river networks, root networks, and crack networks.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“logical</cite>”.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">WIP: add spec!</p>
-</div>
 </div>
 <div class="section" id="surface-mesh">
 <h2><a class="toc-backref" href="#id11">Surface Mesh</a><a class="headerlink" href="#surface-mesh" title="Permalink to this headline">¶</a></h2>
@@ -784,7 +790,8 @@ projected in the z-direction.  No checks for holes are performed.  Surface
 meshes may similarly be audited to make sure they are reasonable for
 computation.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“surface</cite>”.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-type-surface-spec]</span></code></p>
+<div class="admonition-mesh-type-surface-spec admonition" id="mesh-type-surface-spec">
+<p class="first admonition-title">mesh-type-surface-spec</p>
 <p>ONE OF</p>
 <ul class="simple">
 <li><cite>“surface sideset name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a class="reference internal" href="#region">Region</a> name containing all surface faces.</li>
@@ -794,10 +801,12 @@ computation.</p>
 <li><cite>“surface sideset names</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> A list of <a class="reference internal" href="#region">Region</a> names containing the surface faces.</li>
 </ul>
 <p>END</p>
-<ul class="simple">
+<ul class="last simple">
 <li><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</li>
-<li><cite>“export mesh to file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Export the lifted surface mesh to this filename.</li>
+<li><cite>“export mesh to file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Export the lifted
+surface mesh to this filename.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;mesh&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;surface&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -828,8 +837,9 @@ meshes off of each surface cell as a subgrid model, etc.</p>
 <p>The subgrid meshes are then named <cite>“MESH_NAME_X”</cite> for each X, which is an
 entity local ID, in a provided region of the provided entity type.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“subgrid</cite>”.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-type-subgrid-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-mesh-type-subgrid-spec admonition" id="mesh-type-subgrid-spec">
+<p class="first admonition-title">mesh-type-subgrid-spec</p>
+<ul class="last simple">
 <li><cite>“subgrid region name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on which each subgrid mesh will be associated.</li>
 <li><cite>“entity kind</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of <cite>“cell</cite>”, <cite>“face</cite>”, etc.  Entity of the
 region (usually <cite>“cell</cite>”) on which each subgrid mesh will be associated.</li>
@@ -837,28 +847,27 @@ region (usually <cite>“cell</cite>”) on which each subgrid mesh will be asso
 <li><cite>“flyweight mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>False</strong> NOT YET SUPPORTED.  Allows a single
 mesh instead of one per entity.</li>
 </ul>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">WIP: Add examples (intermediate scale model, transport subgrid model)</p>
 </div>
 </div>
 <div class="section" id="column-meshes">
 <h2><a class="toc-backref" href="#id13">Column Meshes</a><a class="headerlink" href="#column-meshes" title="Permalink to this headline">¶</a></h2>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p class="last">Note these are rarely if ever created manually by a user.  Instead use
 <a class="reference internal" href="#subgrid-meshes">Subgrid Meshes</a>, which generate a column mesh spec for every face
 of a set.</p>
 </div>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“column</cite>”.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[mesh-type-column-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The <a class="reference internal" href="#mesh">Mesh</a> name of the 3D mesh from which columns are generated.
+<div class="admonition-mesh-type-column-spec admonition" id="mesh-type-column-spec">
+<p class="first admonition-title">mesh-type-column-spec</p>
+<ul class="last simple">
+<li><cite>“parent domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The name of the 3D mesh from which columns are generated.
 Note that the <cite>“build columns from set</cite>” parameter must be set in that mesh.</li>
 <li><cite>“verify mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Verify validity of surface mesh.</li>
 <li><cite>“deformable mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong>  Used for deformation PKs to allow non-const access.</li>
 <li><cite>“entity LID</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Local ID of the surface cell that is the top of the column.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;mesh&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;column&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -892,58 +901,60 @@ regions.  If the simulation domain is N-dimensional, the boundary conditions
 must be specified over a set of regions are (N-1)-dimensional.</p>
 <p>Region specs are <strong>not</strong> denoted by a “type” parameter for legacy reasons.
 Instead, they take a single sublist whose name defines the type.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-spec]</span></code></p>
+<div class="admonition-region-spec admonition" id="region-spec">
+<p class="first admonition-title">region-spec</p>
 <p>ONE OF:</p>
 <ul class="simple">
-<li><cite>“region: all</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></li>
+<li><cite>“region: all</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> See <a class="reference internal" href="#all">All</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: box</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-spec]</span></code></li>
+<li><cite>“region: box</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-spec]</span></code> See <a class="reference internal" href="#box">Box</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: plane</cite>” <code class="docutils literal notranslate"><span class="pre">[region-plane-spec]</span></code></li>
+<li><cite>“region: plane</cite>” <code class="docutils literal notranslate"><span class="pre">[region-plane-spec]</span></code> See <a class="reference internal" href="#plane">Plane</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: labeled set</cite>” <code class="docutils literal notranslate"><span class="pre">[region-labeled-set-spec]</span></code></li>
+<li><cite>“region: labeled set</cite>” <code class="docutils literal notranslate"><span class="pre">[region-labeled-set-spec]</span></code> See <a class="reference internal" href="#labeled-set">Labeled Set</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: color function</cite>” <code class="docutils literal notranslate"><span class="pre">[region-color-function-spec]</span></code></li>
+<li><cite>“region: color function</cite>” <code class="docutils literal notranslate"><span class="pre">[region-color-function-spec]</span></code> See <a href="#id140"><span class="problematic" id="id141">`Color Function`_</span></a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: point</cite>” <code class="docutils literal notranslate"><span class="pre">[region-point-spec]</span></code></li>
+<li><cite>“region: point</cite>” <code class="docutils literal notranslate"><span class="pre">[region-point-spec]</span></code> See <a class="reference internal" href="#point">Point</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: logical</cite>” <code class="docutils literal notranslate"><span class="pre">[region-logical-spec]</span></code></li>
+<li><cite>“region: logical</cite>” <code class="docutils literal notranslate"><span class="pre">[region-logical-spec]</span></code> See <a class="reference internal" href="#logical">Logical</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: polygon</cite>” <code class="docutils literal notranslate"><span class="pre">[region-polygon-spec]</span></code></li>
+<li><cite>“region: polygon</cite>” <code class="docutils literal notranslate"><span class="pre">[region-polygon-spec]</span></code> See <a class="reference internal" href="#polygon">Polygon</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: enumerated</cite>” <code class="docutils literal notranslate"><span class="pre">[region-enumerated-spec]</span></code></li>
+<li><cite>“region: enumerated</cite>” <code class="docutils literal notranslate"><span class="pre">[region-enumerated-spec]</span></code> See <a class="reference internal" href="#enumerated">Enumerated</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: boundary</cite>” <code class="docutils literal notranslate"><span class="pre">[region-boundary-spec]</span></code></li>
+<li><cite>“region: boundary</cite>” <code class="docutils literal notranslate"><span class="pre">[region-boundary-spec]</span></code> See <a class="reference internal" href="#boundary">Boundary</a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: box volume fractions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-volume-fractions-spec]</span></code></li>
+<li><cite>“region: box volume fractions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-volume-fractions-spec]</span></code> See <a href="#id142"><span class="problematic" id="id143">`Box Volume Fractions`_</span></a>.</li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><cite>“region: line segment</cite>” <code class="docutils literal notranslate"><span class="pre">[region-line-segment-spec]</span></code></li>
+<li><cite>“region: line segment</cite>” <code class="docutils literal notranslate"><span class="pre">[region-line-segment-spec]</span></code> See <a class="reference internal" href="#line-segment">Line Segment</a>.</li>
 </ul>
-<p>END</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="last">END</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p>Surface files contain labeled triangulated face sets.  The user is
 responsible for ensuring that the intersections with other surfaces in the
 problem, including the boundaries, are <em>exact</em> (<em>i.e.</em> that surface
@@ -952,8 +963,8 @@ contained within the computational domain.  If nodes in the surface fall
 outside the domain, the elements they define are ignored.</p>
 <p class="last">Examples of surface files are given in the <em>Exodus II</em> file format here.</p>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p class="last">Region names must NOT be repeated.</p>
 </div>
 <p>Example:</p>
@@ -1036,11 +1047,13 @@ region defined by the value 25 in color function file.</p>
 <p>List <em>region: box</em> defines a region bounded by coordinate-aligned
 planes. Boxes are allowed to be of zero thickness in only one
 direction in which case they are equivalent to planes.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-box-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-box-spec admonition" id="region-box-spec">
+<p class="first admonition-title">region-box-spec</p>
+<ul class="last simple">
 <li><cite>“low coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the boundary point with the lowest coordinates.</li>
 <li><cite>“high coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the boundary points with the highest coordinates.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span>  <span class="c">&lt;!-- parent list --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: box&quot;</span><span class="nt">&gt;</span>
@@ -1056,11 +1069,13 @@ direction in which case they are equivalent to planes.</p>
 <blockquote>
 <div>RegionPlane: A planar (infinite) region in space, defined by a point and a normal.</div></blockquote>
 <p>List <em>region: plane</em> defines a plane using a point lying on the plane and normal to the plane.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-plane-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-plane-spec admonition" id="region-plane-spec">
+<p class="first admonition-title">region-plane-spec</p>
+<ul class="last simple">
 <li><cite>“normal</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Normal to the plane.</li>
 <li><cite>“point</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Point in space.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;TOP_SECTION&quot;</span><span class="nt">&gt;</span> <span class="c">&lt;!-- parent list --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: plane&quot;</span><span class="nt">&gt;</span>
@@ -1093,13 +1108,15 @@ necessary to specify a unique set.  For example, an Exodus file
 requires <em>cell</em>, <em>face</em> or <em>node</em> as well as a label (which is
 an integer).  The resulting region will have the dimensionality
 associated with the entities in the indicated set.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-labeled-set-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-labeled-set-spec admonition" id="region-labeled-set-spec">
+<p class="first admonition-title">region-labeled-set-spec</p>
+<ul class="last simple">
 <li><cite>“label</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Set per label defined in the mesh file.</li>
 <li><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> File name.</li>
 <li><cite>“format</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Currently, we only support mesh files in the “Exodus II” format.</li>
 <li><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object (cell, face, etc).</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;AQUIFER&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: labeled set&quot;</span><span class="nt">&gt;</span>
@@ -1126,11 +1143,13 @@ or the data grid nearest its cell-centroid (node-based colors). Computational
 cells sets are then built from all cells with the specified color <em>Value</em>.</p>
 <p>In order to avoid, gaps and overlaps in specifying materials, it is strongly
 recommended that regions be defined using a single color function file.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-color-function-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> File name.</li>
-<li><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Color that defines the set in a tabulated function file.</li>
+<div class="admonition-region-color-function-spec admonition" id="region-color-function-spec">
+<p class="first admonition-title">region-color-function-spec</p>
+<ul class="last simple">
+<li><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> File name containing color function.</li>
+<li><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Color that defines the set in the tabulated function file.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;SOIL_TOP&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: color function&quot;</span><span class="nt">&gt;</span>
@@ -1147,10 +1166,12 @@ recommended that regions be defined using a single color function file.</p>
 <div>RegionPoint: a point in space.</div></blockquote>
 <p>List <em>region: point</em> defines a point in space.
 This region consists of cells containing this point.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-point-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-point-spec admonition" id="region-point-spec">
+<p class="first admonition-title">region-point-spec</p>
+<ul class="last simple">
 <li><cite>“coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of point in space.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;DOWN_WIND150&quot;</span><span class="nt">&gt;</span> <span class="c">&lt;!-- parent list defining the name --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: point&quot;</span><span class="nt">&gt;</span>
@@ -1172,12 +1193,14 @@ first region in the list.  The <em>complement</em> is a special case in that it 
 the only case that operates on single region, and returns the complement to it
 within the domain ENTIRE_DOMAIN.  Currently, multi-region booleans are not
 supported in the same expression.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-logical-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-logical-spec admonition" id="region-logical-spec">
+<p class="first admonition-title">region-logical-spec</p>
+<ul class="last simple">
 <li><cite>“operation</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> defines operation on the list of regions.
-Available options are <em>union</em>, <em>intersect</em>, <em>subtract</em>, <em>complement</em></li>
+One of: <cite>“union</cite>”, <cite>“intersect</cite>”, <cite>“subtract</cite>”, <cite>“complement</cite>”</li>
 <li><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> specifies the list of involved regions.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;LOWER_LAYERs&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: logical&quot;</span><span class="nt">&gt;</span>
@@ -1232,11 +1255,13 @@ are specified.</p>
 <p>List <em>region: enumerated set</em> defines a set of mesh entities via the list
 of input global ids. Note that global ids are not defined correctly when
 parallel mesh is created on a fly.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-enumerated-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  Valid are <em>cell</em>, <em>face</em>, <em>edge</em>, <em>node</em></li>
+<div class="admonition-region-enumerated-spec admonition" id="region-enumerated-spec">
+<p class="first admonition-title">region-enumerated-spec</p>
+<ul class="last simple">
+<li><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  One of: <cite>“cell</cite>”, <cite>“face</cite>”, <cite>“edge</cite>”, <cite>“node</cite>”</li>
 <li><cite>“entity gids</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code> List of the global IDs of the entities.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span> <span class="c">&lt;!-- parent list --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: enumerated set&quot;</span><span class="nt">&gt;</span>
@@ -1253,14 +1278,13 @@ parallel mesh is created on a fly.</p>
 <div>RegionBoundary:  A region consisting of all entities on the domain boundary</div></blockquote>
 <p>List <em>region: boundary</em> defines a set of all boundary faces.
 Using this definition, faces located on the domain boundary are extracted.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-boundary-spec]</span></code></p>
-<ul class="simple">
-<li><dl class="first docutils">
-<dt><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  Unclear whether this is</dt>
-<dd>used or can be other things than <cite>“face</cite>”?</dd>
-</dl>
-</li>
+<div class="admonition-region-boundary-spec admonition" id="region-boundary-spec">
+<p class="first admonition-title">region-boundary-spec</p>
+<ul class="last simple">
+<li><cite>“entity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Type of the mesh object.  Unclear whether this is
+used or can be other things than <cite>“face</cite>”?</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;DOMAIN_BOUNDARY&quot;</span><span class="nt">&gt;</span> <span class="c">&lt;!-- parent list names the region --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: boundary&quot;</span><span class="nt">&gt;</span>
@@ -1278,14 +1302,16 @@ Using this definition, faces located on the domain boundary are extracted.</p>
 aligned with coordinate axes.
 Boxes are allowed to be of zero thickness in only one direction in which case
 they are equivalent to rectangles on a plane or segments on a line.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-box-volume-fractions-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-box-volume-fraction-spec admonition" id="region-box-volume-fraction-spec">
+<p class="first admonition-title">region-box-volume-fraction-spec</p>
+<ul class="last simple">
 <li><cite>“corner coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of one box corner.</li>
 <li><cite>“opposite corner coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the opposite box corner.</li>
 <li><cite>“normals</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Normals to sides in a linear array. Default is columns of
 the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
 one another and form the right coordinate frame.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;BASIN&quot;</span><span class="nt">&gt;</span>  <span class="c">&lt;!-- parent list --&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: box volume fractions&quot;</span><span class="nt">&gt;</span>
@@ -1309,13 +1335,15 @@ segment. This region is a set of cells which intersect with a line
 segment.  The line segment is allowed to intersect with one or more cells. Zero length
 line segments are allowed. The line segment is defined by its ends
 points.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[region-line-segment-spec]</span></code></p>
-<ul class="simple">
+<div class="admonition-region-line-segment-spec admonition" id="region-line-segment-spec">
+<p class="first admonition-title">region-line-segment-spec</p>
+<ul class="last simple">
 <li><cite>“end coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of one end of a line
 segment.</li>
 <li><cite>“opposite end coordinate</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Location of the opposite
 end of a line segment.</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;WELL&quot;</span><span class="nt">&gt;</span> <span class="c">&lt;!-- parent list --&gt;</span>
    <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;region: line segment&quot;</span><span class="nt">&gt;</span>
@@ -1333,9 +1361,11 @@ end of a line segment.</li>
 <div>Simulation controller and top-level driver</div></blockquote>
 <p>In the <cite>“cycle driver</cite>” sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.</p>
+<div class="admonition-coordinator-spec admonition" id="coordinator-spec">
+<p class="first admonition-title">coordinator-spec</p>
 <ul class="simple">
 <li><cite>“start time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.</strong> Specifies the start of time in model time.</li>
-<li><cite>“start time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“s”</strong> One of <cite>“s</cite>”, <cite>“d</cite>”, or <cite>“yr</cite>”</li>
+<li><cite>“start time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“s”</strong> One of “s”, “d”, or “yr”</li>
 </ul>
 <p>ONE OF</p>
 <ul class="simple">
@@ -1348,7 +1378,7 @@ simulation, including starting and ending times and restart options.</p>
 simulation in timestep cycles.</li>
 </ul>
 <p>END</p>
-<ul class="simple">
+<ul class="last simple">
 <li><cite>“restart from checkpoint file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> If provided,
 specifies a path to the checkpoint file to continue a stopped simulation.</li>
 <li><cite>“wallclock duration [hrs]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> After this time, the
@@ -1358,17 +1388,14 @@ sets a collection of times/cycles at which the simulation is guaranteed to
 hit exactly.  This is useful for situations such as where data is provided at
 a regular interval, and interpolation error related to that data is to be
 minimized.</li>
-<li><cite>“PK tree</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> List of length one, the top level PK spec.</li>
+<li><cite>“PK tree</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> List of length one, the top level
+<a class="reference internal" href="#pk">PK</a> spec.</li>
 </ul>
+</div>
 <p>Note: Either <cite>“end cycle</cite>” or <cite>“end time</cite>” are required, and if
 both are present, the simulation will stop with whichever arrives
 first.  An <cite>“end cycle</cite>” is commonly used to ensure that, in the case
 of a time step crash, we do not continue on forever spewing output.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types</li>
-<li><cite>“sub PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> <strong>optional</strong> If there are sub pks, list them.</li>
-</ul>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;cycle driver&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span>  <span class="na">name=</span><span class="s">&quot;end cycle&quot;</span> <span class="na">type=</span><span class="s">&quot;int&quot;</span> <span class="na">value=</span><span class="s">&quot;6000&quot;</span><span class="nt">/&gt;</span>
@@ -1400,7 +1427,8 @@ column meshes.  These are in separate ParameterLists, entitled
 surface mesh.  It is expected that, for any addition meshes, each will have a
 domain name and therefore admit a spec of the form: <cite>“visualization
 DOMAIN-NAME</cite>”.</p>
-<p>Each list contains all parameters as in a <a class="reference internal" href="#ioevent">IOEvent</a> spec, and also:</p>
+<div class="admonition-visualization-spec admonition" id="visualization-spec">
+<p class="first admonition-title">visualization-spec</p>
 <ul class="simple">
 <li><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>visdump_DOMAIN_data</strong></li>
 <li><cite>“dynamic mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Write mesh data for every
@@ -1409,9 +1437,10 @@ visualization dump; this facilitates visualizing deforming meshes.</li>
 into for output files.  One of <cite>“s</cite>”, <cite>“d</cite>”, <cite>“y</cite>”, or <cite>“yr 365</cite>”</li>
 </ul>
 <p>INCLUDES:</p>
-<ul class="simple">
+<ul class="last simple">
 <li><code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> An <a class="reference internal" href="#ioevent">IOEvent</a> spec</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;visualization&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;file name base&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;visdump_data&quot;</span><span class="nt">/&gt;</span>
@@ -1441,17 +1470,17 @@ Therefore, output controls for Checkpoint Data are limited to file
 name generation and writing frequency, by numerical cycle number.
 Unlike <cite>“visualization</cite>”, there is only one <cite>“checkpoint</cite>” list for
 all domains/meshes.</p>
-<p>Parameters:</p>
+<div class="admonition-checkpoint-spec admonition" id="checkpoint-spec">
+<p class="first admonition-title">checkpoint-spec</p>
 <ul class="simple">
 <li><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“checkpoint”</strong></li>
 <li><cite>“file name digits</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>5</strong></li>
 </ul>
 <p>INCLUDES:</p>
-<ul>
-<li><p class="first"><code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> An <a class="reference internal" href="#ioevent">IOEvent</a> spec</p>
-<p>Write mesh data for every visualization dump, this facilitates visualizing deforming meshes.</p>
-</li>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> An <a class="reference internal" href="#ioevent">IOEvent</a> spec</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;checkpoint&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;cycles start period stop&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(int)&quot;</span> <span class="na">value=</span><span class="s">&quot;{{0, 100, -1}}&quot;</span> <span class="nt">/&gt;</span>
@@ -1482,7 +1511,8 @@ involves a field quantity, a functional reduction operator, a region from which
 it will extract its source data, and a list of discrete times for its
 evaluation.  The observations are evaluated during the simulation and written
 to disk.</p>
-<p><code class="docutils literal notranslate"><span class="pre">[observation-spec]</span></code></p>
+<div class="admonition-observation-spec admonition" id="observation-spec">
+<p class="first admonition-title">observation-spec</p>
 <ul class="simple">
 <li><cite>“observation output filename</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> user-defined name for the file
 that the observations are written to.</li>
@@ -1492,7 +1522,7 @@ or <cite>“surface-water_content</cite>”</li>
 <li><cite>“location name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the mesh location of the thing to be measured,
 i.e. <cite>“cell</cite>”, <cite>“face</cite>”, or <cite>“node</cite>”</li>
 <li><cite>“functional</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the label of a function to apply to the variable
-across the region.  Valid functionals include:<ul>
+across the region.  One of:<ul>
 <li><cite>“observation data: point</cite>” returns the value of the field quantity at a
 point.  The region and location name must result in a single entity being
 selected.</li>
@@ -1514,9 +1544,10 @@ boundary faces and that the default vector is the outward normal direction
 for each face.</li>
 </ul>
 <p>INCLUDES:</p>
-<ul class="simple">
+<ul class="last simple">
 <li><code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> An <a class="reference internal" href="#ioevent">IOEvent</a> spec</li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;observations&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="c">&lt;!-- This measures the hydrograph out the &quot;east&quot; face of the surface domain --&gt;</span>
@@ -1566,11 +1597,14 @@ fundamental unit for coupling strategies.</p>
 other PKs and represent the system of equations, or a Physical PK,
 which represents a single equation.</p>
 <p>All PKs have the following parameters in their spec:</p>
-<p><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code></p>
-<ul class="simple">
-<li><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The PK type is a special key-word which corresponds
-to a given class in the PK factory.  See available PK types listed below.</li>
+<div class="admonition-pk-typed-spec admonition" id="pk-typed-spec">
+<p class="first admonition-title">pk-typed-spec</p>
+<ul class="last simple">
+<li><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types</li>
+<li><cite>“sub PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> <strong>optional</strong> If there are sub pks, list them.</li>
+<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> <strong>optional</strong> See <a href="#id144"><span class="problematic" id="id145">`Verbose Object`_</span></a></li>
 </ul>
+</div>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;my cool PK&quot;</span><span class="nt">&gt;</span>
@@ -1583,7 +1617,9 @@ to a given class in the PK factory.  See available PK types listed below.</li>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;PKs&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;Top level MPC&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;PK type&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;strong MPC&quot;</span><span class="nt">/&gt;</span>
-     ...
+    <span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;sub PKs&quot;</span><span class="nt">&gt;</span>
+      ...
+    <span class="nt">&lt;/ParameterList&gt;</span>
   <span class="nt">&lt;/ParameterList&gt;</span>
 <span class="nt">&lt;/ParameterList&gt;</span>
 </pre></div>
@@ -1594,92 +1630,93 @@ to a given class in the PK factory.  See available PK types listed below.</li>
 spec.  However, there are three main types of PKs, from which nearly
 all PKs derive.  Note that none of these are true PKs and cannot stand
 alone.</p>
-<div class="section" id="pkphysicalbase">
-<h3><a class="toc-backref" href="#id33">PKPhysicalBase</a><a class="headerlink" href="#pkphysicalbase" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="pk-physical">
+<h3><a class="toc-backref" href="#id33">PK: Physical</a><a class="headerlink" href="#pk-physical" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span></code> is a base class providing some functionality for PKs which
+<p><cite>PKPhysicalBase</cite> is a base class providing some functionality for PKs which
 are defined on a single mesh, and represent a single process model.  Typically
-all leaves of the PK tree will inherit from <code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span></code>.</p>
-<ul>
-<li><p class="first"><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> e.g. <cite>“surface</cite>”.</p>
-<p>Domains and meshes are 1-to-1, and the empty string refers to the main domain or mesh.  PKs defined on other domains must specify which domain/mesh they refer to.</p>
-</li>
-<li><p class="first"><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Sets the primary variable.</p>
-<p>The primary variable associated with this PK, i.e. <cite>“pressure</cite>”, <cite>“temperature</cite>”, <cite>“surface_pressure</cite>”, etc.</p>
-</li>
-<li><p class="first"><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code>  See <a class="reference internal" href="#initialconditions">InitialConditions</a>.</p>
-<blockquote>
-<div><p>Indicates that the primary variable field has both CELL and FACE objects, and the FACE values are calculated as the average of the neighboring cells.</p>
-</div></blockquote>
-</li>
+all leaves of the PK tree will inherit from <cite>PKPhysicalBase</cite>.</p>
+<div class="admonition-pk-physical-default-spec admonition" id="pk-physical-default-spec">
+<p class="first admonition-title">pk-physical-default-spec</p>
+<ul class="simple">
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name from the <a class="reference internal" href="#mesh">Mesh</a> list on which this PK is defined.</li>
+<li><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable
+e.g. <cite>“pressure</cite>”, or <cite>“temperature</cite>”.  Most PKs supply sane defaults.</li>
+<li><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code>  See <a class="reference internal" href="#initialconditions">InitialConditions</a>.</li>
+<li><cite>“max valid change</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> Sets a limiter on what is a
+valid change in a single timestep.  Changes larger than this are declared
+invalid and the timestep shrinks.  By default, any change is valid.
+Units are the same as the primary variable.</li>
 </ul>
-<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id138"><span class="problematic" id="id139">PKDefaultBase_</span></a></p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+</ul>
 </div>
-<div class="section" id="pkbdfbase">
-<h3><a class="toc-backref" href="#id34">PKBDFBase</a><a class="headerlink" href="#pkbdfbase" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="pk-bdf">
+<h3><a class="toc-backref" href="#id34">PK: BDF</a><a class="headerlink" href="#pk-bdf" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>A base class with default implementations of methods for a PK that can be implicitly integrated in time.</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">PKBDFBase</span></code> is a base class from which PKs that want to use the <code class="docutils literal notranslate"><span class="pre">BDF</span></code>
+<p><cite>PKBDFBase</cite> is a base class from which PKs that want to use the <cite>BDF</cite>
 series of implicit time integrators must derive.  It specifies both the
-<code class="docutils literal notranslate"><span class="pre">BDFFnBase</span></code> interface and implements some basic functionality for <code class="docutils literal notranslate"><span class="pre">BDF</span></code>
+<cite>BDFFnBase</cite> interface and implements some basic functionality for <cite>BDF</cite>
 PKs.</p>
-<ul>
-<li><p class="first"><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong></p>
-<p>The initial timestep size for the PK, this ensures that the initial timestep
-will not be <strong>larger</strong> than this value.</p>
-</li>
-<li><p class="first"><cite>“assemble preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong></p>
-<p>A flag for the PK to not assemble its preconditioner if it is not needed by
-a controlling PK.  This is usually set by the MPC, not by the user.</p>
-</li>
-</ul>
-<p>In the top-most (in the PK tree) PK that is meant to be integrated implicitly,
-several additional specs are included.  For instance, in a strongly coupled
-flow and energy problem, these specs are included in the <code class="docutils literal notranslate"><span class="pre">StrongMPC</span></code> that
-couples the flow and energy PKs, not to the flow or energy PK itself.</p>
-<ul>
-<li><p class="first"><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[implicit-time-integrator-typed-spec]</span></code> <strong>optional</strong>
-A <a class="reference internal" href="#timeintegrator">TimeIntegrator</a>.  Note that this is only provided if this PK is not
-strongly coupled to other PKs.</p>
-</li>
-<li><p class="first"><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
-Note that this is only used if this PK is not strongly coupled to other PKs.</p>
-<p>This spec describes how to form the (approximate) inverse of the preconditioner.</p>
-</li>
-</ul>
-<p>NOTE: <code class="docutils literal notranslate"><span class="pre">PKBDFBase</span>&#160; <span class="pre">(v)--&gt;</span></code> <a href="#id140"><span class="problematic" id="id141">PKDefaultBase_</span></a></p>
-</div>
-<div class="section" id="pkphysicalbdfbase">
-<h3><a class="toc-backref" href="#id35">PKPhysicalBDFBase</a><a class="headerlink" href="#pkphysicalbdfbase" title="Permalink to this headline">¶</a></h3>
-<blockquote>
-<div>Standard base for most implemented PKs, this combines both domains/meshes of PKPhysicalBase and BDF methods of PKBDFBase.</div></blockquote>
-<p>A base class for all PKs that are both physical, in the sense that they
-implement an equation and are not couplers, and support the implicit
-integration interface.  This largely just supplies a default error norm based
-on error in conservation relative to the extent of the conserved quantity.</p>
+<div class="admonition-pk-bdf-default-spec admonition" id="pk-bdf-default-spec">
+<p class="first admonition-title">pk-bdf-default-spec</p>
 <ul class="simple">
+<li><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong> Initial time step size [s]</li>
+<li><cite>“assemble preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> A flag, typically not set
+by user but by an MPC.</li>
+<li><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[implicit-time-integrator-typed-spec]</span></code> <strong>optional</strong>
+A <a class="reference internal" href="#timeintegrator">TimeIntegrator</a>.  Note that this is only provided if this PK is not
+strongly coupled to other PKs.</li>
+<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> A <a class="reference internal" href="#preconditioner">Preconditioner</a>.
+Note that this is only used if this PK is not strongly coupled to other PKs.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="pk-physical-and-bdf">
+<h3><a class="toc-backref" href="#id35">PK: Physical and BDF</a><a class="headerlink" href="#pk-physical-and-bdf" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Default implementation of both BDF and Physical PKs.</div></blockquote>
+<p>A base class for all PKs that are both physical, in the sense that they
+implement an equation and are not couplers, and BDF, in the sense that they
+support the implicit integration interface.  This largely just supplies a
+default error norm based on error in conservation relative to the extent of the
+conserved quantity.</p>
+<p>By default, the error norm used by solvers is given by:</p>
+<p><span class="math notranslate nohighlight">\(ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )\)</span></p>
+<p>The defaults here are typically good, or else good defaults are set in the
+code, so usually are not supplied by the user.</p>
+<div class="admonition-pk-physical-bdf-default-spec admonition" id="pk-physical-bdf-default-spec">
+<p class="first admonition-title">pk-physical-bdf-default-spec</p>
+<ul class="simple">
+<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name of the conserved quantity.
+Usually a sane default is set by the PK.</li>
 <li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Absolute tolerance,
-<span class="math notranslate nohighlight">\(a_tol\)</span> in the equation below.  Note that this default is often
-overridden by PKs with more physical values, and very rarely are these set
-by the user.</li>
+<span class="math notranslate nohighlight">\(a_tol\)</span> in the equation above.  Unit are the same as the conserved
+quantity.  Note that this default is often overridden by PKs with more
+physical values, and very rarely are these set by the user.</li>
 <li><cite>“relative error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Relative tolerance,
-<span class="math notranslate nohighlight">\(r_tol\)</span> in the equation below.  Note that this default is often
-overridden by PKs with more physical values, and very rarely are these set
-by the user.</li>
+<span class="math notranslate nohighlight">\(r_tol\)</span> in the equation above.  <code class="docutils literal notranslate"><span class="pre">[-]</span></code> Note that this default can
+be overridden by PKs with more physical values, and very rarely are these
+set by the user.</li>
 <li><cite>“flux error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Relative tolerance on the
 flux.  Note that this default is often overridden by PKs with more physical
 values, and very rarely are these set by the user.</li>
 </ul>
-<p>By default, the error norm used by solvers is given by:</p>
-<p><span class="math notranslate nohighlight">\(ENORM(u, du) = |du| / ( a_tol + r_tol * |u| )\)</span></p>
-<p>The defaults here are typically good, or else good defaults are set in the
-code, so these need not be supplied.</p>
-<dl class="docutils">
-<dt>NOTE: <code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkbdfbase">PKBDFBase</a></dt>
-<dd><code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkphysicalbase">PKPhysicalBase</a>
-<code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">(v)--&gt;</span></code> <a href="#id142"><span class="problematic" id="id143">PKDefaultBase_</span></a></dd>
-</dl>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk-bdf">PK: BDF</a></li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk-physical">PK: Physical</a></li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="physical-pks">
@@ -1695,13 +1732,113 @@ code, so these need not be supplied.</p>
 <p>Solves Richards equation:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w\]</div>
-<p>Includes options from:</p>
+<div class="admonition-richards-spec admonition" id="richards-spec">
+<p class="first admonition-title">richards-spec</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code> <a href="#id144"><span class="problematic" id="id145">PKPhysicalDefault_</span></a></li>
+<li><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong>  Defaults to the subsurface mesh.</li>
+<li><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default – this
+must be provided by the user.</li>
+<li><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[subsurface-flow-bc-spec]</span></code> Defaults to Neuman,
+0 normal flux.  See <a class="reference internal" href="#flow-specific-boundary-conditions">Flow-specific Boundary Conditions</a></li>
+<li><cite>“permeability type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>scalar</strong> This controls the number of
+values needed to specify the absolute permeability.  One of:<ul>
+<li><cite>“scalar</cite>” Requires one scalar value.</li>
+<li><cite>“horizontal and vertical</cite>” Requires two values, horizontal then vertical.</li>
+<li><cite>“diagonal tensor</cite>” Requires dim values: {xx, yy} or {xx, yy, zz}</li>
+<li><cite>“full tensor</cite>”. (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.</li>
 </ul>
-<p># <code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <a href="#id146"><span class="problematic" id="id147">PKBDFDefault_</span></a>
-* <code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> <a href="#id148"><span class="problematic" id="id149">PKPhysicalBDFDefault_</span></a></p>
-<p>Other variable names, typically not set as the default is basically always good:</p>
+</li>
+<li><cite>“water retention evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[wrm-evaluator-spec]</span></code> The water retention
+curve.  This needs to go away, and should get moved to State.</li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><cite>“source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Is there a source term?</li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-mass_source</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol</span> <span class="pre">s^-1]</span></code></li>
+<li><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the source term
+be differentiated with respect to the primary variable?</li>
+<li><cite>“explicit source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Apply the source term from
+the previous time step.</li>
+</ul>
+<p>END</p>
+<p>Math and solver algorithm options:</p>
+<ul class="simple">
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion operator,
+see <a href="#id146"><span class="problematic" id="id147">PDE_Diffusion_</span></a>.</li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> <strong>optional</strong> The
+inverse of the diffusion operator.  See <a href="#id148"><span class="problematic" id="id149">PDE_Diffusion_</span></a>.  Typically this
+is only needed to set Jacobian options, as all others probably should
+match those in <cite>“diffusion</cite>”, and default to those values.</li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
+to improve the inverse of the diffusion preconditioner.  Only used if this
+PK is not implicitly coupled.  See <a href="#id150"><span class="problematic" id="id151">LinearOperator_</span></a>.</li>
+<li><cite>“surface rel perm strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> Approach for
+specifying the relative permeabiilty on the surface face.  <cite>“clobber</cite>” is
+frequently used for cases where a surface rel perm will be provided.  One
+of:<ul>
+<li><cite>“none</cite>” : use the upwind direction to determine whether to use the
+boundary face or internal cell</li>
+<li><cite>“clobber</cite>” : always use the boundary face rel perm</li>
+<li><cite>“max</cite>” : use the max of the boundary face and internal cell values</li>
+<li><cite>“unsaturated</cite>” : Uses the boundary face when the internal cell is not
+saturated.</li>
+</ul>
+</li>
+<li><cite>“relative permeability method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>upwind with Darcy flux</strong>
+Relative permeability is defined on cells, but must be calculated on
+faces to multiply a flux.  There are several methods commonly used.  Note
+these can significantly change answers – you don’t want to change these
+unless you know what they mena.  One of:<ul>
+<li><cite>“upwind with Darcy flux</cite>” First-order upwind method that is most common</li>
+<li><cite>“upwind with gravity</cite>” Upwinds according to the gravitational flux direction</li>
+<li><cite>“cell centered</cite>” This corresponds to the harmonic mean, and is most
+accurate if the problem is always wet, but has issues when it is dry.</li>
+<li><cite>“arithmetic mean</cite>” Face value is the mean of the neighboring cells.
+Not a good method.</li>
+</ul>
+</li>
+</ul>
+<p>Globalization and other process-based hacks:</p>
+<ul class="simple">
+<li><cite>“modify predictor with consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> In a
+face+cell diffusion discretization, this modifies the predictor to make
+sure that faces, which are a DAE, are consistent with the predicted cells
+(i.e. face fluxes from each sides match).</li>
+<li><cite>“modify predictor for flux BCs</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Infiltration into
+dry ground can be hard on solvers – this tries to do the local nonlinear
+problem to ensure that face pressures are consistent with the
+prescribed flux in a predictor.</li>
+<li><cite>“modify predictor via water content</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Modifies the
+predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+change of variables, extrapolating not in pressure but in water content,
+then takes the smaller of the two extrapolants.</li>
+<li><cite>“max valid change in saturation in a time step [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong>
+Rejects timesteps whose max saturation change is greater than this value.
+This can be useful to ensure temporally resolved solutions.  Usually a
+good value is 0.1 or 0.2.</li>
+<li><cite>“max valid change in ice saturation in a time step [-]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code>
+<strong>-1</strong> Rejects timesteps whose max ice saturation change is greater than
+this value.  This can be useful to ensure temporally resolved solutions.
+Usually a good value is 0.1 or 0.2.</li>
+<li><cite>“limit correction to pressure change [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0,
+this limits an iterate’s max pressure change to this value.  Not usually
+helpful.</li>
+<li><cite>“limit correction to pressure change when crossing atmospheric [Pa]</cite>”
+<code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0, this limits an iterate’s max pressure change
+to this value when they cross atmospheric pressure.  Not usually helpful.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> A <a class="reference internal" href="#pk-physical-and-bdf">PK: Physical and BDF</a> spec.</li>
+</ul>
+<p>Everything below this point is usually not provided by the user, but are
+documented here for completeness.</p>
+<p>Keys name variables:</p>
 <ul class="simple">
 <li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong> Typically
 not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
@@ -1722,46 +1859,56 @@ this represents <span class="math notranslate nohighlight">\(\frac{n_l k_r}{\mu}
 direction of the darcy flux (used in upwinding <span class="math notranslate nohighlight">\(k_r\)</span>) <code class="docutils literal notranslate"><span class="pre">[??]</span></code></li>
 <li><cite>“darcy velocity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-darcy_velocity</strong> darcy velocity
 vector, interpolated from faces to cells <code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">s^-1]</span></code></li>
-<li><cite>“darcy flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-mass_flux</strong> mass flux across a face <code class="docutils literal notranslate"><span class="pre">[mol</span> <span class="pre">s^-1]</span></code></li>
-<li><cite>“saturation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-saturation_liquid</strong> volume fraction of the liquid phase <code class="docutils literal notranslate"><span class="pre">[-]</span></code></li>
+<li><cite>“saturation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-saturation_liquid</strong> volume
+fraction of the liquid phase <code class="docutils literal notranslate"><span class="pre">[-]</span></code></li>
+<li><cite>“saturation gas key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-saturation_gas</strong> volume
+fraction of the gas phase <code class="docutils literal notranslate"><span class="pre">[-]</span></code></li>
 </ul>
-<p>Discretization control:</p>
+<p>Discretization / operators / solver controls:</p>
 <ul class="simple">
-<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id150"><span class="problematic" id="id151">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
-<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id152"><span class="problematic" id="id153">PDE_Diffusion_</span></a> spec describing the
-diffusive parts of the preconditioner.</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id154"><span class="problematic" id="id155">LinearSolver_</span></a> spec.  Note
-that this is only used if this PK is not strongly coupled to other PKs.</li>
+<li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
+The inverse of the accumulation operator.  See <a href="#id152"><span class="problematic" id="id153">PDE_Accumulation_</span></a>.
+Typically not provided by users, as defaults are correct.</li>
+<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2750.0</strong> <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
+<li><cite>“compute boundary values</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Used to include boundary
+face unknowns on discretizations that are cell-only (e.g. FV).  This can
+be useful for surface flow or other wierd boundary conditions.  Usually
+provided by MPCs that need them.</li>
 </ul>
-<p>Boundary conditions:</p>
 <p>Physics control:</p>
 <ul class="simple">
-<li><cite>“permeability rescaling</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong> Typically 1e7 or order
+<li><cite>“permeability rescaling</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1e7</strong> Typically 1e7 or order
 <span class="math notranslate nohighlight">\(sqrt(K)\)</span> is about right.  This rescales things to stop from
 multiplying by small numbers (permeability) and then by large number
 (<span class="math notranslate nohighlight">\(\rho / \mu\)</span>).</li>
-<li><cite>“permeability type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>scalar</strong> This key is placed in
-state-&gt;field evaluators-&gt;permeability, and controls the number of values
-needed to specify the absolute permeability.  One of:<ul>
-<li><cite>“scalar</cite>” Requires one scalar value.</li>
-<li><cite>“horizontal and vertical</cite>” Requires two values, horizontal then vertical.</li>
-<li><cite>“diagonal tensor</cite>” Requires dim values: {xx, yy} or {xx, yy, zz}</li>
-<li><cite>“full tensor</cite>”. (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.</li>
 </ul>
-</li>
-<li><cite>“water retention evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[wrm-evaluator-spec]</span></code> The water retention
-curve.  This needs to go away, and should get moved to State.</li>
-</ul>
-<p>This PK additionally requires the following:</p>
-<p>EVALUATORS:</p>
+<p>IF</p>
 <ul class="simple">
+<li><cite>“coupled to surface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from an exchange flux.  Note, if this is a
+coupled problem, it is probably set by the MPC.  No need for a user to
+set it.</li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><cite>“surface-subsurface flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-surface_subsurface_flux</strong></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><cite>“coupled to surface via head</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from the surface pressure (Dirichlet).</li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="last simple">
 <li><cite>“conserved quantity</cite>”</li>
 <li><cite>“mass density</cite>”</li>
 <li><cite>“molar density</cite>”</li>
 <li><cite>“permeability</cite>”</li>
 <li><cite>“conductivity</cite>”</li>
 <li><cite>“saturation</cite>”</li>
+<li><cite>“primary variable</cite>” = <cite>“independent</cite>”</li>
 </ul>
+</div>
 </div>
 <div class="section" id="permafrost-flow-pk">
 <h4><a class="toc-backref" href="#id39">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline">¶</a></h4>
@@ -1773,45 +1920,92 @@ curve.  This needs to go away, and should get moved to State.</li>
 <p>Solves the diffusion wave equation for overland flow with pressure as a primary variable:</p>
 <div class="math notranslate nohighlight">
 \[\frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w\]</div>
-<p>Options:</p>
-<p>Variable naming:</p>
+<div class="admonition-overland-pressure-spec admonition" id="overland-pressure-spec">
+<p class="first admonition-title">overland-pressure-spec</p>
+<p>Keys name variables:</p>
 <ul class="simple">
 <li><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“surface”</strong>  Defaults to the extracted surface mesh.</li>
-<li><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with this PK, typically <cite>“DOMAIN-pressure</cite>”</li>
+<li><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default – this
+must be provided by the user.</li>
+<li><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[surface-flow-bc-spec]</span></code> Defaults to Neuman, 0 normal flux.</li>
+<li><cite>“overland conductivity evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[overland-conductivity-eval-spec]</span></code>
+See <a href="#id154"><span class="problematic" id="id155">`Overland Conductivity Evaluator`_</span></a>.</li>
 </ul>
-<p>Other variable names, typically not set as the default is basically always good:</p>
+<p>IF</p>
 <ul class="simple">
-<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“DOMAIN-water_content”</strong> The conserved quantity name.</li>
+<li><cite>“source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Is there a source term?</li>
 </ul>
-<p>Discretization control:</p>
+<p>THEN</p>
 <ul class="simple">
-<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id156"><span class="problematic" id="id157">PDE_Diffusion_</span></a> spec describing the (forward) diffusion operator</li>
-<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> An <a href="#id158"><span class="problematic" id="id159">PDE_Diffusion_</span></a> spec describing the diffusive parts of the preconditioner.</li>
+<li><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-mass_source</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">s^-1]</span></code> or <code class="docutils literal notranslate"><span class="pre">[mol</span> <span class="pre">s^-1]</span></code></li>
+<li><cite>“mass source in meters</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Is the source term in <code class="docutils literal notranslate"><span class="pre">[m</span> <span class="pre">s^-1]</span></code>?</li>
+<li><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the source term
+be differentiated with respect to the primary variable?</li>
+<li><cite>“explicit source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Apply the source term from
+the previous time step.</li>
 </ul>
-<p>Time integration and timestep control:</p>
+<p>END</p>
+<p>Math and solver algorithm options:</p>
 <ul class="simple">
-<li><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong> Max initial time step size <code class="docutils literal notranslate"><span class="pre">[s]</span></code>.</li>
-<li><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[implicit-time-integrator-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#timeintegrator">TimeIntegrator</a> spec.
-Note that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id160"><span class="problematic" id="id161">LinearSolver_</span></a> spec.  Note
-that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
-Note that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code> See <a class="reference internal" href="#initialconditions">InitialConditions</a>.</li>
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion operator,
+see <a href="#id156"><span class="problematic" id="id157">PDE_Diffusion_</span></a>.</li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> <strong>optional</strong> The
+inverse of the diffusion operator.  See <a href="#id158"><span class="problematic" id="id159">PDE_Diffusion_</span></a>.  Typically this
+is only needed to set Jacobian options, as all others probably should
+match those in <cite>“diffusion</cite>”, and default to those values.</li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
+to improve the inverse of the diffusion preconditioner.  Only used if this
+PK is not implicitly coupled.  See <a href="#id160"><span class="problematic" id="id161">LinearOperator_</span></a>.</li>
+<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.</strong> Defaults to 1 cm of
+water.  A small, but significant, amount of water.</li>
+<li><cite>“limit correction to pressure change [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0,
+this limits an iterate’s max pressure change to this value.  Not usually
+helpful.</li>
+<li><cite>“limit correction to pressure change when crossing atmospheric [Pa]</cite>”
+<code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0, this limits an iterate’s max pressure change
+to this value when they cross atmospheric pressure.  Not usually helpful.</li>
+<li><cite>“allow no negative ponded depths</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Modifies all
+correction updates to ensure only positive ponded depth is allowed.</li>
+<li><cite>“min ponded depth for velocity calculation</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-2</strong> For
+ponded depth below this height, declare the velocity 0.</li>
+<li><cite>“min ponded depth for tidal bc</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.02</strong> Control on the
+tidal boundary condition.  TODO: This should live in the BC spec?</li>
 </ul>
-<p>Error control:</p>
+<p>INCLUDES:</p>
 <ul class="simple">
-<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.</strong> Defaults to 1 cm of water.  A small, but significant, amount of water.</li>
-<li><cite>“relative error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong> Take the error relative to the amount of water present in that cell.</li>
-<li><cite>“flux tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1</strong> Multiplies the error in flux (on a face)
-relative to the min of water in the neighboring cells.  Typically only
-changed if infiltration is very small and the boundary condition is not
-converging, at which point it can be decreased by an order of magnitude at a
-time until the boundary condition is satisfied.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code> A <a class="reference internal" href="#pk-physical-and-bdf">PK: Physical and BDF</a> spec.</li>
 </ul>
-<p>Boundary conditions:</p>
-<p>xx* <cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[surface-flow-bc-spec]</span></code> Defaults to Neuman, 0 normal flux.</p>
-<p>May inherit options from <a class="reference internal" href="#pkphysicalbdfbase">PKPhysicalBDFBase</a>.</p>
+<p>Everything below this point is usually not provided by the user, but are
+documented here for completeness.</p>
+<p>Keys name variables:</p>
+<ul class="simple">
+<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
+<li><cite>“elevation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-elevation</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
+<li><cite>“slope magnitude key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-slope_magnitude</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
+</ul>
+<p>Algorithmic parameters:</p>
+<ul class="simple">
+<li><cite>“coupled to subsurface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</li>
+<li><cite>“coupled to subsurface via head</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</li>
+<li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
+The inverse of the accumulation operator.  See <a href="#id162"><span class="problematic" id="id163">PDE_Accumulation_</span></a>.
+Typically not provided by users, as defaults are correct.</li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="last simple">
+<li><cite>“conserved quantity</cite>”</li>
+<li><cite>“elevation</cite>”</li>
+<li><cite>“slope magnitude</cite>”</li>
+<li><cite>“overland_conductivity</cite>”</li>
+<li><cite>“ponded_depth</cite>”</li>
+<li><cite>“pres_elev</cite>”</li>
+</ul>
+</div>
 </div>
 <div class="section" id="overland-flow-with-ice">
 <h4><a class="toc-backref" href="#id41">Overland Flow with Ice</a><a class="headerlink" href="#overland-flow-with-ice" title="Permalink to this headline">¶</a></h4>
@@ -1883,7 +2077,7 @@ directly added into the subsurface discrete equations.</p>
 <ul class="simple">
 <li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Supplies the names of the coupled PKs.
 The order must be {subsurface_flow_pk, surface_flow_pk} (subsurface first).</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id162"><span class="problematic" id="id163">LinearSolver_</span></a> spec.  Note
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id164"><span class="problematic" id="id165">LinearSolver_</span></a> spec.  Note
 that this is only used if this PK is not strongly coupled to other PKs.</li>
 <li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
 Note that this is only used if this PK is not strongly coupled to other PKs.</li>
@@ -2076,7 +2270,7 @@ for inclusion of multiple phases.</p>
 the input spec.  However, we include it here because this could easily be
 abstracted for new potential surfaces, kinematic wave, etc, at which point it
 would need to be added to the factory and the input spec.</p>
-<p>NOTE: This could easily be replaced by a generic <a href="#id164"><span class="problematic" id="id165">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This could easily be replaced by a generic <a href="#id166"><span class="problematic" id="id167">AdditiveEvaluator_</span></a></p>
 </div>
 <div class="section" id="snowsurfacepotential">
 <h4><a class="toc-backref" href="#id76">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline">¶</a></h4>
@@ -2093,7 +2287,7 @@ would need to be added to the factory and the input spec.</p>
 <li><cite>“elevation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>elevation</strong> Names the elevation variable. [m]</li>
 <li><cite>“dt factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]</li>
 </ul>
-<p>NOTE: This is equivalent to a generic <a href="#id166"><span class="problematic" id="id167">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This is equivalent to a generic <a href="#id168"><span class="problematic" id="id169">AdditiveEvaluator_</span></a></p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;snow_skin_potential&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;field evaluator type&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;snow skin potential&quot;</span> <span class="nt">/&gt;</span>
@@ -2574,7 +2768,7 @@ control, to adapter based upon simple nonlinear iteration counts.</p>
 <li><a class="reference internal" href="#timestepcontrollerfixed">TimestepControllerFixed</a>  (type <cite>“fixed</cite>”), a constant timestep</li>
 <li><a class="reference internal" href="#timestepcontrollerstandard">TimestepControllerStandard</a> (type <cite>‘standard</cite>”), an adaptive timestep based upon nonlinear iterations</li>
 <li><a class="reference internal" href="#timestepcontrollersmarter">TimestepControllerSmarter</a> (type <cite>‘smarter</cite>”), an adaptive timestep based upon nonlinear iterations with more control</li>
-<li><a href="#id168"><span class="problematic" id="id169">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
+<li><a href="#id170"><span class="problematic" id="id171">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
 <li><a class="reference internal" href="#timestepcontrollerfromfile">TimestepControllerFromFile</a> (type <cite>“from file</cite>”), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)</li>
 </ul>
 <div class="section" id="timestepcontrollerfixed">
@@ -3508,7 +3702,7 @@ procedure is not desirable. If skipped, the <cite>“schema</cite>” is used in
 In addition to the default, <strong>{face}</strong> may be used, which forms the Schur
 complement.</li>
 <li><cite>“consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> may contain a <cite>“preconditioner</cite>” and
-<cite>“linear operator</cite>” list (see sections <a href="#id170"><span class="problematic" id="id171">Preconditioners_</span></a> and <a href="#id172"><span class="problematic" id="id173">LinearSolvers_</span></a>
+<cite>“linear operator</cite>” list (see sections <a href="#id172"><span class="problematic" id="id173">Preconditioners_</span></a> and <a href="#id174"><span class="problematic" id="id175">LinearSolvers_</span></a>
 respectively).  If these lists are provided, and the <cite>“discretization
 primary</cite>” is of type <cite>“mfd: *</cite>”, then the diffusion method
 UpdateConsistentFaces() can be used.  This method, given a set of cell
