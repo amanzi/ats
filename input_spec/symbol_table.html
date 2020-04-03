@@ -178,8 +178,8 @@
 </style>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="32%" />
+<col width="68%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Symbol</th>
@@ -187,6 +187,12 @@
 </tr>
 </thead>
 <tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(E\)</span></td>
+<td>extensive energy of a cell <span class="math notranslate nohighlight">\([MJ]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(e\)</span></td>
+<td>specific enthalpy <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
+</tr>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(g\)</span></td>
 <td>gravitational acceleration vector <span class="math notranslate nohighlight">\([m s^-2]\)</span></td>
 </tr>
@@ -202,17 +208,29 @@
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(K\)</span></td>
 <td>absolute permeability <span class="math notranslate nohighlight">\([m^2]\)</span></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\kappa\)</span></td>
+<td>thermal conductivity <span class="math notranslate nohighlight">\([MW m^-1 K^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
 <td>relative permeability <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
 <td>molar density of phase X <span class="math notranslate nohighlight">\([mol m^-3]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\vert \partial \Omega \vert\)</span></td>
+<td>volume of a discrete element <span class="math notranslate nohighlight">\(\partial \Omega\)</span></td>
 </tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(p\)</span></td>
 <td>pressure of the liquid phase <span class="math notranslate nohighlight">\([Pa]\)</span></td>
 </tr>
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{s,r}\)</span></td>
-<td>precipitation of rain or snow, noting that snow is always a precipitation rate in snow-water-equivalent (SWE) basis.  <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{r}\)</span></td>
+<td>precipitation of rain <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(P_{s}\)</span></td>
+<td>precipitation of snow, in snow-water-equivalent (SWE)  <span class="math notranslate nohighlight">\([m SWE s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(Q_e\)</span></td>
+<td>source of energy <span class="math notranslate nohighlight">\([MJ s^-1]\)</span></td>
 </tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(Q_w\)</span></td>
 <td>mass source of water <span class="math notranslate nohighlight">\([mol s^-1]\)</span></td>
@@ -232,14 +250,38 @@
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(\phi\)</span></td>
 <td>porosity of the soil <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{q}\)</span></td>
+<td>Darcy flux vector <span class="math notranslate nohighlight">\([mol  m^-2 s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{q_s}\)</span></td>
+<td>surface flux vector <span class="math notranslate nohighlight">\([mol  m s^-1]\)</span></td>
+</tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho\)</span></td>
 <td>mass density of a phase <span class="math notranslate nohighlight">\([kg m^-3]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(t\)</span></td>
+<td>time variable <span class="math notranslate nohighlight">\([s]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(T\)</span></td>
+<td>temperature <span class="math notranslate nohighlight">\([K]\)</span></td>
 </tr>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(\Theta\)</span></td>
 <td>extensive water content of a cell <span class="math notranslate nohighlight">\([mol]\)</span></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\vert E \vert\)</span></td>
-<td>volume of a discrete element <span class="math notranslate nohighlight">\(E\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(u_X\)</span></td>
+<td>specific internal energy of phase X <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{V}\)</span></td>
+<td>Darcy velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{V_s}\)</span></td>
+<td>surface velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(x\)</span>,:math:<cite>y</cite>,:math:<cite>z</cite></td>
+<td>spatial coordinates <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
 </tr>
 </tbody>
 </table>

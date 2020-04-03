@@ -113,7 +113,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#polygon">Polygon</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#enumerated">Enumerated</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#boundary">Boundary</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#box-volume-fraction">Box Volume Fraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#box-volume-fractions">Box Volume Fractions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#line-segment">Line Segment</a></li>
 </ul>
 </li>
@@ -136,15 +136,22 @@
 <li class="toctree-l4"><a class="reference internal" href="#deformation">Deformation</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#mpcs">MPCs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mpc">MPC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#base-mpc">Base MPC</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#weakmpc">WeakMPC</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#strongmpc">StrongMPC</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#physical-mpcs">Physical MPCs</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#coupled-water-mpc">Coupled Water MPC</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#coupled-cells-mpc">Coupled Cells MPC</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#subsurface-mpc">Subsurface MPC</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#permafrost-mpc">Permafrost MPC</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#globalization-delegates">Globalization Delegates</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#coupled-water-globalization-delegate">Coupled Water Globalization Delegate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ewc-globalization-delegate">EWC Globalization Delegate</a></li>
 </ul>
 </li>
 </ul>
@@ -174,10 +181,9 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs">Time integrators, solvers, and other mathematical specs</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#timeintegrator">TimeIntegrator</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timestepcontrollerfixed">TimestepControllerFixed</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#timestepcontrollerstandard">TimestepControllerStandard</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#timestepcontrollersmarter">TimestepControllerSmarter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#timestepcontrollerfromfile">TimestepControllerFromFile</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#explicit-time-integration">Explicit Time Integration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#backward-euler">Backward Euler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timestep-control">Timestep Control</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#linear-solver">Linear Solver</a><ul>
@@ -200,7 +206,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#other-common-specs">Other Common Specs</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ioevent">IOEvent</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#verboseobject">VerboseObject</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verbose-object">Verbose Object</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#function">Function</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#constant-function">Constant Function</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#tabular-function">Tabular Function</a></li>
@@ -346,7 +352,7 @@
 <li><a class="reference internal" href="#polygon" id="id22">Polygon</a></li>
 <li><a class="reference internal" href="#enumerated" id="id23">Enumerated</a></li>
 <li><a class="reference internal" href="#boundary" id="id24">Boundary</a></li>
-<li><a class="reference internal" href="#box-volume-fraction" id="id25">Box Volume Fraction</a></li>
+<li><a class="reference internal" href="#box-volume-fractions" id="id25">Box Volume Fractions</a></li>
 <li><a class="reference internal" href="#line-segment" id="id26">Line Segment</a></li>
 </ul>
 </li>
@@ -365,7 +371,7 @@
 <li><a class="reference internal" href="#flow-pks" id="id37">Flow PKs</a><ul>
 <li><a class="reference internal" href="#richards-pk" id="id38">Richards PK</a></li>
 <li><a class="reference internal" href="#permafrost-flow-pk" id="id39">Permafrost Flow PK</a></li>
-<li><a class="reference internal" href="#overland-flow-pressure-primary-variable-pk" id="id40">Overland Flow, pressure primary variable, PK</a></li>
+<li><a class="reference internal" href="#overland-flow-pk" id="id40">Overland Flow PK</a></li>
 <li><a class="reference internal" href="#overland-flow-with-ice" id="id41">Overland Flow with Ice</a></li>
 <li><a class="reference internal" href="#snow-distribution-pk" id="id42">Snow Distribution PK</a></li>
 </ul>
@@ -378,8 +384,8 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#surface-energy-balance-pks" id="id48">Surface Energy Balance PKs</a><ul>
-<li><a class="reference internal" href="#surface-energy-balance-snow-monolithic-version" id="id49">Surface Energy Balance / Snow – Monolithic Version</a></li>
-<li><a class="reference internal" href="#surface-energy-balance-generic-version" id="id50">Surface Energy Balance – Generic Version</a></li>
+<li><a class="reference internal" href="#balance-equation" id="id49">Balance Equation</a></li>
+<li><a class="reference internal" href="#snow-balance-equation" id="id50">Snow Balance Equation</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#biogeochemistry" id="id51">Biogeochemistry</a><ul>
@@ -392,123 +398,135 @@
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#mpcs" id="id55">MPCs</a><ul>
-<li><a class="reference internal" href="#weakmpc" id="id56">WeakMPC</a></li>
-<li><a class="reference internal" href="#strongmpc" id="id57">StrongMPC</a></li>
+<li><a class="reference internal" href="#mpc" id="id55">MPC</a><ul>
+<li><a class="reference internal" href="#base-mpc" id="id56">Base MPC</a></li>
+<li><a class="reference internal" href="#weakmpc" id="id57">WeakMPC</a></li>
+<li><a class="reference internal" href="#strongmpc" id="id58">StrongMPC</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#physical-mpcs" id="id58">Physical MPCs</a><ul>
-<li><a class="reference internal" href="#coupled-water-mpc" id="id59">Coupled Water MPC</a></li>
-<li><a class="reference internal" href="#subsurface-mpc" id="id60">Subsurface MPC</a></li>
-<li><a class="reference internal" href="#permafrost-mpc" id="id61">Permafrost MPC</a></li>
+<li><a class="reference internal" href="#physical-mpcs" id="id59">Physical MPCs</a><ul>
+<li><a class="reference internal" href="#coupled-water-mpc" id="id60">Coupled Water MPC</a></li>
+<li><a class="reference internal" href="#coupled-cells-mpc" id="id61">Coupled Cells MPC</a></li>
+<li><a class="reference internal" href="#subsurface-mpc" id="id62">Subsurface MPC</a></li>
+<li><a class="reference internal" href="#permafrost-mpc" id="id63">Permafrost MPC</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="reference internal" href="#state" id="id62">State</a><ul>
-<li><a class="reference internal" href="#field-evaluators" id="id63">Field Evaluators</a><ul>
-<li><a class="reference internal" href="#primaryvariableevaluator" id="id64">PrimaryVariableEvaluator</a></li>
-<li><a class="reference internal" href="#independentvariableevaluator" id="id65">IndependentVariableEvaluator</a><ul>
-<li><a class="reference internal" href="#from-function" id="id66">From Function</a></li>
-<li><a class="reference internal" href="#from-file" id="id67">From File</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#water-content" id="id68">Water Content</a><ul>
-<li><a class="reference internal" href="#richards-equation-water-content" id="id69">Richards Equation water content</a></li>
-<li><a class="reference internal" href="#liquid-gas-water-content" id="id70">Liquid+Gas water content</a></li>
-<li><a class="reference internal" href="#liquid-ice-water-content" id="id71">Liquid+Ice water content</a></li>
-<li><a class="reference internal" href="#liquid-ice-gas-water-content" id="id72">Liquid+Ice+Gas water content</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#surface-water-potential-surfaces" id="id73">Surface Water potential surfaces</a><ul>
-<li><a class="reference internal" href="#surfaceelevation" id="id74">SurfaceElevation</a></li>
-<li><a class="reference internal" href="#surfacepotential" id="id75">SurfacePotential</a></li>
-<li><a class="reference internal" href="#snowsurfacepotential" id="id76">SnowSurfacePotential</a></li>
-<li><a class="reference internal" href="#surface-water-content" id="id77">Surface water content</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#generic-evaluators" id="id78">Generic Evaluators</a><ul>
-<li><a class="reference internal" href="#additive" id="id79">Additive</a></li>
-<li><a class="reference internal" href="#multiplicative" id="id80">Multiplicative</a></li>
-<li><a class="reference internal" href="#column-summation" id="id81">Column summation</a></li>
-<li><a class="reference internal" href="#subgrid-disaggregation" id="id82">Subgrid disaggregation</a></li>
+<li><a class="reference internal" href="#globalization-delegates" id="id64">Globalization Delegates</a><ul>
+<li><a class="reference internal" href="#coupled-water-globalization-delegate" id="id65">Coupled Water Globalization Delegate</a></li>
+<li><a class="reference internal" href="#ewc-globalization-delegate" id="id66">EWC Globalization Delegate</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#initialconditions" id="id83">InitialConditions</a><ul>
-<li><a class="reference internal" href="#initialization-of-constant-scalars" id="id84">Initialization of constant scalars</a></li>
-<li><a class="reference internal" href="#initialization-of-constant-vectors" id="id85">Initialization of constant vectors</a></li>
-<li><a class="reference internal" href="#initialization-of-scalar-fields" id="id86">Initialization of scalar fields</a></li>
-<li><a class="reference internal" href="#initialization-of-tensor-fields" id="id87">Initialization of tensor fields</a></li>
-<li><a class="reference internal" href="#initialization-from-a-file" id="id88">Initialization from a file</a></li>
+<li><a class="reference internal" href="#state" id="id67">State</a><ul>
+<li><a class="reference internal" href="#field-evaluators" id="id68">Field Evaluators</a><ul>
+<li><a class="reference internal" href="#primaryvariableevaluator" id="id69">PrimaryVariableEvaluator</a></li>
+<li><a class="reference internal" href="#independentvariableevaluator" id="id70">IndependentVariableEvaluator</a><ul>
+<li><a class="reference internal" href="#from-function" id="id71">From Function</a></li>
+<li><a class="reference internal" href="#from-file" id="id72">From File</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#boundaryconditions" id="id89">BoundaryConditions</a><ul>
-<li><a class="reference internal" href="#flow-specific-boundary-conditions" id="id90">Flow-specific Boundary Conditions</a><ul>
-<li><a class="reference internal" href="#dirichlet-pressure-boundary-conditions" id="id91">Dirichlet (pressure) boundary conditions</a></li>
-<li><a class="reference internal" href="#neumann-mass-flux-boundary-conditions" id="id92">Neumann (mass flux) boundary conditions</a></li>
-<li><a class="reference internal" href="#seepage-face-boundary-conditions" id="id93">Seepage face boundary conditions</a></li>
-<li><a class="reference internal" href="#dirichlet-head-boundary-conditions" id="id94">Dirichlet (head) boundary conditions</a></li>
-<li><a class="reference internal" href="#fixed-level-boundary-conditions" id="id95">Fixed level boundary conditions</a></li>
-<li><a class="reference internal" href="#zero-head-gradient-boundary-conditions" id="id96">Zero head gradient boundary conditions</a></li>
-<li><a class="reference internal" href="#critical-depth-boundary-conditions" id="id97">Critical depth boundary conditions</a></li>
-<li><a class="reference internal" href="#dynamic-boundary-condutions" id="id98">Dynamic boundary condutions</a></li>
+<li><a class="reference internal" href="#water-content" id="id73">Water Content</a><ul>
+<li><a class="reference internal" href="#richards-equation-water-content" id="id74">Richards Equation water content</a></li>
+<li><a class="reference internal" href="#liquid-gas-water-content" id="id75">Liquid+Gas water content</a></li>
+<li><a class="reference internal" href="#liquid-ice-water-content" id="id76">Liquid+Ice water content</a></li>
+<li><a class="reference internal" href="#liquid-ice-gas-water-content" id="id77">Liquid+Ice+Gas water content</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#surface-water-potential-surfaces" id="id78">Surface Water potential surfaces</a><ul>
+<li><a class="reference internal" href="#surfaceelevation" id="id79">SurfaceElevation</a></li>
+<li><a class="reference internal" href="#surfacepotential" id="id80">SurfacePotential</a></li>
+<li><a class="reference internal" href="#snowsurfacepotential" id="id81">SnowSurfacePotential</a></li>
+<li><a class="reference internal" href="#surface-water-content" id="id82">Surface water content</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generic-evaluators" id="id83">Generic Evaluators</a><ul>
+<li><a class="reference internal" href="#additive" id="id84">Additive</a></li>
+<li><a class="reference internal" href="#multiplicative" id="id85">Multiplicative</a></li>
+<li><a class="reference internal" href="#column-summation" id="id86">Column summation</a></li>
+<li><a class="reference internal" href="#subgrid-disaggregation" id="id87">Subgrid disaggregation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#initialconditions" id="id88">InitialConditions</a><ul>
+<li><a class="reference internal" href="#initialization-of-constant-scalars" id="id89">Initialization of constant scalars</a></li>
+<li><a class="reference internal" href="#initialization-of-constant-vectors" id="id90">Initialization of constant vectors</a></li>
+<li><a class="reference internal" href="#initialization-of-scalar-fields" id="id91">Initialization of scalar fields</a></li>
+<li><a class="reference internal" href="#initialization-of-tensor-fields" id="id92">Initialization of tensor fields</a></li>
+<li><a class="reference internal" href="#initialization-from-a-file" id="id93">Initialization from a file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#boundaryconditions" id="id94">BoundaryConditions</a><ul>
+<li><a class="reference internal" href="#flow-specific-boundary-conditions" id="id95">Flow-specific Boundary Conditions</a><ul>
+<li><a class="reference internal" href="#dirichlet-pressure-boundary-conditions" id="id96">Dirichlet (pressure) boundary conditions</a></li>
+<li><a class="reference internal" href="#neumann-mass-flux-boundary-conditions" id="id97">Neumann (mass flux) boundary conditions</a></li>
+<li><a class="reference internal" href="#seepage-face-boundary-conditions" id="id98">Seepage face boundary conditions</a></li>
+<li><a class="reference internal" href="#dirichlet-head-boundary-conditions" id="id99">Dirichlet (head) boundary conditions</a></li>
+<li><a class="reference internal" href="#fixed-level-boundary-conditions" id="id100">Fixed level boundary conditions</a></li>
+<li><a class="reference internal" href="#zero-head-gradient-boundary-conditions" id="id101">Zero head gradient boundary conditions</a></li>
+<li><a class="reference internal" href="#critical-depth-boundary-conditions" id="id102">Critical depth boundary conditions</a></li>
+<li><a class="reference internal" href="#dynamic-boundary-condutions" id="id103">Dynamic boundary condutions</a></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id99">Time integrators, solvers, and other mathematical specs</a><ul>
-<li><a class="reference internal" href="#timeintegrator" id="id100">TimeIntegrator</a><ul>
-<li><a class="reference internal" href="#timestepcontrollerfixed" id="id101">TimestepControllerFixed</a></li>
-<li><a class="reference internal" href="#timestepcontrollerstandard" id="id102">TimestepControllerStandard</a></li>
-<li><a class="reference internal" href="#timestepcontrollersmarter" id="id103">TimestepControllerSmarter</a></li>
-<li><a class="reference internal" href="#timestepcontrollerfromfile" id="id104">TimestepControllerFromFile</a></li>
+<li><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id104">Time integrators, solvers, and other mathematical specs</a><ul>
+<li><a class="reference internal" href="#timeintegrator" id="id105">TimeIntegrator</a><ul>
+<li><a class="reference internal" href="#explicit-time-integration" id="id106">Explicit Time Integration</a></li>
+<li><a class="reference internal" href="#backward-euler" id="id107">Backward Euler</a></li>
+<li><a class="reference internal" href="#timestep-control" id="id108">Timestep Control</a><ul>
+<li><a class="reference internal" href="#timestepcontrollerfixed" id="id109">TimestepControllerFixed</a></li>
+<li><a class="reference internal" href="#timestepcontrollerstandard" id="id110">TimestepControllerStandard</a></li>
+<li><a class="reference internal" href="#timestepcontrollersmarter" id="id111">TimestepControllerSmarter</a></li>
+<li><a class="reference internal" href="#timestepcontrollerfromfile" id="id112">TimestepControllerFromFile</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#linear-solver" id="id105">Linear Solver</a><ul>
-<li><a class="reference internal" href="#linear-solver-pcg" id="id106">Linear Solver: PCG</a></li>
-<li><a class="reference internal" href="#linear-solver-gmres" id="id107">Linear Solver: GMRES</a></li>
-<li><a class="reference internal" href="#linear-solver-nka" id="id108">Linear Solver: NKA</a></li>
-<li><a class="reference internal" href="#linear-solver-amesos" id="id109">Linear Solver: Amesos</a></li>
-<li><a class="reference internal" href="#linear-solver-belos-gmres" id="id110">Linear Solver: Belos GMRES</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#preconditioner" id="id111">Preconditioner</a><ul>
-<li><a class="reference internal" href="#hypre-s-boomer-amg" id="id112">Hypre’s Boomer AMG</a></li>
-<li><a class="reference internal" href="#trilinos-ml" id="id113">Trilinos ML</a></li>
-<li><a class="reference internal" href="#block-ilu" id="id114">Block ILU</a></li>
-<li><a class="reference internal" href="#indentity" id="id115">Indentity</a></li>
+<li><a class="reference internal" href="#linear-solver" id="id113">Linear Solver</a><ul>
+<li><a class="reference internal" href="#linear-solver-pcg" id="id114">Linear Solver: PCG</a></li>
+<li><a class="reference internal" href="#linear-solver-gmres" id="id115">Linear Solver: GMRES</a></li>
+<li><a class="reference internal" href="#linear-solver-nka" id="id116">Linear Solver: NKA</a></li>
+<li><a class="reference internal" href="#linear-solver-amesos" id="id117">Linear Solver: Amesos</a></li>
+<li><a class="reference internal" href="#linear-solver-belos-gmres" id="id118">Linear Solver: Belos GMRES</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#nonlinearsolver" id="id116">NonlinearSolver</a></li>
+<li><a class="reference internal" href="#preconditioner" id="id119">Preconditioner</a><ul>
+<li><a class="reference internal" href="#hypre-s-boomer-amg" id="id120">Hypre’s Boomer AMG</a></li>
+<li><a class="reference internal" href="#trilinos-ml" id="id121">Trilinos ML</a></li>
+<li><a class="reference internal" href="#block-ilu" id="id122">Block ILU</a></li>
+<li><a class="reference internal" href="#indentity" id="id123">Indentity</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#other-common-specs" id="id117">Other Common Specs</a><ul>
-<li><a class="reference internal" href="#ioevent" id="id118">IOEvent</a></li>
-<li><a class="reference internal" href="#verboseobject" id="id119">VerboseObject</a></li>
-<li><a class="reference internal" href="#function" id="id120">Function</a><ul>
-<li><a class="reference internal" href="#constant-function" id="id121">Constant Function</a></li>
-<li><a class="reference internal" href="#tabular-function" id="id122">Tabular Function</a></li>
-<li><a class="reference internal" href="#smooth-step-function" id="id123">Smooth step Function</a></li>
-<li><a class="reference internal" href="#polynomial-function" id="id124">Polynomial Function</a></li>
-<li><a class="reference internal" href="#multi-variable-linear-function" id="id125">Multi-variable linear Function</a></li>
-<li><a class="reference internal" href="#separable-function" id="id126">Separable Function</a></li>
-<li><a class="reference internal" href="#additive-function" id="id127">Additive Function</a></li>
-<li><a class="reference internal" href="#multiplicative-function" id="id128">Multiplicative Function</a></li>
-<li><a class="reference internal" href="#composition-function" id="id129">Composition Function</a></li>
-<li><a class="reference internal" href="#piecewise-bilinear-function" id="id130">Piecewise Bilinear Function</a></li>
-<li><a class="reference internal" href="#distance-function" id="id131">Distance Function</a></li>
-<li><a class="reference internal" href="#monomial-function" id="id132">Monomial Function</a></li>
-<li><a class="reference internal" href="#standard-math-function" id="id133">Standard Math Function</a></li>
+<li><a class="reference internal" href="#nonlinearsolver" id="id124">NonlinearSolver</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#operator" id="id134">Operator</a><ul>
-<li><a class="reference internal" href="#operatoraccumulation" id="id135">OperatorAccumulation</a></li>
-<li><a class="reference internal" href="#operatordiffusion" id="id136">OperatorDiffusion</a></li>
-<li><a class="reference internal" href="#operatoradvection" id="id137">OperatorAdvection</a></li>
+<li><a class="reference internal" href="#other-common-specs" id="id125">Other Common Specs</a><ul>
+<li><a class="reference internal" href="#ioevent" id="id126">IOEvent</a></li>
+<li><a class="reference internal" href="#verbose-object" id="id127">Verbose Object</a></li>
+<li><a class="reference internal" href="#function" id="id128">Function</a><ul>
+<li><a class="reference internal" href="#constant-function" id="id129">Constant Function</a></li>
+<li><a class="reference internal" href="#tabular-function" id="id130">Tabular Function</a></li>
+<li><a class="reference internal" href="#smooth-step-function" id="id131">Smooth step Function</a></li>
+<li><a class="reference internal" href="#polynomial-function" id="id132">Polynomial Function</a></li>
+<li><a class="reference internal" href="#multi-variable-linear-function" id="id133">Multi-variable linear Function</a></li>
+<li><a class="reference internal" href="#separable-function" id="id134">Separable Function</a></li>
+<li><a class="reference internal" href="#additive-function" id="id135">Additive Function</a></li>
+<li><a class="reference internal" href="#multiplicative-function" id="id136">Multiplicative Function</a></li>
+<li><a class="reference internal" href="#composition-function" id="id137">Composition Function</a></li>
+<li><a class="reference internal" href="#piecewise-bilinear-function" id="id138">Piecewise Bilinear Function</a></li>
+<li><a class="reference internal" href="#distance-function" id="id139">Distance Function</a></li>
+<li><a class="reference internal" href="#monomial-function" id="id140">Monomial Function</a></li>
+<li><a class="reference internal" href="#standard-math-function" id="id141">Standard Math Function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#operator" id="id142">Operator</a><ul>
+<li><a class="reference internal" href="#operatoraccumulation" id="id143">OperatorAccumulation</a></li>
+<li><a class="reference internal" href="#operatordiffusion" id="id144">OperatorDiffusion</a></li>
+<li><a class="reference internal" href="#operatoradvection" id="id145">OperatorAdvection</a></li>
 </ul>
 </li>
 </ul>
@@ -571,8 +589,8 @@ is not provided.</li>
 <h1><a class="toc-backref" href="#id5">Symbol Index</a><a class="headerlink" href="#symbol-index" title="Permalink to this headline">¶</a></h1>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="32%" />
+<col width="68%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Symbol</th>
@@ -580,6 +598,12 @@ is not provided.</li>
 </tr>
 </thead>
 <tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(E\)</span></td>
+<td>extensive energy of a cell <span class="math notranslate nohighlight">\([MJ]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(e\)</span></td>
+<td>specific enthalpy <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
+</tr>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(g\)</span></td>
 <td>gravitational acceleration vector <span class="math notranslate nohighlight">\([m s^-2]\)</span></td>
 </tr>
@@ -595,17 +619,29 @@ is not provided.</li>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(K\)</span></td>
 <td>absolute permeability <span class="math notranslate nohighlight">\([m^2]\)</span></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\kappa\)</span></td>
+<td>thermal conductivity <span class="math notranslate nohighlight">\([MW m^-1 K^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
 <td>relative permeability <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
 <td>molar density of phase X <span class="math notranslate nohighlight">\([mol m^-3]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\vert \partial \Omega \vert\)</span></td>
+<td>volume of a discrete element <span class="math notranslate nohighlight">\(\partial \Omega\)</span></td>
 </tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(p\)</span></td>
 <td>pressure of the liquid phase <span class="math notranslate nohighlight">\([Pa]\)</span></td>
 </tr>
-<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{s,r}\)</span></td>
-<td>precipitation of rain or snow, noting that snow is always a precipitation rate in snow-water-equivalent (SWE) basis.  <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{r}\)</span></td>
+<td>precipitation of rain <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(P_{s}\)</span></td>
+<td>precipitation of snow, in snow-water-equivalent (SWE)  <span class="math notranslate nohighlight">\([m SWE s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(Q_e\)</span></td>
+<td>source of energy <span class="math notranslate nohighlight">\([MJ s^-1]\)</span></td>
 </tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(Q_w\)</span></td>
 <td>mass source of water <span class="math notranslate nohighlight">\([mol s^-1]\)</span></td>
@@ -625,14 +661,38 @@ is not provided.</li>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(\phi\)</span></td>
 <td>porosity of the soil <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{q}\)</span></td>
+<td>Darcy flux vector <span class="math notranslate nohighlight">\([mol  m^-2 s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{q_s}\)</span></td>
+<td>surface flux vector <span class="math notranslate nohighlight">\([mol  m s^-1]\)</span></td>
+</tr>
 <tr class="row-odd"><td><span class="math notranslate nohighlight">\(\rho\)</span></td>
 <td>mass density of a phase <span class="math notranslate nohighlight">\([kg m^-3]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(t\)</span></td>
+<td>time variable <span class="math notranslate nohighlight">\([s]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(T\)</span></td>
+<td>temperature <span class="math notranslate nohighlight">\([K]\)</span></td>
 </tr>
 <tr class="row-even"><td><span class="math notranslate nohighlight">\(\Theta\)</span></td>
 <td>extensive water content of a cell <span class="math notranslate nohighlight">\([mol]\)</span></td>
 </tr>
-<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\vert E \vert\)</span></td>
-<td>volume of a discrete element <span class="math notranslate nohighlight">\(E\)</span></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(u_X\)</span></td>
+<td>specific internal energy of phase X <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{V}\)</span></td>
+<td>Darcy velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{V_s}\)</span></td>
+<td>surface velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(x\)</span>,:math:<cite>y</cite>,:math:<cite>z</cite></td>
+<td>spatial coordinates <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -667,7 +727,7 @@ name.</p>
 <cite>“domain</cite>” mesh represents the primary domain of simulation – usually the
 subsurface.  Simple, structured meshes may be generated on the fly, or complex
 unstructured meshes are provided as Exodus II files.  The <cite>“domain</cite>” mesh list
-includes either a <a class="reference internal" href="#generated-mesh">Generated Mesh</a>, <a href="#id138"><span class="problematic" id="id139">`Mesh From File`_</span></a>, or <a class="reference internal" href="#logical-mesh">Logical Mesh</a> spec, as
+includes either a <a class="reference internal" href="#generated-mesh">Generated Mesh</a>, <a class="reference internal" href="#read-mesh-file">Read Mesh File</a>, or <a class="reference internal" href="#logical-mesh">Logical Mesh</a> spec, as
 described below.</p>
 <p>Additionally, a <a class="reference internal" href="#surface-mesh">Surface Mesh</a> may be formed by lifting the surface of a
 provided mesh and then flattening that mesh to a 2D surface.  <a class="reference internal" href="#column-meshes">Column Meshes</a>
@@ -778,6 +838,10 @@ unstructured mesh.</p>
 <p>This is an active research and development area, and is used most
 frequently for river networks, root networks, and crack networks.</p>
 <p>Specified by <cite>“mesh type</cite>” of <cite>“logical</cite>”.</p>
+<div class="admonition-mesh-type-logical-spec admonition" id="mesh-type-logical-spec">
+<p class="first admonition-title">mesh-type-logical-spec</p>
+<p class="last">Not yet completed…</p>
+</div>
 </div>
 <div class="section" id="surface-mesh">
 <h2><a class="toc-backref" href="#id11">Surface Mesh</a><a class="headerlink" href="#surface-mesh" title="Permalink to this headline">¶</a></h2>
@@ -903,51 +967,51 @@ must be specified over a set of regions are (N-1)-dimensional.</p>
 Instead, they take a single sublist whose name defines the type.</p>
 <div class="admonition-region-spec admonition" id="region-spec">
 <p class="first admonition-title">region-spec</p>
-<p>ONE OF:</p>
+<p>ONE OF</p>
 <ul class="simple">
 <li><cite>“region: all</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> See <a class="reference internal" href="#all">All</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: box</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-spec]</span></code> See <a class="reference internal" href="#box">Box</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: plane</cite>” <code class="docutils literal notranslate"><span class="pre">[region-plane-spec]</span></code> See <a class="reference internal" href="#plane">Plane</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: labeled set</cite>” <code class="docutils literal notranslate"><span class="pre">[region-labeled-set-spec]</span></code> See <a class="reference internal" href="#labeled-set">Labeled Set</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
-<li><cite>“region: color function</cite>” <code class="docutils literal notranslate"><span class="pre">[region-color-function-spec]</span></code> See <a href="#id140"><span class="problematic" id="id141">`Color Function`_</span></a>.</li>
+<li><cite>“region: color function</cite>” <code class="docutils literal notranslate"><span class="pre">[region-color-function-spec]</span></code> See <a class="reference internal" href="#function-color">Function Color</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: point</cite>” <code class="docutils literal notranslate"><span class="pre">[region-point-spec]</span></code> See <a class="reference internal" href="#point">Point</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: logical</cite>” <code class="docutils literal notranslate"><span class="pre">[region-logical-spec]</span></code> See <a class="reference internal" href="#logical">Logical</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: polygon</cite>” <code class="docutils literal notranslate"><span class="pre">[region-polygon-spec]</span></code> See <a class="reference internal" href="#polygon">Polygon</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: enumerated</cite>” <code class="docutils literal notranslate"><span class="pre">[region-enumerated-spec]</span></code> See <a class="reference internal" href="#enumerated">Enumerated</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: boundary</cite>” <code class="docutils literal notranslate"><span class="pre">[region-boundary-spec]</span></code> See <a class="reference internal" href="#boundary">Boundary</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
-<li><cite>“region: box volume fractions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-volume-fractions-spec]</span></code> See <a href="#id142"><span class="problematic" id="id143">`Box Volume Fractions`_</span></a>.</li>
+<li><cite>“region: box volume fractions</cite>” <code class="docutils literal notranslate"><span class="pre">[region-box-volume-fractions-spec]</span></code> See <a class="reference internal" href="#box-volume-fractions">Box Volume Fractions</a>.</li>
 </ul>
-<p>OR:</p>
+<p>OR</p>
 <ul class="simple">
 <li><cite>“region: line segment</cite>” <code class="docutils literal notranslate"><span class="pre">[region-line-segment-spec]</span></code> See <a class="reference internal" href="#line-segment">Line Segment</a>.</li>
 </ul>
@@ -1294,8 +1358,8 @@ used or can be other things than <cite>“face</cite>”?</li>
 </pre></div>
 </div>
 </div>
-<div class="section" id="box-volume-fraction">
-<h2><a class="toc-backref" href="#id25">Box Volume Fraction</a><a class="headerlink" href="#box-volume-fraction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="box-volume-fractions">
+<h2><a class="toc-backref" href="#id25">Box Volume Fractions</a><a class="headerlink" href="#box-volume-fractions" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.</div></blockquote>
 <p>List <em>region: box volume fraction</em> defines a region bounded by a box <em>not</em>
@@ -1373,23 +1437,26 @@ simulation, including starting and ending times and restart options.</p>
 <li><cite>“end time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“s”</strong> One of <cite>“s</cite>”, <cite>“d</cite>”, or <cite>“yr</cite>”</li>
 </ul>
 <p>OR</p>
-<ul class="simple">
-<li><cite>“end cycle</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>optional</strong> If provided, specifies the end of the
-simulation in timestep cycles.</li>
-</ul>
+<ul class="last">
+<li><p class="first"><cite>“end cycle</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>optional</strong> If provided, specifies the end of the
+simulation in timestep cycles.</p>
 <p>END</p>
-<ul class="last simple">
-<li><cite>“restart from checkpoint file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> If provided,
-specifies a path to the checkpoint file to continue a stopped simulation.</li>
-<li><cite>“wallclock duration [hrs]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> After this time, the
-simulation will checkpoint and end.</li>
-<li><cite>“required times</cite>” <code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> <strong>optional</strong> An <a class="reference internal" href="#ioevent">IOEvent</a> spec that
+</li>
+<li><p class="first"><cite>“restart from checkpoint file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> If provided,
+specifies a path to the checkpoint file to continue a stopped simulation.</p>
+</li>
+<li><p class="first"><cite>“wallclock duration [hrs]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> After this time, the
+simulation will checkpoint and end.</p>
+</li>
+<li><p class="first"><cite>“required times</cite>” <code class="docutils literal notranslate"><span class="pre">[io-event-spec]</span></code> <strong>optional</strong> An <a class="reference internal" href="#ioevent">IOEvent</a> spec that
 sets a collection of times/cycles at which the simulation is guaranteed to
 hit exactly.  This is useful for situations such as where data is provided at
 a regular interval, and interpolation error related to that data is to be
-minimized.</li>
-<li><cite>“PK tree</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> List of length one, the top level
-<a class="reference internal" href="#pk">PK</a> spec.</li>
+minimized.</p>
+</li>
+<li><p class="first"><cite>“PK tree</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> List of length one, the top level
+<a class="reference internal" href="#pk">PK</a> spec.</p>
+</li>
 </ul>
 </div>
 <p>Note: Either <cite>“end cycle</cite>” or <cite>“end time</cite>” are required, and if
@@ -1596,13 +1663,24 @@ fundamental unit for coupling strategies.</p>
 (multi-process coupler) whose job is to heirarchically couple several
 other PKs and represent the system of equations, or a Physical PK,
 which represents a single equation.</p>
-<p>All PKs have the following parameters in their spec:</p>
+<p>Note there are two PK specs – the first is the “typed” spec, which appears in
+the “cycle driver” list in the PK tree.  The second is the spec for the base
+class PK, which is inherited and included by each actual PK, and lives in the
+“PKs” sublist of “main”.</p>
 <div class="admonition-pk-typed-spec admonition" id="pk-typed-spec">
 <p class="first admonition-title">pk-typed-spec</p>
 <ul class="last simple">
 <li><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types</li>
 <li><cite>“sub PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec-list]</span></code> <strong>optional</strong> If there are sub pks, list them.</li>
-<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> <strong>optional</strong> See <a href="#id144"><span class="problematic" id="id145">`Verbose Object`_</span></a></li>
+<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> <strong>optional</strong> See <a class="reference internal" href="#verbose-object">Verbose Object</a></li>
+</ul>
+</div>
+<div class="admonition-pk-spec admonition" id="pk-spec">
+<p class="first admonition-title">pk-spec</p>
+<ul class="last simple">
+<li><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> One of the registered PK types.  Note this must
+match the corresponding entry in the <code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code></li>
+<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> <strong>optional</strong> See <a class="reference internal" href="#verbose-object">Verbose Object</a></li>
 </ul>
 </div>
 <p>Example:</p>
@@ -1651,7 +1729,8 @@ Units are the same as the primary variable.</li>
 </ul>
 <p>INCLUDES:</p>
 <ul class="last simple">
-<li><code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a href="#id146"><span class="problematic" id="id147">Debugger_</span></a></li>
 </ul>
 </div>
 </div>
@@ -1677,7 +1756,7 @@ Note that this is only used if this PK is not strongly coupled to other PKs.</li
 </ul>
 <p>INCLUDES:</p>
 <ul class="last simple">
-<li><code class="docutils literal notranslate"><span class="pre">[pk-typed-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
 </ul>
 </div>
 </div>
@@ -1724,19 +1803,30 @@ values, and very rarely are these set by the user.</li>
 <p>Physical PKs are the physical capability implemented within ATS.</p>
 <div class="section" id="flow-pks">
 <h3><a class="toc-backref" href="#id37">Flow PKs</a><a class="headerlink" href="#flow-pks" title="Permalink to this headline">¶</a></h3>
-<p>Flow PKs include the flow of water both above and below-ground.</p>
+<p>Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning’s model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a “snow distribution” algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby “filling in” low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.</p>
 <div class="section" id="richards-pk">
 <h4><a class="toc-backref" href="#id38">Richards PK</a><a class="headerlink" href="#richards-pk" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Two-phase, variable density Richards equation.</div></blockquote>
 <p>Solves Richards equation:</p>
 <div class="math notranslate nohighlight">
-\[\frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w\]</div>
+\[\frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w\]</div>
 <div class="admonition-richards-spec admonition" id="richards-spec">
 <p class="first admonition-title">richards-spec</p>
 <ul class="simple">
 <li><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong>  Defaults to the subsurface mesh.</li>
-<li><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+<li><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
 this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default – this
 must be provided by the user.</li>
 <li><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[subsurface-flow-bc-spec]</span></code> Defaults to Neuman,
@@ -1769,14 +1859,15 @@ the previous time step.</li>
 <p>Math and solver algorithm options:</p>
 <ul class="simple">
 <li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion operator,
-see <a href="#id146"><span class="problematic" id="id147">PDE_Diffusion_</span></a>.</li>
+see <a href="#id148"><span class="problematic" id="id149">PDE_Diffusion_</span></a>.</li>
 <li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> <strong>optional</strong> The
-inverse of the diffusion operator.  See <a href="#id148"><span class="problematic" id="id149">PDE_Diffusion_</span></a>.  Typically this
+inverse of the diffusion operator.  See <a href="#id150"><span class="problematic" id="id151">PDE_Diffusion_</span></a>.  Typically this
 is only needed to set Jacobian options, as all others probably should
 match those in <cite>“diffusion</cite>”, and default to those values.</li>
+<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> Preconditioner for the solve.</li>
 <li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
 to improve the inverse of the diffusion preconditioner.  Only used if this
-PK is not implicitly coupled.  See <a href="#id150"><span class="problematic" id="id151">LinearOperator_</span></a>.</li>
+PK is not implicitly coupled.  See <a href="#id152"><span class="problematic" id="id153">LinearOperator_</span></a>.</li>
 <li><cite>“surface rel perm strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>none</strong> Approach for
 specifying the relative permeabiilty on the surface face.  <cite>“clobber</cite>” is
 frequently used for cases where a surface rel perm will be provided.  One
@@ -1867,7 +1958,7 @@ fraction of the gas phase <code class="docutils literal notranslate"><span class
 <p>Discretization / operators / solver controls:</p>
 <ul class="simple">
 <li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
-The inverse of the accumulation operator.  See <a href="#id152"><span class="problematic" id="id153">PDE_Accumulation_</span></a>.
+The inverse of the accumulation operator.  See <a href="#id154"><span class="problematic" id="id155">PDE_Accumulation_</span></a>.
 Typically not provided by users, as defaults are correct.</li>
 <li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2750.0</strong> <code class="docutils literal notranslate"><span class="pre">[mol]</span></code></li>
 <li><cite>“compute boundary values</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Used to include boundary
@@ -1912,9 +2003,26 @@ surface boundary conditions from the surface pressure (Dirichlet).</li>
 </div>
 <div class="section" id="permafrost-flow-pk">
 <h4><a class="toc-backref" href="#id39">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>A three-phase, thermal Richard’s equation with water, water vapor, and ice for permafrost applications.</div></blockquote>
+<p>Note that the only difference between permafrost and richards is in
+constitutive relations – the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.</p>
+<p>In the future, this should not even need a different PK.</p>
+<div class="admonition-permafrost-spec admonition" id="permafrost-spec">
+<p class="first admonition-title">permafrost-spec</p>
+<ul class="simple">
+<li><cite>“saturation ice key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“DOMAIN-saturation_ice”</strong> volume fraction of the ice phase (only when relevant) <code class="docutils literal notranslate"><span class="pre">[-]</span></code> Typically the default is correct.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[richards-spec]</span></code> See <a class="reference internal" href="#richards-pk">Richards PK</a></li>
+</ul>
 </div>
-<div class="section" id="overland-flow-pressure-primary-variable-pk">
-<h4><a class="toc-backref" href="#id40">Overland Flow, pressure primary variable, PK</a><a class="headerlink" href="#overland-flow-pressure-primary-variable-pk" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="overland-flow-pk">
+<h4><a class="toc-backref" href="#id40">Overland Flow PK</a><a class="headerlink" href="#overland-flow-pk" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Overland flow using the diffusion wave equation.</div></blockquote>
 <p>Solves the diffusion wave equation for overland flow with pressure as a primary variable:</p>
@@ -1930,7 +2038,7 @@ this PK, typically <cite>“DOMAIN-pressure</cite>” Note there is no default �
 must be provided by the user.</li>
 <li><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[surface-flow-bc-spec]</span></code> Defaults to Neuman, 0 normal flux.</li>
 <li><cite>“overland conductivity evaluator</cite>” <code class="docutils literal notranslate"><span class="pre">[overland-conductivity-eval-spec]</span></code>
-See <a href="#id154"><span class="problematic" id="id155">`Overland Conductivity Evaluator`_</span></a>.</li>
+See <a href="#id156"><span class="problematic" id="id157">`Overland Conductivity Evaluator`_</span></a>.</li>
 </ul>
 <p>IF</p>
 <ul class="simple">
@@ -1950,14 +2058,14 @@ the previous time step.</li>
 <p>Math and solver algorithm options:</p>
 <ul class="simple">
 <li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> The (forward) diffusion operator,
-see <a href="#id156"><span class="problematic" id="id157">PDE_Diffusion_</span></a>.</li>
+see <a href="#id158"><span class="problematic" id="id159">PDE_Diffusion_</span></a>.</li>
 <li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> <strong>optional</strong> The
-inverse of the diffusion operator.  See <a href="#id158"><span class="problematic" id="id159">PDE_Diffusion_</span></a>.  Typically this
+inverse of the diffusion operator.  See <a href="#id160"><span class="problematic" id="id161">PDE_Diffusion_</span></a>.  Typically this
 is only needed to set Jacobian options, as all others probably should
 match those in <cite>“diffusion</cite>”, and default to those values.</li>
 <li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
 to improve the inverse of the diffusion preconditioner.  Only used if this
-PK is not implicitly coupled.  See <a href="#id160"><span class="problematic" id="id161">LinearOperator_</span></a>.</li>
+PK is not implicitly coupled.  See <a href="#id162"><span class="problematic" id="id163">LinearOperator_</span></a>.</li>
 <li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.</strong> Defaults to 1 cm of
 water.  A small, but significant, amount of water.</li>
 <li><cite>“limit correction to pressure change [Pa]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1</strong> If &gt; 0,
@@ -1993,102 +2101,799 @@ not set, as the default is good. <code class="docutils literal notranslate"><spa
 <li><cite>“coupled to subsurface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</li>
 <li><cite>“coupled to subsurface via head</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Set by MPC.</li>
 <li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
-The inverse of the accumulation operator.  See <a href="#id162"><span class="problematic" id="id163">PDE_Accumulation_</span></a>.
+The inverse of the accumulation operator.  See <a href="#id164"><span class="problematic" id="id165">PDE_Accumulation_</span></a>.
 Typically not provided by users, as defaults are correct.</li>
 </ul>
 <p>EVALUATORS:</p>
 <ul class="last simple">
 <li><cite>“conserved quantity</cite>”</li>
+<li><cite>“water content</cite>”</li>
+<li><cite>“cell volume</cite>”</li>
+<li><cite>“surface_subsurface_flux</cite>”</li>
 <li><cite>“elevation</cite>”</li>
 <li><cite>“slope magnitude</cite>”</li>
 <li><cite>“overland_conductivity</cite>”</li>
 <li><cite>“ponded_depth</cite>”</li>
 <li><cite>“pres_elev</cite>”</li>
+<li><cite>“source</cite>”</li>
 </ul>
 </div>
 </div>
 <div class="section" id="overland-flow-with-ice">
 <h4><a class="toc-backref" href="#id41">Overland Flow with Ice</a><a class="headerlink" href="#overland-flow-with-ice" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>Two-phase overland flow equation.</div></blockquote>
+<p>This modifies the diffusion wave equation for overland flow that includes
+freeze-thaw processes.  This class could completely go away, but it does some
+error checking on the input file to make sure freeze-thaw processes are done
+correctly.  In the future this service should be done by a preprocessor
+generating the input file, and this class would go away.</p>
+<div class="admonition-icy-overland-spec admonition" id="icy-overland-spec">
+<p class="first admonition-title">icy-overland-spec</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[overland-pressure-spec]</span></code> See <a class="reference internal" href="#overland-flow-pk">Overland Flow PK</a>.</li>
+</ul>
+</div>
 </div>
 <div class="section" id="snow-distribution-pk">
 <h4><a class="toc-backref" href="#id42">Snow Distribution PK</a><a class="headerlink" href="#snow-distribution-pk" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>Preferential distribution of snow precip in low-lying areas.</div></blockquote>
+<p>This PK is a heuristic PK that distributes incoming snow precipitation using a
+diffusion wave equation.  Think of it as an analogue to overland flow – it
+effectively ensures that new snow “flows downhill,” due to a uniformly random
+direction and strength wind, and lands on the lowest lying areas.</p>
+<p>Tweaking the snow-manning_coefficient lets you play with how uniform the snow
+layer ends up.  Most of the parameters are set by your snow precipitation input
+data interval.  The details of this are a bit tricky mathematically, and it may
+take some fiddling with parameters to do this correctly if your data is not
+daily (which all defaults are set for).</p>
+<div class="admonition-snow-distribution-spec admonition" id="snow-distribution-spec">
+<p class="first admonition-title">snow-distribution-spec</p>
+<ul class="simple">
+<li><cite>“distribution time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>86400.</strong> Interval of snow precip input dataset. <cite>[s]</cite></li>
+<li><cite>“precipitation function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> Snow precipitation <a class="reference internal" href="#function">Function</a> spec.</li>
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Diffusion drives the distribution.
+Typically we use finite volume here.  See <a href="#id166"><span class="problematic" id="id167">PDE_Diffusion_</span></a></li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> Inverse of the
+above.  Likely only Jacobian term options are needed here, as the others
+default to the same as the <cite>“diffusion</cite>” list.  See <a href="#id168"><span class="problematic" id="id169">PDE_Diffusion_</span></a>.</li>
+<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> Preconditioner for the solve.</li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
+to improve the inverse of the diffusion preconditioner.  Only used if this
+PK is not implicitly coupled.  See <a href="#id170"><span class="problematic" id="id171">LinearOperator_</span></a>.</li>
+</ul>
+<p>Not typically provided by the user, defaults are good:</p>
+<ul class="last simple">
+<li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> See <a href="#id172"><span class="problematic" id="id173">PDE_Accumulation_</span></a>.</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="energy-pks">
 <h3><a class="toc-backref" href="#id43">Energy PKs</a><a class="headerlink" href="#energy-pks" title="Permalink to this headline">¶</a></h3>
-<p>Advection and diffusion of energy, including phase change.</p>
+<p>Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.</p>
 <div class="section" id="energy-base-pk">
 <h4><a class="toc-backref" href="#id44">Energy Base PK</a><a class="headerlink" href="#energy-base-pk" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>An advection-diffusion equation for energy.</div></blockquote>
+<p>Solves an advection-diffusion equation for energy:</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e\]</div>
+<div class="admonition-energy-pk-spec admonition" id="energy-pk-spec">
+<p class="first admonition-title">energy-pk-spec</p>
+<ul class="simple">
+<li><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong>  Defaults to the subsurface mesh.</li>
+<li><cite>“primary variable</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK, typically <cite>“DOMAIN-temperature</cite>” Note there is no default – this
+must be provided by the user.</li>
+<li><cite>“boundary conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[energy-bc-spec]</span></code> Defaults to 0 diffusive flux
+boundary condition.  See <a href="#id174"><span class="problematic" id="id175">`Energy-specific Boundary Conditions`_</span></a></li>
+<li><cite>“thermal conductivity evaluator</cite>”
+<code class="docutils literal notranslate"><span class="pre">[thermal-conductivity-evaluator-spec]</span></code> The thermal conductivity.  This
+needs to go away, and should get moved to State.</li>
+<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>76.e-6</strong> A small amount of
+energy, see error norm. <cite>[MJ]</cite></li>
+<li><cite>“upwind conductivity method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>arithmetic mean</strong> Method of
+moving cell-based thermal conductivities onto faces.  One of:<ul>
+<li><cite>“arithmetic mean</cite>” the default, average of neighboring cells</li>
+<li><cite>“cell centered</cite>” harmonic mean</li>
+</ul>
+</li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><cite>“explicit advection</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Treat the advection term implicitly.</li>
+</ul>
+<p>ELSE</p>
+<ul class="simple">
+<li><cite>“supress advective terms in preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong>
+Typically subsurface energy equations are strongly diffusion dominated,
+and the advective terms may add little.  With this flag on, we ignore
+theem in the preconditioner, making an easier linear solve and often not
+negatively impacting the nonlinear solve.</li>
+<li><cite>“advection preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-advection-spec]</span></code> <strong>optional</strong>
+Typically defaults are correct.</li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><cite>“diffusion</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> See <a href="#id176"><span class="problematic" id="id177">PDE_Diffusion_</span></a>, the diffusion operator.</li>
+<li><cite>“diffusion preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-diffusion-spec]</span></code> See
+<a href="#id178"><span class="problematic" id="id179">PDE_Diffusion_</span></a>, the inverse operator.  Typically only adds Jacobian
+terms, as all the rest default to those values from <cite>“diffusion</cite>”.</li>
+<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> The <a class="reference internal" href="#preconditioner">Preconditioner</a></li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> A <a href="#id180"><span class="problematic" id="id181">`LinearOperator`_</span></a></li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><cite>“source term</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Is there a source term?</li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-total_energy_source</strong> Typically
+not set, as the default is good. <code class="docutils literal notranslate"><span class="pre">[MJ</span> <span class="pre">s^-1]</span></code></li>
+<li><cite>“source term is differentiable</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong> Can the source term
+be differentiated with respect to the primary variable?</li>
+<li><cite>“source term finite difference</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If the source term
+is not diffferentiable, we can do a finite difference approximation of
+this derivative anyway.  This is useful for difficult-to-differentiate
+terms like a surface energy balance, which includes many terms.</li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="simple">
+<li><cite>“source term</cite>”</li>
+</ul>
+<p>END</p>
+<p>Globalization:</p>
+<ul class="simple">
+<li><cite>“modify predictor with consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> In a
+face+cell diffusion discretization, this modifies the predictor to make
+sure that faces, which are a DAE, are consistent with the predicted cells
+(i.e. face fluxes from each sides match).</li>
+<li><cite>“modify predictor for freezing</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A simple limiter
+that keeps temperature corrections from jumping over the phase change.</li>
+<li><cite>“limit correction to temperature change [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>-1.0</strong> If &gt;
+0, stops nonlinear updates from being too big through clipping.</li>
+</ul>
+<p>The following are rarely set by the user, as the defaults are typically right.</p>
+<p>Variable names:</p>
+<ul class="simple">
+<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-energy</strong> The total energy <span class="math notranslate nohighlight">\(E\)</span> <cite>[MJ]</cite></li>
+<li><cite>“energy key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-energy</strong> The total energy <span class="math notranslate nohighlight">\(E\)</span>, also the conserved quantity. <cite>[MJ]</cite></li>
+<li><cite>“water content key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong> The total mass <span class="math notranslate nohighlight">\(\Theta\)</span>, used in error norm <cite>[mol]</cite></li>
+<li><cite>“enthalpy key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-enthalpy</strong> The specific enthalpy :math`e` <cite>[MJ mol^-1]</cite></li>
+<li><cite>“flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-mass_flux</strong> The mass flux <span class="math notranslate nohighlight">\(\mathbf{q}\)</span> used in advection. <cite>[mol s^-1]</cite></li>
+<li><cite>“diffusive energy flux</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-diffusive_energy_flux</strong> <span class="math notranslate nohighlight">\(\mathbf{q_e}\)</span> <cite>[MJ s^-1]</cite></li>
+<li><cite>“advected energy flux</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-advected_energy_flux</strong> <span class="math notranslate nohighlight">\(\mathbf{q_e^{adv}} = q e\)</span> <cite>[MJ s^-1]</cite></li>
+<li><cite>“thermal conductivity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-thermal_conductivity</strong> Thermal conductivity on cells <cite>[W m^-1 K^-1]</cite></li>
+<li><cite>“upwinded thermal conductivity</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-upwinded_thermal_conductivity</strong> Thermal conductivity on faces <cite>[W m^-1 K^-1]</cite></li>
+<li><cite>“advection</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-advection-spec]</span></code> <strong>optional</strong> The <a href="#id182"><span class="problematic" id="id183">PDE_Advection_</span></a> spec.  Only one current implementation, so defaults are typically fine.</li>
+<li><cite>“accumulation preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[pde-accumulation-spec]</span></code> <strong>optional</strong>
+The inverse of the accumulation operator.  See <a href="#id184"><span class="problematic" id="id185">PDE_Accumulation_</span></a>.
+Typically not provided by users, as defaults are correct.</li>
+</ul>
+<p>IF</p>
+<ul class="simple">
+<li><cite>“coupled to surface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from an exchange flux.  Note, if this is a
+coupled problem, it is probably set by the MPC.  No need for a user to
+set it.</li>
+</ul>
+<p>THEN</p>
+<ul class="simple">
+<li><cite>“surface-subsurface energy flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-surface_subsurface_energy_flux</strong></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><cite>“coupled to surface via temperature</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true, apply
+surface boundary conditions from the surface temperature (Dirichlet).</li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="last simple">
+<li><cite>“enthalpy</cite>”</li>
+<li><cite>“cell volume</cite>”</li>
+<li><cite>“thermal conductivity</cite>”</li>
+<li><cite>“conserved quantity</cite>”</li>
+<li><cite>“energy</cite>”</li>
+</ul>
+</div>
 </div>
 <div class="section" id="two-phase-subsurface-energy-pk">
 <h4><a class="toc-backref" href="#id45">Two-Phase subsurface Energy PK</a><a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>An advection-diffusion equation for energy in two phases.</div></blockquote>
+<p>This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.</p>
+<div class="admonition-energy-two-phase-pk-spec admonition" id="energy-two-phase-pk-spec">
+<p class="first admonition-title">energy-two-phase-pk-spec</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[energy-pk-spec]</span></code>  See <a class="reference internal" href="#energy-base-pk">Energy Base PK</a></li>
+</ul>
+</div>
 </div>
 <div class="section" id="three-phase-subsurface-energy-pk">
 <h4><a class="toc-backref" href="#id46">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>An advection-diffusion equation for energy in three phases.</div></blockquote>
+<p>This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.</p>
+<div class="admonition-energy-three-phase-pk-spec admonition" id="energy-three-phase-pk-spec">
+<p class="first admonition-title">energy-three-phase-pk-spec</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[energy-two-phase-pk-spec]</span></code> See  <a class="reference internal" href="#two-phase-subsurface-energy-pk">Two-Phase subsurface Energy PK</a></li>
+</ul>
+</div>
 </div>
 <div class="section" id="overland-energy-with-ice">
 <h4><a class="toc-backref" href="#id47">Overland energy with Ice</a><a class="headerlink" href="#overland-energy-with-ice" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>An advection-diffusion equation for surface energy in two phases.</div></blockquote>
+<p>This is simply a surface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.</p>
+<div class="admonition-energy-surface-ice-pk-spec admonition" id="energy-surface-ice-pk-spec">
+<p class="first admonition-title">energy-surface-ice-pk-spec</p>
+<p>These are typically not set by the user:</p>
+<ul class="simple">
+<li><cite>“coupled to subsurface via temperature</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A coupling
+scheme, provided by MPC.</li>
+<li><cite>“coupled to subsurface via flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> A coupling
+scheme, provided by MPC.</li>
+<li><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> If one of the above
+coupling schemes is turned on, we need to know the subsurface mesh.
+Provided by MPC.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[energy-pk-spec]</span></code>  See <a class="reference internal" href="#energy-base-pk">Energy Base PK</a></li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="surface-energy-balance-pks">
 <h3><a class="toc-backref" href="#id48">Surface Energy Balance PKs</a><a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this headline">¶</a></h3>
-<div class="section" id="surface-energy-balance-snow-monolithic-version">
-<h4><a class="toc-backref" href="#id49">Surface Energy Balance / Snow – Monolithic Version</a><a class="headerlink" href="#surface-energy-balance-snow-monolithic-version" title="Permalink to this headline">¶</a></h4>
+<p>Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.</p>
+<p>These terms are almost always tied up in a surface energy balance –
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.</p>
+<p>ATS currently has several approaches to calculating these – see
+<a href="#id186"><span class="problematic" id="id187">`ats-demos&lt;https://github.com/amanzi/ats-demos&gt;`_</span></a> examples on
+ecohydrology for a more in-depth discussion.</p>
+<div class="section" id="balance-equation">
+<h4><a class="toc-backref" href="#id49">Balance Equation</a><a class="headerlink" href="#balance-equation" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>A simple conservation ODE.</div></blockquote>
+<p>This is a very simple vector of ODEs, useful in balance equations, where the
+time derivative of a conserved quantity is determined by a bunch of sources and
+sinks.</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Phi }{\partial t} = \sum_i Q_i\]</div>
+<div class="admonition-balance-pk-spec admonition" id="balance-pk-spec">
+<p class="first admonition-title">balance-pk-spec</p>
+<ul class="simple">
+<li><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Mesh on which the balance is to be done.</li>
+<li><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The primary variable associated with
+this PK.  Note there is no default – this must be provided by the user.</li>
+<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> The conserved quantity <span class="math notranslate nohighlight">\(\Phi\)</span></li>
+<li><cite>“source key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-source_sink</strong> Units are in conserved
+quantity per second per cell volume.</li>
+<li><cite>“time discretization theta</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> <span class="math notranslate nohighlight">\(\theta\)</span> in a
+Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+implies explicit, 0.5 implies C-N.</li>
+<li><cite>“modify predictor positivity preserving</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If true,
+predictors are modified to ensure that the conserved quantity is always &gt; 0.</li>
+<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>550.0</strong> a_tol in the standard
+error norm calculation.  Defaults to a small amount of water.  Units are
+the same as the conserved quantity.</li>
+<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> Preconditioner for the
+solve.</li>
+<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> May be used
+to improve the inverse of the diffusion preconditioner.  Only used if this
+PK is not implicitly coupled.  See <a href="#id188"><span class="problematic" id="id189">LinearOperator_</span></a>.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-bdf-default-spec]</span></code></li>
+</ul>
 </div>
-<div class="section" id="surface-energy-balance-generic-version">
-<h4><a class="toc-backref" href="#id50">Surface Energy Balance – Generic Version</a><a class="headerlink" href="#surface-energy-balance-generic-version" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="snow-balance-equation">
+<h4><a class="toc-backref" href="#id50">Snow Balance Equation</a><a class="headerlink" href="#snow-balance-equation" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>An implicit PK for surface balance snow SWE conservation.</div></blockquote>
+<p>This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.</p>
+<p>There is also some wierd hackiness here about area fractions – see ATS Issue
+#8</p>
+<div class="admonition-subgrid-balance-pk-spec admonition" id="subgrid-balance-pk-spec">
+<p class="first admonition-title">subgrid-balance-pk-spec</p>
+<ul class="simple">
+<li><cite>“absolute error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.01</strong> <code class="docutils literal notranslate"><span class="pre">[m]</span></code></li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">[balance-pk-spec]</span></code> This <em>is a</em> <a class="reference internal" href="#balance-equation">Balance Equation</a></li>
+</ul>
+<p>Not typically set by user, defaults work:</p>
+<ul class="last simple">
+<li><cite>“conserved quantity key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-snow_water_equivalent</strong>
+Sets the default conserved quantity key, so this is likely not supplied
+by the user. <cite>[m]</cite></li>
+<li><cite>“snow density key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-density</strong> Default snow density
+key. <cite>[kg m^-3]</cite></li>
+<li><cite>“snow age key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-age</strong> Default snow age key. <cite>[d]</cite></li>
+<li><cite>“new snow key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-source</strong> Default new snow key. <cite>[m SWE s^-1]</cite></li>
+<li><cite>“area fractions key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-fractional_areas</strong> Subgrid
+model fractional areas, see note above. <cite>[-]</cite></li>
+<li><cite>“snow death rate key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LAYER-death_rate</strong> Deals with last
+tiny bit of snowmelt.</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="biogeochemistry">
 <h3><a class="toc-backref" href="#id51">Biogeochemistry</a><a class="headerlink" href="#biogeochemistry" title="Permalink to this headline">¶</a></h3>
+<p>To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM’s Land Model.</p>
 <div class="section" id="biogeochemistry-monolithic-version">
 <h4><a class="toc-backref" href="#id52">Biogeochemistry – Monolithic Version</a><a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>Above and below-ground carbon cycle model.</div></blockquote>
+<p>This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.</p>
+<p>It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.</p>
+<p>The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.</p>
+<p>Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.</p>
+<p>Note this is an “explicit update PK,” or effectively a forward Euler timestep
+that is not written in ODE form.</p>
+<p>Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  <strong>It is required</strong> that the subsurface mesh is a “columnar” mesh, and
+that build_columns in the subsurface <a class="reference internal" href="#mesh">Mesh</a> spec has been supplied.</p>
+<div class="admonition-bgc-simple-spec admonition" id="bgc-simple-spec">
+<p class="first admonition-title">bgc-simple-spec</p>
+<ul class="simple">
+<li><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.0</strong> Initial time step size <cite>[s]</cite></li>
+<li><cite>“number of carbon pools</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>7</strong> Unclear whether this can actually change?</li>
+<li><cite>“soil carbon parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[soil-carbon-spec-list]</span></code> List of soil carbon parameters by soil mesh partition region name.</li>
+<li><cite>“pft parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[pft-spec-list]</span></code> List of PFT parameters by PFT name.</li>
+<li><cite>“latitude [degrees]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>60</strong> Latitude of the simulation in degrees.  Used in radiation balance.</li>
+<li><cite>“wind speed reference height [m]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>2.0</strong> Reference height of the wind speed dataset.</li>
+<li><cite>“cryoturbation mixing coefficient [cm^2/yr]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>5.0</strong> Controls diffusion of carbon into the subsurface via cryoturbation.</li>
+<li><cite>“leaf biomass initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-conditions-spec]</span></code> Sets the leaf biomass IC.</li>
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></li>
+<li><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></li>
+<li><cite>“transpiration key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-transpiration</strong> The distributed transpiration flux <cite>[mol s^-1]</cite></li>
+<li><cite>“shaded shortwave radiation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>
+<strong>SURFACE_DOMAIN-shaded_shortwave_radiation</strong> Shortwave radiation that gets
+past the canopy and teo the bare ground for soil evaporation. <cite>[W m^-2]</cite></li>
+<li><cite>“total leaf area index key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-total_leaf_area_index</strong> Total LAI across all PFTs.</li>
+</ul>
+<p>EVALUATORS:</p>
+<ul class="last simple">
+<li><cite>“temperature</cite>” The soil temperature <cite>[K]</cite></li>
+<li><cite>“pressure</cite>” soil mafic potential <cite>[Pa]</cite></li>
+<li><cite>“surface-cell_volume</cite>” <cite>[m^2]</cite></li>
+<li><cite>“surface-incoming shortwave radiation</cite>” <cite>[W m^-2]</cite></li>
+<li><cite>“surface-air_temperature</cite>” <cite>[K]</cite></li>
+<li><cite>“surface-relative_humidity</cite>” <cite>[-]</cite></li>
+<li><cite>“surface-wind_speed</cite>” <cite>[m s^-1]</cite></li>
+<li><cite>“surface-co2_concentration</cite>” <cite>[ppm]</cite></li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="deformation">
 <h3><a class="toc-backref" href="#id53">Deformation</a><a class="headerlink" href="#deformation" title="Permalink to this headline">¶</a></h3>
+<p>The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways – either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.</p>
 <div class="section" id="volumetric-deformation">
 <h4><a class="toc-backref" href="#id54">Volumetric Deformation</a><a class="headerlink" href="#volumetric-deformation" title="Permalink to this headline">¶</a></h4>
+<blockquote>
+<div>Subsidence through bulk ice loss and cell volumetric change.</div></blockquote>
+<p>This process kernel provides for going from a cell volumetric change to an
+updated unstructured mesh, and can be coupled sequentially with flow to solve
+problems of flow in a subsiding porous media.</p>
+<p>Note that all deformation here is vertical, and we assume that the subsurface
+mesh is <strong>perfectly columnar</strong> and that the “build columns” parameter has been
+given to the subsurface mesh.  See the <a class="reference internal" href="#mesh">Mesh</a> spec for more.</p>
+<p>The process here is governed through two options, the “deformation mode” and
+the “deformation strategy.”</p>
+<p>The deformation mode describes how the cell volume change is calculated.  There
+are three options here:</p>
+<ul class="simple">
+<li>“prescribed” uses a function to precribe the volume changes as a function of (t,x,y,z).</li>
+<li>“structural” decreases the cell volume if the porosity is above a prescribed
+“structurally connected matrix” porosity.  Think of this as bulk ice
+“propping up” the soil grains – as that bulk ice melts, it reduces porosity
+toward the porosity in at which grains start to touch again and can be
+structurally sound.</li>
+<li>“saturation” is a heuristic that considers the liquid saturation directly,
+and tries to relax the liquid saturation back toward a value that is
+consistent with what the thawed soil should be.</li>
+</ul>
+<p>The deformation strategy describes how the cell volume change is turned into
+node coordinate changes.  Three options are available:</p>
+<ul class="simple">
+<li>“average” simply takes the average of volume change/surface area and
+horizontally averages this quantity across all neighbors.  While this has the
+advantage of being simple, it has issues when thaw gradients in the
+horizontal are not zero, as it may result in the loss of volume in a fully
+frozen cell, blowing up the pressure and breaking the code.  This is great
+when it works, but it almost never works in real problems.</li>
+<li>“global optimization” attempts to directly form and solve the minimization
+problem to find the nodal changes that result in the target volumetric
+changes.  Note this has issues with overfitting, so penalty methods are used
+to smooth the solution of the problem.  This is not particularly robust.</li>
+<li>“mstk implementation” MSTK implements an iterated, local optimization method
+that, one-at-a-time, moves nodes to try and match the volumes.  This has
+fewer issues with overfitting, but doesn’t always do sane things, and can be
+expensive if iterations don’t work well.  This is not particularly robust
+either, but it seems to be the preferred method for now.</li>
+</ul>
+<div class="admonition-volumetric-deformation-pk-spec admonition" id="volumetric-deformation-pk-spec">
+<p class="first admonition-title">volumetric-deformation-pk-spec</p>
+<ul class="simple">
+<li><cite>“max time step [s]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>inf</strong> Sets a maximum time step size.</li>
+<li><cite>“deformation mode</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>prescribed</strong> See above for
+descriptions.  One of: <cite>“prescribed</cite>”, <cite>“structural</cite>”, or <cite>“saturation</cite>”.</li>
+<li><cite>“deformation strategy</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>global optimization</strong> See above
+for descriptions.  One of <cite>“average</cite>”, <cite>“global optimization</cite>”, or <cite>“mstk
+implementation</cite>”</li>
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong>  The mesh to deform.</li>
+<li><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong> The surface mesh.</li>
+<li><cite>“deformation function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-spec]</span></code> <strong>optional</strong> Only used if
+“deformation mode” == “prescribed”</li>
+<li><cite>“global solve operator</cite>” <code class="docutils literal notranslate"><span class="pre">[matrix-volumetric-deformation-spec]</span></code>
+Old-style Matrix (not Amanzi Operator) spec.  Only used if “deformation
+strategy” == “global optimization”</li>
+<li><cite>“Solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-operator-typed-spec]</span></code> Solver for the optimization
+problem. Only used if “deformation strategy” == “global optimization”</li>
+</ul>
+<p>EVALUATORS:
+- <cite>“saturation_ice</cite>”
+- <cite>“saturation_liquid</cite>”
+- <cite>“saturation_gas</cite>”
+- <cite>“base_porosity</cite>”
+- <cite>“porosity</cite>”
+- <cite>“cell volume</cite>”</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-physical-default-spec]</span></code></li>
+</ul>
 </div>
 </div>
 </div>
-<div class="section" id="mpcs">
-<h2><a class="toc-backref" href="#id55">MPCs</a><a class="headerlink" href="#mpcs" title="Permalink to this headline">¶</a></h2>
-<p>MPCs couple other PKs, and are the non-leaf nodes in the PK tree.</p>
+</div>
+<div class="section" id="mpc">
+<h2><a class="toc-backref" href="#id55">MPC</a><a class="headerlink" href="#mpc" title="Permalink to this headline">¶</a></h2>
+<p>Multi-process-couplers or MPCs couple other PKs.  They also are PKs
+themselves, in that they implement the PK interface.  So MPCs can also
+couple other MPCs.  There are a few common “base” MPCs which do the
+simplest form of coupling – sequential and globally implicit (with a
+diagonal preconditioner).  Then there are specific couplers which know
+more about their coupled sub-PKs, and can do more complicated things
+(for instance, adding off-diagonal block entries to the
+preconditioner).</p>
+<p>MPCs are also used to couple across domains – for instance integrated
+hydrology is a surface+subsurface flow coupler.  They also can do
+fancier things like drape a bunch of subgrid columns off of a mesh, or
+other things.  Think of these as the custom couplers.</p>
+<div class="section" id="base-mpc">
+<h3><a class="toc-backref" href="#id56">Base MPC</a><a class="headerlink" href="#base-mpc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Multi process coupler base class.</div></blockquote>
+<p>A multi process coupler is a PK (process kernel) which coordinates and couples
+several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
+PKs.  Note this does NOT provide a full implementation of PK – it does not
+supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
+must be inherited by derived classes which finish supplying the functionality.
+Instead, this provides the data structures and methods (which may be overridden
+by derived classes) for managing multiple PKs.</p>
+<p>Most of these methods simply loop through the coordinated PKs, calling their
+respective methods.</p>
+<div class="admonition-mpc-spec admonition" id="mpc-spec">
+<p class="first admonition-title">mpc-spec</p>
+<ul class="simple">
+<li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Provide a specific order to the
+sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
+method in this order.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[pk-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk">PK</a>.</li>
+</ul>
+</div>
+</div>
 <div class="section" id="weakmpc">
-<h3><a class="toc-backref" href="#id56">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id57">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Multi process coupler for sequential coupling.</div></blockquote>
+<p>Noniterative sequential coupling simply calls each PK’s AdvanceStep() method in
+order.</p>
+<div class="admonition-weak-mpc-spec admonition" id="weak-mpc-spec">
+<p class="first admonition-title">weak-mpc-spec</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc">MPC</a>.</li>
+</ul>
+</div>
 </div>
 <div class="section" id="strongmpc">
-<h3><a class="toc-backref" href="#id57">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id58">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Multi process coupler for globally implicit (strong) coupling.</div></blockquote>
+<p>Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also <a class="reference internal" href="#pk-bdf">PK: BDF</a> PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.</p>
+<div class="admonition-strong-mpc-spec admonition" id="strong-mpc-spec">
+<p class="first admonition-title">strong-mpc-spec</p>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#mpc">MPC</a>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">[pk-bdf-default-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#pk-bdf">PK: BDF</a>.</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="section" id="physical-mpcs">
-<h2><a class="toc-backref" href="#id58">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div>coupling is an art, and requires special off-diagonal work.  Physical MPCs can derive from default MPCs to provide special work.</div></blockquote>
+<h2><a class="toc-backref" href="#id59">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline">¶</a></h2>
+<p>Coupling is an art, and often requires special off-diagonal work for
+globally implicit coupling, and fancy games can be played with domains
+to couple across domain interfaces both implicitly and sequentially.
+Physical MPCs derive from default MPCs to provide special
+implementations of some methods.</p>
 <div class="section" id="coupled-water-mpc">
-<h3><a class="toc-backref" href="#id59">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id60">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div>MPCCoupledWater: coupler which integrates surface and subsurface flow.</div></blockquote>
-<p>Couples Richards equation to surface water through continuity of both pressure and fluxes.</p>
-<p>Currently requires that the subsurface discretization is a face-based
-discretization, i.e. one of the MFD methods.  Then the surface equations are
-directly added into the subsurface discrete equations.</p>
+<div>A coupler which integrates surface and subsurface flow implicitly.</div></blockquote>
+<p>Couples Richards equation to surface water through continuity of both pressure
+and fluxes.  This leverages subsurface discretizations that include face-based
+unknowns, and notes that those face unknowns that correspond to surface faces
+are co-located with the surface cell pressure, and therefore are equivalent.
+In this approach (described in detail in a paper that is in review), the
+surface equations are directly assembled into the subsurface discrete operator.</p>
+<div class="admonition-mpc-coupled-water-spec admonition" id="mpc-coupled-water-spec">
+<p class="first admonition-title">mpc-coupled-water-spec</p>
 <ul class="simple">
-<li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Supplies the names of the coupled PKs.
-The order must be {subsurface_flow_pk, surface_flow_pk} (subsurface first).</li>
-<li><cite>“linear solver</cite>” <code class="docutils literal notranslate"><span class="pre">[linear-solver-typed-spec]</span></code> <strong>optional</strong> is a <a href="#id164"><span class="problematic" id="id165">LinearSolver_</span></a> spec.  Note
-that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-typed-spec]</span></code> <strong>optional</strong> is a <a class="reference internal" href="#preconditioner">Preconditioner</a> spec.
-Note that this is only used if this PK is not strongly coupled to other PKs.</li>
-<li><cite>“water delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></li>
+<li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> The use supplies the names of the
+coupled PKs.  The order must be {subsurface_flow_pk, surface_flow_pk}
+(subsurface first).</li>
+<li><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></li>
+<li><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></li>
+<li><cite>“water delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[coupled-water-delegate-spec]</span></code> A <a class="reference internal" href="#coupled-water-globalization-delegate">Coupled Water
+Globalization Delegate</a> spec.</li>
 </ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[strong-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#strongmpc">StrongMPC</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="coupled-cells-mpc">
+<h3><a class="toc-backref" href="#id61">Coupled Cells MPC</a><a class="headerlink" href="#coupled-cells-mpc" title="Permalink to this headline">¶</a></h3>
 <blockquote>
-<div><p>Globalization hacks to deal with nonlinearity around the appearance/disappearance of surface water.</p>
-<p>The water delegate works to eliminate discontinuities/strong nonlinearities
-when surface cells shift from dry to wet (i.e. the surface pressure goes
-from &lt; atmospheric pressure to &gt; atmospheric pressure.</p>
+<div>A coupler which solves two PDEs on the same domain.</div></blockquote>
+<p>This is a StrongMPC which uses a preconditioner in which the
+block-diagonal cell-local matrix is dense.  If the system looks something
+like:</p>
+<p>A( y1, y2, x, t ) = 0
+B( y1, y2, x, t ) = 0</p>
+<p>where y1,y2 are spatially varying unknowns that are discretized using the MFD
+method (and therefore have both cell and face unknowns), an approximation to
+the Jacobian is written as</p>
+<p>[  dA_c/dy1_c  dA_c/dy1_f   dA_c/dy2_c       0      ]
+[  dA_f/dy1_c  dA_f/dy1_f      0              0      ]
+[  dB_c/dy1_c     0          dB_c/dy2_c  dB_c/dy2_f ]
+[      0           0          dB_f/dy2_c  dB_f/dy2_f ]</p>
+<p>Note that the upper left block is the standard preconditioner for the A
+system, and the lower right block is the standard precon for the B system,
+and we have simply added cell-based couplings, dA_c/dy2_c and dB_c/dy1_c.</p>
+<p>Most commonly this is used to couple flow and energy equations on the same
+mesh.  In the temperature/pressure system, these extra blocks correspond to</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \Theta}{\partial T} \; , \; \frac{\partial E}{\partial p}\]</div>
+<div class="admonition-mpc-coupled-cells-spec admonition" id="mpc-coupled-cells-spec">
+<p class="first admonition-title">mpc-coupled-cells-spec</p>
+<ul class="simple">
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Domain of simulation</li>
+<li><cite>“conserved quantity A</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Key of the first sub-PK’s conserved quantity.</li>
+<li><cite>“conserved quantity B</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Key of the second sub-PK’s conserved quantity.</li>
+<li><cite>“primary variable A</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Key of the first sub-PK’s primary variable.</li>
+<li><cite>“primary variable B</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Key of the second sub-PK’s primary variable.</li>
+<li><cite>“no dA/dy2 block</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Excludes the dA_c/dy2_c block above.</li>
+<li><cite>“no dB/dy1 block</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> Excludes the dB_c/dy1_c block above.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[strong-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#strongmpc">StrongMPC</a>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="subsurface-mpc">
+<h3><a class="toc-backref" href="#id62">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>A coupler which solves flow and energy in the subsurface.</div></blockquote>
+<p>This MPC provides most nearly all terms for an approximate Jacobian for
+coupling three-phase Richards equation (the <a class="reference internal" href="#permafrost-flow-pk">Permafrost Flow PK</a>) to the
+three-phase Energy equation (the <a class="reference internal" href="#three-phase-subsurface-energy-pk">Three-Phase subsurface Energy PK</a>).</p>
+<p>Many options are provided for turning on and off various aspects of this
+Jacobian, so it is useful to mathematically write out these terms.  The
+equations are:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w \\
+\frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e\end{split}\]</div>
+<p>Note that all of the following are dependent on <span class="math notranslate nohighlight">\(p\)</span> and/or <span class="math notranslate nohighlight">\(T\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\Theta(p,T), k_r(p,T), n_l(p,T), \mu(T), \rho(p,T), E(p,T), \kappa(p,T), e(T)\]</div>
+<p>Also, both source terms <span class="math notranslate nohighlight">\(Q_w\)</span> and <span class="math notranslate nohighlight">\(Q_e\)</span> may or may not depend on <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(T\)</span>.</p>
+<p>Note also that the Darcy flux <span class="math notranslate nohighlight">\(\mathbf{q}\)</span> used in the advection of energy is given by the Darcy flux:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{q} = -\frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \rho g \cdot \hat{z} )\]</div>
+<p>Differentiating these two equations in their two unknowns gives the following four blocks in the approximate Jacobian:</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial F_1}{\partial p}\)</span>: this is the Richards equation diagonal block, and is controlled inside that PK.</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial F_1}{\partial T}\)</span> includes terms for:</p>
+<ul class="simple">
+<li><span class="math notranslate nohighlight">\(\frac{\partial \Theta}{\partial T}\)</span> This term is the cell-local diagonal block.</li>
+<li>The partial derivative of the divergence of the Darcy flux with respect to
+temperature is dominated by <span class="math notranslate nohighlight">\(\frac{\partial}{\partial T} \frac{k_r
+n_l}{\mu}\)</span>.  This is because the relative permeability is strongly
+dependent upon phase change (the freezing equals drying approximation).  This
+term is referred to as the “d div q / dT” term.</li>
+</ul>
+<p><span class="math notranslate nohighlight">\(\frac{\partial F_2}{\partial p}\)</span> includes terms for:</p>
+<ul class="simple">
+<li><span class="math notranslate nohighlight">\(\frac{\partial E}{\partial p}\)</span> This term is the cell-local diagonal block.</li>
+<li>The partial derivative of the energy diffusion term with respect to pressure
+is dominated by <span class="math notranslate nohighlight">\(\frac{\partial \kappa}{\partial p}\)</span> through phase
+change – at a constant temperature, but changing pressure, phase change can
+result in large changes to thermal conductivity.  This is referred to as the
+“div K grad T / dp” term.</li>
+</ul>
+<p><span class="math notranslate nohighlight">\(\frac{\partial F_2}{\partial T}\)</span>: this is the energy equation diagonal block, and is controlled inside that PK.</p>
+<p>Also, at this level, where we know more about the flux used in the energy
+equation (it is the Darcy flux), we can do a better approximation of the
+derivative of the advection of energy term with respect to both temperature and
+pressure.  For instance, enthalpy is only weakly dependent on pressure, so we
+can use the derivative of the divergence of the Darcy flux with respect to
+pressure (from the Richards block) in the advection term in the
+<span class="math notranslate nohighlight">\(\frac{\partial F_2}{\partial p}\)</span> block, and approximate
+<span class="math notranslate nohighlight">\(\frac{\partial k_r}{\partial T}\)</span> in the advection term as well.  These
+terms are referred to as “div hq / dp,T terms”.  Note the missing initial “d”
+here relative to other terms.</p>
+<p>The behavior of this MPC’s preconditioner can be set by an option,
+<cite>“preconditioner type</cite>”.  Really users should not change this from the default,
+except in expert cases or for comparison’s sake, but the options are:</p>
+<ul class="simple">
+<li><cite>“picard</cite>” is the default, this uses all available terms, and enables the
+“suppress” options for finer-grained control.</li>
+<li><cite>“none</cite>” No preconditioner never works.</li>
+<li><cite>“block diagonal</cite>” This is what one would get from the default <a class="reference internal" href="#strongmpc">StrongMPC</a>.  This probably never works.</li>
+<li><cite>“no flow coupling</cite>” This keeps the accumulation terms, but turns off all the
+non-local blocks.  This is equivalent to <a class="reference internal" href="#coupled-cells-mpc">Coupled Cells MPC</a>.</li>
+<li><cite>“ewc</cite>” <strong>CURRENTLY DEPRECATED/BROKEN/DISABLED</strong> In addition to the
+<cite>“picard</cite>” coupling, this also <em>always</em> does a change of variables, whereby
+we first invert to calculate primary variable corrections, then do a change
+of variables to calculate the linearized corrections in energy and water
+content space.  We then apply those corrections, and invert to find the
+primary variable changes that would have made those corrections.  This is
+called the “energy and water content” algorithm, and is related to similar
+variable changing approaches by Krabbenhoft (for flow) and Knoll (for
+energy), but in the multivariate approach.  This is somewhat bad, becuase
+while it fixes some corrections, it breaks others.</li>
+<li><cite>“smart ewc</cite>” <strong>CURRENTLY DEPRECATED/BROKEN/DISABLED</strong> Does the <cite>“ewc</cite>”
+algorithm above, but tries to be smart about when to do it.  This algorithm
+helps when we are about to fall off of the latent heat cliff.  If we can
+guess when to do it, we have a better chance of not breaking things.  This
+seems like it ought to be helpful, but often doesn’t do as much as one might
+hope.</li>
+</ul>
+<p>Note this “ewc” algorithm is just as valid, and more useful, in the predictor
+(where it is not deprecated/disabled).  There, we extrapolate a change in
+pressure and temperature, but often do better to extrapolate in water content
+and energy space, then invert (locally) for pressure and temperature
+corrections that meet that extrapolation.  Both of these globalization
+algorithms are supported by the <a class="reference internal" href="#ewc-globalization-delegate">EWC Globalization Delegate</a> object.</p>
+<div class="admonition-mpc-subsurface-spec admonition" id="mpc-subsurface-spec">
+<p class="first admonition-title">mpc-subsurface-spec</p>
+<ul class="simple">
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Domain of simulation</li>
+<li><cite>“preconditioner type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>picard</strong> See the above for
+detailed descriptions of the choices.  One of: <cite>“none</cite>”, <cite>“block
+diagonal</cite>”, <cite>“no flow coupling</cite>”, <cite>“picard</cite>”, <cite>“ewc</cite>”, and <cite>“smart ewc</cite>”.</li>
+<li><cite>“supress Jacobian terms: div hq / dp,T</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If using picard or ewc, do not include this block in the preconditioner.</li>
+<li><cite>“supress Jacobian terms: d div q / dT</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If using picard or ewc, do not include this block in the preconditioner.</li>
+<li><cite>“supress Jacobian terms: d div K grad T / dp</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> If using picard or ewc, do not include this block in the preconditioner.</li>
+<li><cite>“ewc delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[ewc-delegate-spec]</span></code> A <a class="reference internal" href="#ewc-globalization-delegate">EWC Globalization Delegate</a> spec.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[strong-mpc-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#strongmpc">StrongMPC</a>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="permafrost-mpc">
+<h3><a class="toc-backref" href="#id63">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>A coupler which solves flow and energy both surface and subsurface.</div></blockquote>
+<p>This MPC handles the coupling of surface energy and flow to subsurface energy
+and flow for integrated hydrology with freeze/thaw processes.</p>
+<div class="admonition-mpc-permafrost-spec admonition" id="mpc-permafrost-spec">
+<p class="first admonition-title">mpc-permafrost-spec</p>
+<ul class="simple">
+<li><cite>“PKs order</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> The user supplies the names of the
+coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
+surface_flow_pk, surface_energy_pk}.</li>
+<li><cite>“subsurface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>domain</strong></li>
+<li><cite>“surface domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>surface</strong></li>
+<li><cite>“mass exchange flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-surface_subsurface_flux</strong></li>
+<li><cite>“energy exchange flux key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>SURFACE_DOMAIN-surface_subsurface_energy_flux</strong></li>
+<li><cite>“water delegate</cite>” <code class="docutils literal notranslate"><span class="pre">[coupled-water-delegate-spec]</span></code> A <a class="reference internal" href="#coupled-water-globalization-delegate">Coupled Water
+Globalization Delegate</a> spec.</li>
+</ul>
+<p>INCLUDES:</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[mpc-subsurface-spec]</span></code> <em>Is a</em> <a class="reference internal" href="#subsurface-mpc">Subsurface MPC</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="globalization-delegates">
+<h2><a class="toc-backref" href="#id64">Globalization Delegates</a><a class="headerlink" href="#globalization-delegates" title="Permalink to this headline">¶</a></h2>
+<p>Globalization is the art of convincing a solver to find the solution.
+Remember – physics typically cares very little about <em>how</em> you get to
+a solution, only that you get there.  If you can guess or otherwise
+find the solution physically, without doing fancy math, go for it!
+These delegates are handy utility classes which are used by MPCs to
+effeciently leverage physics understanding in the mathematical solvers
+to nudge the solver in the direction of a reasonable solution, or to
+keep a solver from going off into a part of space which is totally
+unphysical.  These can often make the difference between converging
+and not converging.</p>
+<p>Much of the efficiency of ATS comes from these delegates, and more of
+them are always welcome contributions.</p>
+<div class="section" id="coupled-water-globalization-delegate">
+<h3><a class="toc-backref" href="#id65">Coupled Water Globalization Delegate</a><a class="headerlink" href="#coupled-water-globalization-delegate" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Globalization for nonlinearity around the appearance/disappearance of surface water.</div></blockquote>
+<p>The water delegate works to deal with discontinuities/strong nonlinearities
+when surface cells shift from dry to wet (i.e. the surface pressure goes from &lt;
+atmospheric pressure to &gt; atmospheric pressure.</p>
 <p>These methods work to alter the predictor around this nonlinearity.</p>
+<div class="admonition-mpc-delegate-water-spec admonition" id="mpc-delegate-water-spec">
+<p class="first admonition-title">mpc-delegate-water-spec</p>
 <ul class="simple">
 <li><cite>“modify predictor with heuristic</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong> This simply
 limits the prediction to backtrack to just above atmospheric on both the
@@ -2117,28 +2922,87 @@ results in faces whose values are very out of equilibrium with their
 neighboring cells which are not capped.  Damping results in a tiny
 timestep in which, globally, at MOST one face can go from wet to dry.
 This looks to do a combination, in which all things are damped, but faces
-that are initially expected to go from dry to wet are pre-scaled to ensure
-that, when damped, they are also (like the biggest change) allowed to go
-from dry to wet (so that multiple cells can wet in the same step).  This
-is the preferred method.</li>
+that are initially expected to go from dry to wet are pre-scaled to
+ensure that, when damped, they are also (like the biggest change) allowed
+to go from dry to wet (so that multiple cells can wet in the same step).
+This is the preferred method.</li>
 </ul>
 <p>In these methods, the following parameters are useful:</p>
-<ul class="simple">
-<li><cite>“cap over atmospheric</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>100 Pa</strong> This sets the max size over
-atmospheric to which things are capped or damped.</li>
+<ul class="last simple">
+<li><cite>“cap over atmospheric</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>100</strong> This sets the max size over
+atmospheric to which things are capped or damped. <cite>[Pa]</cite></li>
 </ul>
-</div></blockquote>
 </div>
-<div class="section" id="subsurface-mpc">
-<h3><a class="toc-backref" href="#id60">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline">¶</a></h3>
 </div>
-<div class="section" id="permafrost-mpc">
-<h3><a class="toc-backref" href="#id61">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ewc-globalization-delegate">
+<h3><a class="toc-backref" href="#id66">EWC Globalization Delegate</a><a class="headerlink" href="#ewc-globalization-delegate" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Globalization for nonlinearity associated with phase change and latent heat.</div></blockquote>
+<p>The EWC delegate works to deal with strong nonlinearities associated with
+latent heat and phase change.  Provided a change in primary variables pressure
+and temperature, it works by first multiplying those changes by the local
+Jacobian matrix, <span class="math notranslate nohighlight">\(\frac{\partial \left\{ \Theta, E \right\} }{ \partial
+\left\{ p, T \right\} }\)</span> to calculate changes in water content and energy, then
+calculating the new water content and energy and inverting the functions
+<span class="math notranslate nohighlight">\(\Theta(p,T), E(p,T)\)</span> to determine what pressure and temperature would
+have resulted in those values.  This provides a corrected change in the primary
+variables.</p>
+<p>Conceptually, this is a “more robust” choice in nonlinearities associated with
+phase change, where the derivatives go from small to large to small again, and
+small changes in pressure and temperature result in large changes in water
+content and energy.</p>
+<p>This delegate manages these globalization strategies, which can be used both in
+modifying the correction supplied by a nonlinear iterate, and in modifying a
+predictor, the extrapolated projection (from previous timesteps) that
+provides the initial guess to the nonlinear solve.</p>
+<div class="admonition-mpc-delegate-ewc-spec admonition" id="mpc-delegate-ewc-spec">
+<p class="first admonition-title">mpc-delegate-ewc-spec</p>
+<ul class="simple">
+<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> See <a class="reference internal" href="#verbose-object">Verbose Object</a>.</li>
+<li><cite>“PK name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Name of the owning PK – simply for logging and
+debugging.</li>
+<li><cite>“domain name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“domain”</strong> The mesh.</li>
+<li><cite>“preconditioner type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> When to use EWC on the nonlinear
+iterate’s correction.  One of:<ul>
+<li><cite>“none</cite>” Never do EWC</li>
+<li><cite>“ewc</cite>” Always do EWC</li>
+<li><cite>“smart ewc</cite>” Attempt EWC when it seems likely it will be useful and
+take the EWC correction if it is smaller than the standard correction.</li>
+</ul>
+</li>
+<li><cite>“predictor type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> When to use EWC on the predictor.  One
+of:<ul>
+<li><cite>“none</cite>” Never do EWC</li>
+<li><cite>“ewc</cite>” Always do EWC</li>
+<li><cite>“smart ewc</cite>” Attempt EWC when it seems likely it will be useful and
+take the EWC correction if it is smaller than the standard correction.</li>
+</ul>
+</li>
+<li><cite>“freeze-thaw cusp width [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width over which
+to assume we are close to the latent heat cliff, and begins applying the
+EWC algorithm in <cite>“ewc smarter</cite>”.</li>
+<li><cite>“freeze-thaw cusp width (freezing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width
+over which to assume we are close to the latent heat cliff as we get
+colder, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.</li>
+<li><cite>“freeze-thaw cusp width (thawing) [K]</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Controls a width
+over which to assume we are close to the latent heat cliff as we get
+warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.</li>
+<li><cite>“pressure key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-pressure</strong></li>
+<li><cite>“temperature key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-temperature</strong></li>
+<li><cite>“water content key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-water_content</strong></li>
+<li><cite>“energy key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-energy</strong></li>
+<li><cite>“cell volume key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>DOMAIN-cell_volume</strong></li>
+</ul>
+<p>INCLUDES</p>
+<ul class="last simple">
+<li><code class="docutils literal notranslate"><span class="pre">[debugger-spec]</span></code> Uses a <a href="#id190"><span class="problematic" id="id191">Debugger_</span></a></li>
+</ul>
+</div>
 </div>
 </div>
 </div>
 <div class="section" id="state">
-<h1><a class="toc-backref" href="#id62">State</a><a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id67">State</a><a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h1>
 <p>State consists of two sublists, one for evaluators and the other for
 atomic constants.  The latter is currently called <cite>“initial
 conditions</cite>”, which is a terrible name which must be fixed.</p>
@@ -2154,27 +3018,27 @@ conditions</cite>”, which is a terrible name which must be fixed.</p>
 </pre></div>
 </div>
 <div class="section" id="field-evaluators">
-<h2><a class="toc-backref" href="#id63">Field Evaluators</a><a class="headerlink" href="#field-evaluators" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id68">Field Evaluators</a><a class="headerlink" href="#field-evaluators" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="primaryvariableevaluator">
-<h3><a class="toc-backref" href="#id64">PrimaryVariableEvaluator</a><a class="headerlink" href="#primaryvariableevaluator" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id69">PrimaryVariableEvaluator</a><a class="headerlink" href="#primaryvariableevaluator" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="independentvariableevaluator">
-<h3><a class="toc-backref" href="#id65">IndependentVariableEvaluator</a><a class="headerlink" href="#independentvariableevaluator" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id70">IndependentVariableEvaluator</a><a class="headerlink" href="#independentvariableevaluator" title="Permalink to this headline">¶</a></h3>
 <p>Independent variables are provided either by a function or directly loaded from a file.</p>
 <div class="section" id="from-function">
-<h4><a class="toc-backref" href="#id66">From Function</a><a class="headerlink" href="#from-function" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id71">From Function</a><a class="headerlink" href="#from-function" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="from-file">
-<h4><a class="toc-backref" href="#id67">From File</a><a class="headerlink" href="#from-file" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id72">From File</a><a class="headerlink" href="#from-file" title="Permalink to this headline">¶</a></h4>
 </div>
 </div>
 <div class="section" id="water-content">
-<h3><a class="toc-backref" href="#id68">Water Content</a><a class="headerlink" href="#water-content" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id73">Water Content</a><a class="headerlink" href="#water-content" title="Permalink to this headline">¶</a></h3>
 <p>Water content is the conserved quantity in most flow equations, including
 Richard’s equation with and without ice.  A variety of evaluators are provided
 for inclusion of multiple phases.</p>
 <div class="section" id="richards-equation-water-content">
-<h4><a class="toc-backref" href="#id69">Richards Equation water content</a><a class="headerlink" href="#richards-equation-water-content" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id74">Richards Equation water content</a><a class="headerlink" href="#richards-equation-water-content" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><dl class="docutils">
 <dt>The Richards water content evaluator is an algebraic evaluator for liquid only water content</dt>
@@ -2198,13 +3062,13 @@ for inclusion of multiple phases.</p>
 - <cite>“cell volume</cite>”</p>
 </div>
 <div class="section" id="liquid-gas-water-content">
-<h4><a class="toc-backref" href="#id70">Liquid+Gas water content</a><a class="headerlink" href="#liquid-gas-water-content" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id75">Liquid+Gas water content</a><a class="headerlink" href="#liquid-gas-water-content" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="liquid-ice-water-content">
-<h4><a class="toc-backref" href="#id71">Liquid+Ice water content</a><a class="headerlink" href="#liquid-ice-water-content" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id76">Liquid+Ice water content</a><a class="headerlink" href="#liquid-ice-water-content" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="liquid-ice-gas-water-content">
-<h4><a class="toc-backref" href="#id72">Liquid+Ice+Gas water content</a><a class="headerlink" href="#liquid-ice-gas-water-content" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id77">Liquid+Ice+Gas water content</a><a class="headerlink" href="#liquid-ice-gas-water-content" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Three phase water content: vapor, liquid, and ice.</div></blockquote>
 <div class="math notranslate nohighlight">
@@ -2233,10 +3097,10 @@ for inclusion of multiple phases.</p>
 </div>
 </div>
 <div class="section" id="surface-water-potential-surfaces">
-<h3><a class="toc-backref" href="#id73">Surface Water potential surfaces</a><a class="headerlink" href="#surface-water-potential-surfaces" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id78">Surface Water potential surfaces</a><a class="headerlink" href="#surface-water-potential-surfaces" title="Permalink to this headline">¶</a></h3>
 <p>Evaluators for</p>
 <div class="section" id="surfaceelevation">
-<h4><a class="toc-backref" href="#id74">SurfaceElevation</a><a class="headerlink" href="#surfaceelevation" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id79">SurfaceElevation</a><a class="headerlink" href="#surfaceelevation" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>MeshedElevationEvaluator: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.</div></blockquote>
 <p>Evaluator type: <cite>“meshed elevation</cite>”</p>
@@ -2255,7 +3119,7 @@ for inclusion of multiple phases.</p>
 </div>
 </div>
 <div class="section" id="surfacepotential">
-<h4><a class="toc-backref" href="#id75">SurfacePotential</a><a class="headerlink" href="#surfacepotential" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id80">SurfacePotential</a><a class="headerlink" href="#surfacepotential" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>PresElevEvaluator: evaluates h + z</div></blockquote>
 <p>Evaluator type: “”</p>
@@ -2270,10 +3134,10 @@ for inclusion of multiple phases.</p>
 the input spec.  However, we include it here because this could easily be
 abstracted for new potential surfaces, kinematic wave, etc, at which point it
 would need to be added to the factory and the input spec.</p>
-<p>NOTE: This could easily be replaced by a generic <a href="#id166"><span class="problematic" id="id167">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This could easily be replaced by a generic <a href="#id192"><span class="problematic" id="id193">AdditiveEvaluator_</span></a></p>
 </div>
 <div class="section" id="snowsurfacepotential">
-<h4><a class="toc-backref" href="#id76">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id81">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>PresElevEvaluator: evaluates h + z</div></blockquote>
 <p>Evaluator type: “snow skin potential”</p>
@@ -2287,7 +3151,7 @@ would need to be added to the factory and the input spec.</p>
 <li><cite>“elevation key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>elevation</strong> Names the elevation variable. [m]</li>
 <li><cite>“dt factor</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]</li>
 </ul>
-<p>NOTE: This is equivalent to a generic <a href="#id168"><span class="problematic" id="id169">AdditiveEvaluator_</span></a></p>
+<p>NOTE: This is equivalent to a generic <a href="#id194"><span class="problematic" id="id195">AdditiveEvaluator_</span></a></p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;snow_skin_potential&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;field evaluator type&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;snow skin potential&quot;</span> <span class="nt">/&gt;</span>
@@ -2297,23 +3161,23 @@ would need to be added to the factory and the input spec.</p>
 </div>
 </div>
 <div class="section" id="surface-water-content">
-<h4><a class="toc-backref" href="#id77">Surface water content</a><a class="headerlink" href="#surface-water-content" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id82">Surface water content</a><a class="headerlink" href="#surface-water-content" title="Permalink to this headline">¶</a></h4>
 </div>
 </div>
 <div class="section" id="generic-evaluators">
-<h3><a class="toc-backref" href="#id78">Generic Evaluators</a><a class="headerlink" href="#generic-evaluators" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id83">Generic Evaluators</a><a class="headerlink" href="#generic-evaluators" title="Permalink to this headline">¶</a></h3>
 <p>Several generic evaluators are provided.</p>
 <div class="section" id="additive">
-<h4><a class="toc-backref" href="#id79">Additive</a><a class="headerlink" href="#additive" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id84">Additive</a><a class="headerlink" href="#additive" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="multiplicative">
-<h4><a class="toc-backref" href="#id80">Multiplicative</a><a class="headerlink" href="#multiplicative" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id85">Multiplicative</a><a class="headerlink" href="#multiplicative" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="column-summation">
-<h4><a class="toc-backref" href="#id81">Column summation</a><a class="headerlink" href="#column-summation" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id86">Column summation</a><a class="headerlink" href="#column-summation" title="Permalink to this headline">¶</a></h4>
 </div>
 <div class="section" id="subgrid-disaggregation">
-<h4><a class="toc-backref" href="#id82">Subgrid disaggregation</a><a class="headerlink" href="#subgrid-disaggregation" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id87">Subgrid disaggregation</a><a class="headerlink" href="#subgrid-disaggregation" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div><p>SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.</p>
 <ul class="simple">
@@ -2328,7 +3192,7 @@ OR
 </div>
 </div>
 <div class="section" id="initialconditions">
-<h2><a class="toc-backref" href="#id83">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id88">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline">¶</a></h2>
 <p>Initial condition specs are used in two places:</p>
 <ul class="simple">
 <li>within the <a class="reference internal" href="#pk">PK</a> spec which describes the initial condition of primary variables (true
@@ -2340,7 +3204,7 @@ evaluators, and are not included in the DaG.  Likely these should be
 removed entirely.</li>
 </ul>
 <div class="section" id="initialization-of-constant-scalars">
-<h3><a class="toc-backref" href="#id84">Initialization of constant scalars</a><a class="headerlink" href="#initialization-of-constant-scalars" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id89">Initialization of constant scalars</a><a class="headerlink" href="#initialization-of-constant-scalars" title="Permalink to this headline">¶</a></h3>
 <p>A constant scalar field is the global (with respect to the mesh)
 constant.  At the moment, the set of such fields includes atmospheric
 pressure.  The initialization requires to provide a named sublist with
@@ -2352,7 +3216,7 @@ a single parameter <cite>“value</cite>”.</p>
 </div>
 </div>
 <div class="section" id="initialization-of-constant-vectors">
-<h3><a class="toc-backref" href="#id85">Initialization of constant vectors</a><a class="headerlink" href="#initialization-of-constant-vectors" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id90">Initialization of constant vectors</a><a class="headerlink" href="#initialization-of-constant-vectors" title="Permalink to this headline">¶</a></h3>
 <p>A constant vector field is the global (with respect to the mesh)
 vector constant.  At the moment, the set of such vector constants
 includes gravity.  The initialization requires to provide a named
@@ -2365,7 +3229,7 @@ is looks like</p>
 </div>
 </div>
 <div class="section" id="initialization-of-scalar-fields">
-<h3><a class="toc-backref" href="#id86">Initialization of scalar fields</a><a class="headerlink" href="#initialization-of-scalar-fields" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id91">Initialization of scalar fields</a><a class="headerlink" href="#initialization-of-scalar-fields" title="Permalink to this headline">¶</a></h3>
 <p>A variable scalar field is defined by a few functions (labeled for instance,
 <cite>“Mesh Block i</cite>” with non-overlapping ranges.
 The required parameters for each function are <cite>“region</cite>”, <cite>“component</cite>”,
@@ -2390,7 +3254,7 @@ and the function itself.</p>
 </div>
 </div>
 <div class="section" id="initialization-of-tensor-fields">
-<h3><a class="toc-backref" href="#id87">Initialization of tensor fields</a><a class="headerlink" href="#initialization-of-tensor-fields" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id92">Initialization of tensor fields</a><a class="headerlink" href="#initialization-of-tensor-fields" title="Permalink to this headline">¶</a></h3>
 <p>A variable tensor (or vector) field is defined similarly to a variable
 scalar field.  The difference lies in the definition of the function
 which is now a multi-values function.  The required parameters are
@@ -2413,7 +3277,7 @@ which is now a multi-values function.  The required parameters are
 </div>
 </div>
 <div class="section" id="initialization-from-a-file">
-<h3><a class="toc-backref" href="#id88">Initialization from a file</a><a class="headerlink" href="#initialization-from-a-file" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id93">Initialization from a file</a><a class="headerlink" href="#initialization-from-a-file" title="Permalink to this headline">¶</a></h3>
 <p>Some data can be initialized from files. Additional sublist has to be
 added to named sublist of the <cite>“state</cite>” list with the file name and
 the name of attribute.  For a serial run, the file extension must be
@@ -2449,7 +3313,7 @@ example:</p>
 </div>
 </div>
 <div class="section" id="boundaryconditions">
-<h2><a class="toc-backref" href="#id89">BoundaryConditions</a><a class="headerlink" href="#boundaryconditions" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id94">BoundaryConditions</a><a class="headerlink" href="#boundaryconditions" title="Permalink to this headline">¶</a></h2>
 <p>In general, boundary conditions are provided in a heirarchical list by
 boundary condition type, then functional form.  Boundary condition specs are
 split between two types – those which require a user-provided function
@@ -2500,11 +3364,11 @@ the domain for a typical PK:</p>
 <p>Different PKs populate this general format with different names, replacing
 DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.</p>
 <div class="section" id="flow-specific-boundary-conditions">
-<h3><a class="toc-backref" href="#id90">Flow-specific Boundary Conditions</a><a class="headerlink" href="#flow-specific-boundary-conditions" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id95">Flow-specific Boundary Conditions</a><a class="headerlink" href="#flow-specific-boundary-conditions" title="Permalink to this headline">¶</a></h3>
 <p>Flow boundary conditions must follow the general format shown in
 <a class="reference internal" href="#boundaryconditions">BoundaryConditions</a>.  Specific conditions implemented include:</p>
 <div class="section" id="dirichlet-pressure-boundary-conditions">
-<h4><a class="toc-backref" href="#id91">Dirichlet (pressure) boundary conditions</a><a class="headerlink" href="#dirichlet-pressure-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id96">Dirichlet (pressure) boundary conditions</a><a class="headerlink" href="#dirichlet-pressure-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>Used for both surface and subsurface flows, this provides pressure data on
 boundaries (in [Pa]).</p>
 <p>Example:</p>
@@ -2524,7 +3388,7 @@ boundaries (in [Pa]).</p>
 </div>
 </div>
 <div class="section" id="neumann-mass-flux-boundary-conditions">
-<h4><a class="toc-backref" href="#id92">Neumann (mass flux) boundary conditions</a><a class="headerlink" href="#neumann-mass-flux-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id97">Neumann (mass flux) boundary conditions</a><a class="headerlink" href="#neumann-mass-flux-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], in the outward normal direction) on boundaries.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
@@ -2543,7 +3407,7 @@ boundaries (in [Pa]).</p>
 </div>
 </div>
 <div class="section" id="seepage-face-boundary-conditions">
-<h4><a class="toc-backref" href="#id93">Seepage face boundary conditions</a><a class="headerlink" href="#seepage-face-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id98">Seepage face boundary conditions</a><a class="headerlink" href="#seepage-face-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>A variety of seepage face boundary conditions are permitted for both surface
 and subsurface flow PKs.  Typically seepage conditions are of the form:</p>
 <blockquote>
@@ -2614,7 +3478,7 @@ capability is experimental and has not been well tested.</p>
 this has simply not had a use case yet.</p>
 </div>
 <div class="section" id="dirichlet-head-boundary-conditions">
-<h4><a class="toc-backref" href="#id94">Dirichlet (head) boundary conditions</a><a class="headerlink" href="#dirichlet-head-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id99">Dirichlet (head) boundary conditions</a><a class="headerlink" href="#dirichlet-head-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>Used for surface flows, this provides head data (in [m]) on boundaries.</p>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;boundary conditions&quot;</span><span class="nt">&gt;</span>
@@ -2633,7 +3497,7 @@ this has simply not had a use case yet.</p>
 </div>
 </div>
 <div class="section" id="fixed-level-boundary-conditions">
-<h4><a class="toc-backref" href="#id95">Fixed level boundary conditions</a><a class="headerlink" href="#fixed-level-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id100">Fixed level boundary conditions</a><a class="headerlink" href="#fixed-level-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>For surface flows only.  This fixes the water table at a constant elevation.
 It is a head condition that adapts to the surface elevation such that</p>
 <div class="math notranslate nohighlight">
@@ -2655,7 +3519,7 @@ It is a head condition that adapts to the surface elevation such that</p>
 </div>
 </div>
 <div class="section" id="zero-head-gradient-boundary-conditions">
-<h4><a class="toc-backref" href="#id96">Zero head gradient boundary conditions</a><a class="headerlink" href="#zero-head-gradient-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id101">Zero head gradient boundary conditions</a><a class="headerlink" href="#zero-head-gradient-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>Used for surface flows, this is an “outlet” boundary condition which looks to
 enforce the condition that</p>
 <div class="math notranslate nohighlight">
@@ -2679,7 +3543,7 @@ the elevation gradient is clear, but not so useful for DEM-based meshes.</p>
 </div>
 </div>
 <div class="section" id="critical-depth-boundary-conditions">
-<h4><a class="toc-backref" href="#id97">Critical depth boundary conditions</a><a class="headerlink" href="#critical-depth-boundary-conditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id102">Critical depth boundary conditions</a><a class="headerlink" href="#critical-depth-boundary-conditions" title="Permalink to this headline">¶</a></h4>
 <p>Also for surface flows, this is an “outlet” boundary condition which looks to
 set an outward flux to take away runoff.  This condition is given by:</p>
 <div class="math notranslate nohighlight">
@@ -2696,7 +3560,7 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </div>
 </div>
 <div class="section" id="dynamic-boundary-condutions">
-<h4><a class="toc-backref" href="#id98">Dynamic boundary condutions</a><a class="headerlink" href="#dynamic-boundary-condutions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id103">Dynamic boundary condutions</a><a class="headerlink" href="#dynamic-boundary-condutions" title="Permalink to this headline">¶</a></h4>
 <p>The type of boundary conditions maybe changed in time depending on the switch function of TIME.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;dynamic&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;regions&quot;</span> <span class="na">type=</span><span class="s">&quot;Array(string)&quot;</span> <span class="na">value=</span><span class="s">&quot;{surface west}&quot;</span><span class="nt">/&gt;</span>
@@ -2750,10 +3614,98 @@ set an outward flux to take away runoff.  This condition is given by:</p>
 </div>
 </div>
 <div class="section" id="time-integrators-solvers-and-other-mathematical-specs">
-<h1><a class="toc-backref" href="#id99">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline">¶</a></h1>
-<p>Common specs for all solvers and time integrators, used in PKs.</p>
+<h1><a class="toc-backref" href="#id104">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div>Common specs for all solvers and time integrators, used in PKs.</div></blockquote>
+<p>There are three commonly used broad classes of time integration
+strategies.</p>
+<p>“Update” methods are the simplest – they use no formal
+mathematical definition of a differential equation, but instead
+implicitly use a process by which variables at the new time are
+directly calculated.  Typically there <em>is</em> an implied ODE or PDE here,
+but it is not stated as such and time integration routines are not
+used.  Examples of these are common in biogeochemistry and vegetation
+models.</p>
+<p>“Explicit” time methods are the next simplest.  These include a
+variety of options from forward Euler to higher order Runge-Kutta
+schemes.  These only require evaluating forward models where we have
+existing of the dependencies.  If they work, these are great thanks to
+their deterministic nature and lack of expensive, memory-bandwith
+limited solvers.  But they only work on some types of problems.
+Examples of of these include transport, where we use high order time
+integration schemes to preserve fronts.</p>
+<p>“Implicit” and semi-implicit methods instead require the evaluation of
+a residual equation – the solution is guessed at, and the residual is
+calculated, which measures how far the equation is from being
+satisfied.  This measure is then inverted, finding a correction to the
+guess which hopefully reduces the residual.  As the residual goes to
+zero, the error, a measure of the difference between the guess and the
+true solution, also goes to zero.  To do this inversion, we lean on
+Newton and Newton-like methods, which attempt to somehow linearize, or
+approximately linearize, the residual function near the guess in order
+to calculate an update.  In this case, the time integration scheme
+requires both a nonlinear solver (to drive the residual to zero) and a
+linear solver or approximate solver (to calculate the correction).</p>
 <div class="section" id="timeintegrator">
-<h2><a class="toc-backref" href="#id100">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id105">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline">¶</a></h2>
+<p>Currently there are two classes of time integration schemes used in
+ATS: explicit (including a range of single and multi-stage) methods
+and BDF1, or Backward Euler.</p>
+<div class="section" id="explicit-time-integration">
+<h3><a class="toc-backref" href="#id106">Explicit Time Integration</a><a class="headerlink" href="#explicit-time-integration" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div>Explicit time integration methods in a generalized form.</div></blockquote>
+<p>This class implements several explicit Runge Kutta methods:</p>
+<blockquote>
+<div>forward Euler     (1st order)  –&gt; forward_euler
+Heun-Euler method (2nd order)  –&gt; heun_euler
+Midpoint method   (2nd order)  –&gt; midpoint
+Ralston method    (2nd order)  –&gt; ralston
+TVD RK method     (3rd order)  –&gt; tvd_3rd_order
+Kutta method      (3rd order)  –&gt; kutta_3rd_order
+Runge Kutta       (4th order)  –&gt; runge_kutta_4th_order
+User defined      (whatever)   –&gt; user_defined, use special constructor to create</div></blockquote>
+<p>Note that user-defined is only for developers currently, and cannot be created from an input file.</p>
+<p>The RK tableau is made up of the three private objects a, b, and c below.  they
+are arranged as follows:</p>
+<blockquote>
+<div><p>c[0]   |
+c[1]   | a(1,0)</p>
+<blockquote>
+<div>.     | a(2,0)    a(2,1)
+.     |   .         .
+.     |   .         .</div></blockquote>
+<blockquote>
+<div><div class="line-block">
+<div class="line">b[0]      b[1]    …    b[s-2]      b[s-1]</div>
+</div>
+</div></blockquote>
+</div></blockquote>
+<p>Note that c[0] should always equal zero, and that the entries in the matrix a
+that are not listed in this tableau are not used</p>
+<p>The implemented general Runge Kutta scheme of order s based on this tableau arrangement is</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}y_{n+1} = y_n + \sum{i=0}^{s-1} b[i]*k_i\\with\\\begin{split}  k_0 = h * f(t_n, y_n) \\
+  k_1 = h * f(t_n + c[1]*h, y_n + a(1,0)*k_0) \\
+  k_2 = h * f(t_n + c[2]*h, y_n + a(2,0)*k_0 + a(2,1)*k_1) \\
+   . \\
+   . \\
+   . \\
+  k_{s-1} = h * f(t_n + c[s-1]*h, y_n + a(s-1,0)*k_0 + ... + a(s-1,s-2)*k_{s-2})\end{split}\end{aligned}\end{align} \]</div>
+<div class="admonition-explicit-ti-rk-spec admonition" id="explicit-ti-rk-spec">
+<p class="first admonition-title">explicit-ti-rk-spec</p>
+<ul class="last simple">
+<li><cite>“verbose object</cite>” <code class="docutils literal notranslate"><span class="pre">[verbose-object-spec]</span></code> A <a class="reference internal" href="#verbose-object">Verbose Object</a></li>
+<li><cite>“RK method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>forward euler</strong>  One of: <cite>“forward Euler</cite>”, <cite>“heun euler</cite>”, <cite>“midpoint</cite>”, <cite>“ralston</cite>”, <cite>“tvd 3rd order</cite>”, <cite>“kutta 3rd order</cite>”, <cite>“runge kutta 4th order</cite>”</li>
+</ul>
+</div>
+</div>
+<div class="section" id="backward-euler">
+<h3><a class="toc-backref" href="#id107">Backward Euler</a><a class="headerlink" href="#backward-euler" title="Permalink to this headline">¶</a></h3>
+<p>** DOC GENERATION ERROR: file not found ‘ BDF_TI ‘ **</p>
+</div>
+<div class="section" id="timestep-control">
+<h3><a class="toc-backref" href="#id108">Timestep Control</a><a class="headerlink" href="#timestep-control" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Factory for creating TimestepController objects</div></blockquote>
 <p>A TimestepController object sets what size timestep to take.  This can be a
@@ -2768,11 +3720,11 @@ control, to adapter based upon simple nonlinear iteration counts.</p>
 <li><a class="reference internal" href="#timestepcontrollerfixed">TimestepControllerFixed</a>  (type <cite>“fixed</cite>”), a constant timestep</li>
 <li><a class="reference internal" href="#timestepcontrollerstandard">TimestepControllerStandard</a> (type <cite>‘standard</cite>”), an adaptive timestep based upon nonlinear iterations</li>
 <li><a class="reference internal" href="#timestepcontrollersmarter">TimestepControllerSmarter</a> (type <cite>‘smarter</cite>”), an adaptive timestep based upon nonlinear iterations with more control</li>
-<li><a href="#id170"><span class="problematic" id="id171">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
+<li><a href="#id196"><span class="problematic" id="id197">TimestepControllerAdaptive_</span></a> (type <cite>“adaptive</cite>”), an adaptive timestep based upon error control.</li>
 <li><a class="reference internal" href="#timestepcontrollerfromfile">TimestepControllerFromFile</a> (type <cite>“from file</cite>”), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)</li>
 </ul>
 <div class="section" id="timestepcontrollerfixed">
-<h3><a class="toc-backref" href="#id101">TimestepControllerFixed</a><a class="headerlink" href="#timestepcontrollerfixed" title="Permalink to this headline">¶</a></h3>
+<h4><a class="toc-backref" href="#id109">TimestepControllerFixed</a><a class="headerlink" href="#timestepcontrollerfixed" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Timestep controller providing constant timestep size.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">TimestepControllerFixed</span></code> is a simple timestep control mechanism which sets
@@ -2780,7 +3732,7 @@ a constant timestep size.  Note that the actual timestep size is given by the
 minimum of PK’s initial timestep sizes.</p>
 </div>
 <div class="section" id="timestepcontrollerstandard">
-<h3><a class="toc-backref" href="#id102">TimestepControllerStandard</a><a class="headerlink" href="#timestepcontrollerstandard" title="Permalink to this headline">¶</a></h3>
+<h4><a class="toc-backref" href="#id110">TimestepControllerStandard</a><a class="headerlink" href="#timestepcontrollerstandard" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Simple timestep control based upon previous iteration count.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">TimestepControllerStandard</span></code> is a simple timestep control mechanism
@@ -2804,7 +3756,7 @@ nonlinear iterations required to solve step <span class="math notranslate nohigh
 </ul>
 </div>
 <div class="section" id="timestepcontrollersmarter">
-<h3><a class="toc-backref" href="#id103">TimestepControllerSmarter</a><a class="headerlink" href="#timestepcontrollersmarter" title="Permalink to this headline">¶</a></h3>
+<h4><a class="toc-backref" href="#id111">TimestepControllerSmarter</a><a class="headerlink" href="#timestepcontrollersmarter" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Slightly smarter timestep controller based upon a history of previous timesteps.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">TimestepControllerSmarter</span></code> is based on <code class="docutils literal notranslate"><span class="pre">TimestepControllerStandard</span></code>, but
@@ -2823,7 +3775,7 @@ recover from tricky nonlinearities.</p>
 </ul>
 </div>
 <div class="section" id="timestepcontrollerfromfile">
-<h3><a class="toc-backref" href="#id104">TimestepControllerFromFile</a><a class="headerlink" href="#timestepcontrollerfromfile" title="Permalink to this headline">¶</a></h3>
+<h4><a class="toc-backref" href="#id112">TimestepControllerFromFile</a><a class="headerlink" href="#timestepcontrollerfromfile" title="Permalink to this headline">¶</a></h4>
 <blockquote>
 <div>Timestep controller which loads a timestep history from file.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">TimestepControllerFromFile</span></code> loads a timestep history from a file, then
@@ -2838,11 +3790,12 @@ solutions which are enough different to cause doubt over their correctness.</p>
 </ul>
 </div>
 </div>
+</div>
 <div class="section" id="linear-solver">
-<h2><a class="toc-backref" href="#id105">Linear Solver</a><a class="headerlink" href="#linear-solver" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id113">Linear Solver</a><a class="headerlink" href="#linear-solver" title="Permalink to this headline">¶</a></h2>
 <p>Linear solver are almost exclusively iterative methods with a separate provided preconditioner.</p>
 <div class="section" id="linear-solver-pcg">
-<h3><a class="toc-backref" href="#id106">Linear Solver: PCG</a><a class="headerlink" href="#linear-solver-pcg" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id114">Linear Solver: PCG</a><a class="headerlink" href="#linear-solver-pcg" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Preconditioned conjugate gradient method for a linear solver.</div></blockquote>
 <p>Parameters:</p>
@@ -2861,7 +3814,7 @@ criteria, any of which can be applied.  Valid include:<ul>
 </ul>
 </div>
 <div class="section" id="linear-solver-gmres">
-<h3><a class="toc-backref" href="#id107">Linear Solver: GMRES</a><a class="headerlink" href="#linear-solver-gmres" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id115">Linear Solver: GMRES</a><a class="headerlink" href="#linear-solver-gmres" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Generalized minimum residual method for a linear solver.</div></blockquote>
 <p>Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
@@ -2891,7 +3844,7 @@ convergence rates. (Add more please!)</li>
 </ul>
 </div>
 <div class="section" id="linear-solver-nka">
-<h3><a class="toc-backref" href="#id108">Linear Solver: NKA</a><a class="headerlink" href="#linear-solver-nka" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id116">Linear Solver: NKA</a><a class="headerlink" href="#linear-solver-nka" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>Uses NKA method as a linear solver.</div></blockquote>
 <p>This is effectively equivalent to GMRES with a rolling restart, where vectors
@@ -2915,14 +3868,14 @@ criteria, any of which can be applied.  Valid include:<ul>
 <p>Calef et al. “Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem.” JCP 238 (2013): 188-209.</p>
 </div>
 <div class="section" id="linear-solver-amesos">
-<h3><a class="toc-backref" href="#id109">Linear Solver: Amesos</a><a class="headerlink" href="#linear-solver-amesos" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id117">Linear Solver: Amesos</a><a class="headerlink" href="#linear-solver-amesos" title="Permalink to this headline">¶</a></h3>
 </div>
 <div class="section" id="linear-solver-belos-gmres">
-<h3><a class="toc-backref" href="#id110">Linear Solver: Belos GMRES</a><a class="headerlink" href="#linear-solver-belos-gmres" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id118">Linear Solver: Belos GMRES</a><a class="headerlink" href="#linear-solver-belos-gmres" title="Permalink to this headline">¶</a></h3>
 </div>
 </div>
 <div class="section" id="preconditioner">
-<h2><a class="toc-backref" href="#id111">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id119">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline">¶</a></h2>
 <p>These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:</p>
 <blockquote>
 <div><ul class="simple">
@@ -2940,7 +3893,7 @@ criteria, any of which can be applied.  Valid include:<ul>
 </pre></div>
 </div>
 <div class="section" id="hypre-s-boomer-amg">
-<h3><a class="toc-backref" href="#id112">Hypre’s Boomer AMG</a><a class="headerlink" href="#hypre-s-boomer-amg" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id120">Hypre’s Boomer AMG</a><a class="headerlink" href="#hypre-s-boomer-amg" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerBoomerAMG: HYPRE’s multigrid preconditioner.</div></blockquote>
 <p>Internal parameters for Boomer AMG include</p>
@@ -2996,7 +3949,7 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="trilinos-ml">
-<h3><a class="toc-backref" href="#id113">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id121">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerML: Trilinos ML multigrid.</div></blockquote>
 <p>Internal parameters of Trilinos ML includes</p>
@@ -3024,7 +3977,7 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="block-ilu">
-<h3><a class="toc-backref" href="#id114">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id122">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>PreconditionerBlockILU:   Incomplete LU preconditioner.</div></blockquote>
 <p>The internal parameters for block ILU are as follows:</p>
@@ -3042,18 +3995,18 @@ smoothing info, and <cite>“3</cite>’” prints both.</li>
 </div>
 </div>
 <div class="section" id="indentity">
-<h3><a class="toc-backref" href="#id115">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id123">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline">¶</a></h3>
 <p>The default, no PC applied.</p>
 </div>
 </div>
 <div class="section" id="nonlinearsolver">
-<h2><a class="toc-backref" href="#id116">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id124">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 <div class="section" id="other-common-specs">
-<h1><a class="toc-backref" href="#id117">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id125">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="ioevent">
-<h2><a class="toc-backref" href="#id118">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id126">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>IOEvent: base time/timestep control determing when in time to do something.</div></blockquote>
 <p>The IOEvent is used for multiple objects that need to indicate simulation times or cycles on which to do something.</p>
@@ -3120,8 +4073,8 @@ shall be written.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="verboseobject">
-<h2><a class="toc-backref" href="#id119">VerboseObject</a><a class="headerlink" href="#verboseobject" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="verbose-object">
+<h2><a class="toc-backref" href="#id127">Verbose Object</a><a class="headerlink" href="#verbose-object" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>VerboseObject: a controller for writing log files on multiple cores with varying verbosity.</div></blockquote>
 <p>This allows control of log-file verbosity for a wide variety of objects
@@ -3149,7 +4102,7 @@ Instead, developers can use them to control output.</p>
 </div>
 </div>
 <div class="section" id="function">
-<h2><a class="toc-backref" href="#id120">Function</a><a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id128">Function</a><a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>Function: base class for all functions of space and time.</div></blockquote>
 <p>Analytic, algabraic functions of space and time are used for a variety of
@@ -3194,7 +4147,7 @@ OR:
 END</p>
 <p>It is straightforward to add new functions as needed.</p>
 <div class="section" id="constant-function">
-<h3><a class="toc-backref" href="#id121">Constant Function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id129">Constant Function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionConstant: Implements the Function interface using a constant value.</div></blockquote>
 <p>Constant function is defined as <span class="math notranslate nohighlight">\(f(x) = a\)</span>, for all <span class="math notranslate nohighlight">\(x\)</span>.</p>
@@ -3209,7 +4162,7 @@ END</p>
 </div>
 </div>
 <div class="section" id="tabular-function">
-<h3><a class="toc-backref" href="#id122">Tabular Function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id130">Tabular Function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionTabular: Piecewise-defined function.</div></blockquote>
 <p>A piecewise function of one variable.</p>
@@ -3274,7 +4227,7 @@ and constant (<cite>f(x)=2</cite>) on interval <span class="math notranslate noh
 </div>
 </div>
 <div class="section" id="smooth-step-function">
-<h3><a class="toc-backref" href="#id123">Smooth step Function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id131">Smooth step Function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionSmoothStep: a smoothed discontinuity.</div></blockquote>
 <p>A smooth <span class="math notranslate nohighlight">\(C^2\)</span> function <cite>f(x)</cite> on interval <span class="math notranslate nohighlight">\([x_0,\,x_1]\)</span> is
@@ -3298,7 +4251,7 @@ interpolation.</p>
 </div>
 </div>
 <div class="section" id="polynomial-function">
-<h3><a class="toc-backref" href="#id124">Polynomial Function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id132">Polynomial Function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionPolynomial: a polynomial</div></blockquote>
 <p>A generic polynomial function is given by the following expression:</p>
@@ -3321,7 +4274,7 @@ interpolation.</p>
 </div>
 </div>
 <div class="section" id="multi-variable-linear-function">
-<h3><a class="toc-backref" href="#id125">Multi-variable linear Function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id133">Multi-variable linear Function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionLinear: a multivariate linear function.</div></blockquote>
 <p>A multi-variable linear function is formally defined by</p>
@@ -3350,7 +4303,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="separable-function">
-<h3><a class="toc-backref" href="#id126">Separable Function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id134">Separable Function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionSeparable: f(x,y) = f1(x)*f2(y)</div></blockquote>
 <p>A separable function is defined as the product of other functions such as</p>
@@ -3374,7 +4327,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="additive-function">
-<h3><a class="toc-backref" href="#id127">Additive Function</a><a class="headerlink" href="#additive-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id135">Additive Function</a><a class="headerlink" href="#additive-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionAdditive: f(x,y) = f1(x,y) + f2(x,y)</div></blockquote>
 <p>An additive function simply adds two other function results together.</p>
@@ -3399,7 +4352,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="multiplicative-function">
-<h3><a class="toc-backref" href="#id128">Multiplicative Function</a><a class="headerlink" href="#multiplicative-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id136">Multiplicative Function</a><a class="headerlink" href="#multiplicative-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionMultiplicative: f(x,y) = f1(x,y) * f2(x,y)</div></blockquote>
 <p>A multiplicative function simply multiplies two other function results together.</p>
@@ -3424,7 +4377,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="composition-function">
-<h3><a class="toc-backref" href="#id129">Composition Function</a><a class="headerlink" href="#composition-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id137">Composition Function</a><a class="headerlink" href="#composition-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionComposition: f(x,y) = f1(x,y) * f2(x,y)</div></blockquote>
 <p>Function composition simply applies one function to the result of another.</p>
@@ -3448,7 +4401,7 @@ Note that one of the parameters in a multi-valued linear function can be time.</
 </div>
 </div>
 <div class="section" id="piecewise-bilinear-function">
-<h3><a class="toc-backref" href="#id130">Piecewise Bilinear Function</a><a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id138">Piecewise Bilinear Function</a><a class="headerlink" href="#piecewise-bilinear-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionBilinear: a piecewise bilinear function.</div></blockquote>
 <p>A piecewise bilinear function extends the linear form of the tabular function to two variables.</p>
@@ -3480,7 +4433,7 @@ bounds.</p>
 </div>
 </div>
 <div class="section" id="distance-function">
-<h3><a class="toc-backref" href="#id131">Distance Function</a><a class="headerlink" href="#distance-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id139">Distance Function</a><a class="headerlink" href="#distance-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionDistance: distance from a reference point.</div></blockquote>
 <p>A distance function calculates distance from reference point <span class="math notranslate nohighlight">\(x_0\)</span>
@@ -3505,7 +4458,7 @@ using by the following expression:</p>
 </div></blockquote>
 </div>
 <div class="section" id="monomial-function">
-<h3><a class="toc-backref" href="#id132">Monomial Function</a><a class="headerlink" href="#monomial-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id140">Monomial Function</a><a class="headerlink" href="#monomial-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionMonomial: a multivariate monomial function.</div></blockquote>
 <p>A multi-variable monomial function is given by the following expression:</p>
@@ -3533,7 +4486,7 @@ Note that the first parameter in <span class="math notranslate nohighlight">\(x\
 </div>
 </div>
 <div class="section" id="standard-math-function">
-<h3><a class="toc-backref" href="#id133">Standard Math Function</a><a class="headerlink" href="#standard-math-function" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id141">Standard Math Function</a><a class="headerlink" href="#standard-math-function" title="Permalink to this headline">¶</a></h3>
 <blockquote>
 <div>FunctionStandardMath: provides access to many common mathematical functions.</div></blockquote>
 <p>These functions allow to set up non-trivial time-dependent boundary conditions
@@ -3572,7 +4525,7 @@ application, for use in changing the period of trig functions.</li>
 </div>
 </div>
 <div class="section" id="operator">
-<h2><a class="toc-backref" href="#id134">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id142">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div>Operator represents a linear map, and typically encapsulates a discretization.</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">Operator</span></code> represents a map from linear space X to linear space Y.  Typically,
@@ -3594,7 +4547,7 @@ of the <code class="docutils literal notranslate"><span class="pre">Operator</sp
 near-singular.</li>
 </ul>
 <div class="section" id="operatoraccumulation">
-<h3><a class="toc-backref" href="#id135">OperatorAccumulation</a><a class="headerlink" href="#operatoraccumulation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id143">OperatorAccumulation</a><a class="headerlink" href="#operatoraccumulation" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Accumulation</span></code> assembles the discrete form of <span class="math notranslate nohighlight">\(\frac{\partial A}{\partial t}\)</span>.</p>
 <p>This class is usually used as part of a preconditioner, providing the linearization:</p>
 <div class="math notranslate nohighlight">
@@ -3604,7 +4557,7 @@ near-singular.</li>
 <p>No options are available here.</p>
 </div>
 <div class="section" id="operatordiffusion">
-<h3><a class="toc-backref" href="#id136">OperatorDiffusion</a><a class="headerlink" href="#operatordiffusion" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id144">OperatorDiffusion</a><a class="headerlink" href="#operatordiffusion" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_Diffusion</span></code> forms local <code class="docutils literal notranslate"><span class="pre">Op</span></code> s and global <code class="docutils literal notranslate"><span class="pre">Operator</span></code> s for elliptic equations:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot k \nabla u\]</div>
@@ -3702,7 +4655,7 @@ procedure is not desirable. If skipped, the <cite>“schema</cite>” is used in
 In addition to the default, <strong>{face}</strong> may be used, which forms the Schur
 complement.</li>
 <li><cite>“consistent faces</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> may contain a <cite>“preconditioner</cite>” and
-<cite>“linear operator</cite>” list (see sections <a href="#id172"><span class="problematic" id="id173">Preconditioners_</span></a> and <a href="#id174"><span class="problematic" id="id175">LinearSolvers_</span></a>
+<cite>“linear operator</cite>” list (see sections <a href="#id198"><span class="problematic" id="id199">Preconditioners_</span></a> and <a href="#id200"><span class="problematic" id="id201">LinearSolvers_</span></a>
 respectively).  If these lists are provided, and the <cite>“discretization
 primary</cite>” is of type <cite>“mfd: *</cite>”, then the diffusion method
 UpdateConsistentFaces() can be used.  This method, given a set of cell
@@ -3723,7 +4676,7 @@ The second option is based on the divergence formula.</li>
 </ul>
 </div>
 <div class="section" id="operatoradvection">
-<h3><a class="toc-backref" href="#id137">OperatorAdvection</a><a class="headerlink" href="#operatoradvection" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id145">OperatorAdvection</a><a class="headerlink" href="#operatoradvection" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">PDE_AdvectionUpwind</span></code> assembles the discrete form of:</p>
 <div class="math notranslate nohighlight">
 \[\nabla \cdot (q C)\]</div>
