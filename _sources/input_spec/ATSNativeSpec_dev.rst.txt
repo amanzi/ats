@@ -1998,7 +1998,7 @@ providing a bunch of terms, including radiated energy, conducted
 energy, latent and sensible heat models, etc.
 
 ATS currently has several approaches to calculating these -- see
-`ats-demos<https://github.com/amanzi/ats-demos>`_ examples on
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
 ecohydrology for a more in-depth discussion.
 
 Balance Equation
@@ -3557,28 +3557,30 @@ Explicit Time Integration
 
 This class implements several explicit Runge Kutta methods:
 
-  forward Euler     (1st order)  --> forward_euler
-  Heun-Euler method (2nd order)  --> heun_euler 
-  Midpoint method   (2nd order)  --> midpoint 
-  Ralston method    (2nd order)  --> ralston 
-  TVD RK method     (3rd order)  --> tvd_3rd_order
-  Kutta method      (3rd order)  --> kutta_3rd_order
-  Runge Kutta       (4th order)  --> runge_kutta_4th_order
-  User defined      (whatever)   --> user_defined, use special constructor to create
+- forward Euler     (1st order)  --> "forward_euler"
+- Heun-Euler method (2nd order)  --> "heun_euler"
+- Midpoint method   (2nd order)  --> "midpoint"
+- Ralston method    (2nd order)  --> "ralston"
+- TVD RK method     (3rd order)  --> "tvd_3rd_order"
+- Kutta method      (3rd order)  --> "kutta_3rd_order"
+- Runge Kutta       (4th order)  --> "runge_kutta_4th_order"
+- User defined      (whatever)   --> user_defined, use special constructor to create
 
 Note that user-defined is only for developers currently, and cannot be created from an input file.
 
 The RK tableau is made up of the three private objects a, b, and c below.  they
 are arranged as follows:
-  
-  c[0]   | 
-  c[1]   | a(1,0)
-   .     | a(2,0)    a(2,1)
-   .     |   .         .        
-   .     |   .         . 
-  c[s-1 ]| a(s-1,0)  a(s-1,1)  . . .  a(s-1,s-2) 
-  ---------------------------------------------------------
-         |   b[0]      b[1]    . . .    b[s-2]      b[s-1] 
+
+.. code-block:
+
+    c[0]   | 
+    c[1]   | a(1,0)
+     .     | a(2,0)    a(2,1)
+     .     |   .         .        
+     .     |   .         . 
+    c[s-1 ]| a(s-1,0)  a(s-1,1)  . . .  a(s-1,s-2) 
+    ---------------------------------------------------------
+           |   b[0]      b[1]    . . .    b[s-2]      b[s-1] 
   
 Note that c[0] should always equal zero, and that the entries in the matrix a
 that are not listed in this tableau are not used
@@ -3611,47 +3613,118 @@ The implemented general Runge Kutta scheme of order s based on this tableau arra
 
 Backward Euler
 --------------
-** DOC GENERATION ERROR: file not found ' BDF_TI ' **
+ Solves globally implicit systems using backward Euler
 
-Timestep Control
-----------------
+Backward Euler is the simplest of the implicit methods.  It solves time
+integration schemes by evaluating all time derivatives at the new time.  This
+makes it unconditionally stable, though potentially not very accurate.  This
+unconditional stability tends to make it the workhorse of the types of stiff,
+nonlinear parabolic equations such as Richards equation and the diffusion wave
+approximation.
+
+In this method, we look to solve:
+
+.. math::
+    \frac{\partial \mathbf{u}}{\partial t} = f(\mathbf{u},\mathbf{x},t)
+
+via the time discretization scheme:
+
+.. math::
+    \frac{\mathbf{u}^{t + \Delta t} - \mathbf{u}^{t}}{\Delta t} = f(\mathbf{u}^{t + \Delta t}, \mathbf{x}, t + \Delta t)
+
+.. _bdf1-ti-spec:
+.. admonition:: bdf1-ti-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+
+    * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
+
+    * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
+      of preconditioner recalculation.
+
+    * `"freeze preconditioner`" ``[bool]`` **false** enforces preconditioner to
+      be updated only once per non-linear solver. When set to true, the above
+      parameter is ignored.
+
+    * `"extrapolate initial guess`" ``[bool]`` **true** identifies forward time
+      extrapolation of the initial guess.
+
+    * `"nonlinear iteration initial guess extrapolation order`" ``[int]`` **1**
+      defines extrapolation algorithm. Zero value implies no extrapolation.
+
+    * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
+      nonlinear tolerance on restart. The time integrator is usually restarted
+      when a boundary condition changes drastically. It may be beneficial to
+      loosen the nonlinear tolerance on the first several time steps after the
+      time integrator restart. The default value is 1, while a reasonable value
+      may be as large as 1000.
+
+    * `"restart tolerance relaxation factor damping`" ``[double]`` **1**
+      Controls how fast the loosened nonlinear tolerance will revert back to
+      the one specified in `"nonlinear tolerance`". If the nonlinear tolerance
+      is "tol", the relaxation factor is "factor", and the damping is "d", and
+      the time step count is "n" then the actual nonlinear tolerance is "tol *
+      max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
+
+    INCLUDES
+
+    - ``[bdf1-solver-fnbase-spec]`` *Uses a* `BDF1 Solver Interface`_.
+
+    - ``[solver-typed-spec]`` *Uses a* Solver_.
+
+    - ``[timestep-controller-typed-spec]`` *Uses a* `Timestep Controller`_
+    
+ 
+
+
+BDF1 Solver Interface
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Timestep Controller
+-------------------
  Factory for creating TimestepController objects
 
 A TimestepController object sets what size timestep to take.  This can be a
 variety of things, from fixed timestep size, to adaptive based upon error
 control, to adapter based upon simple nonlinear iteration counts.
 
-
-* `"timestep controller type`" ``[string]`` Set the type.  One of the below types.
-* `"timestep controller X parameters`" ``[list]`` List of parameters for a timestep controller of type X.
-
 Available types include:
 
-- TimestepControllerFixed_  (type `"fixed`"), a constant timestep
-- TimestepControllerStandard_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
-- TimestepControllerSmarter_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
-- TimestepControllerAdaptive_ (type `"adaptive`"), an adaptive timestep based upon error control.
-- TimestepControllerFromFile_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+- `Timestep Controller Fixed`_  (type `"fixed`"), a constant timestep
+- `Timestep Controller Standard`_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
+- `Timestep Controller Smarter`_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
+- `Timestep Controller Adaptive`_ (type `"adaptive`"), an adaptive timestep based upon error control.
+- `Timestep Controller From File`_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+
+
+.. _timestep-controller-typed-spec:
+.. admonition:: timestep-controller-typed-spec
+
+    * `"timestep controller type`" ``[string]`` Set the type.  One of: `"fixed`", `"standard`", `"smarter`", `"adaptive`", or `"from file`"
+    * `"timestep controller X parameters`" ``[list]`` List of parameters for a timestep controller of type X.
 
 
 
 
-TimestepControllerFixed
-^^^^^^^^^^^^^^^^^^^^^^^
+Timestep Controller Fixed
+^^^^^^^^^^^^^^^^^^^^^^^^^
   Timestep controller providing constant timestep size.
 
 ``TimestepControllerFixed`` is a simple timestep control mechanism which sets
 a constant timestep size.  Note that the actual timestep size is given by the
 minimum of PK's initial timestep sizes.
 
+No parameters are required.
 
 
 
-TimestepControllerStandard
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Timestep Controller Standard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  Simple timestep control based upon previous iteration count.
 
-``TimestepControllerStandard`` is a simple timestep control mechanism
+This is a simple timestep control mechanism
 which sets the next timestep based upon the previous timestep and how many
 nonlinear iterations the previous timestep took to converge.
 
@@ -3664,83 +3737,636 @@ The timestep for step :math:`k+1`, :math:`\Delta t_{k+1}`, is given by:
 where :math:`\Delta t_{k}` is the previous timestep and :math:`N_k` is the number of 
 nonlinear iterations required to solve step :math:`k`:.
 
-* `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-* `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-* `"time step reduction factor`" ``[double]`` :math:`f_reduction`, reduce the previous timestep by this multiple.
-* `"time step increase factor`" ``[double]`` :math:`f_increase`, increase the previous timestep by this multiple.
-* `"max time step`" ``[double]`` The max timestep size allowed.
-* `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
+.. _timestep-controller-typed-standard-spec:
+.. admonition:: timestep-controller-typed-standard-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.
+    * `"max time step`" ``[double]`` The max timestep size allowed.
+    * `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
 
 
 
 
-TimestepControllerSmarter
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Timestep Controller Smarter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Slightly smarter timestep controller based upon a history of previous timesteps.
 
-``TimestepControllerSmarter`` is based on ``TimestepControllerStandard``, but
-also tries to be a bit smarter to avoid repeated increase/decrease loops where
-the step size decreases, converges in few iterations, increases, but then
-fails again.  It also tries to grow the step geometrically to more quickly
-recover from tricky nonlinearities.
+This is based on `Timestep Controller Standard`_, but also tries to be a bit
+smarter to avoid repeated increase/decrease loops where the step size
+decreases, converges in few iterations, increases, but then fails again.  It
+also tries to grow the step geometrically to more quickly recover from tricky
+nonlinearities.
 
-* `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-* `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-* `"time step reduction factor`" ``[double]`` :math:`f_reduction`, reduce the previous timestep by this multiple.
-* `"time step increase factor`" ``[double]`` :math:`f_increase`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
-* `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_increase` will ever get.
-* `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
-* `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_increase` by itself.
+.. _timestep-controller-typed-smarter-spec:
+.. admonition:: timestep-controller-typed-smarter-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
+    * `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_{increase}` will ever get.
+    * `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
+    * `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_{increase}` by itself.
 
 
 
 
 
-TimestepControllerFromFile
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Timestep Controller Adaptive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Adaptive timestep control based upon previous iteration count.
+
+This is under development and is based on a posteriori error estimates.
+
+
+
+
+Timestep Controller From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Timestep controller which loads a timestep history from file.
 
-``TimestepControllerFromFile`` loads a timestep history from a file, then
-advances the step size with those values.  This is mostly used for testing
-purposes, where we need to force the same timestep history as previous runs to
-do regression testing.  Otherwise even machine roundoff can eventually alter
-number of iterations enough to alter the timestep history, resulting in
-solutions which are enough different to cause doubt over their correctness.
+This loads a timestep history from a file, then advances the step size with
+those values.  This is mostly used for testing purposes, where we need to force
+the same timestep history as previous runs to do regression testing.  Otherwise
+even machine roundoff can eventually alter number of iterations enough to alter
+the timestep history, resulting in solutions which are enough different to
+cause doubt over their correctness.
 
-* `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
-* `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
+.. _timestep-controller-typed-from-file-spec:
+.. admonition:: timestep-controller-typed-from-file-spec
 
-
-
-
-
+    * `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
+    * `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
 
 
 
-Linear Solver
-=============
 
-Linear solver are almost exclusively iterative methods with a separate provided preconditioner.
+
+Nonlinear Solver
+================
+.. _Solver:
+   
+ A factory for creating nonlinear solvers.
+
+Nonlinear solvers are used within implicit time integration schemes to drive
+the residual to zero and thereby solve for the primary variable at the new
+time.
+
+.. _solver-typed-spec:
+.. admonition:: solver-typed-spec
+
+    * `"solver type`" ``[string]`` Type of the solver.  One of:
+
+      - `"Newton`" See `Solver: Newton and Inexact Newton`_
+      - `"JFNK`" See `Solver: Jacobian-Free Newton Krylov`_
+      - `"line search`" See `Solver: Newton with Line Search`_
+      - `"continuation`" See `Solver: Nonlinear Continuation`_
+      - `"nka`" See `Solver: Nonlinear Krylov Acceleration`_
+      - `"aa`" See `Solver: Anderson Acceleration`_
+      - `"nka line search`" See `Solver: NKA with Line Search`"
+      - `"nka_ls_ats`" See `Solver: NKA with Line Search, ATS`_
+      - `"nka_bt_ats`" See `Solver: NKA with backtracking, ATS`_
+      - `"nox`" See `Solver: NOX`_
+    
+    * `"_solver_type_ parameters`" ``[_solver_type_-spec]`` A sublist containing
+      parameters specific to the type.
+
+.. warning::
+
+    `"JFNK`", `"line search`", and `"continuation`" methods have not been
+    beaten on as much as other methods.  `"nka_ls_ats`" is somewhat deprecated
+    and probably shouldn't be used.  Prefer `"nka`" for simple problems,
+    `"nka_bt_ats`" for freeze-thaw problems or other problems with strong
+    nonlinearities, and `"Newton`" when you have a good Jacobian.  While
+    `"nox`" hasn't been used extensively, it may be quite useful.
+
+
+      
+
+
+
+Solver: Newton and Inexact Newton
+---------------------------------
+ Straightforward Newton/Inexact Newton solver.
+
+The classical Newton method works well for cases where Jacobian is available
+and corresponds to a stable (e.g. upwind) discretization.  The inexact Newton
+methods work for cases where the discrete Jacobian is either not available, or
+not stable, or computationally expensive. The discrete Jacobian is replaced by
+a stable approximation of the continuum Jacobian. The choice between exact and
+inexact is not made by the Solver, but instead by the PK.  Both use the
+ApplyPreconditioner() method -- if this applies the true Jacobian, then the
+method is Newton.  If it applies an appoximation, it is inexact Newton.
+
+.. _solver-typed-newton-spec:
+.. admonition:: solver-typed-newton-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"monitor`" ``[string]`` **monitor update** specifies control of the
+      nonlinear residual. The available options are `"monitor update`" and
+      `"monitor residual`".
+
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"max du growth factor`" ``[double]`` **1.e5** allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"modify correction`" ``[bool]`` **true** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"stagnation iteration check`" ``[int]`` **8** determines the number of
+      iterations before the stagnation check is turned on. The stagnation
+      happens when the current L2-error exceeds the initial L2-error.
+
+ 
+
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+ Decorator for using a Solver with JFNK as the preconditioner.
+
+Jacobian-Free Newton Krylov uses a finite difference scheme to approximate the
+action of the Jacobian matrix, then uses a Krylov method (which only needs the
+action of the Jacobian and not the Jacobian itself) to calculate the action of
+the inverse of the Jacobian, thereby providing a Newton-like update.  As the
+linear Krylov scheme converges to the inverse action, the nonlinear solution
+converges to the same solution as a true Newton method.
+
+This implementation simply replaces a SolverFnBase's ApplyPreconditioner() with
+a new ApplyPreconditioner() which uses the Krylov method with the action of the
+forward operator to (hopefully) improve, relative to the supplied approximate
+inverse, the estimate of the inverse.
+
+.. _solver-typed-jfnk-spec:
+.. admonition:: solver-typed-jfnk-spec
+
+    * `"nonlinear solver`" ``[solver-typed-spec]`` The outer nonlinear solver to use.
+
+    * `"linear operator`" ``[linear-operator-typed-spec]`` The Krylov method to use.
+
+    * `"JF matrix parameters`" ``[jf-matrix-spec]`` See jf-matrix-spec_
+    
+ 
+
+
+
+The Jacobian-Free Matrix operator, which is used to estimate the action of the
+Jacobian.
+
+A variety of methods are available for choosing the epsilon used to approximate
+the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
+
+
+..todo:: Document these
+
+.. _jf-matrix-spec:
+.. admonition:: jf-matrix-spec
+
+    * "typical solution value" [double] **100** Used in relative action
+      approximations. **OPTION NOT IMPLEMENTED**
+
+    * "finite difference epsilon" [double] **1.e-8** defines the base finite
+      difference epsilon.
+
+    * "method for epsilon" [string] defines a method for calculating finite
+      difference epsilon. Available option is "Knoll-Keyes", "Knoll-Keyes L2",
+      "Brown-Saad".  See Knoll
+ 
+
+
+Solver: Newton with Line Search
+-------------------------------
+ Backtracking line search on the provided correction as a solver.
+
+Line Search accepts a correction from the Jacobian, then uses a
+process to attempt to minimize or at least ensure a reduction in the residual
+while searching *in that direction*, but not necessarily with the same
+magnitude, as the provided correction.  The scalar multiple of the search
+direction is given by :math:`\alpha`.
+
+This globalization recognizes that a true inverse Jacobian is a local
+measurement of the steepest descent direction, and so while the direction is
+guaranteed to be the direction which best reduces the residual, it may not
+provide the correct magnitude.
+
+Note, this always monitors the residual.
+
+.. _solver-typed-backtracking-spec:
+.. admonition:: solver-typed-backtracking-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"modify correction`" ``[bool]`` **false** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10**
+
+    * `"min valid alpha`" ``[double]`` **0** 
+
+    * `"max valid alpha`" ``[double]`` **10.**
+
+    * `"max line search iterations`" ``[int]`` **10** 
+
+  
+ 
+
+
+Solver: Nonlinear Continuation
+------------------------------
+ A very simple nonlinear continuation method.
+
+Continuation methods are useful when the nonlinearity can be controlled by a
+single simple parameter.  In this method, the nonlinear problem is solved with
+a less-nonlinear value of the parameter, and the solution of that is used as
+the initial guess to solve a harder problem.  As each successive problem is
+solved, the continuation parameter is changed closer and closer to the true
+value.
+
+Few if any PKs support this method currently -- it requires the PK to provide more
+interface about how to update the continuation parameter.
+
+.. _solver-typed-continuation-spec:
+.. admonition:: solver-typed-continuation-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"number of continuation steps`" ``[int]`` **5** How many steps to take
+      from initial parameter to final parameter.
+
+    * `"inner solver`" ``[solver-typed-spec]``A Solver_, used at each step.
+
+ 
+
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+ Nonlinear Krylov Acceleration as a nonlinear solver.
+
+Uses the Nonlinear Krylov acceleration method of Carlson and Miller to do
+effectively a multivariant secant method, accelerating the solution of a
+nonlinear solve.  This method can be significantly faster than Newton,
+especially with an approximate Jacobian.
+
+  Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates
+  formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
+
+  N. N. Carlson, K. Miller, Design and application of a gradient-weighted
+  moving finite element code II: In two dimensions, SIAM J. Sci.  Comput. 19
+  (3) (1998) 766–798.
+
+
+.. _solver-typed-nka-spec:
+.. admonition:: solver-typed-nka-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"monitor`" ``[string]`` **monitor update** Specifies control of the
+      nonlinear residual. The available options are `"monitor update`",
+      `"monitor residual`", `"monitor preconditioned residual`", `"monitor l2
+      residual`", and `"monitor preconditioned l2 residual`".
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
+
+    * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
+      identify divergence of the solver. If the relative maximum norm of the
+      solution increment (with respect to the initial increment) is above this
+      value, the solver is terminated.
+
+    * `"diverged residual tolerance`" ``[double]`` **1e10** Defines another way
+      to identify divergence of the solver. If the relative L2 norm of the
+      residual (with respect to the initial residual) is above this value, the
+      solver is terminated.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1e5** Defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+ 
+
+
+Solver: Anderson Acceleration
+-----------------------------
+ Anderson acceleration as a nonlinear solver.
+
+This is a variation of the GMRES solver for nonlinear problems.
+
+.. _solver-typed-aa-spec:
+.. admonition:: solver-typed-aa-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
+
+    * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
+      identify divergence of the solver. If the relative maximum norm of the
+      solution increment (with respect to the initial increment) is above this
+      value, the solver is terminated.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+      
+    * `"max aa vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"relaxation parameter`" ``[double]`` **1** Damping factor for increment.
+
+ 
+
+
+Solver: NKA with Line Search
+----------------------------
+ NKA nonlinear solver with a line-search based on a Brendt minimization algorithm.
+
+Does NKA, then checks if that correction has reduced the residual by at least a
+tolerance.  If not, this uses a Brendt minimization algorithm to try and find
+an :math:`\alpha` that minimizes the reduction in the residual.
+
+Note, this always monitors the residual.
+
+.. _solver-typed-nka-ls-spec:
+.. admonition solver-typed-nka-ls-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack tolerance`" ``[double]`` **0.** If the default update reduces
+      the residual by at least this much, line search is not performed.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10** Convergence criteria on Brendt algorithm.
+
+    * `"min valid alpha`" ``[double]`` **0** Lower bound on Brendt algorithm.
+
+    * `"max valid alpha`" ``[double]`` **10.** Upper bound on Brendt algorithm.
+
+    * `"max line search iterations`" ``[int]`` **10** Max iterations for the Brendt algorithm.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+  
+
+
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+ Nonlinear solve using NKA with a heuristic based backtracking.
+
+Whereas line search uses a formal minimization method, backtracking simply uses
+a heuristic multiplier on :math:`\alpha` to find a correction that sufficiently
+reduces the residual.  This can be significantly faster than the full
+minimization problem, and finding the true minimum may not be as important as
+simply doing better and going on to the next nonlinear iteration.
+
+This is the workhorse for hard ATS problems, as it is usually rather efficient,
+even in problems where the linear solve results in a correction that is way too
+large (e.g. for steep nonlinearities such as phase change).
+
+Note this always monitors the residual, and the correction is always modified.
+
+.. _solver-typed-nka-bt-ats-spec:
+.. admonition:: solver-typed-nka-bt-ats-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"nka lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+    * `"backtrack tolerance`" ``[double]`` **0.** Require a reduction of at
+      least this much in the residual norm before accepting a correction.
+
+    * `"backtrack factor`" ``[double]`` **0.5** Multiply the correction by this
+      factor each backtracking step.  Note, should be in (0, 1)
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack max steps`" ``[int]`` **10** Controls how many multiples of
+      the backtrack factor are applied before declaring failure.
+
+    * `"backtrack max total steps`" ``[int]`` **1e6** Controls how many total
+      backtrack steps may be taken before declaring failure.
+
+    * `"backtrack lag iterations`" ``[int]`` **0** Delay requiring a reduction
+      in residual for this many nonlinear iterations.
+
+    * `"backtrack last iteration`" ``[int]`` **1e6** Stop requiring a
+      reductiontion in residual after this many nonlinear iterations.
+
+    * `"backtrack fail on bad search direction`" ``[bool]`` **false** If
+      backtracking for the full number of "backtrack max steps" is taken, and
+      the residual norm has still not be reduced suffiently, this determines
+      the behavior.  If true, the solver declares failure.  If false, it takes
+      the bad step anyway and hopes to recover in later iterates.
+
+    IF
+    
+    * `"Anderson mixing`" ``[bool]`` **false** If true, use Anderson mixing instead of NKA.
+
+    THEN
+
+    * `"relaxation parameter`" ``[double]`` **0.7** The relaxation parameter
+      for Anderson mixing.
+
+    END
+
+
+
+
+Solver: NOX
+----------------------------------
+ Calls Nox nonlinear solvers/JFNK.
+
+
+Linear Solvers
+==============
+.. _LinearOperator:
+.. _`LinearSolvers`:
+.. _`Linear Solver`:
+
+ Iterative methods for determining the inverse of a linear operator.
+
+Linear solvers are iterative methods which wrap Operators/Matrices and provide
+a solution for the true inverse.  The provided Operator must implement a
+forward application (which may be an assembled Matrix-Vector product, or may be
+a matrix-free forward application) and an approximate inverse (the
+preconditioner).
+
+Note that linear operators here differ from preconditioners not in their
+exactness of the solution, but in their interface.  A Preconditioner_ works with
+raw vectors and matrices, and may need assembled matrices.  LinearOperators
+work with the action of matrices only, and never need assembled matrices.  As
+such they are templated with an arbitrary Matrix and Vector type, whereas
+Preconditioners are not.
+
+.. _linear-solver-typed-spec:
+.. admonition:: linear-solver-typed-spec
+
+    * `"iterative method type`" ``[string]`` Iterative method to be used.
+    * `"_iterative_method_type_ parameters`" ``[_iterative_method_type_-spec]``
+      Parameters associated with the requested iterative method.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="linear solver" type="ParameterList">
+      <Parameter name="iterative method" type="string" value="gmres" />
+      <ParameterList name="verbose object" type="ParameterList">
+        <Parameter name="verbosity level" type="string" value="medium" />
+      </ParameterList>
+      <ParameterList name="gmres parameters" type="ParameterList">
+        <Parameter name="preconditioning strategy" type="string" value="left" />
+        <Parameter name="error tolerance" type="double" value="1e-06" />
+        <Parameter name="convergence criteria" type="Array(string)" value="{relative residual,make one iteration}" />
+        <Parameter name="maximum number of iteration" type="int" value="80" />
+      </ParameterList>
+    </ParameterList>
+
+
+
 
 Linear Solver: PCG
 --------------------
  Preconditioned conjugate gradient method for a linear solver.
 
-Parameters:
+.. _linear-solver-typed-pcg-spec:
+.. admonition:: linear-solver-typed-pcg-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
 
 
@@ -3753,34 +4379,35 @@ Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
 GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
 W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
 
-Parameters:
+.. _linear-solver-typed-gmres-spec:
+.. admonition:: linear-solver-typed-gmres-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
-* `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
+    * `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
 
-* `"controller training start`" ``[int]`` **0** Start iteration for determining
-  convergence rates. (Add more please!)
+    * `"controller training start`" ``[int]`` **0** Start iteration for determining
+      convergence rates. (Add more please!)
 
-* `"controller training end`" ``[int]`` **3** Start iteration for determining
-  convergence rates. (Add more please!)
+    * `"controller training end`" ``[int]`` **3** Start iteration for determining
+      convergence rates. (Add more please!)
 
-* `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
-  "right"-type preconditioning (see Saad 1986)
+    * `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
+      "right"-type preconditioning (see Saad 1986)
 
-* `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
+    * `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
 
 
 
@@ -3792,48 +4419,74 @@ Linear Solver: NKA
 This is effectively equivalent to GMRES with a rolling restart, where vectors
 fall off the end of the space.
 
-Parameters:
+.. _linear-solver-typed-nka-spec:
+.. admonition:: linear-solver-typed-nka-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
-* `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
+    * `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
 
-* `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
+    * `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
 
-
-Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
 
 
 
 
 Linear Solver: Amesos
 ---------------------
+  Direct solvers via Trilinos.
+
+.. warning:: undocumented
+
+
 
 
 Linear Solver: Belos GMRES
 --------------------------
+ Trilinos/Belos implementation of GMRES
+
+Generalized minimum residual method (Yu.Kuznetsov, 1968; Y.Saad, 1986)
+
+.. warning:: undocumented
+    
 
 
 
-Preconditioner
-===================
 
-These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:
+Preconditioners
+===============
+.. _Preconditioner:
 
- * `"preconditioner type`" ``[string]`` **"identity"**, `"boomer amg`", `"trilinos ml`", `"block ilu`" ???
- * `"PC TYPE parameters`" ``[list]`` includes a list of parameters specific to the type of PC.
+  Base class for preconditioners.
+
+Provides approximate inverses of matrices.
+
+Note that preconditioners here differ from linear operators not in the
+approximate nature of their inverse, but in their interface.  Preconditioners
+work with raw vectors and matrices, and may need assembled matrices.  A `Linear
+Solver`_ works with the action of matrices only, and never need assembled
+matrices.  As such they are templated with an arbitrary Matrix and Vector type,
+whereas Preconditioners are not.
+
+
+.. _preconditioner-typed-spec:
+.. admonition:: preconditioner-typed-spec
+
+    * `"preconditioner type`" ``[string]`` **identity** Iterative method to be used.
+    * `"_preconditioner_type_ parameters`" ``[_preconditioner_type_-spec]``
+      Parameters associated with the requested preconditioner.
 
 Example:
 
@@ -3845,52 +4498,133 @@ Example:
             ... 
         </ParameterList>
      </ParameterList>
+      
+ 
 
 
-Hypre's Boomer AMG
--------------------
- PreconditionerBoomerAMG: HYPRE's multigrid preconditioner.
-Internal parameters for Boomer AMG include
 
-* `"tolerance`" ``[double]`` if is not zero, the preconditioner is dynamic 
-  and approximate the inverse matrix with the prescribed tolerance (in
-  the energy norm ???).
+Identity
+--------
+ Identity as a preconditioner.
 
-* `"smoother sweeps`" ``[int]`` **3** defines the number of smoothing loops. Default is 3.
+Simply copies the input vector to the output -- uses the Identity matrix as a
+preconditioner.
 
-* `"cycle applications`" ``[int]`` **5** defines the number of V-cycles.
+This is provided when using the `"preconditioner type`"=`"identity`" in the
+`Preconditioner`_ spec.
 
-* `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
+No parameters are required.
 
-* `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6 
-  which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
 
-* `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0 
-  which specifies a Falgout method. TODO: add others!
 
-* `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
 
-* `"use block indices`" ``[bool]`` **false** If true, uses the `"systems of
-    PDEs`" code with blocks given by the SuperMap, or one per DoF per entity
-    type.
+Diagonal
+--------
+ Diagonal preconditioner.
 
-* `"number of functions`" ``[int]`` **1** Any value > 1 tells Boomer AMG to
-  use the `"systems of PDEs`" code with strided block type.  Note that, to use
-  this approach, unknowns must be ordered with DoF fastest varying (i.e. not
-  the native Epetra_MultiVector order).  By default, it uses the `"unknown`"
-  approach in which each equation is coarsened and interpolated independently.
-  
-* `"nodal strength of connection norm`" ``[int]`` tells AMG to coarsen such
-    that each variable has the same coarse grid - sometimes this is more
-    "physical" for a particular problem. The value chosen here for nodal
-    determines how strength of connection is determined between the
-    coupled system.  I suggest setting nodal = 1, which uses a Frobenius
-    norm.  This does NOT tell AMG to use nodal relaxation.
-    Default is 0.
+Simply applys the pointwise inverse of the diagonal of the matrix as an
+extremely cheap matrix.
 
-* `"verbosity`" ``[int]`` **0** prints a summary of run time settings and
-  timing information to stdout.  `"1`" prints coarsening info, `"2`" prints
-  smoothing info, and `"3`'" prints both.
+This is provided when using the `"preconditioner type`"=`"diagonal`" in the
+`Preconditioner`_ spec.
+
+No parameters are required.
+
+
+
+
+Block ILU
+---------
+ Incomplete LU preconditioner.
+
+Incomplete LU is an approximate scheme based on partial factorization.  The
+implementation here is that provided in the Ifpack package of Trilinos.  This
+approach is a block solve that performs the ILU on each MPI process and uses
+Additive Schwarz to combine the blocks.
+
+This is provided when using the `"preconditioner type`"=`"block ilu`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-block-ilu-spec:
+.. admonition:: preconditioner-typed-block-ilu-spec:
+
+    * `"fact: relax value`" ``[double]`` **1.0**
+    * `"fact: absolute threshold`" ``[double]`` **0.0**
+    * `"fact: relative threshold`" ``[double]`` **1.0**
+    * `"fact: level-of-fill`" ``[int]`` **0**
+    * `"overlap`" ``[int]`` **0** Overlap of the combination.
+    * `"schwarz: combine mode`" ``[string]`` **Add** 
+
+The internal parameters for block ILU are as follows:
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="block ilu parameters">
+    <Parameter name="fact: relax value" type="double" value="1.0"/>
+    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+    <Parameter name="fact: level-of-fill" type="int" value="0"/>
+    <Parameter name="overlap" type="int" value="0"/>
+    <Parameter name="schwarz: combine mode" type="string" value="Add"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Boomer AMG
+----------
+ HYPRE's algebraic multigrid preconditioner.
+
+Boomer AMG is a HYPRE product consisting of a variety of Algebraic Multigrid
+methods.  It is accessed through Ifpack.
+
+This is provided when using the `"preconditioner type`"=`"boomer amg`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-boomer-amg-spec:
+.. admonition:: preconditioner-typed-boomer-amg-spec:
+
+    * `"tolerance`" ``[double]`` **0.** If is not zero, the preconditioner is dynamic 
+      and approximate the inverse matrix with the prescribed tolerance (in
+      the energy norm ???).
+
+    * `"smoother sweeps`" ``[int]`` **3** defines the number of smoothing loops. Default is 3.
+
+    * `"cycle applications`" ``[int]`` **5** defines the number of V-cycles.
+
+    * `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
+
+    * `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6 
+      which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
+
+    * `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0 
+      which specifies a Falgout method. TODO: add others!
+
+    * `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
+
+    * `"use block indices`" ``[bool]`` **false** If true, uses the `"systems of
+      PDEs`" code with blocks given by the SuperMap, or one per DoF per entity
+      type.
+
+    * `"number of functions`" ``[int]`` **1** Any value > 1 tells Boomer AMG to
+      use the `"systems of PDEs`" code with strided block type.  Note that, to use
+      this approach, unknowns must be ordered with DoF fastest varying (i.e. not
+      the native Epetra_MultiVector order).  By default, it uses the `"unknown`"
+      approach in which each equation is coarsened and interpolated independently.
+
+    * `"nodal strength of connection norm`" ``[int]`` tells AMG to coarsen such
+      that each variable has the same coarse grid - sometimes this is more
+      "physical" for a particular problem. The value chosen here for nodal
+      determines how strength of connection is determined between the coupled
+      system.  I suggest setting nodal = 1, which uses a Frobenius norm.  This
+      does NOT tell AMG to use nodal relaxation.  Default is 0.
+
+    * `"verbosity`" ``[int]`` **0** prints a summary of run time settings and
+      timing information to stdout.  `"1`" prints coarsening info, `"2`" prints
+      smoothing info, and `"3`'" prints both.
 
 Example:
   
@@ -3910,10 +4644,37 @@ Example:
 
 
 
-Trilinos ML
--------------------
- PreconditionerML: Trilinos ML multigrid.
-Internal parameters of Trilinos ML includes
+Euclid
+------
+ HYPRE's parallel ILU as a preconditioner.
+
+Euclid is a Parallel Incomplete LU, provided as part of the HYPRE project
+through the Ifpack interface.
+
+This is provided when using the `"preconditioner type`"=`"euclid`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-euclid-spec:
+.. admonition:: preconditioner-typed-euclid-spec:
+
+    * `"ilu(k) fill level`" ``[int]`` **1** The factorization level.
+    * `"ilut drop tolerance`" ``[double]`` **0** Defines a drop tolerance relative to the largest absolute value of any entry in the row being factored.
+    * `"rescale row`" ``[bool]`` **false** If true, values are scaled prior to factorization so that largest value in any row is +1 or -1. Note that this can destroy matrix symmetry.
+    * `"verbosity`" ``[int]`` **0** Prints a summary of runtime settings and timing information to stdout.
+
+
+
+
+ML (Trilinos AMG)
+-----------------
+ Trilinos ML smoothed aggregation multigrid.
+
+This is provided when using the `"preconditioner type`"=`"ml`" in the
+`Preconditioner`_ spec.
+
+.. warning:: no input spec defined
+
+See also: https://trilinos.github.io/pdfs/mlguide5.pdf
 
 Example:
 
@@ -3942,47 +4703,12 @@ Example:
  
 
 
-Block ILU
--------------------
- PreconditionerBlockILU:   Incomplete LU preconditioner.
-
-The internal parameters for block ILU are as follows:
-
-Example:
-
-.. code-block:: xml
-
-  <ParameterList name="block ilu parameters">
-    <Parameter name="fact: relax value" type="double" value="1.0"/>
-    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
-    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
-    <Parameter name="fact: level-of-fill" type="int" value="0"/>
-    <Parameter name="overlap" type="int" value="0"/>
-    <Parameter name="schwarz: combine mode" type="string" value="Add"/>
-    </ParameterList>
-  </ParameterList>
-
-
-
-
-Indentity
--------------------
-The default, no PC applied.
-
-
-
-NonlinearSolver
-===================
-
-
-
 
 Other Common Specs
-##########################################
+##################
 
 IOEvent
-===================
-
+=======
  IOEvent: base time/timestep control determing when in time to do something.
 
 The IOEvent is used for multiple objects that need to indicate simulation times or cycles on which to do something.
@@ -4043,7 +4769,6 @@ The IOEvent is used for multiple objects that need to indicate simulation times 
 
 Verbose Object
 ==============
-
  VerboseObject: a controller for writing log files on multiple cores with varying verbosity.
 
 This allows control of log-file verbosity for a wide variety of objects
@@ -4072,11 +4797,35 @@ Example:
 
 
 
+
+Debugger
+========
+ A mesh and vector structure aware utility for printing info.
+
+This is a utility that makes it easier for the user to control output written
+to the screen.  It allows the user to provide element IDs, and then provides
+functionality for a PK to write mesh geometry information and vector values of
+those elements to screen based upon verbosity levels.
+
+Note, most information is only written if the owning object's verbosity level
+from the `"Verbose Object`" spec is set to `"high`" or higher.
+
+.. debugger-spec:
+.. admonition:: debugger-spec
+
+    * `"debug cells`" ``[Array(int)]`` For each global ID of a cell provided
+      here, controls writing of vectors inside of the using PK.
+
+    * `"debug faces`" ``[Array(int)]`` For each global ID of a face provided
+      here, writes all adjoining cell information as if each cell was included
+      in `"debug cells`".
+
+
+
    
 
 Function
 ===================
-
  Function: base class for all functions of space and time.
 Analytic, algabraic functions of space and time are used for a variety of
 purposes, including boundary conditions, initial conditions, and independent
@@ -4091,39 +4840,69 @@ function of time:
 
 :math:`u = f(t,x,y,z)`
 
-``[function-spec]``
+Note, this does not follow the `"typed`" format for legacy reasons.
 
-ONE OF:
-* `"function: constant`" ``[constant-function-spec]``
-OR:
-* `"function: tabular`" ``[tabular-function-spec]``
-OR:
-* `"function: smooth step`" ``[smooth-step-function-spec]``
-OR:
-* `"function: polynomial`" ``[polynomial-function-spec]``
-OR:
-* `"function: monomial`" ``[monomial-function-spec]``
-OR:
-* `"function: linear`" ``[linear-function-spec]``
-OR:
-* `"function: separable`" ``[separable-function-spec]``
-OR:
-* `"function: additive`" ``[additive-function-spec]``
-OR:
-* `"function: multiplicative`" ``[multiplicative-function-spec]``
-OR:
-* `"function: composition`" ``[composition-function-spec]``
-OR:
-* `"function: static head`" ``[static-head-function-spec]``
-OR:
-* `"function: standard math`" ``[standard-math-function-spec]``
-OR:
-* `"function: bilinear`" ``[bilinear-function-spec]``
-OR:
-* `"function: distance`" ``[distance-function-spec]``
-#OR:
-#* `"function: squared distance`" ``[squared-distance-function-spec]``
-END
+.. function-spec:
+.. admonition:: function-spec
+
+  ONE OF:
+
+  * `"function: constant`" ``[constant-function-spec]``
+
+  OR:
+
+  * `"function: tabular`" ``[tabular-function-spec]``
+
+  OR:
+
+  * `"function: smooth step`" ``[smooth-step-function-spec]``
+
+  OR:
+
+  * `"function: polynomial`" ``[polynomial-function-spec]``
+
+  OR:
+
+  * `"function: monomial`" ``[monomial-function-spec]``
+
+  OR:
+
+  * `"function: linear`" ``[linear-function-spec]``
+
+  OR:
+
+  * `"function: separable`" ``[separable-function-spec]``
+
+  OR:
+
+  * `"function: additive`" ``[additive-function-spec]``
+
+  OR:
+
+  * `"function: multiplicative`" ``[multiplicative-function-spec]``
+
+  OR:
+
+  * `"function: composition`" ``[composition-function-spec]``
+
+  OR:
+
+  * `"function: static head`" ``[static-head-function-spec]``
+
+  OR:
+
+  * `"function: standard math`" ``[standard-math-function-spec]``
+
+  OR:
+
+  * `"function: bilinear`" ``[bilinear-function-spec]``
+
+  OR:
+
+  * `"function: distance`" ``[distance-function-spec]``
+
+  END
+
 
 
 
@@ -4625,8 +5404,8 @@ with nearly singular operators:
 
 
 
-OperatorAccumulation
--------------------------
+PDE_Accumulation
+----------------
 
 ``PDE_Accumulation`` assembles the discrete form of :math:`\frac{\partial A}{\partial t}`.
 
@@ -4642,8 +5421,8 @@ No options are available here.
 
 
 
-OperatorDiffusion
------------------
+PDE_Diffusion
+-------------
 
 
 ``PDE_Diffusion`` forms local ``Op`` s and global ``Operator`` s for elliptic equations:
@@ -4784,8 +5563,8 @@ Additional options for MFD with the gravity term include:
 
 
 
-OperatorAdvection
--------------------------
+PDE_Advection
+-------------
 
 
 
