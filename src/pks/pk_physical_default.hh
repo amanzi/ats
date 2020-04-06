@@ -33,7 +33,8 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
     INCLUDES:
 
-    - ``[pk-typed-spec]`` This *is a* PK_.
+    - ``[pk-spec]`` This *is a* PK_.
+    - ``[debugger-spec]`` Uses a Debugger_
 
 */
 

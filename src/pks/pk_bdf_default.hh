@@ -34,7 +34,7 @@ PKs.
 
     INCLUDES:
 
-    - ``[pk-typed-spec]`` This *is a* PK_.
+    - ``[pk-spec]`` This *is a* PK_.
 
 
 */

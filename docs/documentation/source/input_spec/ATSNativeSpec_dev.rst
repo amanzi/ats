@@ -102,7 +102,7 @@ Included in that list is at least one mesh: the `"domain`" mesh.  The
 `"domain`" mesh represents the primary domain of simulation -- usually the
 subsurface.  Simple, structured meshes may be generated on the fly, or complex
 unstructured meshes are provided as Exodus II files.  The `"domain`" mesh list
-includes either a `Generated Mesh`_, `Mesh From File`_, or `Logical Mesh`_ spec, as
+includes either a `Generated Mesh`_, `Read Mesh File`_, or `Logical Mesh`_ spec, as
 described below.
 
 Additionally, a `Surface Mesh`_ may be formed by lifting the surface of a
@@ -231,6 +231,7 @@ Specified by `"mesh type`" of `"logical`".
 .. _mesh-type-logical-spec:
 .. admonition:: mesh-type-logical-spec
 
+    Not yet completed...
    
 Surface Mesh
 ============
@@ -252,9 +253,11 @@ Specified by `"mesh type`" of `"surface`".
     ONE OF
 
     * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+
     OR
 
     * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
     END
 
     * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
@@ -372,42 +375,54 @@ Instead, they take a single sublist whose name defines the type.
 .. _region-spec:
 .. admonition:: region-spec
 
-    ONE OF:
+    ONE OF
 
     * `"region: all`" ``[list]`` See All_.
-    OR:
+
+    OR
 
     * `"region: box`" ``[region-box-spec]`` See Box_.
-    OR:
+
+    OR
 
     * `"region: plane`" ``[region-plane-spec]`` See Plane_.
-    OR:
+
+    OR
 
     * `"region: labeled set`" ``[region-labeled-set-spec]`` See `Labeled Set`_.
-    OR:
 
-    * `"region: color function`" ``[region-color-function-spec]`` See `Color Function`_.
-    OR:
+    OR
+
+    * `"region: color function`" ``[region-color-function-spec]`` See `Function Color`_.
+
+    OR
 
     * `"region: point`" ``[region-point-spec]`` See Point_.
-    OR:
+
+    OR
 
     * `"region: logical`" ``[region-logical-spec]`` See Logical_.
-    OR:
+
+    OR
 
     * `"region: polygon`" ``[region-polygon-spec]`` See Polygon_.
-    OR:
+
+    OR
 
     * `"region: enumerated`" ``[region-enumerated-spec]`` See Enumerated_.
-    OR:
+
+    OR
 
     * `"region: boundary`" ``[region-boundary-spec]`` See Boundary_.
-    OR:
+
+    OR
 
     * `"region: box volume fractions`" ``[region-box-volume-fractions-spec]`` See `Box Volume Fractions`_.
-    OR:
+
+    OR
 
     * `"region: line segment`" ``[region-line-segment-spec]`` See `Line Segment`_.
+
     END
 
 
@@ -537,6 +552,7 @@ Example:
 Plane
 =====
  RegionPlane: A planar (infinite) region in space, defined by a point and a normal.
+
 List *region: plane* defines a plane using a point lying on the plane and normal to the plane.
 
 .. _region-plane-spec:
@@ -565,6 +581,7 @@ Example:
 Labeled Set
 ===========
  RegionLabeledSet: A region defined by a set of mesh entities in a mesh file
+
 The list *region: labeled set* defines a named set of mesh entities
 existing in an input mesh file. This is the same file that contains
 the computational mesh. The name of the entity set is given
@@ -644,6 +661,7 @@ Example:
 Point
 =====
  RegionPoint: a point in space.
+
 List *region: point* defines a point in space. 
 This region consists of cells containing this point.
 
@@ -799,8 +817,8 @@ Example:
 
 
 
-Box Volume Fraction
-===================
+Box Volume Fractions
+====================
  RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.
 
 List *region: box volume fraction* defines a region bounded by a box *not* 
@@ -881,15 +899,18 @@ simulation, including starting and ending times and restart options.
 
     * `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
     * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
+
     ONE OF
     
     * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
     * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
+
     OR
     
     * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
       simulation in timestep cycles.
-    END
+
+      END
     
     * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
       specifies a path to the checkpoint file to continue a stopped simulation.
@@ -1000,6 +1021,7 @@ all domains/meshes.
 
     * `"file name base`" ``[string]`` **"checkpoint"**
     * `"file name digits`" ``[int]`` **5**
+
     INCLUDES:
 
     * ``[io-event-spec]`` An IOEvent_ spec
@@ -1130,6 +1152,7 @@ Example:
 PK
 ###
  The interface for a Process Kernel, an equation or system of equations.
+  
 A process kernel represents a single or system of partial/ordinary
 differential equation(s) or conservation law(s), and is used as the
 fundamental unit for coupling strategies.
@@ -1139,7 +1162,10 @@ Implementations of this interface typically are either an MPC
 other PKs and represent the system of equations, or a Physical PK,
 which represents a single equation.
 
-All PKs have the following parameters in their spec:
+Note there are two PK specs -- the first is the "typed" spec, which appears in
+the "cycle driver" list in the PK tree.  The second is the spec for the base
+class PK, which is inherited and included by each actual PK, and lives in the
+"PKs" sublist of "main".
 
 .. _pk-typed-spec:
 .. admonition:: pk-typed-spec
@@ -1148,6 +1174,13 @@ All PKs have the following parameters in their spec:
     * `"sub PKs`" ``[pk-typed-spec-list]`` **optional** If there are sub pks, list them.
     * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
 
+.. _pk-spec:
+.. admonition:: pk-spec
+
+    * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
+      match the corresponding entry in the ``[pk-typed-spec]``
+    * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
+    
 Example:
 
 .. code-block:: xml
@@ -1205,7 +1238,8 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
     INCLUDES:
 
-    - ``[pk-typed-spec]`` This *is a* PK_.
+    - ``[pk-spec]`` This *is a* PK_.
+    - ``[debugger-spec]`` Uses a Debugger_
 
 
 
@@ -1237,7 +1271,7 @@ PKs.
 
     INCLUDES:
 
-    - ``[pk-typed-spec]`` This *is a* PK_.
+    - ``[pk-spec]`` This *is a* PK_.
 
 
 
@@ -1296,7 +1330,19 @@ Physical PKs are the physical capability implemented within ATS.
 
 Flow PKs
 --------
-Flow PKs include the flow of water both above and below-ground.
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
 
 Richards PK
 ^^^^^^^^^^^
@@ -1305,20 +1351,20 @@ Richards PK
 Solves Richards equation:
 
 .. math::
-  \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w
+  \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
 
 .. _richards-spec:
 .. admonition:: richards-spec
 
     * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
-    * `"primary variable`" ``[string]`` The primary variable associated with
+    * `"primary variable key`" ``[string]`` The primary variable associated with
       this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
       must be provided by the user.
 
     * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman,
       0 normal flux.  See `Flow-specific Boundary Conditions`_
-
+ 
     * `"permeability type`" ``[string]`` **scalar** This controls the number of
       values needed to specify the absolute permeability.  One of:
 
@@ -1333,6 +1379,7 @@ Solves Richards equation:
     IF
     
     * `"source term`" ``[bool]`` **false** Is there a source term?
+
     THEN
     
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
@@ -1341,6 +1388,7 @@ Solves Richards equation:
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from
       the previous time step.
+
     END
 
     Math and solver algorithm options:
@@ -1352,6 +1400,8 @@ Solves Richards equation:
       inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
 
     * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
       to improve the inverse of the diffusion preconditioner.  Only used if this
@@ -1477,9 +1527,11 @@ Solves Richards equation:
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
+
     THEN
 
     * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
     END
 
     * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
@@ -1500,10 +1552,28 @@ Solves Richards equation:
 
 Permafrost Flow PK
 ^^^^^^^^^^^^^^^^^^
+ A three-phase, thermal Richard's equation with water, water vapor, and ice for permafrost applications.
+
+Note that the only difference between permafrost and richards is in
+constitutive relations -- the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.
+
+In the future, this should not even need a different PK.
+
+.. _permafrost-spec:
+.. admonition:: permafrost-spec
+  
+    * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
+
+    INCLUDES:
+
+    - ``[richards-spec]`` See `Richards PK`_
 
 
-Overland Flow, pressure primary variable, PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Overland Flow PK
+^^^^^^^^^^^^^^^^
  Overland flow using the diffusion wave equation.
 
 Solves the diffusion wave equation for overland flow with pressure as a primary variable:
@@ -1531,6 +1601,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     IF
     
     * `"source term`" ``[bool]`` **false** Is there a source term?
+
     THEN
     
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
@@ -1540,6 +1611,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from
       the previous time step.
+
     END
 
     Math and solver algorithm options:
@@ -1577,7 +1649,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       tidal boundary condition.  TODO: This should live in the BC spec?
       
     INCLUDES:
-
+    
     - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
     Everything below this point is usually not provided by the user, but are
@@ -1604,43 +1676,308 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     EVALUATORS:
 
     - `"conserved quantity`"
+    - `"water content`"
+    - `"cell volume`"
+    - `"surface_subsurface_flux`"
     - `"elevation`"
     - `"slope magnitude`"
     - `"overland_conductivity`"
     - `"ponded_depth`"
     - `"pres_elev`"
-    
+    - `"source`"
+
+
+.. todo:
+    Nearly all variable name roots are hard-coded here, this should get updated.
 
 
 
 
 Overland Flow with Ice
 ^^^^^^^^^^^^^^^^^^^^^^
+ Two-phase overland flow equation.
+
+This modifies the diffusion wave equation for overland flow that includes
+freeze-thaw processes.  This class could completely go away, but it does some
+error checking on the input file to make sure freeze-thaw processes are done
+correctly.  In the future this service should be done by a preprocessor
+generating the input file, and this class would go away.
+
+.. _icy-overland-spec:
+.. admonition:: icy-overland-spec
+
+    INCLUDES:
+
+    - ``[overland-pressure-spec]`` See `Overland Flow PK`_.
+
+
 
 
 Snow Distribution PK
 ^^^^^^^^^^^^^^^^^^^^
+ Preferential distribution of snow precip in low-lying areas.
+
+This PK is a heuristic PK that distributes incoming snow precipitation using a
+diffusion wave equation.  Think of it as an analogue to overland flow -- it
+effectively ensures that new snow "flows downhill," due to a uniformly random
+direction and strength wind, and lands on the lowest lying areas.
+
+Tweaking the snow-manning_coefficient lets you play with how uniform the snow
+layer ends up.  Most of the parameters are set by your snow precipitation input
+data interval.  The details of this are a bit tricky mathematically, and it may
+take some fiddling with parameters to do this correctly if your data is not
+daily (which all defaults are set for).
+
+.. _snow-distribution-spec:
+.. admonition:: snow-distribution-spec
+
+    * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation Function_ spec.
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+      Typically we use finite volume here.  See PDE_Diffusion_
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+      above.  Likely only Jacobian term options are needed here, as the others
+      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
+    
+    Not typically provided by the user, defaults are good:
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
+    
+
+.. todo::
+    For this PK, all variable root names are hard-coded.  This should get changed.
+    
+
 
 
 
 Energy PKs
 -----------
-Advection and diffusion of energy, including phase change.
+
+Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.
 
 Energy Base PK
 ^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy.
+
+Solves an advection-diffusion equation for energy:
+
+.. math::
+    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
+
+.. todo:: Document the energy error norm!
+    
+.. _energy-pk-spec:
+.. admonition:: energy-pk-spec
+
+    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-temperature`" Note there is no default -- this
+      must be provided by the user.
+
+    * `"boundary conditions`" ``[energy-bc-spec]`` Defaults to 0 diffusive flux
+      boundary condition.  See `Energy-specific Boundary Conditions`_
+      
+    * `"thermal conductivity evaluator`"
+      ``[thermal-conductivity-evaluator-spec]`` The thermal conductivity.  This
+      needs to go away, and should get moved to State.
+
+    * `"absolute error tolerance`" ``[double]`` **76.e-6** A small amount of
+      energy, see error norm. `[MJ]`
+      
+    * `"upwind conductivity method`" ``[string]`` **arithmetic mean** Method of
+      moving cell-based thermal conductivities onto faces.  One of:
+
+      - `"arithmetic mean`" the default, average of neighboring cells
+      - `"cell centered`" harmonic mean
+
+    IF
+      
+    * `"explicit advection`" ``[bool]`` **false** Treat the advection term implicitly.
+    
+    ELSE
+
+    * `"supress advective terms in preconditioner`" ``[bool]`` **false**
+      Typically subsurface energy equations are strongly diffusion dominated,
+      and the advective terms may add little.  With this flag on, we ignore
+      theem in the preconditioner, making an easier linear solve and often not
+      negatively impacting the nonlinear solve.
+
+    * `"advection preconditioner`" ``[pde-advection-spec]`` **optional**
+      Typically defaults are correct.
+
+    END
+      
+    * `"diffusion`" ``[pde-diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` See
+      PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
+      terms, as all the rest default to those values from `"diffusion`".
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` The Preconditioner_
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` A `LinearOperator`_
+      
+    IF
+    
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+    
+    THEN
+    
+    * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
+      not set, as the default is good. ``[MJ s^-1]``
+
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+
+    * `"source term finite difference`" ``[bool]`` **false** If the source term
+      is not diffferentiable, we can do a finite difference approximation of
+      this derivative anyway.  This is useful for difficult-to-differentiate
+      terms like a surface energy balance, which includes many terms.
+
+    EVALUATORS:
+
+    - `"source term`"
+    
+    END
+
+    Globalization:
+    
+    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+      face+cell diffusion discretization, this modifies the predictor to make
+      sure that faces, which are a DAE, are consistent with the predicted cells
+      (i.e. face fluxes from each sides match).
+
+    * `"modify predictor for freezing`" ``[bool]`` **false** A simple limiter
+      that keeps temperature corrections from jumping over the phase change.
+
+    * `"limit correction to temperature change [K]`" ``[double]`` **-1.0** If >
+      0, stops nonlinear updates from being too big through clipping.
+
+    The following are rarely set by the user, as the defaults are typically right.
+    
+    Variable names:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E` `[MJ]`
+    * `"energy key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
+    * `"water content key`" ``[string]`` **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
+    * `"enthalpy key`" ``[string]`` **DOMAIN-enthalpy** The specific enthalpy :math`e` `[MJ mol^-1]`
+    * `"flux key`" ``[string]`` **DOMAIN-mass_flux** The mass flux :math:`\mathbf{q}` used in advection. `[mol s^-1]`
+    * `"diffusive energy flux`" ``[string]`` **DOMAIN-diffusive_energy_flux** :math:`\mathbf{q_e}` `[MJ s^-1]`
+    * `"advected energy flux`" ``[string]`` **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
+    * `"thermal conductivity`" ``[string]`` **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
+    * `"upwinded thermal conductivity`" ``[string]`` **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
+    
+    * `"advection`" ``[pde-advection-spec]`` **optional** The PDE_Advection_ spec.  Only one current implementation, so defaults are typically fine.
+    
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+
+    IF
+    
+    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from an exchange flux.  Note, if this is a
+      coupled problem, it is probably set by the MPC.  No need for a user to
+      set it.
+      
+    THEN
+
+    * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
+    
+    END
+
+    * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from the surface temperature (Dirichlet).
+
+
+    EVALUATORS:
+
+    - `"enthalpy`"
+    - `"cell volume`"
+    - `"thermal conductivity`"
+    - `"conserved quantity`"
+    - `"energy`"
+    
+ 
 
 
 Two-Phase subsurface Energy PK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy in two phases.
+
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-two-phase-pk-spec:
+.. admonition:: energy-two-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-pk-spec]``  See `Energy Base PK`_
+
+
 
 
 Three-Phase subsurface Energy PK
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for energy in three phases.
+
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-three-phase-pk-spec:
+.. admonition:: energy-three-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-two-phase-pk-spec]`` See  `Two-Phase subsurface Energy PK`_
+
+
 
 
 Overland energy with Ice
 ^^^^^^^^^^^^^^^^^^^^^^^^
+ An advection-diffusion equation for surface energy in two phases.
+
+This is simply a surface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-surface-ice-pk-spec:
+.. admonition:: energy-surface-ice-pk-spec
+
+    These are typically not set by the user:
+
+    * `"coupled to subsurface via temperature`" ``[bool]`` **false** A coupling
+      scheme, provided by MPC.
+      
+    * `"coupled to subsurface via flux`" ``[bool]`` **false** A coupling
+      scheme, provided by MPC.
+      
+    * `"subsurface domain name`" ``[string]`` **optional** If one of the above
+      coupling schemes is turned on, we need to know the subsurface mesh.
+      Provided by MPC.
+      
+    INCLUDES:
+
+    - ``[energy-pk-spec]``  See `Energy Base PK`_
+
+
 
 
 
@@ -1648,132 +1985,784 @@ Overland energy with Ice
 Surface Energy Balance PKs
 ------------------------------
 
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
 
-Surface Energy Balance / Snow -- Monolithic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+ A simple conservation ODE.
+
+This is a very simple vector of ODEs, useful in balance equations, where the
+time derivative of a conserved quantity is determined by a bunch of sources and
+sinks.
+
+.. math::
+    \frac{\partial \Phi }{\partial t} = \sum_i Q_i
+
+.. _balance-pk-spec:
+.. admonition:: balance-pk-spec
+
+    * `"domain`" ``[string]`` Mesh on which the balance is to be done.
+
+    * `"primary variable key`" ``[string]`` The primary variable associated with
+      this PK.  Note there is no default -- this must be provided by the user.
+
+    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+
+    * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
+      quantity per second per cell volume.
+
+    * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
+      Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
+      implies explicit, 0.5 implies C-N.
+
+    * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
+      predictors are modified to ensure that the conserved quantity is always > 0.
+
+    * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
+      error norm calculation.  Defaults to a small amount of water.  Units are
+      the same as the conserved quantity.
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the
+      solve.
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]``
+      
 
 
 
-Surface Energy Balance -- Generic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+ An implicit PK for surface balance snow SWE conservation.
+
+This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.
+
+There is also some wierd hackiness here about area fractions -- see ATS Issue
+#8
+
+.. _subgrid-balance-pk-spec:
+.. admonition:: subgrid-balance-pk-spec
+
+    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``    
+
+    INCLUDES:
+
+    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+
+    Not typically set by user, defaults work:
+
+    * `"conserved quantity key`" ``[string]`` **LAYER-snow_water_equivalent**
+      Sets the default conserved quantity key, so this is likely not supplied
+      by the user. `[m]`
+    * `"snow density key`" ``[string]`` **LAYER-density** Default snow density
+      key. `[kg m^-3]`
+    * `"snow age key`" ``[string]`` **LAYER-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **LAYER-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **LAYER-fractional_areas** Subgrid
+      model fractional areas, see note above. `[-]`
+    * `"snow death rate key`" ``[string]`` **LAYER-death_rate** Deals with last
+      tiny bit of snowmelt.
+    
 
 
 
 Biogeochemistry
------------------
+---------------
 
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
 
 Biogeochemistry -- Monolithic Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Above and below-ground carbon cycle model.
+
+This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.
+
+It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.
+
+The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.
+
+Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.
+
+Note this is an "explicit update PK," or effectively a forward Euler timestep
+that is not written in ODE form.
+
+Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
+that build_columns in the subsurface Mesh_ spec has been supplied.
+
+.. _bgc-simple-spec:
+.. admonition:: bgc-simple-spec
+
+  * `"initial time step`" ``[double]`` **1.0** Initial time step size `[s]`
+
+  * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
+
+  * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
+
+  * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
+
+  * `"latitude [degrees]`" ``[double]`` **60** Latitude of the simulation in degrees.  Used in radiation balance.
+
+  * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height of the wind speed dataset.
+
+  * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0** Controls diffusion of carbon into the subsurface via cryoturbation.
+
+  * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the leaf biomass IC.
+
+  * `"domain name`" ``[string]`` **domain**
+
+  * `"surface domain name`" ``[string]`` **surface**
+
+  * `"transpiration key`" ``[string]`` **DOMAIN-transpiration** The distributed transpiration flux `[mol s^-1]`
+
+  * `"shaded shortwave radiation key`" ``[string]``
+    **SURFACE_DOMAIN-shaded_shortwave_radiation** Shortwave radiation that gets
+    past the canopy and teo the bare ground for soil evaporation. `[W m^-2]`
+
+  * `"total leaf area index key`" ``[string]`` **SURFACE_DOMAIN-total_leaf_area_index** Total LAI across all PFTs.
+
+  EVALUATORS:
+
+  - `"temperature`" The soil temperature `[K]`
+  - `"pressure`" soil mafic potential `[Pa]`
+  - `"surface-cell_volume`" `[m^2]`
+  - `"surface-incoming shortwave radiation`" `[W m^-2]`
+  - `"surface-air_temperature`" `[K]`
+  - `"surface-relative_humidity`" `[-]`
+  - `"surface-wind_speed`" `[m s^-1]`
+  - `"surface-co2_concentration`" `[ppm]`
+  
+
+
 
 
 
 Deformation
 -------------
 
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
 
 Volumetric Deformation
 ^^^^^^^^^^^^^^^^^^^^^^
+ Subsidence through bulk ice loss and cell volumetric change.
+
+This process kernel provides for going from a cell volumetric change to an
+updated unstructured mesh, and can be coupled sequentially with flow to solve
+problems of flow in a subsiding porous media.
+
+Note that all deformation here is vertical, and we assume that the subsurface
+mesh is **perfectly columnar** and that the "build columns" parameter has been
+given to the subsurface mesh.  See the Mesh_ spec for more.
+
+The process here is governed through two options, the "deformation mode" and
+the "deformation strategy."
+
+The deformation mode describes how the cell volume change is calculated.  There
+are three options here:
+
+- "prescribed" uses a function to precribe the volume changes as a function of (t,x,y,z).
+
+- "structural" decreases the cell volume if the porosity is above a prescribed
+  "structurally connected matrix" porosity.  Think of this as bulk ice
+  "propping up" the soil grains -- as that bulk ice melts, it reduces porosity
+  toward the porosity in at which grains start to touch again and can be
+  structurally sound.
+
+- "saturation" is a heuristic that considers the liquid saturation directly,
+  and tries to relax the liquid saturation back toward a value that is
+  consistent with what the thawed soil should be.
+
+.. todo: Move this into an evaluator!
+
+The deformation strategy describes how the cell volume change is turned into
+node coordinate changes.  Three options are available:
+
+- "average" simply takes the average of volume change/surface area and
+  horizontally averages this quantity across all neighbors.  While this has the
+  advantage of being simple, it has issues when thaw gradients in the
+  horizontal are not zero, as it may result in the loss of volume in a fully
+  frozen cell, blowing up the pressure and breaking the code.  This is great
+  when it works, but it almost never works in real problems.
+
+- "global optimization" attempts to directly form and solve the minimization
+  problem to find the nodal changes that result in the target volumetric
+  changes.  Note this has issues with overfitting, so penalty methods are used
+  to smooth the solution of the problem.  This is not particularly robust.
+
+- "mstk implementation" MSTK implements an iterated, local optimization method
+  that, one-at-a-time, moves nodes to try and match the volumes.  This has
+  fewer issues with overfitting, but doesn't always do sane things, and can be
+  expensive if iterations don't work well.  This is not particularly robust
+  either, but it seems to be the preferred method for now.
+
+.. todo:: Check that "global optimization" even works? --etc
+    
+  
+
+.. _volumetric-deformation-pk-spec:
+.. admonition:: volumetric-deformation-pk-spec
+
+    * `"max time step [s]`" ``[double]`` **inf** Sets a maximum time step size.
+
+    * `"deformation mode`" ``[string]`` **prescribed** See above for
+      descriptions.  One of: `"prescribed`", `"structural`", or `"saturation`".
+
+    * `"deformation strategy`" ``[string]`` **global optimization** See above
+      for descriptions.  One of `"average`", `"global optimization`", or `"mstk
+      implementation`"
+
+    * `"domain name`" ``[string]`` **domain**  The mesh to deform.
+
+    * `"surface domain name`" ``[string]`` **surface** The surface mesh.
+
+    * `"deformation function`" ``[function-spec]`` **optional** Only used if
+      "deformation mode" == "prescribed"
+
+    * `"global solve operator`" ``[matrix-volumetric-deformation-spec]``
+      Old-style Matrix (not Amanzi Operator) spec.  Only used if "deformation
+      strategy" == "global optimization"
+
+    * `"Solver`" ``[linear-operator-typed-spec]`` Solver for the optimization
+      problem. Only used if "deformation strategy" == "global optimization"
+
+    EVALUATORS:
+    - `"saturation_ice`"
+    - `"saturation_liquid`"
+    - `"saturation_gas`"
+    - `"base_porosity`"
+    - `"porosity`"
+    - `"cell volume`"
+      
+    INCLUDES:
+
+    - ``[pk-physical-default-spec]``
 
 
 
-MPCs
-===============
 
-MPCs couple other PKs, and are the non-leaf nodes in the PK tree.
+
+MPC
+===
+
+Multi-process-couplers or MPCs couple other PKs.  They also are PKs
+themselves, in that they implement the PK interface.  So MPCs can also
+couple other MPCs.  There are a few common "base" MPCs which do the
+simplest form of coupling -- sequential and globally implicit (with a
+diagonal preconditioner).  Then there are specific couplers which know
+more about their coupled sub-PKs, and can do more complicated things
+(for instance, adding off-diagonal block entries to the
+preconditioner).
+
+MPCs are also used to couple across domains -- for instance integrated
+hydrology is a surface+subsurface flow coupler.  They also can do
+fancier things like drape a bunch of subgrid columns off of a mesh, or
+other things.  Think of these as the custom couplers.
+
+Base MPC
+--------
+ Multi process coupler base class.
+
+A multi process coupler is a PK (process kernel) which coordinates and couples
+several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
+PKs.  Note this does NOT provide a full implementation of PK -- it does not
+supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
+must be inherited by derived classes which finish supplying the functionality.
+Instead, this provides the data structures and methods (which may be overridden
+by derived classes) for managing multiple PKs.
+
+Most of these methods simply loop through the coordinated PKs, calling their
+respective methods.
+
+.. _mpc-spec:
+.. admonition:: mpc-spec
+
+    * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
+      sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
+      method in this order.
+
+    INCLUDES:
+
+    - ``[pk-spec]`` *Is a* PK_.
+
+
+
+
 
 WeakMPC
-----------
+-------
+ Multi process coupler for sequential coupling.
+
+Noniterative sequential coupling simply calls each PK's AdvanceStep() method in
+order.
+
+.. _weak-mpc-spec:
+.. admonition:: weak-mpc-spec
+
+    INCLUDES:
+
+    - ``[mpc-spec]`` *Is a* MPC_.
+
+
+
 
 StrongMPC
 ----------
+ Multi process coupler for globally implicit (strong) coupling.
+
+Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also `PK: BDF`_ PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.
+
+.. _strong-mpc-spec:
+.. admonition:: strong-mpc-spec
+
+    INCLUDES:
+
+    - ``[mpc-spec]`` *Is a* MPC_.
+    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_.
+    
+
+
 
 Physical MPCs
 ===============
- coupling is an art, and requires special off-diagonal work.  Physical MPCs can derive from default MPCs to provide special work.
+
+Coupling is an art, and often requires special off-diagonal work for
+globally implicit coupling, and fancy games can be played with domains
+to couple across domain interfaces both implicitly and sequentially.
+Physical MPCs derive from default MPCs to provide special
+implementations of some methods.
 
 Coupled Water MPC
---------------------
+-----------------
+ A coupler which integrates surface and subsurface flow implicitly.
 
- MPCCoupledWater: coupler which integrates surface and subsurface flow.
+Couples Richards equation to surface water through continuity of both pressure
+and fluxes.  This leverages subsurface discretizations that include face-based
+unknowns, and notes that those face unknowns that correspond to surface faces
+are co-located with the surface cell pressure, and therefore are equivalent.
+In this approach (described in detail in a paper that is in review), the
+surface equations are directly assembled into the subsurface discrete operator.
 
-Couples Richards equation to surface water through continuity of both pressure and fluxes.
+.. _mpc-coupled-water-spec:
+.. admonition:: mpc-coupled-water-spec
 
-Currently requires that the subsurface discretization is a face-based
-discretization, i.e. one of the MFD methods.  Then the surface equations are
-directly added into the subsurface discrete equations.
+   * `"PKs order`" ``[Array(string)]`` The use supplies the names of the
+     coupled PKs.  The order must be {subsurface_flow_pk, surface_flow_pk}
+     (subsurface first).
 
-* `"PKs order`" ``[Array(string)]`` Supplies the names of the coupled PKs.
-  The order must be {subsurface_flow_pk, surface_flow_pk} (subsurface first).
+   * `"subsurface domain name`" ``[string]`` **domain** 
 
-* `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
-  that this is only used if this PK is not strongly coupled to other PKs.
+   * `"surface domain name`" ``[string]`` **surface** 
 
-* `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** is a Preconditioner_ spec.
-  Note that this is only used if this PK is not strongly coupled to other PKs.
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+     Globalization Delegate`_ spec.
 
-* `"water delegate`" ``[list]`` 
+   INCLUDES:
+
+   - ``[strong-mpc-spec]`` *Is a* StrongMPC_
 
 
 
- Globalization hacks to deal with nonlinearity around the appearance/disappearance of surface water.
 
- The water delegate works to eliminate discontinuities/strong nonlinearities
- when surface cells shift from dry to wet (i.e. the surface pressure goes
- from < atmospheric pressure to > atmospheric pressure.
+Coupled Cells MPC
+-----------------
+ A coupler which solves two PDEs on the same domain.
 
- These methods work to alter the predictor around this nonlinearity.
+This is a StrongMPC which uses a preconditioner in which the
+block-diagonal cell-local matrix is dense.  If the system looks something
+like:
 
- - `"modify predictor with heuristic`" ``[bool]`` **false** This simply
-   limits the prediction to backtrack to just above atmospheric on both the
-   first and second timesteps that take us over atmospheric.
+A( y1, y2, x, t ) = 0
+B( y1, y2, x, t ) = 0
 
- - `"modify predictor damp and cap the water spurt`" ``[bool]`` **false** The
-   second both limits (caps) and damps all surface cells to ensure that all
-   nearby cells are also not overshooting.  This is the preferred method.
+where y1,y2 are spatially varying unknowns that are discretized using the MFD
+method (and therefore have both cell and face unknowns), an approximation to
+the Jacobian is written as
+
+[  dA_c/dy1_c  dA_c/dy1_f   dA_c/dy2_c       0      ]
+[  dA_f/dy1_c  dA_f/dy1_f      0              0      ]
+[  dB_c/dy1_c     0          dB_c/dy2_c  dB_c/dy2_f ]
+[      0           0          dB_f/dy2_c  dB_f/dy2_f ]
+
+
+Note that the upper left block is the standard preconditioner for the A
+system, and the lower right block is the standard precon for the B system,
+and we have simply added cell-based couplings, dA_c/dy2_c and dB_c/dy1_c.
+
+Most commonly this is used to couple flow and energy equations on the same
+mesh.  In the temperature/pressure system, these extra blocks correspond to
+
+.. math::
+    \frac{\partial \Theta}{\partial T} \; , \; \frac{\partial E}{\partial p}
+
+.. _mpc-coupled-cells-spec:
+.. admonition:: mpc-coupled-cells-spec
+
+    * `"domain name`" ``[string]`` Domain of simulation
+    * `"conserved quantity A`" ``[string]`` Key of the first sub-PK's conserved quantity.
+    * `"conserved quantity B`" ``[string]`` Key of the second sub-PK's conserved quantity.
+    * `"primary variable A`" ``[string]`` Key of the first sub-PK's primary variable.
+    * `"primary variable B`" ``[string]`` Key of the second sub-PK's primary variable.
+    * `"no dA/dy2 block`" ``[bool]`` **false** Excludes the dA_c/dy2_c block above.
+    * `"no dB/dy1 block`" ``[bool]`` **false** Excludes the dB_c/dy1_c block above.
     
- These methods work to alter the preconditioned correction for the same
- reasons described above.
+    INCLUDES:
 
- - `"global water face limiter`" ``[default]`` **INF** This is simply a limit
-   to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
-   correction larger than this is set to this.
-
- - `"cap the water spurt`" ``[bool]`` **false** If a correction takes the
-   pressure on a surface cell from below atmospheric (dry) to above (wet),
-   the correction is set to a value which results in the new iterate to being
-   CAP_SIZE over atmospheric.
-
- - `"damp the water spurt`" ``[bool]`` **false** A damping factor (less than
-   one) is calculated to multiply the correction such that the largest
-   correction takes a cell to just above atmospheric.  All faces (globally)
-   are affected.
-  
- - `"damp and cap the water spurt`" ``[bool]`` **false** None of the above
-   should really be used.  Capping, when the cap is particularly severe,
-   results in faces whose values are very out of equilibrium with their
-   neighboring cells which are not capped.  Damping results in a tiny
-   timestep in which, globally, at MOST one face can go from wet to dry.
-   This looks to do a combination, in which all things are damped, but faces
-   that are initially expected to go from dry to wet are pre-scaled to ensure
-   that, when damped, they are also (like the biggest change) allowed to go
-   from dry to wet (so that multiple cells can wet in the same step).  This
-   is the preferred method.
-
- In these methods, the following parameters are useful:
-
- - `"cap over atmospheric`" ``[double]`` **100 Pa** This sets the max size over
-   atmospheric to which things are capped or damped.
-  
- 
+    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+    
 
 
 
 Subsurface MPC
---------------------
+--------------
+ A coupler which solves flow and energy in the subsurface.
+
+This MPC provides most nearly all terms for an approximate Jacobian for
+coupling three-phase Richards equation (the `Permafrost Flow PK`_) to the
+three-phase Energy equation (the `Three-Phase subsurface Energy PK`_).
+
+Many options are provided for turning on and off various aspects of this
+Jacobian, so it is useful to mathematically write out these terms.  The
+equations are:
+
+.. math::
+    \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w \\
+    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
+
+Note that all of the following are dependent on :math:`p` and/or :math:`T`:
+
+.. math::
+    \Theta(p,T), k_r(p,T), n_l(p,T), \mu(T), \rho(p,T), E(p,T), \kappa(p,T), e(T)
+
+Also, both source terms :math:`Q_w` and :math:`Q_e` may or may not depend on :math:`p` and :math:`T`.
+
+Note also that the Darcy flux :math:`\mathbf{q}` used in the advection of energy is given by the Darcy flux:
+
+.. math::
+    \mathbf{q} = -\frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \rho g \cdot \hat{z} )
+
+Differentiating these two equations in their two unknowns gives the following four blocks in the approximate Jacobian:
+
+:math:`\frac{\partial F_1}{\partial p}`: this is the Richards equation diagonal block, and is controlled inside that PK.
+
+:math:`\frac{\partial F_1}{\partial T}` includes terms for:
+
+- :math:`\frac{\partial \Theta}{\partial T}` This term is the cell-local diagonal block.
+
+- The partial derivative of the divergence of the Darcy flux with respect to
+  temperature is dominated by :math:`\frac{\partial}{\partial T} \frac{k_r
+  n_l}{\mu}`.  This is because the relative permeability is strongly
+  dependent upon phase change (the freezing equals drying approximation).  This
+  term is referred to as the "d div q / dT" term.
+
+:math:`\frac{\partial F_2}{\partial p}` includes terms for:
+
+- :math:`\frac{\partial E}{\partial p}` This term is the cell-local diagonal block.
+
+- The partial derivative of the energy diffusion term with respect to pressure
+  is dominated by :math:`\frac{\partial \kappa}{\partial p}` through phase
+  change -- at a constant temperature, but changing pressure, phase change can
+  result in large changes to thermal conductivity.  This is referred to as the
+  "div K grad T / dp" term.
+
+:math:`\frac{\partial F_2}{\partial T}`: this is the energy equation diagonal block, and is controlled inside that PK.
+
+Also, at this level, where we know more about the flux used in the energy
+equation (it is the Darcy flux), we can do a better approximation of the
+derivative of the advection of energy term with respect to both temperature and
+pressure.  For instance, enthalpy is only weakly dependent on pressure, so we
+can use the derivative of the divergence of the Darcy flux with respect to
+pressure (from the Richards block) in the advection term in the
+:math:`\frac{\partial F_2}{\partial p}` block, and approximate
+:math:`\frac{\partial k_r}{\partial T}` in the advection term as well.  These
+terms are referred to as "div hq / dp,T terms".  Note the missing initial "d"
+here relative to other terms.
+
+The behavior of this MPC's preconditioner can be set by an option,
+`"preconditioner type`".  Really users should not change this from the default,
+except in expert cases or for comparison's sake, but the options are:
+
+- `"picard`" is the default, this uses all available terms, and enables the
+  "suppress" options for finer-grained control.
+
+- `"none`" No preconditioner never works.
+
+- `"block diagonal`" This is what one would get from the default StrongMPC_.  This probably never works.
+
+- `"no flow coupling`" This keeps the accumulation terms, but turns off all the
+  non-local blocks.  This is equivalent to `Coupled Cells MPC`_.
+
+- `"ewc`" **CURRENTLY DEPRECATED/BROKEN/DISABLED** In addition to the
+  `"picard`" coupling, this also *always* does a change of variables, whereby
+  we first invert to calculate primary variable corrections, then do a change
+  of variables to calculate the linearized corrections in energy and water
+  content space.  We then apply those corrections, and invert to find the
+  primary variable changes that would have made those corrections.  This is
+  called the "energy and water content" algorithm, and is related to similar
+  variable changing approaches by Krabbenhoft (for flow) and Knoll (for
+  energy), but in the multivariate approach.  This is somewhat bad, becuase
+  while it fixes some corrections, it breaks others.
+
+- `"smart ewc`" **CURRENTLY DEPRECATED/BROKEN/DISABLED** Does the `"ewc`"
+  algorithm above, but tries to be smart about when to do it.  This algorithm
+  helps when we are about to fall off of the latent heat cliff.  If we can
+  guess when to do it, we have a better chance of not breaking things.  This
+  seems like it ought to be helpful, but often doesn't do as much as one might
+  hope.
+
+
+Note this "ewc" algorithm is just as valid, and more useful, in the predictor
+(where it is not deprecated/disabled).  There, we extrapolate a change in
+pressure and temperature, but often do better to extrapolate in water content
+and energy space, then invert (locally) for pressure and temperature
+corrections that meet that extrapolation.  Both of these globalization
+algorithms are supported by the `EWC Globalization Delegate`_ object.
+
+.. _mpc-subsurface-spec:
+.. admonition:: mpc-subsurface-spec
+
+    * `"domain name`" ``[string]`` Domain of simulation
+
+    * `"preconditioner type`" ``[string]`` **picard** See the above for
+      detailed descriptions of the choices.  One of: `"none`", `"block
+      diagonal`", `"no flow coupling`", `"picard`", `"ewc`", and `"smart ewc`".
+    
+    * `"supress Jacobian terms: div hq / dp,T`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
+    * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
+    * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
+
+    * `"ewc delegate`" ``[ewc-delegate-spec]`` A `EWC Globalization Delegate`_ spec.
+
+    INCLUDES:
+
+    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+    
+ 
+
 
 Permafrost MPC
---------------------
+--------------
+ A coupler which solves flow and energy both surface and subsurface.
+
+This MPC handles the coupling of surface energy and flow to subsurface energy
+and flow for integrated hydrology with freeze/thaw processes.
+
+.. _mpc-permafrost-spec:
+.. admonition:: mpc-permafrost-spec
+
+   * `"PKs order`" ``[Array(string)]`` The user supplies the names of the
+     coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
+     surface_flow_pk, surface_energy_pk}.
+
+   * `"subsurface domain name`" ``[string]`` **domain** 
+
+   * `"surface domain name`" ``[string]`` **surface** 
+
+   * `"mass exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_flux**
+
+   * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
+
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+     Globalization Delegate`_ spec.
+
+   INCLUDES:
+
+   - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
+    
+ 
+
+
+Globalization Delegates
+=======================
+
+Globalization is the art of convincing a solver to find the solution.
+Remember -- physics typically cares very little about *how* you get to
+a solution, only that you get there.  If you can guess or otherwise
+find the solution physically, without doing fancy math, go for it!
+These delegates are handy utility classes which are used by MPCs to
+effeciently leverage physics understanding in the mathematical solvers
+to nudge the solver in the direction of a reasonable solution, or to
+keep a solver from going off into a part of space which is totally
+unphysical.  These can often make the difference between converging
+and not converging.
+
+Much of the efficiency of ATS comes from these delegates, and more of
+them are always welcome contributions.
+
+Coupled Water Globalization Delegate
+------------------------------------
+ Globalization for nonlinearity around the appearance/disappearance of surface water.
+
+The water delegate works to deal with discontinuities/strong nonlinearities
+when surface cells shift from dry to wet (i.e. the surface pressure goes from <
+atmospheric pressure to > atmospheric pressure.
+
+These methods work to alter the predictor around this nonlinearity.
+
+.. _mpc-delegate-water-spec:
+.. admonition:: mpc-delegate-water-spec
+
+    * `"modify predictor with heuristic`" ``[bool]`` **false** This simply
+      limits the prediction to backtrack to just above atmospheric on both the
+      first and second timesteps that take us over atmospheric.
+
+    * `"modify predictor damp and cap the water spurt`" ``[bool]`` **false** The
+      second both limits (caps) and damps all surface cells to ensure that all
+      nearby cells are also not overshooting.  This is the preferred method.
+    
+    These methods work to alter the preconditioned correction for the same
+    reasons described above.
+
+    * `"global water face limiter`" ``[default]`` **INF** This is simply a limit
+      to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
+      correction larger than this is set to this.
+
+    * `"cap the water spurt`" ``[bool]`` **false** If a correction takes the
+      pressure on a surface cell from below atmospheric (dry) to above (wet),
+      the correction is set to a value which results in the new iterate to being
+      CAP_SIZE over atmospheric.
+
+    * `"damp the water spurt`" ``[bool]`` **false** A damping factor (less than
+      one) is calculated to multiply the correction such that the largest
+      correction takes a cell to just above atmospheric.  All faces (globally)
+      are affected.
+  
+    * `"damp and cap the water spurt`" ``[bool]`` **false** None of the above
+      should really be used.  Capping, when the cap is particularly severe,
+      results in faces whose values are very out of equilibrium with their
+      neighboring cells which are not capped.  Damping results in a tiny
+      timestep in which, globally, at MOST one face can go from wet to dry.
+      This looks to do a combination, in which all things are damped, but faces
+      that are initially expected to go from dry to wet are pre-scaled to
+      ensure that, when damped, they are also (like the biggest change) allowed
+      to go from dry to wet (so that multiple cells can wet in the same step).
+      This is the preferred method.
+
+    In these methods, the following parameters are useful:
+
+    * `"cap over atmospheric`" ``[double]`` **100** This sets the max size over
+      atmospheric to which things are capped or damped. `[Pa]`
+  
+ 
+
+
+EWC Globalization Delegate
+--------------------------
+ Globalization for nonlinearity associated with phase change and latent heat.
+
+The EWC delegate works to deal with strong nonlinearities associated with
+latent heat and phase change.  Provided a change in primary variables pressure
+and temperature, it works by first multiplying those changes by the local
+Jacobian matrix, :math:`\frac{\partial \left\{ \Theta, E \right\} }{ \partial
+\left\{ p, T \right\} }` to calculate changes in water content and energy, then
+calculating the new water content and energy and inverting the functions
+:math:`\Theta(p,T), E(p,T)` to determine what pressure and temperature would
+have resulted in those values.  This provides a corrected change in the primary
+variables.
+
+Conceptually, this is a "more robust" choice in nonlinearities associated with
+phase change, where the derivatives go from small to large to small again, and
+small changes in pressure and temperature result in large changes in water
+content and energy.
+
+This delegate manages these globalization strategies, which can be used both in
+modifying the correction supplied by a nonlinear iterate, and in modifying a
+predictor, the extrapolated projection (from previous timesteps) that
+provides the initial guess to the nonlinear solve.
+
+.. _mpc-delegate-ewc-spec:
+.. admonition:: mpc-delegate-ewc-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` See `Verbose Object`_.
+    
+    * `"PK name`" ``[string]`` Name of the owning PK -- simply for logging and
+      debugging.
+    * `"domain name`" ``[string]`` **"domain"** The mesh.
+
+    * `"preconditioner type`" ``[string]`` When to use EWC on the nonlinear
+      iterate's correction.  One of:
+
+      - `"none`" Never do EWC
+      - `"ewc`" Always do EWC
+      - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
+        take the EWC correction if it is smaller than the standard correction.
+
+    * `"predictor type`" ``[string]`` When to use EWC on the predictor.  One
+      of:
+      
+      - `"none`" Never do EWC
+      - `"ewc`" Always do EWC
+      - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
+        take the EWC correction if it is smaller than the standard correction.
+
+    * `"freeze-thaw cusp width [K]`" ``[double]`` Controls a width over which
+      to assume we are close to the latent heat cliff, and begins applying the
+      EWC algorithm in `"ewc smarter`".
+
+    * `"freeze-thaw cusp width (freezing) [K]`" ``[double]`` Controls a width
+      over which to assume we are close to the latent heat cliff as we get
+      colder, and begins applying the EWC algorithm in `"ewc smarter`".
+
+    * `"freeze-thaw cusp width (thawing) [K]`" ``[double]`` Controls a width
+      over which to assume we are close to the latent heat cliff as we get
+      warmer, and begins applying the EWC algorithm in `"ewc smarter`".
+        
+    * `"pressure key`" ``[string]`` **DOMAIN-pressure**
+    * `"temperature key`" ``[string]`` **DOMAIN-temperature**
+    * `"water content key`" ``[string]`` **DOMAIN-water_content**
+    * `"energy key`" ``[string]`` **DOMAIN-energy**
+    * `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
+
+    INCLUDES
+
+    - ``[debugger-spec]`` Uses a Debugger_
+    
+
+
 
 State
 ##############
@@ -2520,50 +3509,222 @@ The type of boundary conditions maybe changed in time depending on the switch fu
 Time integrators, solvers, and other mathematical specs
 #######################################################
 
-Common specs for all solvers and time integrators, used in PKs.
+  Common specs for all solvers and time integrators, used in PKs.
 
+There are three commonly used broad classes of time integration
+strategies.
+
+"Update" methods are the simplest -- they use no formal
+mathematical definition of a differential equation, but instead
+implicitly use a process by which variables at the new time are
+directly calculated.  Typically there *is* an implied ODE or PDE here,
+but it is not stated as such and time integration routines are not
+used.  Examples of these are common in biogeochemistry and vegetation
+models.
+
+"Explicit" time methods are the next simplest.  These include a
+variety of options from forward Euler to higher order Runge-Kutta
+schemes.  These only require evaluating forward models where we have
+existing of the dependencies.  If they work, these are great thanks to
+their deterministic nature and lack of expensive, memory-bandwith
+limited solvers.  But they only work on some types of problems.
+Examples of of these include transport, where we use high order time
+integration schemes to preserve fronts.
+
+"Implicit" and semi-implicit methods instead require the evaluation of
+a residual equation -- the solution is guessed at, and the residual is
+calculated, which measures how far the equation is from being
+satisfied.  This measure is then inverted, finding a correction to the
+guess which hopefully reduces the residual.  As the residual goes to
+zero, the error, a measure of the difference between the guess and the
+true solution, also goes to zero.  To do this inversion, we lean on
+Newton and Newton-like methods, which attempt to somehow linearize, or
+approximately linearize, the residual function near the guess in order
+to calculate an update.  In this case, the time integration scheme
+requires both a nonlinear solver (to drive the residual to zero) and a
+linear solver or approximate solver (to calculate the correction).
 
 TimeIntegrator
 ==============
 
+Currently there are two classes of time integration schemes used in
+ATS: explicit (including a range of single and multi-stage) methods
+and BDF1, or Backward Euler.
+
+Explicit Time Integration
+-------------------------
+ Explicit time integration methods in a generalized form.
+
+This class implements several explicit Runge Kutta methods:
+
+- forward Euler     (1st order)  --> "forward_euler"
+- Heun-Euler method (2nd order)  --> "heun_euler"
+- Midpoint method   (2nd order)  --> "midpoint"
+- Ralston method    (2nd order)  --> "ralston"
+- TVD RK method     (3rd order)  --> "tvd_3rd_order"
+- Kutta method      (3rd order)  --> "kutta_3rd_order"
+- Runge Kutta       (4th order)  --> "runge_kutta_4th_order"
+- User defined      (whatever)   --> user_defined, use special constructor to create
+
+Note that user-defined is only for developers currently, and cannot be created from an input file.
+
+The RK tableau is made up of the three private objects a, b, and c below.  they
+are arranged as follows:
+
+.. code-block:
+
+    c[0]   | 
+    c[1]   | a(1,0)
+     .     | a(2,0)    a(2,1)
+     .     |   .         .        
+     .     |   .         . 
+    c[s-1 ]| a(s-1,0)  a(s-1,1)  . . .  a(s-1,s-2) 
+    ---------------------------------------------------------
+           |   b[0]      b[1]    . . .    b[s-2]      b[s-1] 
+  
+Note that c[0] should always equal zero, and that the entries in the matrix a
+that are not listed in this tableau are not used
+  
+The implemented general Runge Kutta scheme of order s based on this tableau arrangement is
+
+.. math::
+    y_{n+1} = y_n + \sum{i=0}^{s-1} b[i]*k_i
+  
+    with 
+  
+      k_0 = h * f(t_n, y_n) \\
+      k_1 = h * f(t_n + c[1]*h, y_n + a(1,0)*k_0) \\
+      k_2 = h * f(t_n + c[2]*h, y_n + a(2,0)*k_0 + a(2,1)*k_1) \\
+       . \\
+       . \\
+       . \\ 
+      k_{s-1} = h * f(t_n + c[s-1]*h, y_n + a(s-1,0)*k_0 + ... + a(s-1,s-2)*k_{s-2})
+
+
+.. _explicit-ti-rk-spec:
+.. admonition:: explicit-ti-rk-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+
+    * `"RK method`" ``[string]`` **forward euler**  One of: `"forward Euler`", `"heun euler`", `"midpoint`", `"ralston`", `"tvd 3rd order`", `"kutta 3rd order`", `"runge kutta 4th order`"
+      
+
+
+
+Backward Euler
+--------------
+ Solves globally implicit systems using backward Euler
+
+Backward Euler is the simplest of the implicit methods.  It solves time
+integration schemes by evaluating all time derivatives at the new time.  This
+makes it unconditionally stable, though potentially not very accurate.  This
+unconditional stability tends to make it the workhorse of the types of stiff,
+nonlinear parabolic equations such as Richards equation and the diffusion wave
+approximation.
+
+In this method, we look to solve:
+
+.. math::
+    \frac{\partial \mathbf{u}}{\partial t} = f(\mathbf{u},\mathbf{x},t)
+
+via the time discretization scheme:
+
+.. math::
+    \frac{\mathbf{u}^{t + \Delta t} - \mathbf{u}^{t}}{\Delta t} = f(\mathbf{u}^{t + \Delta t}, \mathbf{x}, t + \Delta t)
+
+.. _bdf1-ti-spec:
+.. admonition:: bdf1-ti-spec
+
+    * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
+
+    * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
+
+    * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
+      of preconditioner recalculation.
+
+    * `"freeze preconditioner`" ``[bool]`` **false** enforces preconditioner to
+      be updated only once per non-linear solver. When set to true, the above
+      parameter is ignored.
+
+    * `"extrapolate initial guess`" ``[bool]`` **true** identifies forward time
+      extrapolation of the initial guess.
+
+    * `"nonlinear iteration initial guess extrapolation order`" ``[int]`` **1**
+      defines extrapolation algorithm. Zero value implies no extrapolation.
+
+    * `"restart tolerance relaxation factor`" ``[double]`` **1** Changes the
+      nonlinear tolerance on restart. The time integrator is usually restarted
+      when a boundary condition changes drastically. It may be beneficial to
+      loosen the nonlinear tolerance on the first several time steps after the
+      time integrator restart. The default value is 1, while a reasonable value
+      may be as large as 1000.
+
+    * `"restart tolerance relaxation factor damping`" ``[double]`` **1**
+      Controls how fast the loosened nonlinear tolerance will revert back to
+      the one specified in `"nonlinear tolerance`". If the nonlinear tolerance
+      is "tol", the relaxation factor is "factor", and the damping is "d", and
+      the time step count is "n" then the actual nonlinear tolerance is "tol *
+      max(1.0, factor * d ** n)". Reasonable values are between 0 and 1.
+
+    INCLUDES
+
+    - ``[bdf1-solver-fnbase-spec]`` *Uses a* `BDF1 Solver Interface`_.
+
+    - ``[solver-typed-spec]`` *Uses a* Solver_.
+
+    - ``[timestep-controller-typed-spec]`` *Uses a* `Timestep Controller`_
+    
+ 
+
+
+BDF1 Solver Interface
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Timestep Controller
+-------------------
  Factory for creating TimestepController objects
 
 A TimestepController object sets what size timestep to take.  This can be a
 variety of things, from fixed timestep size, to adaptive based upon error
 control, to adapter based upon simple nonlinear iteration counts.
 
-
-* `"timestep controller type`" ``[string]`` Set the type.  One of the below types.
-* `"timestep controller X parameters`" ``[list]`` List of parameters for a timestep controller of type X.
-
 Available types include:
 
-- TimestepControllerFixed_  (type `"fixed`"), a constant timestep
-- TimestepControllerStandard_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
-- TimestepControllerSmarter_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
-- TimestepControllerAdaptive_ (type `"adaptive`"), an adaptive timestep based upon error control.
-- TimestepControllerFromFile_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+- `Timestep Controller Fixed`_  (type `"fixed`"), a constant timestep
+- `Timestep Controller Standard`_ (type `'standard`"), an adaptive timestep based upon nonlinear iterations
+- `Timestep Controller Smarter`_ (type `'smarter`"), an adaptive timestep based upon nonlinear iterations with more control
+- `Timestep Controller Adaptive`_ (type `"adaptive`"), an adaptive timestep based upon error control.
+- `Timestep Controller From File`_ (type `"from file`"), uses a timestep history loaded from an HDF5 file.  (Usually only used for regression testing.)
+
+
+.. _timestep-controller-typed-spec:
+.. admonition:: timestep-controller-typed-spec
+
+    * `"timestep controller type`" ``[string]`` Set the type.  One of: `"fixed`", `"standard`", `"smarter`", `"adaptive`", or `"from file`"
+    * `"timestep controller X parameters`" ``[list]`` List of parameters for a timestep controller of type X.
 
 
 
 
-TimestepControllerFixed
------------------------
+Timestep Controller Fixed
+^^^^^^^^^^^^^^^^^^^^^^^^^
   Timestep controller providing constant timestep size.
 
 ``TimestepControllerFixed`` is a simple timestep control mechanism which sets
 a constant timestep size.  Note that the actual timestep size is given by the
 minimum of PK's initial timestep sizes.
 
+No parameters are required.
 
 
 
 
-TimestepControllerStandard
---------------------------
+Timestep Controller Standard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  Simple timestep control based upon previous iteration count.
 
-``TimestepControllerStandard`` is a simple timestep control mechanism
+This is a simple timestep control mechanism
 which sets the next timestep based upon the previous timestep and how many
 nonlinear iterations the previous timestep took to converge.
 
@@ -2576,83 +3737,636 @@ The timestep for step :math:`k+1`, :math:`\Delta t_{k+1}`, is given by:
 where :math:`\Delta t_{k}` is the previous timestep and :math:`N_k` is the number of 
 nonlinear iterations required to solve step :math:`k`:.
 
-* `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-* `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-* `"time step reduction factor`" ``[double]`` :math:`f_reduction`, reduce the previous timestep by this multiple.
-* `"time step increase factor`" ``[double]`` :math:`f_increase`, increase the previous timestep by this multiple.
-* `"max time step`" ``[double]`` The max timestep size allowed.
-* `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
+.. _timestep-controller-typed-standard-spec:
+.. admonition:: timestep-controller-typed-standard-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.
+    * `"max time step`" ``[double]`` The max timestep size allowed.
+    * `"min time step`" ``[double]`` The min timestep size allowed.  If the step has failed and the new step is below this cutoff, the simulation fails.
 
 
 
 
-TimestepControllerSmarter
--------------------------
+Timestep Controller Smarter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Slightly smarter timestep controller based upon a history of previous timesteps.
 
-``TimestepControllerSmarter`` is based on ``TimestepControllerStandard``, but
-also tries to be a bit smarter to avoid repeated increase/decrease loops where
-the step size decreases, converges in few iterations, increases, but then
-fails again.  It also tries to grow the step geometrically to more quickly
-recover from tricky nonlinearities.
+This is based on `Timestep Controller Standard`_, but also tries to be a bit
+smarter to avoid repeated increase/decrease loops where the step size
+decreases, converges in few iterations, increases, but then fails again.  It
+also tries to grow the step geometrically to more quickly recover from tricky
+nonlinearities.
 
-* `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
-* `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
-* `"time step reduction factor`" ``[double]`` :math:`f_reduction`, reduce the previous timestep by this multiple.
-* `"time step increase factor`" ``[double]`` :math:`f_increase`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
-* `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_increase` will ever get.
-* `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
-* `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_increase` by itself.
+.. _timestep-controller-typed-smarter-spec:
+.. admonition:: timestep-controller-typed-smarter-spec
+
+    * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
+    * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
+    * `"time step reduction factor`" ``[double]`` :math:`f_{reduction}`, reduce the previous timestep by this multiple.
+    * `"time step increase factor`" ``[double]`` :math:`f_{increase}`, increase the previous timestep by this multiple.  Note that this can be modified geometrically in the case of repeated successful steps.
+    * `"max time step increase factor`" ``[double]`` **10.** The max :math:`f_{increase}` will ever get.
+    * `"growth wait after fail`" ``[int]`` Wait at least this many timesteps before attempting to grow the timestep after a failed timestep.
+    * `"count before increasing increase factor`" ``[int]`` Require this many successive increasions before multiplying :math:`f_{increase}` by itself.
 
 
 
 
 
-TimestepControllerFromFile
---------------------------
+Timestep Controller Adaptive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Adaptive timestep control based upon previous iteration count.
+
+This is under development and is based on a posteriori error estimates.
+
+
+
+
+Timestep Controller From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Timestep controller which loads a timestep history from file.
 
-``TimestepControllerFromFile`` loads a timestep history from a file, then
-advances the step size with those values.  This is mostly used for testing
-purposes, where we need to force the same timestep history as previous runs to
-do regression testing.  Otherwise even machine roundoff can eventually alter
-number of iterations enough to alter the timestep history, resulting in
-solutions which are enough different to cause doubt over their correctness.
+This loads a timestep history from a file, then advances the step size with
+those values.  This is mostly used for testing purposes, where we need to force
+the same timestep history as previous runs to do regression testing.  Otherwise
+even machine roundoff can eventually alter number of iterations enough to alter
+the timestep history, resulting in solutions which are enough different to
+cause doubt over their correctness.
 
-* `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
-* `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
+.. _timestep-controller-typed-from-file-spec:
+.. admonition:: timestep-controller-typed-from-file-spec
 
-
-
-
-
+    * `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
+    * `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
 
 
 
-Linear Solver
-=============
 
-Linear solver are almost exclusively iterative methods with a separate provided preconditioner.
+
+Nonlinear Solver
+================
+.. _Solver:
+   
+ A factory for creating nonlinear solvers.
+
+Nonlinear solvers are used within implicit time integration schemes to drive
+the residual to zero and thereby solve for the primary variable at the new
+time.
+
+.. _solver-typed-spec:
+.. admonition:: solver-typed-spec
+
+    * `"solver type`" ``[string]`` Type of the solver.  One of:
+
+      - `"Newton`" See `Solver: Newton and Inexact Newton`_
+      - `"JFNK`" See `Solver: Jacobian-Free Newton Krylov`_
+      - `"line search`" See `Solver: Newton with Line Search`_
+      - `"continuation`" See `Solver: Nonlinear Continuation`_
+      - `"nka`" See `Solver: Nonlinear Krylov Acceleration`_
+      - `"aa`" See `Solver: Anderson Acceleration`_
+      - `"nka line search`" See `Solver: NKA with Line Search`"
+      - `"nka_ls_ats`" See `Solver: NKA with Line Search, ATS`_
+      - `"nka_bt_ats`" See `Solver: NKA with backtracking, ATS`_
+      - `"nox`" See `Solver: NOX`_
+    
+    * `"_solver_type_ parameters`" ``[_solver_type_-spec]`` A sublist containing
+      parameters specific to the type.
+
+.. warning::
+
+    `"JFNK`", `"line search`", and `"continuation`" methods have not been
+    beaten on as much as other methods.  `"nka_ls_ats`" is somewhat deprecated
+    and probably shouldn't be used.  Prefer `"nka`" for simple problems,
+    `"nka_bt_ats`" for freeze-thaw problems or other problems with strong
+    nonlinearities, and `"Newton`" when you have a good Jacobian.  While
+    `"nox`" hasn't been used extensively, it may be quite useful.
+
+
+      
+
+
+
+Solver: Newton and Inexact Newton
+---------------------------------
+ Straightforward Newton/Inexact Newton solver.
+
+The classical Newton method works well for cases where Jacobian is available
+and corresponds to a stable (e.g. upwind) discretization.  The inexact Newton
+methods work for cases where the discrete Jacobian is either not available, or
+not stable, or computationally expensive. The discrete Jacobian is replaced by
+a stable approximation of the continuum Jacobian. The choice between exact and
+inexact is not made by the Solver, but instead by the PK.  Both use the
+ApplyPreconditioner() method -- if this applies the true Jacobian, then the
+method is Newton.  If it applies an appoximation, it is inexact Newton.
+
+.. _solver-typed-newton-spec:
+.. admonition:: solver-typed-newton-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"monitor`" ``[string]`` **monitor update** specifies control of the
+      nonlinear residual. The available options are `"monitor update`" and
+      `"monitor residual`".
+
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"max du growth factor`" ``[double]`` **1.e5** allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"modify correction`" ``[bool]`` **true** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"stagnation iteration check`" ``[int]`` **8** determines the number of
+      iterations before the stagnation check is turned on. The stagnation
+      happens when the current L2-error exceeds the initial L2-error.
+
+ 
+
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+ Decorator for using a Solver with JFNK as the preconditioner.
+
+Jacobian-Free Newton Krylov uses a finite difference scheme to approximate the
+action of the Jacobian matrix, then uses a Krylov method (which only needs the
+action of the Jacobian and not the Jacobian itself) to calculate the action of
+the inverse of the Jacobian, thereby providing a Newton-like update.  As the
+linear Krylov scheme converges to the inverse action, the nonlinear solution
+converges to the same solution as a true Newton method.
+
+This implementation simply replaces a SolverFnBase's ApplyPreconditioner() with
+a new ApplyPreconditioner() which uses the Krylov method with the action of the
+forward operator to (hopefully) improve, relative to the supplied approximate
+inverse, the estimate of the inverse.
+
+.. _solver-typed-jfnk-spec:
+.. admonition:: solver-typed-jfnk-spec
+
+    * `"nonlinear solver`" ``[solver-typed-spec]`` The outer nonlinear solver to use.
+
+    * `"linear operator`" ``[linear-operator-typed-spec]`` The Krylov method to use.
+
+    * `"JF matrix parameters`" ``[jf-matrix-spec]`` See jf-matrix-spec_
+    
+ 
+
+
+
+The Jacobian-Free Matrix operator, which is used to estimate the action of the
+Jacobian.
+
+A variety of methods are available for choosing the epsilon used to approximate
+the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
+
+
+..todo:: Document these
+
+.. _jf-matrix-spec:
+.. admonition:: jf-matrix-spec
+
+    * "typical solution value" [double] **100** Used in relative action
+      approximations. **OPTION NOT IMPLEMENTED**
+
+    * "finite difference epsilon" [double] **1.e-8** defines the base finite
+      difference epsilon.
+
+    * "method for epsilon" [string] defines a method for calculating finite
+      difference epsilon. Available option is "Knoll-Keyes", "Knoll-Keyes L2",
+      "Brown-Saad".  See Knoll
+ 
+
+
+Solver: Newton with Line Search
+-------------------------------
+ Backtracking line search on the provided correction as a solver.
+
+Line Search accepts a correction from the Jacobian, then uses a
+process to attempt to minimize or at least ensure a reduction in the residual
+while searching *in that direction*, but not necessarily with the same
+magnitude, as the provided correction.  The scalar multiple of the search
+direction is given by :math:`\alpha`.
+
+This globalization recognizes that a true inverse Jacobian is a local
+measurement of the steepest descent direction, and so while the direction is
+guaranteed to be the direction which best reduces the residual, it may not
+provide the correct magnitude.
+
+Note, this always monitors the residual.
+
+.. _solver-typed-backtracking-spec:
+.. admonition:: solver-typed-backtracking-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"modify correction`" ``[bool]`` **false** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10**
+
+    * `"min valid alpha`" ``[double]`` **0** 
+
+    * `"max valid alpha`" ``[double]`` **10.**
+
+    * `"max line search iterations`" ``[int]`` **10** 
+
+  
+ 
+
+
+Solver: Nonlinear Continuation
+------------------------------
+ A very simple nonlinear continuation method.
+
+Continuation methods are useful when the nonlinearity can be controlled by a
+single simple parameter.  In this method, the nonlinear problem is solved with
+a less-nonlinear value of the parameter, and the solution of that is used as
+the initial guess to solve a harder problem.  As each successive problem is
+solved, the continuation parameter is changed closer and closer to the true
+value.
+
+Few if any PKs support this method currently -- it requires the PK to provide more
+interface about how to update the continuation parameter.
+
+.. _solver-typed-continuation-spec:
+.. admonition:: solver-typed-continuation-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+    
+    * `"number of continuation steps`" ``[int]`` **5** How many steps to take
+      from initial parameter to final parameter.
+
+    * `"inner solver`" ``[solver-typed-spec]``A Solver_, used at each step.
+
+ 
+
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+ Nonlinear Krylov Acceleration as a nonlinear solver.
+
+Uses the Nonlinear Krylov acceleration method of Carlson and Miller to do
+effectively a multivariant secant method, accelerating the solution of a
+nonlinear solve.  This method can be significantly faster than Newton,
+especially with an approximate Jacobian.
+
+  Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates
+  formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
+
+  N. N. Carlson, K. Miller, Design and application of a gradient-weighted
+  moving finite element code II: In two dimensions, SIAM J. Sci.  Comput. 19
+  (3) (1998) 766–798.
+
+
+.. _solver-typed-nka-spec:
+.. admonition:: solver-typed-nka-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"monitor`" ``[string]`` **monitor update** Specifies control of the
+      nonlinear residual. The available options are `"monitor update`",
+      `"monitor residual`", `"monitor preconditioned residual`", `"monitor l2
+      residual`", and `"monitor preconditioned l2 residual`".
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
+
+    * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
+      identify divergence of the solver. If the relative maximum norm of the
+      solution increment (with respect to the initial increment) is above this
+      value, the solver is terminated.
+
+    * `"diverged residual tolerance`" ``[double]`` **1e10** Defines another way
+      to identify divergence of the solver. If the relative L2 norm of the
+      residual (with respect to the initial residual) is above this value, the
+      solver is terminated.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1e5** Defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+ 
+
+
+Solver: Anderson Acceleration
+-----------------------------
+ Anderson acceleration as a nonlinear solver.
+
+This is a variation of the GMRES solver for nonlinear problems.
+
+.. _solver-typed-aa-spec:
+.. admonition:: solver-typed-aa-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
+
+    * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
+      identify divergence of the solver. If the relative maximum norm of the
+      solution increment (with respect to the initial increment) is above this
+      value, the solver is terminated.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+      
+    * `"max aa vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"relaxation parameter`" ``[double]`` **1** Damping factor for increment.
+
+ 
+
+
+Solver: NKA with Line Search
+----------------------------
+ NKA nonlinear solver with a line-search based on a Brendt minimization algorithm.
+
+Does NKA, then checks if that correction has reduced the residual by at least a
+tolerance.  If not, this uses a Brendt minimization algorithm to try and find
+an :math:`\alpha` that minimizes the reduction in the residual.
+
+Note, this always monitors the residual.
+
+.. _solver-typed-nka-ls-spec:
+.. admonition solver-typed-nka-ls-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack tolerance`" ``[double]`` **0.** If the default update reduces
+      the residual by at least this much, line search is not performed.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10** Convergence criteria on Brendt algorithm.
+
+    * `"min valid alpha`" ``[double]`` **0** Lower bound on Brendt algorithm.
+
+    * `"max valid alpha`" ``[double]`` **10.** Upper bound on Brendt algorithm.
+
+    * `"max line search iterations`" ``[int]`` **10** Max iterations for the Brendt algorithm.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+  
+
+
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+ Nonlinear solve using NKA with a heuristic based backtracking.
+
+Whereas line search uses a formal minimization method, backtracking simply uses
+a heuristic multiplier on :math:`\alpha` to find a correction that sufficiently
+reduces the residual.  This can be significantly faster than the full
+minimization problem, and finding the true minimum may not be as important as
+simply doing better and going on to the next nonlinear iteration.
+
+This is the workhorse for hard ATS problems, as it is usually rather efficient,
+even in problems where the linear solve results in a correction that is way too
+large (e.g. for steep nonlinearities such as phase change).
+
+Note this always monitors the residual, and the correction is always modified.
+
+.. _solver-typed-nka-bt-ats-spec:
+.. admonition:: solver-typed-nka-bt-ats-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"nka lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+    * `"backtrack tolerance`" ``[double]`` **0.** Require a reduction of at
+      least this much in the residual norm before accepting a correction.
+
+    * `"backtrack factor`" ``[double]`` **0.5** Multiply the correction by this
+      factor each backtracking step.  Note, should be in (0, 1)
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack max steps`" ``[int]`` **10** Controls how many multiples of
+      the backtrack factor are applied before declaring failure.
+
+    * `"backtrack max total steps`" ``[int]`` **1e6** Controls how many total
+      backtrack steps may be taken before declaring failure.
+
+    * `"backtrack lag iterations`" ``[int]`` **0** Delay requiring a reduction
+      in residual for this many nonlinear iterations.
+
+    * `"backtrack last iteration`" ``[int]`` **1e6** Stop requiring a
+      reductiontion in residual after this many nonlinear iterations.
+
+    * `"backtrack fail on bad search direction`" ``[bool]`` **false** If
+      backtracking for the full number of "backtrack max steps" is taken, and
+      the residual norm has still not be reduced suffiently, this determines
+      the behavior.  If true, the solver declares failure.  If false, it takes
+      the bad step anyway and hopes to recover in later iterates.
+
+    IF
+    
+    * `"Anderson mixing`" ``[bool]`` **false** If true, use Anderson mixing instead of NKA.
+
+    THEN
+
+    * `"relaxation parameter`" ``[double]`` **0.7** The relaxation parameter
+      for Anderson mixing.
+
+    END
+
+
+
+
+Solver: NOX
+----------------------------------
+ Calls Nox nonlinear solvers/JFNK.
+
+
+Linear Solvers
+==============
+.. _LinearOperator:
+.. _`LinearSolvers`:
+.. _`Linear Solver`:
+
+ Iterative methods for determining the inverse of a linear operator.
+
+Linear solvers are iterative methods which wrap Operators/Matrices and provide
+a solution for the true inverse.  The provided Operator must implement a
+forward application (which may be an assembled Matrix-Vector product, or may be
+a matrix-free forward application) and an approximate inverse (the
+preconditioner).
+
+Note that linear operators here differ from preconditioners not in their
+exactness of the solution, but in their interface.  A Preconditioner_ works with
+raw vectors and matrices, and may need assembled matrices.  LinearOperators
+work with the action of matrices only, and never need assembled matrices.  As
+such they are templated with an arbitrary Matrix and Vector type, whereas
+Preconditioners are not.
+
+.. _linear-solver-typed-spec:
+.. admonition:: linear-solver-typed-spec
+
+    * `"iterative method type`" ``[string]`` Iterative method to be used.
+    * `"_iterative_method_type_ parameters`" ``[_iterative_method_type_-spec]``
+      Parameters associated with the requested iterative method.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="linear solver" type="ParameterList">
+      <Parameter name="iterative method" type="string" value="gmres" />
+      <ParameterList name="verbose object" type="ParameterList">
+        <Parameter name="verbosity level" type="string" value="medium" />
+      </ParameterList>
+      <ParameterList name="gmres parameters" type="ParameterList">
+        <Parameter name="preconditioning strategy" type="string" value="left" />
+        <Parameter name="error tolerance" type="double" value="1e-06" />
+        <Parameter name="convergence criteria" type="Array(string)" value="{relative residual,make one iteration}" />
+        <Parameter name="maximum number of iteration" type="int" value="80" />
+      </ParameterList>
+    </ParameterList>
+
+
+
 
 Linear Solver: PCG
 --------------------
  Preconditioned conjugate gradient method for a linear solver.
 
-Parameters:
+.. _linear-solver-typed-pcg-spec:
+.. admonition:: linear-solver-typed-pcg-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
 
 
@@ -2665,34 +4379,35 @@ Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
 GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
 W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
 
-Parameters:
+.. _linear-solver-typed-gmres-spec:
+.. admonition:: linear-solver-typed-gmres-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
-* `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
+    * `"size of Krylov space`" ``[int]`` **10** Size of the Krylov space used to span the residual.
 
-* `"controller training start`" ``[int]`` **0** Start iteration for determining
-  convergence rates. (Add more please!)
+    * `"controller training start`" ``[int]`` **0** Start iteration for determining
+      convergence rates. (Add more please!)
 
-* `"controller training end`" ``[int]`` **3** Start iteration for determining
-  convergence rates. (Add more please!)
+    * `"controller training end`" ``[int]`` **3** Start iteration for determining
+      convergence rates. (Add more please!)
 
-* `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
-  "right"-type preconditioning (see Saad 1986)
+    * `"preconditioning strategy`" ``[string]`` **left** Valid are "left" and
+      "right"-type preconditioning (see Saad 1986)
 
-* `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
+    * `"maximum size of deflation space`" ``[int]`` **0** Size of the deflation space, see Rollin et al.
 
 
 
@@ -2704,48 +4419,74 @@ Linear Solver: NKA
 This is effectively equivalent to GMRES with a rolling restart, where vectors
 fall off the end of the space.
 
-Parameters:
+.. _linear-solver-typed-nka-spec:
+.. admonition:: linear-solver-typed-nka-spec
 
-* `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
+    * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
-* `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
+    * `"maximum number of iterations`" ``[int]`` **100** Maximum iterations before declaring failure.
 
-* `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
+    * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-* `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
-  criteria, any of which can be applied.  Valid include:
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
+      criteria, any of which can be applied.  Valid include:
 
-  - `"relative rhs`" : measure error relative to the norm of the RHS vector
-  - `"relative residual`" : measure error relative to the norm of the residual
-  - `"absolute residual`" : measure error directly, norm of error
-  - `"make one iteration`" : require at least one iteration to be performed before declaring success
+      - `"relative rhs`" : measure error relative to the norm of the RHS vector
+      - `"relative residual`" : measure error relative to the norm of the residual
+      - `"absolute residual`" : measure error directly, norm of error
+      - `"make one iteration`" : require at least one iteration to be performed before declaring success
 
-* `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
+    * `"max nka vectors`" ``[int]`` **10** Size of the NKA space used to span the residual, conceptually equivalent to the size of the Krylov space.
 
-* `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
+    * `"nka vector tolerance`" ``[double]`` **0.05** Vectors whose dot product are within this tolerance are considered parallel, and therefore the old vector is thrown out.
 
-
-Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
 
 
 
 
 Linear Solver: Amesos
 ---------------------
+  Direct solvers via Trilinos.
+
+.. warning:: undocumented
+
+
 
 
 Linear Solver: Belos GMRES
 --------------------------
+ Trilinos/Belos implementation of GMRES
+
+Generalized minimum residual method (Yu.Kuznetsov, 1968; Y.Saad, 1986)
+
+.. warning:: undocumented
+    
 
 
 
-Preconditioner
-===================
 
-These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:
+Preconditioners
+===============
+.. _Preconditioner:
 
- * `"preconditioner type`" ``[string]`` **"identity"**, `"boomer amg`", `"trilinos ml`", `"block ilu`" ???
- * `"PC TYPE parameters`" ``[list]`` includes a list of parameters specific to the type of PC.
+  Base class for preconditioners.
+
+Provides approximate inverses of matrices.
+
+Note that preconditioners here differ from linear operators not in the
+approximate nature of their inverse, but in their interface.  Preconditioners
+work with raw vectors and matrices, and may need assembled matrices.  A `Linear
+Solver`_ works with the action of matrices only, and never need assembled
+matrices.  As such they are templated with an arbitrary Matrix and Vector type,
+whereas Preconditioners are not.
+
+
+.. _preconditioner-typed-spec:
+.. admonition:: preconditioner-typed-spec
+
+    * `"preconditioner type`" ``[string]`` **identity** Iterative method to be used.
+    * `"_preconditioner_type_ parameters`" ``[_preconditioner_type_-spec]``
+      Parameters associated with the requested preconditioner.
 
 Example:
 
@@ -2757,52 +4498,133 @@ Example:
             ... 
         </ParameterList>
      </ParameterList>
+      
+ 
 
 
-Hypre's Boomer AMG
--------------------
- PreconditionerBoomerAMG: HYPRE's multigrid preconditioner.
-Internal parameters for Boomer AMG include
 
-* `"tolerance`" ``[double]`` if is not zero, the preconditioner is dynamic 
-  and approximate the inverse matrix with the prescribed tolerance (in
-  the energy norm ???).
+Identity
+--------
+ Identity as a preconditioner.
 
-* `"smoother sweeps`" ``[int]`` **3** defines the number of smoothing loops. Default is 3.
+Simply copies the input vector to the output -- uses the Identity matrix as a
+preconditioner.
 
-* `"cycle applications`" ``[int]`` **5** defines the number of V-cycles.
+This is provided when using the `"preconditioner type`"=`"identity`" in the
+`Preconditioner`_ spec.
 
-* `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
+No parameters are required.
 
-* `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6 
-  which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
 
-* `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0 
-  which specifies a Falgout method. TODO: add others!
 
-* `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
 
-* `"use block indices`" ``[bool]`` **false** If true, uses the `"systems of
-    PDEs`" code with blocks given by the SuperMap, or one per DoF per entity
-    type.
+Diagonal
+--------
+ Diagonal preconditioner.
 
-* `"number of functions`" ``[int]`` **1** Any value > 1 tells Boomer AMG to
-  use the `"systems of PDEs`" code with strided block type.  Note that, to use
-  this approach, unknowns must be ordered with DoF fastest varying (i.e. not
-  the native Epetra_MultiVector order).  By default, it uses the `"unknown`"
-  approach in which each equation is coarsened and interpolated independently.
-  
-* `"nodal strength of connection norm`" ``[int]`` tells AMG to coarsen such
-    that each variable has the same coarse grid - sometimes this is more
-    "physical" for a particular problem. The value chosen here for nodal
-    determines how strength of connection is determined between the
-    coupled system.  I suggest setting nodal = 1, which uses a Frobenius
-    norm.  This does NOT tell AMG to use nodal relaxation.
-    Default is 0.
+Simply applys the pointwise inverse of the diagonal of the matrix as an
+extremely cheap matrix.
 
-* `"verbosity`" ``[int]`` **0** prints a summary of run time settings and
-  timing information to stdout.  `"1`" prints coarsening info, `"2`" prints
-  smoothing info, and `"3`'" prints both.
+This is provided when using the `"preconditioner type`"=`"diagonal`" in the
+`Preconditioner`_ spec.
+
+No parameters are required.
+
+
+
+
+Block ILU
+---------
+ Incomplete LU preconditioner.
+
+Incomplete LU is an approximate scheme based on partial factorization.  The
+implementation here is that provided in the Ifpack package of Trilinos.  This
+approach is a block solve that performs the ILU on each MPI process and uses
+Additive Schwarz to combine the blocks.
+
+This is provided when using the `"preconditioner type`"=`"block ilu`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-block-ilu-spec:
+.. admonition:: preconditioner-typed-block-ilu-spec:
+
+    * `"fact: relax value`" ``[double]`` **1.0**
+    * `"fact: absolute threshold`" ``[double]`` **0.0**
+    * `"fact: relative threshold`" ``[double]`` **1.0**
+    * `"fact: level-of-fill`" ``[int]`` **0**
+    * `"overlap`" ``[int]`` **0** Overlap of the combination.
+    * `"schwarz: combine mode`" ``[string]`` **Add** 
+
+The internal parameters for block ILU are as follows:
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="block ilu parameters">
+    <Parameter name="fact: relax value" type="double" value="1.0"/>
+    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
+    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
+    <Parameter name="fact: level-of-fill" type="int" value="0"/>
+    <Parameter name="overlap" type="int" value="0"/>
+    <Parameter name="schwarz: combine mode" type="string" value="Add"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Boomer AMG
+----------
+ HYPRE's algebraic multigrid preconditioner.
+
+Boomer AMG is a HYPRE product consisting of a variety of Algebraic Multigrid
+methods.  It is accessed through Ifpack.
+
+This is provided when using the `"preconditioner type`"=`"boomer amg`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-boomer-amg-spec:
+.. admonition:: preconditioner-typed-boomer-amg-spec:
+
+    * `"tolerance`" ``[double]`` **0.** If is not zero, the preconditioner is dynamic 
+      and approximate the inverse matrix with the prescribed tolerance (in
+      the energy norm ???).
+
+    * `"smoother sweeps`" ``[int]`` **3** defines the number of smoothing loops. Default is 3.
+
+    * `"cycle applications`" ``[int]`` **5** defines the number of V-cycles.
+
+    * `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
+
+    * `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6 
+      which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
+
+    * `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0 
+      which specifies a Falgout method. TODO: add others!
+
+    * `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
+
+    * `"use block indices`" ``[bool]`` **false** If true, uses the `"systems of
+      PDEs`" code with blocks given by the SuperMap, or one per DoF per entity
+      type.
+
+    * `"number of functions`" ``[int]`` **1** Any value > 1 tells Boomer AMG to
+      use the `"systems of PDEs`" code with strided block type.  Note that, to use
+      this approach, unknowns must be ordered with DoF fastest varying (i.e. not
+      the native Epetra_MultiVector order).  By default, it uses the `"unknown`"
+      approach in which each equation is coarsened and interpolated independently.
+
+    * `"nodal strength of connection norm`" ``[int]`` tells AMG to coarsen such
+      that each variable has the same coarse grid - sometimes this is more
+      "physical" for a particular problem. The value chosen here for nodal
+      determines how strength of connection is determined between the coupled
+      system.  I suggest setting nodal = 1, which uses a Frobenius norm.  This
+      does NOT tell AMG to use nodal relaxation.  Default is 0.
+
+    * `"verbosity`" ``[int]`` **0** prints a summary of run time settings and
+      timing information to stdout.  `"1`" prints coarsening info, `"2`" prints
+      smoothing info, and `"3`'" prints both.
 
 Example:
   
@@ -2822,10 +4644,37 @@ Example:
 
 
 
-Trilinos ML
--------------------
- PreconditionerML: Trilinos ML multigrid.
-Internal parameters of Trilinos ML includes
+Euclid
+------
+ HYPRE's parallel ILU as a preconditioner.
+
+Euclid is a Parallel Incomplete LU, provided as part of the HYPRE project
+through the Ifpack interface.
+
+This is provided when using the `"preconditioner type`"=`"euclid`" in the
+`Preconditioner`_ spec.
+
+.. _preconditioner-typed-euclid-spec:
+.. admonition:: preconditioner-typed-euclid-spec:
+
+    * `"ilu(k) fill level`" ``[int]`` **1** The factorization level.
+    * `"ilut drop tolerance`" ``[double]`` **0** Defines a drop tolerance relative to the largest absolute value of any entry in the row being factored.
+    * `"rescale row`" ``[bool]`` **false** If true, values are scaled prior to factorization so that largest value in any row is +1 or -1. Note that this can destroy matrix symmetry.
+    * `"verbosity`" ``[int]`` **0** Prints a summary of runtime settings and timing information to stdout.
+
+
+
+
+ML (Trilinos AMG)
+-----------------
+ Trilinos ML smoothed aggregation multigrid.
+
+This is provided when using the `"preconditioner type`"=`"ml`" in the
+`Preconditioner`_ spec.
+
+.. warning:: no input spec defined
+
+See also: https://trilinos.github.io/pdfs/mlguide5.pdf
 
 Example:
 
@@ -2854,47 +4703,12 @@ Example:
  
 
 
-Block ILU
--------------------
- PreconditionerBlockILU:   Incomplete LU preconditioner.
-
-The internal parameters for block ILU are as follows:
-
-Example:
-
-.. code-block:: xml
-
-  <ParameterList name="block ilu parameters">
-    <Parameter name="fact: relax value" type="double" value="1.0"/>
-    <Parameter name="fact: absolute threshold" type="double" value="0.0"/>
-    <Parameter name="fact: relative threshold" type="double" value="1.0"/>
-    <Parameter name="fact: level-of-fill" type="int" value="0"/>
-    <Parameter name="overlap" type="int" value="0"/>
-    <Parameter name="schwarz: combine mode" type="string" value="Add"/>
-    </ParameterList>
-  </ParameterList>
-
-
-
-
-Indentity
--------------------
-The default, no PC applied.
-
-
-
-NonlinearSolver
-===================
-
-
-
 
 Other Common Specs
-##########################################
+##################
 
 IOEvent
-===================
-
+=======
  IOEvent: base time/timestep control determing when in time to do something.
 
 The IOEvent is used for multiple objects that need to indicate simulation times or cycles on which to do something.
@@ -2953,9 +4767,8 @@ The IOEvent is used for multiple objects that need to indicate simulation times 
  
 
 
-VerboseObject
-===================
-
+Verbose Object
+==============
  VerboseObject: a controller for writing log files on multiple cores with varying verbosity.
 
 This allows control of log-file verbosity for a wide variety of objects
@@ -2984,11 +4797,35 @@ Example:
 
 
 
+
+Debugger
+========
+ A mesh and vector structure aware utility for printing info.
+
+This is a utility that makes it easier for the user to control output written
+to the screen.  It allows the user to provide element IDs, and then provides
+functionality for a PK to write mesh geometry information and vector values of
+those elements to screen based upon verbosity levels.
+
+Note, most information is only written if the owning object's verbosity level
+from the `"Verbose Object`" spec is set to `"high`" or higher.
+
+.. debugger-spec:
+.. admonition:: debugger-spec
+
+    * `"debug cells`" ``[Array(int)]`` For each global ID of a cell provided
+      here, controls writing of vectors inside of the using PK.
+
+    * `"debug faces`" ``[Array(int)]`` For each global ID of a face provided
+      here, writes all adjoining cell information as if each cell was included
+      in `"debug cells`".
+
+
+
    
 
 Function
 ===================
-
  Function: base class for all functions of space and time.
 Analytic, algabraic functions of space and time are used for a variety of
 purposes, including boundary conditions, initial conditions, and independent
@@ -3003,39 +4840,69 @@ function of time:
 
 :math:`u = f(t,x,y,z)`
 
-``[function-spec]``
+Note, this does not follow the `"typed`" format for legacy reasons.
 
-ONE OF:
-* `"function: constant`" ``[constant-function-spec]``
-OR:
-* `"function: tabular`" ``[tabular-function-spec]``
-OR:
-* `"function: smooth step`" ``[smooth-step-function-spec]``
-OR:
-* `"function: polynomial`" ``[polynomial-function-spec]``
-OR:
-* `"function: monomial`" ``[monomial-function-spec]``
-OR:
-* `"function: linear`" ``[linear-function-spec]``
-OR:
-* `"function: separable`" ``[separable-function-spec]``
-OR:
-* `"function: additive`" ``[additive-function-spec]``
-OR:
-* `"function: multiplicative`" ``[multiplicative-function-spec]``
-OR:
-* `"function: composition`" ``[composition-function-spec]``
-OR:
-* `"function: static head`" ``[static-head-function-spec]``
-OR:
-* `"function: standard math`" ``[standard-math-function-spec]``
-OR:
-* `"function: bilinear`" ``[bilinear-function-spec]``
-OR:
-* `"function: distance`" ``[distance-function-spec]``
-#OR:
-#* `"function: squared distance`" ``[squared-distance-function-spec]``
-END
+.. function-spec:
+.. admonition:: function-spec
+
+  ONE OF:
+
+  * `"function: constant`" ``[constant-function-spec]``
+
+  OR:
+
+  * `"function: tabular`" ``[tabular-function-spec]``
+
+  OR:
+
+  * `"function: smooth step`" ``[smooth-step-function-spec]``
+
+  OR:
+
+  * `"function: polynomial`" ``[polynomial-function-spec]``
+
+  OR:
+
+  * `"function: monomial`" ``[monomial-function-spec]``
+
+  OR:
+
+  * `"function: linear`" ``[linear-function-spec]``
+
+  OR:
+
+  * `"function: separable`" ``[separable-function-spec]``
+
+  OR:
+
+  * `"function: additive`" ``[additive-function-spec]``
+
+  OR:
+
+  * `"function: multiplicative`" ``[multiplicative-function-spec]``
+
+  OR:
+
+  * `"function: composition`" ``[composition-function-spec]``
+
+  OR:
+
+  * `"function: static head`" ``[static-head-function-spec]``
+
+  OR:
+
+  * `"function: standard math`" ``[standard-math-function-spec]``
+
+  OR:
+
+  * `"function: bilinear`" ``[bilinear-function-spec]``
+
+  OR:
+
+  * `"function: distance`" ``[distance-function-spec]``
+
+  END
+
 
 
 
@@ -3537,8 +5404,8 @@ with nearly singular operators:
 
 
 
-OperatorAccumulation
--------------------------
+PDE_Accumulation
+----------------
 
 ``PDE_Accumulation`` assembles the discrete form of :math:`\frac{\partial A}{\partial t}`.
 
@@ -3554,8 +5421,8 @@ No options are available here.
 
 
 
-OperatorDiffusion
------------------
+PDE_Diffusion
+-------------
 
 
 ``PDE_Diffusion`` forms local ``Op`` s and global ``Operator`` s for elliptic equations:
@@ -3696,8 +5563,8 @@ Additional options for MFD with the gravity term include:
 
 
 
-OperatorAdvection
--------------------------
+PDE_Advection
+-------------
 
 
 

@@ -19,15 +19,18 @@ simulation, including starting and ending times and restart options.
 
     * `"start time`" ``[double]`` **0.** Specifies the start of time in model time.
     * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
+
     ONE OF
     
     * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
     * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
+
     OR
     
     * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
       simulation in timestep cycles.
-    END
+
+      END
     
     * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
       specifies a path to the checkpoint file to continue a stopped simulation.

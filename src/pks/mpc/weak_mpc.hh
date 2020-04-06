@@ -1,16 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Multi process coupler for sequential coupling.
 
-Interface for the derived WeakMPC class.  Provides only the advance() method
-missing from MPC.hh.  In weak coupling, we simply loop over the sub-PKs,
-calling their advance() methods and returning failure if any fail.
+/*!
 
-See additional documentation in the base class src/pks/mpc/MPC.hh
-------------------------------------------------------------------------- */
+Noniterative sequential coupling simply calls each PK's AdvanceStep() method in
+order.
+
+.. _weak-mpc-spec:
+.. admonition:: weak-mpc-spec
+
+    INCLUDES:
+
+    - ``[mpc-spec]`` *Is a* MPC_.
+
+*/
+
 
 #ifndef PKS_MPC_WEAKMPC_HH_
 #define PKS_MPC_WEAKMPC_HH_

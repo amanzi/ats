@@ -119,8 +119,8 @@ Boundary
 ========
 { RegionBoundary }
 
-Box Volume Fraction
-===================
+Box Volume Fractions
+====================
 { RegionBoxVolumeFractions }
 
 Line Segment
@@ -179,7 +179,19 @@ Physical PKs are the physical capability implemented within ATS.
 
 Flow PKs
 --------
-Flow PKs include the flow of water both above and below-ground.
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
 
 Richards PK
 ^^^^^^^^^^^
@@ -189,8 +201,8 @@ Permafrost Flow PK
 ^^^^^^^^^^^^^^^^^^
 { permafrost }
 
-Overland Flow, pressure primary variable, PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Overland Flow PK
+^^^^^^^^^^^^^^^^
 { overland_pressure }
 
 Overland Flow with Ice
@@ -204,7 +216,11 @@ Snow Distribution PK
 
 Energy PKs
 -----------
-Advection and diffusion of energy, including phase change.
+
+Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.
 
 Energy Base PK
 ^^^^^^^^^^^^^^
@@ -227,62 +243,146 @@ Overland energy with Ice
 Surface Energy Balance PKs
 ------------------------------
 
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
 
-Surface Energy Balance / Snow -- Monolithic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+{ surface_balance_base }
 
 
-
-Surface Energy Balance -- Generic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+{ surface_balance_implicit_subgrid }
 
 Biogeochemistry
------------------
+---------------
 
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
 
 Biogeochemistry -- Monolithic Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ bgc_simple }
 
 
 
 Deformation
 -------------
 
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
 
 Volumetric Deformation
 ^^^^^^^^^^^^^^^^^^^^^^
+{ volumetric_deformation }
 
 
+MPC
+===
 
-MPCs
-===============
+Multi-process-couplers or MPCs couple other PKs.  They also are PKs
+themselves, in that they implement the PK interface.  So MPCs can also
+couple other MPCs.  There are a few common "base" MPCs which do the
+simplest form of coupling -- sequential and globally implicit (with a
+diagonal preconditioner).  Then there are specific couplers which know
+more about their coupled sub-PKs, and can do more complicated things
+(for instance, adding off-diagonal block entries to the
+preconditioner).
 
-MPCs couple other PKs, and are the non-leaf nodes in the PK tree.
+MPCs are also used to couple across domains -- for instance integrated
+hydrology is a surface+subsurface flow coupler.  They also can do
+fancier things like drape a bunch of subgrid columns off of a mesh, or
+other things.  Think of these as the custom couplers.
+
+Base MPC
+--------
+{ mpc }
+
 
 WeakMPC
-----------
+-------
+{ weak_mpc }
 
 StrongMPC
 ----------
+{ strong_mpc }
 
 Physical MPCs
 ===============
- coupling is an art, and requires special off-diagonal work.  Physical MPCs can derive from default MPCs to provide special work.
+
+Coupling is an art, and often requires special off-diagonal work for
+globally implicit coupling, and fancy games can be played with domains
+to couple across domain interfaces both implicitly and sequentially.
+Physical MPCs derive from default MPCs to provide special
+implementations of some methods.
 
 Coupled Water MPC
---------------------
-
+-----------------
 { mpc_coupled_water }
-{ mpc_delegate_water }
 
+Coupled Cells MPC
+-----------------
+{ mpc_coupled_cells }
 
 Subsurface MPC
---------------------
+--------------
+{ mpc_subsurface }
 
 Permafrost MPC
---------------------
+--------------
+{ mpc_permafrost }
+
+Globalization Delegates
+=======================
+
+Globalization is the art of convincing a solver to find the solution.
+Remember -- physics typically cares very little about *how* you get to
+a solution, only that you get there.  If you can guess or otherwise
+find the solution physically, without doing fancy math, go for it!
+These delegates are handy utility classes which are used by MPCs to
+effeciently leverage physics understanding in the mathematical solvers
+to nudge the solver in the direction of a reasonable solution, or to
+keep a solver from going off into a part of space which is totally
+unphysical.  These can often make the difference between converging
+and not converging.
+
+Much of the efficiency of ATS comes from these delegates, and more of
+them are always welcome contributions.
+
+Coupled Water Globalization Delegate
+------------------------------------
+{ mpc_delegate_water }
+
+EWC Globalization Delegate
+--------------------------
+{ mpc_delegate_ewc }
 
 State
 ##############
@@ -562,39 +662,140 @@ Flow-specific Boundary Conditions
 Time integrators, solvers, and other mathematical specs
 #######################################################
 
-Common specs for all solvers and time integrators, used in PKs.
+  Common specs for all solvers and time integrators, used in PKs.
 
+There are three commonly used broad classes of time integration
+strategies.
+
+"Update" methods are the simplest -- they use no formal
+mathematical definition of a differential equation, but instead
+implicitly use a process by which variables at the new time are
+directly calculated.  Typically there *is* an implied ODE or PDE here,
+but it is not stated as such and time integration routines are not
+used.  Examples of these are common in biogeochemistry and vegetation
+models.
+
+"Explicit" time methods are the next simplest.  These include a
+variety of options from forward Euler to higher order Runge-Kutta
+schemes.  These only require evaluating forward models where we have
+existing of the dependencies.  If they work, these are great thanks to
+their deterministic nature and lack of expensive, memory-bandwith
+limited solvers.  But they only work on some types of problems.
+Examples of of these include transport, where we use high order time
+integration schemes to preserve fronts.
+
+"Implicit" and semi-implicit methods instead require the evaluation of
+a residual equation -- the solution is guessed at, and the residual is
+calculated, which measures how far the equation is from being
+satisfied.  This measure is then inverted, finding a correction to the
+guess which hopefully reduces the residual.  As the residual goes to
+zero, the error, a measure of the difference between the guess and the
+true solution, also goes to zero.  To do this inversion, we lean on
+Newton and Newton-like methods, which attempt to somehow linearize, or
+approximately linearize, the residual function near the guess in order
+to calculate an update.  In this case, the time integration scheme
+requires both a nonlinear solver (to drive the residual to zero) and a
+linear solver or approximate solver (to calculate the correction).
 
 TimeIntegrator
 ==============
 
+Currently there are two classes of time integration schemes used in
+ATS: explicit (including a range of single and multi-stage) methods
+and BDF1, or Backward Euler.
+
+Explicit Time Integration
+-------------------------
+{ Explicit_TI_RK }
+
+Backward Euler
+--------------
+{ BDF1_TI }
+
+BDF1 Solver Interface
+^^^^^^^^^^^^^^^^^^^^^
+{ BDF1_SolverFnBase }
+
+Timestep Controller
+-------------------
 { TimestepControllerFactory }
 
-TimestepControllerFixed
------------------------
+Timestep Controller Fixed
+^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerFixed }
 
-
-TimestepControllerStandard
---------------------------
+Timestep Controller Standard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerStandard }
 
-TimestepControllerSmarter
--------------------------
+Timestep Controller Smarter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerSmarter }
 
-TimestepControllerFromFile
---------------------------
+Timestep Controller Adaptive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ TimestepControllerAdaptive }
+
+Timestep Controller From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerFromFile }
 
 
+Nonlinear Solver
+================
+.. _Solver:
+   
+{ SolverFactory }
+
+Solver: Newton and Inexact Newton
+---------------------------------
+{ SolverNewton }
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+{ SolverJFNK }
+{ MatrixJF }
+
+Solver: Newton with Line Search
+-------------------------------
+{ SolverBT }
+
+Solver: Nonlinear Continuation
+------------------------------
+{ SolverContinuation }
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+{ SolverNKA }
+
+Solver: Anderson Acceleration
+-----------------------------
+{ SolverAA }
+
+Solver: NKA with Line Search
+----------------------------
+{ SolverNKA_LS }
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+{ SolverNKA_LS_ATS }
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+{ SolverNKA_BT_ATS }
+
+Solver: NOX
+----------------------------------
+{ SolverNox }
 
 
+Linear Solvers
+==============
+.. _LinearOperator:
+.. _`LinearSolvers`:
+.. _`Linear Solver`:
 
-Linear Solver
-=============
-
-Linear solver are almost exclusively iterative methods with a separate provided preconditioner.
+{ LinearOperator }
 
 Linear Solver: PCG
 --------------------
@@ -617,67 +818,56 @@ Linear Solver: Belos GMRES
 { LinearOperatorBelosGMRES }
 
 
-Preconditioner
-===================
+Preconditioners
+===============
+.. _Preconditioner:
 
-These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:
-
- * `"preconditioner type`" ``[string]`` **"identity"**, `"boomer amg`", `"trilinos ml`", `"block ilu`" ???
- * `"PC TYPE parameters`" ``[list]`` includes a list of parameters specific to the type of PC.
-
-Example:
-
-.. code-block:: xml
-
-     <ParameterList name="my preconditioner">
-       <Parameter name="type" type="string" value="trilinos ml"/>
-        <ParameterList name="trilinos ml parameters"> ?????? check me!
-            ... 
-        </ParameterList>
-     </ParameterList>
+{ Preconditioner }
 
 
-Hypre's Boomer AMG
--------------------
-{ PreconditionerBoomerAMG }
+Identity
+--------
+{ PreconditionerIdentity }
 
-Trilinos ML
--------------------
-{ PreconditionerML }
+Diagonal
+--------
+{ PreconditionerDiagonal }
 
 Block ILU
--------------------
+---------
 { PreconditionerBlockILU }
 
-Indentity
--------------------
-The default, no PC applied.
+Boomer AMG
+----------
+{ PreconditionerBoomerAMG }
 
+Euclid
+------
+{ PreconditionerEuclid }
 
-
-NonlinearSolver
-===================
-
-
+ML (Trilinos AMG)
+-----------------
+{ PreconditionerML }
 
 
 Other Common Specs
-##########################################
+##################
 
 IOEvent
-===================
-
+=======
 { IOEvent }
 
-VerboseObject
-===================
-
+Verbose Object
+==============
 { VerboseObject }
+
+Debugger
+========
+{ Debugger }
    
 
 Function
 ===================
-
 { Function }
 
 It is straightforward to add new functions as needed.
@@ -741,12 +931,12 @@ Operator
 
 { Operator }
 
-OperatorAccumulation
--------------------------
+PDE_Accumulation
+----------------
 { PDE_Accumulation }
 
-OperatorDiffusion
------------------
+PDE_Diffusion
+-------------
 { PDE_DiffusionFactory }
 
 { PDE_Diffusion }
@@ -760,8 +950,8 @@ OperatorDiffusion
 { PDE_DiffusionFVwithGravity }
 
 
-OperatorAdvection
--------------------------
+PDE_Advection
+-------------
 
 { PDE_Advection }
 

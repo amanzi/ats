@@ -109,7 +109,6 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S) {
 
   bc_adv_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
 
-  bc_surf_temp_dependent_ = bc_plist.get<bool>("surface temperature dependence",false);
   // -- nonlinear coefficient
   std::string method_name = plist_->get<std::string>("upwind conductivity method",
           "arithmetic mean");

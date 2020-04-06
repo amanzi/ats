@@ -1,11 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! A coupler which solves two PDEs on the same domain.
 
-Interface for a StrongMPC which uses a preconditioner in which the
+/*!
+
+This is a StrongMPC which uses a preconditioner in which the
 block-diagonal cell-local matrix is dense.  If the system looks something
 like:
 
@@ -26,10 +30,28 @@ Note that the upper left block is the standard preconditioner for the A
 system, and the lower right block is the standard precon for the B system,
 and we have simply added cell-based couplings, dA_c/dy2_c and dB_c/dy1_c.
 
-In the temperature/pressure system, these correspond to d_water_content /
-d_temperature and d_energy / d_pressure.
+Most commonly this is used to couple flow and energy equations on the same
+mesh.  In the temperature/pressure system, these extra blocks correspond to
 
-------------------------------------------------------------------------- */
+.. math::
+    \frac{\partial \Theta}{\partial T} \; , \; \frac{\partial E}{\partial p}
+
+.. _mpc-coupled-cells-spec:
+.. admonition:: mpc-coupled-cells-spec
+
+    * `"domain name`" ``[string]`` Domain of simulation
+    * `"conserved quantity A`" ``[string]`` Key of the first sub-PK's conserved quantity.
+    * `"conserved quantity B`" ``[string]`` Key of the second sub-PK's conserved quantity.
+    * `"primary variable A`" ``[string]`` Key of the first sub-PK's primary variable.
+    * `"primary variable B`" ``[string]`` Key of the second sub-PK's primary variable.
+    * `"no dA/dy2 block`" ``[bool]`` **false** Excludes the dA_c/dy2_c block above.
+    * `"no dB/dy1 block`" ``[bool]`` **false** Excludes the dB_c/dy1_c block above.
+    
+    INCLUDES:
+
+    - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
+    
+*/
 
 #ifndef MPC_COUPLED_CELLS_HH_
 #define MPC_COUPLED_CELLS_HH_

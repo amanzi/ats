@@ -1,6 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! MPCCoupledWater: coupler which integrates surface and subsurface flow.
-
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 
@@ -8,32 +5,39 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-
-#ifndef PKS_MPC_COUPLED_WATER_HH_
-#define PKS_MPC_COUPLED_WATER_HH_
+//! A coupler which integrates surface and subsurface flow implicitly.
 
 /*!
 
-Couples Richards equation to surface water through continuity of both pressure and fluxes.
+Couples Richards equation to surface water through continuity of both pressure
+and fluxes.  This leverages subsurface discretizations that include face-based
+unknowns, and notes that those face unknowns that correspond to surface faces
+are co-located with the surface cell pressure, and therefore are equivalent.
+In this approach (described in detail in a paper that is in review), the
+surface equations are directly assembled into the subsurface discrete operator.
 
-Currently requires that the subsurface discretization is a face-based
-discretization, i.e. one of the MFD methods.  Then the surface equations are
-directly added into the subsurface discrete equations.
+.. _mpc-coupled-water-spec:
+.. admonition:: mpc-coupled-water-spec
 
-* `"PKs order`" ``[Array(string)]`` Supplies the names of the coupled PKs.
-  The order must be {subsurface_flow_pk, surface_flow_pk} (subsurface first).
+   * `"PKs order`" ``[Array(string)]`` The use supplies the names of the
+     coupled PKs.  The order must be {subsurface_flow_pk, surface_flow_pk}
+     (subsurface first).
 
-* `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
-  that this is only used if this PK is not strongly coupled to other PKs.
+   * `"subsurface domain name`" ``[string]`` **domain** 
 
-* `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** is a Preconditioner_ spec.
-  Note that this is only used if this PK is not strongly coupled to other PKs.
+   * `"surface domain name`" ``[string]`` **surface** 
 
-* `"water delegate`" ``[list]`` 
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+     Globalization Delegate`_ spec.
+
+   INCLUDES:
+
+   - ``[strong-mpc-spec]`` *Is a* StrongMPC_
 
 */
 
+#ifndef PKS_MPC_COUPLED_WATER_HH_
+#define PKS_MPC_COUPLED_WATER_HH_
 
 #include "Operator.hh"
 #include "mpc_delegate_water.hh"

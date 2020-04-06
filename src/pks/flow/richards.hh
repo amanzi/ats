@@ -1,4 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 
@@ -13,20 +12,20 @@
 Solves Richards equation:
 
 .. math::
-  \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w
+  \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
 
 .. _richards-spec:
 .. admonition:: richards-spec
 
     * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
-    * `"primary variable`" ``[string]`` The primary variable associated with
+    * `"primary variable key`" ``[string]`` The primary variable associated with
       this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
       must be provided by the user.
 
     * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman,
       0 normal flux.  See `Flow-specific Boundary Conditions`_
-
+ 
     * `"permeability type`" ``[string]`` **scalar** This controls the number of
       values needed to specify the absolute permeability.  One of:
 
@@ -41,6 +40,7 @@ Solves Richards equation:
     IF
     
     * `"source term`" ``[bool]`` **false** Is there a source term?
+
     THEN
     
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
@@ -49,6 +49,7 @@ Solves Richards equation:
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from
       the previous time step.
+
     END
 
     Math and solver algorithm options:
@@ -60,6 +61,8 @@ Solves Richards equation:
       inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
 
     * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
       to improve the inverse of the diffusion preconditioner.  Only used if this
@@ -185,9 +188,11 @@ Solves Richards equation:
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
+
     THEN
 
     * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
     END
 
     * `"coupled to surface via head`" ``[bool]`` **false** If true, apply

@@ -1,6 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Globalization hacks to deal with nonlinearity around the appearance/disappearance of surface water.
-
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 
@@ -8,6 +5,8 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! Globalization for nonlinearity around the appearance/disappearance of surface water.
+
 
 #ifndef AMANZI_MPC_DELEGATE_WATER_HH_
 #define AMANZI_MPC_DELEGATE_WATER_HH_
@@ -23,52 +22,55 @@
 
 /*!
 
- The water delegate works to eliminate discontinuities/strong nonlinearities
- when surface cells shift from dry to wet (i.e. the surface pressure goes
- from < atmospheric pressure to > atmospheric pressure.
+The water delegate works to deal with discontinuities/strong nonlinearities
+when surface cells shift from dry to wet (i.e. the surface pressure goes from <
+atmospheric pressure to > atmospheric pressure.
 
- These methods work to alter the predictor around this nonlinearity.
+These methods work to alter the predictor around this nonlinearity.
 
- - `"modify predictor with heuristic`" ``[bool]`` **false** This simply
-   limits the prediction to backtrack to just above atmospheric on both the
-   first and second timesteps that take us over atmospheric.
+.. _mpc-delegate-water-spec:
+.. admonition:: mpc-delegate-water-spec
 
- - `"modify predictor damp and cap the water spurt`" ``[bool]`` **false** The
-   second both limits (caps) and damps all surface cells to ensure that all
-   nearby cells are also not overshooting.  This is the preferred method.
+    * `"modify predictor with heuristic`" ``[bool]`` **false** This simply
+      limits the prediction to backtrack to just above atmospheric on both the
+      first and second timesteps that take us over atmospheric.
+
+    * `"modify predictor damp and cap the water spurt`" ``[bool]`` **false** The
+      second both limits (caps) and damps all surface cells to ensure that all
+      nearby cells are also not overshooting.  This is the preferred method.
     
- These methods work to alter the preconditioned correction for the same
- reasons described above.
+    These methods work to alter the preconditioned correction for the same
+    reasons described above.
 
- - `"global water face limiter`" ``[default]`` **INF** This is simply a limit
-   to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
-   correction larger than this is set to this.
+    * `"global water face limiter`" ``[default]`` **INF** This is simply a limit
+      to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
+      correction larger than this is set to this.
 
- - `"cap the water spurt`" ``[bool]`` **false** If a correction takes the
-   pressure on a surface cell from below atmospheric (dry) to above (wet),
-   the correction is set to a value which results in the new iterate to being
-   CAP_SIZE over atmospheric.
+    * `"cap the water spurt`" ``[bool]`` **false** If a correction takes the
+      pressure on a surface cell from below atmospheric (dry) to above (wet),
+      the correction is set to a value which results in the new iterate to being
+      CAP_SIZE over atmospheric.
 
- - `"damp the water spurt`" ``[bool]`` **false** A damping factor (less than
-   one) is calculated to multiply the correction such that the largest
-   correction takes a cell to just above atmospheric.  All faces (globally)
-   are affected.
+    * `"damp the water spurt`" ``[bool]`` **false** A damping factor (less than
+      one) is calculated to multiply the correction such that the largest
+      correction takes a cell to just above atmospheric.  All faces (globally)
+      are affected.
   
- - `"damp and cap the water spurt`" ``[bool]`` **false** None of the above
-   should really be used.  Capping, when the cap is particularly severe,
-   results in faces whose values are very out of equilibrium with their
-   neighboring cells which are not capped.  Damping results in a tiny
-   timestep in which, globally, at MOST one face can go from wet to dry.
-   This looks to do a combination, in which all things are damped, but faces
-   that are initially expected to go from dry to wet are pre-scaled to ensure
-   that, when damped, they are also (like the biggest change) allowed to go
-   from dry to wet (so that multiple cells can wet in the same step).  This
-   is the preferred method.
+    * `"damp and cap the water spurt`" ``[bool]`` **false** None of the above
+      should really be used.  Capping, when the cap is particularly severe,
+      results in faces whose values are very out of equilibrium with their
+      neighboring cells which are not capped.  Damping results in a tiny
+      timestep in which, globally, at MOST one face can go from wet to dry.
+      This looks to do a combination, in which all things are damped, but faces
+      that are initially expected to go from dry to wet are pre-scaled to
+      ensure that, when damped, they are also (like the biggest change) allowed
+      to go from dry to wet (so that multiple cells can wet in the same step).
+      This is the preferred method.
 
- In these methods, the following parameters are useful:
+    In these methods, the following parameters are useful:
 
- - `"cap over atmospheric`" ``[double]`` **100 Pa** This sets the max size over
-   atmospheric to which things are capped or damped.
+    * `"cap over atmospheric`" ``[double]`` **100** This sets the max size over
+      atmospheric to which things are capped or damped. `[Pa]`
   
  */
 

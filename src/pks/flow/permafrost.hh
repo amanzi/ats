@@ -1,21 +1,29 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  A base three-phase, thermal Richard's equation with water, water vapor, and
-  ice for permafrost applications.
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-  Note that the only difference between permafrost and richards is in
-  constitutive relations -- the WRM changes to provide three saturations,
-  while the water content changes to account for water in ice phase.  As these
-  are now drop-in field evaluators, there is very little to change in the PK.
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! A three-phase, thermal Richard's equation with water, water vapor, and ice for permafrost applications.
 
-* `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]``
+/*!
 
+Note that the only difference between permafrost and richards is in
+constitutive relations -- the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.
 
+In the future, this should not even need a different PK.
 
+.. _permafrost-spec:
+.. admonition:: permafrost-spec
   
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+    * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
+
+    INCLUDES:
+
+    - ``[richards-spec]`` See `Richards PK`_
 */
 
 #ifndef PK_FLOW_PERMAFROST_HH_

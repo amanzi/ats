@@ -1,5 +1,41 @@
-// Rewrite of permafrost PK, new operators, based on mpc_subsurface
-//
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! A coupler which solves flow and energy both surface and subsurface.
+
+
+/*!
+
+This MPC handles the coupling of surface energy and flow to subsurface energy
+and flow for integrated hydrology with freeze/thaw processes.
+
+.. _mpc-permafrost-spec:
+.. admonition:: mpc-permafrost-spec
+
+   * `"PKs order`" ``[Array(string)]`` The user supplies the names of the
+     coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
+     surface_flow_pk, surface_energy_pk}.
+
+   * `"subsurface domain name`" ``[string]`` **domain** 
+
+   * `"surface domain name`" ``[string]`` **surface** 
+
+   * `"mass exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_flux**
+
+   * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
+
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+     Globalization Delegate`_ spec.
+
+   INCLUDES:
+
+   - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
+    
+ */
 
 #ifndef PKS_MPC_PERMAFROST_FOUR_HH_
 #define PKS_MPC_PERMAFROST_FOUR_HH_

@@ -1,13 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! An advection-diffusion equation for energy in two phases.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Process kernel for energy equation for Richard's flow.
-------------------------------------------------------------------------- */
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
+
+.. _energy-two-phase-pk-spec:
+.. admonition:: energy-two-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-pk-spec]``  See `Energy Base PK`_
+
+*/
 
 #ifndef PKS_ENERGY_TWO_PHASE_HH_
 #define PKS_ENERGY_TWO_PHASE_HH_

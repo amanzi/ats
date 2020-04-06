@@ -37,6 +37,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     IF
     
     * `"source term`" ``[bool]`` **false** Is there a source term?
+
     THEN
     
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
@@ -46,6 +47,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from
       the previous time step.
+
     END
 
     Math and solver algorithm options:
@@ -83,7 +85,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       tidal boundary condition.  TODO: This should live in the BC spec?
       
     INCLUDES:
-
+    
     - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
     Everything below this point is usually not provided by the user, but are
@@ -110,12 +112,19 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     EVALUATORS:
 
     - `"conserved quantity`"
+    - `"water content`"
+    - `"cell volume`"
+    - `"surface_subsurface_flux`"
     - `"elevation`"
     - `"slope magnitude`"
     - `"overland_conductivity`"
     - `"ponded_depth`"
     - `"pres_elev`"
-    
+    - `"source`"
+
+
+.. todo:
+    Nearly all variable name roots are hard-coded here, this should get updated.
 
 */
 

@@ -20,7 +20,7 @@ Included in that list is at least one mesh: the `"domain`" mesh.  The
 `"domain`" mesh represents the primary domain of simulation -- usually the
 subsurface.  Simple, structured meshes may be generated on the fly, or complex
 unstructured meshes are provided as Exodus II files.  The `"domain`" mesh list
-includes either a `Generated Mesh`_, `Mesh From File`_, or `Logical Mesh`_ spec, as
+includes either a `Generated Mesh`_, `Read Mesh File`_, or `Logical Mesh`_ spec, as
 described below.
 
 Additionally, a `Surface Mesh`_ may be formed by lifting the surface of a
@@ -149,6 +149,7 @@ Specified by `"mesh type`" of `"logical`".
 .. _mesh-type-logical-spec:
 .. admonition:: mesh-type-logical-spec
 
+    Not yet completed...
    
 Surface Mesh
 ============
@@ -170,9 +171,11 @@ Specified by `"mesh type`" of `"surface`".
     ONE OF
 
     * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+
     OR
 
     * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
     END
 
     * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.

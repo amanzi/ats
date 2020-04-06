@@ -66,7 +66,6 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
 
   // my mesh is the subsurface mesh, but we need the surface mesh, index by column, as well
   mesh_surf_ = S->GetMesh("surface");
-  soil_part_name_ = plist_->get<std::string>("soil partition name");
 
   // Create the additional, non-managed data structures
   int nPools = plist_->get<int>("number of carbon pools", 7);
@@ -432,8 +431,6 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   Epetra_SerialDenseVector trans_c(ncells_per_col_);
   double sw_c(0.);
 
-  // Grab the mesh partition to get soil properties
-  Teuchos::RCP<const Functions::MeshPartition> mp = S_next_->GetMeshPartition(soil_part_name_);
   total_lai.PutScalar(0.);
 
   // loop over columns and apply the model

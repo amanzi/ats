@@ -124,6 +124,8 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
 
   // Set the cell initial condition if it is taken from the subsurface
   if (!S->GetField(key_)->initialized()) {
+    // TODO: make this go away!  This should be in an MPC?
+    
     Teuchos::ParameterList& ic_plist = plist_->sublist("initial condition");
     if (ic_plist.get<bool>("initialize surface temperature from subsurface",false)) {
       Teuchos::RCP<CompositeVector> surf_temp_cv = S->GetFieldData(key_, name_);
@@ -168,10 +170,9 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
       // mark as initialized
       S->GetField(key_,name_)->set_initialized();
 
-    } 
-    else if (ic_plist.get<bool>("initialize surface_star temperature from surface cells",false)) {
+    } else if (ic_plist.get<bool>("initialize surface_star temperature from surface cells",false)) {
       
-      assert(domain_ == "surface_star");
+      AMANZI_ASSERT(domain_ == "surface_star");
       Epetra_MultiVector& surf_temp = *S->GetFieldData(key_, name_)->ViewComponent("cell",false);
       
       unsigned int ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
