@@ -195,24 +195,24 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S) {
     // -- derivatives of thermal conductivity with respect to pressure
     if (precon_type_ != PRECON_NO_FLOW_COUPLING && 
         !plist_->get<bool>("supress Jacobian terms: d div K grad T / dp", false)) {
-      // need to upwind dKappa/dp
+      // need to upwind dkappa/dp
       if (!is_fv_) {
 
-        Key uw_dKappa_dp_key = Keys::getDerivKey(uw_tc_key_, pres_key_);
-        Key dKappa_dp_key = Keys::getDerivKey(tc_key_, pres_key_);
+        Key uw_dkappa_dp_key = Keys::getDerivKey(uw_tc_key_, pres_key_);
+        Key dkappa_dp_key = Keys::getDerivKey(tc_key_, pres_key_);
 
         // locations2[1] = AmanziMesh::FACE;
         // names2[1] = "face";        
-        S->RequireField(uw_dKappa_dp_key, name_)
+        S->RequireField(uw_dkappa_dp_key, name_)
           ->SetMesh(mesh_)->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
         //->SetMesh(mesh_)->SetGhosted()->SetComponents(names2, locations2, num_dofs2);
-        S->GetField(uw_dKappa_dp_key,name_)->set_io_vis(false);
+        S->GetField(uw_dkappa_dp_key,name_)->set_io_vis(false);
 
-        upwinding_dKappa_dp_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-                dKappa_dp_key, uw_dKappa_dp_key,
+        upwinding_dkappa_dp_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
+                dkappa_dp_key, uw_dkappa_dp_key,
                 energy_flux_key_, 1.e-8));
-        // upwinding_dKappa_dp_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
-        //         dKappa_dp_key, uw_dKappa_dp_key));
+        // upwinding_dkappa_dp_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
+        //         dkappa_dp_key, uw_dkappa_dp_key));
       }
 
       // set up the operator
@@ -434,10 +434,10 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S) {
 
   if (ddivKgT_dp_ != Teuchos::null) {
     if (!is_fv_) {
-      Key uw_dKappa_dp_key = Keys::getDerivKey(uw_tc_key_, pres_key_);
-      S->GetFieldData(uw_dKappa_dp_key,name_)->PutScalar(0.0);
+      Key uw_dkappa_dp_key = Keys::getDerivKey(uw_tc_key_, pres_key_);
+      S->GetFieldData(uw_dkappa_dp_key,name_)->PutScalar(0.0);
 
-      S->GetField(uw_dKappa_dp_key,name_)->set_initialized();
+      S->GetField(uw_dkappa_dp_key,name_)->set_initialized();
     }
 
     ddivKgT_dp_->SetTensorCoefficient(Teuchos::null);
@@ -572,15 +572,15 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
       S_next_->GetFieldEvaluator(tc_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
 
-      Teuchos::RCP<const CompositeVector> dKappa_dp;
+      Teuchos::RCP<const CompositeVector> dkappa_dp;
       if (is_fv_) {
-        dKappa_dp = S_next_->GetFieldData(Keys::getDerivKey(tc_key_, pres_key_));
+        dkappa_dp = S_next_->GetFieldData(Keys::getDerivKey(tc_key_, pres_key_));
       } else {
         S_next_->GetFieldData(Keys::getDerivKey(uw_tc_key_, pres_key_), name_)
             ->PutScalar(0.);
-        upwinding_dKappa_dp_->Update(S_next_.ptr(), db_.ptr());
+        upwinding_dkappa_dp_->Update(S_next_.ptr(), db_.ptr());
 
-        dKappa_dp = S_next_->GetFieldData(Keys::getDerivKey(uw_tc_key_, pres_key_));
+        dkappa_dp = S_next_->GetFieldData(Keys::getDerivKey(uw_tc_key_, pres_key_));
 
       }
 
@@ -589,7 +589,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
         S_next_->GetFieldData(uw_tc_key_);
       Teuchos::RCP<const CompositeVector> flux =
         S_next_->GetFieldData(energy_flux_key_);
-      ddivKgT_dp_->SetScalarCoefficient(uw_Kappa, dKappa_dp);
+      ddivKgT_dp_->SetScalarCoefficient(uw_Kappa, dkappa_dp);
       ddivKgT_dp_->UpdateMatrices(flux.ptr(),
               up->SubVector(1)->Data().ptr());
       ddivKgT_dp_->UpdateMatricesNewtonCorrection(flux.ptr(),
@@ -598,7 +598,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
       ddivKgT_dp_->ApplyBCs(false, true, false);
 
 
-      // ComputeDivCorrection(flux, uw_Kappa, dKappa_dp, 
+      // ComputeDivCorrection(flux, uw_Kappa, dkappa_dp, 
       //                      S_next_->GetFieldData(ddivKgT_dp_key_, name_)->ViewComponent("cell", false));
     }
 
