@@ -73,7 +73,7 @@ namespace BGC {
     void wrap_accumulatefluxes(int*, double*);
     void prep_canopyfluxes(int*); 
         
-    void calculate_biomass(double*  ats_biomass_array, int nsites, int num_scls);
+    void calculate_biomass(int*, double*  ats_biomass_array, int nsites, int num_scls);
   
 #ifdef __cplusplus
   } // extern "C"

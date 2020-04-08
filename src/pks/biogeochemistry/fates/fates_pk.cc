@@ -330,7 +330,7 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
 
   biomass.PutScalar(0.);
   biomass.ExtractView(&data_ptr, &data_dim);
-  calculate_biomass(data_ptr, data_dim, nlevsclass_);
+  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
   S->GetField(key_, name_)->set_initialized();
 
 }
@@ -544,7 +544,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       //   S_next_->GetFieldEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
       //   const Epetra_Vector& poro_vec = *(*S_next_->GetFieldData(poro_key_)->ViewComponent("cell", false))(0);        
       //   FieldToColumn_(c, poro_vec, h2osoi_vol_col.data(), ncells_per_col_);
-      // }      
+      // }       
              
       dynamics_driv_per_site(&clump_, &s, &(site_[c]), &dtime,
                              vsm_.data() + c*ncells_per_col_,  // column data for volumetric soil moisture content
@@ -573,7 +573,7 @@ void FATES_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 
   biomass.ExtractView(&data_ptr, &data_dim);
 
-  calculate_biomass(data_ptr, data_dim, nlevsclass_);
+  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
   
 }
 
