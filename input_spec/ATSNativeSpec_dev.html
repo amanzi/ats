@@ -1622,17 +1622,20 @@ or <cite>“surface-water_content</cite>”</li>
 <li><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the label of a user-defined region</li>
 <li><cite>“location name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the mesh location of the thing to be measured,
 i.e. <cite>“cell</cite>”, <cite>“face</cite>”, or <cite>“node</cite>”</li>
-<li><cite>“functional</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the label of a function to apply to the variable
-across the region.  One of:<ul>
+<li><cite>“functional</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> the type of function to apply to the variable
+on the region.  One of:<ul>
 <li><cite>“observation data: point</cite>” returns the value of the field quantity at a
 point.  The region and location name must result in a single entity being
 selected.</li>
-<li><cite>“observation data: extensive integral</cite>” returns the sum of an (extensive)
-variable over the region.  This should be used for extensive quantities
-such as <cite>“water_content</cite>” or <cite>“energy</cite>”.</li>
-<li><cite>“observation data: intensive integral</cite>” returns the volume-weighted
-average of an (intensive) variable over the region.  This should be used
-for intensive quantities such as <cite>“temperature</cite>” or <cite>“saturation_liquid</cite>”.</li>
+<li><cite>“observation data: average</cite>” or equivalently, but deprecated,
+<cite>“observation data: integral</cite>” returns the volume-weighted average of
+an (intensive) variable over the region.  This should be used for
+intensive quantities such as <cite>“temperature</cite>” or <cite>“saturation_liquid</cite>”.</li>
+<li><cite>“observation data: extensive integral</cite>” returns the sum of an
+(extensive) variable over the region.  This should be used for
+extensive quantities such as <cite>“water_content</cite>” or <cite>“energy</cite>”.</li>
+<li><cite>“observation data: minimum</cite>” returns the min value over the region</li>
+<li><cite>“observation data: maximum</cite>” returns the max value over the region</li>
 </ul>
 </li>
 <li><cite>“direction normalized flux</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>optional</strong> For flux observations,

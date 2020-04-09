@@ -1079,18 +1079,21 @@ to disk.
     * `"location name`" ``[string]`` the mesh location of the thing to be measured,
       i.e. `"cell`", `"face`", or `"node`"
 
-    * `"functional`" ``[string]`` the label of a function to apply to the variable
-      across the region.  One of:
+    * `"functional`" ``[string]`` the type of function to apply to the variable
+      on the region.  One of:
 
       - `"observation data: point`" returns the value of the field quantity at a
         point.  The region and location name must result in a single entity being
         selected.
-      - `"observation data: extensive integral`" returns the sum of an (extensive)
-        variable over the region.  This should be used for extensive quantities
-        such as `"water_content`" or `"energy`".
-      - `"observation data: intensive integral`" returns the volume-weighted
-        average of an (intensive) variable over the region.  This should be used
-        for intensive quantities such as `"temperature`" or `"saturation_liquid`".
+      - `"observation data: average`" or equivalently, but deprecated,
+        `"observation data: integral`" returns the volume-weighted average of
+        an (intensive) variable over the region.  This should be used for
+        intensive quantities such as `"temperature`" or `"saturation_liquid`".
+      - `"observation data: extensive integral`" returns the sum of an
+        (extensive) variable over the region.  This should be used for
+        extensive quantities such as `"water_content`" or `"energy`".
+      - `"observation data: minimum`" returns the min value over the region
+      - `"observation data: maximum`" returns the max value over the region
 
     * `"direction normalized flux`" ``[bool]`` **optional** For flux observations,
       dots the face-normal flux with a vector to ensure fluxes are integrated
