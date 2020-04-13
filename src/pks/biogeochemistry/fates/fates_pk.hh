@@ -48,6 +48,19 @@ namespace BGC {
     double albgrd[2]; //!ground albedo (direct) 1=visiable; 2=near infrared (nir)
     double albgri[2]; //ground albedo (diffuse) 1=visiable; 2=near infrared (nir)    
   } PhotoSynthesisInput;
+  
+  typedef struct {  
+     int current_year;      //Current year
+     int current_month;    //day of month
+     int current_day;      //day of month
+     int current_tod;     // time of day (seconds past 0Z)
+     int current_date;    // YYYYMMDD
+     int reference_date;  // YYYYMMDD
+     double  model_day;    // elapsed days between current date and ref
+     int day_of_year;     // The integer day of the year
+     int days_per_year;   // The HLM controls time, some HLMs may 
+                           // include a leap    
+  } TimeInput;
 
 
 #ifdef __cplusplus
@@ -64,17 +77,17 @@ namespace BGC {
     //void fatesreportparameters(int* proc);
     void set_fates_global_elements();
     void get_nlevsclass(int*);
-    void dynamics_driv_per_site(int*, int*, site_info*, double*,
+    void dynamics_driv_per_site(int*, int*, site_info*, TimeInput*, double*,
                                 double*, double*, double*, double*,
                                 double*);
-
     void wrap_btran(int*, int*, double*, double*, double*, double*, double*);
     void wrap_photosynthesis(int*, double*, double*, int*, double*, PhotoSynthesisInput*);
     void wrap_sunfrac(int*, int* array_size, double *forc_solad, double *forc_solai);
     void wrap_canopy_radiation(int*, double* jday, int* array_size, double* albgrd, double *albgri);    
     void wrap_accumulatefluxes(int*, double*);
-    
-    void calculate_biomass(double*  ats_biomass_array, int nsites, int num_scls);
+    void prep_canopyfluxes(int*); 
+        
+    void calculate_biomass(int*, double*  ats_biomass_array, int nsites, int num_scls);
   
 #ifdef __cplusplus
   } // extern "C"
@@ -147,6 +160,7 @@ namespace BGC {
     int ncells_owned_, ncells_per_col_, clump_;
     int masterproc_;
     std::vector<site_info> site_;
+    TimeInput time_input_;
 
   // factory registration
   static RegisteredPKFactory<FATES_PK> reg_;

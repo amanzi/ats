@@ -229,6 +229,9 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   t_photosynthesis_ = S->time();
   t_site_dym_ = S->time();
   
+  time_input_.reference_date = 1900*10000+1*100+1; //Year 1990, month 1, day= 1
+  time_input_.days_per_year=365; 
+  
   // if (!S->GetField(met_decomp_key_, name_)->initialized()){
   //   S->GetFieldData(met_decomp_key_, name_)->PutScalar(0.0);
   //   S->GetField(met_decomp_key_, name_)->set_initialized();
@@ -330,7 +333,7 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
 
   biomass.PutScalar(0.);
   biomass.ExtractView(&data_ptr, &data_dim);
-  calculate_biomass(data_ptr, data_dim, nlevsclass_);
+  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
   S->GetField(key_, name_)->set_initialized();
 
 }
@@ -382,6 +385,10 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
   if (fabs(t_new - (t_photosynthesis_ + dt_photosynthesis_)) < 1e-12*t_new) run_photo = true;
   if (fabs(t_new - (t_site_dym_ + dt_site_dym_)) <  1e-12*t_new) run_veg_dym = true;
 
+  // calculate fractional day length
+  double t_days = S_inter_->time() / 86400.;
+
+  int doy = std::floor(std::fmod(t_days, 365))+1;
 
   if (run_photo){
 
@@ -451,11 +458,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data());
 
     PhotoSynthesisInput photo_input;
-    // calculate fractional day length
-    double t_days = S_inter_->time() / 86400.;
 
-    int doy = std::floor(std::fmod(t_days, 365.25));
-    if (doy == 0) doy = 365;
 
     int   radnum = 2; //number of radiation bands
     double jday; //julian days (1-365)
@@ -463,7 +466,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     QSat qsat;
     
 
-    photo_input.dayl_factor = DayLength(site_[0].latdeg, doy);
+    photo_input.dayl_factor = DayLength(site_[0].latdeg, doy)/(60.0*24); //0-1 factor
 
     // double es, esdT, qs, qsdT;
     // qsat(air_temp[0][c], patm, &es, &esdT, &qs, &qsdT);
@@ -506,8 +509,9 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     photo_input.solad[1] = 0.2*longwave_rad[0][0];
     photo_input.solai[0] = 0.8*incident_rad[0][0];
     photo_input.solai[1] = 0.2*longwave_rad[0][0];    
-    jday = 1.0 + (t_new - t_site_dym_)/dt_site_dym_;
+    jday = doy; //1.0 + (t_new - t_site_dym_)/dt_site_dym_;
 
+    prep_canopyfluxes(&clump_);
     wrap_sunfrac(&clump_, &radnum, photo_input.solad, photo_input.solai);
     wrap_canopy_radiation(&clump_, &jday, &radnum, photo_input.albgrd, photo_input.albgri);           
     wrap_photosynthesis( &clump_, &dt_photosynthesis_, &patm, &array_size, t_soil_.data(), &photo_input);  
@@ -522,9 +526,48 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
   std::vector<double> prec24_patch(1);
   std::vector<double> rh24_patch(1);
   std::vector<double> wind24_patch(1);
+  std::vector<double> days_month(12);
   std::vector<double> h2osoi_vol_col;
+  
+  days_month[0]=31;
+  days_month[1]=28;
+  days_month[2]=31;
+  days_month[3]=30;
+  days_month[4]=31;
+  days_month[5]=30;
+  days_month[6]=31;
+  days_month[7]=31;
+  days_month[8]=30;
+  days_month[9]=31;
+  days_month[10]=30;
+  days_month[11]=31;
+  
+  for(int i=1;i<12;i++){
+    days_month[i]=days_month[i]+days_month[i-1];
+  }
+  int mi=1;
+  int dom=1;
+  for(int i =11;i>=0;i--){
+     if(doy<= days_month[i]) {
+       mi=i+1;
+       if(i>0){
+          dom = doy-days_month[i-1];
+       }else{
+          dom = doy;
+       }
+     }
+  }  
+  time_input_.current_year = 1990+std::ceil(t_days/365.0); //cx: 1990 should a be starting year parameter
+  time_input_.current_month = mi;
+  time_input_.current_day = dom;
+  time_input_.model_day=std::ceil(t_days);  
+  time_input_.current_tod= 86400.0*(t_days-std::floor(t_days));
+  time_input_.day_of_year= doy;
+  time_input_.current_date=time_input_.current_year*10000+ mi*100+dom;
 
   if (run_veg_dym){
+
+    
     for (int c=0; c<ncells_owned_; c++){
       int s=c+1;
 
@@ -533,8 +576,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       prec24_patch[0] = precip_rain[0][c];
       wind24_patch[0] = wind[0][c];
       rh24_patch[0] = humidity[0][c];
-
-
+      
       // if (surface_only_){
       //   h2osoi_vol_col.resize(1);
       //   h2osoi_vol_col[0] = 0.5;
@@ -543,9 +585,9 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       //   S_next_->GetFieldEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
       //   const Epetra_Vector& poro_vec = *(*S_next_->GetFieldData(poro_key_)->ViewComponent("cell", false))(0);        
       //   FieldToColumn_(c, poro_vec, h2osoi_vol_col.data(), ncells_per_col_);
-      // }      
+      // }       
              
-      dynamics_driv_per_site(&clump_, &s, &(site_[c]), &dtime,
+      dynamics_driv_per_site(&clump_, &s, &(site_[c]), &time_input_, &dtime,
                              vsm_.data() + c*ncells_per_col_,  // column data for volumetric soil moisture content
                              temp_veg24_patch.data(),
                              prec24_patch.data(),
@@ -572,7 +614,7 @@ void FATES_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 
   biomass.ExtractView(&data_ptr, &data_dim);
 
-  calculate_biomass(data_ptr, data_dim, nlevsclass_);
+  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
   
 }
 

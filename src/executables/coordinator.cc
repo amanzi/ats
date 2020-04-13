@@ -679,6 +679,17 @@ void Coordinator::cycle_driver() {
         *vo_->os() << "----------------------------------------------------------------------"
                   << std::endl;
       }
+      if (S_->cycle() == 3311){
+              Teuchos::OSTab tab = vo_->getOSTab();
+        *vo_->os() << "======================================================================"
+                  << std::endl << std::endl;
+        *vo_->os() << "debug for cycle= " << S_->cycle();
+        *vo_->os() << std::setprecision(15) << ",  Time [days] = "<< S_->time() / (60*60*24);
+        *vo_->os() << ",  dt [days] = " << dt / (60*60*24)  << std::endl;
+        *vo_->os() << "----------------------------------------------------------------------"
+                  << std::endl;
+         
+      }
 
       *S_->GetScalarData("dt", "coordinator") = dt;
       *S_inter_->GetScalarData("dt", "coordinator") = dt;
