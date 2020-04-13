@@ -223,7 +223,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
     const Epetra_Map& map = parent_mesh->map(kind,false);
     
     for (auto lid : entities) {
-      Amanzi::AmanziMesh::Entity_ID gid = map.GID(lid);
+      Amanzi::AmanziMesh::Entity_ID gid = map->getGlobalElement(lid);
       std::stringstream name;
       name << Amanzi::Keys::cleanPListName(mesh_plist.name()) << "_" << gid;
 
@@ -270,8 +270,8 @@ bool checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
 
 
     
-    int num_procs = mesh->get_comm()->NumProc();
-    int rank = mesh->get_comm()->MyPID();
+    int num_procs = mesh->get_comm()->getSize();
+    int rank = mesh->get_comm()->getRank();
     
     if (rank == 0)
       std::cout << "Verifying mesh with Mesh Audit..." << std::endl;
@@ -297,9 +297,9 @@ bool checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
       int status = mesh_auditor.Verify();        // check the mesh
       if (status != 0) ierr = 1;
       
-       mesh->get_comm()->SumAll(&ierr, &aerr, 1);
+      Teuchos::reduceAll(*mesh->get_comm(), Teuchos::REDUCE_SUM, 1, &ierr, &aerr);
       if (aerr == 0) {
-        if (mesh->get_comm()->MyPID() == 0)
+        if (mesh->get_comm()->getRank() == 0)
           std::cout << "Mesh Audit confirms that mesh is ok" << std::endl;
       } else {
         Errors::Message msg("Mesh Audit could not verify correctness of mesh.");
@@ -351,7 +351,7 @@ createMeshes(Teuchos::ParameterList& global_list,
     int nc = surface_mesh->num_entities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED);
    
     for (int c=0; c!=nc; ++c){
-      int id = surface_mesh->cell_map(false).GID(c);
+      int id = surface_mesh->cell_map(false)->getGlobalElement(c);
       std::stringstream name_ss;
       name_ss << "column_" << id;
       vis_ss_plist.set("file name base", "visdump_"+name_ss.str());         
@@ -366,7 +366,7 @@ createMeshes(Teuchos::ParameterList& global_list,
     Teuchos::ParameterList& vis_sf_plist = global_list.sublist("visualization surface cells");
     int nc = surface_mesh->num_entities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED);
     for (int c=0; c!=nc; ++c){
-      int id = surface_mesh->cell_map(false).GID(c);
+      int id = surface_mesh->cell_map(false)->getGlobalElement(c);
       std::stringstream name_ss, name_sf;
       name_sf << "surface_column_" << id;
       vis_sf_plist.set("file name base", "visdump_"+name_sf.str());

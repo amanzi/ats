@@ -95,9 +95,9 @@ namespace ATS {
 class Coordinator {
 
 public:
-  Coordinator(Teuchos::ParameterList& parameter_list,
-              Teuchos::RCP<Amanzi::State>& S,
-              Amanzi::Comm_ptr_type comm);
+  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& parameter_list,
+              const Teuchos::RCP<Amanzi::State>& S,
+              const Amanzi::Comm_ptr_type& comm);
               //              Amanzi::ObservationData& output_observations);
 
   // PK methods
@@ -105,27 +105,24 @@ public:
   void initialize();
   void finalize();
   void report_memory();
-  bool advance(double t_old, double t_new);
-  void visualize(bool force=false);
-  void checkpoint(double dt, bool force=false);
+  bool advance(double dt);
+  void visualize(bool force=false) {} // Reimplement...
+  void checkpoint(double dt, bool force=false) {} // Reimplement...
   double get_dt(bool after_fail=false);
-  Teuchos::RCP<Amanzi::State> get_next_state() { return S_next_; }
 
   // one stop shopping
   void cycle_driver();
 
 private:
-  void coordinator_init();
-  void read_parameter_list();
+  void coordinator_init_();
+  void read_parameter_list_();
 
   // PK container and factory
   Teuchos::RCP<Amanzi::PK> pk_;
 
-  // states
+  // state and solution vector template
   Teuchos::RCP<Amanzi::State> S_;
-  Teuchos::RCP<Amanzi::State> S_inter_;
-  Teuchos::RCP<Amanzi::State> S_next_;
-  Teuchos::RCP<Amanzi::TreeVector> soln_;
+  // Teuchos::RCP<Amanzi::TreeVector> soln_;
 
   // time step manager
   Teuchos::RCP<Amanzi::TimeStepManager> tsm_;

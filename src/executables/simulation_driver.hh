@@ -46,7 +46,7 @@ ATS input accepts an XML list including a few required elements.
 struct SimulationDriver
   : public Teuchos::VerboseObject<SimulationDriver>
 {
-  virtual int Run (const MPI_Comm&               mpi_comm,
-                   Teuchos::ParameterList&       input_parameter_list);
+  virtual int Run (const Amanzi::Comm_ptr_type& comm,
+                   const Teuchos::RCP<Teuchos::ParameterList>& input_parameter_list);
 
 };

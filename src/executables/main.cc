@@ -1,9 +1,5 @@
 #include <iostream>
 
-#include <Epetra_Comm.h>
-#include <Epetra_MpiComm.h>
-#include "Epetra_SerialComm.h"
-
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_ParameterXMLFileReader.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -15,22 +11,23 @@
 
 #include "dbc.hh"
 #include "errors.hh"
+
+#include "AmanziComm.hh"
 #include "simulation_driver.hh"
 
 // registration files
 #include "state_evaluators_registration.hh"
-
 #include "ats_relations_registration.hh"
-#include "ats_transport_registration.hh"
-#include "ats_energy_pks_registration.hh"
-#include "ats_energy_relations_registration.hh"
-#include "ats_flow_pks_registration.hh"
-#include "ats_flow_relations_registration.hh"
-#include "ats_deformation_registration.hh"
-#include "ats_bgc_registration.hh"
-#include "ats_surface_balance_registration.hh"
-#include "ats_mpc_registration.hh"
-#include "ats_sediment_transport_registration.hh"
+// #include "ats_transport_registration.hh"
+// #include "ats_energy_pks_registration.hh"
+// #include "ats_energy_relations_registration.hh"
+// #include "ats_flow_pks_registration.hh"
+// #include "ats_flow_relations_registration.hh"
+// #include "ats_deformation_registration.hh"
+// #include "ats_bgc_registration.hh"
+// #include "ats_surface_balance_registration.hh"
+// #include "ats_mpc_registration.hh"
+// #include "ats_sediment_transport_registration.hh"
 
 
 
@@ -76,16 +73,17 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  MPI_Comm mpi_comm(MPI_COMM_WORLD);
+  auto comm = Amanzi::getDefaultComm();
 
   // read the main parameter list
-  Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(xmlInFileName); 
+  Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(xmlInFileName);
 
+  // set the global, default verbosity
   Teuchos::RCP<Teuchos::FancyOStream> fos;
   Teuchos::readVerboseObjectSublist(&*plist, &fos, &Amanzi::VerbosityLevel::level_);
 
   SimulationDriver simulator;
-  int ret = simulator.Run(mpi_comm, *plist);
+  int ret = simulator.Run(comm, plist);
 }
 
 
