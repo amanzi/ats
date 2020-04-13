@@ -61,6 +61,7 @@ namespace BGC {
     void fatessetinputfiles(CFI_cdesc_t * clm, CFI_cdesc_t * fates);    
     void fatesreadparameters();
     void fatesreadpfts();
+    //void fatesreportparameters(int* proc);
     void set_fates_global_elements();
     void get_nlevsclass(int*);
     void dynamics_driv_per_site(int*, int*, site_info*, double*,
@@ -144,6 +145,7 @@ namespace BGC {
 
     int patchno_, nlevdecomp_, nlevsclass_;
     int ncells_owned_, ncells_per_col_, clump_;
+    int masterproc_;
     std::vector<site_info> site_;
 
   // factory registration
