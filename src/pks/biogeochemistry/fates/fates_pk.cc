@@ -1,4 +1,4 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+it /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /* -------------------------------------------------------------------------
  * ATS
  *
@@ -114,7 +114,7 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
   S->RequireField(key_, name_)->SetMesh(mesh_surf_)
     ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);
 
-  patchno_ = plist_->get<int>("number of patches", 1);
+  patchno_ = plist_->get<int>("number of patches", 10);
   nlevdecomp_ = plist_->get<int>("number of decomposition levels", 1);
 
   // met_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_met");
