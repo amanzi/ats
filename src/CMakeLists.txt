@@ -22,8 +22,8 @@ include_directories(${PKS_SOURCE_DIR})
 
 add_subdirectory(constitutive_relations)
 
-# # Process Kernels
-# add_subdirectory(pks)
+# Process Kernels
+add_subdirectory(pks)
 
 # main
 add_subdirectory(executables)
