@@ -1,6 +1,5 @@
 # -*- mode: cmake -*-
 
-
 #
 #  ATS
 #    Flow PK class
@@ -23,7 +22,6 @@ include_directories(${ATS_SOURCE_DIR}/pks)
 
 set(ats_flow_src_files
   # predictor_delegate_bc_flux.cc
-  richards.cc
   # richards_steadystate.cc
   # permafrost_pk.cc
   # interfrost.cc

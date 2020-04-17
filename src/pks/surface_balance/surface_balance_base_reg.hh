@@ -10,11 +10,7 @@
 
 #include "surface_balance_base.hh"
 
-namespace Amanzi {
-namespace SurfaceBalance {
-
-RegisteredPKFactory<SurfaceBalanceBase>
-SurfaceBalanceBase::reg_("general surface balance");
-
-} // namespace
-} // namespace
+template<>
+Amanzi::RegisteredPKFactory<ATS::SurfaceBalance::SurfaceBalanceBase_Implicit> ATS::SurfaceBalance::SurfaceBalanceBase_Implicit::reg_("general surface balance, implicit");
+template<>
+Amanzi::RegisteredPKFactory<ATS::SurfaceBalance::SurfaceBalanceBase_Explicit> ATS::SurfaceBalance::SurfaceBalanceBase_Explicit::reg_("general surface balance, explicit");

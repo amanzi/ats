@@ -138,10 +138,6 @@ private:
   // Epetra communicator
   Amanzi::Comm_ptr_type comm_;
 
-  // observations
-  //  ObservationData& output_observations_;
-  //  Teuchos::RCP<UnstructuredObservations> observations_;
-
   // vis and checkpointing
   std::vector<Teuchos::RCP<Amanzi::Visualization> > visualization_;
   std::vector<Teuchos::RCP<Amanzi::Visualization> > failed_visualization_;

@@ -83,6 +83,8 @@ EVALUATORS:
 
 #pragma once
 
+#include "errors.hh"
+
 #include "TreeVector.hh"
 #include "SolverDefs.hh"
 
@@ -107,59 +109,102 @@ public:
               const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
               const Teuchos::RCP<State>& S)
     : Base_t(pk_tree, global_plist, S)
-  {
-    dudt_key_ = this->key_ + "_t";
-    res_key_ = this->key_ + "_res";
-    conserved_key_ =
-      this->plist_->template get<std::string>("conserved quantity", "u");
-  }
+  {}
 
   // -- Setup data.
-  void Setup() {}
+  void Setup() {
+    Base_t::Setup();
+
+    // require evaluator
+    S_->RequireEvaluator(key_, tag_inter_);
+    
+    S_->template Require<CompositeVector, CompositeVectorSpace>(key_, tag_old_, key_)
+        .SetMesh(mesh_)
+        ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    S_->template Require<CompositeVector, CompositeVectorSpace>(key_, tag_new_, key_)
+        .SetMesh(mesh_)
+        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        
+  }
 
   // -- Initialize owned (primary) variables.
-  void Initialize(){}
+  void Initialize() {
+    Base_t::Initialize();
+    auto& ic_cv = S_->template GetW<CompositeVector>(key_, "", key_);
+    ic_cv.putScalar(0.);
+  }
 
-  void FunctionalTimeDerivative(double t, const TreeVector& u, TreeVector& f){}
+  void FunctionalTimeDerivative(double t, const TreeVector& u, TreeVector& f) {
+    f.putScalar(0.);
+  }
 
   void
   FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                     Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> f){}
+                     Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> f) {
+    double dt = t_new - t_old;
+    db_->WriteVector("u_old", *u_old->Data());
+    db_->WriteVector("u_new", *u_new->Data());
+
+    f->update(1/dt, *u_new, -1/dt, *u_old, 0.);
+    db_->WriteVector("res", *f->Data());
+  }
 
   int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-                          Teuchos::RCP<TreeVector> Pu){}
+                          Teuchos::RCP<TreeVector> Pu) {
+    *Pu = *u;
+    return 0;
+  }
 
   void
-  UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h){}
+  UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {}
 
   double
-  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du){}
+  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) {
+    return du->normInf();
+  }
 
   void ChangedSolution() { this->ChangedSolutionPK(tag_new_); }
 
-  void UpdateContinuationParameter(double lambda) {}
+  void UpdateContinuationParameter(double lambda) {
+    Errors::Message msg("Richards PK: continuation methods not supported.");
+    throw(msg);
+  }
   
   // -- limit changes in a valid time step
-  bool ValidStep(const Key& tag_old, const Key& tag_new){}
+  bool ValidStep(const Key& tag_old, const Key& tag_new) {
+    return true;
+  }
 
   // -- Update diagnostics for vis.
-  void CalculateDiagnostics(const Key& tag){}
+  void CalculateDiagnostics(const Key& tag) {}
 
   bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-                       Teuchos::RCP<TreeVector> u){}
+                       Teuchos::RCP<TreeVector> u) {
+    return false;
+  }
 
   // problems with pressures -- setting a range of admissible pressures
-  bool IsAdmissible(Teuchos::RCP<const TreeVector> up){}
+  bool IsAdmissible(Teuchos::RCP<const TreeVector> up) {
+    return true;
+  }
 
   // -- Possibly modify the correction before it is applied
   AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
   ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                    Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du){}
+                   Teuchos::RCP<TreeVector> du){
+    return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
+  }
 
  protected:
   using Base_t::tag_new_;
   using Base_t::tag_old_;
+  using Base_t::tag_inter_;
+  using Base_t::S_;
+  using Base_t::key_;
+  using Base_t::mesh_;
+  using Base_t::db_;
 
   Key dudt_key_;
   Key res_key_;

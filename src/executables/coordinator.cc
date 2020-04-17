@@ -27,7 +27,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "Checkpoint.hh"
-// #include "UnstructuredObservations.hh"
+#include "UnstructuredObservations.hh"
 #include "State.hh"
 #include "PK.hh"
 #include "TreeVector.hh"
@@ -61,6 +61,13 @@ Coordinator::coordinator_init_() {
   coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
   read_parameter_list_();
 
+  // create the time step manager
+  tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
+
+  // create the checkpoint, vis, and observation objects
+  checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(Teuchos::sublist(parameter_list_, "checkpoint"), comm_));
+  observations_ = Teuchos::rcp(new Amanzi::UnstructuredObservations(Teuchos::sublist(parameter_list_, "observations"), comm_));
+  
   // create the top level PK
   auto pks_list = Teuchos::sublist(parameter_list_, "PKs");
   auto pk_tree_list = Teuchos::sublist(coordinator_list_, "PK tree");
@@ -75,11 +82,6 @@ Coordinator::coordinator_init_() {
   Amanzi::PKFactory pk_factory;
   pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, parameter_list_, S_);
 
-  int rank = comm_->getRank();
-  int size = comm_->getSize();
-  
-  // create the time step manager
-  tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
 }
 
 void Coordinator::setup() {
@@ -104,7 +106,7 @@ void Coordinator::initialize() {
   // Initialize the state (initializes all dependent variables).
   S_->set_time("", t0_);
   S_->set_cycle("", cycle0_);
-  S_->GetW<double>("dt", "", "coordinator") = 0.;
+  S_->GetW<double>("dt", "", "dt") = 0.;
 
   pk_->Initialize();
   S_->Initialize();
@@ -112,23 +114,22 @@ void Coordinator::initialize() {
   // set up the TSM
   // -- register visualization times
   for (const auto& vis : visualization_) {
-    vis->RegisterWithTimeStepManager(tsm_.ptr());
+    vis->RegisterWithTimeStepManager(*tsm_);
   }
 
   // -- register checkpoint times
-  checkpoint_->RegisterWithTimeStepManager(tsm_.ptr());
+  checkpoint_->RegisterWithTimeStepManager(*tsm_);
 
   // -- register observation times
-  // observations_->RegisterWithTimeStepManager(tsm_.ptr());
+  observations_->RegisterWithTimeStepManager(*tsm_);
 
   // -- register the final time
   tsm_->RegisterTimeEvent(t1_);
 
   // -- register any intermediate requested times
   if (coordinator_list_->isSublist("required times")) {
-    Teuchos::ParameterList& sublist = coordinator_list_->sublist("required times");
-    Amanzi::IOEvent pause_times(sublist);
-    pause_times.RegisterWithTimeStepManager(tsm_.ptr());
+    Amanzi::IOEvent pause_times(Teuchos::sublist(coordinator_list_, "required times"));
+    pause_times.RegisterWithTimeStepManager(*tsm_);
   }
 }
 
@@ -138,7 +139,7 @@ void Coordinator::finalize() {
   WriteCheckpoint(*checkpoint_, *S_, true);
 
   // flush observations to make sure they are saved
-  // observations_->Flush();
+  observations_->Flush();
 }
 
 
@@ -149,7 +150,7 @@ void Coordinator::read_parameter_list_() {
   max_dt_ = Amanzi::Utils::readValueAndUnits(units, *coordinator_list_,
           "max time step size", "s", 1.0e99);
   min_dt_ = Amanzi::Utils::readValueAndUnits(units, *coordinator_list_,
-          "min time step size", "s", 1.0e99);
+          "min time step size", "s", 1.0e-99);
 
   duration_ = Amanzi::Utils::readValueAndUnits(units, *coordinator_list_,
           "wallclock duration", "h", 24.0);
@@ -206,7 +207,7 @@ bool Coordinator::advance(double dt) {
     S_->set_cycle("", S_->cycle("next"));
     
     // make observations, vis, and checkpoints
-    // observations_->MakeObservations(*S_);
+    observations_->MakeObservations(*S_);
     visualize();
     checkpoint(dt);
 
@@ -257,7 +258,7 @@ void Coordinator::cycle_driver() {
                   << std::endl;
       }
 
-      S_->GetW<double>("dt", "", "coordinator") = dt;
+      S_->GetW<double>("dt", "", "dt") = dt;
 
       fail = advance(dt);
       dt = get_dt(fail);
