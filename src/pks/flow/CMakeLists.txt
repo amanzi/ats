@@ -81,7 +81,7 @@ set(ats_flow_link_libs
 #
 register_evaluator_with_factory(
   HEADERFILE richards_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
+  LISTNAME   ATS_REG
   )
 
 # register_evaluator_with_factory(
@@ -119,11 +119,6 @@ register_evaluator_with_factory(
 #   LISTNAME   ATS_FLOW_PKS_REG
 #   )
 
-generate_evaluators_registration_header(
-  HEADERFILE ats_flow_pks_registration.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  INSTALL    True
-  )
 
 
 

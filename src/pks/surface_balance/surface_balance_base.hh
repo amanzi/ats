@@ -62,7 +62,7 @@ sinks.
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
 
-namespace Amanzi {
+namespace ATS {
 namespace SurfaceBalance {
 
 class SurfaceBalanceBase : public PK_PhysicalBDF_Default {

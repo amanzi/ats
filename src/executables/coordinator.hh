@@ -101,21 +101,19 @@ public:
               //              Amanzi::ObservationData& output_observations);
 
   // PK methods
-  void setup();
-  void initialize();
-  void finalize();
-  void report_memory();
-  bool advance(double dt);
-  void visualize(bool force=false) {} // Reimplement...
-  void checkpoint(double dt, bool force=false) {} // Reimplement...
+  void Setup();
+  void Initialize();
+  void Finalize();
+  void ReportMemory();
+  bool Advance(double dt);
   double get_dt(bool after_fail=false);
 
   // one stop shopping
-  void cycle_driver();
+  void CycleDriver();
 
 private:
-  void coordinator_init_();
-  void read_parameter_list_();
+  void Init_();
+  void ReadParameterList_();
 
   // PK container and factory
   Teuchos::RCP<Amanzi::PK> pk_;

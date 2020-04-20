@@ -25,5 +25,13 @@ add_subdirectory(constitutive_relations)
 # Process Kernels
 add_subdirectory(pks)
 
+
+generate_evaluators_registration_header(
+  HEADERFILE executables/ats_registration.hh
+  LISTNAME   ATS_REG
+  INSTALL    True
+  )
+
+
 # main
 add_subdirectory(executables)

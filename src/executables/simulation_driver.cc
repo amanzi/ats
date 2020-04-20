@@ -72,7 +72,7 @@ int SimulationDriver::Run(
   ATS::Coordinator coordinator(plist, S, comm);
   
   // run the simulation
-  coordinator.cycle_driver();
+  coordinator.CycleDriver();
   return 0;
 }
 

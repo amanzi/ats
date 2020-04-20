@@ -5,6 +5,8 @@
 #    PK class
 #
 
+add_subdirectory(basic)
+
 #add_subdirectory(energy)
 add_subdirectory(flow)
 # add_subdirectory(transport)

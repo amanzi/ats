@@ -53,13 +53,13 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& parameter_l
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
 
   vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *parameter_list_));
-  coordinator_init_();
+  Init_();
 }
 
 void
-Coordinator::coordinator_init_() {
+Coordinator::Init_() {
   coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
-  read_parameter_list_();
+  ReadParameterList_();
 
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
@@ -84,7 +84,7 @@ Coordinator::coordinator_init_() {
 
 }
 
-void Coordinator::setup() {
+void Coordinator::Setup() {
   // Require data for timestep control
   S_->Require<double>("time", "", "time");
   S_->Require<double>("time", "next", "time");
@@ -100,7 +100,7 @@ void Coordinator::setup() {
   S_->Setup();
 }
 
-void Coordinator::initialize() {
+void Coordinator::Initialize() {
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // Initialize the state (initializes all dependent variables).
@@ -133,7 +133,7 @@ void Coordinator::initialize() {
   }
 }
 
-void Coordinator::finalize() {
+void Coordinator::Finalize() {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics("");
   WriteCheckpoint(*checkpoint_, *S_, true);
@@ -143,7 +143,7 @@ void Coordinator::finalize() {
 }
 
 
-void Coordinator::read_parameter_list_() {
+void Coordinator::ReadParameterList_() {
   Amanzi::Utils::Units units;
   t0_ = Amanzi::Utils::readValueAndUnits(units, *coordinator_list_, "start time", "s");
   t1_ = Amanzi::Utils::readValueAndUnits(units, *coordinator_list_, "end time", "s");
@@ -190,7 +190,7 @@ double Coordinator::get_dt(bool after_fail) {
 }
 
 
-bool Coordinator::advance(double dt) {
+bool Coordinator::Advance(double dt) {
   S_->set_time("next", S_->time("") + dt);
   S_->set_cycle("next", S_->cycle("") + 1);
 
@@ -203,13 +203,17 @@ bool Coordinator::advance(double dt) {
   } else {
     // commit the state
     pk_->CommitStep("", "next");
-    S_->set_time("", S_->time("next"));
-    S_->set_cycle("", S_->cycle("next"));
+    double time = S_->time("next");
+    int cycle = S_->cycle("next");
+    S_->set_time("", time);
+    S_->set_cycle("", cycle);
     
     // make observations, vis, and checkpoints
     observations_->MakeObservations(*S_);
-    visualize();
-    checkpoint(dt);
+    for (const auto& v : visualization_) {
+      if (v->DumpRequested(cycle, time)) WriteVis(*v, *S_);
+    }
+    if (checkpoint_->DumpRequested(cycle, time)) WriteCheckpoint(*checkpoint_, *S_);
 
   }
   return fail;
@@ -220,24 +224,28 @@ bool Coordinator::advance(double dt) {
 // -----------------------------------------------------------------------------
 // timestep loop
 // -----------------------------------------------------------------------------
-void Coordinator::cycle_driver() {
+void Coordinator::CycleDriver() {
   // wallclock duration -- in seconds
   const double duration(duration_ * 3600);
 
   // start at time t = t0 and initialize the state.
   {
     Teuchos::TimeMonitor monitor(*setup_timer_);
-    setup();   
-    initialize();
+    Setup();   
+    Initialize();
   }
 
   // get the intial timestep -- note, this would have to be fixed for a true restart
   double dt = get_dt(false);
+  double time = S_->time("");
+  int cycle = S_->cycle("");
 
   // visualization at IC
-  visualize();
-  checkpoint(dt);
-
+  for (const auto& v : visualization_) {
+    if (v->DumpRequested(cycle, time)) WriteVis(*v, *S_);
+  }
+  if (checkpoint_->DumpRequested(cycle, time)) WriteCheckpoint(*checkpoint_, *S_);
+  
   // iterate process kernels
   {
     Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
@@ -260,14 +268,14 @@ void Coordinator::cycle_driver() {
 
       S_->GetW<double>("dt", "", "dt") = dt;
 
-      fail = advance(dt);
+      fail = Advance(dt);
       dt = get_dt(fail);
     } // while not finished
   }
 
   // finalizing simulation
   Teuchos::TimeMonitor::summarize(*vo_->os());
-  finalize();
+  Finalize();
 
 } // cycle driver
 

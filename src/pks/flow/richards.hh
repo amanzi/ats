@@ -1,6 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Two-phase, variable density Richards equation.
-
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 
@@ -8,6 +5,7 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! Two-phase, variable density Richards equation.
 
 
 /*!
@@ -210,7 +208,6 @@ public:
   Key res_key_;
   Key conserved_key_;
   
- private:
 };
 
 using Richards_Implicit =
