@@ -3090,12 +3090,12 @@ Initialization of tensor fields
 A variable tensor (or vector) field is defined similarly to a variable
 scalar field.  The difference lies in the definition of the function
 which is now a multi-values function.  The required parameters are
-`"Number of DoFs`" and `"Function type`".
+`"Number of dofs`" and `"Function type`".
 
 .. code-block:: xml
 
   <ParameterList name="function">
-    <Parameter name="Number of DoFs" type="int" value="2"/>
+    <Parameter name="Number of dofs" type="int" value="2"/>
     <Parameter name="Function type" type="string" value="composite function"/>
     <ParameterList name="DoF 1 Function">
       <ParameterList name="function-constant">
