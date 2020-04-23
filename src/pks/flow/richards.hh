@@ -114,7 +114,7 @@ public:
     Base_t::Setup();
 
     // require evaluator
-    S_->RequireEvaluator(key_, tag_inter_);
+    S_->RequireEvaluator(key_, tag_new_);
     
     S_->template Require<CompositeVector, CompositeVectorSpace>(key_, tag_old_, key_)
         .SetMesh(mesh_)
@@ -198,7 +198,6 @@ public:
  protected:
   using Base_t::tag_new_;
   using Base_t::tag_old_;
-  using Base_t::tag_inter_;
   using Base_t::S_;
   using Base_t::key_;
   using Base_t::mesh_;

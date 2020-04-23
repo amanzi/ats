@@ -5,8 +5,6 @@
 #    Flow PK class
 #
 
-# add_subdirectory(constitutive_relations)
-
 # ATS include directories
 include_directories(${ATS_SOURCE_DIR}/pks)
 # include_directories(${ATS_SOURCE_DIR}/operators/advection)
@@ -17,7 +15,6 @@ include_directories(${ATS_SOURCE_DIR}/pks)
 # include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/elevation)
 # include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/sources)
 # include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
-
 
 
 set(ats_flow_src_files
@@ -41,6 +38,8 @@ set(ats_flow_inc_files
   # flow_bc_factory.hh
   # predictor_delegate_bc_flux.hh
   richards.hh
+  models/WRMVanGenuchten.hh
+  models/CapillaryPressureLiqAtm.hh
   # richards_steadystate.hh
   # permafrost.hh
   # interfrost.hh
@@ -82,6 +81,16 @@ set(ats_flow_link_libs
 register_evaluator_with_factory(
   HEADERFILE richards_reg.hh
   LISTNAME   ATS_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE models/WRMVanGenuchten_reg.hh
+  LISTNAME  ATS_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE models/CapillaryPressureLiqAtm_reg.hh
+  LISTNAME  ATS_REG
   )
 
 # register_evaluator_with_factory(

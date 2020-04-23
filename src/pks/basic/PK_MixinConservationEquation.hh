@@ -145,7 +145,6 @@ public:
     }
   }
 
-  
   double
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) {
     using ENorm_t = std::pair<double,int>;
@@ -166,7 +165,6 @@ public:
     double dt = S_->time(tag_new_) - S_->time(tag_old_);
     ENorm_t enorm_all{0.0, -1};
 
-    
     for (const auto& comp : *du->Data()) {
       ENorm_t enorm_comp{0.0,-1};
 

@@ -108,8 +108,8 @@ void Coordinator::Initialize() {
   S_->set_cycle("", cycle0_);
   S_->GetW<double>("dt", "", "dt") = 0.;
 
-  pk_->Initialize();
   S_->Initialize();
+  pk_->Initialize();
 
   // set up the TSM
   // -- register visualization times
