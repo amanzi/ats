@@ -93,6 +93,12 @@ register_evaluator_with_factory(
   LISTNAME  ATS_REG
   )
 
+register_evaluator_with_factory(
+  HEADERFILE models/CompressiblePorosityLinear_reg.hh
+  LISTNAME  ATS_REG
+  )
+
+
 # register_evaluator_with_factory(
 #   HEADERFILE richards_steadystate_reg.hh
 #   LISTNAME   ATS_FLOW_PKS_REG

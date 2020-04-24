@@ -180,6 +180,7 @@ public:
                 du_v.extent(0),
                 KOKKOS_LAMBDA(const int& c, ENorm_t& enorm) {
                   double local_enorm = abs(dt * du_v(c,0)) / cv_v(c,0) / (atol_ + rtol_ * abs(conserved_v(c,0)));
+                  //if (c == 99) std::cout << std::setprecision(16) << "local_enorm = " << dt << " * " << du_v(c,0) << " / " << cv_v(c,0) << " / " << atol_ << " + " << rtol_ << " * " << conserved_v(c,0) << " = " << local_enorm << std::endl;
                   if (local_enorm > enorm.first) {
                     enorm.first = local_enorm;
                     enorm.second = c; // note, not actually GID yet

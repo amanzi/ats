@@ -267,77 +267,117 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
 };
 
 
-// template <class Base_t>
-// class ConservationODE_Explicit : public Base_t {
+template <class Base_t>
+class MixedFormParabolicPDE_Explicit : public Base_t {
 
-// public:
-//   using Base_t::Base_t;
+public:
+  using Base_t::Base_t;
 
-//   void Setup() {
-//     Base_t::Setup();
-//     Base_t::SetupAtTag(tag_inter_);
+  void Setup() {
+    Base_t::Setup();
+    Base_t::SetupAtTag(tag_inter_);
   
-//     // here we just need the source and the conserved quantity's derivative
-//     S_->template Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_inter_)
-//         .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
-//     S_->RequireEvaluator(source_key_, tag_inter_);
+    // set up the diffusion operator
+    diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
+    Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
+    if (!diff_list.isParameter("evaluator type")) diff_list.set("evaluator type", "diffusion operator");
+    if (!diff_list.isParameter("local operator key")) diff_list.set("local operator key", diffusion_key_);
+    if (!diff_list.isParameter("rhs key")) diff_list.set("rhs key", diffusion_key_+"_rhs");
+    if (!diff_list.isParameter("boundary conditions key")) diff_list.set("boundary conditions key", diffusion_key_+"_bcs");
+    if (!diff_list.isParameter("operator argument key")) diff_list.set("operator argument key", key_);
 
-//     S_->template Require<CompositeVector,CompositeVectorSpace>(conserved_quantity_key_, tag_inter_)
-//         .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
-//     S_->template RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_quantity_key_, tag_inter_,
-//             key_, tag_inter_);
-//     S_->RequireEvaluator(conserved_quantity_key_, tag_inter_);
-//   }
+    S_->template Require<CompositeVector,CompositeVectorSpace>(conserved_quantity_key_, tag_inter_)
+        .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
+    S_->template RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_quantity_key_, tag_inter_,
+            key_, tag_inter_);
+    S_->RequireEvaluator(conserved_quantity_key_, tag_inter_);
 
-//   void
-//   FunctionalTimeDerivative(double t, const TreeVector& u, TreeVector& f)
-//   {
-//     // explicit time integration boilerplate
-//     // NOTE: Currently, we do not allow time integrators to introduce their own
-//     // tags -- time integrators have no knowledge of tags.  This makes it easy
-//     // for time integrators to break our state model, by simply
-//     // copy-constructing the input vector and giving us the copy instead of the
-//     // vector at the right tag.
-//     //    
-//     // For now, these check to ensure that the time integrator is giving
-//     // us what we expect, and is playing nice with state
-//     S_->set_time(tag_inter_, t);
-//     AMANZI_ASSERT(u.Data() == S_->template GetPtr<CompositeVector>(key_, tag_inter_));
-//     this->ChangedSolutionPK(tag_inter_);
-//     // end boilerplate
+    // require du/dt
+    dudt_key_ = conserved_quantity_key_ + "_t";
+    Teuchos::ParameterList& res_list = S_->FEList().sublist(dudt_key_);
+    // -- operator
+    if (!res_list.isParameter("tag")) res_list.set("tag", tag_inter_);
+    if (!res_list.isParameter("evaluator type")) res_list.set("evaluator type", "operator application");
+    if (!res_list.isParameter("diagnoal primary x key")) res_list.set("diagonal primary x key", key_);
+    if (!res_list.isParameter("diagonal local operators keys")) res_list.set("diagonal local operators keys",
+                 Teuchos::Array<std::string>(1, diffusion_key_));
+    if (!res_list.isParameter("diagonal local operator rhss keys")) res_list.set("diagonal local operator rhss keys",
+                 Teuchos::Array<std::string>(1, diffusion_key_+"_rhs"));
 
-//     Teuchos::OSTab tab = vo_->getOSTab();
-//     if (vo_->os_OK(Teuchos::VERB_HIGH))
-//       *vo_->os() << "----------------------------------------------------------------" << std::endl
-//                  << "Time derivative calculation at: t = " << t << std::endl;
+    // -- rhs for source and accumulation term
+    Teuchos::Array<std::string> rhss;
+    Teuchos::Array<double> rhs_coefs;
+    if (is_source_) {
+      rhss = std::vector<std::string>{ source_key_ };
+      rhs_coefs = std::vector<double>{ -1.0 };
+    }
+    if (!res_list.isParameter("additional rhss keys")) res_list.set("additional rhss keys", rhss);
+    if (!res_list.isParameter("rhs coefficients")) res_list.set("rhs coefficients", rhs_coefs);
+
+    // NOTE: we cannot know the structure of u here -- it may be CELL if FV, or
+    // it may be CELL+FACE if MFD.  It will get set by the operator.  But we do
+    // need to supply the mesh.
+    S_->template Require<CompositeVector,CompositeVectorSpace>(dudt_key_, tag_inter_)
+        .SetMesh(mesh_);  
+    S_->RequireEvaluator(dudt_key_, tag_inter_);
     
-//     db_->WriteCellInfo(true);
-//     db_->WriteVector("u", u.Data().ptr());
+  }
 
-//     S_->GetEvaluator(source_key_, tag_inter_).Update(*S_, this->name());
-//     db_->WriteVector("source", S_->template GetPtr<CompositeVector>(source_key_, tag_inter_).ptr());
+  void
+  FunctionalTimeDerivative(double t, const TreeVector& u, TreeVector& f)
+  {
+    // explicit time integration boilerplate
+    // NOTE: Currently, we do not allow time integrators to introduce their own
+    // tags -- time integrators have no knowledge of tags.  This makes it easy
+    // for time integrators to break our state model, by simply
+    // copy-constructing the input vector and giving us the copy instead of the
+    // vector at the right tag.
+    //    
+    // For now, these check to ensure that the time integrator is giving
+    // us what we expect, and is playing nice with state
+    S_->set_time(tag_inter_, t);
+    AMANZI_ASSERT(u.Data() == S_->template GetPtr<CompositeVector>(key_, tag_inter_));
+    this->ChangedSolutionPK(tag_inter_);
+    // end boilerplate
 
-//     S_->GetEvaluator(conserved_quantity_key_, tag_inter_).UpdateDerivative(*S_, this->name(),
-//             key_, tag_inter_);
-//     db_->WriteVector("dTheta/du", S_->template GetDerivativePtr<CompositeVector>(conserved_quantity_key_, tag_inter_,
-//             key_, tag_inter_).ptr());
+    Teuchos::OSTab tab = vo_->getOSTab();
+    if (vo_->os_OK(Teuchos::VERB_HIGH))
+      *vo_->os() << "----------------------------------------------------------------" << std::endl
+                 << "Time derivative calculation at: t = " << t << std::endl;
+    
+    db_->WriteCellInfo(true);
+    db_->WriteVector("u", u.Data().ptr());
 
-//     f.Data()->reciprocal(S_->template GetDerivative<CompositeVector>(conserved_quantity_key_, tag_inter_, key_, tag_inter_));
-//     f.Data()->elementWiseMultiply(1.0, S_->template Get<CompositeVector>(source_key_, tag_inter_), *f.Data(), 0.);
-//   }
+    S_->GetEvaluator(dudt_key_, tag_inter_).Update(*S_, this->name());
+    db_->WriteVector("-div grad u - Q", S_->template GetPtr<CompositeVector>(dudt_key_, tag_inter_).ptr());
 
+    S_->GetEvaluator(conserved_quantity_key_, tag_inter_).UpdateDerivative(*S_, this->name(),
+            key_, tag_inter_);
+    db_->WriteVector("dTheta/du", S_->template GetDerivativePtr<CompositeVector>(conserved_quantity_key_, tag_inter_,
+            key_, tag_inter_).ptr());
 
-//  protected:
-//   using Base_t::tag_inter_;
-//   using Base_t::S_;
-//   using Base_t::key_;
-//   using Base_t::mesh_;
-//   using Base_t::db_;
-//   using Base_t::vo_;
-//   using Base_t::conserved_quantity_key_;
-//   using Base_t::source_key_;
+    f.Data()->reciprocal(S_->template GetDerivative<CompositeVector>(conserved_quantity_key_, tag_inter_, key_, tag_inter_));
+    f.Data()->elementWiseMultiply(-1.0,
+            S_->template Get<CompositeVector>(dudt_key_, tag_inter_), *f.Data(), 0.);
+  }
 
-// };
+ protected:
+  using Base_t::plist_;
+  using Base_t::layer_;
+  using Base_t::tag_inter_;
+  using Base_t::is_source_;
+  using Base_t::S_;
+  using Base_t::key_;
+  using Base_t::mesh_;
+  using Base_t::db_;
+  using Base_t::vo_;
+  using Base_t::conserved_quantity_key_;
+  using Base_t::source_key_;
+
+  Key dudt_key_;
+  Key diffusion_key_;
+
+};
 
   
 
@@ -351,20 +391,20 @@ using PK_MixedFormParabolicPDE_Implicit =
                               PK_MixinLeafCompositeVector<
                                 PK_Default>>>>>;
 
-// using PK_ConservationODE_Explicit =
-//     PK_Explicit_Adaptor<ConservationODE_Explicit<
-//                           PK_MixinConservationEquation<
-//                             PK_MixinExplicit<
-//                               PK_MixinLeafCompositeVector<
-//                                 PK_Default>>>>>;
+using PK_MixedFormParabolicPDE_Explicit =
+    PK_Explicit_Adaptor<MixedFormParabolicPDE_Explicit<
+                          PK_MixinConservationEquation<
+                            PK_MixinExplicit<
+                              PK_MixinLeafCompositeVector<
+                                PK_Default>>>>>;
 
-// using PK_ConservationODE_PredictorCorrector =
-//     PK_ImplicitExplicit_Adaptor<ConservationODE_Implicit<
-//                           ConservationODE_Explicit<
-//                             PK_MixinConservationEquation<
-//                               PK_MixinPredictorCorrector<
-//                                 PK_MixinLeafCompositeVector<
-//                                   PK_Default>>>>>>;
+using PK_MixedFormParabolicPDE_PredictorCorrector =
+    PK_ImplicitExplicit_Adaptor<MixedFormParabolicPDE_Implicit<
+                          MixedFormParabolicPDE_Explicit<
+                            PK_MixinConservationEquation<
+                              PK_MixinPredictorCorrector<
+                                PK_MixinLeafCompositeVector<
+                                  PK_Default>>>>>>;
 
 
 } // namespace Basic
