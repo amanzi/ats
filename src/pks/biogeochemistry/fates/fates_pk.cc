@@ -438,21 +438,21 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     }
 
 
-    std::cout<<"t_soil_\n";
-    for (auto ent : t_soil_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"poro\n";
-    for (auto ent : poro_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"eff_poro_\n";
-    for (auto ent : eff_poro_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"vsm_\n";
-    for (auto ent : vsm_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"suc_\n";
-    for (auto ent : suc_) std::cout<<ent<<" ";
-    std::cout<<"\n";
+    // std::cout<<"t_soil_\n";
+    // for (auto ent : t_soil_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"poro\n";
+    // for (auto ent : poro_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"eff_poro_\n";
+    // for (auto ent : eff_poro_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"vsm_\n";
+    // for (auto ent : vsm_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"suc_\n";
+    // for (auto ent : suc_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
     
     int array_size = t_soil_.size();
     wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data());
