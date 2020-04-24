@@ -257,8 +257,11 @@ bool Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit) {
     }
 
     master_dt_ = dt_next;
-    //flow_pk_ -> CalculateDiagnostics(S_next_);
-    flow_pk_ -> CommitStep(t_old  + dt_done, t_old + dt_done + dt_next, S_next_);  
+
+    flow_pk_ -> CalculateDiagnostics(S_next_);
+    flow_pk_ -> CommitStep(t_old  + dt_done, t_old + dt_done + dt_next, S_next_);
+
+    //S_next_->WriteStatistics(vo_); 
     slave_dt_ = sed_transport_pk_->get_dt(); 
     if (slave_dt_ > master_dt_) slave_dt_ = master_dt_;
     if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)

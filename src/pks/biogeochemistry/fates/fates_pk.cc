@@ -184,7 +184,6 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(incident_rad_key_);
   }
-
   
   if (!surface_only_){
     poro_key_ = Keys::readKey(*plist_, "domain", "porosity", "base_porosity");
@@ -374,10 +373,6 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
   S_next_->GetFieldEvaluator(incident_rad_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& incident_rad = *S_next_->GetFieldData(incident_rad_key_)->ViewComponent("cell", false);
 
-
-  // if (S_next_->cycle() == 1102){
-  //   std::cout<<"Reached cycle 1102\n";
-  // }
   
   bool run_photo = false;
   bool run_veg_dym = false;
@@ -436,7 +431,6 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
         
       }
     }
-
 
     // std::cout<<"t_soil_\n";
     // for (auto ent : t_soil_) std::cout<<ent<<" ";

@@ -1047,6 +1047,10 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
         Exceptions::amanzi_throw(message);
       }
       double h0 = bc->second;
+
+      if (vo_->os_OK(Teuchos::VERB_HIGH)){
+        *vo_->os() << "Tidal BC: f="<<f<< "h0 "<<h0<<" h0 - elevation_f[0][f] "<<h0 - elevation_f[0][f]<<"\n";
+      }
       
       if ((h0 - elevation_f[0][f]  < min_tidal_bc_ponded_depth_) ) {      
           
@@ -1212,19 +1216,21 @@ void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S,
         Exceptions::amanzi_throw(message);
       }
       double h0 = bc->second;
+
       
       if ((h0 - elevation_f[0][f] < min_tidal_bc_ponded_depth_)) {
-        double dp = elevation_f[0][f] - elevation_c[0][c];        
-        double bc_val = -dp * Aff[f](0,0);
-
-        markers[f] = Operators::OPERATOR_BC_NEUMANN;
-        values[f] = bc_val / mesh_->face_area(f);
-        
-      }else{
-        
+        double dp = elevation_f[0][f] - elevation_c[0][c];
+        if (dp < 0){
+          double bc_val = -dp * Aff[f](0,0);         
+          markers[f] = Operators::OPERATOR_BC_NEUMANN;
+          values[f] = bc_val / mesh_->face_area(f);
+        }else{
+          markers[f] = Operators::OPERATOR_BC_NEUMANN;
+          values[f] = 0.;
+        }
+      }else{        
         markers[f] = Operators::OPERATOR_BC_DIRICHLET;
         values[f] = h0;
-        
       }
 
       if (vo_->os_OK(Teuchos::VERB_HIGH)){

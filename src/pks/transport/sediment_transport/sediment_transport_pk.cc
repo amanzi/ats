@@ -125,6 +125,7 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
 
   water_tolerance_ = tp_list_->get<double>("water tolerance", 1e-1);
   max_tcc_ = tp_list_->get<double>("maximal concentration", 0.9);
+  sediment_density_ = tp_list_->get<double>("sediment density [kg/m^3]");
 
 
   mesh_ = S->GetMesh(domain_name_);
@@ -1411,7 +1412,7 @@ void SedimentTransport_PK::ComputeAddSourceTerms(double tp, double dtp,
     double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
     tcc[0][c] += value * dtp;
     mass_sediment_source_ += value;
-    dz[0][c] += mesh_->cell_volume(c) * ((Q_dt[0][c] + Q_ds[0][c])  + Q_db[0][c] - Q_e[0][c]) * dtp/ (1 - poro[0][c]);
+    dz[0][c] +=(1./sediment_density_)*((Q_dt[0][c] + Q_ds[0][c])  + Q_db[0][c] - Q_e[0][c]) * dtp/ (1 - poro[0][c]);
   }
 
   

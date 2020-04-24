@@ -262,6 +262,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   int nnodes_wghost;
  
   std::vector<double> mol_masses_;
+  double sediment_density_;
   int num_aqueous;
 
   std::vector<std::string> component_names_;  // details of components   

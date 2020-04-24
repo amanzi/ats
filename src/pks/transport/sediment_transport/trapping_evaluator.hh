@@ -49,7 +49,7 @@ class TrappingRateEvaluator : public SecondaryVariableFieldEvaluator {
   Key sediment_key_;
   Key ponded_depth_key_;
   Key biomass_key_;  
-
+  double sediment_density_;
   static Utils::RegisteredFactory<FieldEvaluator,TrappingRateEvaluator> factory_;
 
 };

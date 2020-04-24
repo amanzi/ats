@@ -32,6 +32,7 @@ TrappingRateEvaluator :: TrappingRateEvaluator(Teuchos::ParameterList& plist) :
   alpha_ = plist_.get<double>("alpha");
   beta_ = plist_.get<double>("beta");
   gamma_ = plist_.get<double>("gamma");
+  sediment_density_ = plist_.get<double>("sediment density [kg/m^3]");  
     
   dependencies_.insert("surface-pressure");
   dependencies_.insert(sediment_key_);
@@ -51,7 +52,8 @@ TrappingRateEvaluator ::TrappingRateEvaluator (const TrappingRateEvaluator & oth
   d_p_ = other.d_p_;
   alpha_ = other.alpha_;
   gamma_ = other.gamma_;
-  beta_  = other.beta_; 
+  beta_  = other.beta_;
+  sediment_density_ = other.sediment_density_;
 } 
 
 
@@ -90,7 +92,7 @@ void TrappingRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         eps = 0.;
       }      
 
-      result_c[0][c] += tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
+      result_c[0][c] += sediment_density_ * tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
     }
   }
       

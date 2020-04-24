@@ -119,6 +119,13 @@ namespace Amanzi {
 
     if ((update_frequency_ > 0) && (last_update_ >=0)) {
       double time = S->time();
+      if (requests_.find(request) == requests_.end()) {
+        requests_.insert(request);
+        if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+          *vo_->os() << my_keys_[0]  << " has changed, but no need to update... " << std::endl;
+        }
+        return true;
+      }
       if (time - last_update_ < update_frequency_) return false;
     }
 
@@ -156,6 +163,7 @@ namespace Amanzi {
               biomass[n][c] = 0.;
             }
           }
+          break;
         case 2:
           for (int c=0; c<ncells; c++){
             double z_b = elev[0][c] - MSL;
@@ -167,6 +175,7 @@ namespace Amanzi {
               biomass[n][c] = 0.;
             }
           }
+          break;
         }
         for (int c=0; c<ncells; c++){
           stem_diameter[n][c]  = alpha_d[n] * std::pow(biomass[n][c], beta_d[n]);
@@ -176,7 +185,7 @@ namespace Amanzi {
 
         }
       }
-    
+
   }
 
   void BiomassEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,

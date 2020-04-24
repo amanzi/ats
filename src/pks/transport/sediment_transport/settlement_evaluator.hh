@@ -47,7 +47,7 @@ protected:
   double ws_;
   double gamma_;
   double lambda_, umax_, xi_;
-
+  double sediment_density_;
   Key velocity_key_, sediment_key_;
 
   static Utils::RegisteredFactory<FieldEvaluator,SettlementRateEvaluator> factory_;
