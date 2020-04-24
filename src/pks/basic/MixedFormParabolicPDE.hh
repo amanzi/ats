@@ -190,10 +190,12 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
 
     db_->WriteCellInfo(true);
     db_->WriteVectors({"u_old","u_new"}, {u_old->Data().ptr(), u_new->Data().ptr()});
-    db_->WriteFields(*S_);
     
     S_->GetEvaluator(res_key_, tag_new_).Update(*S_, this->name());
     f->Data()->assign(S_->template Get<CompositeVector>(res_key_, tag_new_));
+
+    db_->WriteState(*S_, tag_old_);
+    db_->WriteState(*S_, tag_new_);
     db_->WriteVector("u_res", f->Data().ptr());
   }
 
