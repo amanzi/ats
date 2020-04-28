@@ -235,12 +235,13 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (diffused_key_ != key_) {
       // primary and diffused key are NOT the same, must now apply the chain rule
       const auto& ddiffused_dprimary = S_->template GetDerivative<CompositeVector>(diffused_key_, tag_new_, key_, tag_new_);
-      *vo_->os() << "d " << diffused_key_ << " d " << key_ << std::endl;
-      ddiffused_dprimary.Print(*vo_->os());
+      // *vo_->os() << "d " << diffused_key_ << " d " << key_ << std::endl;
+      // ddiffused_dprimary.Print(*vo_->os());
+      // NOTE: this is sloppy and likely needs to be put in a kernel
       Pr->Data()->reciprocal(*Pr->Data());
       Pr->Data()->elementWiseMultiply(1.0, ddiffused_dprimary, *Pr->Data(), 0.);
       Pr->Data()->reciprocal(*Pr->Data());
-      db_->WriteVector("dprimary/ddiffused*PC*u_res", Pr->Data().ptr());
+      // db_->WriteVector("dprimary/ddiffused*PC*u_res", Pr->Data().ptr());
     }
     
     
