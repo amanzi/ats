@@ -18,37 +18,16 @@ include_directories(${ATS_SOURCE_DIR}/pks)
 
 
 set(ats_flow_src_files
-  # predictor_delegate_bc_flux.cc
-  # richards_steadystate.cc
-  # permafrost_pk.cc
-  # interfrost.cc
-  # overland_pressure_pk.cc
-  # overland_pressure_physics.cc
-  # overland_pressure_ti.cc
-  # overland_pk.cc
-  # overland_physics.cc
-  # overland_ti.cc
-  # icy_overland.cc
-  # snow_distribution_pk.cc
-  # snow_distribution_physics.cc
-  # snow_distribution_ti.cc
   )
 
 set(ats_flow_inc_files
-  # flow_bc_factory.hh
-  # predictor_delegate_bc_flux.hh
-  richards.hh
-  models/WRMVanGenuchten.hh
   models/CapillaryPressureLiqAtm.hh
-  # richards_steadystate.hh
-  # permafrost.hh
-  # interfrost.hh
-  # overland_pressure.hh
-  # overland.hh
-  # icy_overland.hh
-  # snow_distribution.hh
+  models/CompressiblePorosityLinear.hh
+  models/ManningConductivity.hh
+  models/SurfaceWaterContent.hh
+  models/SurfaceWaterDepth.hh
+  models/WRMVanGenuchten.hh
   )
-
 
 set(ats_flow_link_libs
   ${Teuchos_LIBRARIES}
@@ -63,9 +42,6 @@ set(ats_flow_link_libs
   time_integration
   state
   pks
-  # ats_operators
-  # ats_eos
-  # ats_flow_relations
   )
 
 
@@ -84,17 +60,7 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
-  HEADERFILE models/WRMVanGenuchten_reg.hh
-  LISTNAME  ATS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE models/CapillaryPressureLiqAtm_reg.hh
-  LISTNAME  ATS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE models/CompressiblePorosityLinear_reg.hh
+  HEADERFILE models/FlowModels_reg.hh
   LISTNAME  ATS_REG
   )
 

@@ -268,11 +268,24 @@ public:
   ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                    Teuchos::RCP<const TreeVector> u,
                    Teuchos::RCP<TreeVector> du){
+    auto base_changed = Base_t::ModifyCorrection(h, res, u, du);
     if (modify_correction_positivity_preserving_) {
-      Errors::Message msg("ConservationEquation: \"admit only positivity preserving\" is not yet implemented.");
-      throw(msg);
+      auto u_v = u->Data()->ViewComponent("cell", false);
+      auto du_v = du->Data()->ViewComponent("cell", false);
+      int changed = 0;
+      Kokkos::parallel_reduce(
+          "PK_MixinConservationEquation::ModifyCorrection preserving positivity",
+          du_v.extent(0),
+          KOKKOS_LAMBDA(const int& i, int& count) {
+            if (u_v(i,0) - du_v(i,0) < 0.) {
+              std::cout << "POS PRESERV: " << i << "u = " << u_v(i,0) << " du = " << du_v(i,0) << std::endl;
+              du_v(i,0) = u_v(i,0);
+              count += 1;
+            }
+          }, changed);
+      if (changed) return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED_LAG_BACKTRACKING;
     }
-    return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
+    return base_changed;
   }
 
  protected:

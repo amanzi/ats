@@ -7,7 +7,7 @@
   Author: Ethan Coon (coonet@ornl.gov)
 */
 
-//! Simple capillary pressure, p_atm - p
+//! Water content from ponded depth.
 
 /*!
 
@@ -31,16 +31,17 @@ using namespace Amanzi;
 
 
 template <class InView_type, class OutView_type>
-class CapillaryPressureLiqAtm {
+class SurfaceWaterContent {
  public:
-  static const int n_dependencies = 1;
+  static const int n_dependencies = 2;
   static const std::string name;
 
-  CapillaryPressureLiqAtm(Teuchos::ParameterList& plist)
+  SurfaceWaterContent(Teuchos::ParameterList& plist)
   {
-    pc_key_ = Keys::cleanPListName(plist.name());
-    std::string domain = Keys::getDomain(pc_key_);
-    pres_key_ = Keys::readKey(plist, domain, "pressure", "pressure");
+    wc_key_ = Keys::cleanPListName(plist.name());
+    std::string domain = Keys::getDomain(wc_key_);
+    pd_key_ = Keys::readKey(plist, domain, "surface water depth", "ponded_depth");
+    dens_key_ = Keys::readKey(plist, domain, "density", "molar_density_liquid");
   }
 
   void SetViews(const std::vector<InView_type>& dependency_views,
@@ -50,19 +51,18 @@ class CapillaryPressureLiqAtm {
     AMANZI_ASSERT(dependency_views.size() == n_dependencies);
     AMANZI_ASSERT(result_views.size() == 1);
 
-    pc = result_views[0];
-    pres = dependency_views[0];
-
-    p_atm_ = S.Get<double>("atmospheric pressure", "");
+    wc = result_views[0];
+    pd = dependency_views[0];
+    dens = dependency_views[1];
   }
 
-  KeyVector my_keys() const { return { pc_key_ }; }
-  KeyVector dependencies() const { return { pres_key_ }; }
+  KeyVector my_keys() const { return { wc_key_ }; }
+  KeyVector dependencies() const { return { pd_key_, dens_key_ }; }
 
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    pc(i,0) =  p_atm_ - pres(i,0);
+    wc(i,0) =  pd(i,0) > 0. ? pd(i,0)*dens(i,0) : 0.;
   }
 
   // derivatives
@@ -74,19 +74,25 @@ class CapillaryPressureLiqAtm {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    pc(i,0) = -1.0;
+    //    wc(i,0) = pd(i,0) > 0. ? dens(i,0) : 0.;
+    // NOTE this is hacked for surface water stand-alone
+    wc(i,0) = dens(i,0);
   }
 
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
+  {
+    wc(i,0) = pd(i,0) > 0. ? pd(i,0) : 0.;
+  }
+  
  private:
-  OutView_type pc;
-  InView_type pres;
+  OutView_type wc;
+  InView_type pd, dens;
 
-  Key pc_key_;
-  Key pres_key_;
+  Key wc_key_;
+  Key pd_key_;
+  Key dens_key_;
 
-  double p_atm_;
-
-  static Utils::RegisteredFactory<Evaluator, EvaluatorModel_CompositeVector<CapillaryPressureLiqAtm>> reg_;
+  static Utils::RegisteredFactory<Evaluator, EvaluatorModel_CompositeVector<SurfaceWaterContent>> reg_;
 
 };
 

@@ -111,6 +111,12 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     S_->template Require<CompositeVector,CompositeVectorSpace>(accumulation_key_, tag_new_)
         .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
 
+    // set up the diffused key -- allows primary and diffused to be different
+    diffused_key_ = Keys::readKey(*plist_, layer_, "diffusion operand", Keys::getVarName(key_));
+    if (diffused_key_ != key_) {
+      S_->template RequireDerivative<CompositeVector,CompositeVectorSpace>(diffused_key_, tag_new_, key_, tag_new_);
+    }
+    
     // set up the diffusion operator
     diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
     Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
@@ -118,7 +124,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!diff_list.isParameter("local operator key")) diff_list.set("local operator key", diffusion_key_);
     if (!diff_list.isParameter("rhs key")) diff_list.set("rhs key", diffusion_key_+"_rhs");
     if (!diff_list.isParameter("boundary conditions key")) diff_list.set("boundary conditions key", diffusion_key_+"_bcs");
-    if (!diff_list.isParameter("operator argument key")) diff_list.set("operator argument key", key_);
+    diff_list.set("operator argument key", diffused_key_);
     
     // set up the residual evaluator
     res_key_ = key_ + "_res";
@@ -126,7 +132,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     // -- operator
     if (!res_list.isParameter("tag")) res_list.set("tag", tag_new_);
     if (!res_list.isParameter("evaluator type")) res_list.set("evaluator type", "operator application");
-    if (!res_list.isParameter("diagnoal primary x key")) res_list.set("diagonal primary x key", key_);
+    res_list.set("diagonal primary x key", diffused_key_);
     if (!res_list.isParameter("diagonal local operators keys")) res_list.set("diagonal local operators keys",
                  Teuchos::Array<std::string>(1, diffusion_key_));
     if (!res_list.isParameter("diagonal local operator rhss keys")) res_list.set("diagonal local operator rhss keys",
@@ -156,7 +162,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     S_->template Require<CompositeVector,CompositeVectorSpace>(res_key_, tag_new_)
         .SetMesh(mesh_);  
     S_->template RequireDerivative<Operators::Operator, Operators::Operator_Factory>(
-      res_key_, tag_new_, key_, tag_new_);
+      res_key_, tag_new_, diffused_key_, tag_new_);
     S_->RequireEvaluator(res_key_, tag_new_);
   }
 
@@ -202,7 +208,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
   int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r,
                           Teuchos::RCP<TreeVector> Pr)
   {
-    const auto& lin_op = S_->template GetDerivativePtr<Operators::Operator>(res_key_, tag_new_, key_, tag_new_);
+    const auto& lin_op = S_->template GetDerivativePtr<Operators::Operator>(res_key_, tag_new_, diffused_key_, tag_new_);
 
     // check for a linear solver
     if (!lin_solver_.get() && plist_->isParameter("linear solver")) {
@@ -225,6 +231,19 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     }
 
     db_->WriteVector("PC*u_res", Pr->Data().ptr());
+
+    if (diffused_key_ != key_) {
+      // primary and diffused key are NOT the same, must now apply the chain rule
+      const auto& ddiffused_dprimary = S_->template GetDerivative<CompositeVector>(diffused_key_, tag_new_, key_, tag_new_);
+      *vo_->os() << "d " << diffused_key_ << " d " << key_ << std::endl;
+      ddiffused_dprimary.Print(*vo_->os());
+      Pr->Data()->reciprocal(*Pr->Data());
+      Pr->Data()->elementWiseMultiply(1.0, ddiffused_dprimary, *Pr->Data(), 0.);
+      Pr->Data()->reciprocal(*Pr->Data());
+      db_->WriteVector("dprimary/ddiffused*PC*u_res", Pr->Data().ptr());
+    }
+    
+    
     // return ierr;
     return 0;  // keep trying, even if linear solver fails to converge.
   }
@@ -236,6 +255,8 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
       *vo_->os() << "Precon update at t = " << t << std::endl;
     
     S_->GetEvaluator(res_key_, tag_new_).UpdateDerivative(*S_, this->name(),
+            diffused_key_, tag_new_);
+    S_->GetEvaluator(diffused_key_, tag_new_).UpdateDerivative(*S_, this->name(),
             key_, tag_new_);
   }
 
@@ -258,6 +279,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
   using Base_t::source_key_;
 
   Key accumulation_key_;
+  Key diffused_key_;
   Key diffusion_key_;
   Key res_key_;
 
@@ -298,7 +320,7 @@ public:
     // -- operator
     if (!res_list.isParameter("tag")) res_list.set("tag", tag_inter_);
     if (!res_list.isParameter("evaluator type")) res_list.set("evaluator type", "operator application");
-    if (!res_list.isParameter("diagnoal primary x key")) res_list.set("diagonal primary x key", key_);
+    if (!res_list.isParameter("diagonal primary x key")) res_list.set("diagonal primary x key", key_);
     if (!res_list.isParameter("diagonal local operators keys")) res_list.set("diagonal local operators keys",
                  Teuchos::Array<std::string>(1, diffusion_key_));
     if (!res_list.isParameter("diagonal local operator rhss keys")) res_list.set("diagonal local operator rhss keys",

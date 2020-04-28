@@ -76,7 +76,8 @@ class WRMVanGenuchten {
   }
 
   void SetViews(const std::vector<InView_type>& dependency_views,
-                const std::vector<OutView_type>& result_views)
+                const std::vector<OutView_type>& result_views,
+                const State& S)
   {
     AMANZI_ASSERT(dependency_views.size() == 1);
     AMANZI_ASSERT(result_views.size() == 1);
@@ -149,7 +150,8 @@ class WRMVanGenuchten_Kr {
   }
 
   void SetViews(const std::vector<InView_type>& dependency_views,
-                const std::vector<OutView_type>& result_views)
+                const std::vector<OutView_type>& result_views,
+                const State& S)
   {
     AMANZI_ASSERT(dependency_views.size() == 1);
     AMANZI_ASSERT(result_views.size() == 1);

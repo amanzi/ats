@@ -93,6 +93,7 @@ set(amanzi_link_libs
   )
   
 set(ats_link_libs
+  ats_basic
   # ats_operators
   # ats_generic_evals
   # ats_surf_subsurf

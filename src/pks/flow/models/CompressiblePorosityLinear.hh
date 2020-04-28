@@ -59,8 +59,7 @@ class CompressiblePorosityLinear {
 
   CompressiblePorosityLinear(Teuchos::ParameterList& plist)
       : alpha_(plist.sublist("model parameters").get<double>("pore compressibility [Pa^-1]")),
-        cutoff_(plist.sublist("model parameters").get<double>("pore compressibility inflection point [Pa]", 1000.0)),
-        p_atm_(plist.sublist("model parameters").get<double>("atmospheric pressure [Pa]", 101325.))
+        cutoff_(plist.sublist("model parameters").get<double>("pore compressibility inflection point [Pa]", 1000.0))
   {
     phi_key_ = Keys::cleanPListName(plist.name());
     std::string domain = Keys::getDomain(phi_key_);
@@ -69,7 +68,8 @@ class CompressiblePorosityLinear {
   }
 
   void SetViews(const std::vector<InView_type>& dependency_views,
-                const std::vector<OutView_type>& result_views)
+                const std::vector<OutView_type>& result_views,
+                const State& S)
   {
     AMANZI_ASSERT(dependency_views.size() == 2);
     AMANZI_ASSERT(result_views.size() == 1);
@@ -77,6 +77,8 @@ class CompressiblePorosityLinear {
     phi = result_views[0];
     phi0 = dependency_views[0];
     pres = dependency_views[1];
+
+    p_atm_ = S.Get<double>("atmospheric pressure", "");
   }
 
   KeyVector my_keys() const { return { phi_key_ }; }

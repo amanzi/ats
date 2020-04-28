@@ -32,6 +32,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
+#include "EvaluatorPrimary.hh"
 
 #include "coordinator.hh"
 
@@ -67,6 +68,23 @@ Coordinator::Init_() {
   // create the checkpoint, vis, and observation objects
   checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(Teuchos::sublist(parameter_list_, "checkpoint"), comm_));
   observations_ = Teuchos::rcp(new Amanzi::UnstructuredObservations(Teuchos::sublist(parameter_list_, "observations"), comm_));
+  auto vis_list = Teuchos::sublist(parameter_list_,"visualization");
+  for (auto& entry : *vis_list) {
+    std::string domain_name = entry.first;
+
+    if (S_->HasMesh(domain_name)) {
+      // visualize standard domain
+      auto mesh_p = S_->GetMesh(domain_name);
+      auto sublist_p = Teuchos::sublist(vis_list, domain_name);
+
+      if (S_->HasMesh(domain_name+"_3d") && sublist_p->get<bool>("visualize on 3D mesh", true))
+        mesh_p = S_->GetMesh(domain_name+"_3d");
+      
+      // vis successful timesteps
+      auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist_p, mesh_p));
+      visualization_.push_back(vis);
+    }
+  }
   
   // create the top level PK
   auto pks_list = Teuchos::sublist(parameter_list_, "PKs");
@@ -92,6 +110,21 @@ void Coordinator::Setup() {
   S_->Require<int>("cycle", "next", "cycle");
   S_->Require<double>("dt", "", "dt");
 
+  // get primary variable evaluators for time
+  Teuchos::ParameterList time_eval_plist("time");
+  time_eval_plist.set("evaluator type", "primary variable double");
+  S_->FEList().set("time", time_eval_plist);
+
+  S_->RequireEvaluator("time", "");
+  auto t0_eval = S_->GetEvaluatorPtr("time", "");
+  t0_eval_ = Teuchos::rcp_dynamic_cast<Amanzi::EvaluatorPrimary<double>>(t0_eval);
+  AMANZI_ASSERT(t0_eval_.get());
+
+  S_->RequireEvaluator("time", "next");
+  auto t1_eval = S_->GetEvaluatorPtr("time", "next");
+  t1_eval_ = Teuchos::rcp_dynamic_cast<Amanzi::EvaluatorPrimary<double>>(t1_eval);
+  AMANZI_ASSERT(t1_eval_.get());
+
   // Setup the PKs, which sets all requirements
   pk_->Setup();
 
@@ -105,6 +138,8 @@ void Coordinator::Initialize() {
 
   // Initialize the state (initializes all dependent variables).
   S_->set_time("", t0_);
+  t0_eval_->SetChanged();
+  
   S_->set_cycle("", cycle0_);
   S_->GetW<double>("dt", "", "dt") = 0.;
 
@@ -192,6 +227,7 @@ double Coordinator::get_dt(bool after_fail) {
 
 bool Coordinator::Advance(double dt) {
   S_->set_time("next", S_->time("") + dt);
+  t1_eval_->SetChanged();  
   S_->set_cycle("next", S_->cycle("") + 1);
 
   bool fail = pk_->AdvanceStep("", "next");
@@ -206,6 +242,7 @@ bool Coordinator::Advance(double dt) {
     double time = S_->time("next");
     int cycle = S_->cycle("next");
     S_->set_time("", time);
+    t0_eval_->SetChanged();  
     S_->set_cycle("", cycle);
     
     // make observations, vis, and checkpoints

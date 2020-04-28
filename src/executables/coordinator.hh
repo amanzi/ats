@@ -75,6 +75,7 @@ Example:
 #include "Epetra_MpiComm.h"
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
+#include "EvaluatorPrimary.hh"
 
 #include "VerboseObject.hh"
 
@@ -130,6 +131,7 @@ private:
   Teuchos::RCP<Teuchos::ParameterList> coordinator_list_;
 
   double t0_, t1_;
+  Teuchos::RCP<Amanzi::EvaluatorPrimary<double>> t0_eval_, t1_eval_;
   double max_dt_, min_dt_;
   int cycle0_, cycle1_;
 
