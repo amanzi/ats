@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "Teuchos_ParameterList.hpp"
-#include "Teuchos_ParameterXMLFileReader.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
 #include "Teuchos_StandardParameterEntryValidators.hpp"
@@ -64,11 +63,11 @@ int main(int argc, char *argv[])
   auto comm = Amanzi::getDefaultComm();
 
   // read the main parameter list
-  Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(xmlInFileName);
+  auto plist = Teuchos::getParametersFromXmlFile(xmlInFileName);
 
   // set the global, default verbosity
   Teuchos::RCP<Teuchos::FancyOStream> fos;
-  Teuchos::readVerboseObjectSublist(&*plist, &fos, &Amanzi::VerbosityLevel::level_);
+  Teuchos::readVerboseObjectSublist(plist.get(), &fos, &Amanzi::VerbosityLevel::level_);
 
   SimulationDriver simulator;
   int ret = simulator.Run(comm, plist);

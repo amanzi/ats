@@ -12,7 +12,7 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include <Epetra_MpiComm.h>
 
 #include "Teuchos_ParameterList.hpp"
-#include "Teuchos_XMLParameterListHelpers.hpp"
+#include "Teuchos_XMLParameterListCoreHelpers.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 

@@ -132,7 +132,10 @@ bool
 EvaluatorUpwindPotentialDifference::UpdateDerivative(State& S,
         const Key& requestor, const Key& wrt_key, const Key& wrt_tag)
 {
-  bool changed = false;
+  Key wrt = Keys::getKeyTag(wrt_key, wrt_tag);
+  auto& deriv_request_set = deriv_requests_[wrt];
+  bool update = deriv_request_set.empty(); // not done once
+
   AMANZI_ASSERT(S.GetEvaluator(dependencies_[0].first, dependencies_[0].second)
                 .IsDifferentiableWRT(S, wrt_key, wrt_tag));
 
@@ -146,14 +149,13 @@ EvaluatorUpwindPotentialDifference::UpdateDerivative(State& S,
                                   "_d" + Keys::getKeyTag(wrt_key, wrt_tag);
 
   // differentiate the cell component and upwind that
-  changed |= S.GetEvaluator(dependencies_[0].first, dependencies_[0].second)
+  update |= S.GetEvaluator(dependencies_[0].first, dependencies_[0].second)
              .UpdateDerivative(S, my_request, wrt_key, wrt_tag);
 
-  changed |= S.GetEvaluator(dependencies_[1].first, dependencies_[1].second)
+  update |= S.GetEvaluator(dependencies_[1].first, dependencies_[1].second)
              .Update(S, my_request);
 
-  auto request = std::make_tuple(wrt_key, wrt_tag, requestor);
-  if (changed) {
+  if (update) {
     if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
       *vo_.os() << "  ... updating." << std::endl;
     }
@@ -165,17 +167,17 @@ EvaluatorUpwindPotentialDifference::UpdateDerivative(State& S,
             my_keys_[0].second, wrt_key, wrt_tag, my_keys_[0].first);
     Upwind_(dcell_dp, potential, dface_dp);
 
-    deriv_requests_.clear();
-    deriv_requests_.insert(request);
+    deriv_request_set.clear();
+    deriv_request_set.insert(requestor);
     return true;
 
   } else {
     // Otherwise, simply service the request
-    if (deriv_requests_.find(request) == deriv_requests_.end()) {
+    if (deriv_request_set.find(requestor) == deriv_request_set.end()) {
       if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
         *vo_.os() << "  ... not updating but new to this request." << std::endl;
       }
-      deriv_requests_.insert(request);
+      deriv_request_set.insert(requestor);
       return true;
     } else {
       if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
