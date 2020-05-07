@@ -277,7 +277,7 @@ public:
           du_v.extent(0),
           KOKKOS_LAMBDA(const int& i, int& count) {
             if (u_v(i,0) - du_v(i,0) < 0.) {
-              std::cout << "POS PRESERV: " << i << "u = " << u_v(i,0) << " du = " << du_v(i,0) << std::endl;
+              // std::cout << "POS PRESERV: " << i << "u = " << u_v(i,0) << " du = " << du_v(i,0) << std::endl;
               du_v(i,0) = u_v(i,0);
               count += 1;
             }
