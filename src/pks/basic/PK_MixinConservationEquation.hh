@@ -150,7 +150,6 @@ public:
     using Reduction_t = Amanzi::Reductions::MaxLocArray<int,double,GO>;
     using Reductor_t = Amanzi::Reductions::MaxLoc<double, GO>;
     
-    
     // Abs tol based on old conserved quantity -- we know these have been vetted
     // at some level whereas the new quantity is some iterate, and may be
     // anything from negative to overflow.
@@ -212,25 +211,29 @@ public:
       }
       
       // note, now it is GID
-      enorm_comp.val.second = du->Data()->getMap()->ComponentMap(comp)
-                       ->getGlobalElement(enorm_comp.val.second);
+      enorm_comp.loc = du->Data()->getMap()->ComponentMap(comp)
+                       ->getGlobalElement(enorm_comp.loc);
 
       // Write out Inf norms too.
       if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
         Teuchos::Array<double> infnorm(1);
         du->Data()->GetComponent(comp, false)->normInf(infnorm);
 
-        Reductor_t err;
-        Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_comp.val, &err.val);
-        *vo_->os() << "  ENorm (" << comp << ") = " << err.val.first << "[" << err.val.second << "] (" << infnorm[0] << ")" << std::endl;
+        std::pair<double,int> t_err_comp;
+        t_err_comp.first = enorm_comp.val; t_err_comp.second = enorm_comp.loc;
+        std::pair<double,int> err;
+        Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &t_err_comp, &err);
+        *vo_->os() << "  ENorm (" << comp << ") = " << err.first << "[" << err.second << "] (" << infnorm[0] << ")" << std::endl;
       }
 
       enorm_all += enorm_comp;
     }
 
-    Reductor_t err;
-    Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_all.val, &err.val);
-    return enorm_all.val.first;
+    std::pair<double,int> t_err_all;
+    t_err_all.first = enorm_all.val; t_err_all.second = enorm_all.loc;
+    std::pair<double,int> err;
+    Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &t_err_all, &err);
+    return err.first;
   }
 
   void ChangedSolution() {
