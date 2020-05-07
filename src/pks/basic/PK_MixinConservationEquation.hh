@@ -147,8 +147,9 @@ public:
 
   double
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) {
-    using ENorm_t = std::pair<double,int>;
-    using Reduction_t = Amanzi::Reductions::MaxLoc<int,double,GO>;
+    using Reduction_t = Amanzi::Reductions::MaxLocArray<int,double,GO>;
+    using Reductor_t = Amanzi::Reductions::MaxLoc<double, GO>;
+    
     
     // Abs tol based on old conserved quantity -- we know these have been vetted
     // at some level whereas the new quantity is some iterate, and may be
@@ -163,10 +164,10 @@ public:
       *vo_->os() << "ENorm (Infnorm) of: " << conserved_quantity_key_ << ": " << std::endl;
 
     double dt = S_->time(tag_new_) - S_->time(tag_old_);
-    ENorm_t enorm_all{0.0, -1};
+    Reductor_t enorm_all;
 
     for (const auto& comp : *du->Data()) {
-      ENorm_t enorm_comp{0.0,-1};
+      Reductor_t enorm_comp;
 
       auto du_v = du->Data()->template ViewComponent<>(comp,false);
       AMANZI_ASSERT(du_v.extent(1) == 1);
@@ -178,13 +179,11 @@ public:
         
         Kokkos::parallel_reduce("ConservationEquation::ErrorNorm(cell) reduction",
                 du_v.extent(0),
-                KOKKOS_LAMBDA(const int& c, ENorm_t& enorm) {
+                KOKKOS_LAMBDA(const int& c, Reductor_t& enorm) {
                   double local_enorm = abs(dt * du_v(c,0)) / cv_v(c,0) / (atol_ + rtol_ * abs(conserved_v(c,0)));
                   //if (c == 99) std::cout << std::setprecision(16) << "local_enorm = " << dt << " * " << du_v(c,0) << " / " << cv_v(c,0) << " / " << atol_ << " + " << rtol_ << " * " << conserved_v(c,0) << " = " << local_enorm << std::endl;
-                  if (local_enorm > enorm.first) {
-                    enorm.first = local_enorm;
-                    enorm.second = c; // note, not actually GID yet
-                  }
+                  Reductor_t l_enorm(local_enorm, c);
+                  enorm += l_enorm;
                 }, enorm_comp);
 
       } else if (comp == "face") {
@@ -198,7 +197,7 @@ public:
         
         Kokkos::parallel_reduce("ConservationEquation::ErrorNorm(face) reduction",
                 du_v.extent(0),
-                KOKKOS_LAMBDA(const int& f, ENorm_t& enorm) {
+                KOKKOS_LAMBDA(const int& f, Reductor_t& enorm) {
                   AmanziMesh::Entity_ID_View cells;
                   m->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, cells);
                   double cv_min = cells.extent(0) == 1 ? cv_v(cells(0),0) :
@@ -207,34 +206,31 @@ public:
                                   fmin(conserved_v(cells(0),0), conserved_v(cells(1),1));
 
                   double local_enorm = fluxtol_ * dt * abs(du_v(f,0)) / cv_min / (atol_ + rtol_ * abs(conserved_min));
-
-                  if (local_enorm > enorm.first) {
-                    enorm.first = local_enorm;
-                    enorm.second = f; // note, not actually GID yet
-                  }
+                  Reductor_t l_enorm(local_enorm, f);
+                  enorm += l_enorm;
                 }, enorm_comp);
       }
       
       // note, now it is GID
-      enorm_comp.second = du->Data()->getMap()->ComponentMap(comp)
-                       ->getGlobalElement(enorm_comp.second);
+      enorm_comp.val.second = du->Data()->getMap()->ComponentMap(comp)
+                       ->getGlobalElement(enorm_comp.val.second);
 
       // Write out Inf norms too.
       if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
         Teuchos::Array<double> infnorm(1);
         du->Data()->GetComponent(comp, false)->normInf(infnorm);
 
-        ENorm_t err;
-        Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_comp, &err);
-        *vo_->os() << "  ENorm (" << comp << ") = " << err.first << "[" << err.second << "] (" << infnorm[0] << ")" << std::endl;
+        Reductor_t err;
+        Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_comp.val, &err.val);
+        *vo_->os() << "  ENorm (" << comp << ") = " << err.val.first << "[" << err.val.second << "] (" << infnorm[0] << ")" << std::endl;
       }
 
-      enorm_all = std::max(enorm_all, enorm_comp);
+      enorm_all += enorm_comp;
     }
 
-    ENorm_t err;
-    Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_all, &err);
-    return enorm_all.first;
+    Reductor_t err;
+    Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &enorm_all.val, &err.val);
+    return enorm_all.val.first;
   }
 
   void ChangedSolution() {
