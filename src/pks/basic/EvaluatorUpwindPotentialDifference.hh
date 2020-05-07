@@ -19,6 +19,12 @@
 
 namespace Amanzi {
 
+namespace Impl {
+void upwindCellToFace(const CompositeVector& cells, const CompositeVector& potential,
+                      CompositeVector& faces);
+}
+
+  
 class EvaluatorUpwindPotentialDifference : public EvaluatorSecondary {
  public:
   explicit EvaluatorUpwindPotentialDifference(Teuchos::ParameterList& plist);
@@ -50,13 +56,11 @@ class EvaluatorUpwindPotentialDifference : public EvaluatorSecondary {
   UpdateDerivative(State& S, const Key& request, const Key& wrt_key,
                    const Key& wrt_tag) override;
 
+  
  protected:
   
   virtual void Update_(State& S) override;
   virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Key& wrt_tag) override;
-
-  virtual void Upwind_(const CompositeVector& cells, const CompositeVector& potential,
-                       CompositeVector& faces) const;
 
  private:
   static Utils::RegisteredFactory<Evaluator, EvaluatorUpwindPotentialDifference> reg_;

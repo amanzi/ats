@@ -84,41 +84,10 @@ EvaluatorUpwindPotentialDifference::Update_(State& S)
   const auto& cells = S.Get<CompositeVector>(dependencies_[0].first, dependencies_[0].second);
   const auto& potential = S.Get<CompositeVector>(dependencies_[1].first, dependencies_[1].second);
   auto& faces = S.GetW<CompositeVector>(my_keys_[0].first, my_keys_[0].second, my_keys_[0].first);
-  Upwind_(cells, potential, faces);
+  Impl::upwindCellToFace(cells, potential, faces);
 }
 
 
-void
-EvaluatorUpwindPotentialDifference::Upwind_(const CompositeVector& cells,
-        const CompositeVector& potential, CompositeVector& faces) const {
-
-  cells.ScatterMasterToGhosted("cell");
-  potential.ScatterMasterToGhosted("cell");
-  
-  { // scope for views
-    const AmanziMesh::Mesh* m = cells.getMap()->Mesh().get();
-    auto cells_v = cells.ViewComponent("cell");
-    auto potential_v = potential.ViewComponent("cell");
-    auto faces_v = faces.ViewComponent("face", false);
-
-    Kokkos::parallel_for(
-        "EvaluatorUpwindPotentialDifference",
-        faces_v.extent(0),
-        KOKKOS_LAMBDA(const int& f) {
-          AmanziMesh::Entity_ID_View cells;
-          m->face_get_cells(f, AmanziMesh::Parallel_type::ALL, cells);
-          if (cells.size() == 1) {
-            faces_v(f,0) = cells_v(cells(0),0);
-          } else {
-            faces_v(f,0) = potential_v(cells(0),0) > potential_v(cells(1),0) ?
-                           cells_v(cells(0),0) :
-                           (potential_v(cells(1),0) > potential_v(cells(0),0) ?
-                            cells_v(cells(1),0) :
-                            (cells_v(cells(0),0) + cells_v(cells(1),0)) / 2.0);
-          }
-        });
-  }
-}
 
 void
 EvaluatorUpwindPotentialDifference::UpdateDerivative_(State& S,
@@ -165,7 +134,7 @@ EvaluatorUpwindPotentialDifference::UpdateDerivative(State& S,
             dependencies_[0].second, wrt_key, wrt_tag);
     auto& dface_dp = S.GetDerivativeW<CompositeVector>(my_keys_[0].first,
             my_keys_[0].second, wrt_key, wrt_tag, my_keys_[0].first);
-    Upwind_(dcell_dp, potential, dface_dp);
+    Impl::upwindCellToFace(dcell_dp, potential, dface_dp);
 
     deriv_request_set.clear();
     deriv_request_set.insert(requestor);
@@ -187,5 +156,39 @@ EvaluatorUpwindPotentialDifference::UpdateDerivative(State& S,
     }
   }
 }
-    
+
+
+namespace Impl {   
+void upwindCellToFace(const CompositeVector& cells,
+        const CompositeVector& potential, CompositeVector& faces)
+{
+  cells.ScatterMasterToGhosted("cell");
+  potential.ScatterMasterToGhosted("cell");
+  
+  { // scope for views
+    const AmanziMesh::Mesh* m = cells.getMap()->Mesh().get();
+    auto cells_v = cells.ViewComponent("cell");
+    auto potential_v = potential.ViewComponent("cell");
+    auto faces_v = faces.ViewComponent("face", false);
+
+    Kokkos::parallel_for(
+        "EvaluatorUpwindPotentialDifference",
+        faces_v.extent(0),
+        KOKKOS_LAMBDA(const int& f) {
+          AmanziMesh::Entity_ID_View cells;
+          m->face_get_cells(f, AmanziMesh::Parallel_type::ALL, cells);
+          if (cells.size() == 1) {
+            faces_v(f,0) = cells_v(cells(0),0);
+          } else {
+            faces_v(f,0) = potential_v(cells(0),0) > potential_v(cells(1),0) ?
+                           cells_v(cells(0),0) :
+                           (potential_v(cells(1),0) > potential_v(cells(0),0) ?
+                            cells_v(cells(1),0) :
+                            (cells_v(cells(0),0) + cells_v(cells(1),0)) / 2.0);
+          }
+        });
+  }
+}
+} // namespace Impl
+  
 } // namespace Amanzi
