@@ -85,7 +85,8 @@ class ManningConductivity {
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
     double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    cond(i,0) = dens(i,0) * pow(h0, beta_) / mann(i,0) / sqrt(slope(i,0));
+    double sm = sqrt( slope(i,0) < eps_ ? eps_ : slope(i,0) );
+    cond(i,0) = dens(i,0) * pow(h0, beta_) / mann(i,0) / sm;
   }
 
   // derivatives

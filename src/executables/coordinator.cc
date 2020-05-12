@@ -146,6 +146,20 @@ void Coordinator::Initialize() {
   S_->Initialize();
   pk_->Initialize();
 
+  // Initialize evaluators -- this just makes for nicer vis on step 0
+  for (Amanzi::State::evaluator_iterator eval=S_->evaluator_begin();
+       eval != S_->evaluator_end(); ++eval) {
+    std::string eval_name = eval->first;
+    if (S_->HasEvaluator(eval_name, "")) {
+      S_->GetEvaluator(eval_name, "").Update(*S_, "coordinator");
+    } else if (S_->HasEvaluator(eval_name, "next")) {
+      S_->GetEvaluator(eval_name, "next").Update(*S_, "coordinator");
+    } else {
+      std::string tag = eval->second.begin()->first;
+      S_->GetEvaluator(eval_name, tag).Update(*S_, "coordinator");
+    }
+  }
+  
   // set up the TSM
   // -- register visualization times
   for (const auto& vis : visualization_) {
