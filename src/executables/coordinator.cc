@@ -99,6 +99,7 @@ Coordinator::Init_() {
   // create the pk
   Amanzi::PKFactory pk_factory;
   pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, parameter_list_, S_);
+  pk_->ConstructChildren();
 
 }
 
@@ -293,7 +294,7 @@ void Coordinator::CycleDriver() {
 
   // visualization at IC
   for (const auto& v : visualization_) {
-    if (v->DumpRequested(cycle, time)) WriteVis(*v, *S_);
+    if (v->DumpRequested(cycle, time)) WriteVis(*v, *S_, "");
   }
   if (checkpoint_->DumpRequested(cycle, time)) WriteCheckpoint(*checkpoint_, *S_);
   

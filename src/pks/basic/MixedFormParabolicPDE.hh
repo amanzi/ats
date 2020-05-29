@@ -159,6 +159,8 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     // NOTE: we cannot know the structure of u here -- it may be CELL if FV, or
     // it may be CELL+FACE if MFD.  It will get set by the operator.  But we do
     // need to supply the mesh.
+    S_->template Require<CompositeVector,CompositeVectorSpace>(key_, tag_new_)
+        .SetMesh(mesh_);  
     S_->template Require<CompositeVector,CompositeVectorSpace>(res_key_, tag_new_)
         .SetMesh(mesh_);  
     S_->template RequireDerivative<Operators::Operator, Operators::Operator_Factory>(
@@ -195,14 +197,16 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
                  << " t1 = " << t_new << " dt = " << t_new - t_old << std::endl;
 
     db_->WriteCellInfo(true);
-    db_->WriteVectors({"u_old","u_new"}, {u_old->Data().ptr(), u_new->Data().ptr()});
+    db_->WriteVectors({key_+"_old",key_+"_new"},
+                      {u_old->Data().ptr(), u_new->Data().ptr()},
+                      true);
     
     S_->GetEvaluator(res_key_, tag_new_).Update(*S_, this->name());
     f->Data()->assign(S_->template Get<CompositeVector>(res_key_, tag_new_));
 
     db_->WriteState(*S_, tag_old_);
     db_->WriteState(*S_, tag_new_);
-    db_->WriteVector("u_res", f->Data().ptr());
+    db_->WriteVector(res_key_, f->Data().ptr(), true);
   }
 
   int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r,

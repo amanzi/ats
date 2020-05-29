@@ -114,7 +114,7 @@ public:
     // require primary evaluator and set the structure of that field
     S_->template Require<CompositeVector, CompositeVectorSpace>(key_, tag, key_)
         .SetMesh(mesh_)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
     S_->RequireEvaluator(key_, tag);
 
     // similarly set the structure of the conserved quantity
@@ -198,13 +198,16 @@ public:
                 du_v.extent(0),
                 KOKKOS_LAMBDA(const int& f, Reductor_t& enorm) {
                   AmanziMesh::Entity_ID_View cells;
-                  m->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, cells);
+                  m->face_get_cells(f, AmanziMesh::Parallel_type::ALL, cells);
                   double cv_min = cells.extent(0) == 1 ? cv_v(cells(0),0) :
-                                  fmin(cv_v(cells(0),0), cv_v(cells(1),1));
+                                  fmin(cv_v(cells(0),0), cv_v(cells(1),0));
                   double conserved_min = cells.extent(0) == 1 ? conserved_v(cells(0),0) :
-                                  fmin(conserved_v(cells(0),0), conserved_v(cells(1),1));
+                                  fmin(conserved_v(cells(0),0), conserved_v(cells(1),0));
 
                   double local_enorm = fluxtol_ * dt * abs(du_v(f,0)) / cv_min / (atol_ + rtol_ * abs(conserved_min));
+                  if (local_enorm > 1.e10) {
+                    std::cout << "f: " << f << " tol = (" << fluxtol_ << "," << atol_ << "," << rtol_ << ") du = " << du_v(f,0) << " cons_min = " << conserved_min << std::endl;
+                  }
                   Reductor_t l_enorm(local_enorm, f);
                   enorm += l_enorm;
                 }, enorm_comp);
