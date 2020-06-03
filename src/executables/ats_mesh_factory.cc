@@ -223,7 +223,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
     const Epetra_Map& map = parent_mesh->map(kind,false);
     
     for (auto lid : entities) {
-      Amanzi::AmanziMesh::Entity_ID gid = map->getGlobalElement(lid);
+      GO gid = map->getGlobalElement(lid);
       std::stringstream name;
       name << Amanzi::Keys::cleanPListName(mesh_plist.name()) << "_" << gid;
 

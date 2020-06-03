@@ -180,7 +180,6 @@ public:
                 du_v.extent(0),
                 KOKKOS_LAMBDA(const int& c, Reductor_t& enorm) {
                   double local_enorm = abs(dt * du_v(c,0)) / cv_v(c,0) / (atol_ + rtol_ * abs(conserved_v(c,0)));
-                  //if (c == 99) std::cout << std::setprecision(16) << "local_enorm = " << dt << " * " << du_v(c,0) << " / " << cv_v(c,0) << " / " << atol_ << " + " << rtol_ << " * " << conserved_v(c,0) << " = " << local_enorm << std::endl;
                   Reductor_t l_enorm(local_enorm, c);
                   enorm += l_enorm;
                 }, enorm_comp);
@@ -205,9 +204,6 @@ public:
                                   fmin(conserved_v(cells(0),0), conserved_v(cells(1),0));
 
                   double local_enorm = fluxtol_ * dt * abs(du_v(f,0)) / cv_min / (atol_ + rtol_ * abs(conserved_min));
-                  if (local_enorm > 1.e10) {
-                    std::cout << "f: " << f << " tol = (" << fluxtol_ << "," << atol_ << "," << rtol_ << ") du = " << du_v(f,0) << " cons_min = " << conserved_min << std::endl;
-                  }
                   Reductor_t l_enorm(local_enorm, f);
                   enorm += l_enorm;
                 }, enorm_comp);
@@ -221,12 +217,15 @@ public:
       if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
         Teuchos::Array<double> infnorm(1);
         du->Data()->GetComponent(comp, false)->normInf(infnorm);
+       Teuchos::Array<double> l2norm(1);
+        du->Data()->GetComponent(comp, false)->norm2(l2norm);
 
         std::pair<double,int> t_err_comp;
         t_err_comp.first = enorm_comp.val; t_err_comp.second = enorm_comp.loc;
         std::pair<double,int> err;
         Teuchos::reduceAll(*du->Data()->Comm(), Reduction_t(), 1, &t_err_comp, &err);
-        *vo_->os() << "  ENorm (" << comp << ") = " << err.first << "[" << err.second << "] (" << infnorm[0] << ")" << std::endl;
+        *vo_->os() << "  ENorm (" << comp << ") = " << err.first << "[" << err.second << "] ("
+                   << infnorm[0] << "," << l2norm[0] << ")" << std::endl;
       }
 
       enorm_all += enorm_comp;
