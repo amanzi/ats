@@ -123,6 +123,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!diff_list.isParameter("evaluator type")) diff_list.set("evaluator type", "diffusion operator");
     if (!diff_list.isParameter("local operator key")) diff_list.set("local operator key", diffusion_key_);
     if (!diff_list.isParameter("rhs key")) diff_list.set("rhs key", diffusion_key_+"_rhs");
+    if (!diff_list.isParameter("flux key")) diff_list.set("flux key", diffusion_key_+"_flux");
     if (!diff_list.isParameter("boundary conditions key")) diff_list.set("boundary conditions key", diffusion_key_+"_bcs");
     diff_list.set("operator argument key", diffused_key_);
     
