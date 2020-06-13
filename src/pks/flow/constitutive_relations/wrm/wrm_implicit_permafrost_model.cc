@@ -1,6 +1,5 @@
 #include <cmath>
 
-#include "Epetra_SerialDenseMatrix.h"
 
 #include "dbc.hh"
 #include "errors.hh"

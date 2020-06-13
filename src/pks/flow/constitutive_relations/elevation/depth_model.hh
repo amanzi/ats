@@ -7,7 +7,6 @@
 #ifndef AMANZI_FLOW_DEPTH_MODEL_HH_
 #define AMANZI_FLOW_DEPTH_MODEL_HH_
 
-#include "Epetra_MultiVector.h"
 
 #include "Mesh.hh"
 

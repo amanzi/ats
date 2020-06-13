@@ -26,7 +26,6 @@ respective methods.
 
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_ParameterList.hpp"
-#include "Epetra_MpiComm.h"
 
 #include "State.hh"
 #include "TreeVector.hh"

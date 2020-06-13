@@ -7,7 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "Epetra_SerialDenseVector.h"
 
 #include "pool_decomposition_evaluator.hh"
 

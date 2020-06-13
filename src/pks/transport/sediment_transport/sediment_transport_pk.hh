@@ -13,9 +13,6 @@
 #define AMANZI_ATS_SEDIMENTTRANSPORT_PK_HH_
 
 // TPLs
-#include "Epetra_Vector.h"
-#include "Epetra_IntVector.h"
-#include "Epetra_Import.h"
 #include "Teuchos_RCP.hpp"
 
 // Amanzi

@@ -6,10 +6,6 @@
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
-#include "Epetra_SerialComm.h"
-#include "Epetra_LocalMap.h"
-#include "Epetra_Vector.h"
-#include "EpetraExt_VectorOut.h"
 
 #include "wrm_factory.hh"
 #include "wrm.hh"

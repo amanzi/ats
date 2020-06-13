@@ -58,7 +58,6 @@ get_diagnostics()
 #include <cstdint>
 #include <vector>
 
-#include "Epetra_MultiVector.h"
 
 #define NUM_LC_CLASSES 18
 

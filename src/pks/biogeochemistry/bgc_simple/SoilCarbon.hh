@@ -11,7 +11,6 @@ Licencse: BSD
 #ifndef ATS_BGC_SOIL_CARBON_HH_
 #define ATS_BGC_SOIL_CARBON_HH_
 
-#include "Epetra_SerialDenseVector.h"
 #include "Teuchos_RCP.hpp"
 
 #include "SoilCarbonParameters.hh"

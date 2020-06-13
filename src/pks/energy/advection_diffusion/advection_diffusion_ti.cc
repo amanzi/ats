@@ -7,10 +7,8 @@ License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 ------------------------------------------------------------------------- */
 
-#include "Epetra_Vector.h"
 #include "advection_diffusion.hh"
 #include "Op.hh"
-#include "EpetraExt_RowMatrixOut.h"
 
 namespace Amanzi {
 namespace Energy {

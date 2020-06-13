@@ -18,7 +18,6 @@
 #include <map>
 #include <string>
 
-#include "Epetra_MultiVector.h"
 #include "Teuchos_RCP.hpp"
 
 #include "CommonDefs.hh"

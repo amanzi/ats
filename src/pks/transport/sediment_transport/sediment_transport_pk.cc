@@ -13,10 +13,6 @@
 #include <vector>
 
 #include "boost/algorithm/string.hpp"
-#include "Epetra_Vector.h"
-#include "Epetra_IntVector.h"
-#include "Epetra_MultiVector.h"
-#include "Epetra_Import.h"
 #include "Teuchos_RCP.hpp"
 
 #include "BCs.hh"

@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "Epetra_Vector.h"
 #include "Teuchos_RCP.hpp"
 
 #include "Mesh.hh"

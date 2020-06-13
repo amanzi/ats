@@ -13,7 +13,6 @@ License: BSD
 
 #include <vector>
 
-#include "Epetra_SerialDenseVector.h"
 #include "Teuchos_RCP.hpp"
 
 #include "utils.hh"

@@ -10,10 +10,6 @@
 */
 
 #include "Teuchos_RCP.hpp"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
-#include "Epetra_Vector.h"
-#include "Epetra_MultiVector.h"
 
 #include "MFD3D_Diffusion.hh"
 //#include "nlfv.hh"

@@ -32,7 +32,6 @@
    ------------------------------------------------------------------------- */
 
 #include <fstream>
-#include "EpetraExt_RowMatrixOut.h"
 
 #include "LinearOperatorFactory.hh"
 #include "FieldEvaluator.hh"

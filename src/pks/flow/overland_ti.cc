@@ -6,8 +6,6 @@ License: BSD
 Authors: Ethan Coon (ecoon@lanl.gov)
 ----------------------------------------------------------------------------- */
 
-#include "Epetra_FECrsMatrix.h"
-#include "EpetraExt_RowMatrixOut.h"
 #include "boost/math/special_functions/fpclassify.hpp"
 
 #include "overland.hh"
