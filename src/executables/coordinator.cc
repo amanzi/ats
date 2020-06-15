@@ -50,8 +50,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& parameter_l
 
   // create and start the global timer
   timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
-  setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
-  cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
+  setup_timer_ = Teuchos::TimeMonitor::getNewCounter("ATS Setup");
+  cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("ATS Timestep");
 
   vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *parameter_list_));
   Init_();
@@ -299,31 +299,29 @@ void Coordinator::CycleDriver() {
   if (checkpoint_->DumpRequested(cycle, time)) WriteCheckpoint(*checkpoint_, *S_);
   
   // iterate process kernels
-  {
+  bool fail = false;
+  while ((S_->time() < t1_) &&
+         ((cycle1_ == -1) || (S_->cycle() <= cycle1_)) &&
+         (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
+         dt > 0.) {
+
     Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
+    if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
+      Teuchos::OSTab tab = vo_->getOSTab();
+      *vo_->os() << "======================================================================"
+                 << std::endl << std::endl;
+      *vo_->os() << "Cycle = " << S_->cycle();
+      *vo_->os() << std::setprecision(15) << ",  Time [days] = "<< S_->time() / (60*60*24);
+      *vo_->os() << ",  dt [days] = " << dt / (60*60*24)  << std::endl;
+      *vo_->os() << "----------------------------------------------------------------------"
+                 << std::endl;
+    }
 
-    bool fail = false;
-    while ((S_->time() < t1_) &&
-           ((cycle1_ == -1) || (S_->cycle() <= cycle1_)) &&
-           (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
-           dt > 0.) {
-      if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-        Teuchos::OSTab tab = vo_->getOSTab();
-        *vo_->os() << "======================================================================"
-                  << std::endl << std::endl;
-        *vo_->os() << "Cycle = " << S_->cycle();
-        *vo_->os() << std::setprecision(15) << ",  Time [days] = "<< S_->time() / (60*60*24);
-        *vo_->os() << ",  dt [days] = " << dt / (60*60*24)  << std::endl;
-        *vo_->os() << "----------------------------------------------------------------------"
-                  << std::endl;
-      }
+    S_->GetW<double>("dt", "", "dt") = dt;
 
-      S_->GetW<double>("dt", "", "dt") = dt;
-
-      fail = Advance(dt);
-      dt = get_dt(fail);
-    } // while not finished
-  }
+    fail = Advance(dt);
+    dt = get_dt(fail);
+  } // while not finished
 
   // finalizing simulation
   Teuchos::TimeMonitor::summarize(*vo_->os());
