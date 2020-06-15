@@ -11,7 +11,6 @@ Licencse: BSD
 #ifndef ATS_BGC_QSAT_HH_
 #define ATS_BGC_QSAT_HH_
 
-#include "Epetra_SerialDenseVector.h"
 
 namespace Amanzi {
 namespace BGC {

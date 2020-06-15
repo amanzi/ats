@@ -6,8 +6,6 @@ License: BSD
 Author: Ethan Coon (ecoon@lanl.gov)
 ----------------------------------------------------------------------------- */
 
-#include "EpetraExt_MultiVectorOut.h"
-#include "Epetra_MultiVector.h"
 
 #include "flow_bc_factory.hh"
 #include "Mesh.hh"

@@ -14,7 +14,6 @@ Licencse: BSD
 
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_RCP.hpp"
-#include "Epetra_SerialDenseVector.h"
 
 #include "dbc.hh"
 

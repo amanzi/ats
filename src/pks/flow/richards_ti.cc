@@ -6,8 +6,6 @@ A base two-phase, thermal Richard's equation with water vapor.
 Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
-#include "Epetra_FECrsMatrix.h"
-#include "EpetraExt_RowMatrixOut.h"
 #include "boost/math/special_functions/fpclassify.hpp"
 
 #include "Op.hh"

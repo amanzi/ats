@@ -1,4 +1,3 @@
-#include "EpetraExt_RowMatrixOut.h"
 #include "richards_steadystate.hh"
 
 namespace Amanzi {

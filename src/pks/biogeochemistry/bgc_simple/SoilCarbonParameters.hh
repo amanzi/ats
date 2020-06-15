@@ -12,8 +12,6 @@ Licencse: BSD
 #define ATS_BGC_SOIL_CARBON_PARAMS_HH_
 
 #include "Teuchos_ParameterList.hpp"
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 namespace Amanzi {
 namespace BGC {

@@ -8,8 +8,6 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
 
-#include "EpetraExt_MultiVectorOut.h"
-#include "Epetra_MultiVector.h"
 
 #include "flow_bc_factory.hh"
 #include "Mesh.hh"

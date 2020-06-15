@@ -1,5 +1,4 @@
 #include "Teuchos_XMLParameterListHelpers.hpp"
-#include "EpetraExt_RowMatrixOut.h"
 
 #include "LinearOperatorFactory.hh"
 

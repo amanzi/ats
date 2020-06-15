@@ -1,6 +1,5 @@
 
 #include "Teuchos_XMLParameterListHelpers.hpp"
-#include "EpetraExt_RowMatrixOut.h"
 
 #include "OperatorDefs.hh"
 #include "Operator_FaceCell.hh"

@@ -8,8 +8,8 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+#include <fstream>
 
-#include "Epetra_MpiComm.h"
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 #include "AmanziComm.hh"

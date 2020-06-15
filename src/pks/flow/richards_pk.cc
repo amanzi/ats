@@ -11,7 +11,6 @@ Authors: Neil Carlson (version 1)
 
 #include "boost/algorithm/string/predicate.hpp"
 
-#include "Epetra_Import.h"
 
 #include "flow_bc_factory.hh"
 

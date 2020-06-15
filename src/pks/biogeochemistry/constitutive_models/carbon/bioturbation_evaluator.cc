@@ -6,7 +6,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "Epetra_SerialDenseVector.h"
 
 #include "bioturbation_evaluator.hh"
 

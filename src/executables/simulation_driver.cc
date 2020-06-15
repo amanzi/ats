@@ -9,8 +9,6 @@ Author: Ethan Coon (ecoon@lanl.gov)
 
 #include <iostream>
 
-#include <Epetra_MpiComm.h>
-
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_XMLParameterListCoreHelpers.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"

@@ -7,8 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "Epetra_SerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 #include "pool_transfer_evaluator.hh"
 
