@@ -62,7 +62,7 @@ class CapillaryPressureLiqAtm {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    pc(i,0) =  p_atm_ - pres(i,0);
+    pc(i) =  p_atm_ - pres(i);
   }
 
   // derivatives
@@ -74,7 +74,7 @@ class CapillaryPressureLiqAtm {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    pc(i,0) = -1.0;
+    pc(i) = -1.0;
   }
 
  private:

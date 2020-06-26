@@ -87,17 +87,17 @@ class CompressiblePorosityLinear {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double p_over = pres(i,0) - p_atm_;
+    double p_over = pres(i) - p_atm_;
 
     if (p_over > cutoff_) {
-      phi(i,0) = phi0(i,0) + alpha_ * ( cutoff_ / 2. + (p_over - cutoff_));
+      phi(i) = phi0(i) + alpha_ * ( cutoff_ / 2. + (p_over - cutoff_));
     } else if (p_over > 0.) {
-      phi(i,0) = phi0(i,0) + alpha_ * (pow(p_over,2.) / 2. / cutoff_);
+      phi(i) = phi0(i) + alpha_ * (pow(p_over,2.) / 2. / cutoff_);
     } else {
-      phi(i,0) = phi0(i,0);
+      phi(i) = phi0(i);
     }
 
-    phi(i,0) = phi(i,0) > 1.0 ? 1.0 : phi(i,0);
+    phi(i) = phi(i) > 1.0 ? 1.0 : phi(i);
   }
 
   // derivatives
@@ -110,24 +110,24 @@ class CompressiblePorosityLinear {
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
     operator()(i);
-    phi(i,0) = phi(i,0) == 1.0 ? 0. : 1.0;
+    phi(i) = phi(i) == 1.0 ? 0. : 1.0;
   }
 
   // d/d pres
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
   {
     operator()(i);
-    if (phi(i,0) == 1.0) {
-      phi(i,0) = 0.;
+    if (phi(i) == 1.0) {
+      phi(i) = 0.;
     } else {
-      double p_over = pres(i,0) - p_atm_;
+      double p_over = pres(i) - p_atm_;
 
       if (p_over > cutoff_) {
-        phi(i,0) = alpha_;
+        phi(i) = alpha_;
       } else if (p_over > 0.) {
-        phi(i,0) = alpha_ * p_over / cutoff_;
+        phi(i) = alpha_ * p_over / cutoff_;
       } else {
-        phi(i,0) = 0.;
+        phi(i) = 0.;
       }
     }
   }

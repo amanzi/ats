@@ -62,7 +62,7 @@ class SurfaceWaterContent {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    wc(i,0) =  pd(i,0) > 0. ? pd(i,0)*dens(i,0) : 0.;
+    wc(i) =  pd(i) > 0. ? pd(i)*dens(i) : 0.;
   }
 
   // derivatives
@@ -74,14 +74,14 @@ class SurfaceWaterContent {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    //    wc(i,0) = pd(i,0) > 0. ? dens(i,0) : 0.;
+    //    wc(i) = pd(i) > 0. ? dens(i) : 0.;
     // NOTE this is hacked for surface water stand-alone
-    wc(i,0) = dens(i,0);
+    wc(i) = dens(i);
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
   {
-    wc(i,0) = pd(i,0) > 0. ? pd(i,0) : 0.;
+    wc(i) = pd(i) > 0. ? pd(i) : 0.;
   }
   
  private:

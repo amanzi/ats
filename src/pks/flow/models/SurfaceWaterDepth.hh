@@ -75,8 +75,8 @@ class SurfaceWaterDepth {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double d = (pres(i,0) - p_atm_) / (rho(i,0) * g_[g_.dim()-1]);
-    pd(i,0) = d > 0. ? d : 0.;
+    double d = (pres(i) - p_atm_) / (rho(i) * g_[g_.dim()-1]);
+    pd(i) = d > 0. ? d : 0.;
   }
 
   // derivatives
@@ -88,22 +88,22 @@ class SurfaceWaterDepth {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    double dddp = 1. / (rho(i,0) * g_[g_.dim()-1]);
+    double dddp = 1. / (rho(i) * g_[g_.dim()-1]);
     if (bar_) {
-      pd(i,0) = dddp;
+      pd(i) = dddp;
     } else {
-      pd(i,0) = pres(i,0) > p_atm_ ? dddp : 0.;
+      pd(i) = pres(i) > p_atm_ ? dddp : 0.;
     }
   }
 
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
   {
-    double dddp = -(pres(i,0) - p_atm_) * pow((rho(i,0) * g_[g_.dim()-1]), -2);
+    double dddp = -(pres(i) - p_atm_) * pow((rho(i) * g_[g_.dim()-1]), -2);
     if (bar_) {
-      pd(i,0) = dddp;
+      pd(i) = dddp;
     } else {
-      pd(i,0) = pres(i,0) > p_atm_ ? dddp : 0.;
+      pd(i) = pres(i) > p_atm_ ? dddp : 0.;
     }      
   }
   

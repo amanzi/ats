@@ -92,9 +92,9 @@ class WRMVanGenuchten {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    sat_(i,0) =  pc_(i,0) <= 0.0
+    sat_(i) =  pc_(i) <= 0.0
                  ? 1.0
-                 : pow(1.0 + pow(alpha_*pc_(i,0), n_), -m_) * (1.0 - sr_) + sr_;
+                 : pow(1.0 + pow(alpha_*pc_(i), n_), -m_) * (1.0 - sr_) + sr_;
   }
 
   // derivatives
@@ -106,9 +106,9 @@ class WRMVanGenuchten {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    sat_(i,0) =  pc_(i,0) <= 0.0
+    sat_(i) =  pc_(i) <= 0.0
                  ? 0.0
-                 : -m_*n_ * pow(1.0 + pow(alpha_*pc_(i,0), n_), -m_-1.0) * pow(alpha_*pc_(i,0), n_-1) * alpha_ * (1.0 - sr_);
+                 : -m_*n_ * pow(1.0 + pow(alpha_*pc_(i), n_), -m_-1.0) * pow(alpha_*pc_(i), n_-1) * alpha_ * (1.0 - sr_);
   }
 
  private:
@@ -166,8 +166,8 @@ class WRMVanGenuchten_Kr {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double se = (sat(i,0) - sr_)/(1-sr_);
-    kr(i,0) =  sat(i,0) < 1.0
+    double se = (sat(i) - sr_)/(1-sr_);
+    kr(i) =  sat(i) < 1.0
                           ? sqrt(se) * pow(1.0 - pow(1.0 - pow(se, 1.0/m_), m_), 2.0)
                           : 1.0;
   }
@@ -181,17 +181,17 @@ class WRMVanGenuchten_Kr {
   // d/dB
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    double se = (sat(i,0) - sr_)/(1-sr_);
-    if (sat(i,0) < 1.0) {
-      kr(i,0) =  0.0;
+    double se = (sat(i) - sr_)/(1-sr_);
+    if (sat(i) < 1.0) {
+      kr(i) =  0.0;
     } else {
       double x = pow(se, 1.0 / m_);
       if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) {
-        kr(i,0) = 0.;
+        kr(i) = 0.;
       }  else {
         double y = pow(1.0 - x, m_);
         double dkdse = (1.0 - y) * (0.5 * (1.0 - y) + 2 * x * y / (1.0 - x)) * pow(se, -0.5);
-        kr(i,0) = dkdse / (1 - sr_);
+        kr(i) = dkdse / (1 - sr_);
       }
     }
   }

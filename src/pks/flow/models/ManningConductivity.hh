@@ -84,9 +84,9 @@ class ManningConductivity {
   // the model
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    double sm = sqrt( slope(i,0) < eps_ ? eps_ : slope(i,0) );
-    cond(i,0) = dens(i,0) * pow(h0, beta_) / mann(i,0) / sm;
+    double h0 = h(i) > 0. ? h(i) : 0.;
+    double sm = sqrt( slope(i) < eps_ ? eps_ : slope(i) );
+    cond(i) = dens(i) * pow(h0, beta_) / mann(i) / sm;
   }
 
   // derivatives
@@ -97,29 +97,29 @@ class ManningConductivity {
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    double sm = sqrt( slope(i,0) < eps_ ? eps_ : slope(i,0) );
-    cond(i,0) = beta_ * dens(i,0) * pow(h0, beta_-1.0) / mann(i,0) / sm;
+    double h0 = h(i) > 0. ? h(i) : 0.;
+    double sm = sqrt( slope(i) < eps_ ? eps_ : slope(i) );
+    cond(i) = beta_ * dens(i) * pow(h0, beta_-1.0) / mann(i) / sm;
   }
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
   {
-    double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    double sm = sqrt( slope(i,0) < eps_ ? eps_ : slope(i,0) );
-    cond(i,0) = pow(h0, beta_) / mann(i,0) / sm;
+    double h0 = h(i) > 0. ? h(i) : 0.;
+    double sm = sqrt( slope(i) < eps_ ? eps_ : slope(i) );
+    cond(i) = pow(h0, beta_) / mann(i) / sm;
   }
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const
   {
-    double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    double sm = sqrt( slope(i,0) < eps_ ? eps_ : slope(i,0) );
-    cond(i,0) = - dens(i,0) * pow(h0, beta_) * pow(mann(i,0),-2) / sm;
+    double h0 = h(i) > 0. ? h(i) : 0.;
+    double sm = sqrt( slope(i) < eps_ ? eps_ : slope(i) );
+    cond(i) = - dens(i) * pow(h0, beta_) * pow(mann(i),-2) / sm;
   }
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<3>, const int i) const
   {
-    double h0 = h(i,0) > 0. ? h(i,0) : 0.;
-    if (slope(i,0) < eps_) {
-      cond(i,0) = 0.;
+    double h0 = h(i) > 0. ? h(i) : 0.;
+    if (slope(i) < eps_) {
+      cond(i) = 0.;
     } else {
-      cond(i,0) = -0.5 * dens(i,0) * pow(h0, beta_) * pow(slope(i,0), -1.5) / mann(i,0);
+      cond(i) = -0.5 * dens(i) * pow(h0, beta_) * pow(slope(i), -1.5) / mann(i);
     }
   }
 
