@@ -16,6 +16,7 @@ add_library(flow_relations_wrm
   rel_perm_evaluator.cc
   pc_liquid_evaluator.cc
   pc_ice_evaluator.cc
+  suction_head_evaluator.cc
   )
 
 install(TARGETS flow_relations_wrm DESTINATION lib)

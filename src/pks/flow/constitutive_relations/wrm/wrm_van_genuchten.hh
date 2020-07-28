@@ -69,6 +69,8 @@ public:
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
+  double suction_head(double saturation);
+  double d_suction_head(double saturation);
 
  private:
   void InitializeFromPlist_();

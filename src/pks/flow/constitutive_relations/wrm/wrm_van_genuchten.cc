@@ -181,5 +181,47 @@ void WRMVanGenuchten::InitializeFromPlist_() {
   }  
 };
 
+/* ******************************************************************
+* Suction formula: input is liquid saturation.
+****************************************************************** */
+double WRMVanGenuchten::suction_head(double s) {
+ 
+  double se = (s - sr_)/(1-sr_);
+  //if (function_ == FLOW_WRM_MUALEM) {
+  if (se > FLOW_WRM_TOLERANCE) {
+    return -(1./alpha_) * pow(pow(se, -1./m_) - 1, 1. - m_);
+  }else{
+    return -1e+10;
+  }
+
+ 
+}
+
+
+/* ******************************************************************
+ * D Relative permeability / D capillary pressure pc.
+ ****************************************************************** */
+double WRMVanGenuchten::d_suction_head(double s) {
+  
+  double se = (s - sr_)/(1-sr_);
+
+  double x = pow(se, -1.0 / m_);
+  //  if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
+
+
+  double dpsidse;
+  //if (function_ == FLOW_WRM_MUALEM)
+  if (se > FLOW_WRM_TOLERANCE) {
+    dpsidse = ((m_ - 1)/(alpha_ * m_ * se)) * pow(x - 1, -m_) * x;
+  }else{
+    dpsidse = 0.;
+  }
+  return -dpsidse / (1 - sr_);
+
+
+}
+  
+
 }  // namespace
 }  // namespace
+ 
