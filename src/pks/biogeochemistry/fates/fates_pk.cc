@@ -38,6 +38,7 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
   dt_photosynthesis_ = plist_->get<double>("photosynthesis time step", 1800);
   dt_site_dym_ = plist_->get<double>("veg dynamics time step", 86400);
   surface_only_ = plist_->get<bool>("surface only", false);
+  salinity_on_ = plist_->get<bool>("salinity", false);
 
 }
 
@@ -210,6 +211,15 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
       ->SetComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(suc_key_);
     }            
+    salinity_key_ = Keys::readKey(*plist_, "domain", "concentration", "total_component_concentration");
+    ncomp_salt_ = plist_->get<int>("salt component", 0);
+    if (salinity_on_){
+      if (!S->HasField(salinity_key_)){
+        Errors::Message msg;
+        msg << "There is no concentration field for salt in State.\n";
+        Exceptions::amanzi_throw(msg);  
+      }
+    }
 
   }
 
@@ -251,9 +261,6 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   }else{
     
     for (unsigned int col=0; col!=ncells_owned_; ++col) {
-
-      // FieldToColumn_(col, poro, col_poro.ptr());
-      // ColDepthDz_(col, col_depth.ptr(), col_dz.ptr());
       
       int f = mesh_surf_->entity_get_parent(AmanziMesh::CELL, col);
       BGC::ColIterator col_iter(*mesh_, f);
@@ -273,6 +280,7 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   eff_poro_.resize(array_size);
   poro_.resize(array_size);
   suc_.resize(array_size);
+  salinity_.resize(array_size);
   
   clump_ = 1;
   
@@ -297,12 +305,6 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   Teuchos::RCP<Epetra_SerialDenseVector> col_dz =
     Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
     
-  // S->GetFieldEvaluator(poro_key_)->HasFieldChanged(S, name_);
-  // const Epetra_Vector& poro = *(*S->GetFieldData(poro_key_)
-  //       			->ViewComponent("cell",false))(0);
-
-
-  
   std::vector<double> zi(ncells_per_col_+1), z(ncells_per_col_), dz(ncells_per_col_);
   std::vector<double> dzsoil_decomp(ncells_per_col_);
   /* Define soil layers */
@@ -395,6 +397,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
         eff_poro_[c] = poro_[c];
         vsm_[c] = 1.*poro_[c];
         suc_[c] = 0.;
+        salinity_[c] = 0.;
       }else{
         
         if (S_next_->HasField(soil_temp_key_)){
@@ -423,10 +426,17 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
         if (S_next_->HasField(suc_key_)){          
           S_next_->GetFieldEvaluator(suc_key_)->HasFieldChanged(S_next_.ptr(), name_);
           const Epetra_Vector& suc_vec = *(*S_next_->GetFieldData(suc_key_)->ViewComponent("cell", false))(0);        
-          FieldToColumn_(c, suc_vec, suc_.data() + c*ncells_per_col_, ncells_per_col_);
-          
+          FieldToColumn_(c, suc_vec, suc_.data() + c*ncells_per_col_, ncells_per_col_);          
         }else{
           for(int i=0;i<suc_.size();i++) suc_[i] = 0.;  // No suction is defined in State;
+        }
+
+        if (S_next_->HasField(salinity_key_)){          
+          S_next_->GetFieldEvaluator(salinity_key_)->HasFieldChanged(S_next_.ptr(), name_);
+          const Epetra_Vector& salt_vec = *(*S_next_->GetFieldData(salinity_key_)->ViewComponent("cell", false))(ncomp_salt_);        
+          FieldToColumn_(c, salt_vec, salinity_.data() + c*ncells_per_col_, ncells_per_col_);          
+        }else{
+          for(int i=0;i<salinity_.size();i++) salinity_[i] = 0.;  // No suction is defined in State;
         }
         
       }
@@ -449,7 +459,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     // std::cout<<"\n";
     
     int array_size = t_soil_.size();
-    wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data());
+    wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data(), salinity_.data());
 
     PhotoSynthesisInput photo_input;
 

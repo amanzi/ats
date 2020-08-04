@@ -80,7 +80,7 @@ namespace BGC {
     void dynamics_driv_per_site(int*, int*, site_info*, TimeInput*, double*,
                                 double*, double*, double*, double*,
                                 double*);
-    void wrap_btran(int*, int*, double*, double*, double*, double*, double*);
+    void wrap_btran(int*, int*, double*, double*, double*, double*, double*, double*);
     void wrap_photosynthesis(int*, double*, double*, int*, double*, PhotoSynthesisInput*);
     void wrap_sunfrac(int*, int* array_size, double *forc_solad, double *forc_solai);
     void wrap_canopy_radiation(int*, double* jday, int* array_size, double* albgrd, double *albgri);    
@@ -142,7 +142,7 @@ namespace BGC {
     double dt_, dt_photosynthesis_, dt_site_dym_;
     double t_photosynthesis_, t_site_dym_;
     
-    bool surface_only_;
+    bool surface_only_, salinity_on_;
     Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_, mesh_domain_;
     Key domain_surf_;
     Key trans_key_;
@@ -150,12 +150,15 @@ namespace BGC {
     Key poro_key_, sat_key_, suc_key_, soil_temp_key_;
     Key met_decomp_key_, cel_decomp_key_, lig_decomp_key_;
     Key longwave_key_, incident_rad_key_;
+    Key salinity_key_;
+    int ncomp_salt_;
 
     std::vector<double> t_soil_;  // soil temperature
     std::vector<double> vsm_; // volumetric soil moisture vsm_ = S * poro;
     std::vector<double> poro_; // porosity
     std::vector<double> eff_poro_; //effective porosity  = porosity - vol_ice 
     std::vector<double> suc_; //suction head
+    std::vector<double> salinity_; //suction head
 
     int patchno_, nlevdecomp_, nlevsclass_;
     int ncells_owned_, ncells_per_col_, clump_;
