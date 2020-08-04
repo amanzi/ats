@@ -1,16 +1,156 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! An advection-diffusion equation for energy.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Base energy PK.
+Solves an advection-diffusion equation for energy:
 
-This provides the base of an advection-diffusion equation for energy.
+.. math::
+    \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
 
-------------------------------------------------------------------------- */
+.. todo:: Document the energy error norm!
+    
+.. _energy-pk-spec:
+.. admonition:: energy-pk-spec
+
+    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-temperature`" Note there is no default -- this
+      must be provided by the user.
+
+    * `"boundary conditions`" ``[energy-bc-spec]`` Defaults to 0 diffusive flux
+      boundary condition.  See `Energy-specific Boundary Conditions`_
+      
+    * `"thermal conductivity evaluator`"
+      ``[thermal-conductivity-evaluator-spec]`` The thermal conductivity.  This
+      needs to go away, and should get moved to State.
+
+    * `"absolute error tolerance`" ``[double]`` **76.e-6** A small amount of
+      energy, see error norm. `[MJ]`
+      
+    * `"upwind conductivity method`" ``[string]`` **arithmetic mean** Method of
+      moving cell-based thermal conductivities onto faces.  One of:
+
+      - `"arithmetic mean`" the default, average of neighboring cells
+      - `"cell centered`" harmonic mean
+
+    IF
+      
+    * `"explicit advection`" ``[bool]`` **false** Treat the advection term implicitly.
+    
+    ELSE
+
+    * `"supress advective terms in preconditioner`" ``[bool]`` **false**
+      Typically subsurface energy equations are strongly diffusion dominated,
+      and the advective terms may add little.  With this flag on, we ignore
+      theem in the preconditioner, making an easier linear solve and often not
+      negatively impacting the nonlinear solve.
+
+    * `"advection preconditioner`" ``[pde-advection-spec]`` **optional**
+      Typically defaults are correct.
+
+    END
+      
+    * `"diffusion`" ``[pde-diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` See
+      PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
+      terms, as all the rest default to those values from `"diffusion`".
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` The Preconditioner_
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` A `LinearOperator`_
+      
+    IF
+    
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+    
+    THEN
+    
+    * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
+      not set, as the default is good. ``[MJ s^-1]``
+
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+
+    * `"source term finite difference`" ``[bool]`` **false** If the source term
+      is not diffferentiable, we can do a finite difference approximation of
+      this derivative anyway.  This is useful for difficult-to-differentiate
+      terms like a surface energy balance, which includes many terms.
+
+    EVALUATORS:
+
+    - `"source term`"
+    
+    END
+
+    Globalization:
+    
+    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+      face+cell diffusion discretization, this modifies the predictor to make
+      sure that faces, which are a DAE, are consistent with the predicted cells
+      (i.e. face fluxes from each sides match).
+
+    * `"modify predictor for freezing`" ``[bool]`` **false** A simple limiter
+      that keeps temperature corrections from jumping over the phase change.
+
+    * `"limit correction to temperature change [K]`" ``[double]`` **-1.0** If >
+      0, stops nonlinear updates from being too big through clipping.
+
+    The following are rarely set by the user, as the defaults are typically right.
+    
+    Variable names:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E` `[MJ]`
+    * `"energy key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
+    * `"water content key`" ``[string]`` **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
+    * `"enthalpy key`" ``[string]`` **DOMAIN-enthalpy** The specific enthalpy :math`e` `[MJ mol^-1]`
+    * `"flux key`" ``[string]`` **DOMAIN-mass_flux** The mass flux :math:`\mathbf{q}` used in advection. `[mol s^-1]`
+    * `"diffusive energy flux`" ``[string]`` **DOMAIN-diffusive_energy_flux** :math:`\mathbf{q_e}` `[MJ s^-1]`
+    * `"advected energy flux`" ``[string]`` **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
+    * `"thermal conductivity`" ``[string]`` **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
+    * `"upwinded thermal conductivity`" ``[string]`` **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
+    
+    * `"advection`" ``[pde-advection-spec]`` **optional** The PDE_Advection_ spec.  Only one current implementation, so defaults are typically fine.
+    
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+
+    IF
+    
+    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from an exchange flux.  Note, if this is a
+      coupled problem, it is probably set by the MPC.  No need for a user to
+      set it.
+      
+    THEN
+
+    * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
+    
+    END
+
+    * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from the surface temperature (Dirichlet).
+
+
+    EVALUATORS:
+
+    - `"enthalpy`"
+    - `"cell volume`"
+    - `"thermal conductivity`"
+    - `"conserved quantity`"
+    - `"energy`"
+    
+ */
+
 
 #ifndef PKS_ENERGY_BASE_HH_
 #define PKS_ENERGY_BASE_HH_
@@ -191,7 +331,6 @@ public:
   Key source_key_;
   //  Key mass_source_key_;
   Key ss_flux_key_;
-  bool bc_surf_temp_dependent_;
 };
 
 } // namespace Energy

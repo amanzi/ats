@@ -1,19 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Multi process coupler for globally implicit (strong) coupling.
 
-Interface for the derived StrongMPC class.  Is both a PK and a Model
-Evalulator, providing needed methods for BDF time integration of the coupled
-system.
+/*!
 
-Completely automated and generic to any sub PKs, this uses a block diagonal
-preconditioner.
+Globally implicit coupling solves all sub-PKs as a single system of equations.  This can be completely automated when all PKs are also `PK: BDF`_ PKs, using a block-diagonal preconditioner where each diagonal block is provided by its own sub-PK.
 
-See additional documentation in the base class src/pks/mpc/MPC.hh
-------------------------------------------------------------------------- */
+.. _strong-mpc-spec:
+.. admonition:: strong-mpc-spec
+
+    INCLUDES:
+
+    - ``[mpc-spec]`` *Is a* MPC_.
+    - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_.
+    
+*/
+
 
 #ifndef PKS_MPC_STRONG_MPC_HH_
 #define PKS_MPC_STRONG_MPC_HH_
@@ -50,7 +57,7 @@ public:
     MPC<PK_t>::CommitStep(t_old, t_new, S);
   }
 
-  void set_states(const Teuchos::RCP<const State>& S,
+  void set_states(const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<State>& S_inter,
                   const Teuchos::RCP<State>& S_next);
   
@@ -116,7 +123,7 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
     PK(pk_tree, global_list, S, soln),
     MPC<PK_t>(pk_tree, global_list, S, soln),
     PK_BDF_Default(pk_tree, global_list, S, soln) {
-  MPC<PK_t>::init_(S);
+  MPC<PK_t>::init_(S, soln->Comm());
 }
 
 
@@ -169,7 +176,7 @@ void StrongMPC<PK_t>::Initialize(const Teuchos::Ptr<State>& S) {
 };
 
 template<class PK_t>
-void StrongMPC<PK_t>::set_states(const Teuchos::RCP<const State>& S,
+void StrongMPC<PK_t>::set_states(const Teuchos::RCP<State>& S,
                                  const Teuchos::RCP<State>& S_inter,
                                  const Teuchos::RCP<State>& S_next){
   MPC<PK_t>::set_states(S,S_inter,S_next);

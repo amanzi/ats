@@ -26,7 +26,8 @@ PK_MPCSubcycled_ATS::PK_MPCSubcycled_ATS(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& soln) :
   PK(pk_tree, global_list, S, soln),
-  MPC<PK>(pk_tree, global_list, S, soln) {
+  MPC<PK>(pk_tree, global_list, S, soln),
+  subcycling(true) {
 
   init_(S);
 
@@ -44,6 +45,7 @@ PK_MPCSubcycled_ATS::PK_MPCSubcycled_ATS(Teuchos::ParameterList& pk_tree,
 
   // min dt allowed in subcycling
   min_dt_ = plist_->get<double>("mininum subcycled relative dt", 1.e-5);
+  subcycling = plist_->get<bool>("subcycling", true);
 }
   
 
@@ -54,8 +56,9 @@ double PK_MPCSubcycled_ATS::get_dt() {
   master_dt_ = sub_pks_[master_]->get_dt();
   slave_dt_ = sub_pks_[slave_]->get_dt();
   if (slave_dt_ > master_dt_) slave_dt_ = master_dt_;
-  
-  return master_dt_;
+
+  if (subcycling) return master_dt_;
+  else return slave_dt_;
 }
 
 

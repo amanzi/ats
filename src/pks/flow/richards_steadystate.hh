@@ -1,3 +1,24 @@
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Two-phase, variable density Richards equation in steady-state.
+
+/*!
+
+This is the same as Richards equation, but turns off the accumulation term.
+
+.. _richards-steadystate-spec:
+.. admonition:: richards-steadystate-spec
+
+    INCLUDES:
+
+    - ``[richards-spec]`` See `Richards PK`_
+  
+*/
 
 #ifndef PK_FLOW_RICHARDS_STEADYSTATE_HH_
 #define PK_FLOW_RICHARDS_STEADYSTATE_HH_

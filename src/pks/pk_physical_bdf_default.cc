@@ -262,7 +262,7 @@ double PK_PhysicalBDF_Default::BoundaryValue(const Teuchos::RCP<const Amanzi::Co
   //   PK_Physical_Default::Solution_to_State(soln_nc_ptr, S);    
   // }
 
-void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<const State>& S,
+void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<State>& S,
                                         const Teuchos::RCP<State>& S_inter,
                                         const Teuchos::RCP<State>& S_next) {
   PK_Physical_Default::set_states(S, S_inter, S_next);

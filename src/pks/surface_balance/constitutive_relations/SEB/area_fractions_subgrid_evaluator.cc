@@ -58,8 +58,8 @@ AreaFractionsSubgridEvaluator::AreaFractionsSubgridEvaluator(Teuchos::ParameterL
   // the subsurface) really don't matter much. --etc
   snow_subgrid_transition_ = plist_.get<double>("snow transition height [m]", 0.02);
   min_area_ = plist_.get<double>("minimum fractional area [-]", 1.e-5);
-  if (min_area_ <= 0.) {
-    Errors::Message message("AreaFractionsEvaluator: Minimum fractional area should be > 0.");
+  if (min_area_ < 0.) {
+    Errors::Message message("AreaFractionsEvaluator: Minimum fractional area should be >= 0.");
     Exceptions::amanzi_throw(message);
   }  
 

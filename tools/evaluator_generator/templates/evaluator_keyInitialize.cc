@@ -1,4 +1,3 @@
   // dependency: {arg}
-  {var}_key_ = plist_.get<std::string>("{argString} key",
-          domain_name+"{arg}");
+  {var}_key_ = Keys::readKey(plist_, domain_name, "{argString}", "{arg}");
   dependencies_.insert({var}_key_);

@@ -90,7 +90,7 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
 }
 
 
-void SedimentTransport_PK::set_states(const Teuchos::RCP<const State>& S,
+void SedimentTransport_PK::set_states(const Teuchos::RCP<State>& S,
                                   const Teuchos::RCP<State>& S_inter,
                                   const Teuchos::RCP<State>& S_next) {
 

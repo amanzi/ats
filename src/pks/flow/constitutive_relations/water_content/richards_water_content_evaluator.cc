@@ -45,7 +45,7 @@ RichardsWaterContentEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  Key domain_name = Keys::getDomainPrefix(my_key_);
+  Key domain_name = Keys::getDomain(my_key_);
 
   // - pull Keys from plist
   // dependency: porosity

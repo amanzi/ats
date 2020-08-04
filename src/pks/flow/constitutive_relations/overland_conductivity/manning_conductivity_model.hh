@@ -11,31 +11,21 @@
 #define AMANZI_FLOWRELATIONS_MANNING_CONDUCTIVITY_MODEL_
 
 #include "Teuchos_ParameterList.hpp"
-#include "overland_conductivity_model.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class ManningConductivityModel : public OverlandConductivityModel {
+class ManningConductivityModel {
 public:
   explicit
   ManningConductivityModel(Teuchos::ParameterList& plist);
 
-  virtual double Conductivity(double depth, double slope, double coef);
-
-  virtual double DConductivityDDepth(double depth, double slope, double coef);
-
-  //Added for the subgrid Model
-  virtual double Conductivity(double depth, double slope, double coef, double pd_depth, double frac_cond, double beta);  
-  virtual double DConductivityDDepth(double depth, double slope, double coef, double pd_depth, double frac, double beta);
+  double Conductivity(double depth, double slope, double coef);
+  double DConductivityDDepth(double depth, double slope, double coef);
 
 protected:
-  Teuchos::ParameterList plist_;
-
   double slope_regularization_;
-  double manning_exp_, beta_exp_;
-  double manning_coef_;
-
+  double manning_exp_;
 };
 
 } // namespace

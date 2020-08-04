@@ -92,6 +92,7 @@ class SEBEvaluator : public SecondaryVariablesFieldEvaluator {
   
   bool diagnostics_, ss_topcell_based_evap_;
   Teuchos::RCP<Debugger> db_;
+  Teuchos::RCP<Debugger> db_ss_;
   Teuchos::ParameterList plist_;
   
  private:

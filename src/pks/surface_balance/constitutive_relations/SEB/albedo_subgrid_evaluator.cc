@@ -27,7 +27,6 @@ Channels are: 0 = land, 1 = water/ice, 2 = snow.
 * `"emissivity snow [-]`" ``[double]`` **0.98**
 
 * `"snow density key`" ``[string]`` **DOMAIN_SNOW-density** 
-* `"ponded depth key`" ``[string]`` **DOMAIN-ponded_depth** 
 * `"unfrozen fraction key`" ``[string]`` **DOMAIN-unfrozen_fraction**
 
 */
@@ -67,8 +66,6 @@ AlbedoSubgridEvaluator::AlbedoSubgridEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(snow_dens_key_);
 
   // -- skin properties  
-  ponded_depth_key_ = Keys::readKey(plist, domain_, "ponded depth", "ponded_depth");
-  dependencies_.insert(ponded_depth_key_);
   unfrozen_fraction_key_ = Keys::readKey(plist, domain_, "unfrozen fraction", "unfrozen_fraction");
   dependencies_.insert(unfrozen_fraction_key_);
 
@@ -90,7 +87,6 @@ AlbedoSubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   // collect dependencies
   const auto& snow_dens = *S->GetFieldData(snow_dens_key_)->ViewComponent("cell",false);
-  const auto& ponded_depth = *S->GetFieldData(ponded_depth_key_)->ViewComponent("cell",false);
   const auto& unfrozen_fraction = *S->GetFieldData(unfrozen_fraction_key_)->ViewComponent("cell",false);
 
   // collect output vecs
@@ -104,7 +100,6 @@ AlbedoSubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   for (unsigned int c=0; c!=albedo.MyLength(); ++c) {
     // albedo of the snow
     albedo[2][c] = SEBPhysics::CalcAlbedoSnow(snow_dens[0][c]);
-
     albedo[1][c] = unfrozen_fraction[0][c] * a_water_ + (1-unfrozen_fraction[0][c]) * a_ice_;
     emissivity[1][c] = unfrozen_fraction[0][c] * e_water_ + (1-unfrozen_fraction[0][c]) * e_ice_;
   }

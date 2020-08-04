@@ -28,6 +28,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations)
 
 set(ats_mpc_src_files
   weak_mpc.cc
+  DomainSetMPC.cc
   operator_split_mpc.cc
   weak_mpc_semi_coupled.cc
   weak_mpc_semi_coupled_deform.cc
@@ -39,6 +40,7 @@ set(ats_mpc_src_files
   mpc_delegate_ewc.cc
   mpc_reactivetransport_pk.cc
   mpc_flowreactivetransport_pk.cc
+  mpc_coupled_reactive_transport_pk.cc
   mpc_delegate_ewc_subsurface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
@@ -58,6 +60,7 @@ set(ats_mpc_inc_files
   mpc.hh
   weak_mpc.hh
   strong_mpc.hh
+  DomainSetMPC.hh
   operator_split_mpc.hh
   weak_mpc_semi_coupled.hh
   weak_mpc_semi_coupled_deform.hh
@@ -69,6 +72,7 @@ set(ats_mpc_inc_files
   mpc_delegate_ewc.hh
   mpc_reactivetransport_pk.hh
   mpc_flowreactivetransport_pk.hh
+  mpc_coupled_reactive_transport_pk.hh
   mpc_delegate_ewc_subsurface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
@@ -123,6 +127,11 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
+  HEADERFILE DomainSetMPC_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
+
+register_evaluator_with_factory(
   HEADERFILE mpc_predictor_corrector_reg.hh
   LISTNAME   ATS_MPC_REG
   )
@@ -146,6 +155,11 @@ register_evaluator_with_factory(
    HEADERFILE mpc_reactivetransport_pk_reg.hh
    LISTNAME   ATS_MPC_REG
    )
+ 
+register_evaluator_with_factory(
+  HEADERFILE mpc_coupled_reactive_transport_pk_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 register_evaluator_with_factory(
    HEADERFILE mpc_morphology_reg.hh
@@ -228,7 +242,5 @@ generate_evaluators_registration_header(
   LISTNAME   ATS_MPC_REG
   INSTALL    True
 )
-
-
 
 

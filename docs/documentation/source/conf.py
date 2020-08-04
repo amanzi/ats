@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'ATS'
-copyright = '2020, Jointly shared by contributor institutions, see COPYRIGHT file.'
+copyright = '2020, jointly shared by contributor institutions'
 author = 'Ethan Coon'
 
 # The short X.Y version
@@ -40,6 +40,7 @@ release = '1.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.todo',
     'sphinx.ext.intersphinx',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',

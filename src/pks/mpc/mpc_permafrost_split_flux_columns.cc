@@ -100,11 +100,11 @@ void MPCPermafrostSplitFluxColumns::Initialize(const Teuchos::Ptr<State>& S)
 
   // copy the columns to the star system, which initializes the star system consistently without an IC
   CopyPrimaryToStar(S, S);
-  S->GetField(p_primary_variable_star_, S->GetField(p_primary_variable_star_)->owner())->set_initialized();
-  S->GetField(T_primary_variable_star_, S->GetField(T_primary_variable_star_)->owner())->set_initialized();
 
   // initialize the star system (IC already set, but other things might happen)
   sub_pks_[0]->Initialize(S);
+  S->GetField(p_primary_variable_star_, S->GetField(p_primary_variable_star_)->owner())->set_initialized();
+  S->GetField(T_primary_variable_star_, S->GetField(T_primary_variable_star_)->owner())->set_initialized();
 }
 
 
@@ -197,12 +197,15 @@ bool MPCPermafrostSplitFluxColumns::ValidStep()
 void MPCPermafrostSplitFluxColumns::CommitStep(double t_old, double t_new,
         const Teuchos::RCP<State>& S)
 {
+
+  // Copy the primary into the star to advance
+  CopyPrimaryToStar(S.ptr(), S.ptr());
+
   // commit before copy to ensure record for extrapolation in star system uses
   // its own solutions
   MPC<PK>::CommitStep(t_old, t_new, S);
 
-  // Copy the primary into the star to advance
-  CopyPrimaryToStar(S.ptr(), S.ptr());
+
 }
 
 

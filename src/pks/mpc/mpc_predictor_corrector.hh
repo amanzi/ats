@@ -39,7 +39,7 @@ public:
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  virtual void set_states(const Teuchos::RCP<const State>& S,
+  virtual void set_states(const Teuchos::RCP<State>& S,
                   const Teuchos::RCP<State>& S_inter,
                   const Teuchos::RCP<State>& S_next);
 
@@ -129,7 +129,7 @@ void MPCPredictorCorrector<PK_t>::Initialize(const Teuchos::Ptr<State>& S) {
 };
 
 template<class PK_t>
-void MPCPredictorCorrector<PK_t>::set_states(const Teuchos::RCP<const State>& S,
+void MPCPredictorCorrector<PK_t>::set_states(const Teuchos::RCP<State>& S,
                                  const Teuchos::RCP<State>& S_inter,
                                  const Teuchos::RCP<State>& S_next){
   StrongMPC<PK_t>::set_states(S, S_inter, S_next);

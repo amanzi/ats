@@ -16,9 +16,6 @@ Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 namespace Amanzi {
 namespace Flow {
 
-#define DEBUG_FLAG 1
-#define DEBUG_RES_FLAG 0
-
 // Richards is a BDFFnBase
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
@@ -42,7 +39,6 @@ void Richards::FunctionalResidual(double t_old,
 
   if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
 
-#if DEBUG_FLAG
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
@@ -55,7 +51,6 @@ void Richards::FunctionalResidual(double t_old,
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
   vecs.push_back(S_inter_->GetFieldData(key_).ptr()); vecs.push_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
-#endif
 
   // update boundary conditions
   bc_pressure_->Compute(t_new);
@@ -70,13 +65,8 @@ void Richards::FunctionalResidual(double t_old,
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
-
-
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(S_next_.ptr(), res.ptr());
 
-
-
-#if DEBUG_FLAG
   // dump s_old, s_new
   vnames[0] = "sl_old"; vnames[1] = "sl_new";
   vecs[0] = S_inter_->GetFieldData(sat_key_).ptr();
@@ -103,7 +93,6 @@ void Richards::FunctionalResidual(double t_old,
   db_->WriteVectors(vnames,vecs,true);
 
   db_->WriteVector("res (diff)", res.ptr(), true);
-#endif
 
   // accumulation term
   AddAccumulation_(res.ptr());
@@ -116,8 +105,6 @@ void Richards::FunctionalResidual(double t_old,
       AddSources_(S_next_.ptr(), res.ptr());
     }
   }
-  
-
 };
 
 // -----------------------------------------------------------------------------
@@ -128,16 +115,12 @@ int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon application:" << std::endl;
 
-#if DEBUG_FLAG
   db_->WriteVector("p_res", u->Data().ptr(), true);
-#endif
 
   // Apply the preconditioner
   int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
 
-#if DEBUG_FLAG
   db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
-#endif
   
   return (ierr > 0) ? 0 : 1;
 };
@@ -217,9 +200,7 @@ void Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
   Key dwc_dp_key = Keys::getDerivKey(conserved_key_, key_);
   Teuchos::RCP<const CompositeVector> dwc_dp = S_next_->GetFieldData(dwc_dp_key);
 
-#if DEBUG_FLAG
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
-#endif
 
   // -- update the cell-cell block  CompositeVector du(S_next_->GetFieldData(dwc_dp_key)->Map());
   preconditioner_acc_->AddAccumulationTerm(*dwc_dp, h, "cell", false);

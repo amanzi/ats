@@ -123,28 +123,21 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     mass_dens = results[1];
   }
 
-
   if (molar_dens != Teuchos::null) {
     // evaluate MolarDensity()
     for (CompositeVector::name_iterator comp=molar_dens->begin();
          comp!=molar_dens->end(); ++comp) {
-
       for (k=0; k<num_dep; k++){
         dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false);
       }
       
       Epetra_MultiVector& dens_v = *(molar_dens->ViewComponent(*comp,false));
-
       int count = dens_v.MyLength();
       for (int id=0; id!=count; ++id) {
-        
         for (k=0; k<num_dep; k++) {
           eos_params[k] = (*dep_vec[k])[0][id];
         }
-
         dens_v[0][id] = eos_->MolarDensity(eos_params);
-        AMANZI_ASSERT(dens_v[0][id] > 0.);
-        
       }
     }
   }
@@ -156,37 +149,45 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
           molar_dens->HasComponent(*comp)) {
         // calculate MassDensity from MolarDensity and molar mass.
         double M = eos_->MolarMass();
-
         mass_dens->ViewComponent(*comp,false)->Update(M,
                 *molar_dens->ViewComponent(*comp,false), 0.);
       } else {
         // evaluate MassDensity() directly
-
         for (k=0; k<num_dep; k++){
           dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false);
         }
    
         Epetra_MultiVector& dens_v = *(mass_dens->ViewComponent(*comp,false));
-
         int count = dens_v.MyLength();
         for (int id=0; id!=count; ++id) {
-          
           for (k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];  
           dens_v[0][id] = eos_->MassDensity(eos_params);
-          AMANZI_ASSERT(dens_v[0][id] > 0.);
         }
       }
     }
   }
+
+
+#ifdef ENABLE_DBC
+  for (const auto& vec : results) {
+    double min_val = 1.;
+    vec->MinValue(&min_val);
+    if (min_val <= 0) {
+      Errors::Message msg("EOSEvaluator: input data resulted in density calculation out of range.  If this is at the start of a run, perhaps you forgot to initialize a temperature or other value to non-zero (e.g. on \"boundary_face\" or \"face\" components?)");
+      Exceptions::amanzi_throw(msg);
+    }
+  }
+#endif
+  
 }
 
 
 void EOSEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-                                                   Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
-  
+        Key wrt_key,
+        const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+{
   Errors::Message msg("Derivative computation is missing for these EOSEvaluator");
   Exceptions::amanzi_throw(msg);
-
 }
 
 

@@ -61,276 +61,328 @@ Conventions:
 
 
 Symbol Index
-#############
+############
 
-:math:`|E|` | volume of a cell :math:`[m^X]` (where :math:`X` is the dimension of the mesh)
-:math:`g` | gravitational acceleration vector :math:`[m s^-2]`
-:math:`h` | ponded depth, or the water head over the surface :math:`[m]`
-:math:`` | alternative, in context of the subsurface, water head :math:`[m]`
-:math:`h_{{snow}}` | snow depth :math:`[m]`
-:math:`K` | absolute permeability :math:`[m^2]`
-:math:`k_r` | relative permeability :math:`[-]`
-:math:`n_X` | molar density of phase X :math:`[mol m^-3]`
-:math:`p` | pressure of the liquid phase :math:`[Pa]`
-:math:`P_{{s,r}}` | precipitation of rain or snow, noting that snow is always a precipitation rate in snow-water-equivalent (SWE) basis.  :math:`[m s^-1]`
-:math:`Q_w` | mass source of water :math:`[mol s^-1]`
-:math:`s_X` | saturation of phase X :math:`[-]`
-:math:`t` | time variable :math:`[s]`
-:math:`z` | elevation :math:`[m]`
-:math:`\nu` | dynamic viscosity of water :math:`[Pa s]`
-:math:`\phi` | porosity of the soil :math:`[-]`
-:math:`\rho` | mass density of a phase :math:`[kg m^-3]`
-:math:`\Theta` | extensive water content of a cell :math:`[mol]`
-
-   
-
+.. include:: symbol_table.rst
   
 Main
-#######################################
-
-The `"main`" ParameterList frames the entire input spec, and must contain
-one sublist for each of the following sections.
-
-* `"mesh`" ``[mesh-spec]``  See the Mesh_ spec.
-
-* `"regions`" ``[list]``
-
-  List of multiple Region_ specs, each in its own sublist named uniquely by the user.
-
-* `"coordinator`" ``[coordinator-spec]``  See the Coordinator_ spec.
-
-* `"visualization`" ``[visualization-spec]`` A Visualization_ spec for the main mesh/domain.
-
-* `"visualization XX`" ``[visualization-spec]``
-
-  Potentially more than one other Visualization_ specs, one for each domain `"XX`".  e.g. `"surface`"
-
-* `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec.
-
-* `"observations`" ``[observation-spec]`` An Observation_ spec.
-
-* `"PKs`" ``[list]``
-
-  A list containing exactly one sublist, a PK_ spec with the top level PK.
-
-* `"state`" ``[list]`` A State_ spec.
-
+####
+{ simulation_driver }
   
-Mesh
-#####
 
+Mesh
+####
 { ats_mesh_factory }
 
 
 Region
-##########
-
-
+######
 { Region }
 
-
-Point
-======
-{ RegionPoint }
+All
+===
+{ RegionAll }
 
 Box
-======
+===
 { RegionBox }
 
 Plane
-======
+=====
 { RegionPlane }
 
 Labeled Set
-============
+===========
 { RegionLabeledSet }
 
-Color Function
-===============
-{ RegionColorFunction }
+Function Color
+==============
+{ RegionFunctionColor }
+
+Point
+=====
+{ RegionPoint }
+
+Logical
+=======
+{ RegionLogical }
+
+Polygon
+=======
+{ RegionPolygon}
+
+Enumerated
+==========
+{ RegionEnumerated }
+
+Boundary
+========
+{ RegionBoundary }
+
+Box Volume Fractions
+====================
+{ RegionBoxVolumeFractions }
+
+Line Segment
+============
+{ RegionLineSegment }
 
 
 Coordinator
 ############
-
 { coordinator }
    
 
 Visualization
 ##############
-
-A user may request periodic writes of field data for the purposes of
-visualization in the `"visualization`" sublists.  ATS accepts a visualization
-list for each domain/mesh, including surface and column meshes.  These are in
-separate ParameterLists, entitled `"visualization`" for the main mesh, and
-`"visualization surface`" on the surface mesh.  It is expected that, for any
-addition meshes, each will have a domain name and therefore admit a spec of
-the form: `"visualization DOMAIN-NAME`".
-
 { Visualization }
 
-  
+
 Checkpoint
 ##############
-
-A user may request periodic dumps of ATS Checkpoint Data in the
-`"checkpoint`" sublist.  The user has no explicit control over the
-content of these files, but has the guarantee that the ATS run will be
-reproducible (with accuracies determined by machine round errors and
-randomness due to execution in a parallel computing environment).
-Therefore, output controls for Checkpoint Data are limited to file
-name generation and writing frequency, by numerical cycle number.
-Unlike `"visualization`", there is only one `"checkpoint`" list for
-all domains/meshes.
-
-{ checkpoint }  
+{ Checkpoint }  
 
 
  
 Observation
 ##############
-
 { Observable }
 
 
 PK
-#####
-
+###
 { PK }
 
 Base PKs
-===============
+========
+There are several types of PKs, and each PK has its own valid input
+spec.  However, there are three main types of PKs, from which nearly
+all PKs derive.  Note that none of these are true PKs and cannot stand
+alone.
 
-There are several types of PKs, and each PK has its own valid input spec.  However, there are three main types of PKs, from which nearly all PKs derive.  Note that none of these are true PKs and cannot stand alone.
-
-PKPhysicalBase
-----------------
-
+PK: Physical
+------------
 { pk_physical_default }
 
 
-PKBDFBase
-----------------
-
+PK: BDF
+-------
 { pk_bdf_default }
 
-
-PKPhysicalBDFBase
--------------------
-
+PK: Physical and BDF
+--------------------
 { pk_physical_bdf_default }
 
 Physical PKs
-===============
-
+============
 Physical PKs are the physical capability implemented within ATS.
 
 Flow PKs
------------
+--------
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
 
 Richards PK
-^^^^^^^^^^^^^^^
-
+^^^^^^^^^^^
 { richards }
 
 Permafrost Flow PK
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+{ permafrost }
 
-Overland Flow, head primary variable PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Overland Flow, pressure primary variable, PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+Overland Flow PK
+^^^^^^^^^^^^^^^^
 { overland_pressure }
 
+Overland Flow with Ice
+^^^^^^^^^^^^^^^^^^^^^^
+{ icy_overland }
 
 Snow Distribution PK
 ^^^^^^^^^^^^^^^^^^^^
+{ snow_distribution }
 
 
 Energy PKs
 -----------
 
-Advection Diffusion PK
-^^^^^^^^^^^^^^^^^^^^^^^
+Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.
 
 Energy Base PK
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^
+{ energy_base }
 
 Two-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_two_phase }
 
 Three-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_three_phase }
 
-Three-Phase subsurface Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Surface Ice Energy PK
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Overland energy with Ice
+^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_surface_ice }
 
 
 
 Surface Energy Balance PKs
 ------------------------------
 
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
 
-Surface Energy Balance / Snow -- Monolithic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+{ surface_balance_base }
 
 
-
-Surface Energy Balance -- Generic Version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+{ surface_balance_implicit_subgrid }
 
 Biogeochemistry
------------------
+---------------
 
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
 
 Biogeochemistry -- Monolithic Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ bgc_simple }
 
 
 
 Deformation
 -------------
 
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
 
 Volumetric Deformation
 ^^^^^^^^^^^^^^^^^^^^^^
+{ volumetric_deformation }
 
 
+MPC
+===
 
-MPCs
-===============
+Multi-process-couplers or MPCs couple other PKs.  They also are PKs
+themselves, in that they implement the PK interface.  So MPCs can also
+couple other MPCs.  There are a few common "base" MPCs which do the
+simplest form of coupling -- sequential and globally implicit (with a
+diagonal preconditioner).  Then there are specific couplers which know
+more about their coupled sub-PKs, and can do more complicated things
+(for instance, adding off-diagonal block entries to the
+preconditioner).
 
-MPCs couple other PKs, and are the non-leaf nodes in the PK tree.
+MPCs are also used to couple across domains -- for instance integrated
+hydrology is a surface+subsurface flow coupler.  They also can do
+fancier things like drape a bunch of subgrid columns off of a mesh, or
+other things.  Think of these as the custom couplers.
+
+Base MPC
+--------
+{ mpc }
+
 
 WeakMPC
-----------
+-------
+{ weak_mpc }
 
 StrongMPC
 ----------
+{ strong_mpc }
 
 Physical MPCs
 ===============
- coupling is an art, and requires special off-diagonal work.  Physical MPCs can derive from default MPCs to provide special work.
+
+Coupling is an art, and often requires special off-diagonal work for
+globally implicit coupling, and fancy games can be played with domains
+to couple across domain interfaces both implicitly and sequentially.
+Physical MPCs derive from default MPCs to provide special
+implementations of some methods.
 
 Coupled Water MPC
---------------------
-
+-----------------
 { mpc_coupled_water }
-{ mpc_delegate_water }
 
+Coupled Cells MPC
+-----------------
+{ mpc_coupled_cells }
 
 Subsurface MPC
---------------------
+--------------
+{ mpc_subsurface }
 
 Permafrost MPC
---------------------
+--------------
+{ mpc_permafrost }
+
+Globalization Delegates
+=======================
+
+Globalization is the art of convincing a solver to find the solution.
+Remember -- physics typically cares very little about *how* you get to
+a solution, only that you get there.  If you can guess or otherwise
+find the solution physically, without doing fancy math, go for it!
+These delegates are handy utility classes which are used by MPCs to
+effeciently leverage physics understanding in the mathematical solvers
+to nudge the solver in the direction of a reasonable solution, or to
+keep a solver from going off into a part of space which is totally
+unphysical.  These can often make the difference between converging
+and not converging.
+
+Much of the efficiency of ATS comes from these delegates, and more of
+them are always welcome contributions.
+
+Coupled Water Globalization Delegate
+------------------------------------
+{ mpc_delegate_water }
+
+EWC Globalization Delegate
+--------------------------
+{ mpc_delegate_ewc }
 
 State
 ##############
@@ -357,46 +409,52 @@ example:
 Field Evaluators
 =================
 
-Many field evaluators exist, but most derive from one of four base types.
-
-Field Evaluator Base Classes
--------------------------------
 
 PrimaryVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
+{ primary_variable_field_evaluator }
 
-SecondaryVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SecondaryVariablesEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 IndependentVariableEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
-While these provide base functionality, all of the physics are in the
-following derived classes.
+Independent variables are provided either by a function or directly loaded from a file.
+
+From Function
+^^^^^^^^^^^^^
+{ independent_variable_field_evaluator_fromfunction }
+
+From File
+^^^^^^^^^
+{ independent_variable_field_evaluator_fromfile }
+
 
 Water Content
------------------
+-------------
 
 Water content is the conserved quantity in most flow equations, including
 Richard's equation with and without ice.  A variety of evaluators are provided
 for inclusion of multiple phases.
 
-RichardsWaterContentEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-{ richards_water_content_evaluator }
-RichardsWaterContentWithVaporEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-{ richards_water_content_with_vapor_evaluator }
-PermafrostWaterContentEvaluator
+Richards Equation water content
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-{ permafrost_water_content }
+{ richards_water_content_evaluator }
+
+Liquid+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+{ liquid_gas_water_content_evaluator }
+
+Liquid+Ice water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+{ liquid_ice_water_content_evaluator }
+
+Liquid+Ice+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ three_phase_water_content_evaluator }
 
 
 Surface Water potential surfaces
----------------------------------
+--------------------------------
 
 Evaluators for 
 
@@ -412,20 +470,35 @@ SnowSurfacePotential
 ^^^^^^^^^^^^^^^^^^^^^^
 { snow_skin_potential_evaluator }
 
+Surface water content
+^^^^^^^^^^^^^^^^^^^^^
+{ overland_pressure_water_content_evaluator }
 
 
+..
+    KEEP GOING!
+
+    
 Generic Evaluators
 ---------------------------------
 
 Several generic evaluators are provided.
 
-AdditiveEvaluator
+Additive
+^^^^^^^^
+{ AdditiveEvaluator }
+
+Multiplicative
+^^^^^^^^^^^^^^
+{ MultiplicativeEvaluator }
+
+Column summation
+^^^^^^^^^^^^^^^^
+{ ColumnSumEvaluator }
+
+Subgrid disaggregation
 ^^^^^^^^^^^^^^^^^^^^^^
-
-
-MultiplicativeEvaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
+{ SubgridDisaggregateEvaluator }
 
 
 
@@ -508,12 +581,12 @@ Initialization of tensor fields
 A variable tensor (or vector) field is defined similarly to a variable
 scalar field.  The difference lies in the definition of the function
 which is now a multi-values function.  The required parameters are
-`"Number of DoFs`" and `"Function type`".
+`"Number of dofs`" and `"Function type`".
 
 .. code-block:: xml
 
   <ParameterList name="function">
-    <Parameter name="Number of DoFs" type="int" value="2"/>
+    <Parameter name="Number of dofs" type="int" value="2"/>
     <Parameter name="Function type" type="string" value="composite function"/>
     <ParameterList name="DoF 1 Function">
       <ParameterList name="function-constant">
@@ -587,214 +660,302 @@ Flow-specific Boundary Conditions
 
 
 Time integrators, solvers, and other mathematical specs
-####################################################################################
+#######################################################
 
-Common specs for all solvers and time integrators, used in PKs.
+  Common specs for all solvers and time integrators, used in PKs.
 
+There are three commonly used broad classes of time integration
+strategies.
+
+"Update" methods are the simplest -- they use no formal
+mathematical definition of a differential equation, but instead
+implicitly use a process by which variables at the new time are
+directly calculated.  Typically there *is* an implied ODE or PDE here,
+but it is not stated as such and time integration routines are not
+used.  Examples of these are common in biogeochemistry and vegetation
+models.
+
+"Explicit" time methods are the next simplest.  These include a
+variety of options from forward Euler to higher order Runge-Kutta
+schemes.  These only require evaluating forward models where we have
+existing of the dependencies.  If they work, these are great thanks to
+their deterministic nature and lack of expensive, memory-bandwith
+limited solvers.  But they only work on some types of problems.
+Examples of of these include transport, where we use high order time
+integration schemes to preserve fronts.
+
+"Implicit" and semi-implicit methods instead require the evaluation of
+a residual equation -- the solution is guessed at, and the residual is
+calculated, which measures how far the equation is from being
+satisfied.  This measure is then inverted, finding a correction to the
+guess which hopefully reduces the residual.  As the residual goes to
+zero, the error, a measure of the difference between the guess and the
+true solution, also goes to zero.  To do this inversion, we lean on
+Newton and Newton-like methods, which attempt to somehow linearize, or
+approximately linearize, the residual function near the guess in order
+to calculate an update.  In this case, the time integration scheme
+requires both a nonlinear solver (to drive the residual to zero) and a
+linear solver or approximate solver (to calculate the correction).
 
 TimeIntegrator
-=================
+==============
 
+Currently there are two classes of time integration schemes used in
+ATS: explicit (including a range of single and multi-stage) methods
+and BDF1, or Backward Euler.
+
+Explicit Time Integration
+-------------------------
+{ Explicit_TI_RK }
+
+Backward Euler
+--------------
+{ BDF1_TI }
+
+BDF1 Solver Interface
+^^^^^^^^^^^^^^^^^^^^^
+{ BDF1_SolverFnBase }
+
+Timestep Controller
+-------------------
 { TimestepControllerFactory }
 
-TimestepControllerFixed
---------------------------
+Timestep Controller Fixed
+^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerFixed }
 
-
-TimestepControllerStandard
-----------------------------
+Timestep Controller Standard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerStandard }
 
-TimestepControllerSmarter
-----------------------------
+Timestep Controller Smarter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerSmarter }
 
-TimestepControllerFromFile
-----------------------------
+Timestep Controller Adaptive
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ TimestepControllerAdaptive }
+
+Timestep Controller From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { TimestepControllerFromFile }
 
 
+Nonlinear Solver
+================
+.. _Solver:
+   
+{ SolverFactory }
+
+Solver: Newton and Inexact Newton
+---------------------------------
+{ SolverNewton }
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+{ SolverJFNK }
+{ MatrixJF }
+
+Solver: Newton with Line Search
+-------------------------------
+{ SolverBT }
+
+Solver: Nonlinear Continuation
+------------------------------
+{ SolverContinuation }
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+{ SolverNKA }
+
+Solver: Anderson Acceleration
+-----------------------------
+{ SolverAA }
+
+Solver: NKA with Line Search
+----------------------------
+{ SolverNKA_LS }
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+{ SolverNKA_LS_ATS }
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+{ SolverNKA_BT_ATS }
+
+Solver: NOX
+----------------------------------
+{ SolverNox }
 
 
+Linear Solvers
+==============
+.. _LinearOperator:
+.. _`LinearSolvers`:
+.. _`Linear Solver`:
 
-Linear Solver Spec
-===================
+{ LinearOperator }
 
-For each solver, a few parameters are used:
+Linear Solver: PCG
+--------------------
+{ LinearOperatorPCG }
 
-* `"iterative method`" ``[string]`` `"pcg`", `"gmres`", or `"nka`"
+Linear Solver: GMRES
+--------------------
+{ LinearOperatorGMRES }
 
-  defines which method to use.
+Linear Solver: NKA
+--------------------
+{ LinearOperatorNKA }
 
-* `"error tolerance`" ``[double]`` **1.e-6** is used in the convergence test.
+Linear Solver: Amesos
+---------------------
+{ LinearOperatorAmesos }
 
-* `"maximum number of iterations`" ``[int]`` **100** is used in the convergence test.
-
-* `"convergence criteria`" ``[Array(string)]``  **{{"relative rhs"}}** specifies multiple convergence criteria. The list
-  may include `"relative residual`", `"relative rhs`", and `"absolute residual`", and `"???? force once????`"
-
-* `"size of Krylov space`" ``[int]`` is used in GMRES iterative method. The default value is 10.
-
-.. code-block:: xml
-
-     <ParameterList name="my solver">
-       <Parameter name="iterative method" type="string" value="gmres"/>
-       <Parameter name="error tolerance" type="double" value="1e-12"/>
-       <Parameter name="maximum number of iterations" type="int" value="400"/>
-       <Parameter name="convergence criteria" type="Array(string)" value="{{relative residual}}"/>
-       <Parameter name="size of Krylov space" type="int" value="10"/>
-
-       <ParameterList name="VerboseObject">
-         <Parameter name="Verbosity Level" type="string" value="high"/>
-       </ParameterList>
-     </ParameterList>
+Linear Solver: Belos GMRES
+--------------------------
+{ LinearOperatorBelosGMRES }
 
 
-Preconditioner
-===================
+Preconditioners
+===============
+.. _Preconditioner:
 
-These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:
-
- * `"preconditioner type`" ``[string]`` **"identity"**, `"boomer amg`", `"trilinos ml`", `"block ilu`" ???
- * `"PC TYPE parameters`" ``[list]`` includes a list of parameters specific to the type of PC.
-
-Example:
-
-.. code-block:: xml
-
-     <ParameterList name="my preconditioner">
-       <Parameter name="type" type="string" value="trilinos ml"/>
-        <ParameterList name="trilinos ml parameters"> ?????? check me!
-            ... 
-        </ParameterList>
-     </ParameterList>
+{ Preconditioner }
 
 
-Hypre's Boomer AMG
--------------------
-{ PreconditionerBoomerAMG }
+Identity
+--------
+{ PreconditionerIdentity }
 
-Trilinos ML
--------------------
-{ PreconditionerML }
+Diagonal
+--------
+{ PreconditionerDiagonal }
 
 Block ILU
--------------------
+---------
 { PreconditionerBlockILU }
 
-Indentity
--------------------
-The default, no PC applied.
+Boomer AMG
+----------
+{ PreconditionerBoomerAMG }
 
+Euclid
+------
+{ PreconditionerEuclid }
 
-
-NonlinearSolver
-===================
-
-
+ML (Trilinos AMG)
+-----------------
+{ PreconditionerML }
 
 
 Other Common Specs
-##########################################
+##################
 
 IOEvent
-===================
-
+=======
 { IOEvent }
 
-VerboseObject
-===================
-
+Verbose Object
+==============
 { VerboseObject }
+
+Debugger
+========
+{ Debugger }
    
 
 Function
 ===================
-
 { Function }
 
 It is straightforward to add new functions as needed.
 
 Constant Function
 -------------------------
-{ ConstantFunction }  
+{ FunctionConstant }  
 
 Tabular Function
 -------------------------
-{ TabularFunction }
+{ FunctionTabular }
 
 Smooth step Function
 -------------------------
-{ SmoothStepFunction }
+{ FunctionSmoothStep }
 
 Polynomial Function
 -------------------------
-{ PolynomialFunction }  
+{ FunctionPolynomial }  
 
 Multi-variable linear Function
 ------------------------------
-{ LinearFunction }  
+{ FunctionLinear }  
 
 Separable Function
 ------------------
-{ SeparableFunction }
+{ FunctionSeparable }
 
 Additive Function
 ------------------
-{ AdditiveFunction }
+{ FunctionAdditive }
 
 Multiplicative Function
 --------------------------
-{ MultiplicativeFunction }
+{ FunctionMultiplicative }
 
 Composition Function
 --------------------------
-{ CompositionFunction }
+{ FunctionComposition }
 
 Piecewise Bilinear Function
 ---------------------------
-{ BilinearFunction }
+{ FunctionBilinear }
 
 Distance Function
--------------------
-{ DistanceFunction }
+-----------------
+{ FunctionDistance }
 
 Monomial Function
--------------------
-{ MonomialFunction }
+-----------------
+{ FunctionMonomial }
 
 Standard Math Function
--------------------------
-{ StandardMathFunction }
+----------------------
+{ FunctionStandardMath }
 
 
 
 Operator
-===================
+========
 
 { Operator }
 
-OperatorAccumulation
--------------------------
+PDE_Accumulation
+----------------
+{ PDE_Accumulation }
 
-{ OperatorAccumulation }
+PDE_Diffusion
+-------------
+{ PDE_DiffusionFactory }
 
-OperatorDiffusion
-------------------
-{ OperatorDiffusionFactory }
+{ PDE_Diffusion }
 
-{ OperatorDiffusionMFD }
+{ PDE_DiffusionMFD }
 
-{ OperatorDiffusionMFDwithGravity }
+{ PDE_DiffusionMFDwithGravity }
 
-{ OperatorDiffusion }
+{ PDE_DiffusionFV }
+
+{ PDE_DiffusionFVwithGravity }
 
 
-OperatorAdvection
--------------------------
+PDE_Advection
+-------------
 
-{ OperatorAdvection }
+{ PDE_Advection }
+
+{ PDE_AdvectionUpwind }
 
 
 

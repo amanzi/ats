@@ -19,6 +19,7 @@
 //#include "pk_mpcsubcycled_ats.hh"
 #include "weak_mpc.hh"
 #include "PK.hh"
+#include "Transport_PK_ATS.hh"
 
 namespace Amanzi {
 
@@ -40,10 +41,11 @@ namespace Amanzi {
 
     // -- advance each sub pk from t_old to t_new.
     virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-
     //virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
 
-    std::string name() { return name_;} 
+    std::string name() { return name_;}
+    int num_aqueous_component();
+
 
   private:
 
@@ -64,7 +66,9 @@ namespace Amanzi {
     Key mass_darcy_key, surf_mass_darcy_key;
     Key vol_darcy_key, surf_vol_darcy_key;
     Key mol_density_key, surf_mol_density_key;
-    
+
+
+    Teuchos::RCP<Transport::Transport_PK_ATS> subsurf_pk_, surf_pk_;
     
     // factory registration
     static RegisteredPKFactory<CoupledTransport_PK> reg_;

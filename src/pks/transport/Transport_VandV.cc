@@ -169,9 +169,6 @@ void Transport_PK_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next,
     mesh_->get_comm()->SumAll(&tmp_start, &(mass_solutes_stepstart_[i]), 1);
     mesh_->get_comm()->SumAll(&tmp_bc, &(mass_solutes_bc_[i]), 1);
 
-    // *vo_->os() << ", step start total=" << mass_solutes_stepstart_[i] << " mol" << std::endl;
-    // *vo_->os() << ", step bc total=" << mass_solutes_bc_[i] << " mol" << std::endl;
-    // *vo_->os() << ", step final total=" << mass_solute << " mol" << std::endl;
   }
 }
 
@@ -363,9 +360,6 @@ double Transport_PK_ATS::ComputeSolute(const Epetra_MultiVector& tcc,
   for (int c = 0; c < ncells_owned; c++) {
     double vol = mesh_->cell_volume(c);
     mass_solute += ws[0][c] * (*phi_)[0][c] * tcc[i][c] * vol * den[0][c] + (*solid_qty_)[i][c];
-    // if (tcc_next[i][c] > 1e-16)
-    //   std::cout<<std::setprecision(12)<<"masscompute "<<MyPID<<" cell "<<c<<": "<<(*phi_)[0][c]<<" "
-    //            <<(*ws_end)[0][c]<<" "<< (*mol_dens_end)[0][c]<<" "<<tcc_next[i][c]<<"--"<<mesh_->cell_centroid(c)<<"\n";
   }
   //mass_solute /= units_.concentration_factor();
 

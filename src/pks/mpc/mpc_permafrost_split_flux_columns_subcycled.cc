@@ -60,20 +60,21 @@ bool MPCPermafrostSplitFluxColumnsSubcycled::AdvanceStep(double t_old, double t_
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
       bool valid_inner = sub_pks_[i]->ValidStep();
-      if (vo_->os_OK(Teuchos::VERB_EXTREME))
+      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
         *vo_->os() << "  step valid? " << valid_inner << std::endl;
 
       // DEBUGGING
       std::cout << col_domain << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400. 
                 << ") failed/!valid = " << fail_inner << "," << !valid_inner << std::endl;
       // END DEBUGGING
-
+      }
+      
       if (fail_inner || !valid_inner) {
         dt_inner = sub_pks_[i]->get_dt();
         S_next_->AssignDomain(*S_inter_, col_domain);
         S_next_->AssignDomain(*S_inter_, "surface_"+col_domain);
         S_next_->AssignDomain(*S_inter_, "snow_"+col_domain);
-        //        S_next_->AssignDomain(*S_inter_, "surface_star");
+        //S_next_->AssignDomain(*S_inter_, "surface_star");
         S_next_->set_time(S_inter_->time());
         S_next_->set_cycle(S_inter_->cycle());
         //*S_next_ = *S_inter_;

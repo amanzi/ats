@@ -7,7 +7,7 @@
 Advanced Terrestrial Simulator
 ******************************   
 
-.. image:: static/images/coweeta.png
+.. image:: _static/images/coweeta.png
 
 The Advanced Terrestrial Simulator is a code for solving ecosystem-based, integrated, distributed hydrology.
 
@@ -19,8 +19,16 @@ View our Gallery of Demo problems.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: User Guide:
 
+   demos
+   input_spec
+
+..   
+.. toctree::
+   :maxdepth: 2
+   :caption: Developers Guide:
+             
 
 Indices and tables
 ==================

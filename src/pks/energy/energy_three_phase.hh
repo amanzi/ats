@@ -1,16 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! An advection-diffusion equation for energy in three phases.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Fully three-phase (air, water, ice) permafrost energy equation, with only
-mobile water.
+This is simply a subsurface energy equation that places a few more requirements
+on the base class.  It could probably go away if we refactor to remove
+hard-coded evaluators.
 
-Inherits TwoPhase instead of EnergyBase to pick up the enthalpy from TwoPhase.
-------------------------------------------------------------------------- */
+.. _energy-three-phase-pk-spec:
+.. admonition:: energy-three-phase-pk-spec
+
+    INCLUDES:
+
+    - ``[energy-two-phase-pk-spec]`` See  `Two-Phase subsurface Energy PK`_
+
+*/
 
 #ifndef PKS_ENERGY_THREE_PHASE_HH_
 #define PKS_ENERGY_THREE_PHASE_HH_

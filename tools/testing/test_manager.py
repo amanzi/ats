@@ -569,14 +569,14 @@ class RegressionTest(object):
 
         for gold_file, reg_file in zip(gold_files, reg_files):
             try:
-                h5_reg = h5py.File(reg_file)
+                h5_reg = h5py.File(reg_file,'r')
             except Exception as e:
                 print("    FAIL: Could not open file: '{0}'".format(reg_file), file=testlog)
                 status.fail = 1
                 h5_reg = None
 
             try:
-                h5_gold = h5py.File(gold_file)
+                h5_gold = h5py.File(gold_file,'r')
             except Exception as e:
                 print("    FAIL: Could not open file: '{0}'".format(gold_file), file=testlog)
                 status.fail = 1

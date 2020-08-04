@@ -75,6 +75,7 @@ set(ats_transport_link_libs
   time_integration
   state
   pks
+  chemistry_pk
   ats_operators
   ats_eos
   ats_pks

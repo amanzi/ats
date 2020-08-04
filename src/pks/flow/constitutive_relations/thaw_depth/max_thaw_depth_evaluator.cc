@@ -40,9 +40,9 @@ void MaxThawDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   const Epetra_MultiVector& thawdepth_c = *S->GetFieldData(td_key_)->ViewComponent("cell", false);
   Key domain = Keys::getDomain(td_key_);
   assert(!domain.empty());
-  
-  int ncells = res_c.MyLength();
 
+  int ncells = res_c.MyLength();
+  AMANZI_ASSERT(ncells ==1);
   for (int c=0; c!=ncells; c++){
     res_c[0][c] = std::max<double>(thawdepth_c[0][c], res_c[0][c]);
   }

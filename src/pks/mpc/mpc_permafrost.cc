@@ -75,27 +75,28 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
   
   // Create the dE_dp block, which will at least have a CELL-based diagonal
   // entry (from subsurface dE/dp) and a FACE-based diagonal entry (from
-  // surface dE/dp), but the subsurface will likely create a CELL-only matrix.
-  // This can get removed/fixed once there is a better way of
-  // creating/amalgamating ops into a single global operator.
-
-  //Teuchos::RCP<CompositeVectorSpace> cvs = Teuchos::rcp(new CompositeVectorSpace());
-  // cvs->SetMesh(domain_mesh_)->SetGhosted()
-  //     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1)
-  //     ->AddComponent("cell", AmanziMesh::CELL, 1);  
+  // surface dE/dp), but the subsurface might only create a CELL-only matrix if
+  // the other terms are supressed.  This can get removed/fixed once there is a
+  // better way of creating/amalgamating ops into a single global operator.
+  // For now this also means that we must have energy and flow using the same
+  // discretization.
   Teuchos::ParameterList plist;
   Teuchos::RCP<CompositeVectorSpace> cvs = Teuchos::rcp(new CompositeVectorSpace());
 
-
   std::string pk0_method = pks_list_->sublist(names[0]).sublist("diffusion").get<std::string>("discretization primary");
   std::string pk1_method = pks_list_->sublist(names[1]).sublist("diffusion").get<std::string>("discretization primary");
-  if ((pk0_method == "nlfv: bnd_faces")&&(pk1_method == "nlfv: bnd_faces")){
+  if (pk0_method != pk1_method) {
+    Errors::Message msg("MPC_Permafrost: for permafrost problems, due to issues in Jacobians, the flow and energy discretization methods must be the same.");
+    Exceptions::amanzi_throw(msg);
+  }
+  
+  if (pk0_method == "nlfv: bnd_faces" || pk0_method == "fv: bnd_faces") {
     cvs->SetMesh(domain_mesh_)->SetGhosted()
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1)
       ->AddComponent("cell", AmanziMesh::CELL, 1);  
-  }else{
+  } else {
     cvs->SetMesh(domain_mesh_)->SetGhosted()
-      ->AddComponent("face", AmanziMesh::BOUNDARY_FACE, 1)
+      ->AddComponent("face", AmanziMesh::FACE, 1)
       ->AddComponent("cell", AmanziMesh::CELL, 1);  
   }
   
@@ -104,8 +105,6 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
   // call the subsurface setup, which calls the sub-pk's setups and sets up
   // the subsurface block operator
   MPCSubsurface::Setup(S);
-
-  
 
   // require the coupling fields, claim ownership
   S->RequireField(mass_exchange_key_, name_)
@@ -222,7 +221,7 @@ MPCPermafrost::Initialize(const Teuchos::Ptr<State>& S) {
 
 
 void
-MPCPermafrost::set_states(const Teuchos::RCP<const State>& S,
+MPCPermafrost::set_states(const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<State>& S_inter,
                            const Teuchos::RCP<State>& S_next) {
   MPCSubsurface::set_states(S,S_inter,S_next);

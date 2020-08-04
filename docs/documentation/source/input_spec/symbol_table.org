@@ -1,0 +1,37 @@
+| Symbol                        | Description                                                           |
+|-------------------------------+-----------------------------------------------------------------------|
+| $E$                           | extensive energy of a cell $[MJ]$                                     |
+| $e$                           | specific enthalpy $[MJ mol^-1]$                                       |
+| $g$                           | gravitational acceleration vector $[m s^-2]$                          |
+| $h$                           | ponded depth, or the water head over the surface $[m]$                |
+|                               | alternative, in context of the subsurface, water head $[m]$           |
+| $h_{snow}$                    | snow depth $[m]$                                                      |
+| $K$                           | absolute permeability $[m^2]$                                         |
+| $\kappa$                      | thermal conductivity $[MW m^-1 K^-1]$                                 |
+| $k_r$                         | relative permeability $[-]$                                           |
+| $n_X$                         | molar density of phase X $[mol m^-3]$                                 |
+| $\vert \partial \Omega \vert$ | volume of a discrete element $\partial \Omega$                        |
+| $p$                           | pressure of the liquid phase $[Pa]$                                   |
+| $P_{r}$                       | precipitation of rain $[m s^-1]$                                      |
+| $P_{s}$                       | precipitation of snow, in snow-water-equivalent (SWE)  $[m SWE s^-1]$ |
+| $Q_e$                         | source of energy $[MJ s^-1]$                                          |
+| $Q_w$                         | mass source of water $[mol s^-1]$                                     |
+| $s_X$                         | saturation of phase X $[-]$                                           |
+| $t$                           | time variable $[s]$                                                   |
+| $z$                           | elevation $[m]$                                                       |
+| $\nu$                         | dynamic viscosity of water $[Pa s]$                                   |
+| $\phi$                        | porosity of the soil $[-]$                                            |
+| $\mathbf{q}$                  | Darcy flux vector $[mol  m^-2 s^-1]$                                  |
+| $\mathbf{q_s}$                | surface flux vector $[mol  m s^-1]$                                   |
+| $\rho$                        | mass density of a phase $[kg m^-3]$                                   |
+| $t$                           | time variable $[s]$                                                   |
+| $T$                           | temperature $[K]$                                                     |
+| $\Theta$                      | extensive water content of a cell $[mol]$                             |
+| $u_X$                         | specific internal energy of phase X $[MJ mol^-1]$                     |
+| $\mathbf{V}$                  | Darcy velocity vector $[m s^-1]$                                      |
+| $\mathbf{V_s}$                | surface velocity vector $[m s^-1]$                                    |
+| $x$,$y$,$z$                   | spatial coordinates $[m]$                                             |
+|                               |                                                                       |
+
+
+

@@ -1,27 +1,46 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! An implicit PK for surface balance snow SWE conservation.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon (coonet @ ornl.gov)
-   
- ------------------------------------------------------------------------- */
-
-//! ImplicitSubgrid: an implicit PK for surface balance with multiple subgrid patches.
 
 /*!
 
-Sets up a collection of patches, for portions of the column covered in snow,
-ponded water, and vegetated/bare ground.  The surface energy balance on these
-area weighted patches are individually calculated then averaged to form the
-total quantities.  All down- and up-scaling of relevant quantities are done
-through the area weighting, which is calculated by a minimum threshold in snow
-and a depression depth/geometry-based approach for water.  All snow is assumed
-to first cover water (likely ice), then cover land, as both water and snow
-prefer low-lying depressions due to gravity- and wind-driven redistributions,
-respectively.
+This is a balance PK whose conserved quantity is snow SWE.  The energy balance
+comes in as it provides the energy needed to melt snow.  So source terms
+include snow precipitation and snowmelt.  It also manages snow density, which
+should get rethought a bit.
 
+There is also some wierd hackiness here about area fractions -- see ATS Issue
+#8
+
+.. _subgrid-balance-pk-spec:
+.. admonition:: subgrid-balance-pk-spec
+
+    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``    
+
+    INCLUDES:
+
+    - ``[balance-pk-spec]`` This *is a* `Balance Equation`_
+
+    Not typically set by user, defaults work:
+
+    * `"conserved quantity key`" ``[string]`` **LAYER-snow_water_equivalent**
+      Sets the default conserved quantity key, so this is likely not supplied
+      by the user. `[m]`
+    * `"snow density key`" ``[string]`` **LAYER-density** Default snow density
+      key. `[kg m^-3]`
+    * `"snow age key`" ``[string]`` **LAYER-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **LAYER-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **LAYER-fractional_areas** Subgrid
+      model fractional areas, see note above. `[-]`
+    * `"snow death rate key`" ``[string]`` **LAYER-death_rate** Deals with last
+      tiny bit of snowmelt.
+    
 */
 
 

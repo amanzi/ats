@@ -1,11 +1,9 @@
 # -*- mode: cmake -*-
-
 #
 #  ATS
 #    Constitutive relations for flow
 #
 
-# collect all registrations and register
 file(GLOB_RECURSE registrations "./*_reg.hh" )
 foreach(reg_lcv IN LISTS registrations)
   register_abs_evaluator_with_factory(HEADERFILE ${reg_lcv} LISTNAME ATS_FLOW_RELATIONS_REG)
@@ -43,7 +41,6 @@ set(ats_flow_relations_link_libs
   solvers
   state
   )
-
 
 # make the library
 add_amanzi_library(ats_flow_relations

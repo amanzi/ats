@@ -16,9 +16,8 @@ Authors: Ethan Coon (ecoon@lanl.gov)
 namespace Amanzi {
 namespace Flow {
 
-#define DEBUG_FLAG 0
-#define DEBUG_ICE_FLAG 0
 #define DEBUG_RES_FLAG 0
+
 
 
 // Overland is a BDFFnBase
@@ -46,17 +45,14 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   Teuchos::RCP<CompositeVector> res = g->Data();
   res->PutScalar(0.0);
 
-#if DEBUG_FLAG
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
                << " t1 = " << t_new << " h = " << h << std::endl;
-#endif
 
   // unnecessary here if not debeugging, but doesn't hurt either
   S_next_->GetFieldEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S_next_.ptr(), name_);
 
-#if DEBUG_FLAG
   // dump u_old, u_new
   db_->WriteCellInfo(true);
   std::vector<std::string> vnames;
@@ -85,7 +81,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
     vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"fractional_conductance")).ptr());
   }
   db_->WriteVectors(vnames, vecs, true);
-#endif
+
   // update boundary conditions
   bc_head_->Compute(S_next_->time());
   bc_pressure_->Compute(S_next_->time());
@@ -103,7 +99,6 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   // diffusion term, treated implicitly
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
   
-#if DEBUG_FLAG
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
   if (S_next_->HasField(Keys::getKey(domain_,"unfrozen_fraction"))) {
     vnames.resize(2);
@@ -119,20 +114,14 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   db_->WriteVector("k_s_uw", S_next_->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity")).ptr(), true);
   db_->WriteVector("q_s", S_next_->GetFieldData(Keys::getKey(domain_,"mass_flux")).ptr(), true);
   db_->WriteVector("res (diff)", res.ptr(), true);
-#endif
 
   // accumulation term
   AddAccumulation_(res.ptr());
-
-#if DEBUG_FLAG
   db_->WriteVector("res (acc)", res.ptr(), true);
-#endif
 
   // add rhs load value
   AddSourceTerms_(res.ptr());
-#if DEBUG_FLAG
   db_->WriteVector("res (src)", res.ptr(), true);
-#endif
 
 #if DEBUG_RES_FLAG
   if (niter_ < 23) {
@@ -161,16 +150,11 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon application:" << std::endl;
 
-#if DEBUG_FLAG
-  db_->WriteVector("h_res", u->Data().ptr(), true);
-#endif
 
   // apply the preconditioner
+  db_->WriteVector("h_res", u->Data().ptr(), true);
   int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
-
-#if DEBUG_FLAG
   db_->WriteVector("PC*h_res (h-coords)", Pu->Data().ptr(), true);
-#endif
 
   // tack on the variable change
   const Epetra_MultiVector& dh_dp =
@@ -182,10 +166,7 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, 
     Pu_c[0][c] /= dh_dp[0][c];
   }
 
-#if DEBUG_FLAG
   db_->WriteVector("PC*h_res (p-coords)", Pu->Data().ptr(), true);
-#endif
-  
   return (ierr > 0) ? 0 : 1;
 };
 

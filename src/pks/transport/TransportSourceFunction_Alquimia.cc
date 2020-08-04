@@ -86,6 +86,8 @@ void TransportSourceFunction_Alquimia::Compute(double t_old, double t_new)
 {
   std::string cond_name = (*f_)(t_new);
 
+  //if (src_liq_data_==Teuchos::null)
+
   // Loop over sides and evaluate values.
   for (auto it = begin(); it != end(); ++it) {
     int cell = it->first; 
@@ -93,15 +95,22 @@ void TransportSourceFunction_Alquimia::Compute(double t_old, double t_new)
     // Dump the contents of the chemistry state into our Alquimia containers.
     chem_pk_->CopyToAlquimia(cell, alq_mat_props_, alq_state_, alq_aux_data_);
 
+    double liquid_vol_L = alq_mat_props_.volume * (*src_liq_data_)[0][cell] * 1000 ;
+     
     // Enforce the condition.
     chem_engine_->EnforceCondition(cond_name, t_new, alq_mat_props_, alq_state_, alq_aux_data_, alq_aux_output_);
 
     // Move the concentrations into place.
     std::vector<double>& values = it->second;
+    
+
     for (int i = 0; i < values.size(); i++) {
-      values[i] = alq_state_.total_mobile.data[i] / domain_volume_;
-    }
+
+      double moles = alq_state_.total_mobile.data[i] * liquid_vol_L; // conversion from mol/L to mol
+      values[i] = moles/(alq_mat_props_.volume);
+    }    
   }
+
 }
 
 }  // namespace Transport

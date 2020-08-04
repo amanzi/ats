@@ -15,6 +15,7 @@ Author: Ethan Coon
 #include "PDE_Diffusion.hh"
 #include "PDE_AdvectionUpwind.hh"
 #include "LinearOperatorFactory.hh"
+
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
 #include "upwind_total_flux.hh"
@@ -109,7 +110,6 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S) {
 
   bc_adv_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
 
-  bc_surf_temp_dependent_ = bc_plist.get<bool>("surface temperature dependence",false);
   // -- nonlinear coefficient
   std::string method_name = plist_->get<std::string>("upwind conductivity method",
           "arithmetic mean");
@@ -225,7 +225,7 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S) {
     //    Potentially create a linear solver
     if (plist_->isSublist("linear solver")) {
       Teuchos::ParameterList linsolve_sublist = plist_->sublist("linear solver");
-      AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
+      Amanzi::AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
       lin_solver_ = fac.Create(linsolve_sublist, preconditioner_);
     } else {
       lin_solver_ = preconditioner_;

@@ -271,9 +271,6 @@ double EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
   int cycle = S_next_->cycle();
-  if (cycle == 32) {
-    std::cout << "we is here" << std::endl;
-  }
   
   S_inter_->GetFieldEvaluator(energy_key_)->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& energy = *S_inter_->GetFieldData(energy_key_)

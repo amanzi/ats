@@ -38,8 +38,8 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
   Teuchos::RCP<const Epetra_Vector> component_rcp(&component, false);
 
   Teuchos::ParameterList plist = tp_list_->sublist("reconstruction");
-  lifting_->Init(component_rcp, plist);
-  lifting_->ComputeGradient();
+  lifting_->Init(plist);
+  lifting_->ComputeGradient(component_rcp);
 
   // extract boundary conditions for the current component
   std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
@@ -67,8 +67,6 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
   limiter_->ApplyLimiter(component_rcp, 0, lifting_->gradient(), bc_model, bc_value); 
   limiter_->gradient()->ScatterMasterToGhosted("cell");
   
-
-  limiter_->gradient()->ScatterMasterToGhosted("cell");
 
   // ADVECTIVE FLUXES
   // We assume that limiters made their job up to round-off errors.

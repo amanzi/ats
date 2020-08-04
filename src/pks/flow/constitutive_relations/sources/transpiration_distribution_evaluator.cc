@@ -71,10 +71,26 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
   dependencies_.insert(surf_cv_key_);
 
   npfts_ = plist_.get<int>("number of PFTs", 1);
-  trans_on_date_ = plist_.get<double>("transpiration turn on date",111.) //days after winter solstice, PRMS defaults
-                   - 10; // converted to days after Jan 1
-  trans_off_date_ = plist_.get<double>("transpiration turn off date",264) // days after winter solstice, PRMS defaults
-                    - 10; // converted to days after Jan 1
+  if (npfts_ > 1) {
+    Errors::Message message("TranspirationDistributionEvaluator: it is unclear whether this evaluator works for >1 PFT.  Contact developers if you need this.");
+    Exceptions::amanzi_throw(message);
+  }
+    
+  leaf_on_time_ = plist_.get<double>("leaf on time", 0);
+  std::string leaf_on_units = plist_.get<std::string>("leaf on time units", "d");
+
+  leaf_off_time_ = plist_.get<double>("leaf off time",366);
+  std::string leaf_off_units = plist_.get<std::string>("leaf on time units", "d");
+
+  year_duration_ = plist_.get<double>("year duration", 1.0);
+  std::string year_duration_units = plist_.get<std::string>("year duration units", "noleap");
+
+  // deal with units
+  Amanzi::Utils::Units units;
+  bool flag;
+  leaf_on_time_ = units.ConvertTime(leaf_on_time_, leaf_on_units, "s", flag);
+  leaf_off_time_ = units.ConvertTime(leaf_off_time_, leaf_off_units, "s", flag);
+  year_duration_ = units.ConvertTime(year_duration_, year_duration_units, "s", flag);
 }
 
 
@@ -94,7 +110,7 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   double p_atm = *S->GetScalarData("atmospheric_pressure");
 
   // check for winter (FIXME -- evergreens!)
-  if (!TranspirationPeriod(S->time())) {
+  if (!TranspirationPeriod_(S->time())) {
     result->PutScalar(0.);
     return;
   }
@@ -131,7 +147,7 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         }
         
         for (auto c : subsurf_mesh.cells_of_column(sc)) {
-          result_v[pft][c] = result_v[pft][c] * coef;
+          result_v[pft][c] *= coef;
           if (limiter_local_) {
             result_v[pft][c] *= f_wp[0][c];
           }
@@ -173,9 +189,9 @@ TranspirationDistributionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
   auto my_fac = S->RequireField(my_key_, my_key_);
 
   // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
+  bool io_my_key = plist_.get<bool>("visualize", true);
   S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+my_key_, false);
+  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
   S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
 
   Key domain = Keys::getDomain(my_key_);
@@ -217,11 +233,19 @@ TranspirationDistributionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
 }
 
 bool
-TranspirationDistributionEvaluator::TranspirationPeriod(double time) {
-  double doy = fmod(time/86400.,365.);
-  if (doy >= trans_on_date_  && doy <= trans_off_date_) return true;
-  else return false;
+TranspirationDistributionEvaluator::TranspirationPeriod_(double time) {
+  double time_of_year = fmod(time, year_duration_);
+  if (leaf_on_time_ <= time < leaf_off_time_) {
+    return true;
+  } else if (leaf_on_time_ < leaf_off_time_) {
+    return false;
+  } else if (leaf_off_time_ <= time < leaf_on_time_) {
+    return false;
+  } else {
+    return true;
+  }
 }
+
 
 } //namespace
 } //namespace

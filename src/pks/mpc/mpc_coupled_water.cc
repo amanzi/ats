@@ -31,8 +31,9 @@ MPCCoupledWater::Setup(const Teuchos::Ptr<State>& S) {
   pks_list_->sublist(names[1]).sublist("accumulation preconditioner").set("surface operator", true);
 
   
-  domain_ss_ = plist_->get<std::string>("subsurface domain name","domain");
-  domain_surf_ = plist_->get<std::string>("surface domain name","surface");
+  domain_ss_ = plist_->get<std::string>("domain name","domain");
+  domain_surf_ = (domain_ss_.empty() || domain_ss_ == "domain") ? "surface" : std::string("surface_")+domain_ss_;
+  domain_surf_ = plist_->get<std::string>("surface domain name",domain_surf_);
   // grab the meshes 
   surf_mesh_ = S->GetMesh(domain_surf_);
   domain_mesh_ = S->GetMesh(domain_ss_);
@@ -107,7 +108,7 @@ MPCCoupledWater::Initialize(const Teuchos::Ptr<State>& S) {
 }
 
 void
-MPCCoupledWater::set_states(const Teuchos::RCP<const State>& S,
+MPCCoupledWater::set_states(const Teuchos::RCP<State>& S,
                             const Teuchos::RCP<State>& S_inter,
                             const Teuchos::RCP<State>& S_next) {
   StrongMPC<PK_PhysicalBDF_Default>::set_states(S,S_inter,S_next);

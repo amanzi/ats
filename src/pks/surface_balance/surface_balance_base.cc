@@ -13,7 +13,7 @@
    is calculated at equilibrium with ground/surface water and Air.
 
    ------------------------------------------------------------------------- */
-
+#include "LinearOperatorFactory.hh"
 #include "surface_balance_base.hh"
 #include "LinearOperatorFactory.hh"
 

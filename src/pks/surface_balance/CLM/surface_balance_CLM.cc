@@ -1,18 +1,30 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-   ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Uses CLM for determining transpiration, evaporation, snowmelt, etc.
 
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon, Adam Atchley, Satish Karra
+/*!
 
-   DOCUMENT ME
-   Surface Energy Balance for Snow Surface and Ground Surface
-   Calculates Energy flux, rate or water, and water temperature
-   entering through the surface skin.  Snow surface energy balance
-   is calculated at equilibrium with ground/surface water and Air.
+.. note: This is currently a PK.  But it acts like an evaluator.  Much of this
+    code should get moved into an evaluator.
 
-   ------------------------------------------------------------------------- */
+Based on the Colorado/Common/Community Land Model, an old variant of CLM that
+has been updated and maintained by the ParFlow group.
+
+CLM provides all surface processes, including snowpack evolution, energy and
+water sources, etc.
+
+.. note: Currently this is a water-only model -- it internally does its own
+    energy equation.  One could refactor CLM to split out this energy balance
+    as well, allowing us to use this with ATS's energy equations, but that is
+    currently not possible.
+
+
+ */
 
 #include <cmath>
 
@@ -31,17 +43,17 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
   PK_Physical_Default(pk_tree, global_list,  S, solution),
   my_next_time_(0.)
 {
-  if (!plist_->isParameter("conserved quantity suffix"))
-    plist_->set("conserved quantity suffix", "snow_depth");
-
   Teuchos::ParameterList& FElist = S->FEList();
 
   if (domain_ == "surface") {
-    domain_ss_ = plist_->get<std::string>("subsurface domain name", "domain");
+    domain_ss_ = plist_->get<std::string>("subsurface domain name", "");
   } else if (boost::starts_with(domain_, "surface_")) {
     domain_ss_ = plist_->get<std::string>("subsurface domain name", domain_.substr(8,domain_.size()));
   } else if (boost::ends_with(domain_, "_surface")) {
     domain_ss_ = plist_->get<std::string>("subsurface domain name", domain_.substr(0,domain_.size()-8));
+  } else if (domain_.empty() || domain_ == "domain") {
+    Errors::Message message("SurfaceBalanceCLM: domain should not be the subsurface -- please set the \"domain name\" parameter in this PK\"");
+    Exceptions::amanzi_throw(message);
   } else {
     plist_->get<std::string>("subsurface domain name");
   }

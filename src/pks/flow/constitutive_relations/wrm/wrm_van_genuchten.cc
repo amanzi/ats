@@ -142,31 +142,55 @@ void WRMVanGenuchten::InitializeFromPlist_() {
     AMANZI_ASSERT(0);
   }
 
-  alpha_ = plist_.get<double>("van Genuchten alpha");
-  sr_ = plist_.get<double>("residual saturation", 0.0);
-  l_ = plist_.get<double>("Mualem exponent l", 0.5);
+  // DEPRECATION ERROR
+  if (plist_.isParameter("van Genuchten alpha")) {
+    Errors::Message message("WRM: DEPRECATION: parameter \"van Genuchten alpha\" is now \"van Genuchten alpha [Pa^-1]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("van Genuchten n")) {
+    Errors::Message message("WRM: DEPRECATION: parameter \"van Genuchten n\" is now \"van Genuchten n [-]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("van Genuchten m")) {
+    Errors::Message message("WRM: DEPRECATION: parameter \"van Genuchten m\" is now \"van Genuchten m [-]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("residual saturation")) {
+    Errors::Message message("WRM: DEPRECATION: parameter \"residual saturation\" is now \"residual saturation [-]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("Mualem exponent l")) {
+    Errors::Message message("WRM: DEPRECATION: parameter \"Mualem exponent l\" is now \"Mualem exponent l [-]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("smoothing interval width")) {
+    Errors::Message message("WRM: DEPRECATION: option \"smoothing interval width\" is now \"smoothing interval width [saturation]\"");
+    Exceptions::amanzi_throw(message);
+  }
+  if (plist_.isParameter("van Genuchten residual saturation")) {
+    Errors::Message message("WRM: DEPRECATION: option \"van Genuchten residual saturation\" is now \"residual saturation [-]\"");
+    Exceptions::amanzi_throw(message);
+  }
+    
+  alpha_ = plist_.get<double>("van Genuchten alpha [Pa^-1]");
+  sr_ = plist_.get<double>("residual saturation [-]");
+  l_ = plist_.get<double>("Mualem exponent l [-]", 0.5);
 
   // map to n,m
-  if (plist_.isParameter("van Genuchten m")) {
-    m_ = plist_.get<double>("van Genuchten m");
+  if (plist_.isParameter("van Genuchten m [-]")) {
+    m_ = plist_.get<double>("van Genuchten m [-]");
     if (function_ == FLOW_WRM_MUALEM) {
       n_ = 1.0 / (1.0 - m_);
     } else {
       n_ = 2.0 / (1.0 - m_);
     }
   } else {
-    n_ = plist_.get<double>("van Genuchten n");
+    n_ = plist_.get<double>("van Genuchten n [-]");
     if (function_ == FLOW_WRM_MUALEM) {
       m_ = 1.0 - 1.0/n_;
     } else {
       m_ = 1.0 - 2.0/n_;
     }
-  }
-
-  // DEPRECATION ERROR
-  if (plist_.isParameter("smoothing interval width")) {
-    Errors::Message message("WRM: DEPRECATION: option \"smoothing interval width\" has been removed in favor of \"smoothing interval width [saturation]\" to ensure correct units of this parameter are used.");
-    Exceptions::amanzi_throw(message);
   }
   
   s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);

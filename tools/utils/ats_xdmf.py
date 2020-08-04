@@ -58,6 +58,7 @@ class VisFile:
         
         self.d = h5py.File(os.path.join(self.directory, self.filename))
         self.loadTimes()
+        self.map = None
         
     def __enter__(self):
         return self

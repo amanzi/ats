@@ -1,5 +1,45 @@
 /*
-  The three phase water content evaluator is an algebraic evaluator of a given model.
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
+
+  Author: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Three phase water content: vapor, liquid, and ice.
+
+/*!
+
+.. math::
+  Theta = (n_l * s_l + n_i * s_i + n_g * s_g * \omega_g ) * \phi * |E|
+
+* `"porosity key`" ``[string]`` **DOMAIN-porosity** 
+
+* `"molar density liquid key`" ``[string]`` **DOMAIN-molar_density_liquid** 
+* `"saturation liquid key`" ``[string]`` **DOMAIN-saturation_liquid** 
+
+* `"molar density ice key`" ``[string]`` **DOMAIN-molar_density_ice** 
+* `"saturation ice key`" ``[string]`` **DOMAIN-saturation_ice** 
+
+* `"molar density gas key`" ``[string]`` **DOMAIN-molar_density_gas** 
+* `"saturation gas key`" ``[string]`` **DOMAIN-saturation_gas** 
+* `"mol frac gas key`" ``[string]`` **DOMAIN-mol_frac_gas** The molar fraction of water vapor in the gaseous phase.
+
+* `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
+
+EVALUATORS:
+- `"porosity`"
+- `"molar density liquid`"
+- `"saturation liquid`"
+- `"molar density ice`"
+- `"saturation ice`"
+- `"molar density gas`"
+- `"saturation gas`"
+- `"molar fraction gas`"
+- `"cell volume`"
+
+*/
+/*
+
 
   Generated via evaluator_generator with:
 Water content for a three-phase, gas+liquid+ice evaluator.

@@ -39,7 +39,9 @@ protected:
 
 
   bool updated_once_;
-
+  double trans_width_;
+  Key domain_;
+  Key temp_key_;
 private:
   static Utils::RegisteredFactory<FieldEvaluator,ThawDepthEvaluator> reg_;
 

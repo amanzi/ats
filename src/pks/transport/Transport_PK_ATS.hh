@@ -88,12 +88,13 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
   virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
-  virtual void set_states(const Teuchos::RCP<const State>& S,
+  virtual void set_states(const Teuchos::RCP<State>& S,
                           const Teuchos::RCP<State>& S_inter,
                           const Teuchos::RCP<State>& S_next);
 
   virtual std::string name() { return "transport_ats"; }
-  Key get_domain_name() {return domain_;}
+
+  Key domain_name() {return domain_;}
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
@@ -122,7 +123,9 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   void VV_CheckInfluxBC() const;
   void VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC);
   double VV_SoluteVolumeChangePerSecond(int idx_solute);
+
   double ComputeSolute(const Epetra_MultiVector& tcc, int idx);
+
   double ComputeSolute(const Epetra_MultiVector& tcc,
                        const Epetra_MultiVector& ws,
                        const Epetra_MultiVector& den,
@@ -133,6 +136,9 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   // -- sources and sinks for components from n0 to n1 including
   void ComputeAddSourceTerms(double tp, double dtp, 
                              Epetra_MultiVector& tcc, int n0, int n1);
+
+  void MixingSolutesWthSources(double told, double tnew);
+    
 
   bool PopulateBoundaryData(std::vector<int>& bc_model,
                             std::vector<double>& bc_value, int component);
@@ -146,6 +152,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   const std::vector<std::string>  component_names(){return component_names_;};
     int num_aqueous_component() {return num_aqueous;};
     int num_gaseous_component() {return num_gaseous;};    
+
 
  private:
   void InitializeFields_(const Teuchos::Ptr<State>& S);
@@ -202,7 +209,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   // miscaleneous methods
   int FindComponentNumber(const std::string component_name);
 
-    // void set_states(const Teuchos::RCP<const State>& S,
+    // void set_states(const Teuchos::RCP<State>& S,
     //                 const Teuchos::RCP<State>& S_inter,
     //                 const Teuchos::RCP<State>& S_next)
     // {
@@ -243,7 +250,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
     Key molar_density_key_;
     Key solid_residue_mass_key_;
     Key water_content_key_;
-  
+    Key mass_src_key_;
  
  private:
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
@@ -252,16 +259,17 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   Key tcc_passwd_;  
     
 
-  bool subcycling_;
+  bool subcycling_, special_source_, water_source_in_meters_;
   int dim;
   int saturation_name_;
   bool vol_flux_conversion_;
 
+  Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp;  // next tcc
   Teuchos::RCP<CompositeVector> tcc;  // smart mirrow of tcc 
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
+  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_,mass_src_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
     
 #ifdef ALQUIMIA_ENABLED
@@ -323,7 +331,8 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   std::vector<std::string> component_names_;  // details of components
   std::vector<double> mol_masses_;
   int num_aqueous, num_gaseous;
-  double water_tolerance_, max_tcc_;  
+  double water_tolerance_, max_tcc_;
+  bool dissolution_;
 
   // io
   Utils::Units units_;

@@ -1,14 +1,80 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-   ATS
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon, Chonggang Xu
+  Authors: Ethan Coon (coonet@ornl.gov)
+           Chonggang Xu (cxu@lanl.gov)
+*/
+//! Above and below-ground carbon cycle model.
 
-   Simple implementation of CLM's Century model for carbon decomposition and a
-   simplified 2-PFT (sedge, moss) vegetation model for creating carbon.
+/*!
 
-   ------------------------------------------------------------------------- */
+This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
+model for belowground carbon decomposition.
+
+It leverages a PFT-based structure which allows multiple height-sorted PFTs to
+coexist on the same grid cells, with the shorter PFTs getting whatever light is
+left in the understory.
+
+The implementation is based on an old, standalone code by Chonggang Xu, and
+adapted for ATS.  While this is not simple, it is called BGC simple as it is
+about the least amount of complexity required to get a reasonable carbon cycle
+into ATS.
+
+Outputs of this include transpiration, a critical sink for hydrology, as it
+solves photosynthesis based on water availability.
+
+Note this is an "explicit update PK," or effectively a forward Euler timestep
+that is not written in ODE form.
+
+Note this works on both the surface (vegetation) and subsurface (decomposition)
+meshes.  **It is required** that the subsurface mesh is a "columnar" mesh, and
+that build_columns in the subsurface Mesh_ spec has been supplied.
+
+.. _bgc-simple-spec:
+.. admonition:: bgc-simple-spec
+
+  * `"initial time step`" ``[double]`` **1.0** Initial time step size `[s]`
+
+  * `"number of carbon pools`" ``[int]`` **7** Unclear whether this can actually change?
+
+  * `"soil carbon parameters`" ``[soil-carbon-spec-list]`` List of soil carbon parameters by soil mesh partition region name.
+
+  * `"pft parameters`" ``[pft-spec-list]`` List of PFT parameters by PFT name.
+
+  * `"latitude [degrees]`" ``[double]`` **60** Latitude of the simulation in degrees.  Used in radiation balance.
+
+  * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height of the wind speed dataset.
+
+  * `"cryoturbation mixing coefficient [cm^2/yr]`" ``[double]`` **5.0** Controls diffusion of carbon into the subsurface via cryoturbation.
+
+  * `"leaf biomass initial condition`" ``[initial-conditions-spec]`` Sets the leaf biomass IC.
+
+  * `"domain name`" ``[string]`` **domain**
+
+  * `"surface domain name`" ``[string]`` **surface**
+
+  * `"transpiration key`" ``[string]`` **DOMAIN-transpiration** The distributed transpiration flux `[mol s^-1]`
+
+  * `"shaded shortwave radiation key`" ``[string]``
+    **SURFACE_DOMAIN-shaded_shortwave_radiation** Shortwave radiation that gets
+    past the canopy and teo the bare ground for soil evaporation. `[W m^-2]`
+
+  * `"total leaf area index key`" ``[string]`` **SURFACE_DOMAIN-total_leaf_area_index** Total LAI across all PFTs.
+
+  EVALUATORS:
+
+  - `"temperature`" The soil temperature `[K]`
+  - `"pressure`" soil mafic potential `[Pa]`
+  - `"surface-cell_volume`" `[m^2]`
+  - `"surface-incoming shortwave radiation`" `[W m^-2]`
+  - `"surface-air_temperature`" `[K]`
+  - `"surface-relative_humidity`" `[-]`
+  - `"surface-wind_speed`" `[m s^-1]`
+  - `"surface-co2_concentration`" `[ppm]`
+  
+*/
 
 #ifndef PKS_BGC_SIMPLE_HH_
 #define PKS_BGC_SIMPLE_HH_

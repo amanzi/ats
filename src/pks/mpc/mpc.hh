@@ -1,22 +1,37 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+/*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Multi process coupler base class.
 
-Interface for the Base MPC class.  A multi process coordinator is a PK
-(process kernel) which coordinates several PKs.  Each of these coordinated PKs
-may be MPCs themselves, or physical PKs.  Note this does NOT provide a full
-implementation of PK -- it does not supply the advance() method.  Therefore
-this class cannot be instantiated, but must be inherited by derived classes
-which finish supplying the functionality.  Instead, this provides the data
-structures and methods (which may be overridden by derived classes) for
-managing multiple PKs.
+/*!
+
+A multi process coupler is a PK (process kernel) which coordinates and couples
+several PKs.  Each of these coordinated PKs may be MPCs themselves, or physical
+PKs.  Note this does NOT provide a full implementation of PK -- it does not
+supply the AdvanceStep() method.  Therefore this class cannot be instantiated, but
+must be inherited by derived classes which finish supplying the functionality.
+Instead, this provides the data structures and methods (which may be overridden
+by derived classes) for managing multiple PKs.
 
 Most of these methods simply loop through the coordinated PKs, calling their
 respective methods.
-------------------------------------------------------------------------- */
+
+.. _mpc-spec:
+.. admonition:: mpc-spec
+
+    * `"PKs order`" ``[Array(string)]`` Provide a specific order to the
+      sub-PKs; most methods loop over all sub-PKs, and will call the sub-PK
+      method in this order.
+
+    INCLUDES:
+
+    - ``[pk-spec]`` *Is a* PK_.
+
+*/
 
 #ifndef PKS_MPC_MPC_HH_
 #define PKS_MPC_MPC_HH_
@@ -95,14 +110,15 @@ public:
   virtual void ChangedSolutionPK(const Teuchos::Ptr<State>& S);
   
   // set States
-  virtual void set_states(const Teuchos::RCP<const State>& S,
+  virtual void set_states(const Teuchos::RCP<State>& S,
                           const Teuchos::RCP<State>& S_inter,
                           const Teuchos::RCP<State>& S_next);
 
+  virtual Teuchos::RCP<PK_t> get_subpk(int i);
 
  protected:
-  // this does not work.  fail etc
-  void init_(const Teuchos::RCP<State>& S);
+  // constructs sub-pks
+  void init_(const Teuchos::RCP<State>& S, Comm_ptr_type comm=Teuchos::null);
 
  protected:
   
@@ -251,7 +267,7 @@ void MPC<PK_t>::ChangedSolutionPK(const Teuchos::Ptr<State>& S) {
 // loop over sub-PKs, calling their set_states() methods
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::set_states(const Teuchos::RCP<const State>& S,
+void MPC<PK_t>::set_states(const Teuchos::RCP<State>& S,
                      const Teuchos::RCP<State>& S_inter,
                      const Teuchos::RCP<State>& S_next) {
   //  PKDefaultBase::set_states(S, S_inter, S_next);
@@ -266,17 +282,31 @@ void MPC<PK_t>::set_states(const Teuchos::RCP<const State>& S,
   }
 };
 
+
+template <class PK_t>
+Teuchos::RCP<PK_t> MPC<PK_t>::get_subpk(int i){
+
+  if (i >= sub_pks_.size()) {
+    return Teuchos::null;
+  }else{
+    return sub_pks_.at(i);
+  }
+
+}
+
 // protected constructor of subpks
 template <class PK_t>
-void MPC<PK_t>::init_(const Teuchos::RCP<State>& S)
+void MPC<PK_t>::init_(const Teuchos::RCP<State>& S,
+                      Comm_ptr_type comm)
 {
   PKFactory pk_factory;
   Teuchos::Array<std::string> pk_order = plist_->get< Teuchos::Array<std::string> >("PKs order");
-
+  if (comm == Teuchos::null) comm = solution_->Comm();
+  
   int npks = pk_order.size();
   for (int i=0; i!=npks; ++i) {
     // create the solution vector
-    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(solution_->Comm()));
+    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(comm));
     solution_->PushBack(pk_soln);
 
     // create the PK
@@ -286,6 +316,7 @@ void MPC<PK_t>::init_(const Teuchos::RCP<State>& S)
     sub_pks_.push_back(pk);
   }
 };
+
 
 } // close namespace Amanzi
 

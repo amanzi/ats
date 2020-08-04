@@ -26,6 +26,8 @@ include_directories(${MSTK_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
 include_directories(${DBG_SOURCE_DIR})
+get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
+include_directories(${CHEM_INCLUDES_DIR})
 
 #include_directories(${ATS_SOURCE_DIR}/constitutive_relations)
 #include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
@@ -78,6 +80,10 @@ set(ats_inc_files
 set(amanzi_link_libs
   operators
   pks
+  geochemrxns
+  geochembase
+  geochemutil
+  geochemsolvers
   state
   whetstone
   time_integration
@@ -90,14 +96,9 @@ set(amanzi_link_libs
   functions
   geometry
   mesh_factory
-  interface
   output
   mstk_mesh
   mesh_logical
-  geochemrxns
-  geochembase
-  geochemutil
-  geochemsolvers
   chemistry_pk
   mpc_tree
   transport
@@ -125,12 +126,12 @@ set(ats_link_libs
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
 set(tpl_link_libs
+  ${ALQUIMIA_LIBRARIES}
+  ${PFLOTRAN_LIBRARIES}
   ${Teuchos_LIBRARIES}
   ${Epetra_LIBRARIES}
   ${Boost_LIBRARIES}
   ${PETSC_LIBRARIES}
-  ${ALQUIMIA_LIBRARIES}
-  ${PFLOTRAN_LIBRARIES}
   ${MSTK_LIBRARIES}
   ${SILO_LIBRARIES}
   ${HYPRE_LIBRARIES}

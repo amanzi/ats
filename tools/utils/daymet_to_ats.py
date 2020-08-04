@@ -17,7 +17,11 @@ def file_id(lat, lon):
 
 def daymet_rest_url(lat, lon, start, end, vars=None):
     """Generates the DayMet Rest API URL."""
-
+    #
+    # NOTE: it is unclear why this was implemented this way -- shouldn't it use
+    # the standard requests dictionary-style syntax?  But if it ain't broke
+    # don't fix it. --etc
+    #    
     daymet_vars = ['dayl', 'prcp', 'srad', 'swe', 'tmax', 'tmin', 'vp']    
 
     # check variable names are valid
@@ -74,7 +78,7 @@ def daymet_to_ats(dat):
     logging.info('Converting to ATS')
 
     mean_air_temp_c = (dat['tmin_deg_c'] + dat['tmax_deg_c'])/2.0
-    precip_ms = dat['prcp_mmday'] / 1.e3 / 86000.
+    precip_ms = dat['prcp_mmday'] / 1.e3 / 86400.
     
     # Sat vap. press o/water Dingman D-7 (Bolton, 1980)
     sat_vp_Pa = 611.2 * np.exp(17.67 * mean_air_temp_c / (mean_air_temp_c + 243.5))

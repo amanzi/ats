@@ -66,6 +66,32 @@ Example:
    </ParameterList>
  </ParameterList>
 
+Neumann (fix level flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
+
+Example:
+
+.. code-block:: xml
+     <ParameterList name="boundary conditions">
+       <ParameterList name="fixed level flux">
+          <ParameterList name="river level south">
+            <Parameter name="regions" type="Array(string)" value="{river south}"/>
+            <ParameterList name="fixed level">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="0.5"/>
+               </ParameterList>
+            </ParameterList>
+            <ParameterList name="velocity">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="-25"/>
+               </ParameterList>
+            </ParameterList>            
+          </ParameterList>
+       </ParameterList>
+    </ParameterList>
+
+
  
 Seepage face boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,8 +147,8 @@ be prescribed, to be enforced until the water table rises to the surface, at
 which point the precip is turned off and water seeps into runoff.  This
 capability is experimental and has not been well tested.
 
-  - if :math:`q \cdot \hat{n} < q0`, then :math:`q = q0`
-  - if :math:`p > p_atm`, then :math:`p = p_atm`
+  - if :math:`q \cdot \hat{n} < q_0`, then :math:`q = q_0`
+  - if :math:`p > p_{atm}`, then :math:`p = p_{atm}`
 
 Example: seepage with infiltration
 
@@ -248,10 +274,12 @@ Example:
 
 
 Dynamic boundary condutions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The type of boundary conditions maybe changed in time depending on the switch function of TIME.
-<ParameterList name="dynamic">
-          
+
+.. code-block:: xml
+
+   <ParameterList name="dynamic">
      <Parameter name="regions" type="Array(string)" value="{surface west}"/>
      <ParameterList name="switch function">
        <ParameterList name="function-tabular">
@@ -294,9 +322,8 @@ The type of boundary conditions maybe changed in time depending on the switch fu
           </ParameterList>
         </ParameterList>
      </ParameterList>
-                 
- </ParameterList> 
-<!-- dynamic -->
+
+   </ParameterList>
 
  */
 
@@ -356,6 +383,14 @@ public:
     return CreateDynamicFunction("dynamic");
   }
   
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const {
+    return CreateWithFunction("fixed level flux", "fixed level");
+  }
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const {
+    return CreateWithFunction("fixed level flux", "velocity");
+  }
+
 };
 
 }  // namespace

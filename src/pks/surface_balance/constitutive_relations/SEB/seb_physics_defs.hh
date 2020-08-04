@@ -37,7 +37,6 @@ struct GroundProperties {
   double emissivity;                    // [-]
   double saturation_gas;                // [-]
   double roughness;                     // [m] surface roughness of a bare domain
-  double ponded_depth;                  // [m] thickness of ponded water
   double fractional_area;               // [-] not used by SEB, but useful for later bookkeeping
   double snow_death_rate;               // [kg/m^2/s] snow that must die this timestep, make it melt!
   double unfrozen_fraction;		// [-] fraction of ground water that is unfrozen
@@ -208,6 +207,13 @@ struct FluxBalance {
   double M_subsurf; // [m/s], mass to/from subsurface system
   double E_subsurf; // [W/m^2], energy to/from subsurface system
   double M_snow; // [m/s], mass swe to snow system
+
+  FluxBalance() :
+      M_surf(0.),
+      E_surf(0.),
+      M_subsurf(0.),
+      E_subsurf(0.),
+      M_snow(0.) {}
 };
 
 
@@ -224,8 +230,8 @@ struct SurfaceParams {
       e_snow(0.98),             // [-] emissivity for snow, From P. ReVelle (Thesis)
       e_tundra(0.92),           // [-] emissivity for tundra, From P. ReVelle
                                 //         (Thesis), Ling & Zhang, 2004
-      e_water(0.995),           // [-] emissivity of water >> tundra, this is from Wiki
-      e_ice(0.98),              // [-] emissivity of ice >> tundra, this is from Wiki
+      e_water(0.995),           // [-] emissivity of water, EngineeringToolbox.com
+      e_ice(0.98),              // [-] emissivity of ice, EngineeringToolbox.com
       Zsmooth(0.005),           // [m]? roughness coef of smooth
       Zrough(0.03) {}           // [m]? roughness coef of rough
 };

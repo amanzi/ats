@@ -34,13 +34,13 @@ set(ats_surface_balance_src_files
   surface_balance_implicit_subgrid.cc
 )
 
-  if (ENABLE_CLM)
-    list(APPEND ats_surface_balance_src_files
-         CLM/ats_clm.F90
-         CLM/ats_clm_interface.cc
-         CLM/surface_balance_CLM.cc
-         )
-  endif()
+if (ENABLE_CLM)
+  list(APPEND ats_surface_balance_src_files
+    CLM/ats_clm.F90
+    CLM/ats_clm_interface.cc
+    CLM/surface_balance_CLM.cc
+    )
+endif()
 
 set(ats_surface_balance_inc_files
   constitutive_relations/SEB/seb_physics_defs.hh
@@ -66,11 +66,16 @@ set(ats_surface_balance_inc_files
   constitutive_relations/litter/macropore_surface_flux_model.hh       
   surface_balance_base.hh
   surface_balance_implicit_subgrid.hh
-  CLM/ats_clm.F90
-  CLM/surface_balance_CLM.hh
-  CLM/ats_clm_interface.hh
-  CLM/ats_clm_interface_private.hh
 )  
+
+if (ENABLE_CLM)
+  list(APPEND ats_surface_balance_inc_files
+    CLM/ats_clm.F90
+    CLM/surface_balance_CLM.hh
+    CLM/ats_clm_interface.hh
+    CLM/ats_clm_interface_private.hh
+    )
+endif()
 
 set(ats_surface_balance_link_libs
   ${Teuchos_LIBRARIES}

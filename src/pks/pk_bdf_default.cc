@@ -98,7 +98,7 @@ void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<S
     time_stepper_->CommitSolution(dt, solution_, true);
 }
 
-void PK_BDF_Default::set_states(const Teuchos::RCP<const State>& S,
+void PK_BDF_Default::set_states(const Teuchos::RCP<State>& S,
         const Teuchos::RCP<State>& S_inter,
         const Teuchos::RCP<State>& S_next) {
   S_ = S;
@@ -124,6 +124,7 @@ void PK_BDF_Default::set_states(const Teuchos::RCP<const State>& S,
 bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
   double dt = t_new -t_old;
   Teuchos::OSTab out = vo_->getOSTab();
+
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Advancing: t0 = " << S_inter_->time()
@@ -131,7 +132,6 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
                << "----------------------------------------------------------------" << std::endl;
 
   State_to_Solution(S_next_, *solution_);
-
 
   // take a bdf timestep
   double dt_solver;

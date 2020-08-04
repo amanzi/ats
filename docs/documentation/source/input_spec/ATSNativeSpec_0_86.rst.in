@@ -983,24 +983,35 @@ For each solver, a few parameters are used:
 
 Preconditioner
 --------------
-
-These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:
-
- * `"preconditioner type`" ``[string]`` **"identity"**, `"boomer amg`", `"trilinos ml`", `"block ilu`" ???
- * `"PC TYPE parameters`" ``[list]`` includes a list of parameters specific to the type of PC.
-
-Example:
-
-.. code-block:: xml
-
-     <ParameterList name="my preconditioner">
-       <Parameter name="type" type="string" value="trilinos ml"/>
-        <ParameterList name="trilinos ml parameters"> ?????? check me!
-            ... 
-        </ParameterList>
-     </ParameterList>
+{ Preconditioner }
 
 
+Identity
+^^^^^^^^
+{ PreconditionerIdentity }
+
+Diagonal
+^^^^^^^^
+{ PreconditionerDiagonal }
+
+Block ILU
+^^^^^^^^^
+{ PreconditionerBlockILU }
+
+Boomer AMG
+^^^^^^^^^^
+{ PreconditionerBoomerAMG }
+
+Euclid
+^^^^^^
+{ PreconditionerEuclid }
+
+ML (Trilinos AMG)
+^^^^^^^^^^^^^^^^^
+{ PreconditionerML }
+
+
+     
 Hypre AMG
 ^^^^^^^^^^^^
 
@@ -1081,16 +1092,6 @@ The internal parameters of the block ILU are as follows:
      <Parameter name="schwarz: combine mode" type="string" value="Add"/>
    </ParameterList>
 
-
-Indentity
-^^^^^^^^^
-
-The default, no PC applied.
-
-
-
-NonlinearSolver
-----------------
 
 
 

@@ -1,6 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Two-phase, variable density Richards equation.
-
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 
@@ -8,76 +5,208 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
+//! Two-phase, variable density Richards equation.
 
 /*!
 
 Solves Richards equation:
 
 .. math::
-  \frac{\partial \Theta}{\partial t} - \nabla \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \cdot \hat{z} ) = Q_w
+  \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
 
+.. _richards-spec:
+.. admonition:: richards-spec
 
-Includes options from:
+    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
-* ``[pk-physical-default-spec]`` PKPhysicalDefault_
-# ``[pk-bdf-default-spec]`` PKBDFDefault_
-* ``[pk-physical-bdf-default-spec]`` PKPhysicalBDFDefault_
+    * `"primary variable key`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+      must be provided by the user.
 
-Other variable names, typically not set as the default is basically always good:
+    * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman,
+      0 normal flux.  See `Flow-specific Boundary Conditions`_
+ 
+    * `"permeability type`" ``[string]`` **scalar** This controls the number of
+      values needed to specify the absolute permeability.  One of:
 
-* `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically not set, default is good. ``[mol]``
+      - `"scalar`" Requires one scalar value.
+      - `"horizontal and vertical`" Requires two values, horizontal then vertical.
+      - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
+      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
 
-* `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water density ``[kg m^-3]``
+    * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
+      curve.  This needs to go away, and should get moved to State.
 
-* `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid water density ``[mol m^-3]``
+    IF
+    
+    * `"source term`" ``[bool]`` **false** Is there a source term?
 
-* `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the soil medium ``[m^2]``
+    THEN
+    
+    * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
+      not set, as the default is good. ``[mol s^-1]``
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+    * `"explicit source term`" ``[bool]`` **false** Apply the source term from
+      the previous time step.
 
-* `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar coefficient of the permeability ``[-]``
+    END
 
-* `"upwind conductivity key`" ``[string]`` **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar coefficient of the permeability.  Note the units of this are strange, but this represents :math:`\frac{n_l k_r}{\mu}`  ``[mol kg^-1 s^1 m^-2]``
+    Math and solver algorithm options:
+      
+    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+      see PDE_Diffusion_.
 
-* `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
+      is only needed to set Jacobian options, as all others probably should
+      match those in `"diffusion`", and default to those values.
 
-* `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction** direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
 
-* `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity vector, interpolated from faces to cells ``[m s^-1]``
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
 
-* `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
+    * `"surface rel perm strategy`" ``[string]`` **none** Approach for
+      specifying the relative permeabiilty on the surface face.  `"clobber`" is
+      frequently used for cases where a surface rel perm will be provided.  One
+      of:
 
-* `"saturation key`" ``[string]`` **DOMAIN-saturation_liquid** volume fraction of the liquid phase ``[-]``
+      - `"none`" : use the upwind direction to determine whether to use the
+        boundary face or internal cell
+      - `"clobber`" : always use the boundary face rel perm
+      - `"max`" : use the max of the boundary face and internal cell values
+      - `"unsaturated`" : Uses the boundary face when the internal cell is not
+        saturated.
+      
+    * `"relative permeability method`" ``[string]`` **upwind with Darcy flux**
+      Relative permeability is defined on cells, but must be calculated on
+      faces to multiply a flux.  There are several methods commonly used.  Note
+      these can significantly change answers -- you don't want to change these
+      unless you know what they mena.  One of:
 
-Discretization control:
+      - `"upwind with Darcy flux`" First-order upwind method that is most common
+      - `"upwind with gravity`" Upwinds according to the gravitational flux direction
+      - `"cell centered`" This corresponds to the harmonic mean, and is most
+        accurate if the problem is always wet, but has issues when it is dry.
+      - `"arithmetic mean`" Face value is the mean of the neighboring cells.
+        Not a good method.
 
-* `"diffusion`" ``[list]`` An PDE_Diffusion_ spec describing the (forward) diffusion operator
+    Globalization and other process-based hacks:
+        
+    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+      face+cell diffusion discretization, this modifies the predictor to make
+      sure that faces, which are a DAE, are consistent with the predicted cells
+      (i.e. face fluxes from each sides match).
 
-* `"diffusion preconditioner`" ``[list]`` An PDE_Diffusion_ spec describing the diffusive parts of the preconditioner.
+    * `"modify predictor for flux BCs`" ``[bool]`` **false** Infiltration into
+      dry ground can be hard on solvers -- this tries to do the local nonlinear
+      problem to ensure that face pressures are consistent with the
+      prescribed flux in a predictor.
 
-* `"linear solver`" ``[linear-solver-typed-spec]`` **optional** is a LinearSolver_ spec.  Note
-  that this is only used if this PK is not strongly coupled to other PKs.
+    * `"modify predictor via water content`" ``[bool]`` **false** Modifies the
+      predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+      change of variables, extrapolating not in pressure but in water content,
+      then takes the smaller of the two extrapolants.
 
-Boundary conditions:
+    * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+      Rejects timesteps whose max saturation change is greater than this value.
+      This can be useful to ensure temporally resolved solutions.  Usually a
+      good value is 0.1 or 0.2.
 
-//* `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.  See `Flow-specific Boundary Conditions`_
+    * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+      **-1** Rejects timesteps whose max ice saturation change is greater than
+      this value.  This can be useful to ensure temporally resolved solutions.
+      Usually a good value is 0.1 or 0.2.
+      
+    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+      this limits an iterate's max pressure change to this value.  Not usually
+      helpful.
 
-Physics control:
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`"
+      ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+      to this value when they cross atmospheric pressure.  Not usually helpful.
 
-* `"permeability rescaling`" ``[double]`` **1** Typically 1e7 or order :math:`sqrt(K)` is about right.  This rescales things to stop from multiplying by small numbers (permeability) and then by large number (:math:`\rho / \mu`).
+    INCLUDES:
 
-* `"permeability type`" ``[string]`` **'scalar'** The permeability type can be 'scalar', 'horizontal and vertical', 'diagonal tensor', or 'full tensor'. This key is placed in state->field evaluators->permeability. The 'scalar' option requires 1 permeability value, 'horizontal and vertical' requires 2 values, 'diagonal tensor' requires 2 (2D) or 3 (3D) values, and 'full tensor' requires 3 (2D) or 6 (3D) values. The ordering of the permeability values in the input script is important: 'horizontal and vertical'={xx/yy,zz}, 'diagonal tensor'={xx,yy} or {xx,yy,zz}, 'full tensor'={xx,yy,xy/yx} or {xx,yy,zz,xy/yx,xz/zx,yz/zy}.
+    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
-* `"water retention evaluator`" ``[wrm-evaluator-spec]`` The WRM.  This needs to go away!
+      
+    Everything below this point is usually not provided by the user, but are
+    documented here for completeness.
+    
+    Keys name variables:
 
-This PK additionally requires the following:
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+      not set, as the default is good. ``[mol]``
+    * `"mass density key`" ``[string]`` **DOMAIN-mass_density_liquid** liquid water
+      density ``[kg m^-3]``
+    * `"molar density key`" ``[string]`` **DOMAIN-molar_density_liquid** liquid
+      water density ``[mol m^-3]``
+    * `"permeability key`" ``[string]`` **DOMAIN-permeability** permeability of the
+      soil medium ``[m^2]``
+    * `"conductivity key`" ``[string]`` **DOMAIN-relative_permeability** scalar
+      coefficient of the permeability ``[-]``
+    * `"upwind conductivity key`" ``[string]``
+      **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
+      coefficient of the permeability.  Note the units of this are strange, but
+      this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
+    * `"darcy flux key`" ``[string]`` **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
+    * `"darcy flux direction key`" ``[string]`` **DOMAIN-mass_flux_direction**
+      direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
+    * `"darcy velocity key`" ``[string]`` **DOMAIN-darcy_velocity** darcy velocity
+      vector, interpolated from faces to cells ``[m s^-1]``
+    * `"saturation key`" ``[string]`` **DOMAIN-saturation_liquid** volume
+      fraction of the liquid phase ``[-]``
+    * `"saturation gas key`" ``[string]`` **DOMAIN-saturation_gas** volume
+      fraction of the gas phase ``[-]``
 
-EVALUATORS:
-- `"conserved quantity`"
-- `"mass density`"
-- `"molar density`"
-- `"permeability`"
-- `"conductivity`"
-- `"saturation`"
+    Discretization / operators / solver controls:
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+      
+    * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``    
+
+    * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
+      face unknowns on discretizations that are cell-only (e.g. FV).  This can
+      be useful for surface flow or other wierd boundary conditions.  Usually
+      provided by MPCs that need them.
+    
+    Physics control:
+
+    * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
+      :math:`sqrt(K)` is about right.  This rescales things to stop from
+      multiplying by small numbers (permeability) and then by large number
+      (:math:`\rho / \mu`).
+
+    IF
+    
+    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from an exchange flux.  Note, if this is a
+      coupled problem, it is probably set by the MPC.  No need for a user to
+      set it.
+
+    THEN
+
+    * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
+    END
+
+    * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
+      surface boundary conditions from the surface pressure (Dirichlet).
+      
+    EVALUATORS:
+
+    - `"conserved quantity`"
+    - `"mass density`"
+    - `"molar density`"
+    - `"permeability`"
+    - `"conductivity`"
+    - `"saturation`"
+    - `"primary variable`" = `"independent`"
 
 */
 
@@ -88,9 +217,9 @@ EVALUATORS:
 #include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
+
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
-
 #include "PK_Factory.hh"
 //#include "PK_PhysicalBDF_ATS.hh"
 // #include "pk_factory_ats.hh"
@@ -226,7 +355,7 @@ protected:
                        Teuchos::RCP<const TreeVector> u,
                        Teuchos::RCP<TreeVector> du);
 
-
+  void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
 
   
@@ -240,7 +369,6 @@ protected:
   bool modify_predictor_with_consistent_faces_;
   bool modify_predictor_wc_;
   bool symmetric_;
-  bool precon_wc_;
   bool is_source_term_;
   bool source_term_is_differentiable_;
   bool explicit_source_;

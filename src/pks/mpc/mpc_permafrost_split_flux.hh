@@ -25,13 +25,13 @@ This is the permafrost analog, so deals with energy as well in a similar
 strategy.  In this case advection and diffusion of energy are handled in the
 first solve:
 
-(dE_s / dt)^* = div (  Kappa_s grad T + hq )
+(dE_s / dt)^* = div (  kappa_s grad T + hq )
 
 then:
 
 dE_s / dt = (dE_s / dt)^* + QE_ext + h * Q_ext + qE_ss + h * q_ss
-dE / dt = div (  Kappa grad T) + hq )
-Kappa grad T |_s = qE_ss
+dE / dt = div (  kappa grad T) + hq )
+kappa grad T |_s = qE_ss
 
 
 ------------------------------------------------------------------------- */

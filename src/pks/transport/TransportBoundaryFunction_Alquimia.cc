@@ -104,14 +104,22 @@ void TransportBoundaryFunction_Alquimia::Compute(double t_old, double t_new)
     // Dump the contents of the chemistry state into our Alquimia containers.
     chem_pk_->CopyToAlquimia(cell, alq_mat_props_, alq_state_, alq_aux_data_);
 
-    // Enforce the condition.
-    chem_engine_->EnforceCondition(cond_name, t_new, alq_mat_props_, alq_state_, alq_aux_data_, alq_aux_output_);
 
+    // Enforce the condition.
+
+    chem_engine_->EnforceCondition(cond_name, t_new, 
+                                   alq_mat_props_, alq_state_, 
+                                   alq_aux_data_, alq_aux_output_);
+
+ 
     // Move the concentrations into place.
     std::vector<double>& values = it->second;
     for (int i = 0; i < values.size(); i++) {
-      values[i] = alq_state_.total_mobile.data[i];
+
+      values[i] = alq_state_.total_mobile.data[i] / ((*mol_dens_data_)[0][cell] / 1000.);
+
     }
+
   }
 }
 

@@ -91,7 +91,7 @@ void PK_Physical_Default::Solution_to_State(const TreeVector& solution,
 // Experimental approach -- we must pull out S_next_'s solution_evaluator_ to
 // stay current for ChangedSolution()
 // -----------------------------------------------------------------------------
-void PK_Physical_Default::set_states(const Teuchos::RCP<const State>& S,
+void PK_Physical_Default::set_states(const Teuchos::RCP<State>& S,
         const Teuchos::RCP<State>& S_inter,
         const Teuchos::RCP<State>& S_next) {
   //  PKDefaultBase::set_states(S, S_inter, S_next);
@@ -162,30 +162,30 @@ void PK_Physical_Default::ChangedSolutionPK(const Teuchos::Ptr<State>& S) {
 void PK_Physical_Default::Initialize(const Teuchos::Ptr<State>& S) {
   Teuchos::RCP<Field> field = S->GetField(key_, name_);
 
-  if (!field->initialized()) {
+  //if (!field->initialized()) {    // NEW ORDER
     // initial conditions
     // -- Get the IC function plist.
-    if (!plist_->isSublist("initial condition")) {
-      std::stringstream messagestream;
-      messagestream << name_ << " has no initial condition parameter list.";
-      Errors::Message message(messagestream.str());
-      Exceptions::amanzi_throw(message);
-    }
-
-    // -- Calculate the IC.
-    Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
-    field->Initialize(ic_plist);
-
-    // -- Update faces from cells if needed.
-    // if (ic_plist.get<bool>("initialize faces from cells", false)) {
-    //   DeriveFaceValuesFromCellValues_(field->GetFieldData().ptr());
-    // }
-
-    // communicate just to make sure values are initialized for valgrind's sake
-    field->GetFieldData()->ScatterMasterToGhosted();
-    solution_evaluator_->SetFieldAsChanged(S);
+  if (!plist_->isSublist("initial condition")&&(!field->initialized())) {
+    std::stringstream messagestream;
+    messagestream << name_ << " has no initial condition parameter list.";
+    Errors::Message message(messagestream.str());
+    Exceptions::amanzi_throw(message);
   }
 
+  // -- Calculate the IC.
+  Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
+  field->Initialize(ic_plist);
+  
+  // -- Update faces from cells if needed.
+  // if (ic_plist.get<bool>("initialize faces from cells", false)) {
+  //   DeriveFaceValuesFromCellValues_(field->GetFieldData().ptr());
+  // }
+  
+  // communicate just to make sure values are initialized for valgrind's sake
+  field->GetFieldData()->ScatterMasterToGhosted();
+  solution_evaluator_->SetFieldAsChanged(S);
+  //}
+  
   // -- Push the data into the solution.
   solution_->SetData(field->GetFieldData());
 };

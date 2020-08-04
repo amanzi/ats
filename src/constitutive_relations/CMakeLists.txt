@@ -124,7 +124,12 @@ register_evaluator_with_factory(
 
 register_evaluator_with_factory(
   HEADERFILE generic_evaluators/ColumnSumEvaluator_reg.hh
-  LISTNAME CONSTITUTIVE_RELATIONS_GENERIC_EVALUATORS
+  LISTNAME ATS_RELATIONS_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE generic_evaluators/SubgridAggregateEvaluator_reg.hh
+  LISTNAME ATS_RELATIONS_REG
   )
 
 generate_evaluators_registration_header(

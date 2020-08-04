@@ -47,7 +47,8 @@ class TransportDomainFunction {
   double domain_volume() { return domain_volume_; }
   // -- nick-name of the function
   std::string keyword() { return keyword_; }
-
+  void set_tcc_names(std::vector<std::string> tcc){ tcc_names_ = tcc; }
+  int tcc_size() { return tcc_names_.size(); }
   std::vector<std::string>& tcc_names() { return tcc_names_; }
   std::vector<int>& tcc_index() { return tcc_index_; }
   virtual void set_state(const Teuchos::RCP<State>& S) {S_ = S;}

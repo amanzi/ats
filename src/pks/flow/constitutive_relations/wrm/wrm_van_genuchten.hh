@@ -13,19 +13,19 @@
 
 van Genuchten's water retention curve.
 
-* `"alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
+* `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
 ONE OF:
-* `"n`" ``[double]`` van Genuchten's n
+* `"van Genuchten n`" ``[double]`` van Genuchten's n
 OR
-* `"m`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+* `"van Genuchten m`" ``[double]`` van Genuchten's m, m = 1 - 1/n
 END
 
 * `"residual saturation [-]`" ``[double]`` **0.0**
 
 * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
 
-* `"Mualem exponent l`" ``[double]`` **0.5**
+* `"Mualem exponent l [-]`" ``[double]`` **0.5**
 
 * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
 

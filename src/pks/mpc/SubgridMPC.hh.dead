@@ -1,0 +1,55 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/* -------------------------------------------------------------------------
+ATS
+
+License: see $ATS_DIR/COPYRIGHT
+Author: Ethan Coon
+
+A subgrid coupler, couples a bunch of subgrid models of the same structure.
+
+------------------------------------------------------------------------- */
+
+#ifndef PKS_SUBGRID_MPC_HH_
+#define PKS_SUBGRID_MPC_HH_
+
+template<class PK_t, class MPC_t>
+class SubgridMPC : public MPC_t {
+
+ public:
+
+  SubgridMPC(Teuchos::ParameterList& pk_tree,
+      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+      const Teuchos::RCP<State>& S,
+      const Teuchos::RCP<TreeVector>& solution)
+      : MPC_t(pk_tree, global_list, S, solution),
+  {
+    // grab the list of subpks
+    auto subpks = plist_->get<Teuchos::Array<std::string> >("PKs order");
+    std::string colname = subpks.back();
+    subpks.pop_back();
+
+  KeyTriple col_triple;
+  bool is_ds = Keys::splitDomainSet(colname, col_triple);
+  if (!is_ds) {
+    Errors::Message msg;
+    msg << "WeakMPCSemiCoupled subpk: \"" << colname << "\" should be a domain-set PK of the form column_*-NAME";
+    Exceptions::amanzi_throw(msg);
+  }
+
+  // add for the various columns based on GIDs of the surface system
+  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = S->GetMesh("surface");
+  int ncols = surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  for (int i=0; i!=ncols; ++i) {
+    int gid = surf_mesh->cell_map(false).GID(i);
+    std::stringstream domain_name_stream;
+    domain_name_stream << std::get<0>(col_triple) << "_" << gid;
+    subpks.push_back(Keys::getKey(domain_name_stream.str(), std::get<2>(col_triple)));
+  }
+  numPKs_ = subpks.size();
+    
+  }
+
+ protected:
+  std::string pks_set_;
+  
+#endif
