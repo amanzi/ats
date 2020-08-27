@@ -161,7 +161,7 @@ void Coordinator::initialize() {
   *S_->GetScalarData("dt", "coordinator") = 0.;
   S_->GetField("dt","coordinator")->set_initialized();
   S_->InitializeFields();  
-
+  S_->InitializeEvaluators();
   // Initialize the process kernels (initializes all independent variables)
   pk_->Initialize(S_.ptr());
 

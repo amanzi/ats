@@ -455,7 +455,7 @@ void Transport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
       Teuchos::RCP<TransportBoundaryFunction_Alquimia> 
         bc = Teuchos::rcp(new TransportBoundaryFunction_Alquimia(spec, mesh_, chem_pk_, chem_engine_));
 
-      bc->set_mol_dens_data_(mol_dens_.ptr());
+      bc->set_mol_dens_data(mol_dens_);
       std::vector<int>& tcc_index = bc->tcc_index();
       std::vector<std::string>& tcc_names = bc->tcc_names();
       
@@ -541,10 +541,10 @@ void Transport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
       Teuchos::RCP<TransportSourceFunction_Alquimia> 
           src = Teuchos::rcp(new TransportSourceFunction_Alquimia(spec, mesh_, chem_pk_, chem_engine_));
 
-      src->set_mol_dens_data_(mol_dens_.ptr());
+      src->set_mol_dens_data(mol_dens_);
 
       mass_src_ = S->GetFieldData(mass_src_key_)->ViewComponent("cell",false);
-      src->set_liquid_src_data_(mass_src_.ptr());
+      src->set_liquid_src_data(mass_src_);
 
       for (const auto& n : src->tcc_names()) {
         src->tcc_index().push_back(FindComponentNumber(n));
