@@ -26,6 +26,7 @@ include_directories(${MSTK_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
 include_directories(${DBG_SOURCE_DIR})
+include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
 

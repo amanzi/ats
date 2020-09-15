@@ -81,7 +81,7 @@ IncidentShortwaveRadiationEvaluator::InitializeFromPlist_()
 
   // - pull Keys from plist
   // dependency: slope
-  slope_key_ = Keys::readKey(plist_, domain_name, "slope", "slope");
+  slope_key_ = Keys::readKey(plist_, domain_name, "slope magnitude", "slope_magnitude");
   dependencies_.insert(slope_key_);
 
   // dependency: aspect
@@ -98,9 +98,9 @@ void
 IncidentShortwaveRadiationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-Teuchos::RCP<const CompositeVector> aspect = S->GetFieldData(aspect_key_);
-Teuchos::RCP<const CompositeVector> qSWin = S->GetFieldData(qSWin_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
+  Teuchos::RCP<const CompositeVector> aspect = S->GetFieldData(aspect_key_);
+  Teuchos::RCP<const CompositeVector> qSWin = S->GetFieldData(qSWin_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {

@@ -60,7 +60,7 @@ class MatrixVolumetricDeformation : public CompositeMatrix {
                 const Teuchos::Ptr<const AmanziMesh::Entity_ID_List>& fixed_nodes) const;
 
   // Sets up the solver.
-  void InitializeInverse();
+  void set_inverse_parameters();
   void Assemble(const Teuchos::Ptr<const AmanziMesh::Entity_ID_List>& fixed_nodes);
 
  protected:
@@ -68,9 +68,6 @@ class MatrixVolumetricDeformation : public CompositeMatrix {
   void PreAssemble_();
 
  protected:
-  // solver methods
-  Teuchos::RCP<AmanziPreconditioners::Preconditioner> prec_;
-
   // local data
   Teuchos::RCP<CompositeVectorSpace> range_;
   Teuchos::RCP<CompositeVectorSpace> domain_;

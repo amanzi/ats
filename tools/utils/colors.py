@@ -3,6 +3,46 @@ import matplotlib.colors
 import matplotlib.cm
 import numpy as np
 
+#
+# Lists of disparate color palettes
+#
+enumerated_palettes = {
+    1 : ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999'],
+    2 : ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6',
+         '#6a3d9a','#ffff99','#b15928'],
+    3 : ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#e6ab02','#a6761d','#666666'],
+    }
+
+def enumerated_colors(count, palette=1, chain=True):
+    """Gets an enumerated list of count independent colors."""
+    p = enumerated_palettes[palette]
+    if count <= len(p):
+        return p[0:count]
+    else:
+        for p in enumerated_palettes.values():
+            if count <= len(p):
+                return p[0:count]
+
+    if chain:
+        # must chain...
+        p = enumerated_palettes[palette]
+        def chain_iter(p):
+            while True:
+                for c in p:
+                    yield c
+        return [c for (i,c) in zip(range(count),chain_iter(p))]
+        
+    else:
+        raise ValueError("No enumerated palettes of length {}.".format(count))        
+
+#
+# Lists of diverging color palettes
+#
+def sampled_colors(count, cmap):
+    """Gets a list of count colors sampled from a colormap."""
+    cm = cm_mapper(0,count-1,cmap)
+    return [cm(i) for i in range(count)]
+
 # black-zero jet is jet, but with the 0-value set to black, with an immediate jump to blue
 def blackzerojet_cmap(data):
     blackzerojet_dict = {'blue': [[0.0, 0.0, 0.0],
@@ -77,7 +117,7 @@ def gas_cmap():
 
 # jet-by-index
 def cm_mapper(vmin=0., vmax=1., cmap=matplotlib.cm.jet):
-    """Factory for a Scalar Mappable, which gives a color based upon a scalar value.
+    """Create a map from value to color given a colormap.
 
     Typical Usage:
       >>> # plots 11 lines, with color scaled by index into jet
@@ -94,6 +134,19 @@ def cm_mapper(vmin=0., vmax=1., cmap=matplotlib.cm.jet):
     def mapper(value):
         return sm.to_rgba(value)
     return mapper
+
+def alpha_cmap(color, flip=False):
+    """Create a map from value to color, using a colormap that varies alpha in a given color."""
+    color = matplotlib.colors.to_rgba(color)
+    color_str = matplotlib.colors.to_hex(color)
+
+    color_list = [(color[0],color[1],color[2],0.1),
+                  (color[0],color[1],color[2],1)]
+    if flip:
+        color_list = reversed(color_list)
+    
+    return matplotlib.colors.LinearSegmentedColormap.from_list('alpha_{}'.format(color_str),
+                                                               color_list)
 
 
 def float_list_type(mystring):

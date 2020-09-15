@@ -28,7 +28,7 @@ and flow for integrated hydrology with freeze/thaw processes.
 
    * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
 
-   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:

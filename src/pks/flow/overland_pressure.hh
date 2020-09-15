@@ -60,10 +60,6 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
 
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the diffusion preconditioner.  Only used if this
-      PK is not implicitly coupled.  See LinearOperator_.
-
     * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
       water.  A small, but significant, amount of water.
 
@@ -290,7 +286,6 @@ protected:
   Teuchos::RCP<Operators::PDE_Diffusion> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   bool precon_used_;
 

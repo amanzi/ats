@@ -26,12 +26,12 @@ def get_gmres(error_tolerance=1.e-6):
     return plist
 
 def update(xml, clobber=True):
-    for lin_op_list in asearch.generateElementByNamePath(xml, "linear solver"):
-        if asearch.childByNamePath(lin_op_list, "iterative method").get("value") == "nka":
+    for lin_op_list in asearch.findall_name(xml, "linear solver"):
+        if lin_op_list.getElement("iterative method").getValue() == "nka":
             lin_op_list.setParameter("iterative method", "string", "gmres")
             lin_op_list.pop("nka parameters")
             lin_op_list.append(get_gmres())
-        elif clobber and asearch.childByNamePath(lin_op_list, "iterative method").get("value") == "gmres":
+        elif clobber and lin_op_list.getElement("iterative method").getValue() == "gmres":
             lin_op_list.pop("gmres parameters")
             lin_op_list.append(get_gmres())
             

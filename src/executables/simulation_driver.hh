@@ -19,7 +19,7 @@ ATS's top-level main accepts an XML list including a few required elements.
 .. admonition:: main-spec
 
     * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
-    * `"regions`" ``[region-spec-list]`` A list of Region_ objects.
+    * `"regions`" ``[region-typedsublist-spec-list]`` A list of Region_ objects.
     * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.

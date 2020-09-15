@@ -55,7 +55,9 @@ std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
 double CalcIncomingLongwave(double air_temp, double relative_humidity, double c_stephan_boltzmann) {
   double e_air = std::pow(10 * VaporPressureAir(air_temp, relative_humidity), air_temp / 2016.);
   e_air = 1.08 * (1 - std::exp(-e_air));
-  return e_air * c_stephan_boltzmann * std::pow(air_temp,4);
+  double longwave = e_air * c_stephan_boltzmann * std::pow(air_temp,4);
+  AMANZI_ASSERT(longwave > 0.);
+  return longwave;
 }
 
 

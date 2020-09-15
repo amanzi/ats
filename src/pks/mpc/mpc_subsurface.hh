@@ -124,7 +124,7 @@ algorithms are supported by the `EWC Globalization Delegate`_ object.
     * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
     * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
 
-    * `"ewc delegate`" ``[ewc-delegate-spec]`` A `EWC Globalization Delegate`_ spec.
+    * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A `EWC Globalization Delegate`_ spec.
 
     INCLUDES:
 
@@ -186,12 +186,7 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up0,
           Teuchos::RCP<TreeVector> up);
 
-  // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
-    UpdatePreconditioner(t, up, h, true);
-  }
-
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h, bool assemble);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
   
   // preconditioner application
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
@@ -217,7 +212,6 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   };
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner_;
-  Teuchos::RCP<Operators::TreeOperator> linsolve_preconditioner_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
 
   // preconditioner methods

@@ -81,13 +81,6 @@ node coordinate changes.  Three options are available:
     * `"deformation function`" ``[function-spec]`` **optional** Only used if
       "deformation mode" == "prescribed"
 
-    * `"global solve operator`" ``[matrix-volumetric-deformation-spec]``
-      Old-style Matrix (not Amanzi Operator) spec.  Only used if "deformation
-      strategy" == "global optimization"
-
-    * `"Solver`" ``[linear-operator-typed-spec]`` Solver for the optimization
-      problem. Only used if "deformation strategy" == "global optimization"
-
     EVALUATORS:
     - `"saturation_ice`"
     - `"saturation_liquid`"
@@ -113,7 +106,7 @@ node coordinate changes.  Three options are available:
 #include "PK.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_default.hh"
-#include "MatrixVolumetricDeformation.hh"
+//#include "MatrixVolumetricDeformation.hh"
 
 namespace Amanzi {
 namespace Deform {
@@ -194,9 +187,9 @@ class VolumetricDeformation : public PK_Physical_Default {
   Teuchos::RCP<AmanziMesh::Mesh> surf3d_mesh_nc_;
 
   // operator
-  bool global_solve_;
-  Teuchos::RCP<CompositeMatrix> operator_;
-  Teuchos::RCP<Operators::MatrixVolumetricDeformation> def_matrix_;
+  //  bool global_solve_;
+  //  Teuchos::RCP<CompositeMatrix> operator_;
+  //  Teuchos::RCP<Operators::MatrixVolumetricDeformation> def_matrix_;
 
   // factory registration
   static RegisteredPKFactory<VolumetricDeformation> reg_;

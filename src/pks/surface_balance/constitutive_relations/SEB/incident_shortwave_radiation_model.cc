@@ -63,7 +63,8 @@ double
 IncidentShortwaveRadiationModel::IncidentShortwaveRadiation(double slope, double aspect, double qSWin, double time) const
 {
   double time_days = time / 86400.0;
-  double doy = std::fmodf(doy0_ + time_days, 365);
+  double doy = std::fmod((double)doy0_ + time_days, (double)365);
+
   int doy_i = std::lround(doy);
   if (doy_i == 365) {
     // can round up!
@@ -92,6 +93,10 @@ IncidentShortwaveRadiationModel::IncidentShortwaveRadiation(double slope, double
     double hour = 12.0 + 24 * (doy - doy_i);
     rad = Impl::Radiation(slope, aspect, doy_i, hour, lat_, qSWin);
   }
+  if (qSWin > 200) {
+    std::cout << "slope = " << slope << ", aspect = " << aspect << ", doy = " << doy_i << " qSWin = " << qSWin << ", rad = " << rad << std::endl;
+  }
+
   return rad;
 }
 
@@ -320,7 +325,7 @@ double Radiation(double slope, double aspect, int doy, double hour, double lat, 
   double fac = facs.first / facs.second;
   if (fac > 6.) fac = 6.;
   else if (fac < 0.) fac = 0.;
-  return qSWin * facs.second * fac;
+  return qSWin * fac;
 }
 
 } //namespace Impl

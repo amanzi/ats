@@ -34,7 +34,6 @@
 #include <fstream>
 #include "EpetraExt_RowMatrixOut.h"
 
-#include "LinearOperatorFactory.hh"
 #include "FieldEvaluator.hh"
 #include "Operator.hh"
 #include "TreeOperator.hh"
@@ -70,8 +69,8 @@ void MPCCoupledCells::Setup(const Teuchos::Ptr<State>& S) {
   tvs->PushBack(Teuchos::rcp(new TreeVectorSpace(Teuchos::rcpFromRef(pcB->DomainMap()))));
 
   preconditioner_ = Teuchos::rcp(new Operators::TreeOperator(tvs));
-  preconditioner_->SetOperatorBlock(0, 0, pcA);
-  preconditioner_->SetOperatorBlock(1, 1, pcB);
+  preconditioner_->set_operator_block(0, 0, pcA);
+  preconditioner_->set_operator_block(1, 1, pcB);
   
   // create coupling blocks and push them into the preconditioner...
   S->RequireField(A_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -83,7 +82,7 @@ void MPCCoupledCells::Setup(const Teuchos::Ptr<State>& S) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dA_dy2 accumulation preconditioner");
     acc_pc_plist.set("entity kind", "cell");
     dA_dy2_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, mesh_));
-    preconditioner_->SetOperatorBlock(0, 1, dA_dy2_->global_operator());
+    preconditioner_->set_operator_block(0, 1, dA_dy2_->global_operator());
   }
 
   S->RequireField(B_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -95,27 +94,11 @@ void MPCCoupledCells::Setup(const Teuchos::Ptr<State>& S) {
     Teuchos::ParameterList& acc_pc_plist = plist_->sublist("dB_dy1 accumulation preconditioner");
     acc_pc_plist.set("entity kind", "cell");
     dB_dy1_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, mesh_));
-    preconditioner_->SetOperatorBlock(1, 0, dB_dy1_->global_operator());
+    preconditioner_->set_operator_block(1, 0, dB_dy1_->global_operator());
   }
 
   // setup and initialize the preconditioner
-  precon_used_ = plist_->isSublist("preconditioner");
-  if (precon_used_) {
-    preconditioner_->SymbolicAssembleMatrix();
-    Teuchos::ParameterList& pc_sublist = plist_->sublist("preconditioner");
-    preconditioner_->InitializePreconditioner(pc_sublist);
-  }
-
-  // setup and initialize the linear solver for the preconditioner
-  if (plist_->isSublist("linear solver")) {
-    Teuchos::ParameterList linsolve_sublist = plist_->sublist("linear solver");
-    if (!linsolve_sublist.isSublist("verbose object"))
-      linsolve_sublist.set("verbose object", plist_->sublist("verbose object"));
-    AmanziSolvers::LinearOperatorFactory<Operators::TreeOperator,TreeVector,TreeVectorSpace> fac;
-    linsolve_preconditioner_ = fac.Create(linsolve_sublist, preconditioner_);
-  } else {
-    linsolve_preconditioner_ = preconditioner_;
-  }
+  preconditioner_->set_inverse_parameters(plist_->sublist("preconditioner"));
 }
 
 
@@ -148,10 +131,6 @@ void MPCCoupledCells::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     dB_dy1_->AddAccumulationTerm(*dB_dy1_v, h, "cell", false);
   }
 
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }
 }
 
 
@@ -168,7 +147,7 @@ int MPCCoupledCells::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuch
     db_->WriteVectors(vnames, vecs, true);
   }
   
-  int ierr = linsolve_preconditioner_->ApplyInverse(*u, *Pu);
+  int ierr = preconditioner_->ApplyInverse(*u, *Pu);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "PC * residuals:" << std::endl;

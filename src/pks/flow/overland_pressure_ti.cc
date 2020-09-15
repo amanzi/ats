@@ -153,7 +153,7 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, 
 
   // apply the preconditioner
   db_->WriteVector("h_res", u->Data().ptr(), true);
-  int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
   db_->WriteVector("PC*h_res (h-coords)", Pu->Data().ptr(), true);
 
   // tack on the variable change
@@ -351,11 +351,6 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
     db_->WriteVector("    dh_dp", dh0_dp.ptr());
   }
 
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }      
-  
   /*
   // dump the schur complement
   Teuchos::RCP<Epetra_FECrsMatrix> sc = mfd_preconditioner_->Schur();

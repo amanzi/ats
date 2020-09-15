@@ -121,7 +121,7 @@ int OverlandFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos:
 #endif
 
   // apply the preconditioner
-  int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
 
 #if DEBUG_FLAG
   db_->WriteVector("PC*h_res (h-coords)", Pu->Data().ptr(), true);
@@ -206,10 +206,6 @@ void OverlandFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector>
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
 
   preconditioner_diff_->ApplyBCs(true, true, true);
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }
 };
 
 

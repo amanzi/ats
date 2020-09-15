@@ -173,8 +173,7 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
     }
 
     // must now re-symbolic assemble the matrix to get the updated surface parts
-    preconditioner_->SymbolicAssembleMatrix();
-    preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
+    preconditioner_->set_inverse_parameters(plist_->sublist("preconditioner"));
   }
       
   // grab the debuggers
@@ -316,7 +315,7 @@ int MPCPermafrost::ApplyPreconditioner(Teuchos::RCP<const TreeVector> r,
   // call the operator's inverse
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Precon applying coupled subsurface operator." << std::endl;
-  int ierr = linsolve_preconditioner_->ApplyInverse(*domain_u_tv, *domain_Pu_tv);
+  int ierr = preconditioner_->ApplyInverse(*domain_u_tv, *domain_Pu_tv);
 
   // rescale to Pa from MPa
   Pr->SubVector(0)->Data()->Scale(1.e6);
@@ -351,7 +350,7 @@ MPCPermafrost::UpdatePreconditioner(double t,
 
   // update the various components -- note it is important that subsurface are
   // done first (which is handled as they are listed first)
-  MPCSubsurface::UpdatePreconditioner(t, up, h, false);
+  MPCSubsurface::UpdatePreconditioner(t, up, h);
   
   // Add the surface off-diagonal blocks.
   // -- surface dWC/dT
@@ -387,8 +386,6 @@ MPCPermafrost::UpdatePreconditioner(double t,
   sub_pks_[0]->preconditioner()->Rescale(scaling);
   dE_dp_block_->Rescale(scaling);
   
-  preconditioner_->AssembleMatrix();
-  preconditioner_->UpdatePreconditioner();
 
   if (dump_) {
     std::stringstream filename;

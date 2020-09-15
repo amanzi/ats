@@ -39,6 +39,8 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   bc_flux_->Compute(S_next_->time());
   UpdateBoundaryConditions_(S_next_.ptr());
 
+  preconditioner_->Init();
+
   // update the rel perm according to the scheme of choice
   UpdatePermeabilityData_(S_next_.ptr());
 
@@ -55,12 +57,6 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
 
   // Assemble and precompute the Schur complement for inversion.
   preconditioner_diff_->ApplyBCs(true, true, true);
-
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }      
-  
   
   // // TEST
   // if (S_next_->cycle() == 0 && niter_ == 0) {

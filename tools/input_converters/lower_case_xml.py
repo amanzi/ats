@@ -13,8 +13,8 @@ NOTE: all work is done in-place!
 import sys,os
 sys.path.append(os.path.join(os.environ["AMANZI_SRC_DIR"],'tools', 'amanzi_xml'))
 
-import amanzi_xml.utils.errors as xml_errors
-import amanzi_xml.utils.search as xml_search
+import amanzi_xml.utils.errors as aerrors
+import amanzi_xml.utils.search as asearch
 import amanzi_xml.utils.io as xml_io
 
 
@@ -68,36 +68,30 @@ def lower_case(xml):
     """Converts an xml object, in-place"""
 
     try:
-        regions = xml_search.getElementByNamePath(xml, "Regions")
-    except xml_errors.MissingXMLError:
+        regions = asearch.child_by_name(xml, "Regions")
+    except aerrors.MissingXMLError:
         pass
 
     else:
         for label in changes_regions:
-            for param in xml_search.generateElementByNamePath(regions, label):
-                param.set('name', label.lower())
+            asearch.change_name(regions, label, label.lower(), allow_multiple=True)
 
-        for param in xml_search.generateElementByNamePath(xml, "Region: Plane/location"):
-            param.set('name', 'point')
-        for param in xml_search.generateElementByNamePath(xml, "Region: Plane/direction"):
-            param.set('name', 'normal')
-        regions.set('name', "regions")
-
+        asearch.change_name(xml, ["Region: Plane","location"], "point", allow_multiple=True)
+        asearch.change_name(xml, ["Region: Plane","direction"], "normal", allow_multiple=True)
+        regions.setName("regions")
         
     try:
-        mesh = xml_search.getElementByNamePath(xml, "Mesh")
-    except xml_errors.MissingXMLError:
+        mesh = asearch.child_by_name(xml, "Mesh")
+    except aerrors.MissingXMLError:
         pass
     else:
         for label in changes_mesh:
-            for param in xml_search.generateElementByNamePath(mesh, label):
-                param.set('name', label.lower())
-
-        mesh.set('name', "mesh")
+            asearch.change_name(mesh, label, label.lower(), True)
+        mesh.setName("mesh")
 
     try:
-        domain = xml_search.getElementByNamePath(xml, "Domain")
-    except xml_errors.MissingXMLError:
+        domain = asearch.child_by_name(xml, "Domain")
+    except aerrors.MissingXMLError:
         pass
     else:
         xml.remove(domain)
@@ -108,7 +102,7 @@ if __name__ == "__main__":
     for f in fnames:
         try:
             xml = xml_io.fromFile(f)
-        except xml_errors.NotNativeSpecError:
+        except aerrors.NotNativeSpecError:
             pass
         except RuntimeError,msg:
             print "Attempted to convert invalid xml file:", f

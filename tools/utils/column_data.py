@@ -8,6 +8,10 @@ Loads ATS simulation data in the current directory and writes a sorted
 file for pressure and temperature named column_data.h5 which can then
 be read by other simulations looking to interpolate a 1D initial
 condition.
+
+NOTE: this is deprecated, please prefer to use plot_column_data.py.  However,
+it was used in a lot of spinup setups, so is kept for posterity.
+
 """
 
 import sys,os

@@ -15,7 +15,6 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include "FunctionFactory.hh"
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
-#include "LinearOperatorFactory.hh"
 #include "independent_variable_field_evaluator.hh"
 
 #include "PDE_DiffusionFV.hh"
@@ -115,6 +114,11 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
 
   // -- preconditioner
   Teuchos::ParameterList mfd_pc_plist = plist_->sublist("diffusion preconditioner");
+  mfd_pc_plist.set("inverse", plist_->sublist("inverse"));
+  // old style... deprecate me!
+  mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("preconditioner"));
+  mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
+  
   preconditioner_diff_ = Teuchos::rcp(new Operators::PDE_DiffusionFV(mfd_pc_plist, mesh_));
   preconditioner_diff_->SetBCs(bc_, bc_);
   preconditioner_diff_->SetTensorCoefficient(Teuchos::null);
@@ -127,20 +131,6 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
   preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
   // symbolic assemble, get PC
-  precon_used_ = plist_->isSublist("preconditioner");
-  if (precon_used_) {
-    preconditioner_->SymbolicAssembleMatrix();
-    preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
-  }
-  
-  //    Potentially create a linear solver
-  if (plist_->isSublist("linear solver")) {
-    Teuchos::ParameterList linsolve_sublist = plist_->sublist("linear solver");
-    AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
-    lin_solver_ = fac.Create(linsolve_sublist, preconditioner_);
-  } else {
-    lin_solver_ = preconditioner_;
-  }
 }
 
 

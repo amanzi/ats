@@ -1,11 +1,20 @@
 /*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-Soil carbon parameters data structures class
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Chonggang Xu (cxu@lanl.gov)
+*/
+/*!
 
-Author: Ethan Coon (ecoon@lanl.gov)
-        Chonggang Xu (cxu@lanl.gov)
+Parameters for the Century model for biogeochemistry.
 
-Licencse: BSD
+.. _soil-carbon-spec:
+.. admonition:: soil-carbon-spec
+
+    * `"percent sand`" ``[double]`` Soil makeup.  Ranges from [0,100]
+
 */
 
 #ifndef ATS_BGC_SOIL_CARBON_PARAMS_HH_
