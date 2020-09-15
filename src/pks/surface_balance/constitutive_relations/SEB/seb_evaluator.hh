@@ -158,7 +158,7 @@ class SEBEvaluator : public SecondaryVariablesFieldEvaluator {
                                      // table drops below the surface.
 
   
-  bool diagnostics_, ss_topcell_based_evap_;
+  bool diagnostics_;
   Teuchos::RCP<Debugger> db_;
   Teuchos::RCP<Debugger> db_ss_;
   Teuchos::ParameterList plist_;

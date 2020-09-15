@@ -370,7 +370,8 @@ MassBalance UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
 }
 
 FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
-        const MetData& met, const ModelParams& params, const EnergyBalance& eb, const MassBalance& mb)
+        const MetData& met, const ModelParams& params, const EnergyBalance& eb,
+        const MassBalance& mb, double dt)
 {
   FluxBalance flux;
 
@@ -389,19 +390,17 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
 
   // At this point we have Mass and Energy fluxes but not including
   // evaporation, which we have to allocate to surface or subsurface.
-  double evap_to_subsurface_fraction = 0.;
-  if (mb.Me < 0) {
-    if (surf.pressure >= 1000.*params.Apa + params.evap_transition_width) {
-      evap_to_subsurface_fraction = 0.;
-    } else if (surf.pressure < 1000.*params.Apa) {
-      evap_to_subsurface_fraction = 1.;
-    } else {
-      evap_to_subsurface_fraction = (1000.*params.Apa + params.evap_transition_width - surf.pressure) / (params.evap_transition_width);
+  if (mb.Me > 0) {
+    // condensation, all to surface
+    flux.M_surf += mb.Me;
+  } else {
+    // is the flux more than the surface can provide?
+    if (surf.ponded_depth / dt < -mb.Me) {
+      // take all of the surface water
+      flux.M_surf += -surf.ponded_depth / dt;
+      flux.M_subsurf += mb.Me - flux.M_surf;
     }
   }
-  AMANZI_ASSERT(evap_to_subsurface_fraction >= 0. && evap_to_subsurface_fraction <= 1.);
-  flux.M_surf += (1. - evap_to_subsurface_fraction) * mb.Me;
-  flux.M_subsurf += evap_to_subsurface_fraction * mb.Me;
 
   // enthalpy of evap/condensation always goes entirely to surface
   //
@@ -417,11 +416,11 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
 
 FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
         const MetData& met, const ModelParams& params, const SnowProperties& snow,
-        const EnergyBalance& eb, const MassBalance& mb)
+        const EnergyBalance& eb, const MassBalance& mb, double dt)
 {
   FluxBalance flux;
 
-  // mass to surface is precip and evaporation
+  // mass to surface is precip and melting
   flux.M_surf = met.Pr + mb.Mm;
   if (mb.Mm > 0.) AMANZI_ASSERT(snow.density > 99.);
   flux.M_snow = met.Ps + mb.Me - mb.Mm;

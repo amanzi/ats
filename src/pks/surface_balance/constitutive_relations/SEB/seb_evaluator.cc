@@ -69,7 +69,7 @@ SEBEvaluator::SEBEvaluator(Teuchos::ParameterList& plist) :
   }
   domain_ = plist.get<std::string>("surface domain name", domain_);
   domain_ss_ = plist.get<std::string>("subsurface domain name", domain_ss_);
-  domain_snow_ = plist.get<std::string>("subsurface domain name", domain_snow_);
+  domain_snow_ = plist.get<std::string>("snow domain name", domain_snow_);
 
   // my keys
   // -- sources
@@ -160,9 +160,6 @@ SEBEvaluator::SEBEvaluator(Teuchos::ParameterList& plist) :
   dessicated_zone_thickness_ = plist.get<double>("dessicated zone thickness [m]", 0.1);
   AMANZI_ASSERT(dessicated_zone_thickness_ > 0.);
 
-  // developer parameter -- this should likely go away
-  ss_topcell_based_evap_ = plist.get<bool>("subsurface top cell based evaporation", false);
-
   roughness_bare_ground_ = plist.get<double>("roughness length of bare ground [m]", 0.04);
   roughness_snow_covered_ground_ = plist.get<double>("roughness length of snow-covered ground [m]", 0.004);
   snow_ground_trans_ = plist.get<double>("snow-ground transitional depth [m]", 0.02);
@@ -221,6 +218,8 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   snow_source.PutScalar(0.);
   new_snow.PutScalar(0.);
 
+  double dt = *S->GetScalarData("dt");
+  
   const auto& mesh = *S->GetMesh(domain_);
   const auto& mesh_ss = *S->GetMesh(domain_ss_);
 
@@ -270,21 +269,21 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     if (area_fracs[0][c] > 0.) {
       SEBPhysics::GroundProperties surf;
       surf.temp = surf_temp[0][c];
-      surf.pressure = surf_pres[0][c];
-      if (ss_topcell_based_evap_)
-        surf.pressure = ss_pres[0][cells[0]];
       surf.roughness = roughness_bare_ground_;
       surf.density_w = params.density_water; // NOTE: could update this to use true density! --etc
       surf.dz = dessicated_zone_thickness_;
       surf.albedo = sg_albedo[0][c];
       surf.emissivity = emissivity[0][c];
+      surf.ponded_depth = ponded_depth[0][c] / area_fracs[0][c];
       if (ponded_depth[0][c] > params.water_ground_transition_depth) {
         surf.porosity = 1.;
         surf.saturation_gas = 0.;
+        surf.pressure = surf_pres[0][c];
       } else {
         double factor = std::max(ponded_depth[0][c],0.)/params.water_ground_transition_depth;
         surf.porosity = 1. * factor + poro[0][cells[0]] * (1-factor);
         surf.saturation_gas = (1-factor) * sat_gas[0][cells[0]];
+        surf.pressure = surf_pres[0][c] * factor + ss_pres[0][cells[0]] * (1-factor);
       }
       surf.unfrozen_fraction = unfrozen_fraction[0][c];
 
@@ -301,7 +300,7 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       // calculate the surface balance
       const SEBPhysics::EnergyBalance eb = SEBPhysics::UpdateEnergyBalanceWithoutSnow(surf, met, params);
       SEBPhysics::MassBalance mb = SEBPhysics::UpdateMassBalanceWithoutSnow(surf, params, eb);
-      SEBPhysics::FluxBalance flux = SEBPhysics::UpdateFluxesWithoutSnow(surf, met, params, eb, mb);
+      SEBPhysics::FluxBalance flux = SEBPhysics::UpdateFluxesWithoutSnow(surf, met, params, eb, mb, dt);
 
       // fQe, Me positive is condensation, water flux positive to surface
       mass_source[0][c] += area_fracs[0][c] * flux.M_surf;
@@ -344,15 +343,14 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     if (area_fracs[1][c] > 0.) {
       SEBPhysics::GroundProperties surf;
       surf.temp = surf_temp[0][c];
-      surf.pressure = surf_pres[0][c];
-      if (ss_topcell_based_evap_)
-        surf.pressure = ss_pres[0][cells[0]];
       surf.roughness = roughness_bare_ground_;
       surf.density_w = params.density_water; // NOTE: could update this to use true density! --etc
       surf.dz = dessicated_zone_thickness_;
       surf.emissivity = emissivity[1][c];
       surf.albedo = sg_albedo[1][c];
 
+      surf.ponded_depth = ponded_depth[0][c]; // should not be used
+      surf.pressure = surf_pres[0][c];
       surf.saturation_gas = 0.;
       surf.porosity = 1.;
       surf.unfrozen_fraction = unfrozen_fraction[0][c];
@@ -373,7 +371,7 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
       const SEBPhysics::EnergyBalance eb = SEBPhysics::UpdateEnergyBalanceWithSnow(surf, met, params, snow);
       const SEBPhysics::MassBalance mb = SEBPhysics::UpdateMassBalanceWithSnow(surf, params, eb);
-      SEBPhysics::FluxBalance flux = SEBPhysics::UpdateFluxesWithSnow(surf, met, params, snow, eb, mb);
+      SEBPhysics::FluxBalance flux = SEBPhysics::UpdateFluxesWithSnow(surf, met, params, snow, eb, mb, dt);
 
       // fQe, Me positive is condensation, water flux positive to surface.  No need for subsurf as there is snow present.
       mass_source[0][c] += area_fracs[1][c] * flux.M_surf;

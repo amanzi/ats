@@ -40,6 +40,7 @@ struct GroundProperties {
   double fractional_area;               // [-] not used by SEB, but useful for later bookkeeping
   double snow_death_rate;               // [kg/m^2/s] snow that must die this timestep, make it melt!
   double unfrozen_fraction;		// [-] fraction of ground water that is unfrozen
+  double ponded_depth;                  // [m] proxy for water content
 
   GroundProperties() :
       temp(MY_LOCAL_NAN),
@@ -53,7 +54,8 @@ struct GroundProperties {
       roughness(MY_LOCAL_NAN),
       fractional_area(0.),
       snow_death_rate(0.),
-      unfrozen_fraction(0.)
+      unfrozen_fraction(0.),
+      ponded_depth(MY_LOCAL_NAN)
   {}
 
   void UpdateVaporPressure();

@@ -8,10 +8,15 @@
 
 /*!
 
-Requires the following dependencies:
+.. _longwave_evaluator-spec:
+.. admonition:: longwave_evaluator-spec
 
-* `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-* `"relative humicity key`" ``[string]`` **DOMAIN-relative_humidity**
+    * `"minimum relative humidity [-]`" ``[double]`` **0.1** Sets a minimum rel humidity, RH=0 breaks the model.
+
+    DEPENDENCIES:
+    
+    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
+    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
          
 */
 
@@ -33,6 +38,7 @@ LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
   rel_hum_key_ = Keys::readKey(plist, domain, "relative humidity", "relative_humidity");
   dependencies_.insert(rel_hum_key_);
 
+  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);  
   stephB_ = SEBPhysics::ModelParams().stephB;
 }
 
@@ -46,7 +52,7 @@ LongwaveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   auto& res = *result->ViewComponent("cell", false);
 
   for (int c=0; c!=res.MyLength(); ++c) {
-    res[0][c] = SEBPhysics::CalcIncomingLongwave(air_temp[0][c], rel_hum[0][c], stephB_);
+    res[0][c] = SEBPhysics::CalcIncomingLongwave(air_temp[0][c], std::max(min_rel_hum_, rel_hum[0][c]), stephB_);
   }  
 }
 

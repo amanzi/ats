@@ -180,7 +180,7 @@ MassBalance UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
 // ------------------------------------------------------------------------------------------
 FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
         const MetData& met, const ModelParams& params, const SnowProperties& snow,
-        const EnergyBalance& eb, const MassBalance& mb);
+        const EnergyBalance& eb, const MassBalance& mb, double dt);
 
 // 
 // Given an energy balance and a mass balance, accumulate these into sources
@@ -188,7 +188,7 @@ FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
 // ------------------------------------------------------------------------------------------
 FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
         const MetData& met, const ModelParams& params, const EnergyBalance& eb,
-        const MassBalance& mb);
+        const MassBalance& mb, double dt);
 
 
 

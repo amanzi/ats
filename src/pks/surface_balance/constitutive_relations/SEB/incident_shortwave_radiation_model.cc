@@ -51,7 +51,7 @@ IncidentShortwaveRadiationModel::InitializeFromPlist_(Teuchos::ParameterList& pl
   }
 
   doy0_ = plist.get<int>("day of year at time 0 [Julian days]", 0);
-  if (doy0_ < 1 || doy0_ > 365) {
+  if (doy0_ < 0 || doy0_ > 364) {
     Errors::Message msg("IncidentShortwaveRadiationModel: \"day of year at time 0 [Julian days]\" not in valid range [0,364]");
     Exceptions::amanzi_throw(msg);
   }
