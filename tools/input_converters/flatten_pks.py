@@ -20,7 +20,7 @@ from amanzi_xml.utils import errors as aerrors
 
 
 def coordinator_to_cycle_driver(xml):
-    cycle_driver = asearch.childByName(xml, "coordinator")
+    cycle_driver = asearch.child_by_name(xml, "coordinator")
     cycle_driver.set("name", "cycle driver")
     cycle_driver_pks = ParameterList("PK tree")
     cycle_driver.append(cycle_driver_pks)
@@ -32,7 +32,7 @@ def flatten(pks, flat_pks, cd_pks):
         pk = pks.getchildren().pop(0)
         flat_pks.append(pk)
         new_cd = ParameterList(pk.get("name"))
-        new_cd.append(parameter.StringParameter("PK type", asearch.childByName(pk, "PK type").get("value")))
+        new_cd.append(parameter.StringParameter("PK type", asearch.child_by_name(pk, "PK type").get("value")))
         cd_pks.append(new_cd)
 
         try:
@@ -44,13 +44,13 @@ def flatten(pks, flat_pks, cd_pks):
 
 def flatten_pks(xml):
     try:
-        cycle_driver = asearch.childByName(xml, "cycle driver")
+        cycle_driver = asearch.child_by_name(xml, "cycle driver")
     except aerrors.MissingXMLError:
         pass
     else:
         return
     
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     cd_pks = coordinator_to_cycle_driver(xml)
     flat_pks = ParameterList("PKs")
     flatten(pks, flat_pks, cd_pks)

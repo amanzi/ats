@@ -102,7 +102,6 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
   // coupled preconditioner
   Teuchos::RCP<Operators::Operator> precon_;
   Teuchos::RCP<Operators::Operator> precon_surf_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   // Water delegate
   Teuchos::RCP<MPCDelegateWater> water_;

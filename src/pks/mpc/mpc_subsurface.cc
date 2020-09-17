@@ -17,14 +17,12 @@ with freezing.
 #include "PDE_Advection.hh"
 #include "PDE_Accumulation.hh"
 #include "Operator.hh"
-#include "LinearOperatorFactory.hh"
 #include "upwind_total_flux.hh"
 #include "upwind_arithmetic_mean.hh"
 
 #include "permafrost_model.hh"
 #include "liquid_ice_model.hh"
 #include "richards.hh"
-#include "LinearOperatorFactory.hh"
 #include "mpc_delegate_ewc_subsurface.hh"
 #include "mpc_subsurface.hh"
 
@@ -355,20 +353,8 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S) {
   }
 
   // set up sparsity structure
-  preconditioner_->SymbolicAssembleMatrix();
-  preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
+  preconditioner_->set_inverse_parameters(plist_->sublist("preconditioner"));
 
-  // create the linear solver
-  if (plist_->isSublist("linear solver")) {
-    Teuchos::ParameterList& lin_solver_list = plist_->sublist("linear solver");
-    if (!lin_solver_list.isSublist("verbose object"))
-      lin_solver_list.set("verbose object", plist_->sublist("verbose object"));
-    AmanziSolvers::LinearOperatorFactory<Operators::TreeOperator, TreeVector, TreeVectorSpace> fac;
-    linsolve_preconditioner_ = fac.Create(lin_solver_list, preconditioner_);
-  } else {
-    linsolve_preconditioner_ = preconditioner_;
-  }
-  
   // create the EWC delegate
   if (plist_->isSublist("ewc delegate")) {
     Teuchos::RCP<Teuchos::ParameterList> sub_ewc_list = Teuchos::sublist(plist_, "ewc delegate");
@@ -503,7 +489,7 @@ bool MPCSubsurface::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up0
 
 
 // updates the preconditioner
-void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h, bool assemble) {
+void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
   Teuchos::OSTab tab = vo_->getOSTab();
 
   if (precon_type_ == PRECON_NONE) {
@@ -730,19 +716,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     vecs.push_back(dWC_dT.ptr()); vecs.push_back(dE_dp.ptr());
     db_->WriteVectors(vnames, vecs, false);
     
-
-    // finally assemble the full system, dump if requested, and form the inverse
-    if (assemble) {
-      preconditioner_->AssembleMatrix();
-      if (dump_) {
-        std::stringstream filename;
-        filename << "Subsurface_PC_" << S_next_->cycle() << "_" << update_pcs_ << ".txt";
-        EpetraExt::RowMatrixToMatlabFile(filename.str().c_str(), *preconditioner_->A());
-      }
-      preconditioner_->UpdatePreconditioner();
-    }
   }
-  
 
   if (precon_type_ == PRECON_EWC) {
     ewc_->UpdatePreconditioner(t,up,h);
@@ -778,9 +752,9 @@ int MPCSubsurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   } else if (precon_type_ == PRECON_BLOCK_DIAGONAL) {
     ierr = StrongMPC::ApplyPreconditioner(u,Pu);
   } else if (precon_type_ == PRECON_PICARD) {
-    ierr = linsolve_preconditioner_->ApplyInverse(*u, *Pu);
+    ierr = preconditioner_->ApplyInverse(*u, *Pu);
   } else if (precon_type_ == PRECON_EWC) {
-    ierr = linsolve_preconditioner_->ApplyInverse(*u, *Pu);
+    ierr = preconditioner_->ApplyInverse(*u, *Pu);
 
   //   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
   //     *vo_->os() << "PC_std * residuals:" << std::endl;

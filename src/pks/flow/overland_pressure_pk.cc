@@ -18,7 +18,6 @@ Author: Ethan Coon (ecoon@lanl.gov)
 
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
-#include "LinearOperatorFactory.hh"
 #include "independent_variable_field_evaluator.hh"
 #include "primary_variable_field_evaluator.hh"
 
@@ -240,6 +239,19 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
     }
   }
 
+  //    this needs to get some better logic now that symbolic doesn't use this. --etc
+  precon_used_ = plist_->isSublist("preconditioner") ||
+    plist_->isSublist("inverse") ||
+    plist_->isSublist("linear solver");
+
+  if (precon_used_) {
+    auto& inv_list = mfd_pc_plist.sublist("inverse");
+    inv_list.setParameters(plist_->sublist("inverse"));
+    // old style... deprecate me!
+    inv_list.setParameters(plist_->sublist("preconditioner"));
+    inv_list.setParameters(plist_->sublist("linear solver"));
+  }
+
   preconditioner_diff_ = opfactory.Create(mfd_pc_plist, mesh_, bc_);
   preconditioner_diff_->SetTensorCoefficient(Teuchos::null);
   preconditioner_ = preconditioner_diff_->global_operator();
@@ -282,23 +294,6 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   acc_pc_plist.set("entity kind", "cell");
   preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
   
-  //    symbolic assemble
-  precon_used_ = plist_->isSublist("preconditioner");
-  if (precon_used_) {
-    preconditioner_->SymbolicAssembleMatrix();
-    preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
-  }
-
-  //    Potentially create a linear solver
-  if (plist_->isSublist("linear solver")) {
-    Teuchos::ParameterList& linsolve_sublist = plist_->sublist("linear solver");
-    AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
-
-    lin_solver_ = fac.Create(linsolve_sublist, preconditioner_);
-  } else {
-    lin_solver_ = preconditioner_;
-  }
-
   // primary variable
   S->RequireField(key_, name_)->Update(matrix_->RangeMap())->SetGhosted()
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
@@ -928,7 +923,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     values[f] = bc->second;
   }
 
-  ASSERT(bc_level_flux_lvl_->size()==bc_level_flux_vel_->size());
+  AMANZI_ASSERT(bc_level_flux_lvl_->size()==bc_level_flux_vel_->size());
 
   for (auto bc_lvl=bc_level_flux_lvl_->begin(), bc_vel=bc_level_flux_vel_->begin();
        bc_lvl != bc_level_flux_lvl_->end(); ++bc_lvl, ++bc_vel){

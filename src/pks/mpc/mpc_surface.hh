@@ -46,12 +46,8 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
-    UpdatePreconditioner(t, up, h, true);
-  }
 
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h, bool assemble);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
   
   // preconditioner application
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
@@ -69,7 +65,6 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   };
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner_;
-  Teuchos::RCP<Operators::TreeOperator> linsolve_preconditioner_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
 
   // preconditioner methods

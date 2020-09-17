@@ -44,20 +44,8 @@ void Transport_PK_ATS::InitializeAll_()
   num_aqueous = tp_list_->get<int>("number of aqueous components", component_names_.size());
   num_gaseous = tp_list_->get<int>("number of gaseous components", 0);
 
-  // transport dispersion (default is none)
-  dispersion_solver = tp_list_->get<std::string>("solver", "missing");
-
   if (tp_list_->isSublist("material properties")) {
     Teuchos::ParameterList& dlist = tp_list_->sublist("material properties");
-
-    if (linear_solver_list_->isSublist(dispersion_solver)) {
-      Teuchos::ParameterList slist = linear_solver_list_->sublist(dispersion_solver);
-      dispersion_preconditioner = slist.get<std::string>("preconditioner", "identity");
-    } else {
-      Errors::Message msg;
-      msg << "Transport PK: dispersivity solver does not exist.\n";
-      Exceptions::amanzi_throw(msg);  
-    }
 
     int nblocks = 0; 
     for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {

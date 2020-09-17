@@ -1359,24 +1359,17 @@ def check_for_executable(options, testlog):
 def check_for_mpiexec(options, testlog):
     """
     Try to verify that we have something reasonable for the mpiexec executable
-
-    Notes:
-
-    geh: need to add code to determine full path of mpiexec if not specified
-
-    bja: the problem is that we don't know how to get the correct
-    mpiexec. On the mac, there is a system mpiexe that shows up in the
-    path, but this is provided by apple and it is not the correct one
-    to use because it doesn't include a fortran compiler. We need the
-    exact mpiexec/mpirun that was used to compile petsc, which may
-    come from a system installed package in /usr/bin or /opt/local/bin
-    or maybe petsc compiled it. This is best handled outside the test
-    manager, e.g. use make to identify mpiexec from the petsc
-    variables
     """
 
     # check for mpiexec
     mpiexec = None
+    if options.mpiexec is None:
+        # try to detect from env
+        try:
+            mpiexec = distutils.spawn.find_executable("mpiexec")
+        except Exception:
+            mpiexec = None
+    
     if options.mpiexec is not None:
         # mpiexec = os.path.abspath(options.mpiexec[0])
         mpiexec = options.mpiexec[0]

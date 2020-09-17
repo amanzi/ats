@@ -61,11 +61,11 @@ namespace Transport {
 
 typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
-  // class Transport_PK : public PK, public Explicit_TI::fnBase<Epetra_Vector> {
-  class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
+// class Transport_PK : public PK, public Explicit_TI::fnBase<Epetra_Vector> {
+class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
-  public:
-    Transport_PK_ATS(Teuchos::ParameterList& pk_tree,
+ public:
+  Transport_PK_ATS(Teuchos::ParameterList& pk_tree,
                const Teuchos::RCP<Teuchos::ParameterList>& glist,
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& soln);
@@ -206,27 +206,17 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
                                  const Teuchos::Ptr<State>& S,
                                  bool call_evaluator, bool overwrite);
 
-  // miscaleneous methods
-  int FindComponentNumber(const std::string component_name);
-
-    // void set_states(const Teuchos::RCP<State>& S,
-    //                 const Teuchos::RCP<State>& S_inter,
-    //                 const Teuchos::RCP<State>& S_next)
-    // {
-    //   PK_
-    // };
+    // miscaleneous methods
+    int FindComponentNumber(const std::string component_name);
 
     void ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flux,
-                                Teuchos::RCP<const Epetra_MultiVector> mol_den,
+            Teuchos::RCP<const Epetra_MultiVector> mol_den,
                                 Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux);
 
 
 
  public:
     Teuchos::RCP<Teuchos::ParameterList> tp_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> preconditioner_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> linear_solver_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> nonlinear_solver_list_;
 
     int MyPID;  // parallel information: will be moved to private
     int spatial_disc_order, temporal_disc_order, limiter_model;
@@ -303,7 +293,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   bool flag_dispersion_;
   std::vector<int> axi_symmetry_;  // axi-symmetry direction of permeability tensor
-  std::string dispersion_preconditioner, dispersion_solver;
 
   std::vector<Teuchos::RCP<MaterialProperties> > mat_properties_;  // vector of materials
   std::vector<Teuchos::RCP<DiffusionPhase> > diffusion_phase_;   // vector of phases

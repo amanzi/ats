@@ -64,10 +64,6 @@ Solves an advection-diffusion equation for energy:
       PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
       terms, as all the rest default to those values from `"diffusion`".
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` The Preconditioner_
-
-    * `"linear solver`" ``[linear-solver-typed-spec]`` A `LinearOperator`_
-      
     IF
     
     * `"source term`" ``[bool]`` **false** Is there a source term?
@@ -292,7 +288,6 @@ public:
   Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
   Teuchos::RCP<Operators::PDE_AdvectionUpwind> preconditioner_adv_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   // flags and control
   bool modify_predictor_with_consistent_faces_;

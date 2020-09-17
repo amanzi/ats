@@ -108,7 +108,6 @@ protected:
   bool standalone_mode_; // domain mesh == surface mesh
 //  Operators::UpwindMethod upwind_method_;
   bool is_source_term_;
-  bool precon_used_;
 
   // coupling term
   Key source_key_;

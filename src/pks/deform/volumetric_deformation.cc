@@ -19,7 +19,6 @@
    ------------------------------------------------------------------------- */
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
-#include "LinearOperatorFactory.hh"
 #include "CompositeVectorFunctionFactory.hh"
 
 #include "volumetric_deformation.hh"
@@ -75,6 +74,8 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
           "global optimization");
   if (strategy_name == "global optimization") {
     strategy_ = DEFORM_STRATEGY_GLOBAL_OPTIMIZATION;
+    Errors::Message mesg("Defomration strategy \"global optimization\" is no longer supported.");
+    Exceptions::amanzi_throw(mesg);
   } else if (strategy_name == "mstk implementation") {
     strategy_ = DEFORM_STRATEGY_MSTK;
   } else if (strategy_name == "average") {
@@ -167,23 +168,18 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
   // Strategy-specific setup
   switch (strategy_) {
     case (DEFORM_STRATEGY_GLOBAL_OPTIMIZATION) : {
-      // create the operator
-      Teuchos::ParameterList op_plist = plist_->sublist("global solve operator");
-      def_matrix_ = Teuchos::rcp(new Operators::MatrixVolumetricDeformation(
-          op_plist, mesh_));
+      // // create the operator
+      // Teuchos::ParameterList op_plist = plist_->sublist("global solve operator");
+      // // def_matrix_ = Teuchos::rcp(new Operators::MatrixVolumetricDeformation(op_plist, mesh_));
 
-      if (op_plist.isSublist("Solver")) {
-        Teuchos::ParameterList solver_plist = op_plist.sublist("Solver");
-        AmanziSolvers::LinearOperatorFactory<CompositeMatrix,CompositeVector,
-                            CompositeVectorSpace> fac;
-        operator_ = fac.Create("deformation linear solver",solver_plist,def_matrix_);
-      } else {
-        operator_ = def_matrix_;
-      }
-
-      // create storage for the nodal deformation
-      S->RequireField(Keys::getKey(domain_,"nodal_dz"), name_)->SetMesh(mesh_)->SetGhosted()
-          ->SetComponent("node", AmanziMesh::NODE, 1);
+      // // NOTE: this doesn't work because ATS operators are not supported, and
+      // // this isn't based on Amanzi::Operators::Operator.  But this code branch
+      // // is fairly dead anyway.... --etc
+      // def_matrix_->set_inverse_parameters();
+      
+      // // create storage for the nodal deformation
+      // S->RequireField(Keys::getKey(domain_,"nodal_dz"), name_)->SetMesh(mesh_)->SetGhosted()
+      //     ->SetComponent("node", AmanziMesh::NODE, 1);
       break;
     }
     case (DEFORM_STRATEGY_MSTK) : {

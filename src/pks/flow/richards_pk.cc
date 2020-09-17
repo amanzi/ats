@@ -24,7 +24,6 @@ Authors: Neil Carlson (version 1)
 
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
-#include "LinearOperatorFactory.hh"
 
 #include "predictor_delegate_bc_flux.hh"
 #include "wrm_evaluator.hh"
@@ -253,6 +252,11 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
     }
   }
 
+  mfd_pc_plist.set("inverse", plist_->sublist("inverse"));
+  // old style... deprecate me!
+  mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("preconditioner"));
+  mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
+
   preconditioner_diff_ = opfactory.CreateWithGravity(mfd_pc_plist, mesh_, bc_);
   preconditioner_ = preconditioner_diff_->global_operator();
   
@@ -305,22 +309,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
   //   matrix_vapor_ = Operators::CreateMatrixMFD(mfd_plist, mesh_);
   // }
 
-  //    symbolic assemble
-  precon_used_ = plist_->isSublist("preconditioner");
-  if (precon_used_) {
-    preconditioner_->SymbolicAssembleMatrix();
-    preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
-
-    //    Potentially create a linear solver
-    if (plist_->isSublist("linear solver")) {
-      Teuchos::ParameterList linsolve_sublist = plist_->sublist("linear solver");
-      AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
-      lin_solver_ = fac.Create(linsolve_sublist, preconditioner_);
-    } else {
-      lin_solver_ = preconditioner_;
-    }
-  }
-
+  
   // source terms
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_) {
@@ -362,7 +351,6 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S) {
     Errors::Message message("Richards PK requested both flux and head coupling -- choose one.");
     Exceptions::amanzi_throw(message);
   }
-
 
   // predictors for time integration
   modify_predictor_with_consistent_faces_ =
@@ -457,8 +445,7 @@ void Richards::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   S->RequireField(coef_key_)->SetMesh(mesh_)->SetGhosted()
       ->AddComponents(names2, locations2, num_dofs2);
   
-  //S->FEList().sublist(coef_key_).set<double>("permeability rescaling", perm_scale_);
-  S->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  S->FEList().sublist(coef_key_).set<double>("permeability rescaling", perm_scale_);
   S->RequireFieldEvaluator(coef_key_);
 
   // -- get the WRM models
@@ -487,9 +474,6 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S) {
  
   // Initialize BDF stuff and physical domain stuff.
   PK_PhysicalBDF_Default::Initialize(S);
-  
-  
-
 
   // debugggin cruft
 #if DEBUG_RES_FLAG
@@ -541,7 +525,6 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S) {
   preconditioner_diff_->SetGravity(g);
   preconditioner_diff_->SetBCs(bc_, bc_);
   preconditioner_diff_->SetTensorCoefficient(K_);
-  //  preconditioner_->SymbolicAssembleMatrix();
 
   face_matrix_diff_->SetGravity(g);
   face_matrix_diff_->SetBCs(bc_, bc_);
@@ -554,7 +537,6 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S) {
   //   // residual vector for vapor diffusion
   //   res_vapor = Teuchos::rcp(new CompositeVector(*S->GetFieldData(key_))); 
   // }
-
 };
 
 

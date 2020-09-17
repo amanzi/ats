@@ -30,16 +30,12 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
 {
 
   // distribute vector
-  Epetra_Vector component_tmp(component);
-  component_tmp.Import(component, *tcc->importer("cell"), Insert);
+  auto component_tmp = Teuchos::rcp(new Epetra_Vector(component));
+  component_tmp->Import(component, *tcc->importer("cell"), Insert);
   
-  
-  // transport routines need an RCP pointer
-  Teuchos::RCP<const Epetra_Vector> component_rcp(&component, false);
-
   Teuchos::ParameterList plist = tp_list_->sublist("reconstruction");
   lifting_->Init(plist);
-  lifting_->ComputeGradient(component_rcp);
+  lifting_->ComputeGradient(component_tmp);
 
   // extract boundary conditions for the current component
   std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
@@ -64,7 +60,7 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
 
 
   limiter_->Init(plist, flux_);
-  limiter_->ApplyLimiter(component_rcp, 0, lifting_->gradient(), bc_model, bc_value); 
+  limiter_->ApplyLimiter(component_tmp, 0, lifting_->gradient(), bc_model, bc_value); 
   limiter_->gradient()->ScatterMasterToGhosted("cell");
   
 

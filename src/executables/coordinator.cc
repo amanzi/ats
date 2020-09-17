@@ -145,14 +145,14 @@ void Coordinator::initialize() {
 
   // Restart from checkpoint, part 2.
   if (restart_) {
-    ReadCheckpoint(comm_, S_.ptr(), restart_filename_);
+    ReadCheckpoint(comm_, *S_, restart_filename_);    
     t0_ = S_->time();
     cycle0_ = S_->cycle();
     
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first)) {
-        DeformCheckpointMesh(S_.ptr(), mesh->first);
+        DeformCheckpointMesh(*S_, mesh->first);
       }
     }
   }
@@ -176,7 +176,7 @@ void Coordinator::initialize() {
   //S_->InitializeIOFlags(); 
 
   // Check final initialization
-  WriteStateStatistics(S_.ptr(), vo_);
+  WriteStateStatistics(*S_, *vo_);  
 
   // commit the initial conditions.
   pk_->CommitStep(0., 0., S_);
@@ -265,14 +265,13 @@ void Coordinator::initialize() {
   // -- PKs can't use it, so it is guaranteed to be pristinely the old
   // timestep.  This comes at the expense of an increase in memory footprint.
   pk_->set_states(Teuchos::null, S_inter_, S_next_);  
-  //pk_->set_states(S_, S_inter_, S_next_);
 
 }
 
 void Coordinator::finalize() {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics(S_next_);
-  WriteCheckpoint(checkpoint_.ptr(), S_next_.ptr(), 0.0, true);
+  WriteCheckpoint(*checkpoint_, *S_next_, 0.0, true);
 
   // flush observations to make sure they are saved
   observations_->Flush();
@@ -455,7 +454,7 @@ bool Coordinator::advance(double t_old, double t_new) {
     // Potentially write out failed timestep for debugging
     for (std::vector<Teuchos::RCP<Amanzi::Visualization> >::iterator vis=failed_visualization_.begin();
          vis!=failed_visualization_.end(); ++vis) {
-      WriteVis((*vis).ptr(), S_next_.ptr());
+      WriteVis(*(*vis), *S_next_);
     }
 
     // The timestep sizes have been updated, so copy back old soln and try again.
@@ -516,14 +515,14 @@ void Coordinator::visualize(bool force) {
   for (std::vector<Teuchos::RCP<Amanzi::Visualization> >::iterator vis=visualization_.begin();
        vis!=visualization_.end(); ++vis) {
     if (force || (*vis)->DumpRequested(S_next_->cycle(), S_next_->time())) {
-      WriteVis((*vis).ptr(), S_next_.ptr());
+      WriteVis(*(*vis), *S_next_);      
     }
   }
 }
 
 void Coordinator::checkpoint(double dt, bool force) {
   if (force || checkpoint_->DumpRequested(S_next_->cycle(), S_next_->time())) {
-    WriteCheckpoint(checkpoint_.ptr(), S_next_.ptr(), dt);
+    WriteCheckpoint(*checkpoint_, *S_next_, dt);    
   }
 }
 
@@ -615,9 +614,9 @@ void Coordinator::cycle_driver() {
     // catch errors to dump two checkpoints -- one as a "last good" checkpoint
     // and one as a "debugging data" checkpoint.
     checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), S_.ptr(), dt);
+    WriteCheckpoint(checkpoint_.ptr(), *S_, dt);
     checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), S_next_.ptr(), dt);
+    WriteCheckpoint(checkpoint_.ptr(), *S_next_, dt);
     throw e;
   }
 #endif
@@ -625,7 +624,7 @@ void Coordinator::cycle_driver() {
 
 
   // finalizing simulation                                                                                                                                                                                                               
-  WriteStateStatistics(S_.ptr(), vo_);  
+  WriteStateStatistics(*S_, *vo_);    
   report_memory();
   Teuchos::TimeMonitor::summarize(*vo_->os());
 

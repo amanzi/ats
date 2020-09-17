@@ -173,9 +173,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
  public:
     Teuchos::RCP<Teuchos::ParameterList> tp_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> preconditioner_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> linear_solver_list_;
-    Teuchos::RCP<const Teuchos::ParameterList> nonlinear_solver_list_;
 
     int MyPID;  // parallel information: will be moved to private
     int spatial_disc_order, temporal_disc_order, limiter_model;

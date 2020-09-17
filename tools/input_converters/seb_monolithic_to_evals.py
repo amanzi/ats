@@ -19,14 +19,14 @@ from amanzi_xml.common import parameter, parameter_list
 
 
 def add_snow_mesh(xml):
-    meshes = asearch.childByName(xml, "mesh")
+    meshes = asearch.child_by_name(xml, "mesh")
     snow = meshes.sublist("snow")
     snow.append(parameter.StringParameter("mesh type", "aliased"))
     aliased = snow.sublist("aliased parameters")
     aliased.append(parameter.StringParameter("alias", "surface"))
 
-    vis = asearch.childByName(xml, "visualization")
-    surf_vis = asearch.childByName(vis, "surface")
+    vis = asearch.child_by_name(xml, "visualization")
+    surf_vis = asearch.child_by_name(vis, "surface")
     snow_vis = vis.sublist("snow")
     snow_vis.append(parameter.StringParameter("file name base", "visdump_snow"))
     for p in surf_vis:
@@ -68,9 +68,9 @@ def eval_albedo():
 
 
 def evals(xml, dc):
-    eval_list = asearch.childByNamePath(xml, "state/field evaluators")
+    eval_list = asearch.find_by_path(xml, ["state","field evaluators"])
     try:
-        lw = asearch.childByName(eval_list, "surface-incoming_longwave_radiation")
+        lw = asearch.child_by_name(eval_list, "surface-incoming_longwave_radiation")
     except aerrors.MissingXMLError:
         eval_list.append(eval_longwave())
 
@@ -80,7 +80,7 @@ def evals(xml, dc):
     eval_list.append(eval_albedo())
 
     try:
-        snow_precip = asearch.childByName(eval_list, "surface-precipitation_snow")
+        snow_precip = asearch.child_by_name(eval_list, "surface-precipitation_snow")
     except aerrors.MissingXMLError:
         pass
     else:
@@ -88,17 +88,17 @@ def evals(xml, dc):
 
 
 def pks(xml):
-    pk_tree = asearch.childByNamePath(xml, "cycle driver/PK tree")
-    for pk_type in asearch.generateElementByNamePath(pk_tree, "PK type"):
+    pk_tree = asearch.child_by_namePath(xml, "cycle driver/PK tree")
+    for pk_type in asearch.gen_by_path(pk_tree, "PK type"):
         if pk_type.getValue() == 'surface balance implicit':
             pk_type.setValue('surface balance implicit subgrid')
     
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     for pk in pks:
-        pk_type = asearch.childByName(pk, "PK type")
+        pk_type = asearch.child_by_name(pk, "PK type")
         if pk_type.get('value') == 'permafrost flow':
             try:
-                source_term = asearch.childByName(pk, "source term")
+                source_term = asearch.child_by_name(pk, "source term")
             except aerrors.MissingXMLError:
                 pass
             else:
@@ -106,14 +106,14 @@ def pks(xml):
 
         elif pk_type.get('value') == 'overland flow with ice':
             try:
-                source_term = asearch.childByName(pk, "source term")
+                source_term = asearch.child_by_name(pk, "source term")
             except aerrors.MissingXMLError:
                 pk.append(parameter.BoolParameter("source term", True))
             else:
                 source_term.setValue(True)
 
             try:
-                source_is_diff = asearch.childByName(pk, "source term is differentiable")
+                source_is_diff = asearch.child_by_name(pk, "source term is differentiable")
             except aerrors.MissingXMLError:
                 pk.append(parameter.BoolParameter("source term is differentiable", False))
             else:
@@ -121,7 +121,7 @@ def pks(xml):
 
         elif pk_type.get('value') == 'three-phase energy':
             try:
-                source_term = asearch.childByName(pk, "source term")
+                source_term = asearch.child_by_name(pk, "source term")
             except aerrors.MissingXMLError:
                 pass
             else:
@@ -129,21 +129,21 @@ def pks(xml):
 
         elif pk_type.get('value') == 'surface energy':
             try:
-                source_term = asearch.childByName(pk, "source term")
+                source_term = asearch.child_by_name(pk, "source term")
             except aerrors.MissingXMLError:
                 pk.append(parameter.BoolParameter("source term", True))
             else:
                 source_term.setValue(True)
 
             try:
-                source_is_diff = asearch.childByName(pk, "source term is differentiable")
+                source_is_diff = asearch.child_by_name(pk, "source term is differentiable")
             except aerrors.MissingXMLError:
                 pk.append(parameter.BoolParameter("source term is differentiable", True))
             else:
                 source_is_diff.setValue(True)
 
             try:
-                source_fd = asearch.childByName(pk, "source term finite difference")
+                source_fd = asearch.child_by_name(pk, "source term finite difference")
             except aerrors.MissingXMLError:
                 pk.append(parameter.BoolParameter("source term finite difference", True))
             else:
@@ -158,7 +158,6 @@ def pks(xml):
             pk_seb.append(parameter.StringParameter('conserved quantity key', 'snow-swe'))
             pk_seb.append(parameter.StringParameter('source key', 'snow-source_sink'))
             pk_seb.append(parameter.BoolParameter('source term is differentiable', False))
-            
             pk_seb.append(pk.pop('initial condition'))
 
             try:

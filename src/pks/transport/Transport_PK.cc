@@ -24,8 +24,6 @@
 #include "Explicit_TI_RK.hh"
 #include "FieldEvaluator.hh"
 #include "GMVMesh.hh"
-#include "LinearOperatorDefs.hh"
-#include "LinearOperatorFactory.hh"
 #include "Mesh.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
@@ -93,10 +91,6 @@ Transport_PK_ATS::Transport_PK_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
   
-  preconditioner_list_ = Teuchos::sublist(glist, "preconditioners");
-  linear_solver_list_ = Teuchos::sublist(glist, "solvers");
-  nonlinear_solver_list_ = Teuchos::sublist(glist, "nonlinear solvers");
-
   subcycling_ = tp_list_->get<bool>("transport subcycling", false);
 
   special_source_ = tp_list_->get<bool>("special source", false);
@@ -286,10 +280,6 @@ void Transport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
   if (tp_list_->isSublist("initial conditions")) {
     S->GetField(tcc_key_,tcc_passwd_)->Initialize(tp_list_->sublist("initial conditions"));
   }
-  
-
-  tcc_passwd_ = S->GetField(tcc_key_)->owner();
-  dispersion_preconditioner = "identity";
 
   internal_tests = 0;
   tests_tolerance = TRANSPORT_CONCENTRATION_OVERSHOOT;
@@ -1055,13 +1045,6 @@ void Transport_PK_ATS :: Advance_Dispersion_Diffusion(double t_old, double t_new
     CompositeVector sol(cvs), factor(cvs), factor0(cvs), source(cvs), zero(cvs);
     zero.PutScalar(0.0);
   
-    // instantiale solver
-    AmanziSolvers::LinearOperatorFactory<Operators::Operator, CompositeVector, CompositeVectorSpace> sfactory;
-    Teuchos::RCP<AmanziSolvers::LinearOperator<Operators::Operator, CompositeVector, CompositeVectorSpace> >
-        solver = sfactory.Create(dispersion_solver, *linear_solver_list_, op);
-
-    solver->add_criteria(AmanziSolvers::LIN_SOLVER_MAKE_ONE_ITERATION);  // Make at least one iteration
-
     // populate the dispersion operator (if any)
     if (flag_dispersion_) {
       CalculateDispersionTensor_(*flux_, *phi_, *ws_, *mol_dens_);
@@ -1103,14 +1086,8 @@ void Transport_PK_ATS :: Advance_Dispersion_Diffusion(double t_old, double t_new
           fac[0][c] = (*phi_)[0][c] * (*ws_)[0][c] * (*mol_dens_)[0][c];
         }
         op2->AddAccumulationDelta(sol, factor, factor, dt_MPC, "cell");
- 
         op1->ApplyBCs(true, true, true);
-        op->SymbolicAssembleMatrix();
-        op->AssembleMatrix();
 
-        Teuchos::ParameterList pc_list = preconditioner_list_->sublist(dispersion_preconditioner);
-        op->InitializePreconditioner(pc_list);
-        op->UpdatePreconditioner();        
       } else {
         Epetra_MultiVector& rhs_cell = *op->rhs()->ViewComponent("cell");
         for (int c = 0; c < ncells_owned; c++) {
@@ -1120,16 +1097,16 @@ void Transport_PK_ATS :: Advance_Dispersion_Diffusion(double t_old, double t_new
       }
   
       CompositeVector& rhs = *op->rhs();
-      int ierr = solver->ApplyInverse(rhs, sol);
+      int ierr = op->ApplyInverse(rhs, sol);
 
       if (ierr < 0) {
-        Errors::Message msg;
-        msg = solver->DecodeErrorCode(ierr);
-        Exceptions::amanzi_throw(msg); 
-     }
+        Errors::Message msg("TransportExplicit_PK solver failed with message: \"");
+        msg << op->returned_code_string() << "\"";
+        Exceptions::amanzi_throw(msg);
+      }
 
-      residual += solver->residual();
-      num_itrs += solver->num_itrs();
+      residual += op->residual();
+      num_itrs += op->num_itrs();
 
       for (int c = 0; c < ncells_owned; c++) {
         tcc_next[i][c] = sol_cell[0][c];
@@ -1194,32 +1171,26 @@ void Transport_PK_ATS :: Advance_Dispersion_Diffusion(double t_old, double t_new
         if ((*ws_)[0][c] == 1.0) fac1[0][c] = 1.0 * (*mol_dens_)[0][c];  // hack so far
       }
       op2->AddAccumulationDelta(sol, factor0, factor, dt_MPC, "cell");
- 
-      op->SymbolicAssembleMatrix();
-      op->AssembleMatrix();
-      op->InitPreconditioner(dispersion_preconditioner, *preconditioner_list_);
   
       CompositeVector& rhs = *op->rhs();
-      int ierr = solver->ApplyInverse(rhs, sol);
-
+      int ierr = op->ApplyInverse(rhs, sol);
       if (ierr < 0) {
-        Errors::Message msg;
-        msg = solver->DecodeErrorCode(ierr);
+        Errors::Message msg("Transport_PK solver failed with message: \"");
+        msg << op->returned_code_string() << "\"";
         Exceptions::amanzi_throw(msg);
       }
 
-      residual += solver->residual();
-      num_itrs += solver->num_itrs();
+      residual += op->residual();
+      num_itrs += op->num_itrs();
 
       for (int c = 0; c < ncells_owned; c++) {
         tcc_next[i][c] = sol_cell[0][c];
       }
     }
 
-    if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
+    if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
       Teuchos::OSTab tab = vo_->getOSTab();
-      *vo_->os() << "dispersion solver (" << solver->name() 
-                 << ") ||r||=" << residual / num_components
+      *vo_->os() << "dispersion solver ||r||=" << residual / num_components
                  << " itrs=" << num_itrs / num_components << std::endl;
     }
   }

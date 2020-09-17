@@ -118,7 +118,7 @@ int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP
   db_->WriteVector("p_res", u->Data().ptr(), true);
 
   // Apply the preconditioner
-  int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
 
   db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
   
@@ -208,10 +208,6 @@ void Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
   // -- update preconditioner with source term derivatives if needed
   AddSourcesToPrecon_(S_next_.ptr(), h);
   
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }
 
   // increment the iterator count
   iter_++;

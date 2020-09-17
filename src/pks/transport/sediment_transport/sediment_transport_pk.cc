@@ -24,8 +24,6 @@
 #include "Explicit_TI_RK.hh"
 #include "FieldEvaluator.hh"
 #include "GMVMesh.hh"
-#include "LinearOperatorDefs.hh"
-#include "LinearOperatorFactory.hh"
 #include "Mesh.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
@@ -76,10 +74,6 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  preconditioner_list_ = Teuchos::sublist(glist, "preconditioners");
-  linear_solver_list_ = Teuchos::sublist(glist, "solvers");
-  nonlinear_solver_list_ = Teuchos::sublist(glist, "nonlinear solvers");
-  
   subcycling_ = tp_list_->get<bool>("transport subcycling", false);
    
   // initialize io
@@ -558,12 +552,8 @@ void SedimentTransport_PK::InitializeAll_()
   temporal_disc_order = tp_list_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
 
-
   num_aqueous = tp_list_->get<int>("number of sediment components", component_names_.size());
   
-  // sediment diffusion (default is none)
-  diffusion_solver = tp_list_->get<std::string>("solver", "missing");
-
   // mass_solutes_exact_.assign(num_aqueous + num_gaseous, 0.0);
   // mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
   // mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
@@ -905,23 +895,15 @@ void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
     Teuchos::RCP<Operators::PDE_Accumulation> op2 =
         Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, op));
 
-    const CompositeVectorSpace& cvs = op1->global_operator()->DomainMap();
+    const CompositeVectorSpace& cvs = op->DomainMap();
     CompositeVector sol(cvs), factor(cvs), factor0(cvs), source(cvs), zero(cvs);
     zero.PutScalar(0.0);
   
-    // instantiale solver
-    AmanziSolvers::LinearOperatorFactory<Operators::Operator, CompositeVector, CompositeVectorSpace> sfactory;
-    Teuchos::RCP<AmanziSolvers::LinearOperator<Operators::Operator, CompositeVector, CompositeVectorSpace> >
-        solver = sfactory.Create(diffusion_solver, *linear_solver_list_, op);
-
-    solver->add_criteria(AmanziSolvers::LIN_SOLVER_MAKE_ONE_ITERATION);  // Make at least one iteration
-
-    // populate the diffusion operator (if any)
+    // instantiate solver
 
     S_inter_->GetFieldEvaluator(horiz_mixing_key_)->HasFieldChanged(S_.ptr(),  horiz_mixing_key_);
 
     CalculateDiffusionTensor_(*km_, *ws_, *mol_dens_);
-
 
     int phase, num_itrs(0);
     bool flag_op1(true);
@@ -938,7 +920,6 @@ void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
         sol.ViewComponent("face")->PutScalar(0.0);
       }
 
-
       op->Init();
       Teuchos::RCP<std::vector<WhetStone::Tensor> > Dptr = Teuchos::rcpFromRef(D_);
       op1->Setup(Dptr, Teuchos::null, Teuchos::null);
@@ -952,21 +933,18 @@ void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
       op2->AddAccumulationDelta(sol, factor, factor, dt_MPC, "cell");
  
       op1->ApplyBCs(true, true, true);
-      op->SymbolicAssembleMatrix();
-      op->AssembleMatrix();
-      op->InitPreconditioner(diffusion_preconditioner, *preconditioner_list_);
   
       CompositeVector& rhs = *op->rhs();
-      int ierr = solver->ApplyInverse(rhs, sol);
+      int ierr = op->ApplyInverse(rhs, sol);
 
       if (ierr < 0) {
-        Errors::Message msg;
-        msg = solver->DecodeErrorCode(ierr);
+        Errors::Message msg("SedimentTransport_PK solver failed with message: \"");
+        msg << op->returned_code_string() << "\"";
         Exceptions::amanzi_throw(msg);
       }
 
-      residual += solver->residual();
-      num_itrs += solver->num_itrs();
+      residual += op->residual();
+      num_itrs += op->num_itrs();
 
       for (int c = 0; c < ncells_owned; c++) {
         tcc_next[i][c] = sol_cell[0][c];
@@ -975,8 +953,7 @@ void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
 
     if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
       Teuchos::OSTab tab = vo_->getOSTab();
-      *vo_->os() << "diffusion solver (" << solver->name() 
-                 << ") ||r||=" << residual / num_components
+      *vo_->os() << "sediment transport solver: ||r||=" << residual / num_components
                  << " itrs=" << num_itrs / num_components << std::endl;
     }
   }
