@@ -42,9 +42,6 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
 
 }
 
-
-
-  
 void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
 
   PK_Physical_Default::Setup(S);
@@ -215,9 +212,12 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
     ncomp_salt_ = plist_->get<int>("salt component", 0);
     if (salinity_on_){
       if (!S->HasField(salinity_key_)){
-        Errors::Message msg;
-        msg << "There is no concentration field for salt in State.\n";
-        Exceptions::amanzi_throw(msg);  
+        // Errors::Message msg;
+        // msg << "There is no concentration field for salt in State.\n";
+        // Exceptions::amanzi_throw(msg);
+        S->RequireField(salinity_key_)->SetMesh(mesh_)->SetGhosted(true)
+          ->AddComponent("cell", AmanziMesh::CELL, 1);
+        S->RequireFieldEvaluator(salinity_key_);        
       }
     }
 
@@ -459,8 +459,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     // std::cout<<"\n";
     
     int array_size = t_soil_.size();
-    wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data(), salinity_.data());
-
+    wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data(), salinity_.data());    
     PhotoSynthesisInput photo_input;
 
 
