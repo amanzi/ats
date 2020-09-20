@@ -1,17 +1,23 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
-  Author: Ethan Coon (ecoon@ornl.gov)
-*/
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 //! Evaluates incoming longwave radiation from rel humidity and air temperature.
 
 /*!
 
-Requires the following dependencies:
+.. _longwave_evaluator-spec:
+.. admonition:: longwave_evaluator-spec
 
-* `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-* `"relative humicity key`" ``[string]`` **DOMAIN-relative_humidity**
+    * `"minimum relative humidity [-]`" ``[double]`` **0.1** Sets a minimum rel humidity, RH=0 breaks the model.
+
+    DEPENDENCIES:
+    
+    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
+    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
          
 */
 
@@ -46,7 +52,7 @@ class LongwaveEvaluator : public SecondaryVariableFieldEvaluator {
  protected:
 
   Key air_temp_key_, rel_hum_key_;
-  double stephB_;
+  double stephB_, min_rel_hum_;
 
  private:
   static Utils::RegisteredFactory<FieldEvaluator,LongwaveEvaluator> reg_;

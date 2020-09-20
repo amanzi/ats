@@ -13,6 +13,7 @@ add_subdirectory(constitutive_relations)
 include_directories(${GEOCHEM_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
+include_directories(${TRANSPORT_SOURCE_DIR})
 include_directories(${ATS_SOURCE_DIR}/pks)
 include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
 include_directories(${ATS_SOURCE_DIR}/pks/flow)
@@ -40,6 +41,7 @@ set(ats_mpc_src_files
   mpc_delegate_ewc.cc
   mpc_reactivetransport_pk.cc
   mpc_flowreactivetransport_pk.cc
+  mpc_coupled_reactive_transport_pk.cc
   mpc_delegate_ewc_subsurface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
@@ -71,6 +73,7 @@ set(ats_mpc_inc_files
   mpc_delegate_ewc.hh
   mpc_reactivetransport_pk.hh
   mpc_flowreactivetransport_pk.hh
+  mpc_coupled_reactive_transport_pk.hh
   mpc_delegate_ewc_subsurface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
@@ -153,6 +156,11 @@ register_evaluator_with_factory(
    HEADERFILE mpc_reactivetransport_pk_reg.hh
    LISTNAME   ATS_MPC_REG
    )
+ 
+register_evaluator_with_factory(
+  HEADERFILE mpc_coupled_reactive_transport_pk_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 register_evaluator_with_factory(
    HEADERFILE mpc_morphology_reg.hh
@@ -235,7 +243,5 @@ generate_evaluators_registration_header(
   LISTNAME   ATS_MPC_REG
   INSTALL    True
 )
-
-
 
 

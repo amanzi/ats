@@ -62,12 +62,6 @@ Solves Richards equation:
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
-
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the diffusion preconditioner.  Only used if this
-      PK is not implicitly coupled.  See LinearOperator_.
-
     * `"surface rel perm strategy`" ``[string]`` **none** Approach for
       specifying the relative permeabiilty on the surface face.  `"clobber`" is
       frequently used for cases where a surface rel perm will be provided.  One
@@ -217,9 +211,9 @@ Solves Richards equation:
 #include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
+
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
-
 #include "PK_Factory.hh"
 //#include "PK_PhysicalBDF_ATS.hh"
 // #include "pk_factory_ats.hh"
@@ -355,7 +349,7 @@ protected:
                        Teuchos::RCP<const TreeVector> u,
                        Teuchos::RCP<TreeVector> du);
 
-
+  void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
 
   
@@ -372,7 +366,6 @@ protected:
   bool is_source_term_;
   bool source_term_is_differentiable_;
   bool explicit_source_;
-  bool precon_used_;
   std::string clobber_policy_;
   bool clobber_boundary_flux_dir_;
   
@@ -400,7 +393,6 @@ protected:
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   // flag to do jacobian and therefore coef derivs
   bool jacobian_;

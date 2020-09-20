@@ -20,7 +20,7 @@ Evaluator type: "snow skin potential"
 * `"snow depth key`" ``[string]`` **snow_depth** Names the snow depth variable. [m]
 * `"precipitation snow key`" ``[string]`` **precipitation_snow** Names the snow precipitation key. [m]
 * `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
-* `"dt factor`" ``[double]`` A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]
+* `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]
 
 NOTE: This is equivalent to a generic AdditiveEvaluator_
 
@@ -30,7 +30,7 @@ Example:
 
   <ParameterList name="snow_skin_potential" type="ParameterList">
     <Parameter name="field evaluator type" type="string" value="snow skin potential" />
-    <Parameter name="dt factor" type="double" value="864000.0" />
+    <Parameter name="dt factor [s]" type="double" value="864000.0" />
   </ParameterList>
 
 */

@@ -1,5 +1,4 @@
 # -*- mode: cmake -*-
-
 # ATS Surface balance PKs describe Evaporation, energy fluxes from
 #  long/showtwave radiation, precip, etc etc etc
 include_directories(${ATS_SOURCE_DIR}/pks)
@@ -18,6 +17,10 @@ set(ats_surface_balance_src_files
   constitutive_relations/SEB/seb_evaluator.cc
   constitutive_relations/SEB/seb_subgrid_evaluator.cc
   constitutive_relations/SEB/longwave_evaluator.cc
+  constitutive_relations/SEB/incident_shortwave_radiation_model.cc
+  constitutive_relations/SEB/incident_shortwave_radiation_evaluator.cc
+  constitutive_relations/SEB/evaporation_downregulation_model.cc
+  constitutive_relations/SEB/evaporation_downregulation_evaluator.cc
   constitutive_relations/litter/drainage_evaluator.cc
   constitutive_relations/litter/interception_evaluator.cc
   constitutive_relations/litter/interception_fraction_evaluator.cc
@@ -52,6 +55,8 @@ set(ats_surface_balance_inc_files
   constitutive_relations/SEB/seb_evaluator.hh
   constitutive_relations/SEB/seb_subgrid_evaluator.hh
   constitutive_relations/SEB/longwave_evaluator.hh
+  constitutive_relations/SEB/incident_shortwave_radiation_model.hh
+  constitutive_relations/SEB/incident_shortwave_radiation_evaluator.hh
   constitutive_relations/litter/drainage_evaluator.hh
   constitutive_relations/litter/interception_evaluator.hh
   constitutive_relations/litter/interception_fraction_evaluator.hh
@@ -141,7 +146,13 @@ register_evaluator_with_factory(
 
 register_evaluator_with_factory(
   HEADERFILE constitutive_relations/SEB/evaporation_downregulation_evaluator_reg.hh
-  LISTNAME SURFACE_BALANCE_SEB_REG
+  LISTNAME ATS_SURFACE_BALANCE_REG
+)
+
+
+register_evaluator_with_factory(
+  HEADERFILE constitutive_relations/SEB/incident_shortwave_radiation_evaluator_reg.hh
+  LISTNAME ATS_SURFACE_BALANCE_REG
 )
 
 register_evaluator_with_factory(

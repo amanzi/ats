@@ -18,7 +18,7 @@ from amanzi_xml.common import parameter
 
 def fixEvaluator(xml, name, newname):
     try:
-        pd = asearch.childByNamePath(xml, "state/field evaluators/%s"%name)
+        pd = asearch.find_path(xml, ["state","field evaluators",name])
     except aerrors.MissingXMLError:
         pass
     else:
@@ -28,10 +28,10 @@ def linear_operator(xml):
     """Changes any instances of "linear operator" to "linear solver",
     which is now standard across all PKs."""
 
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     for pk in pks:
         try:
-            lin_op = asearch.childByName(pk, "linear operator")
+            lin_op = asearch.child_by_name(pk, "linear operator")
         except aerrors.MissingXMLError:
             pass
         else:
@@ -39,9 +39,9 @@ def linear_operator(xml):
 
 def max_valid_change(xml):
     """Adds options for max valid change, which aren't required, but are strongly suggested."""
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     for pk in pks:
-        pk_type = asearch.childByName(pk, "PK type")
+        pk_type = asearch.child_by_name(pk, "PK type")
         if pk_type.get('value') == 'permafrost flow':
             try:
                 pk.getElement("max valid change in saturation in a time step [-]")
@@ -60,33 +60,33 @@ def bad_spinup_longwave(xml):
     Some runs even had a spec for it in their file, but didn't include 
     the necessary flag to use it.  So this just removes it to avoid 
     confusion."""
-    evals = asearch.childByNamePath(xml, "state/field evaluators")
+    evals = asearch.find_path(xml, ["state","field evaluators"])
     try:
-        lw = asearch.childByName(evals, "surface-incoming_longwave_radiation")
+        lw = evals.getElement("surface-incoming_longwave_radiation")
     except aerrors.MissingXMLError:
         pass
     else:
         try:
-            filename = asearch.childByNamePath(lw, "function/domain/function/function-tabular/file")
+            filename = asearch.find_path(lw, ["function","domain","function","function-tabular","file"])
         except aerrors.MissingXMLError:
             pass
         else:
-            if "spinup-10yr.h5" in filename.get('value'):
+            if "spinup-10yr.h5" in filename.getValue():
                 evals.pop("surface-incoming_longwave_radiation")
 
 
 def sources(xml):
     """Can turn off derivative of source terms"""
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     for pk in pks:
         try:
-            source_term = asearch.childByName(pk, "mass source key")
+            source_term = pk.getElement("mass source key")
         except aerrors.MissingXMLError:
             pass
         else:
             source_term.setName('source key')
         try:
-            source_term = asearch.childByName(pk, "energy source key")
+            source_term = pk.getElement("energy source key")
         except aerrors.MissingXMLError:
             pass
         else:
@@ -94,54 +94,58 @@ def sources(xml):
             
 
         try:
-            source_term = asearch.childByName(pk, "source term")
+            source_term = pk.getElement("source term")
         except aerrors.MissingXMLError:
             pass
         else:
             if source_term.getValue():
                 try:
-                    source_is_diff = asearch.childByName(pk, "source term is differentiable")
+                    source_is_diff = pk.getElement("source term is differentiable")
                 except aerrors.MissingXMLError:
                     pk.append(parameter.BoolParameter("source term is differentiable", True))
     
 def snow_distribution(xml):
-    for snow_dist_pk in asearch.generateElementByNamePath(xml, "PKs/snow distribution"):
+    for snow_dist_pk in asearch.gen_path(xml, ["PKs","snow distribution"]):
         if snow_dist_pk.isElement("primary variable key") and \
-             asearch.childByName(snow_dist_pk,"primary variable key").get("value") == "surface-precipitation_snow":
-            asearch.childByName(snow_dist_pk,"primary variable key").set("value", "snow-precipitation")
+             asearch.child_by_name(snow_dist_pk,"primary variable key").getValue() == "surface-precipitation_snow":
+            asearch.child_by_name(snow_dist_pk,"primary variable key").setValue("snow-precipitation")
         if snow_dist_pk.isElement("conserved quantity key") and \
-             asearch.childByName(snow_dist_pk,"conserved quantity key").get("value") == "surface-precipitation_snow":
-            asearch.childByName(snow_dist_pk,"conserved quantity key").set("value", "snow-precipitation")
+             asearch.child_by_name(snow_dist_pk,"conserved quantity key").getValue() == "surface-precipitation_snow":
+            asearch.child_by_name(snow_dist_pk,"conserved quantity key").setValue("snow-precipitation")
         if snow_dist_pk.isElement("domain name") and \
-           asearch.childByName(snow_dist_pk,"domain name").get("value") == "surface":
-            asearch.childByName(snow_dist_pk,"domain name").set("value", "snow")
+           asearch.child_by_name(snow_dist_pk,"domain name").getValue() == "surface":
+            asearch.child_by_name(snow_dist_pk,"domain name").setValue("snow")
     
-    for ssk in asearch.generateElementByNamePath(xml, "state/field evaluators/snow-conductivity"):
+    for ssk in asearch.find_path(xml, ["state","field evaluators","snow-conductivity"]):
         if ssk.isElement("height key"):
-            asearch.childByName(ssk, "height key").set("value", "snow-precipitation")
+            asearch.child_by_name(ssk, "height key").setValue("snow-precipitation")
 
 def end_time_units(xml):
     """yr --> y"""
-    for end_time in asearch.generateElementByNamePath(xml, "cycle driver/end time units"):
-        if end_time.get("value") == "yr":
-            end_time.set("value", "y")
+    try:
+        end_time = asearch.find_path(xml, ["cycle driver","end time units"])
+    except aerrors.MissingXMLError:
+        pass
+    else:
+        if end_time.getValue() == "yr":
+            end_time.setValue("y")
 
 
 def surface_rel_perm_one(xml):
     """Add units, changed to pressure."""
-    for surf_rel_perm in asearch.generateElementByNamePath(xml, "surface rel perm model"):
+    for surf_rel_perm in asearch.findall_name(xml, "surface rel perm model"):
         pres_above = None
         if surf_rel_perm.isElement("unfrozen rel perm cutoff depth"):
             height_el = surf_rel_perm.pop("unfrozen rel perm cutoff height")
-            pres_above = height_el.get("value") * 1000 * 10
+            pres_above = height_el.getValue() * 1000 * 10
         if surf_rel_perm.isElement("unfrozen rel pres cutoff pressure"):
             pres_el = surf_rel_perm.pop("unfrozen rel perm cutoff pressure")
-            pres_above = pres_el.get("value")
+            pres_above = pres_el.getValue()
         if surf_rel_perm.isElement("unfrozen rel pres cutoff pressure [Pa]"):
             continue
         else:
             if pres_above is not None:
-                surf_rel_perm.append(parameter.DoubleParameter("unfrozen rel pres cutoff pressure [Pa]", pres_above)
+                surf_rel_perm.append(parameter.DoubleParameter("unfrozen rel pres cutoff pressure [Pa]", pres_above))
             
             
             
@@ -151,9 +155,9 @@ def update(xml):
     bad_spinup_longwave(xml)
     sources(xml)
     
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     for pk in pks:
-        pk_type = asearch.childByName(pk, "PK type")
+        pk_type = asearch.child_by_name(pk, "PK type")
         if pk_type.get('value') == 'surface balance implicit':
             print('updating seb monolitic')
             import seb_monolithic_to_evals
@@ -180,7 +184,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    print "Converting file: %s"%args.infile
+    print("Converting file: %s", args.infile)
     xml = aio.fromFile(args.infile, True)
     update(xml)
     if args.inplace:

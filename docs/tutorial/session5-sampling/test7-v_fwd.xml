@@ -182,7 +182,7 @@
           </ParameterList>
 
           <ParameterList name="preconditioner" type="ParameterList">
-            <Parameter name="preconditioner type" type="string" value="boomer amg" />
+            <Parameter name="preconditioning method" type="string" value="boomer amg" />
             <ParameterList name="boomer amg parameters" type="ParameterList">
               <Parameter name="cycle applications" type="int" value="1" />
               <Parameter name="smoother sweeps" type="int" value="2" />
@@ -297,7 +297,7 @@
             <ParameterList name="permafrost surface and subsurface" type="ParameterList">
               <Parameter name="PK type" type="string" value="permafrost model" />
               <Parameter name="PKs order" type="Array(string)" value="{subsurface flow, subsurface energy, surface flow, surface energy}" />
-              <Parameter name="preconditioner type" type="string" value="picard" />
+              <Parameter name="preconditioning method" type="string" value="picard" />
               <Parameter name="supress Jacobian terms: d div q / dT" type="bool" value="true" />
               <Parameter name="supress Jacobian terms: d div K grad T / dp" type="bool" value="true" />
               <Parameter name="supress Jacobian terms: div hq / dp,T" type="bool" value="true" />
@@ -330,7 +330,7 @@
               </ParameterList>
 
               <ParameterList name="preconditioner" type="ParameterList">
-                <Parameter name="preconditioner type" type="string" value="boomer amg" />
+                <Parameter name="preconditioning method" type="string" value="boomer amg" />
                 <ParameterList name="boomer amg parameters" type="ParameterList">
                   <Parameter name="cycle applications" type="int" value="1" />
                   <Parameter name="smoother sweeps" type="int" value="4" />
@@ -374,7 +374,7 @@
                     <Parameter name="discretization primary" type="string" value="mfd: two-point flux approximation" />
                     <ParameterList name="consistent faces" type="ParameterList">
                       <ParameterList name="preconditioner" type="ParameterList">
-                        <Parameter name="preconditioner type" type="string" value="boomer amg" />
+                        <Parameter name="preconditioning method" type="string" value="boomer amg" />
                         <ParameterList name="boomer amg parameters" type="ParameterList">
                           <Parameter name="cycle applications" type="int" value="1" />
                           <Parameter name="smoother sweeps" type="int" value="4" />
@@ -496,7 +496,7 @@
                     <Parameter name="discretization primary" type="string" value="mfd: two-point flux approximation" />
                     <ParameterList name="consistent faces" type="ParameterList">
                       <ParameterList name="preconditioner" type="ParameterList">
-                        <Parameter name="preconditioner type" type="string" value="boomer amg" />
+                        <Parameter name="preconditioning method" type="string" value="boomer amg" />
                         <ParameterList name="boomer amg parameters" type="ParameterList">
                           <Parameter name="cycle applications" type="int" value="1" />
                           <Parameter name="smoother sweeps" type="int" value="4" />

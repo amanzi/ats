@@ -65,37 +65,20 @@ def get_axs():
         
 if __name__ == "__main__":
     import sys
-
+    import colors
     import argparse
+
     parser = argparse.ArgumentParser(description="Plot met data from an ATS input h5 file using default names.")
     parser.add_argument("INPUT_FILES", nargs="+", type=str,
                         help="List of logfiles to parse.")
-    parser.add_argument("--colors", "-c", type=colors.float_list_type,
-                        default=None,
-                        help="List of color indices to use, of the form: --colors=[0,0.1,1], where the doubles are in the range (0,1) and are mapped to a color using the colormap.")
-    parser.add_argument("--colormap", "-m", type=str,
-                        default="jet",
-                        help="Colormap used to pick a color.")
     args = parser.parse_args()
 
-    import colors
-    cm = colors.cm_mapper(0,1,args.colormap)
+    color_list = colors.enumerated_colors(len(args.INPUT_FILES))
+
     fig, axs = get_axs()
 
-    fnames = args.INPUT_FILES
-    for i,fname in enumerate(fnames):
-        if args.colors is None:
-            if len(fnames) > 1:
-                c = cm(float(i)/(len(fnames)-1))
-            else:
-                c = 'b'
-        else:
-            if type(args.colors[i]) is float:
-                c = cm(args.colors[i])
-            else:
-                c = args.colors[i]
-            
-        plot_met(fname, axs, c)
+    for fname, color in zip(args.INPUT_FILES, color_list):
+        plot_met(fname, axs, color)
 
     plt.show()
-        
+    sys.exit(0)

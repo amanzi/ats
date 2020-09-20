@@ -1,15 +1,14 @@
 /*
-  This is the mpc_pk component of the Amanzi code. 
+  This is the mpc_pk component of the Amanzi code.
 
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
 */
 
 #include "mpc_coupled_transport.hh"
-#include "Transport_PK_ATS.hh"
 
 namespace Amanzi {
 
@@ -25,14 +24,14 @@ namespace Amanzi {
     vo_ = Teuchos::null;
     Teuchos::ParameterList vlist;
     vlist.sublist("verbose object") = global_list -> sublist("verbose object");
-    vo_ =  Teuchos::rcp(new VerboseObject("Coupled TransportPK", vlist)); 
-    
+    vo_ =  Teuchos::rcp(new VerboseObject("Coupled TransportPK", vlist));
+
     name_ = "surface subsurface transport";
 
     Teuchos::Array<std::string> pk_order = plist_->get< Teuchos::Array<std::string> >("PKs order");
-  
+
     for (int i=0; i<2; i++){
-      Teuchos::RCP<Teuchos::ParameterList> list = Teuchos::sublist(Teuchos::sublist(global_list, "PKs"), pk_order[i]);      
+      Teuchos::RCP<Teuchos::ParameterList> list = Teuchos::sublist(Teuchos::sublist(global_list, "PKs"), pk_order[i]);
       Key dom_name = list->get<std::string>("domain name", "domain");
       if (dom_name == "domain"){
         subsurface_transport_list_ = list;
@@ -47,10 +46,10 @@ namespace Amanzi {
       }
     }
 
-    subsurface_flux_key_ =  plist_->get<std::string>("flux_key", 
+    subsurface_flux_key_ =  plist_->get<std::string>("flux_key",
                                                      Keys::getKey(subsurface_name_, "mass_flux"));
 
-    surface_flux_key_ =  plist_->get<std::string>("flux_key", 
+    surface_flux_key_ =  plist_->get<std::string>("flux_key",
                                                   Keys::getKey(surface_name_, "mass_flux"));
 
 
@@ -68,7 +67,7 @@ double CoupledTransport_PK::get_dt() {
 
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) {    
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os()<< "surface transport dt = "<<surf_dt<<"\n";
     *vo_->os()<< "sub surface transport dt = "<<subsurf_dt<<"\n";
   }
@@ -76,7 +75,7 @@ double CoupledTransport_PK::get_dt() {
   double dt = std::min(surf_dt, subsurf_dt);
   set_dt(dt);
   return dt;
- 
+
 }
 
 
@@ -96,7 +95,7 @@ void CoupledTransport_PK::Setup(const Teuchos::Ptr<State>& S){
   //passwd_ = "state";  // owner's password
 
   WeakMPC::Setup(S);
-  
+
 }
 
 void CoupledTransport_PK::Initialize(const Teuchos::Ptr<State>& S){
@@ -120,21 +119,21 @@ bool CoupledTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit) {
   *vo_->os() <<"Overland step successful\n";
 
 
-  const Epetra_MultiVector& surf_tcc = *S_inter_->GetFieldCopyData("surface-total_component_concentration", "subcycling")->ViewComponent("cell",false);  
+  const Epetra_MultiVector& surf_tcc = *S_inter_->GetFieldCopyData("surface-total_component_concentration", "subcycling")->ViewComponent("cell",false);
   const Epetra_MultiVector& tcc = *S_inter_->GetFieldCopyData("total_component_concentration", "subcycling")->ViewComponent("cell",false);
 
   const std::vector<std::string>&  component_names_sub =
-    Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[subsurf_id_])->component_names();
+    Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[subsurf_id_])->component_names();
 
-  int num_components =  Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[subsurf_id_]) -> num_aqueous_component();
+  int num_components =  Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[subsurf_id_]) -> num_aqueous_component();
    std::vector<double> mass_subsurface(num_components, 0.), mass_surface(num_components, 0.);
 
-  
+
   if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM){
     for (int i=0; i<num_components; i++){
-      mass_subsurface[i] = Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[subsurf_id_])
+      mass_subsurface[i] = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[subsurf_id_])
         ->ComputeSolute(tcc, i);
-      mass_surface[i] = Teuchos::rcp_dynamic_cast<Transport::Transport_PK_ATS>(sub_pks_[surf_id_])
+      mass_surface[i] = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[surf_id_])
         ->ComputeSolute(surf_tcc, i);
       Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -143,21 +142,21 @@ bool CoupledTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit) {
       *vo_->os() <<", ToTaL =" << mass_surface[i]+mass_subsurface[i]<< " mol" <<std::endl;
     }
   }
-  
+
   return fail;
-  
+
 
 }
 
 
 /* *******************************************************************
-* Interpolate linearly in time between two values v0 and v1. The time 
+* Interpolate linearly in time between two values v0 and v1. The time
 * is measuared relative to value v0; so that v1 is at time dt. The
-* interpolated data are at time dt_int.            
+* interpolated data are at time dt_int.
 ******************************************************************* */
 void CoupledTransport_PK::InterpolateCellVector(
-    const Epetra_MultiVector& v0, const Epetra_MultiVector& v1, 
-    double dt_int, double dt, Epetra_MultiVector& v_int) 
+    const Epetra_MultiVector& v0, const Epetra_MultiVector& v1,
+    double dt_int, double dt, Epetra_MultiVector& v_int)
 {
   double a = dt_int / dt;
   double b = 1.0 - a;

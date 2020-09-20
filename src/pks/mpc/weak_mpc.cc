@@ -64,4 +64,5 @@ bool WeakMPC::AdvanceStep(double t_old, double t_new, bool reinit) {
   return fail;
 };
 
+
 } // namespace

@@ -13,9 +13,7 @@
    is calculated at equilibrium with ground/surface water and Air.
 
    ------------------------------------------------------------------------- */
-
 #include "surface_balance_base.hh"
-#include "LinearOperatorFactory.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -78,27 +76,13 @@ SurfaceBalanceBase::Setup(const Teuchos::Ptr<State>& S) {
   // operator for inverse
   Teuchos::ParameterList& acc_plist = plist_->sublist("accumulation preconditioner");
   acc_plist.set("entity kind", "cell");
+  acc_plist.set("inverse", plist_->sublist("inverse"));
+  // old style... deprecate me!
+  acc_plist.sublist("inverse").setParameters(plist_->sublist("preconditioner"));
+  acc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
+  
   preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_plist, mesh_));
   preconditioner_ = preconditioner_acc_->global_operator();
-
-  //    symbolic assemble
-  precon_used_ = plist_->isSublist("preconditioner");
-  if (precon_used_) {
-    preconditioner_->SymbolicAssembleMatrix();
-    preconditioner_->InitializePreconditioner(plist_->sublist("preconditioner"));
-  }
-
-  //    Potentially create a linear solver
-  if (plist_->isSublist("linear solver")) {
-    Teuchos::ParameterList& linsolve_sublist = plist_->sublist("linear solver");
-    if (!linsolve_sublist.isSublist("verbose object"))
-      linsolve_sublist.set("verbose object", plist_->sublist("verbose object"));
-    AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeVectorSpace> fac;
-
-    lin_solver_ = fac.Create(linsolve_sublist, preconditioner_);
-  } else {
-    lin_solver_ = preconditioner_;
-  }
 }
 
 
@@ -218,10 +202,6 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
       preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0/theta_, "cell", true);
     }
 
-    if (precon_used_) {
-      preconditioner_->AssembleMatrix();
-      preconditioner_->UpdatePreconditioner();
-    }
   }
 }
 
@@ -235,7 +215,7 @@ int SurfaceBalanceBase::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
   if (conserved_quantity_) {
     db_->WriteVector("seb_res", u->Data().ptr(), true);
-    lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+    preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
     db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
   } else {
     *Pu = *u;

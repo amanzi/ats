@@ -3298,6 +3298,30 @@ Example: pressure (for surface or subsurface)
    </ParameterList>
  </ParameterList>
 
+Example hydrostatic pressure with respect to water table:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="pressure">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary pressure">
+          <ParameterList name="function-static-head">
+             <Parameter name="p0" type="double" value="101325.0"/>
+             <Parameter name="density" type="double" value="997.0"/>
+             <Parameter name="gravity" type="double" value="9.80665"/>
+             <Parameter name="space dimension" type="int" value="3"/>
+             <ParameterList name="water table elevation">
+             <ParameterList name="function-constant"> 
+                <Parameter name="value" type="double" value="-1.0"/>
+             </ParameterList>
+          </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
 
 Example: head (for surface)
  

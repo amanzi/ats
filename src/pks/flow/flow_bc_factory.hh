@@ -66,6 +66,32 @@ Example:
    </ParameterList>
  </ParameterList>
 
+Neumann (fix level flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
+
+Example:
+
+.. code-block:: xml
+     <ParameterList name="boundary conditions">
+       <ParameterList name="fixed level flux">
+          <ParameterList name="river level south">
+            <Parameter name="regions" type="Array(string)" value="{river south}"/>
+            <ParameterList name="fixed level">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="0.5"/>
+               </ParameterList>
+            </ParameterList>
+            <ParameterList name="velocity">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="-25"/>
+               </ParameterList>
+            </ParameterList>            
+          </ParameterList>
+       </ParameterList>
+    </ParameterList>
+
+
  
 Seepage face boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -357,6 +383,14 @@ public:
     return CreateDynamicFunction("dynamic");
   }
   
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const {
+    return CreateWithFunction("fixed level flux", "fixed level");
+  }
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const {
+    return CreateWithFunction("fixed level flux", "velocity");
+  }
+
 };
 
 }  // namespace

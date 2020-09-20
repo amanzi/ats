@@ -1,9 +1,9 @@
 /*
-  This is the mpc_pk component of the Amanzi code. 
+  This is the mpc_pk component of the Amanzi code.
 
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Daniil Svyatskiy
@@ -19,12 +19,13 @@
 //#include "pk_mpcsubcycled_ats.hh"
 #include "weak_mpc.hh"
 #include "PK.hh"
+#include "transport_ats.hh"
 
 namespace Amanzi {
 
   class CoupledTransport_PK: public WeakMPC{
 
-  public: 
+  public:
     CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                      const Teuchos::RCP<State>& S,
@@ -40,17 +41,18 @@ namespace Amanzi {
 
     // -- advance each sub pk from t_old to t_new.
     virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-
     //virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
 
-    std::string name() { return name_;} 
+    std::string name() { return name_;}
+    int num_aqueous_component();
+
 
   private:
 
-    void InterpolateCellVector(const Epetra_MultiVector& v0, const Epetra_MultiVector& v1, 
+    void InterpolateCellVector(const Epetra_MultiVector& v0, const Epetra_MultiVector& v1,
                                double dt_int, double dt, Epetra_MultiVector& v_int) ;
 
-    void ComputeVolumeDarcyFlux(const Teuchos::Ptr<State>& S); 
+    void ComputeVolumeDarcyFlux(const Teuchos::Ptr<State>& S);
 
     Teuchos::RCP<const AmanziMesh::Mesh> mesh_, surf_mesh_;
     std::string passwd_;
@@ -64,8 +66,10 @@ namespace Amanzi {
     Key mass_darcy_key, surf_mass_darcy_key;
     Key vol_darcy_key, surf_vol_darcy_key;
     Key mol_density_key, surf_mol_density_key;
-    
-    
+
+
+    Teuchos::RCP<Transport::Transport_ATS> subsurf_pk_, surf_pk_;
+
     // factory registration
     static RegisteredPKFactory<CoupledTransport_PK> reg_;
 };

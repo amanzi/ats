@@ -3,6 +3,25 @@ import sys,os
 import numpy as np
 import h5py
 
+
+def valid_data_filename(domain, format=None):
+    """The filename for an HDF5 data filename formatter"""
+    if format is None:
+        format = 'ats_vis_{}_data.h5'
+
+    if domain == 'domain':
+        domain = ''
+    fname = format.format(domain)
+    fname = fname.replace('__', '_')
+    return fname
+    
+def valid_mesh_filename(domain, format=None):
+    """Argparse validator for an HDF5 mesh filename formatter"""
+    if format is None:
+        format = 'ats_vis_{}_mesh.h5'
+    return valid_data_filename(domain, format)
+
+
 class VisFile:
     """Class managing the reading of ATS visualization files."""
     def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr'):
@@ -55,8 +74,11 @@ class VisFile:
             raise ValueError("Invalid time unit '{}': must be one of 'yr', 'noleap', 'd', 'hr', or 's'".format(time_unit))
         self.time_factor = time_factor
         self.time_unit = time_unit
-        
-        self.d = h5py.File(os.path.join(self.directory, self.filename))
+
+        self.fname = os.path.join(self.directory, self.filename)
+        if not os.path.isfile(self.fname):
+            raise RuntimeError("Cannot load ATS XDMF h5 file at: {}".format(self.fname))
+        self.d = h5py.File(self.fname,'r')
         self.loadTimes()
         self.map = None
         
@@ -85,6 +107,9 @@ class VisFile:
           * list(int) : a list of specific indices
           * slice object : slice the cycle list
         """
+        if type(indices) is int:
+            indices = [indices,]
+            
         self.cycles = self.cycles[indices]
         self.times = self.times[indices]
 
@@ -204,6 +229,7 @@ class VisFile:
             return val
         else:
             return reorder(val, self.map)
+            
     
     def loadMesh(self, cycle=None, order=None, shape=None, columnar=False, round=5):
         """Load and reorder centroids and volumes of mesh.
@@ -214,7 +240,7 @@ class VisFile:
           If the mesh deforms, the centroids may change.  If not provided, gives
           the first cycle's value.
         order : list(str), optional
-          See arguments to mesh.structuredOrdering().  If provided, this
+          See arguments to structuredOrdering().  If provided, this
           reorders the data, and all future get() and getArray() calls will
           return data in this order.
         round : int
@@ -442,6 +468,10 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
         ordered_coordinates = np.reshape(ordered_coordinates, coord_shape)
         map = np.reshape(map, new_shape)
 
+        if map.shape[0] == 1:
+            map = map[0]
+            ordered_coordinates = ordered_coordinates[0]
+
     return ordered_coordinates, map
 
 
@@ -462,7 +492,6 @@ def reorder(data, map):
       The re-ordered data.
 
     """
-    # one cycle or many?
     flatten = (len(data.shape) == 1)
     if flatten:
         data = np.expand_dims(data, 0)
@@ -476,3 +505,5 @@ def reorder(data, map):
         data = data[0]
 
     return data
+
+

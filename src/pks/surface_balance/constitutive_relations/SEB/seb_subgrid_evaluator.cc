@@ -22,7 +22,6 @@ to first cover water (likely ice), then cover land, as both water and snow
 prefer low-lying depressions due to gravity- and wind-driven redistributions,
 respectively.
 
-* 
 
 */
 
@@ -68,6 +67,9 @@ SubgridEvaluator::SubgridEvaluator(Teuchos::ParameterList& plist) :
     domain_ = std::string("surface_") + domain;
     domain_snow_ = std::string("snow_") + domain;
   }
+  domain_ = plist.get<std::string>("surface domain name", domain_);
+  domain_ss_ = plist.get<std::string>("subsurface domain name", domain_ss_);
+  domain_snow_ = plist.get<std::string>("snow domain name", domain_snow_);
 
   // my keys
   // -- sources
@@ -151,21 +153,14 @@ SubgridEvaluator::SubgridEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(ss_pres_key_);
   
   // parameters
-  min_wind_speed_ = plist.get<double>("minimum wind speed [m/s]?", 1.0);
-  wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
-  dessicated_zone_thickness_ = plist.get<double>("dessicated zone thickness [m]", 0.1);
+  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
+  min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   AMANZI_ASSERT(dessicated_zone_thickness_ > 0.);
 
   ss_topcell_based_evap_ = plist.get<bool>("subsurface top cell based evaporation", false);
   
   roughness_bare_ground_ = plist.get<double>("roughness length of bare ground [m]", 0.04);
   roughness_snow_covered_ground_ = plist.get<double>("roughness length of snow-covered ground [m]", 0.004);
-  snow_ground_trans_ = plist.get<double>("snow-ground transitional depth [m]", 0.02);
-  min_snow_trans_ = plist.get<double>("minimum snow transitional depth", 1.e-8);
-  if (min_snow_trans_ < 0. || snow_ground_trans_ < min_snow_trans_) {
-    Errors::Message message("Invalid parameters: snow-ground transitional depth or minimum snow transitional depth.");
-    Exceptions::amanzi_throw(message);
-  }
 }
 
 void
@@ -258,7 +253,7 @@ SubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     met.QswIn = qSW_in[0][c];
     met.QlwIn = qLW_in[0][c];
     met.air_temp = air_temp[0][c];
-    met.relative_humidity = rel_hum[0][c];
+    met.relative_humidity = std::max(rel_hum[0][c], min_rel_hum_);
     met.Pr = Prain[0][c];
     
     // bare ground column
@@ -446,11 +441,10 @@ SubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       // volumetric snow depth divided by the area fraction of snow
       snow.height = snow_volumetric_depth[0][c] / area_fracs[2][c];
 
-      AMANZI_ASSERT(snow.height >= snow_ground_trans_ - 1.e-6);
-       // area_fracs may have been set to 1 for snow depth < snow_ground_trans
-       // due to min fractional area option in area_fractions evaluator.
-       // Decreasing the tol by 1e-6 is about equivalent to a min fractional
-       // area of 1e-5 (the default)
+      // area_fracs may have been set to 1 for snow depth < snow_ground_trans
+      // due to min fractional area option in area_fractions evaluator.
+      // Decreasing the tol by 1e-6 is about equivalent to a min fractional
+      // area of 1e-5 (the default)
       snow.density = snow_dens[0][c];
       snow.albedo = surf.albedo;
       snow.emissivity = surf.emissivity;
