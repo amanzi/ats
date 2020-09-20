@@ -421,7 +421,9 @@ void Coordinator::read_parameter_list() {
 // -----------------------------------------------------------------------------
 double Coordinator::get_dt(bool after_fail) {
   // get the physical step size
+  //  std::cout<<"Coord1: "<<"\n";
   double dt = pk_->get_dt();
+  double dt_pk = dt;
 
   if (dt < 0.) {
     return dt;
@@ -440,6 +442,8 @@ double Coordinator::get_dt(bool after_fail) {
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_next_->time(), dt, after_fail);
+  dt = std::min(dt, dt_pk);
+  //  std::cout<<"Coord2: "<<" "<<dt<<" "<<dt_pk<<" "<<S_next_->time()<<"\n";
   return dt;
 }
 
@@ -602,8 +606,10 @@ void Coordinator::cycle_driver() {
       S_->set_intermediate_time(S_->time());
 
       fail = advance(S_->time(), S_->time() + dt);
+      //      std::cout<<"Coord00: "<<"\n";
       dt = get_dt(fail);
-
+      //      std::cout<<"Coord3: "<<" "<<dt<<" "<<S_next_->time()<<"\n";
+      //      std::cout<<"Coord01: "<<"\n";
     } // while not finished
 
 

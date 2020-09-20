@@ -70,6 +70,7 @@ class MPCPermafrostSplitFluxColumnsSubcycled : public MPCPermafrostSplitFluxColu
  private:
   std::string subcycled_timestep_type_;
   double  subcycled_timestep_target_, subcycled_target_time_;
+  bool surface_star_subcycling_;
   // factory registration
   static RegisteredPKFactory<MPCPermafrostSplitFluxColumnsSubcycled> reg_;
   
