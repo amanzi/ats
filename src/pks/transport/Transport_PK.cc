@@ -49,8 +49,7 @@ Transport_PK_ATS::Transport_PK_ATS(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<Teuchos::ParameterList>& glist,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& soln) :
-  PK(pk_tree, glist,  S, soln),
-  //PK_Physical_Default(pk_tree, glist, S, soln),
+  //  PK(pk_tree, glist,  S, soln),
   S_(S),
   soln_(soln)
     
