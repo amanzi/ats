@@ -167,11 +167,10 @@ class RegressionTest(object):
         message += "        exec  : {0}\n".format(self._executable)
         message += "        input : {0}../{1}.{2}\n".format(
             self._input_arg,self._test_name,self._input_suffix)
-        for domain,criteria in self._criteria.iteritems():
+        for domain,criteria in self._criteria.items():
             message += "    test criteria on \"{0}\" :\n".format(domain)
-            for key,tol in criteria.iteritems():
-                message += "        {0} : {1} [{2}] : {3} <= abs(value) <= {4}\n".format(
-                    key, tol[0], tol[1], tol[2], tol[3])
+            for tol in criteria:
+                message += "        {}".format(tol)
         return message
 
     def setup(self, cfg_criteria, test_data, timeout, check_performance, testlog):
@@ -487,22 +486,22 @@ class RegressionTest(object):
                 filenames = self.filenames(gold_dir)
                 chp_cycles = [int(os.path.split(f)[-1][10:-3]) for f in filenames]
                 try:
-                    chp = asearch.getElementByNamePath(xml, "checkpoint")
+                    chp = asearch.child_by_name(xml, "checkpoint")
                 except aerrors.MissingXMLError:
-                    pass
-                else:
-                    # empty the checkpoint list
-                    for i in range(len(chp)):
-                        chp.pop(chp[0].get('name'))
+                    raise ValueError("Regression tests are done by checkpointing -- please make sure all tests have at least one checkpoint")
 
-                    chp.setParameter('cycles', 'Array(int)', chp_cycles)
+                # empty the checkpoint list
+                for i in range(len(chp)):
+                    chp.pop(chp[0].get('name'))
+
+                chp.setParameter('cycles', 'Array(int)', chp_cycles)
 
                 # -- update timestep controller, nonlinear solvers
-                for ti in asearch.generateElementByNamePath(xml, "time integrator"):
-                    asearch.generateElementByNamePath(ti, "limit iterations").next().setValue(100)
-                    asearch.generateElementByNamePath(ti, "diverged tolerance").next().setValue(1.e10)
+                for ti in asearch.findall_name(xml, "time integrator"):
+                    asearch.find_name(ti, "limit iterations").setValue(100)
+                    asearch.find_name(ti, "diverged tolerance").setValue(1.e10)
 
-                    asearch.getElementByNamePath(ti, "timestep controller type").setValue("from file")
+                    asearch.find_name(ti, "timestep controller type").setValue("from file")
                     ts_hist = ti.sublist("timestep controller from file parameters")
                     ts_hist.setParameter("file name", "string", "../data/{0}_dts.h5".format(self.name()))
 
@@ -510,18 +509,9 @@ class RegressionTest(object):
                 print("Writing: {0}.xml".format(self.name()), file=testlog)
                 aio.toFile(xml, '{0}.xml'.format(self.name()))
 
-                # clean the gold directory
-                filenames.append(os.path.join(gold_dir, 'ats_version.txt'))
-                # for f in os.listdir(gold_dir):
-                #     if not os.path.join(gold_dir, f) in filenames:
-                #         os.remove(os.path.join(gold_dir, f))
-
-                # git add stuff
-                filenames.append('{}_orig.xml'.format(self.name()))
-                filenames.append('{}.xml'.format(self.name()))
-                filenames.append(os.path.join('data','{}_dts.h5'.format(self.name())))
-                msg = subprocess.check_output(['git', 'add', '-f',]+filenames)
-                print(msg, file=testlog)
+                # -- run update to get a new run on the dt history
+                self.run(False, status, testlog)
+                self.update(status, testlog)
 
         print("done", file=testlog)
 
@@ -548,7 +538,7 @@ class RegressionTest(object):
         reg_files = self.filenames(reg_dirname)
 
         # check that at least one gold file exists
-        if len(gold_files) is 0:
+        if len(gold_files) == 0:
             message = self._txtwrap.fill(
                 "FAIL: could not find checkpoint files in regression "
                 "test gold directory "
@@ -569,21 +559,26 @@ class RegressionTest(object):
 
         for gold_file, reg_file in zip(gold_files, reg_files):
             try:
-                h5_reg = h5py.File(reg_file)
+                h5_reg = h5py.File(reg_file,'r')
             except Exception as e:
                 print("    FAIL: Could not open file: '{0}'".format(reg_file), file=testlog)
                 status.fail = 1
                 h5_reg = None
 
             try:
-                h5_gold = h5py.File(gold_file)
+                h5_gold = h5py.File(gold_file,'r')
             except Exception as e:
                 print("    FAIL: Could not open file: '{0}'".format(gold_file), file=testlog)
                 status.fail = 1
                 h5_gold = None
 
             if h5_reg is not None and h5_gold is not None:
+                status.local_fail = 0
                 self._compare(h5_reg, h5_gold, status, testlog)
+                if status.local_fail == 0:
+                    print("    Passed tests {}".format(os.path.split(gold_file)[-1]), file=testlog)
+                else:
+                    print("    Failed test {}".format(os.path.split(gold_file)[-1]), file=testlog)
 
             if h5_reg is not None: h5_reg.close()
             if h5_gold is not None: h5_gold.close()
@@ -643,9 +638,6 @@ class RegressionTest(object):
                 for (g, r) in zip(gold_matches, reg_matches):
                     self._check_tolerance(h5_current[r][:], h5_gold[g][:], r, tolerance, status, testlog)
 
-        if status.fail == 0:
-            print("    Passed tests.", file=testlog)
-
     def _norm(self, diff):
         """
         Determine the difference between two values
@@ -670,22 +662,13 @@ class RegressionTest(object):
 
         elif (tol_type == self._RELATIVE or
               tol_type == self._PERCENT):
-
             if type(gold) is numpy.ndarray:
-                rel_to = numpy.where(gold > self._eps, gold, current)
-                filter = numpy.where(rel_to > self._eps)[0]            
-                if filter.shape[0] == 0:
-                    delta = 0
-                else:
-                    delta = self._norm((gold[filter] - current[filter]) / rel_to[filter])
+                min_threshold = max(min_threshold, 1.e-12)
+                rel_to = numpy.where(numpy.abs(gold) > min_threshold, gold, min_threshold)
+                delta = self._norm((gold - current) / rel_to)
 
             else:
-                if gold > self._eps:
-                    delta = self._norm((gold - current) / gold)
-                elif current > self._eps:
-                    delta = self._norm((gold - current) / current)
-                else:
-                    delta = 0
+                delta = self._norm((gold - current) / max(abs(gold), min_threshold))
                 
             if tol_type == self._PERCENT:
                 delta *= 100.0
@@ -697,6 +680,7 @@ class RegressionTest(object):
 
         if delta > tol:
             status.fail = 1
+            status.local_fail = 1
             print("    FAIL: {0} : {1} : {2} > {3} [{4}]".format(
                     self.name(), key, delta, tol, tol_type), file=testlog)
         else:
@@ -736,7 +720,7 @@ class RegressionTest(object):
         * key = default
         * key = no
         * key = tolerance type
-        * key = tolerance type [, min_threshold value] [, max_threshold value]
+        * key = tolerance type [ min_threshold value [ max_threshold value ] ]
 
         where the first two use defaults, the third turns the test
         off, and the last two specify the tolerance explicitly, where
@@ -752,19 +736,21 @@ class RegressionTest(object):
             return self._default_tolerance[self._DISCRETE]
 
         # if we get here, parse the string
-        criteria = 4*[None]
-        test_data = test_data.split(",")
-        test_criteria = test_data[0]
-        value = test_criteria.split()[0]
+        criteria = [None, None, 0.0, sys.float_info.max]
+        test_data_s = test_data.split()
 
-        try:
-            value = float(value)
-        except Exception:
+        if len(test_data_s) < 2:
             raise RuntimeError("ERROR : Could not convert '{0}' test criteria "
-                               "value '{1}' into a float!".format(key, value))
+                               "'{1}' into at least a tolerance and type!".format(key, test_data))
+        
+        try:
+            value = float(test_data_s[0])
+        except ValueError:
+            raise RuntimeError("ERROR : Could not convert '{0}' test criteria "
+                               "value '{1}' into a float!".format(key, test_data_s[0]))
         criteria[0] = value
 
-        criteria_type = test_criteria.split()[1]
+        criteria_type = test_data_s[1]
         if (criteria_type.lower() != self._PERCENT and
             criteria_type.lower() != self._ABSOLUTE and
                 criteria_type.lower() != self._RELATIVE):
@@ -772,25 +758,22 @@ class RegressionTest(object):
                                "for '{1}'".format(criteria_type, key))
         criteria[1] = criteria_type
 
-        thresholds = {}
-        for t in range(1, len(test_data)):
-            name = test_data[t].split()[0].strip()
-            value = test_data[t].split()[1].strip()
+        if (len(test_data_s) > 2):
             try:
-                value = float(value)
-            except Exception:
-                raise RuntimeError(
-                    "ERROR : Could not convert '{0}' test threshold '{1}'"
-                    "value '{2}' into a float!".format(key, name, value))
-            thresholds[name] = value
-        value = thresholds.pop("min_threshold", None)
-        criteria[2] = value
-        value = thresholds.pop("max_threshold", None)
-        criteria[3] = value
-        if len(thresholds) > 0:
-            raise RuntimeError("ERROR: test {0} : unknown criteria threshold: {1}",
-                               key, thresholds)
-        
+                min_threshold = float(test_data_s[2])
+            except ValueError:
+                raise RuntimeError("ERROR : Could not convert '{0}' test criteria "
+                                   "min_threshold value '{1}' into a float!".format(key, test_data_s[2]))
+            criteria[2] = min_threshold
+
+        if (len(test_data_s) > 3):
+            try:
+                max_threshold = float(test_data_s[3])
+            except ValueError:
+                raise RuntimeError("ERROR : Could not convert '{0}' test criteria "
+                                   "max_threshold value '{1}' into a float!".format(key, test_data_s[3]))
+            criteria[3] = max_threshold
+
         return criteria
 
 
@@ -1359,27 +1342,22 @@ def check_for_executable(options, testlog):
 def check_for_mpiexec(options, testlog):
     """
     Try to verify that we have something reasonable for the mpiexec executable
-
-    Notes:
-
-    geh: need to add code to determine full path of mpiexec if not specified
-
-    bja: the problem is that we don't know how to get the correct
-    mpiexec. On the mac, there is a system mpiexe that shows up in the
-    path, but this is provided by apple and it is not the correct one
-    to use because it doesn't include a fortran compiler. We need the
-    exact mpiexec/mpirun that was used to compile petsc, which may
-    come from a system installed package in /usr/bin or /opt/local/bin
-    or maybe petsc compiled it. This is best handled outside the test
-    manager, e.g. use make to identify mpiexec from the petsc
-    variables
     """
 
     # check for mpiexec
     mpiexec = None
-    if options.mpiexec is not None:
+    if options.mpiexec is None:
+        # try to detect from env
+        try:
+            mpiexec = distutils.spawn.find_executable("mpiexec")
+        except IOError:
+            mpiexec = None
+    else:
         # mpiexec = os.path.abspath(options.mpiexec[0])
         mpiexec = options.mpiexec[0]
+
+    if mpiexec is not None:
+        # check that we can use it
         # try to log some info about mpiexec
         print("MPI information :", file=testlog)
         print("-----------------", file=testlog)
