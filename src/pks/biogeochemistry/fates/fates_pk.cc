@@ -184,28 +184,28 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
   }
   
   if (!surface_only_){
-    poro_key_ = Keys::readKey(*plist_, "domain", "porosity", "base_porosity");
+    poro_key_ = Keys::readKey(*plist_, "domain", "porosity", "porosity");
     if (!S->HasField(poro_key_)){    
       S->RequireField(poro_key_, "state")->SetMesh(mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(poro_key_);
     }
     soil_temp_key_ = Keys::getKey("domain","temperature");
     if (!S->HasField(soil_temp_key_)){    
       S->RequireField(soil_temp_key_, "state")->SetMesh(mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(soil_temp_key_);
     }    
     sat_key_ = Keys::readKey(*plist_, "domain", "saturation", "saturation_liquid");
     if (!S->HasField(sat_key_)){    
       S->RequireField(sat_key_, "state")->SetMesh(mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(sat_key_);
     }        
     suc_key_ = Keys::readKey(*plist_, "domain", "suction", "suction_head");
     if (!S->HasField(suc_key_)){    
       S->RequireField(suc_key_, "state")->SetMesh(mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(suc_key_);
     }            
     salinity_key_ = Keys::readKey(*plist_, "domain", "concentration", "total_component_concentration");
@@ -405,8 +405,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
           const Epetra_Vector& temp_vec = *(*S_next_->GetFieldData(soil_temp_key_)->ViewComponent("cell", false))(0);        
           FieldToColumn_(c, temp_vec, t_soil_.data() + c*ncells_per_col_, ncells_per_col_);
         }
-        
-        
+                
         if (S_next_->HasField(poro_key_)){
           S_next_->GetFieldEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
           const Epetra_Vector& poro_vec = *(*S_next_->GetFieldData(poro_key_)->ViewComponent("cell", false))(0);        
@@ -416,13 +415,14 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
         if (S_next_->HasField(sat_key_)){
           S_next_->GetFieldEvaluator(sat_key_)->HasFieldChanged(S_next_.ptr(), name_);
-          const Epetra_Vector& sat_vec = *(*S_next_->GetFieldData(sat_key_)->ViewComponent("cell", false))(0);        
-          FieldToColumn_(c, sat_vec, vsm_.data() + c*ncells_per_col_, ncells_per_col_);
-                   
+          const Epetra_Vector& h2osoil_vec = *(*S_next_->GetFieldData(sat_key_)->ViewComponent("cell", false))(0);
+          FieldToColumn_(c, h2osoil_vec, vsm_.data() + c*ncells_per_col_, ncells_per_col_);
+          for (int i=0; i<vsm_.size(); ++i) vsm_[i] *= poro_[i]; // convert to water soil content
         }else{
           vsm_.assign(poro_.begin(), poro_.end());  // No saturation in state. Fully saturated assumption;
         }
 
+        
         if (S_next_->HasField(suc_key_)){          
           S_next_->GetFieldEvaluator(suc_key_)->HasFieldChanged(S_next_.ptr(), name_);
           const Epetra_Vector& suc_vec = *(*S_next_->GetFieldData(suc_key_)->ViewComponent("cell", false))(0);        
@@ -445,18 +445,15 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     // std::cout<<"t_soil_\n";
     // for (auto ent : t_soil_) std::cout<<ent<<" ";
     // std::cout<<"\n";
-    // std::cout<<"poro\n";
-    // for (auto ent : poro_) std::cout<<ent<<" ";
-    // std::cout<<"\n";
-    // std::cout<<"eff_poro_\n";
-    // for (auto ent : eff_poro_) std::cout<<ent<<" ";
-    // std::cout<<"\n";
-    // std::cout<<"vsm_\n";
-    // for (auto ent : vsm_) std::cout<<ent<<" ";
-    // std::cout<<"\n";
-    // std::cout<<"suc_\n";
-    // for (auto ent : suc_) std::cout<<ent<<" ";
-    // std::cout<<"\n";
+    std::cout<<"poro: ";
+    for (auto ent : poro_) std::cout<<ent<<" ";
+    std::cout<<"\n";
+    std::cout<<"vsm: ";
+    for (auto ent : vsm_) std::cout<<ent<<" ";
+    std::cout<<"\n";
+    std::cout<<"suc: ";
+    for (auto ent : suc_) std::cout<<ent<<" ";
+    std::cout<<"\n";
     
     int array_size = t_soil_.size();
     wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data(), salinity_.data());    
