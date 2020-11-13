@@ -1102,7 +1102,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
       }
 
       if (vo_->os_OK(Teuchos::VERB_HIGH)){
-        *vo_->os() << "Tidal BC: f="<<f<<" type "<<markers[f]<<" val "<<values[f]<<"\n";
+           *vo_->os() << "Tidal BC: f="<<f<<" type "<<markers[f]<<" val "<<values[f]<<"\n";
       }
       
     }
@@ -1234,8 +1234,6 @@ void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S,
        bc!=bc_tidal_->end(); ++bc) {
 
     int f = bc->first;
-
-
     AmanziMesh::Entity_ID_List cells, faces;
     std::vector<int> fdirs;
     mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
@@ -1243,7 +1241,6 @@ void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S,
     AmanziMesh::Entity_ID c = cells[0];
                                                
     if (f < nfaces_owned) {
-
       mesh_->cell_get_faces_and_dirs(c, &faces, &fdirs);
       int j=0;
       for (j=0; j<faces.size(); j++){
@@ -1272,11 +1269,9 @@ void OverlandPressureFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S,
       }
 
       if (vo_->os_OK(Teuchos::VERB_HIGH)){
-        *vo_->os() << "Tidal BC2: f="<<f<<" type "<<markers[f]<<" val "<<values[f]<<
-          " Aff "<< Aff[f](0,0) << "\n";
+        *vo_->os() << "Tidal BC2: f = "<<f<<" type "<<markers[f]<<" val "<<values[f]<<"\n";
       }
 
-      
     }
   }
 

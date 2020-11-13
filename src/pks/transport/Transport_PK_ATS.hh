@@ -94,7 +94,8 @@ class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   virtual std::string name() { return "transport_ats"; }
 
-  Key domain_name() {return domain_;}
+  Key domain_name() {return domain_name_;}
+
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
@@ -229,6 +230,7 @@ class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
  protected:
     Teuchos::RCP<TreeVector> soln_;
 
+    Key domain_name_;
     Key saturation_key_;
     Key prev_saturation_key_;
     Key flux_key_;

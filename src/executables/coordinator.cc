@@ -93,7 +93,7 @@ void Coordinator::coordinator_init() {
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
 
-    if (S_->IsDeformableMesh(mesh->first) && S_->IsAliasedMesh(mesh->first)) {
+    if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
       std::string node_key;
       if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
       else node_key = std::string("vertex_coordinate");

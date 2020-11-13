@@ -432,9 +432,12 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
         }
 
         if (S_next_->HasField(salinity_key_)){          
+
           S_next_->GetFieldEvaluator(salinity_key_)->HasFieldChanged(S_next_.ptr(), name_);
           const Epetra_Vector& salt_vec = *(*S_next_->GetFieldData(salinity_key_)->ViewComponent("cell", false))(ncomp_salt_);        
-          FieldToColumn_(c, salt_vec, salinity_.data() + c*ncells_per_col_, ncells_per_col_);          
+          FieldToColumn_(c, salt_vec, salinity_.data() + c*ncells_per_col_, ncells_per_col_);
+          for(int i=0; i<ncells_per_col_; ++i) salinity_[c*ncells_per_col_ + i] *= 10.;
+          
         }else{
           for(int i=0;i<salinity_.size();i++) salinity_[i] = 0.;  // No suction is defined in State;
         }
@@ -445,15 +448,19 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     // std::cout<<"t_soil_\n";
     // for (auto ent : t_soil_) std::cout<<ent<<" ";
     // std::cout<<"\n";
-    std::cout<<"poro: ";
-    for (auto ent : poro_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"vsm: ";
-    for (auto ent : vsm_) std::cout<<ent<<" ";
-    std::cout<<"\n";
-    std::cout<<"suc: ";
-    for (auto ent : suc_) std::cout<<ent<<" ";
-    std::cout<<"\n";
+    // std::cout<<"poro: ";
+    // for (auto ent : poro_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"vsm: ";
+    // for (auto ent : vsm_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"suc: ";
+    // for (auto ent : suc_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // std::cout<<"salt: ";
+    // for (auto ent : salinity_) std::cout<<ent<<" ";
+    // std::cout<<"\n";
+    // exit(0);
     
     int array_size = t_soil_.size();
     wrap_btran(&clump_, &array_size, t_soil_.data(), poro_.data(), eff_poro_.data(), vsm_.data(), suc_.data(), salinity_.data());    
