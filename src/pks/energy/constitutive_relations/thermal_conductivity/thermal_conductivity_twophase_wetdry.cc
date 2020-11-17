@@ -38,8 +38,8 @@ double ThermalConductivityTwoPhaseWetDry::ThermalConductivity(double poro,
 void ThermalConductivityTwoPhaseWetDry::InitializeFromPlist_() {
   eps_ = plist_.get<double>("epsilon [-]", 1.e-10);
   alpha_ = plist_.get<double>("unsaturated alpha [-]", 1.0);
-  k_dry_ = plist_.get<double>("thermal conductivity, dry [W/(m-K)]");
-  k_wet_ = plist_.get<double>("thermal conductivity, wet [W/(m-K)]");
+  k_dry_ = plist_.get<double>("thermal conductivity, dry [W m^-1 K^-1]");
+  k_wet_ = plist_.get<double>("thermal conductivity, wet [W m^-1 K^-1]");
 };
 
 } // namespace Relations

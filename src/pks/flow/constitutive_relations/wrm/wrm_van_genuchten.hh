@@ -2,8 +2,8 @@
 //! WRMVanGenuchten : water retention model using van Genuchten's parameterization
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -13,21 +13,21 @@
 
 van Genuchten's water retention curve.
 
-* `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
+.. _wrm-van-genuchten-spec
+.. admonition:: wrm-van-genuchten-spec
 
-ONE OF:
-* `"van Genuchten n`" ``[double]`` van Genuchten's n
-OR
-* `"van Genuchten m`" ``[double]`` van Genuchten's m, m = 1 - 1/n
-END
+    * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
-* `"residual saturation [-]`" ``[double]`` **0.0**
+    ONE OF:
+    * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+    OR
+    * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+    END
 
-* `"smoothing interval width [saturation]`" ``[double]`` **0.0**
-
-* `"Mualem exponent l [-]`" ``[double]`` **0.5**
-
-* `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
+    * `"residual saturation [-]`" ``[double]`` **0.0**
+    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+    * `"Mualem exponent l [-]`" ``[double]`` **0.5**
+    * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
 
 Example:
 
@@ -36,9 +36,9 @@ Example:
     <ParameterList name="moss" type="ParameterList">
       <Parameter name="region" type="string" value="moss" />
       <Parameter name="WRM Type" type="string" value="van Genuchten" />
-      <Parameter name="van Genuchten alpha" type="double" value="0.002" />
-      <Parameter name="van Genuchten m" type="double" value="0.2" />
-      <Parameter name="residual saturation" type="double" value="0.0" />
+      <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
+      <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
+      <Parameter name="residual saturation [-]" type="double" value="0.0" />
       <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
     </ParameterList>
 
@@ -87,7 +87,7 @@ public:
 
   double pc0_;
   Amanzi::Utils::Spline fit_s_;
-  
+
 
   static Utils::RegisteredFactory<WRM,WRMVanGenuchten> factory_;
 };

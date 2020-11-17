@@ -42,7 +42,7 @@ These methods work to alter the predictor around this nonlinearity.
     These methods work to alter the preconditioned correction for the same
     reasons described above.
 
-    * `"global water face limiter`" ``[default]`` **INF** This is simply a limit
+    * `"global water face limiter`" ``[double]`` **1.e99** This is simply a limit
       to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
       correction larger than this is set to this.
 

@@ -29,10 +29,10 @@ double ThermalConductivityThreePhaseVolumeAveraged::ThermalConductivity(double p
 };
 
 void ThermalConductivityThreePhaseVolumeAveraged::InitializeFromPlist_() {
-  k_soil_ = plist_.get<double>("thermal conductivity of soil [W/(m-K)]");
-  k_ice_ = plist_.get<double>("thermal conductivity of ice [W/(m-K)]");
-  k_liquid_ = plist_.get<double>("thermal conductivity of liquid [W/(m-K)]");
-  k_gas_ = plist_.get<double>("thermal conductivity of gas [W/(m-K)]");
+  k_soil_ = plist_.get<double>("thermal conductivity of soil [W m^-1 K^-1]");
+  k_ice_ = plist_.get<double>("thermal conductivity of ice [W m^-1 K^-1]");
+  k_liquid_ = plist_.get<double>("thermal conductivity of liquid [W m^-1 K^-1]");
+  k_gas_ = plist_.get<double>("thermal conductivity of gas [W m^-1 K^-1]");
 };
 
 } // namespace Relations

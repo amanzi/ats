@@ -31,7 +31,6 @@ generating the input file, and this class would go away.
 
 #include "PK_Factory.hh"
 #include "overland_pressure.hh"
-#include "icy_height_model.hh"
 
 namespace Amanzi {
 

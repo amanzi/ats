@@ -1,5 +1,5 @@
 # -*- mode: cmake -*-
-include_directories(${ATS_SOURCE_DIR}/pks)
+include_directories(${ATS_SOURCE_DIR}/src/pks)
 
 # ATS Surface balance PKs describe Evaporation, energy fluxes from
 #  long/showtwave radiation, precip, etc etc etc

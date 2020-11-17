@@ -26,20 +26,23 @@ include_directories(${MSTK_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
 include_directories(${DBG_SOURCE_DIR})
+include_directories(${TRANSPORT_SOURCE_DIR})
+get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
+include_directories(${CHEM_INCLUDES_DIR})
 
-#include_directories(${ATS_SOURCE_DIR}/constitutive_relations)
-#include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
-#include_directories(${ATS_SOURCE_DIR}/constitutive_relations/surface_subsurface_fluxes)
-#include_directories(${ATS_SOURCE_DIR}/constitutive_relations/generic_evaluators)
-include_directories(${ATS_SOURCE_DIR}/pks)
-#include_directories(${ATS_SOURCE_DIR}/pks/mpc)
-#include_directories(${ATS_SOURCE_DIR}/pks/energy)
-#include_directories(${ATS_SOURCE_DIR}/pks/flow)
-#include_directories(${ATS_SOURCE_DIR}/pks/deformation)
-#include_directories(${ATS_SOURCE_DIR}/pks/transport)
-include_directories(${ATS_SOURCE_DIR}/operators/upwinding)
-include_directories(${ATS_SOURCE_DIR}/operators/advection)
-include_directories(${ATS_SOURCE_DIR}/operators/deformation)
+#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
+#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
+#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/pks)
+#include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
+#include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
+#include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
+#include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+#include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
+include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
+include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
 
 if (ENABLE_FATES)
   link_directories(/nh/u/dasvyat/Coastal/ats-fates-new/install/lib/)
@@ -78,6 +81,10 @@ set(ats_inc_files
 set(amanzi_link_libs
   operators
   pks
+  geochemrxns
+  geochembase
+  geochemutil
+  geochemsolvers
   state
   whetstone
   time_integration
@@ -93,10 +100,6 @@ set(amanzi_link_libs
   output
   mstk_mesh
   mesh_logical
-  geochemrxns
-  geochembase
-  geochemutil
-  geochemsolvers
   chemistry_pk
   mpc_tree
   transport

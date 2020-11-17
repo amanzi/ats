@@ -31,11 +31,10 @@ double ThermalConductivityThreePhaseSutraHacked::ThermalConductivity(double poro
 };
 
 void ThermalConductivityThreePhaseSutraHacked::InitializeFromPlist_() {
-  k_frozen_ = plist_.get<double>("thermal conductivity of frozen zone [W/(m-K)]");
-  k_unfrozen_ = plist_.get<double>("thermal conductivity of unfrozen zone [W/(m-K)]");
-  k_mushy_ = plist_.get<double>("thermal conductivity of mushy zone [W/(m-K)]");
+  k_frozen_ = plist_.get<double>("thermal conductivity of frozen zone [W m^-1 K^-1]");
+  k_unfrozen_ = plist_.get<double>("thermal conductivity of unfrozen zone [W m^-1 K^-1]");
+  k_mushy_ = plist_.get<double>("thermal conductivity of mushy zone [W m^-1 K^-1]");
   sr_ = plist_.get<double>("residual saturation [-]");
-
 };
 
 } // namespace Relations

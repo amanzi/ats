@@ -121,7 +121,7 @@ int SnowDistribution::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuc
 #endif
 
   // apply the preconditioner
-  int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
   Pu->Data()->Scale(1./(10*dt_factor_));
 
 
@@ -187,8 +187,6 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
   preconditioner_acc_->AddAccumulationTerm(cv_times_10, "cell");
 
   preconditioner_diff_->ApplyBCs(true, true, true);
-  preconditioner_->AssembleMatrix();
-  preconditioner_->UpdatePreconditioner();
 };
 
 double SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u,

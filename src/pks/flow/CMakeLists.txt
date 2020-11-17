@@ -8,16 +8,15 @@
 add_subdirectory(constitutive_relations)
 
 # ATS include directories
-include_directories(${ATS_SOURCE_DIR}/pks)
-include_directories(${ATS_SOURCE_DIR}/operators/advection)
-include_directories(${ATS_SOURCE_DIR}/operators/upwinding)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/water_content)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/wrm)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/overland_conductivity)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/elevation)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/sources)
-include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
-
+include_directories(${ATS_SOURCE_DIR}/src/pks)
+include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
+include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/water_content)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
 
 
 set(ats_flow_src_files

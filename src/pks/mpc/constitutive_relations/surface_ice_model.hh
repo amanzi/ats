@@ -64,6 +64,7 @@ class SurfaceIceModel : public EWCModelBase {
   double gz_;
   double M_;
 
+  Key ice_dens_key_;
 };
 
 

@@ -1,8 +1,8 @@
 [submodule "docs/documentation/source/ats_demos"]
 	path = docs/documentation/source/ats_demos
 	url = https://github.com/amanzi/ats-demos.git
-        branch = .
+        branch = master
 [submodule "testing/ats-regression-tests"]
 	path = testing/ats-regression-tests
 	url = https://github.com/amanzi/ats-regression-tests.git
-        branch = .
+        branch = master

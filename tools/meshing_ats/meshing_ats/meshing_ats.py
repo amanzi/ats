@@ -289,11 +289,23 @@ class Mesh2D(object):
     def from_Transect(cls, x, z, width=1):
         """Creates a 2D surface strip mesh from transect data"""
         # coordinates
-        y = np.array([0,width])
+        if (type(width) is list or type(width) is np.ndarray):
+            variable_width = True
+            y = np.array([0,1])
+        else:
+            variable_width = False
+            y = np.array([0,width])
+            
         Xc, Yc = np.meshgrid(x, y)
+        if variable_width:
+            assert(Yc.shape[1] == 2)
+            assert(len(width) == Yc.shape[0])
+            assert(min(width) > 0.)
+            Yc[:,0] = -width/2.
+            Yc[:,1] = width/2.
+
         Xc = Xc.flatten()
         Yc = Yc.flatten()
-
         Zc = np.concatenate([z,z])
 
         # connectivity

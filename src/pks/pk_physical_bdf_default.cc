@@ -16,19 +16,18 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 
 namespace Amanzi {
 
-
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S) {
-
+void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
+{
   // call the meat of the base constructurs via Setup methods
   PK_Physical_Default::Setup(S);
   PK_BDF_Default::Setup(S);
 
   // boundary conditions
   bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
-  
+
   // convergence criteria is based on a conserved quantity
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
@@ -44,7 +43,7 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S) {
   S->RequireField(cell_vol_key_)->SetMesh(mesh_)
       ->AddComponent("cell",AmanziMesh::CELL,true);
   S->RequireFieldEvaluator(cell_vol_key_);
-  
+
   atol_ = plist_->get<double>("absolute error tolerance",1.0);
   rtol_ = plist_->get<double>("relative error tolerance",1.0);
   fluxtol_ = plist_->get<double>("flux error tolerance",1.0);
@@ -55,15 +54,13 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S) {
 // initialize.  Note both BDFBase and PhysicalBase have initialize()
 // methods, so we need a unique overrider.
 // -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::Initialize(const Teuchos::Ptr<State>& S) {
+void PK_PhysicalBDF_Default::Initialize(const Teuchos::Ptr<State>& S)
+{
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // PhysicalBase grabs the primary variable and stuffs it into the solution,
   // which must be done prior to BDFBase initializing the timestepper.
-
-
   PK_Physical_Default::Initialize(S);
   PK_BDF_Default::Initialize(S);
-
 }
 
 
@@ -71,7 +68,8 @@ void PK_PhysicalBDF_Default::Initialize(const Teuchos::Ptr<State>& S) {
 // Default enorm that uses an abs and rel tolerance to monitor convergence.
 // -----------------------------------------------------------------------------
 double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
-        Teuchos::RCP<const TreeVector> res) {
+        Teuchos::RCP<const TreeVector> res)
+{
   // Abs tol based on old conserved quantity -- we know these have been vetted
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
@@ -101,7 +99,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
     int enorm_loc = -1;
     const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
 
-    if (*comp == std::string("cell")) {
+    if (*comp == "cell") {
       // error done relative to extensive, conserved quantity
       int ncells = dvec->size(*comp,false);
       for (unsigned int c=0; c!=ncells; ++c) {
@@ -113,7 +111,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
           enorm_loc = c;
         }
       }
-      
+
     } else if (*comp == std::string("face")) {
       // error in flux -- relative to cell's extensive conserved quantity
       int nfaces = dvec->size(*comp, false);
@@ -125,7 +123,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
             : std::min(cv[0][cells[0]],cv[0][cells[1]]);
         double conserved_min = cells.size() == 1 ? conserved[0][cells[0]]
             : std::min(conserved[0][cells[0]],conserved[0][cells[1]]);
-      
+
         double enorm_f = fluxtol_ * h * std::abs(dvec_v[0][f])
             / (atol_*cv_min + rtol_*std::abs(conserved_min));
         if (enorm_f > enorm_comp) {
@@ -137,9 +135,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
     } else {
       // double norm;
       // dvec_v.Norm2(&norm);
-
       //      AMANZI_ASSERT(norm < 1.e-15);
-
     }
 
     // Write out Inf norms too.
@@ -171,86 +167,6 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 };
 
 
-// -----------------------------------------------------------------------------
-// Add a boundary marker to owned faces.
-// -----------------------------------------------------------------------------
-void
-PK_PhysicalBDF_Default::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u) {
-  auto& markers = bc_markers();
-  auto& values = bc_values();
-  if (u->HasComponent("face")) {
-    Epetra_MultiVector& u_f = *u->ViewComponent("face",false);
-    unsigned int nfaces = u_f.MyLength();
-    for (unsigned int f=0; f!=nfaces; ++f) {
-      if (markers[f] == Operators::OPERATOR_BC_DIRICHLET) {
-        u_f[0][f] = values[f];
-      }
-    }
-  } else if (u->HasComponent("boundary_face")) {
-    const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh_->face_map(false);
-
-    Epetra_MultiVector& u_bf = *u->ViewComponent("boundary_face",false);
-    unsigned int nfaces = u_bf.MyLength();
-    for (unsigned int bf=0; bf!=nfaces; ++bf) {
-      AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
-      if (markers[f] == Operators::OPERATOR_BC_DIRICHLET) {
-        u_bf[0][bf] = values[f];
-      }
-    }
-  }    
-};
-
-
-double PK_PhysicalBDF_Default::BoundaryValue(const Teuchos::RCP<const Amanzi::CompositeVector>& solution, int face_id){
-  double value=0.;
-
-  // if (solution->HasComponent("face")){
-  //   const Epetra_MultiVector& u = *solution -> ViewComponent("face",false);
-  //   value = u[0][face_id];
-  // }
-  // else if  (solution->HasComponent("boundary_face")){
-  //   const Epetra_MultiVector& u = *solution -> ViewComponent("boundary_face",false);
-  //   const Epetra_Map& fb_map = mesh_->exterior_face_map(false);
-  //   const Epetra_Map& f_map = mesh_->face_map(false);
-
-  //   int face_gid = f_map.GID(face_id);
-  //   int face_lbid = fb_map.LID(face_gid);
-
-  //   value =  u[0][face_lbid];
-  // }
-  // else{
-  //   Errors::Message msg("No component is defined for boundary faces\n");
-  //   Exceptions::amanzi_throw(msg);
-  // }
-
-  // return value;
-  if (solution->HasComponent("face")){
-    const Epetra_MultiVector& u = *solution->ViewComponent("face",false);
-    value = u[0][face_id];
-  // } else if  (solution->HasComponent("boundary_face") &&
-  //             bc_markers_[face_id] == Operators::OPERATOR_BC_DIRICHLET){
-  } else if (bc_markers()[face_id] == Operators::OPERATOR_BC_DIRICHLET) {
-    // const Epetra_MultiVector& u = *solution->ViewComponent("boundary_face",false);
-    // const Epetra_Map& fb_map = mesh_->exterior_face_map(false);
-    // const Epetra_Map& f_map = mesh_->face_map(false);
-
-    // int face_gid = f_map.GID(face_id);
-    // int face_lbid = fb_map.LID(face_gid);
-
-    // value = u[0][face_lbid];
-    value = bc_values()[face_id];
-  } else {
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(face_id, AmanziMesh::Parallel_type::ALL, &cells);
-    AMANZI_ASSERT(cells.size() == 1);
-    const Epetra_MultiVector& u = *solution->ViewComponent("cell",false);
-    value = u[0][cells[0]];    
-  }
-  return value;
-}
-
-
   // void PK_PhysicalBDF_Default::Solution_to_State(TreeVector& solution,
   //                                                 const Teuchos::RCP<State>& S){
   //   PK_Physical_Default::Solution_to_State(solution, S);
@@ -259,7 +175,7 @@ double PK_PhysicalBDF_Default::BoundaryValue(const Teuchos::RCP<const Amanzi::Co
   // void PK_PhysicalBDF_Default::Solution_to_State(const TreeVector& soln,
   //                                                const Teuchos::RCP<State>& S){
   //   TreeVector* soln_nc_ptr = const_cast<TreeVector*>(&soln);
-  //   PK_Physical_Default::Solution_to_State(soln_nc_ptr, S);    
+  //   PK_Physical_Default::Solution_to_State(soln_nc_ptr, S);
   // }
 
 void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<State>& S,
@@ -269,28 +185,22 @@ void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<State>& S,
 }
 
 
-int PK_PhysicalBDF_Default::BoundaryDirection(int face_id) {
-  AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(face_id, AmanziMesh::Parallel_type::ALL, &cells);
-  AMANZI_ASSERT(cells.size() == 1);
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
-  mesh_->cell_get_faces_and_dirs(cells[0], &faces, &dirs);
-  return dirs[std::find(faces.begin(), faces.end(), face_id) - faces.begin()];
-}
-
-// Experimental approach -- calling this indicates that the time
-// integration scheme is changing the value of the solution in
-// state.
+// -----------------------------------------------------------------------------
+// Calling this indicates that the time integration scheme is changing the
+// value of the solution in state.
 // -----------------------------------------------------------------------------
 void PK_PhysicalBDF_Default::ChangedSolution(const Teuchos::Ptr<State>& S) {
   if (S == Teuchos::null) {
     solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
-
+  } else if (S == S_next_.ptr()) {
+    if (!solution_evaluator_.get()) {
+      Teuchos::RCP<FieldEvaluator> fm = S_next_->GetFieldEvaluator(key_);
+      solution_evaluator_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+      AMANZI_ASSERT(solution_evaluator_ != Teuchos::null);
+    }
+    solution_evaluator_->SetFieldAsChanged(S);
   } else {
-
     Teuchos::RCP<FieldEvaluator> fm = S->GetFieldEvaluator(key_);
-
     Teuchos::RCP<PrimaryVariableFieldEvaluator> solution_evaluator =
       Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
     AMANZI_ASSERT(solution_evaluator != Teuchos::null);
@@ -301,11 +211,10 @@ void PK_PhysicalBDF_Default::ChangedSolution(const Teuchos::Ptr<State>& S) {
 
 // -----------------------------------------------------------------------------
 // Calling this indicates that the time integration scheme is changing
-// the value of the solution in state.
+// the value of the solution in state.  This is the variant called by the TI.
 // -----------------------------------------------------------------------------
 void PK_PhysicalBDF_Default::ChangedSolution() {
-  solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+  solution_evaluator_->SetFieldAsChanged(Teuchos::null);
 };
-  
 
 } // namespace

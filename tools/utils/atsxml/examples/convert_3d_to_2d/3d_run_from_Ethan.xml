@@ -228,7 +228,7 @@
 
         <ParameterList name="permafrost surface and subsurface" type="ParameterList">
           <Parameter name="PK type" type="string" value="new permafrost model no SC" />
-          <Parameter name="preconditioner type" type="string" value="picard" />
+          <Parameter name="preconditioning method" type="string" value="picard" />
           <Parameter name="PKs order" type="Array(string)" value="{subsurface flow, subsurface energy, surface flow, surface energy}" />
           <ParameterList name="VerboseObject" type="ParameterList">
             <Parameter name="Verbosity Level" type="string" value="low" />
@@ -259,7 +259,7 @@
 
           <ParameterList name="Coupled PC" type="ParameterList">
             <ParameterList name="preconditioner" type="ParameterList">
-              <Parameter name="preconditioner type" type="string" value="boomer amg" />
+              <Parameter name="preconditioning method" type="string" value="boomer amg" />
               <ParameterList name="boomer amg parameters" type="ParameterList">
                 <Parameter name="number of cycles" type="int" value="10" />
                 <Parameter name="number of smoothing iterations" type="int" value="2" />
@@ -294,7 +294,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -308,7 +308,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -375,7 +375,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -392,7 +392,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -451,7 +451,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -465,7 +465,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -540,7 +540,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -556,7 +556,7 @@
                 <ParameterList name="consistent face solver" type="ParameterList">
                   <Parameter name="iterative method" type="string" value="nka" />
                   <ParameterList name="preconditioner" type="ParameterList">
-                    <Parameter name="preconditioner type" type="string" value="block ilu" />
+                    <Parameter name="preconditioning method" type="string" value="block ilu" />
                   </ParameterList>
                   <ParameterList name="nka parameters" type="ParameterList">
                     <Parameter name="error tolerance" type="double" value="1e-06" />
@@ -1081,11 +1081,11 @@
           <ParameterList name="consistent face solver" type="ParameterList">
             <Parameter name="iterative method" type="string" value="nka" />
             <ParameterList name="preconditioner" type="ParameterList">
-              <Parameter name="preconditioner type" type="string" value="block ilu" />
+              <Parameter name="preconditioning method" type="string" value="block ilu" />
             </ParameterList>
           </ParameterList>
           <ParameterList name="preconditioner" type="ParameterList">
-            <Parameter name="preconditioner type" type="string" value="boomer amg" />
+            <Parameter name="preconditioning method" type="string" value="boomer amg" />
             <ParameterList name="boomer amg parameters" type="ParameterList">
               <Parameter name="number of cycles" type="int" value="10" />
               <Parameter name="number of smoothing iterations" type="int" value="2" />

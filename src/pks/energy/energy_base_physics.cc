@@ -15,6 +15,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 #include "FieldEvaluator.hh"
 #include "energy_base.hh"
 #include "Op.hh"
+#include "pk_helpers.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -26,12 +27,12 @@ void EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   double dt = S_next_->time() - S_inter_->time();
 
   // update the energy at both the old and new times.
-  S_next_->GetFieldEvaluator(energy_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(energy_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   // get the energy at each time
-  Teuchos::RCP<const CompositeVector> e1 = S_next_->GetFieldData(energy_key_);
-  Teuchos::RCP<const CompositeVector> e0 = S_inter_->GetFieldData(energy_key_);
+  Teuchos::RCP<const CompositeVector> e1 = S_next_->GetFieldData(conserved_key_);
+  Teuchos::RCP<const CompositeVector> e0 = S_inter_->GetFieldData(conserved_key_);
 
   // Update the residual with the accumulation of energy over the
   // timestep, on cells.
@@ -57,21 +58,19 @@ void EnergyBase::AddAdvection_(const Teuchos::Ptr<State>& S,
   // is, we can take the evaluation out of Flow::commit_state(),
   // but for now we'll leave it there and assume it has been updated. --etc
   //  S->GetFieldEvaluator(flux_key_)->HasFieldChanged(S.ptr(), name_);
+  ApplyDirichletBCsToEnthalpy_(S);
+
+  // debugging
+  db_->WriteBoundaryConditions(bc_adv_->bc_model(), bc_adv_->bc_value());
   Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
-  db_->WriteVector(" adv flux", flux.ptr(), true);
+  Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);
+  db_->WriteVectors({" adv flux", " enthalpy"}, {flux.ptr(), enth.ptr()}, true);
+
   matrix_adv_->global_operator()->Init();
   matrix_adv_->Setup(*flux);
   matrix_adv_->SetBCs(bc_adv_, bc_adv_);
   matrix_adv_->UpdateMatrices(flux.ptr());
-
-  // apply to enthalpy
-  S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);;
-  ApplyDirichletBCsToEnthalpy_(S.ptr());
   matrix_adv_->ApplyBCs(false, true, false);
-
-
-  // apply
   matrix_adv_->global_operator()->ComputeNegativeResidual(*enth, *g, false);
 }
 
@@ -136,7 +135,7 @@ void EnergyBase::AddSources_(const Teuchos::Ptr<State>& S,
 
 void EnergyBase::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
   // external sources of energy (temperature dependent source)
-  if (is_source_term_ && is_source_term_differentiable_ && 
+  if (is_source_term_ && is_source_term_differentiable_ &&
       S->GetFieldEvaluator(source_key_)->IsDependency(S, key_)) {
 
     Teuchos::RCP<const CompositeVector> dsource_dT;
@@ -169,25 +168,46 @@ void EnergyBase::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
 // This will be removed once boundary faces exist.
 // -------------------------------------------------------------
 void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
-  // put the boundary fluxes in faces for Dirichlet BCs.
+
+  // in the diffusive flux condition, first update the boundary face temperatures for FV
+  auto& T_vec = *S->GetFieldData(key_, name_);
+  if (T_vec.HasComponent("boundary_face")) {
+    Epetra_MultiVector& T_bf = *T_vec.ViewComponent("boundary_face", false);
+    const Epetra_MultiVector& T_c = *T_vec.ViewComponent("cell", false);
+
+    for (int bf=0; bf!=T_bf.MyLength(); ++bf) {
+      AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
+
+      // NOTE: this should get refactored into a helper class, much like predictor_delegate_bc_flux
+      // as this would be necessary to deal with general discretizations.  Note that this is not
+      // needed in cases where boundary faces are already up to date (e.g. MFD, maybe NLFV?)
+      if (bc_markers()[f] == Operators::OPERATOR_BC_NEUMANN &&
+          bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
+        // diffusive flux BC
+        AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
+        const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
+        T_bf[0][bf] = (Acc(0,0)*T_c[0][c] - bc_values()[f]*mesh_->face_area(f)) / Acc(0,0);
+      }
+    }
+  }
+
+  // then put the boundary fluxes in faces for Dirichlet BCs.
   S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
-  
+
   const Epetra_MultiVector& enth_bf =
     *S->GetFieldData(enthalpy_key_)->ViewComponent("boundary_face",false);
-  const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-  const Epetra_Map& face_map = mesh_->face_map(false);
-  
+
   int nbfaces = enth_bf.MyLength();
   for (int bf=0; bf!=nbfaces; ++bf) {
-    AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+    AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
 
     if (bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
       bc_adv_->bc_value()[f] = enth_bf[0][bf];
     }
   }
 }
-  
 
-  
+
+
 } //namespace Energy
 } //namespace Amanzi

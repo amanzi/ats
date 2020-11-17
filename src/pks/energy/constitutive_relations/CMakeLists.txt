@@ -23,7 +23,7 @@ set(ats_energy_relations_src_files "")
 set(ats_energy_relations_inc_files "")
 
 foreach(lcv IN LISTS subdirs)
-  include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/${lcv})
+  include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/${lcv})
   
   file(GLOB subdir_sources "./${lcv}/*.cc")
   set(ats_energy_relations_src_files ${ats_energy_relations_src_files} ${subdir_sources})

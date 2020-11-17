@@ -382,7 +382,7 @@ void MatrixVolumetricDeformation::Assemble(
 
 
 
-void MatrixVolumetricDeformation::InitializeInverse() {};
+void MatrixVolumetricDeformation::set_inverse_parameters() {};
 
 }
 }

@@ -2,8 +2,8 @@
 //! Default implementation of both BDF and Physical PKs.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -50,10 +50,9 @@ code, so usually are not supplied by the user.
 
     - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
     - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
-    
-      
-*/
 
+
+*/
 
 #ifndef ATS_PK_PHYSICAL_BDF_BASE_HH_
 #define ATS_PK_PHYSICAL_BDF_BASE_HH_
@@ -71,7 +70,6 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
                                public PK_Physical_Default {
 
  public:
-
   PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
                           const Teuchos::RCP<Teuchos::ParameterList>& glist,
                           const Teuchos::RCP<State>& S,
@@ -81,11 +79,10 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
     PK(pk_tree, glist, S, solution)
   {}
 
-
   virtual void set_states(const Teuchos::RCP<State>& S,
                           const Teuchos::RCP<State>& S_inter,
                           const Teuchos::RCP<State>& S_next) override;
-    
+
   virtual void Setup(const Teuchos::Ptr<State>& S) override;
 
   virtual void set_dt(double dt) override { dt_ = dt; }
@@ -111,7 +108,7 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
   virtual bool ValidStep() override {
     return PK_Physical_Default::ValidStep() && PK_BDF_Default::ValidStep();
   }
-  
+
   // -- Experimental approach -- calling this indicates that the time
   //    integration scheme is changing the value of the solution in
   //    state.
@@ -120,10 +117,6 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
 
   virtual void ChangedSolution() override;
 
-  virtual double BoundaryValue(const Teuchos::RCP<const Amanzi::CompositeVector>& solution, int face_id);
-  virtual int BoundaryDirection(int face_id);
-  virtual void ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u);
-  
   // PC operator access
   Teuchos::RCP<Operators::Operator> preconditioner() { return preconditioner_; }
 

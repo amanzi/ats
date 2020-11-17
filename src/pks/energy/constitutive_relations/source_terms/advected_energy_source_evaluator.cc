@@ -113,16 +113,6 @@ AdvectedEnergySourceEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
 
 void
 AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
-
-  if (my_key_.empty()) {
-    if (include_conduction_) {
-      my_key_ = plist_.get<std::string>("energy source key",
-              "total_energy_source");
-    } else {
-      my_key_ = plist_.get<std::string>("energy source key",
-              "advected_energy_source");
-    }
-  }
   std::string domain = Keys::getDomain(my_key_);
 
   internal_enthalpy_key_ = Keys::readKey(plist_, domain, "internal enthalpy", "enthalpy");
@@ -152,13 +142,10 @@ AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
             << " and \"mol m^-3 s^-1\".";
     Exceptions::amanzi_throw(message);
   }
-    
-  if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
-    internal_density_key_ = plist_.get<std::string>("internal density key",
-            Keys::getKey(domain, "molar_density_liquid"));
-    external_density_key_ = plist_.get<std::string>("external density key",
-            Keys::getKey(domain, "source_molar_density"));
 
+  if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
+    internal_density_key_ = Keys::readKey(plist_, domain, "internal molar density", "molar_density_liquid");
+    external_density_key_ = Keys::readKey(plist_, domain, "external molar density", "source_molar_density");
     dependencies_.insert(internal_density_key_);
     dependencies_.insert(external_density_key_);
   }

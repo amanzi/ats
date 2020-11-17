@@ -1,18 +1,23 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Internal energy model for air and water vapor.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Internal energy model for water_vapor, relative to water @237.15K
+Internal energy model for air and water vapor, relative to water @237.15K
 
-See ATS process model documentation's permafrost physical properties
-documentation for details.
+.. _iem-water-vapor-spec
+.. admonition:: iem-water-vapor-spec
 
-UNITS: MJ/mol
-------------------------------------------------------------------------- */
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
+
+*/
 
 #ifndef AMANZI_ENERGY_RELATIONS_IE_WATER_VAPOR_
 #define AMANZI_ENERGY_RELATIONS_IE_WATER_VAPOR_
@@ -27,7 +32,7 @@ class IEMWaterVapor {
 public:
   IEMWaterVapor(Teuchos::ParameterList& plist);
 
-  bool IsMolarBasis() { return molar_basis_; }
+  bool IsMolarBasis() { return true; }
 
   double InternalEnergy(double temp, double mol_frac_gas);
   double DInternalEnergyDT(double temp, double mol_frac_gas);
@@ -40,7 +45,6 @@ private:
 
   double Cv_air_; // units: MJ/(mol-K)
   double heat_vaporization_; // units: MJ/mol
-  bool molar_basis_;
 };
 
 } //namespace

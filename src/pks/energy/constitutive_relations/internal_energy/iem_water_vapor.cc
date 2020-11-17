@@ -1,19 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Internal energy model for air and water vapor.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Internal energy model for water vapor, relative to water @237.15K
+Internal energy model for air and water vapor, relative to water @237.15K
 
-See ATS process model documentation's permafrost physical properties
-documentation for details.
-
-UNITS: MJ/mol
-------------------------------------------------------------------------- */
-
+*/
 #include "iem_water_vapor.hh"
 
 namespace Amanzi {
@@ -39,9 +37,8 @@ double IEMWaterVapor::DInternalEnergyDomega(double temp, double mol_frac_gas) {
 };
 
 void IEMWaterVapor::InitializeFromPlist_() {
-  molar_basis_ = plist_.get<bool>("molar-basis (otherwise, mass-basis)", true);
-  Cv_air_ = 1.e-6 * plist_.get<double>("heat capacity of air [J/(mol-K)]", 13.0);
-  heat_vaporization_ = 1.e-6 * plist_.get<double>("heat of vaporization of water [J/mol]", 4.065e4);
+  Cv_air_ = 1.e-6 * plist_.get<double>("heat capacity [J mol^-1 K^-1]", 13.0);
+  heat_vaporization_ = 1.e-6 * plist_.get<double>("latent heat [J mol^-1]", 4.065e4);
 };
 
 } // namespace

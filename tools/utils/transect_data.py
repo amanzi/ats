@@ -163,7 +163,7 @@ def plot(dataset, ax, cax=None, vmin=None, vmax=None, cmap="jet",
         assert coords2.shape[2] == 2
         assert coords2.shape[1] == 4
     except AssertionError:
-        print coords2.shape
+        print(coords2.shape)
         for c in conn:
             if len(c) != 9:
                 print c

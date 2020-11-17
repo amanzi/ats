@@ -37,11 +37,8 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
     - ``[debugger-spec]`` Uses a Debugger_
 
 */
-
 #ifndef ATS_PK_PHYSICAL_BASE_HH_
 #define ATS_PK_PHYSICAL_BASE_HH_
-
-
 
 #include "Teuchos_ParameterList.hpp"
 #include "TreeVector.hh"
@@ -51,7 +48,6 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 #include "primary_variable_field_evaluator.hh"
 #include "PK.hh"
 #include "PK_Physical.hh"
-
 
 namespace Amanzi {
 
@@ -85,16 +81,12 @@ class PK_Physical_Default : public PK_Physical {
 
   // Tag the primary variable as changed in the DAG
   virtual void ChangedSolutionPK(const Teuchos::Ptr<State>& S);
-  
+
   // -- setup
   virtual void Setup(const Teuchos::Ptr<State>& S);
 
   // -- initialize
   virtual void Initialize(const Teuchos::Ptr<State>& S);
-
- protected: // methods
-
-  void DeriveFaceValuesFromCellValues_(const Teuchos::Ptr<CompositeVector>& cv);
 
  protected: // data
 

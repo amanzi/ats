@@ -12,7 +12,7 @@ def stack_years(raw):
     if len(raw)%365 != 0:
         raise RuntimeError('Raw data provided is not module 365 (len = %d)'%len(raw))
 
-    nyears = len(raw) / 365
+    nyears = int(np.round(len(raw) / 365))
     raw = raw.reshape((nyears,365)).transpose()
     return nyears, raw
 

@@ -22,27 +22,35 @@ public:
   ColumnSumEvaluator(Teuchos::ParameterList& plist);
   ColumnSumEvaluator(const ColumnSumEvaluator& other);
   Teuchos::RCP<FieldEvaluator> Clone() const;
-  
+
 protected:
   // Required methods from SecondaryVariableFieldEvaluator
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
                Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
-  
+
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
   virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S,
                                       Key request);
 protected:
-  std::map<Key, double> coefs_;
-  Key dep_key_, cv_key_,mdl_key_, surf_cv_key_;
+  double coef_;
+
+  Key dep_key_;
+  Key cv_key_;
+  Key molar_dens_key_;
+  Key surf_cv_key_;
+
+  Key domain_;
+  Key surf_domain_;
+
   bool updated_once_;
 private:
   static Utils::RegisteredFactory<FieldEvaluator,ColumnSumEvaluator> factory_;
 
 };
-  
+
 } //namespace
-} //namespace 
+} //namespace
 
 #endif

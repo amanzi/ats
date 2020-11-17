@@ -4,7 +4,7 @@ import sys,os
 sys.path.append(os.path.join(os.environ['AMANZI_SRC_DIR'], 'tools', 'amanzi_xml'))
 from amanzi_xml.utils import errors
 from amanzi_xml.utils import io
-from amanzi_xml.utils import search
+from amanzi_xml.utils import search as asearch
 from amanzi_xml.common import parameter_list, parameter
 
 
@@ -26,20 +26,20 @@ def removeID(xml):
 def fixPorosity(xml):
     """Fix the compressible porosity list"""
     try:
-        search.getElementByNamePath(xml, "/Main/Regions/computation domain moss")
+        asearch.find_by_path(xml, ["Main","Regions","computation domain moss"])
     except errors.MissingXMLError:
         moss = False
     else:
         moss = True
 
     try:
-        poro = search.getElementByNamePath(xml, "/Main/state/field evaluators/porosity")
+        poro = asearch.find_by_path(xml, ["Main","state","field evaluators","porosity"])
     except errors.MissingXMLError:
         print "no porosity evaluator"
         return
 
     try:
-        params = search.getElementByNamePath(poro, "/compressible porosity model parameters")
+        params = asearch.find_by_path(poro, ["compressible porosity model parameters",])
     except errors.MissingXMLError:
         print "porosity is not compressible"
         return
@@ -166,7 +166,7 @@ def _fixTIList(ti_list):
     migrate(ts_list, old_pars, "count before increasing increase factor")
 
 def fixTIList(xml):
-    for ti_list in search.generateElementByNamePath(xml, "time integrator"):
+    for ti_list in asearch.findall_name(xml, ["time integrator",]):
         _fixTIList(ti_list)
 
 
@@ -207,22 +207,22 @@ def _fixDiffusion(diff, req_pc, req_face):
         diff.setParameter("MFD method", "string", "two point flux approximation")
 
 def fixSolvers(xml):
-    for diff in search.generateElementByNamePath(xml, "Diffusion"):
+    for diff in asearch.findall_name(xml, "Diffusion"):
         _fixDiffusion(diff, False, True)
 
     need_pc = True
-    for pk in search.generateElementByNamePath(xml, "PK type"):
+    for pk in asearch.findall_name(xml, "PK type"):
         if pk.get("value") == "new permafrost model no SC" or \
            pk.get("value") == "subsurface permafrost" or \
            pk.get("value") == "coupled water":
             need_pc = False
-    for diff in search.generateElementByNamePath(xml, "Diffusion PC"):
+    for diff in asearch.findall_name(xml, "Diffusion PC"):
         _fixDiffusion(diff, need_pc, True)
 
-    for solver in search.generateElementByNamePath(xml, "Coupled PC"):
+    for solver in asearch.findall_name(xml, "Coupled PC"):
         _fixPC(solver.sublist("preconditioner"), "boomer amg", True)
 
-    for solver in search.generateElementByNamePath(xml, "Coupled Solver"):
+    for solver in asearch.findall_name(xml, "Coupled Solver"):
         _fixLinOp(solver)
 
 

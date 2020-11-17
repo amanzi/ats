@@ -29,6 +29,7 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr
 
   Teuchos::Ptr<CompositeVector> elev = results[0];
   Teuchos::Ptr<CompositeVector> slope = results[1];
+  Teuchos::Ptr<CompositeVector> aspect = results[2];
 
   // If necessary, create the functions from paramater lists.
   if (elevation_function_ == Teuchos::null) {
@@ -41,9 +42,17 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr
     slope_function_ = Functions::CreateCompositeVectorFunction(slope_plist, slope->Map());
   }
 
+  if (aspect_function_ == Teuchos::null) {
+    if (plist_.isSublist("aspect function")) {
+      Teuchos::ParameterList aspect_plist = plist_.sublist("aspect function");
+      aspect_function_ = Functions::CreateCompositeVectorFunction(aspect_plist, aspect->Map());
+    }
+  }
+  
   // Evaluate the functions.
   elevation_function_->Compute(S->time(), elev);
   slope_function_->Compute(S->time(), slope);
+  if (aspect_function_.get()) aspect_function_->Compute(S->time(), aspect);
 };
 
 

@@ -40,13 +40,6 @@ sinks.
       error norm calculation.  Defaults to a small amount of water.  Units are
       the same as the conserved quantity.
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the
-      solve.
-
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the diffusion preconditioner.  Only used if this
-      PK is not implicitly coupled.  See LinearOperator_.
-
     INCLUDES:
 
     - ``[pk-physical-bdf-default-spec]``
@@ -105,9 +98,7 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
   bool modify_predictor_positivity_preserving_;
 
-  bool precon_used_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
   
  private:
   // factory registration

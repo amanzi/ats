@@ -6,6 +6,7 @@
 #
 
 set(ats_pks_src_files
+  pk_helpers.cc
   pk_bdf_default.cc
   pk_physical_default.cc
   pk_physical_bdf_default.cc

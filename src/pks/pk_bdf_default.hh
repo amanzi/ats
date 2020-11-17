@@ -25,11 +25,11 @@ PKs.
     * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
       by user but by an MPC.
 
-    * `"time integrator`" ``[implicit-time-integrator-typed-spec]`` **optional**
-      A TimeIntegrator_.  Note that this is only provided if this PK is not
+    * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
+      A TimeIntegrator_.  Note that this is only required if this PK is not
       strongly coupled to other PKs.
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** A Preconditioner_.
+    * `"inverse`" ``[inverse-typed-spec]`` **optional** A Preconditioner_.
       Note that this is only used if this PK is not strongly coupled to other PKs.
 
     INCLUDES:

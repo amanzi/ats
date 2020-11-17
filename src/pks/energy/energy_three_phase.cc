@@ -22,9 +22,9 @@ void ThreePhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // Get data and evaluators needed by the PK
   // -- energy, the conserved quantity
 
-  S->RequireField(energy_key_)->SetMesh(mesh_)->SetGhosted()
+  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(energy_key_);
+  S->RequireFieldEvaluator(conserved_key_);
 
   // -- thermal conductivity
   S->RequireField(conductivity_key_)->SetMesh(mesh_)

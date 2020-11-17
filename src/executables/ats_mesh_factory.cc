@@ -2,8 +2,8 @@
 //! Simple wrapper that takes a ParameterList and generates all needed meshes.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -30,25 +30,28 @@ namespace ATS {
 
 void
 createMesh(Teuchos::ParameterList& mesh_plist,
-           const Amanzi::Comm_ptr_type& comm,           
+           const Amanzi::Comm_ptr_type& comm,
            const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
            Amanzi::State& S)
 {
   auto mesh_type = mesh_plist.get<std::string>("mesh type");
   auto mesh_name = Amanzi::Keys::cleanPListName(mesh_plist.name());
-                   
+
   if (mesh_type == "read mesh file") {
     //Amanzi::AmanziMesh::FrameworkPreference prefs(factory.preference());
     //prefs.clear();
     //prefs.push_back(Amanzi::AmanziMesh::MSTK);
-    
+
     // from file
     auto read_params = Teuchos::rcp(new Teuchos::ParameterList(mesh_plist.sublist("read mesh file parameters")));
-    
+    std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
+    // this should get fixed in Amanzi -- why does MSTK parse this list?
+    read_params->sublist("unstructured").sublist("expert").set("partitioner", partitioner);
+
     // file name
     std::string file;
-    if (read_params -> isParameter("file")) {
-      file = read_params -> get<std::string>("file");
+    if (read_params->isParameter("file")) {
+      file = read_params->get<std::string>("file");
     } else {
       Errors::Message msg("\"read mesh file\" list missing \"file\" parameter.");
       Exceptions::amanzi_throw(msg);
@@ -56,9 +59,9 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     // file format
     std::string format;
-    if (read_params -> isParameter("format")) {
+    if (read_params->isParameter("format")) {
       // Is the format one that we can read?
-      format = read_params -> get<std::string>("format");
+      format = read_params->get<std::string>("format");
       if (format != "Exodus II") {
         Errors::Message msg;
         msg << "\"read mesh file\" parameter \"format\" with value \"" << format
@@ -72,7 +75,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     // create the MSTK factory
     Amanzi::AmanziMesh::MeshFactory factory(comm, gm, read_params);
-    
+
     auto mesh = factory.create(file);
 
     if (mesh_plist.isParameter("build columns from set")) {
@@ -84,19 +87,17 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     checkVerifyMesh(mesh_plist, mesh);
     S.RegisterMesh(mesh_name, mesh, deformable);
-    
+
   } else if (mesh_type == "generate mesh") {
-    // create the MSTK factory
-    // Amanzi::AmanziMesh::FrameworkPreference prefs(factory.preference());
-    // prefs.clear();
-    // prefs.push_back(Amanzi::AmanziMesh::MSTK);
-
     // generated mesh
-
     auto genmesh_params = Teuchos::rcp(new Teuchos::ParameterList(mesh_plist.sublist("generate mesh parameters")));
 
+    std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
+    // this should get fixed in Amanzi -- why does MSTK parse this list?
+    genmesh_params->sublist("unstructured").sublist("expert").set("partitioner", partitioner);
+
     Amanzi::AmanziMesh::MeshFactory factory(comm, gm, genmesh_params);
-    
+
     auto mesh = factory.create(*genmesh_params);
     bool deformable = mesh_plist.get<bool>("deformable mesh",false);
 
@@ -195,7 +196,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
   } else if (mesh_type == "domain set") {
     if (Amanzi::Keys::ends_with(mesh_name, "_*")) mesh_name = mesh_name.substr(0,mesh_name.length()-2);
-    
+
     Teuchos::ParameterList& ds_list = mesh_plist.sublist("domain set parameters");
     auto parent_mesh_name = ds_list.get<std::string>("parent domain");
     auto parent_mesh = S.GetMesh(parent_mesh_name);
@@ -212,7 +213,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
     // for each id in the regions of the parent mesh on entity, create a
     // subgrid mesh on MPI_COMM_SELF
     auto comm_self = Amanzi::getCommSelf();
-    
+
     for (auto name_id : *ds) {
       Teuchos::ParameterList subgrid_i_list;
       if (ds_list.isSublist(name_id.first)) {
@@ -238,7 +239,7 @@ createMesh(Teuchos::ParameterList& mesh_plist,
 
     // checkVerifyMesh(mesh_plist, mesh);
     // S.RegisterMesh(Amanzi::Keys::cleanPListName(mesh_plist.name()), mesh, deformable);
-    
+
   } else {
     Errors::Message msg;
     msg << "ATS Mesh Factory: unknown \"mesh type\" parameter \"" << mesh_type
@@ -257,7 +258,7 @@ bool checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
   if (verify) {
     int num_procs = mesh->get_comm()->NumProc();
     int rank = mesh->get_comm()->MyPID();
-    
+
     if (rank == 0)
       std::cout << "Verifying mesh with Mesh Audit..." << std::endl;
     if (num_procs == 1) {
@@ -276,12 +277,12 @@ bool checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
       std::ofstream ofs(ofile.str().c_str());
       if (rank == 0)
         std::cout << "Writing Mesh Audit output to " << ofile.str() << ", etc." << std::endl;
-      
+
       int ierr = 0, aerr = 0;
       Amanzi::MeshAudit mesh_auditor(mesh, ofs);
       int status = mesh_auditor.Verify();        // check the mesh
       if (status != 0) ierr = 1;
-      
+
        mesh->get_comm()->SumAll(&ierr, &aerr, 1);
       if (aerr == 0) {
         if (mesh->get_comm()->MyPID() == 0)
@@ -306,7 +307,7 @@ createMeshes(Teuchos::ParameterList& global_list,
   Teuchos::RCP<Teuchos::Time> volmeshtime =
       Teuchos::TimeMonitor::getNewCounter("volume mesh creation");
   Teuchos::TimeMonitor timer(*volmeshtime);
-  
+
   Teuchos::ParameterList& meshes_list = global_list.sublist("mesh");
 
   // always try to do the domain mesh first
@@ -332,19 +333,19 @@ createMeshes(Teuchos::ParameterList& global_list,
   // generalize vis for columns
   if (global_list.isSublist("visualization columns")) {
     auto surface_mesh = S.GetMesh("surface");
-    Teuchos::ParameterList& vis_ss_plist = global_list.sublist("visualization columns"); 
+    Teuchos::ParameterList& vis_ss_plist = global_list.sublist("visualization columns");
     int nc = surface_mesh->num_entities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED);
-   
+
     for (int c=0; c!=nc; ++c){
       int id = surface_mesh->cell_map(false).GID(c);
       std::stringstream name_ss;
       name_ss << "column_" << id;
-      vis_ss_plist.set("file name base", "visdump_"+name_ss.str());         
+      vis_ss_plist.set("file name base", "visdump_"+name_ss.str());
       global_list.set("visualization " +name_ss.str(), vis_ss_plist);
-    }  
+    }
     global_list.remove("visualization columns");
   }
-  
+
   // generalize vis for surface columns
   if (global_list.isSublist("visualization surface cells")) {
     auto surface_mesh = S.GetMesh("surface");
@@ -362,11 +363,24 @@ createMeshes(Teuchos::ParameterList& global_list,
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  
-  
+
+  //generalize checkpoint files for columns
+  if(global_list.isSublist("checkpoints") && global_list.sublist("mesh").isSublist("column")){
+  Teuchos::ParameterList& checkpoint_plist = global_list.sublist("checkpoints");
+    std::stringstream name_check;
+    name_check << rank;
+    if (global_list.isSublist("checkpoints"))
+      checkpoint_plist.set("file name base", "checkpoint_"+name_check.str() + "_");
+    else
+      checkpoint_plist.set("file name base", "checkpoint");
+    global_list.set("checkpoint " +name_check.str(), checkpoint_plist);
+    global_list.remove("checkpoints");
+
+  }
+
   Teuchos::TimeMonitor::summarize();
   Teuchos::TimeMonitor::zeroOutTimers();
-  
+
 
 }
 } // namespace ATS

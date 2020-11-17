@@ -157,7 +157,7 @@ class EvalGen(object):
 
         for arg,var in zip(self.args,self.vars):
             if self.expression is not None:
-                print "differentiation of", self.expression, "with respect to", var
+                print("differentiation of", self.expression, "with respect to", var)
                 implementation = ccode(self.expression.diff(var))
             else:
                 implementation = "ASSERT(False)"

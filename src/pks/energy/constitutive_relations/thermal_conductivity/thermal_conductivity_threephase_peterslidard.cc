@@ -37,10 +37,10 @@ void ThermalConductivityThreePhasePetersLidard::InitializeFromPlist_() {
   eps_ = plist_.get<double>("epsilon [-]", 1.e-10);
   alpha_u_ = plist_.get<double>("unsaturated alpha unfrozen [-]");
   alpha_f_ = plist_.get<double>("unsaturated alpha frozen [-]");
-  k_soil_ = plist_.get<double>("thermal conductivity of soil [W/(m-K)]");
-  k_ice_ = plist_.get<double>("thermal conductivity of ice [W/(m-K)]");
-  k_liquid_ = plist_.get<double>("thermal conductivity of liquid [W/(m-K)]");
-  k_gas_ = plist_.get<double>("thermal conductivity of gas [W/(m-K)]");
+  k_soil_ = plist_.get<double>("thermal conductivity of soil [W m^-1 K^-1]");
+  k_ice_ = plist_.get<double>("thermal conductivity of ice [W m^-1 K^-1]");
+  k_liquid_ = plist_.get<double>("thermal conductivity of liquid [W m^-1 K^-1]");
+  k_gas_ = plist_.get<double>("thermal conductivity of gas [W m^-1 K^-1]");
 };
 
 } // namespace Relations

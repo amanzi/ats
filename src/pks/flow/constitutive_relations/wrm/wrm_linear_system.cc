@@ -1,8 +1,24 @@
 /*
-  This is the flow component of the Amanzi code.
-  License: BSD
-  Authors: Markus Berndt (berndt@lanl.gov) 
-  Konstantin Lipnikov (lipnikov@lanl.gov)
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Markus Berndt (berndt@lanl.gov)
+           Konstantin Lipnikov (lipnikov@lanl.gov)
+
+*/
+//! A linear sat-pc curve.
+
+/*!
+
+  A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
+  nonlinear solver should always converge in one step.
+
+  No error-checking, so the user is responsible for ensuring that the pressure
+  is always less than atmospheric and within the acceptable range of the slope.
+
+  Note this is mostly for testing.
+
 */
 
 #include "wrm_linear_system.hh"

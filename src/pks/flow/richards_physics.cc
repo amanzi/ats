@@ -41,6 +41,7 @@ void Richards::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S->GetFieldData(flux_key_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
+  if (S == S_next_.ptr()) flux_pvfe_->SetFieldAsChanged(S);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);

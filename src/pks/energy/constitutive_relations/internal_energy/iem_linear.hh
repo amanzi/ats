@@ -1,18 +1,38 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Internal energy based on a linear fit.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
 Linear internal energy model -- function of Cv and temperature
 
-See ATS process model documentation's permafrost physical properties
-documentation for details.
+.. math::
 
-UNITS: MJ/{mol/kg}
-------------------------------------------------------------------------- */
+    u = L_f +  C_v * (T - T_{ref})
+
+.. _iem-linear-spec
+.. admonition:: iem-linear-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
+
+    ONE OF
+
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+
+    OR
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+
+    END
+
+*/
 
 #ifndef AMANZI_ENERGY_RELATIONS_IEM_LINEAR_
 #define AMANZI_ENERGY_RELATIONS_IEM_LINEAR_

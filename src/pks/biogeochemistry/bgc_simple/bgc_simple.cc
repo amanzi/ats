@@ -218,7 +218,7 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // parameters
-  lat_ = plist_->get<double>("latitude [degrees]", 60.);
+  lat_ = plist_->get<double>("latitude [degrees]");
   wind_speed_ref_ht_ = plist_->get<double>("wind speed reference height [m]", 2.0);
   cryoturbation_coef_ = plist_->get<double>("cryoturbation mixing coefficient [cm^2/yr]", 5.0);
   cryoturbation_coef_ /= 365.25e4; // convert to m^2/day
@@ -377,7 +377,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
       ->ViewComponent("cell",false);
   Epetra_MultiVector& lai = *S_next_->GetFieldData("surface-leaf_area_index", name_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& veg_total_transpiration = *S_next_->GetFieldData("surface-veg_total_transpiration", name_)
+  Epetra_MultiVector& total_transpiration = *S_next_->GetFieldData("surface-veg_total_transpiration", name_)
       ->ViewComponent("cell",false);
 
   S_next_->GetFieldEvaluator("temperature")->HasFieldChanged(S_next_.ptr(), name_);
@@ -480,9 +480,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
 
 
       // and pull in the transpiration, converting to mol/m^3/s, as a sink
-      trans[0][col_iter[i]] = -trans_c[i]/ .01801528;
-      //      std::cout << std::scientific;
-      //      std::cout << "Transpiration at " << col_iter[i] << "," << i << " = " << trans[0][col_iter[i]] << std::endl;
+      trans[0][col_iter[i]] = trans_c[i] / .01801528;
       sw[0][col] = sw_c;
     }
 
@@ -492,8 +490,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
       csink[lcv_pft][col] = pfts_[col][lcv_pft]->CSinkLimit;
       lai[lcv_pft][col] = pfts_[col][lcv_pft]->lai;
 
-      veg_total_transpiration[lcv_pft][col] = pfts_[col][lcv_pft]->ET / 0.01801528;
-
+      total_transpiration[lcv_pft][col] = pfts_[col][lcv_pft]->ET / 0.01801528;
       total_lai[0][col] += pfts_[col][lcv_pft]->lai;
     }
 

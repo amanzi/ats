@@ -51,7 +51,7 @@ void UpwindFluxSplitDenominator::Update(const Teuchos::Ptr<State>& S,
   Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_);
   Teuchos::RCP<const CompositeVector> manning_coef = S->GetFieldData(manning_coef_);
   Teuchos::RCP<const CompositeVector> ponded_depth = S->GetFieldData(ponded_depth_);
-  
+
   CalculateCoefficientsOnFaces(*cell, *flux, *slope, *manning_coef, *ponded_depth, face.ptr(), db);
 };
 
@@ -76,7 +76,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
   slope.ScatterMasterToGhosted("cell");
   manning_coef.ScatterMasterToGhosted("cell");
   ponded_depth.ScatterMasterToGhosted("cell");
-  
+
   // pull out vectors
   const Epetra_MultiVector& flux_v = *flux.ViewComponent("face",false);
   Epetra_MultiVector& coef_faces = *face_coef->ViewComponent("face",false);
@@ -85,7 +85,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
   const Epetra_MultiVector& manning_coef_v = *manning_coef.ViewComponent("cell",false);
   const Epetra_MultiVector& ponded_depth_v = *ponded_depth.ViewComponent("cell",false);
   double slope_regularization = slope_regularization_;
-  
+
   // Identify upwind/downwind cells for each local face.  Note upwind/downwind
   // may be a ghost cell.
   Epetra_IntVector upwind_cell(*face_coef->ComponentMap("face",true));
@@ -150,7 +150,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
     } else {
       coefs[1] = coef_cells[0][dw];
     }
-    
+
     if ((uw != -1)&&(dw != -1)) {
       double denom[2];
       denom[0] = manning_coef_v[0][uw] * std::sqrt(std::max(slope_v[0][uw], slope_regularization));
@@ -158,10 +158,10 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
       double dist[2];
       dist[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
       dist[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
-      
+
       denominator = (dist[0] + dist[1])/(dist[0]/denom[0] + dist[1]/denom[1]);
     }
-    
+
     double flow_eps = flux_eps_;
 
     // Determine the coefficient
@@ -171,7 +171,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
       double dist[2];
       dist[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
       dist[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
-      
+
       if (ponded_depth_v[0][dw] > ponded_depth_v[0][uw]) {
         if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
           coef_faces[0][f] = (dist[0] + dist[1])/(dist[0]/coefs[0] + dist[1]/coefs[1]);

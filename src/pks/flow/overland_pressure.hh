@@ -2,8 +2,8 @@
 //! Overland flow using the diffusion wave equation.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -33,13 +33,13 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"overland conductivity evaluator`" ``[overland-conductivity-eval-spec]``
       See `Overland Conductivity Evaluator`_.
-    
+
     IF
-    
+
     * `"source term`" ``[bool]`` **false** Is there a source term?
 
     THEN
-    
+
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
       not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
     * `"mass source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
@@ -60,10 +60,6 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
 
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the diffusion preconditioner.  Only used if this
-      PK is not implicitly coupled.  See LinearOperator_.
-
     * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
       water.  A small, but significant, amount of water.
 
@@ -83,9 +79,9 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
       tidal boundary condition.  TODO: This should live in the BC spec?
-      
+
     INCLUDES:
-    
+
     - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
     Everything below this point is usually not provided by the user, but are
@@ -108,7 +104,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
-    
+
     EVALUATORS:
 
     - `"conserved quantity`"
@@ -163,7 +159,7 @@ public:
                        const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                        const Teuchos::RCP<State>& S,
                        const Teuchos::RCP<TreeVector>& solution);
-  
+
   // Virtual destructor
   virtual ~OverlandPressureFlow() {}
 
@@ -198,10 +194,6 @@ public:
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
-  
-  // -- Compute a norm on u-du and return the result.
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                           Teuchos::RCP<const TreeVector> du);
 
   // -- Possibly modify the correction before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
@@ -250,20 +242,39 @@ protected:
     UPDATE_FLUX_NEVER = 3
   };
 
+  // keys
+  Key potential_key_;
+  Key flux_key_;
+  Key flux_dir_key_;
+  Key velocity_key_;
+  Key elev_key_;
+  Key pd_key_;
+  Key pd_bar_key_;
+  Key wc_bar_key_;
+  Key cond_key_;
+  Key uw_cond_key_;
+  Key dcond_key_;
+  Key duw_cond_key_;
+  Key mass_dens_key_;
+  Key molar_dens_key_;
+  Key cv_key_;
+  Key source_key_;
+  Key source_molar_dens_key_;
+  Key ss_flux_key_;
+
   // control switches
   bool standalone_mode_; // domain mesh == surface mesh
   FluxUpdateMode update_flux_;
   Operators::UpwindMethod upwind_method_;
 
   bool is_source_term_;
-  Key source_key_;
   bool source_in_meters_;
   bool source_only_if_unfrozen_;
-  
+
   bool modify_predictor_with_consistent_faces_;
   bool symmetric_;
   bool perm_update_required_;
-  
+
   double p_limit_;
   double patm_limit_;
   bool patm_hard_limit_;
@@ -278,7 +289,9 @@ protected:
   int iter_;
   double iter_counter_time_;
   int jacobian_lag_;
-  
+
+  // evaluator for flux, which is needed by other pks
+  Teuchos::RCP<PrimaryVariableFieldEvaluator> flux_pvfe_;
 
   // work data space
   Teuchos::RCP<Operators::Upwinding> upwinding_;
@@ -290,9 +303,9 @@ protected:
   Teuchos::RCP<Operators::PDE_Diffusion> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   bool precon_used_;
+  bool precon_scaled_;
 
   // boundary condition data
   Teuchos::RCP<Functions::BoundaryFunction> bc_zero_gradient_;
@@ -305,7 +318,8 @@ protected:
   Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_tidal_;
   Teuchos::RCP<Functions::DynamicBoundaryFunction> bc_dynamic_;
-  
+  Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_ ;
+
   // needed physical models
   Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
 

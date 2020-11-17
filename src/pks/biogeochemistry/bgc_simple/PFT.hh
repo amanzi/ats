@@ -1,13 +1,35 @@
 /*
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
+  provided in the top-level COPYRIGHT file.
 
-Plant Functionality Type class
-
-Author: Ethan Coon (ecoon@lanl.gov)
-        Chonggang Xu (cxu@lanl.gov)
-
-Licencse: BSD
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Chonggang Xu (cxu@lanl.gov)
 */
+//! Plant Functionality Type class
+/*!
 
+Paramters for a plant functional type.
+
+.. _pft-spec:
+.. admonition:: pft-spec
+
+    * `"max root depth [m]`" ``[double]`` Depth of the roots.
+    * `"Vcmax25 [micromol CO2 / m^2(leaf) s]`" ``[double]``
+    * `"Emax25 [micromol C / m^2(leaf) s]`" ``[double]``
+    * `"SLA [m^2(leaf) / kg C`" ``[double]`` Specific leaf area.
+    * `"evergreen`" ``[bool]`` **false** Is evergreen?
+    * `"ratio of leaf to root [-]`" ``[double]``
+    * `"ratio of leaf to stem [-]`" ``[double]``
+    * `"leaf longevity [yr]`" ``[double]``
+    * `"root longevity [yr]`" ``[double]``
+    * `"stem longevity [yr]`" ``[double]``
+
+    * `"height [m]`" ``[double]``
+    * `"stomatal conductance to photosynthetic rate slope (mp) [?]`" ``[double]``
+    * `"wood density [kg m^-3]`" ``[double]``
+
+*/
 
 #ifndef ATS_BGC_PFT_HH_
 #define ATS_BGC_PFT_HH_

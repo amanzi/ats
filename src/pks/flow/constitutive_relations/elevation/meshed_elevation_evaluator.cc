@@ -5,6 +5,9 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "boost/algorithm/string/predicate.hpp"
 
 #include "Mesh.hh"
@@ -13,6 +16,55 @@
 
 namespace Amanzi {
 namespace Flow {
+
+namespace Impl {
+
+void slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect)
+{
+  // -- S = || n - (n dot z) z || / | n dot z |
+  slope = std::sqrt( std::pow(normal[0],2) + std::pow(normal[1],2))
+    / std::abs(normal[2]);
+
+  // and aspect
+  if (normal[0] > 0.0) {
+    // right half
+    if (normal[1] > 0.0) {
+      // upper right quadrant
+      aspect = std::atan(normal[0] / normal[1]);
+    } else if (normal[1] < 0.0) {
+      // lower right quadrant
+      aspect = M_PI - std::atan(normal[0] / -normal[1]);
+    } else {
+      // due east
+      aspect = M_PI_2;
+    }
+  } else if (normal[0] < 0.0) {
+    // left half
+    if (normal[1] > 0.0) {
+      // upper left quadrant
+      aspect = M_2_PI - std::atan(-normal[0] / normal[1]);
+    } else if (normal[1] < 0.0) {
+      // lower left quadrant
+      aspect = M_PI + std::atan(normal[0] / -normal[1]);
+    } else {
+      // due west
+      aspect = M_2_PI - M_PI_2;
+    }
+  } else {
+    // north or south
+    if (normal[1] > 0.0) {
+      aspect = 0.0;
+    } else if (normal[1] < 0.0) {
+      aspect = M_PI;
+    } else {
+      // normal is (0,0,1)
+      aspect = 0.;
+    }
+  }
+}
+
+} // namespace Impl
+
 
 MeshedElevationEvaluator::MeshedElevationEvaluator(Teuchos::ParameterList& plist) :
     ElevationEvaluator(plist) {};
@@ -30,10 +82,12 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
 
   Teuchos::Ptr<CompositeVector> elev = results[0];
   Teuchos::Ptr<CompositeVector> slope = results[1];
+  Teuchos::Ptr<CompositeVector> aspect = results[2];
 
   Epetra_MultiVector& elev_c = *elev->ViewComponent("cell", false);
   Epetra_MultiVector& slope_c = *slope->ViewComponent("cell", false);
-  
+  Epetra_MultiVector& aspect_c = *aspect->ViewComponent("cell", false);
+
   // Get the elevation and slope values from the domain mesh.
   Key domain = Keys::getDomain(my_keys_[0]);
   Key domain_ss;
@@ -44,12 +98,12 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
   } else {
     domain_ss = plist_.get<std::string>("parent domain name");
   }
-  
+
   // Note that static casts are safe here because we have
   // already ensured the meshes were MSTK.
   auto domain_mesh = S->GetMesh(domain_ss);
   auto surface_mesh = S->GetMesh(domain);
-  
+
   if (domain_ss.find("column") != std::string::npos) {
     // Column mesh and column surface cell.
     // Set the elevation on cells by getting the corresponding face and its
@@ -60,19 +114,20 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
     // Note that a surface cell is a volume mesh's face
     AmanziMesh::Entity_ID domain_face;
     domain_face = surface_mesh->entity_get_parent(AmanziMesh::CELL, 0);
-      
+
     // elevation.
     AmanziGeometry::Point x = domain_mesh->face_centroid(domain_face, true);
     elev_c[0][0] = x[2];
 
-    // Slope is zero by definition
+    // Slope is zero by definition, and aspect is undefined
     slope_c[0][0] = 0.;
+    aspect_c[0][0] = 0.;
 
     // Set the elevation on faces by getting the corresponding nodes and
     // averaging.
     if (elev->HasComponent("face")) {
       Epetra_MultiVector& elev_f = *elev->ViewComponent("face", false);
-        
+
       int nfaces = elev_f.MyLength();
       for (int f=0; f!=nfaces; ++f) {
         elev_f[0][f] = x[2];
@@ -83,21 +138,19 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
     // Set the elevation on cells by getting the corresponding face and its
     // centroid.
     int ncells = elev_c.MyLength();
-    
+
     for (int c=0; c!=ncells; ++c) {
       // Note that a surface cell is a volume mesh's face
       AmanziMesh::Entity_ID domain_face;
       domain_face = surface_mesh->entity_get_parent(AmanziMesh::CELL, c);
-      
+
       // First elevation.
       AmanziGeometry::Point x = domain_mesh->face_centroid(domain_face, true);
       elev_c[0][c] = x[2];
 
       // Now slope.
       AmanziGeometry::Point n = domain_mesh->face_normal(domain_face);
-      // -- S = || n - (n dot z) z || / | n dot z |
-      slope_c[0][c] = std::sqrt( std::pow(n[0],2) + std::pow(n[1],2))
-          / std::abs(n[2]);
+      Impl::slope_aspect(n, slope_c[0][c], aspect_c[0][c]);
     }
 
     // Set the elevation on faces by getting the corresponding nodes and
@@ -108,17 +161,39 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
       AmanziMesh::Entity_ID node0, node1;
       AmanziGeometry::Point coord0(3);
       AmanziGeometry::Point coord1(3);
-        
+
       int nfaces = elev_f.MyLength();
       for (int f=0; f!=nfaces; ++f) {
         surface_mesh->face_get_nodes(f, &surface_nodes);
         node0 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[0]);
-        node1 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[1]); 
+        node1 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[1]);
         domain_mesh->node_get_coordinates(node0, &coord0);
         domain_mesh->node_get_coordinates(node1, &coord1);
         elev_f[0][f] = (coord0[2] + coord1[2])/2.0;
       }
     }
+
+    if (elev->HasComponent("boundary_face")) {
+      const Epetra_Map& vandalay_map = surface_mesh->exterior_face_map(false);
+      const Epetra_Map& face_map = surface_mesh->face_map(false);
+      Epetra_MultiVector& elev_bf = *elev->ViewComponent("boundary_face", false);
+
+      AmanziMesh::Entity_ID_List surface_nodes(2);
+      AmanziMesh::Entity_ID node0, node1;
+      AmanziGeometry::Point coord0(3);
+      AmanziGeometry::Point coord1(3);
+
+      for (int bf=0; bf!=elev_bf.MyLength(); ++bf) {
+        AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
+        surface_mesh->face_get_nodes(f, &surface_nodes);
+        node0 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[0]);
+        node1 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[1]);
+        domain_mesh->node_get_coordinates(node0, &coord0);
+        domain_mesh->node_get_coordinates(node1, &coord1);
+        elev_bf[0][bf] = (coord0[2] + coord1[2])/2.0;
+      }
+    }
+
 
   } else { //if (domain_mesh->manifold_dimension() == 2) {
     // Set the elevation on cells by getting the corresponding cell and its
@@ -156,9 +231,8 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
       cross[2] += normals[count-1][0]*normals[0][1] - normals[count-1][1]*normals[0][0];
       cross /= count;
 
-      // -- S = || n - (n dot z) z || / | n dot z |
-      slope_c[0][c] = std::sqrt( std::pow(cross[0],2) + std::pow(cross[1],2))
-          / std::abs(cross[2]);
+      Impl::slope_aspect(cross, slope_c[0][c], aspect_c[0][c]);
+
     }
 
     // Set the elevation on faces by getting the corresponding face and its

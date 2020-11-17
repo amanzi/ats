@@ -1,33 +1,48 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Three-phase thermal conductivity based on paper by Peters-Lidard.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Simple model of three-phase thermal conductivity, based upon:
+A three-phase thermal conductivity, based upon:
 
-- Interpolation between saturated and dry conductivities via a Kersten number.
+- A mixture model using interpolation across various components.
 - Power-law Kersten number.
-- Emperical fit for dry conductivity from Peters-Lidard et al '98.
 
-See ATS process model documentation's permafrost model for details.
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+.. _thermal-conductivity-threephase-peterslidard-spec:
+.. admonition:: thermal-conductivity-threephase-peterslidard-spec
+
+    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
+    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
+    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
+    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of ice
+    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
+    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
+    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
 Usage:
 
-  <ParameterList name="Thermal Conductivity Model">
-    <Parameter name="Thermal Conductivity Type" type="string" value="three-phase Peters-Lidard"/>
-    <Parameter name="thermal conductivity of soil" type="double" value=""/>
-    <Parameter name="thermal conductivity of liquid" type="double" value=""/>
-    <Parameter name="thermal conductivity of gas" type="double" value=""/>
+  <ParameterList name="thermal_conductivity">
+    <Parameter name="thermal conductivity type" type="string" value="three-phase Peters-Lidard"/>
+    <Parameter name="thermal conductivity of soil [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of liquid [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of gas [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of ice [W m^-1 K^-1]" type="double" value=""/>
 
-    <Parameter name="unsaturated alpha" type="double" value="1.0"/>
+    <Parameter name="unsaturated alpha unfrozen [-]" type="double" value=""/>
+    <Parameter name="unsaturated alpha frozen [-]" type="double" value=""/>
+
     <Parameter name="epsilon" type="double" value="1.e-10"/>
   </ParameterList>
 
-Units: ????
-------------------------------------------------------------------------- */
+*/
 
 #ifndef PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_PETERSLIDARD_HH_
 #define PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_PETERSLIDARD_HH_

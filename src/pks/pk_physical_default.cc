@@ -176,11 +176,6 @@ void PK_Physical_Default::Initialize(const Teuchos::Ptr<State>& S) {
     Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
     field->Initialize(ic_plist);
 
-    // -- Update faces from cells if needed.
-    // if (ic_plist.get<bool>("initialize faces from cells", false)) {
-    //   DeriveFaceValuesFromCellValues_(field->GetFieldData().ptr());
-    // }
-
     // communicate just to make sure values are initialized for valgrind's sake
     field->GetFieldData()->ScatterMasterToGhosted();
     solution_evaluator_->SetFieldAsChanged(S);
@@ -189,49 +184,5 @@ void PK_Physical_Default::Initialize(const Teuchos::Ptr<State>& S) {
   // -- Push the data into the solution.
   solution_->SetData(field->GetFieldData());
 };
-
-
-
-// -----------------------------------------------------------------------------
-// Interpolate pressure ICs on cells to ICs for lambda (faces).
-// -----------------------------------------------------------------------------
-void PK_Physical_Default::DeriveFaceValuesFromCellValues_(const Teuchos::Ptr<CompositeVector>& cv) {
-  cv->ScatterMasterToGhosted("cell");
-  Teuchos::Ptr<const CompositeVector> cv_const(cv);
-  const Epetra_MultiVector& cv_c = *cv_const->ViewComponent("cell",true);
-
-  if (cv->HasComponent("face")) {
-    Epetra_MultiVector& cv_f = *cv->ViewComponent("face",false);
-
-    int f_owned = cv_f.MyLength();
-    for (int f=0; f!=f_owned; ++f) {
-      AmanziMesh::Entity_ID_List cells;
-      cv->Mesh()->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      int ncells = cells.size();
-
-      double face_value = 0.0;
-      for (int n=0; n!=ncells; ++n) {
-        face_value += cv_c[0][cells[n]];
-      }
-      cv_f[0][f] = face_value / ncells;
-    }
-  } else if (cv->HasComponent("boundary_face")) {
-    Epetra_MultiVector& cv_bf = *cv->ViewComponent("boundary_face",false);
-    const auto& bfmap = cv->Mesh()->exterior_face_map(false);
-    const auto& fmap = cv->Mesh()->face_map(false);
-
-    int bf_owned = cv_bf.MyLength();
-    for (int bf=0; bf!=bf_owned; ++bf) {
-      auto f = fmap.LID(bfmap.GID(bf));
-      AmanziMesh::Entity_ID_List cells;
-      cv->Mesh()->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      int ncells = cells.size();
-      AMANZI_ASSERT(ncells == 1);
-      cv_bf[0][bf] = cv_c[0][cells[0]];
-    }
-  }
-};
-
-  
 
 } // namespace

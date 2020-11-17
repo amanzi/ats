@@ -1,3 +1,12 @@
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Painter's original, implicitly defined permafrost model.
+
 #include <cmath>
 
 #include "Epetra_SerialDenseMatrix.h"

@@ -8,5 +8,6 @@
 message(STATUS "\n-------------------------------------------")
 message(STATUS "\n-- CMake: Configuring ATS build/install.\n--")
 message(STATUS "----------------------------------------")
+project(ATS)
 add_subdirectory(src)
-
+add_subdirectory(testing)

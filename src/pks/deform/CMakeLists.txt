@@ -5,8 +5,8 @@
 #    Deformation PK class
 #
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations/porosity)
-include_directories(${ATS_SOURCE_DIR}/operators/deformation)
-include_directories(${ATS_SOURCE_DIR}/pks)
+include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks)
 
 set(ats_deform_src_files
   constitutive_relations/porosity/porosity_evaluator.cc

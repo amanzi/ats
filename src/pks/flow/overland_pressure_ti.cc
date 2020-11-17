@@ -18,8 +18,6 @@ namespace Flow {
 
 #define DEBUG_RES_FLAG 0
 
-
-
 // Overland is a BDFFnBase
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
@@ -28,7 +26,8 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
                         double t_new,
                         Teuchos::RCP<TreeVector> u_old,
                         Teuchos::RCP<TreeVector> u_new,
-                        Teuchos::RCP<TreeVector> g ) {
+                        Teuchos::RCP<TreeVector> g )
+{
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   niter_++;
@@ -51,7 +50,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
                << " t1 = " << t_new << " h = " << h << std::endl;
 
   // unnecessary here if not debeugging, but doesn't hurt either
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetFieldEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // dump u_old, u_new
   db_->WriteCellInfo(true);
@@ -64,17 +63,17 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   vnames.push_back("h+z");
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     vnames.push_back("pd - dd");
-    vnames.push_back("frac_cond"); 
+    vnames.push_back("frac_cond");
   }
 
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
   vecs.push_back(S_inter_->GetFieldData(key_).ptr());
   vecs.push_back(u.ptr());
 
-  vecs.push_back(S_inter_->GetFieldData(Keys::getKey(domain_,"elevation")).ptr());
-  vecs.push_back(S_inter_->GetFieldData(Keys::getKey(domain_,"ponded_depth")).ptr());
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"ponded_depth")).ptr());
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"pres_elev")).ptr());
+  vecs.push_back(S_inter_->GetFieldData(elev_key_).ptr());
+  vecs.push_back(S_inter_->GetFieldData(pd_key_).ptr());
+  vecs.push_back(S_next_->GetFieldData(pd_key_).ptr());
+  vecs.push_back(S_next_->GetFieldData(potential_key_).ptr());
 
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"mobile_depth")).ptr());
@@ -93,12 +92,12 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   bc_critical_depth_->Compute(S_next_->time());
   bc_dynamic_->Compute(S_next_->time());
   bc_tidal_->Compute(S_next_->time());
-  
+
   UpdateBoundaryConditions_(S_next_.ptr());
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
-  
+
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
   if (S_next_->HasField(Keys::getKey(domain_,"unfrozen_fraction"))) {
     vnames.resize(2);
@@ -107,12 +106,12 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
     vnames[1] = "uf_frac_new";
     vecs[0] = S_inter_->GetFieldData(Keys::getKey(domain_,"unfrozen_fraction")).ptr();
     vecs[1] = S_next_->GetFieldData(Keys::getKey(domain_,"unfrozen_fraction")).ptr();
-    db_->WriteVectors(vnames, vecs, false);
+    db_->WriteVectors(vnames, vecs, true);
   }
-  db_->WriteVector("uw_dir", S_next_->GetFieldData(Keys::getKey(domain_,"mass_flux_direction")).ptr(), true);
-  db_->WriteVector("k_s", S_next_->GetFieldData(Keys::getKey(domain_,"overland_conductivity")).ptr(), true);
-  db_->WriteVector("k_s_uw", S_next_->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity")).ptr(), true);
-  db_->WriteVector("q_s", S_next_->GetFieldData(Keys::getKey(domain_,"mass_flux")).ptr(), true);
+  db_->WriteVector("uw_dir", S_next_->GetFieldData(flux_dir_key_).ptr(), true);
+  db_->WriteVector("k_s", S_next_->GetFieldData(cond_key_).ptr(), true);
+  db_->WriteVector("k_s_uw", S_next_->GetFieldData(uw_cond_key_).ptr(), true);
+  db_->WriteVector("q_s", S_next_->GetFieldData(flux_key_).ptr(), true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 
   // accumulation term
@@ -126,7 +125,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
 #if DEBUG_RES_FLAG
   if (niter_ < 23) {
 
-    Teuchos::RCP<const CompositeVector> depth= S_next_->GetFieldData(Keys::getKey(domain_,"ponded_depth"));
+    Teuchos::RCP<const CompositeVector> depth= S_next_->GetFieldData(pd_key_);
 
 
     std::stringstream namestream;
@@ -138,27 +137,28 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
     *S_next_->GetFieldData(solnstream.str(),name_) = *depth;
   }
 #endif
-
 };
 
 
 // -----------------------------------------------------------------------------
 // Apply the preconditioner to u and return the result in Pu.
 // -----------------------------------------------------------------------------
-int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
+int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+        Teuchos::RCP<TreeVector> Pu)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon application:" << std::endl;
-
+  AMANZI_ASSERT(!precon_scaled_); // otherwise this factor was built into the matrix
 
   // apply the preconditioner
   db_->WriteVector("h_res", u->Data().ptr(), true);
-  int ierr = lin_solver_->ApplyInverse(*u->Data(), *Pu->Data());
+  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
   db_->WriteVector("PC*h_res (h-coords)", Pu->Data().ptr(), true);
 
   // tack on the variable change
   const Epetra_MultiVector& dh_dp =
-    *S_next_->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"ponded_depth_bar"),key_))->ViewComponent("cell",false);
+    *S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_,key_))->ViewComponent("cell",false);
   Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell",false);
 
   unsigned int ncells = Pu_c.MyLength();
@@ -174,7 +174,9 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, 
 // -----------------------------------------------------------------------------
 // Update the preconditioner at time t and u = up
 // -----------------------------------------------------------------------------
-void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
+void OverlandPressureFlow::UpdatePreconditioner(double t,
+        Teuchos::RCP<const TreeVector> up, double h)
+{
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -186,9 +188,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
     iter_counter_time_ = t;
   }
 
-
   AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
-  
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
   // calculating the operator is done in 3 steps:
@@ -204,14 +204,14 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
   if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(S_next_.ptr());
 
   Teuchos::RCP<const CompositeVector> cond =
-    S_next_->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity"));
+    S_next_->GetFieldData(uw_cond_key_);
 
   Teuchos::RCP<const CompositeVector> dcond = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
     if (preconditioner_->RangeMap().HasComponent("face")) {
-      dcond = S_next_->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"upwind_overland_conductivity"),Keys::getKey(domain_,"ponded_depth")));
+      dcond = S_next_->GetFieldData(duw_cond_key_);
     } else {
-      dcond = S_next_->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"overland_conductivity"),Keys::getKey(domain_,"ponded_depth")));
+      dcond = S_next_->GetFieldData(dcond_key_);
     }
   }
 
@@ -224,11 +224,11 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
     Teuchos::RCP<const CompositeVector> pres_elev = Teuchos::null;
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
     if (preconditioner_->RangeMap().HasComponent("face")) {
-      flux = S_next_->GetFieldData(Keys::getKey(domain_,"mass_flux"), name_);
+      flux = S_next_->GetFieldData(flux_key_, name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     } else {
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S_next_.ptr(), name_);
-      pres_elev = S_next_->GetFieldData(Keys::getKey(domain_,"pres_elev"));
+      S_next_->GetFieldEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
+      pres_elev = S_next_->GetFieldData(potential_key_);
     }
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), pres_elev.ptr());
   }
@@ -242,21 +242,22 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
   //    to h.
   //
   // -- update dh_bar / dp
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth_bar"))
+  S_next_->GetFieldEvaluator(pd_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  auto dh_dp = S_next_->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"ponded_depth_bar"),key_));
+  auto dh_dp = S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_, key_));
 
   // -- update the accumulation derivatives
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"water_content_bar"))
+  S_next_->GetFieldEvaluator(wc_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  auto dwc_dp = S_next_->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"water_content_bar"),key_));
+  auto dwc_dp = S_next_->GetFieldData(Keys::getDerivKey(wc_bar_key_, key_));
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
   db_->WriteVector("    dh_dp", dh_dp.ptr());
 
   CompositeVector dwc_dh(dwc_dp->Map());
   dwc_dh.ReciprocalMultiply(1./h, *dh_dp, *dwc_dp, 0.);
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
-  
+
+  // Why is this turned off? #60 --etc
   // // -- update the source term derivatives
   // if (S_next_->GetFieldEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
   //   S_next_->GetFieldEvaluator(source_key_)
@@ -267,7 +268,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
 
   //   const Epetra_MultiVector& cv =
   //       *S_next_->GetFieldData("surface-cell_volume")->ViewComponent("cell",false);
-    
+
   //   if (source_in_meters_) {
   //     // External source term is in [m water / s], not in [mols / s], so a
   //     // density is required.  This density should be upwinded.
@@ -293,188 +294,36 @@ void OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const Tre
   //       Acc_cells[c] -= cv[0][c] * dq_dp[0][c] / dh_dp[0][c];
   //     }
   //   }
-  // }      
-  
+  // }
+
 
   // 3. Assemble and precompute the Schur complement for inversion.
   // 3.a: Patch up BCs in the case of zero conductivity
   FixBCsForPrecon_(S_next_.ptr());
 
-  // // 3.c: Add in full Jacobian terms
-  // if (tpfa_ && full_jacobian_) {
-  //   if (vo_->os_OK(Teuchos::VERB_EXTREME))
-  //     *vo_->os() << "    including full Jacobian terms" << std::endl;
-
-  //   Teuchos::RCP<const CompositeVector> depth =
-  //       S_next_->GetFieldData("ponded_depth");
-  //   Teuchos::RCP<const CompositeVector> pres_elev =
-  //       S_next_->GetFieldData("pres_elev");
-
-  //   // Update conductivity.  Note the change of variables from pressure to
-  //   // height.
-  //   // -- Krel_face gets conductivity
-  //   S_next_->GetFieldEvaluator("overland_conductivity")
-  //       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  //   Teuchos::RCP<const CompositeVector> cond =
-  //       S_next_->GetFieldData("overland_conductivity");
-  //   Teuchos::RCP<const CompositeVector> dcond_dp =
-  //       S_next_->GetFieldData("doverland_conductivity_dponded_depth");
-  //   CompositeVector dcond_dh(*dcond_dp);
-  //   dcond_dh.ViewComponent("cell",false)->ReciprocalMultiply(1., dh_dp,
-  //           *dcond_dp->ViewComponent("cell",false), 0.);
-
-  //   // -- Add in the Jacobian
-  //   tpfa_preconditioner_->AnalyticJacobian(*upwinding_,
-  //                                          S_next_.ptr(), "pres_elev",
-  //                                          dcond_dh, bc_markers_,
-  //                                          bc_values_);
-  // }
-
   preconditioner_diff_->ApplyBCs(true, true, true);
-  
+
   // 3.d: Rescale to use as a pressure matrix if used in a coupler
   //  if (coupled_to_subsurface_via_head_ || coupled_to_subsurface_via_flux_) {
-  if (!precon_used_) {
+  if (precon_scaled_) {
     // Scale Spp by dh/dp (h, NOT h_bar), clobbering rows with p < p_atm
-    std::string pd_key = Keys::getKey(domain_,"ponded_depth");
-    std::string pd_deriv_key = Keys::getDerivKey(pd_key,key_);
+    std::string pd_deriv_key = Keys::getDerivKey(pd_key_,key_);
 
-    S_next_->GetFieldEvaluator(pd_key)
+    S_next_->GetFieldEvaluator(pd_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
     Teuchos::RCP<const CompositeVector> dh0_dp = S_next_->GetFieldData(pd_deriv_key);
     const Epetra_MultiVector& dh0_dp_c = *dh0_dp->ViewComponent("cell",false);
-    
+
     preconditioner_->Rescale(*dh0_dp);
-    
+
     if (vo_->os_OK(Teuchos::VERB_EXTREME))
       *vo_->os() << "  Right scaling TPFA" << std::endl;
     db_->WriteVector("    dh_dp", dh0_dp.ptr());
   }
 
-  if (precon_used_) {
-    preconditioner_->AssembleMatrix();
-    preconditioner_->UpdatePreconditioner();
-  }      
-  
-  /*
-  // dump the schur complement
-  Teuchos::RCP<Epetra_FECrsMatrix> sc = mfd_preconditioner_->Schur();
-  std::stringstream filename_s;
-  filename_s << "schur_" << S_next_->cycle() << ".txt";
-  EpetraExt::RowMatrixToMatlabFile(filename_s.str().c_str(), *sc);
-  *vo_->os() << "updated precon " << S_next_->cycle() << std::endl;
-  */
-
   // increment the iterator count
   iter_++;
 };
 
-// -----------------------------------------------------------------------------
-// Default enorm that uses an abs and rel tolerance to monitor convergence.
-// -----------------------------------------------------------------------------
-double OverlandPressureFlow::ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                               Teuchos::RCP<const TreeVector> res) {
-
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& conserved = *S_inter_->GetFieldData(conserved_key_)
-      ->ViewComponent("cell",true);
-  const Epetra_MultiVector& cv = *S_inter_->GetFieldData(Keys::getKey(domain_,"cell_volume"))
-      ->ViewComponent("cell",true);
-  
-  // VerboseObject stuff.
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-    *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
-  
-  Teuchos::RCP<const CompositeVector> dvec = res->Data();
-  double h = S_next_->time() - S_inter_->time();
-
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
-  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  const MPI_Comm& comm = mpi_comm_p->Comm();
-  
-  double enorm_val = 0.0;
-  for (CompositeVector::name_iterator comp=dvec->begin();
-       comp!=dvec->end(); ++comp) {
-    double enorm_comp = 0.0;
-    int enorm_loc = -1;
-    const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
-    
-    if (*comp == std::string("cell")) {
-      // error done relative to extensive, conserved quantity
-      int ncells = dvec->size(*comp,false);
-      for (unsigned int c=0; c!=ncells; ++c) {
-        double enorm_c = std::abs(h * dvec_v[0][c])
-        / (atol_*cv[0][c] + rtol_*std::abs(conserved[0][c]));
-        
-        if (enorm_c > enorm_comp) {
-          enorm_comp = enorm_c;
-          enorm_loc = c;
-        }
-      }
-      
-    } else if (*comp == std::string("face")) {
-      // DEPRECATED: this was used in MFD on the surface only? --etc
-
-      // error in flux -- relative to cell's extensive conserved quantity
-      int nfaces = dvec->size(*comp, false);
-      bool scaled_constraint = plist_->sublist("diffusion").get<bool>("scaled constraint equation", true);
-      double constraint_scaling_cutoff = plist_->sublist("diffusion").get<double>("constraint equation scaling cutoff", 1.0);
-
-      const Epetra_MultiVector& kr_f = *S_next_->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity"))
-        ->ViewComponent("face",false);
-      
-      for (unsigned int f=0; f!=nfaces; ++f) {
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
-        double cv_min = cells.size() == 1 ? cv[0][cells[0]]
-            : std::min(cv[0][cells[0]],cv[0][cells[1]]);
-        double conserved_min = cells.size() == 1 ? conserved[0][cells[0]]
-            : std::min(conserved[0][cells[0]],conserved[0][cells[1]]);
-        
-        double enorm_f = fluxtol_ * h * std::abs(dvec_v[0][f])
-            / (atol_*cv_min + rtol_*std::abs(conserved_min));
-        if (scaled_constraint && (kr_f[0][f] < constraint_scaling_cutoff)) enorm_f *= kr_f[0][f];
-        if (enorm_f > enorm_comp) {
-          enorm_comp = enorm_f;
-          enorm_loc = f;
-        }
-      }
-      
-    } else {
-      // boundary face components had better be effectively identically 0
-      double norm;
-      dvec_v.Norm2(&norm);
-      AMANZI_ASSERT(norm < 1.e-15);
-    }
-   
-    // Write out Inf norms too.
-    if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-      double infnorm(0.);
-      dvec_v.NormInf(&infnorm);
-      
-      ENorm_t err;
-      ENorm_t l_err;
-      l_err.value = enorm_comp;
-      l_err.gid = dvec_v.Map().GID(enorm_loc);
-
-      int ierr;
-      ierr = MPI_Allreduce(&l_err, &err, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-      AMANZI_ASSERT(!ierr);
-      *vo_->os() << "  ENorm (" << *comp << ") = " << err.value << "[" << err.gid << "] (" << infnorm << ")" << std::endl;
-    }
-    
-    enorm_val = std::max(enorm_val, enorm_comp);
-  }
-  
-  double enorm_val_l = enorm_val;
-
-  int ierr;
-  ierr = MPI_Allreduce(&enorm_val_l, &enorm_val, 1, MPI_DOUBLE, MPI_MAX, comm);
-  AMANZI_ASSERT(!ierr);
-  return enorm_val;
-}
-  
 }  // namespace Flow
 }  // namespace Amanzi

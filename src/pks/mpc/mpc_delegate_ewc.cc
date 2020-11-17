@@ -34,7 +34,6 @@ void MPCDelegateEWC::setup(const Teuchos::Ptr<State>& S) {
   std::string name = plist_->get<std::string>("PK name")+std::string(" EWC");
 
   // Get the mesh
-
   Key domain = plist_->get<std::string>("domain name", "");
 
   if (domain.size() != 0) {
@@ -47,13 +46,13 @@ void MPCDelegateEWC::setup(const Teuchos::Ptr<State>& S) {
   db_ = Teuchos::rcp(new Debugger(mesh_, name, *plist_));
 
   // Process the parameter list for data Keys
-  pres_key_ = plist_->get<std::string>("pressure key", Keys::getKey(domain, "pressure"));
-  temp_key_ = plist_->get<std::string>("temperature key", Keys::getKey(domain,"temperature"));
- 
-  e_key_ = plist_->get<std::string>("energy key", Keys::getKey(domain, "energy"));
-  wc_key_ = plist_->get<std::string>("water content key", Keys::getKey(domain,"water_content"));
-  cv_key_ = plist_->get<std::string>("cell volume key", Keys::getKey(domain, "cell_volume"));
-  
+  pres_key_ = Keys::readKey(*plist_, domain, "pressure", "pressure");
+  temp_key_ = Keys::readKey(*plist_, domain, "temperature", "temperature");
+
+  e_key_ = Keys::readKey(*plist_, domain, "energy", "energy");
+  wc_key_ = Keys::readKey(*plist_, domain, "water content", "water_content");
+  cv_key_ = Keys::readKey(*plist_, domain, "cell volume", "cell_volume");
+
   // Process the parameter list for methods
   std::string precon_string = plist_->get<std::string>("preconditioner type", "none");
   if (precon_string == "none") {

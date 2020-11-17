@@ -1,20 +1,40 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Internal energy based on a quadratic fit to data.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
 Quadratic internal energy model -- function of Cv and temperature
 
-See ATS process model documentation's permafrost physical properties
-documentation for details.
+.. math::
 
-u = u0 + a(T - T_ref) + b(T - T_ref)^2 
+    u = L_f + C_v * (T - T_{ref}) + b(T - T_{ref})^2
 
-UNITS: M/{mol,kg}
-------------------------------------------------------------------------- */
+.. _iem-quadratic-spec
+.. admonition:: iem-quadratic-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
+
+    ONE OF
+
+    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
+    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
+    * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` b above
+
+    OR
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
+    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
+    * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` b above
+
+    END
+
+*/
 
 #ifndef AMANZI_ENERGYRELATIONS_IEM_QUADRATIC_
 #define AMANZI_ENERGYRELATIONS_IEM_QUADRATIC_
@@ -48,7 +68,7 @@ private:
   double T0_; // units: K
   bool molar_basis_;
 
-private:  
+private:
   // iem factor registration
   static Utils::RegisteredFactory<IEM,IEMQuadratic> factory_;
 

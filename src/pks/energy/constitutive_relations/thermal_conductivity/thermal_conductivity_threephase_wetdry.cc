@@ -75,8 +75,8 @@ void ThermalConductivityThreePhaseWetDry::InitializeFromPlist_() {
   eps_ = plist_.get<double>("epsilon [-]", 1.e-10);
   alpha_u_ = plist_.get<double>("unsaturated alpha unfrozen [-]");
   alpha_f_ = plist_.get<double>("unsaturated alpha frozen [-]");
-  k_dry_ = plist_.get<double>("thermal conductivity, dry [W/(m-K)]");
-  k_sat_u_ = plist_.get<double>("thermal conductivity, saturated (unfrozen) [W/(m-K)]");
+  k_dry_ = plist_.get<double>("thermal conductivity, dry [W m^-1 K^-1]");
+  k_sat_u_ = plist_.get<double>("thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]");
   beta_sat_f_ = plist_.get<double>("saturated beta frozen [-]",1.0);
 };
 

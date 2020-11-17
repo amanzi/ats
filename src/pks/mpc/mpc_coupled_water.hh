@@ -27,7 +27,7 @@ surface equations are directly assembled into the subsurface discrete operator.
 
    * `"surface domain name`" ``[string]`` **surface** 
 
-   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:
@@ -102,7 +102,6 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
   // coupled preconditioner
   Teuchos::RCP<Operators::Operator> precon_;
   Teuchos::RCP<Operators::Operator> precon_surf_;
-  Teuchos::RCP<Operators::Operator> lin_solver_;
 
   // Water delegate
   Teuchos::RCP<MPCDelegateWater> water_;

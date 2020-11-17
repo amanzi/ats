@@ -9,15 +9,15 @@
 add_subdirectory(constitutive_relations)
 
 # ATS include directories
-include_directories(${ATS_SOURCE_DIR}/pks)
-include_directories(${ATS_SOURCE_DIR}/operators/advection)
-include_directories(${ATS_SOURCE_DIR}/operators/upwinding)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/enthalpy)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/energy)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/internal_energy)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/thermal_conductivity)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/source_terms)
-include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/pks)
+include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
+include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/enthalpy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/internal_energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/thermal_conductivity)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/source_terms)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
 
 
 set(ats_energy_src_files

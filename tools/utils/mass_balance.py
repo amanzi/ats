@@ -71,11 +71,9 @@ Throughout this workbook we will assume that visualization has been added to the
 ```xml
   <ParameterList name="visualization">
     <ParameterList name="domain" type="ParameterList">
-      <Parameter name="file name base" type="string" value="visdump" />
       <Parameter name="times start period stop" type="Array(double)" value="{0.0,86400.0,-1}" />
     </ParameterList>
     <ParameterList name="surface" type="ParameterList">
-      <Parameter name="file name base" type="string" value="visdump_surface" />
       <Parameter name="times start period stop" type="Array(double)" value="{0.0,86400.0,-1}" />
     </ParameterList>
   </ParameterList>
@@ -90,7 +88,7 @@ This generates daily vis, and is consistent with a daily prescribed precipitatio
 import numpy as np
 from matplotlib import pyplot as plt
 
-import parse_ats # from $ATS_SRC_DIR/tools/utils/
+import ats_xdmf # from $ATS_SRC_DIR/tools/utils/
 
 
 names_dev = {"ponded depth":"surface-ponded_depth.cell.0",
@@ -136,7 +134,7 @@ names_086 = {"ponded depth":"ponded_depth.cell.0",
 
 class MassBalanceFromVis(object):
     """Simulation class encapsulating reading output for common plotting work."""
-    _names = names_086
+    _names = names_dev
 
     @classmethod
     def set_names_dev(cls):
@@ -185,14 +183,17 @@ class MassBalanceFromVis(object):
         self.p_atm = 101325.0
         
         # load the vis files
-        self._keys, self.times, self._dat = parse_ats.readATS(dirname, timeunits='d')
-        self._keys_s, self.times_s, self._dat_s = parse_ats.readATS(dirname, 'visdump_surface_data.h5', timeunits='d')
-        if len(self._keys) != len(self._keys_s):
-            print "Warning: surface and subsurface visualization files are of different lengths! (%d, %d)"%(len(self._keys),len(self._keys_s))
-        self.length = min(len(self._keys), len(self._keys_s))
+        self.vis = ats_xdmf.VisFile(dirname, time_unit='d')
+        self.vis.loadMesh()
+        
+        self.vis_surf = ats_xdmf.VisFile(dirname, domain='surface', time_unit='d')
+        self.vis_surf.loadMesh()
+
+        self.length = min(len(self.vis.cycles), len(self.vis_surf.cycles))
+        self.times = self.vis.times[0:self.length]
 
         # save cell volume instead of loading it repeatedly
-        self.volumes = self["cell volume",0]
+        self.volumes = self.vis.get("cell_volume", self.vis.cycles[0])
         self.volume = self.volumes.sum()
         self.areas = self["surface cell volume",0]
         self.surface_area = self.areas.sum()
@@ -200,22 +201,25 @@ class MassBalanceFromVis(object):
         self.typical_density = typical_density
         
 
-    def __getitem__(self, (name, i)):
+    def __getitem__(self, name_and_index):
         """Reads data from a simulation, based on indices into time/time_s.
         
         Example:
           s = Sim(dirname)
           s["saturation", -1]  # returns saturation at the final timestep
           
+        name_and_index is a tuple of:
+
         name           | Common name of the variable, must be in the names dict.
         i              | Index into timesteps, i.e. returns the value at s.times[i].
         """
+        name, i = name_and_index
         # ponded depth is a special case as it is important, but doesn't always exist.
         # instead derive it if needed
         if name == "ponded depth":
             internal_name = self._names[name]
             try:
-                return self._dat_s[internal_name][self._keys_s[i]][:]
+                return self.vis_surf.get(internal_name, self.vis_surf.cycles[i])
             except KeyError:
                 pres = self["surface pressure", i]
                 return np.maximum((pres - self.p_atm) / self.density / self.gravity, 0.)
@@ -227,9 +231,9 @@ class MassBalanceFromVis(object):
                            'are available, or add to the names dict.')
         else:
             if self.isSurface(name):
-                return self._dat_s[internal_name][self._keys_s[i]][:]
+                return self.vis_surf.get(internal_name, self.vis_surf.cycles[i])
             else:
-                return self._dat[internal_name][self._keys[i]][:]
+                return self.vis.get(internal_name, self.vis.cycles[i])
             
     def __enter__(self):
         """Supports 'with MassBalanceFromVis(...) as...' semantics."""
@@ -241,14 +245,14 @@ class MassBalanceFromVis(object):
     
     def close(self):
         """Close all file resources."""
-        self._dat.close()
-        self._dat_s.close()
+        self.vis.close()
+        self.vis_surf.close()
 
     def print_common_names(self):
         """Prints a list of recognized variable names"""
-        print "Recognized names are:"
+        print("Recognized names are:")
         for n in self._names.keys():
-            print " ", n   
+            print(" ", n)
             
     def __len__(self):
         """Provides length of the datasets.  Syntatic sugar."""
@@ -337,18 +341,18 @@ class MassBalanceFromVis(object):
         
         # dwc/dt in mol / s
         dwc = (self.surfaceWC(i+1) - self.surfaceWC(i)) \
-                 / ((self.times_s[i+1]-self.times_s[i]) * 86400.)
+                 / ((self.times[i+1]-self.times[i]) * 86400.)
 
         # runoff in mol / s
         runoff = precip - infiltration - evap - dwc
         
         if log:
-            print "Surface mass balance (surface area [m^2] =", self.surface_area, "):"
-            print "  precip [m/day]   = ", precip / self.surface_area / self.typical_density * 86400
-            print "  infilt [m/day]   = ", infiltration / self.surface_area / self.typical_density * 86400
-            print "  evap   [m/day]   = ", evaporation / self.surface_area / self.typical_density * 86400
-            print "  dWC/dt [m/day]   = ", dwc / self.surface_area / self.typical_density * 86400
-            print "  runoff [m^3/s]   = ", runoff / self.typical_density
+            print("Surface mass balance (surface area [m^2] =", self.surface_area, "):")
+            print("  precip [m/day]   = ", precip / self.surface_area / self.typical_density * 86400)
+            print("  infilt [m/day]   = ", infiltration / self.surface_area / self.typical_density * 86400)
+            print("  evap   [m/day]   = ", evaporation / self.surface_area / self.typical_density * 86400)
+            print("  dWC/dt [m/day]   = ", dwc / self.surface_area / self.typical_density * 86400)
+            print("  runoff [m^3/s]   = ", runoff / self.typical_density)
         return runoff
         
     def WC(self,i=None):
@@ -401,11 +405,11 @@ class MassBalanceFromVis(object):
         seepage = infiltration - trans - dwc
         
         if log:
-            print "Subsurface mass balance (surface area [m^2] =", self.surface_area, "):"
-            print "  infiltration [m/day]  = ", infiltration / self.surface_area / self.typical_density * 86400
-            print "  transpiration [m/day] = ", trans / self.surface_area / self.typical_density * 86400
-            print "  dWC/dt [m/day]   = ", dwc / self.surface_area / self.typical_density * 86400
-            print "  seepage [m^3/s]   = ", seepage / self.typical_density
+            print("Subsurface mass balance (surface area [m^2] =", self.surface_area, "):")
+            print("  infiltration [m/day]  = ", infiltration / self.surface_area / self.typical_density * 86400)
+            print("  transpiration [m/day] = ", trans / self.surface_area / self.typical_density * 86400)
+            print("  dWC/dt [m/day]   = ", dwc / self.surface_area / self.typical_density * 86400)
+            print("  seepage [m^3/s]   = ", seepage / self.typical_density)
         return seepage
         
     def vectorize(self, method):

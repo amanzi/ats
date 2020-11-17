@@ -89,14 +89,11 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
   Key B_key_;
   Key y1_key_;
   Teuchos::RCP<Operators::TreeOperator> preconditioner_;
-  Teuchos::RCP<Operators::TreeOperator> linsolve_preconditioner_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
 
   Teuchos::RCP<Operators::PDE_Accumulation> dA_dy2_;
   Teuchos::RCP<Operators::PDE_Accumulation> dB_dy1_;
   
-  bool precon_used_;
-
   // cruft for easier global debugging
   Teuchos::RCP<Debugger> db_;
 

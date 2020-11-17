@@ -125,14 +125,14 @@ void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
 
     bool negative_coef = (coefs[0] < 0.0) || (coefs[1] < 0.0);
     AMANZI_ASSERT(!negative_coef);
-    
+
     // Determine the size of the overlap region, a smooth transition region
     // near zero flux
     double flow_eps = flux_eps_;
 
     //Fixed coefficient in the scaling of the arithmetic mean
     double amean_order_of_supression = 15.0;
-    
+
     // Determine the coefficient
     if (dw == -1) coef_faces[0][f] = coefs[1];
     else if (uw == -1) coef_faces[0][f] = coefs[0];
@@ -159,7 +159,7 @@ void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
         coef_face += amean*amean_scaling[0];
         coef_jump = amean*std::abs(amean_scaling[0] - amean_scaling[1]);
       }
-      
+
       if ((std::abs(flux_v[0][f]) < flow_eps) && (coef_jump > 1e-15)) {
         double param = std::abs(flux_v[0][f]) / flow_eps;
         double alt_coef_face = hmean + amean*amean_scaling[1];
@@ -171,7 +171,7 @@ void UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(
 
 
 void UpwindFluxHarmonicMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                                        std::string potential_key, 
+                                        std::string potential_key,
                                         const CompositeVector& dconductivity,
                                         const std::vector<int>& bc_markers,
                                         const std::vector<double>& bc_values,

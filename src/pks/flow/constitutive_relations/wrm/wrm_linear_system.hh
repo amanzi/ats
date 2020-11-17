@@ -1,13 +1,24 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Markus Berndt (berndt@lanl.gov)
+           Konstantin Lipnikov (lipnikov@lanl.gov)
+
+*/
+//! A linear sat-pc curve.
+
+/*!
+
   A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
   nonlinear solver should always converge in one step.
 
   No error-checking, so the user is responsible for ensuring that the pressure
   is always less than atmospheric and within the acceptable range of the slope.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Note this is mostly for testing.
+
 */
 
 #ifndef _FLOWRELATIONS_WRM_LINEAR_SYSTEM_

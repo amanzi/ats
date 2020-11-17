@@ -11,15 +11,14 @@ of four consitutive components.
 
 Usage:
 
-  <ParameterList name="Thermal Conductivity Model">
-    <Parameter name="Thermal Conductivity Type" type="string" value="three-phase volume averaged"/>
-    <Parameter name="thermal conductivity of soil" type="double" value=""/>
-    <Parameter name="thermal conductivity of liquid" type="double" value=""/>
-    <Parameter name="thermal conductivity of gas" type="double" value=""/>
-    <Parameter name="thermal conductivity of ice" type="double" value=""/>
+  <ParameterList name="thermal_conductivity">
+    <Parameter name="thermal conductivity type" type="string" value="three-phase volume averaged"/>
+    <Parameter name="thermal conductivity of soil [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of liquid [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of gas [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity of ice [W m^-1 K^-1]" type="double" value=""/>
   </ParameterList>
 
-Units: ????
 ------------------------------------------------------------------------- */
 
 #ifndef PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_VOLUME_AVERAGED_HH_

@@ -29,8 +29,8 @@ ThermalConductivitySurfaceEvaluator::ThermalConductivitySurfaceEvaluator(
 
   AMANZI_ASSERT(plist_.isSublist("thermal conductivity parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("thermal conductivity parameters");
-  K_liq_ = sublist.get<double>("thermal conductivity of water [W/(m-K)]", 0.58);
-  K_ice_ = sublist.get<double>("thermal conductivity of ice [W/(m-K)]", 2.18);
+  K_liq_ = sublist.get<double>("thermal conductivity of water [W m^-1 K^-1]", 0.58);
+  K_ice_ = sublist.get<double>("thermal conductivity of ice [W m^-1 K^-1]", 2.18);
   min_K_ = sublist.get<double>("minimum thermal conductivity", 1.e-14);
 }
 

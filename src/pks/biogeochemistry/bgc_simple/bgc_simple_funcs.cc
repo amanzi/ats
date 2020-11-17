@@ -62,13 +62,11 @@ namespace BGC {
   if (doy == 0) doy = 365;
   double daylen = DayLength(met.lat, doy);
 
+  // initialize transpiration to zero
+  for (int k=0; k!=ncells; ++k) TransArr[k] = 0.0 ;
 
-  for (int k=0; k!=ncells; ++k) {
-     TransArr[k] = 0.0 ;
-  }
-
-
-  const double PAR = met.qSWin * 2.3 * 24.0 *60.0 / daylen; // convert to PAR at the daytime
+  // convert to PAR at the daytime
+  const double PAR = met.qSWin * 2.3 * 24.0 *60.0 / daylen;
 
   // determine the thaw depth
   const double thawD = PermafrostDepth(SoilTArr,SoilThicknessArr,273.15);

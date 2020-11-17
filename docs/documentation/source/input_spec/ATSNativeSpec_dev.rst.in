@@ -146,6 +146,9 @@ Checkpoint
  
 Observation
 ##############
+
+{ UnstructuredObservations }
+
 { Observable }
 
 
@@ -354,6 +357,11 @@ Coupled Cells MPC
 Subsurface MPC
 --------------
 { mpc_subsurface }
+
+
+Surface MPC
+--------------
+{ mpc_surface }
 
 Permafrost MPC
 --------------
@@ -795,27 +803,31 @@ Linear Solvers
 .. _`LinearSolvers`:
 .. _`Linear Solver`:
 
-{ LinearOperator }
+{ Inverse }
 
 Linear Solver: PCG
 --------------------
-{ LinearOperatorPCG }
+{ IterativeMethodPCG }
 
 Linear Solver: GMRES
 --------------------
-{ LinearOperatorGMRES }
+{ IterativeMethodGMRES }
 
 Linear Solver: NKA
 --------------------
-{ LinearOperatorNKA }
+{ IterativeMethodNKA }
 
 Linear Solver: Amesos
 ---------------------
-{ LinearOperatorAmesos }
+{ DirectMethodAmesos }
 
-Linear Solver: Belos GMRES
---------------------------
-{ LinearOperatorBelosGMRES }
+Linear Solver: Amesos
+---------------------
+{ DirectMethodAmesos2 }
+
+Linear Solver: Belos (GMRES)
+----------------------------
+{ IterativeMethodBelos }
 
 
 Preconditioners
@@ -823,7 +835,6 @@ Preconditioners
 .. _Preconditioner:
 
 { Preconditioner }
-
 
 Identity
 --------
@@ -835,15 +846,11 @@ Diagonal
 
 Block ILU
 ---------
-{ PreconditionerBlockILU }
+{ PreconditionerIfpack }
 
-Boomer AMG
-----------
-{ PreconditionerBoomerAMG }
-
-Euclid
-------
-{ PreconditionerEuclid }
+Boomer AMG and Euclid
+----------------------
+{ PreconditionerHypre }
 
 ML (Trilinos AMG)
 -----------------

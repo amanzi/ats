@@ -44,10 +44,69 @@ Example:
    </ParameterList>
  </ParameterList>
 
+Dirichlet (head) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Used for both surface and subsurface flows, this provides head data (in [m]
+above the land surface), typically as a function of x & y.  In the subsurface
+case, the z-value is given by hydrostatic relative to that head.
+
+.. math::
+  p = p_{atm} + rho * g * (h(x,y) + z_{surf} - z)
+
+where h is the head function provided.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="head">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary head">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.01"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Dirichlet (fixed level) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This fixes the water table at a constant elevation.  It is a head condition
+that adapts to the surface elevation, adjusting the head to a datum that is a
+fixed absolute z coordinate.
+
+.. math::
+  p = p_{atm} + rho * g * (h(x,y) - z)
+
+where h is the head function provided.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="fixed level">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="fixed level">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
 
 Neumann (mass flux) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], in the outward normal direction) on boundaries.
+Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.
 
 Example:
 
@@ -65,6 +124,32 @@ Example:
      </ParameterList>
    </ParameterList>
  </ParameterList>
+
+Neumann (fix level flux) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
+
+Example:
+
+.. code-block:: xml
+     <ParameterList name="boundary conditions">
+       <ParameterList name="fixed level flux">
+          <ParameterList name="river level south">
+            <Parameter name="regions" type="Array(string)" value="{river south}"/>
+            <ParameterList name="fixed level">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="0.5"/>
+               </ParameterList>
+            </ParameterList>
+            <ParameterList name="velocity">
+               <ParameterList name="function-constant">
+                 <Parameter name="value" type="double" value="-25"/>
+               </ParameterList>
+            </ParameterList>            
+          </ParameterList>
+       </ParameterList>
+    </ParameterList>
+
 
  
 Seepage face boundary conditions
@@ -143,56 +228,6 @@ Example: seepage with infiltration
 
 Note it would be straightforward to add both p0 and q0 in the same condition;
 this has simply not had a use case yet.
-
-
-Dirichlet (head) boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Used for surface flows, this provides head data (in [m]) on boundaries.
-
-Example:
-
-.. code-block:: xml
-
- <ParameterList name="boundary conditions">
-   <ParameterList name="head">
-     <ParameterList name="BC west">
-       <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="boundary head">
-         <ParameterList name="function-constant">
-           <Parameter name="value" type="double" value="0.01"/>
-         </ParameterList>
-       </ParameterList>
-     </ParameterList>
-   </ParameterList>
- </ParameterList>
-
-
-Fixed level boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For surface flows only.  This fixes the water table at a constant elevation.
-It is a head condition that adapts to the surface elevation such that
-
-.. math::
-  h = max( h0 - z, 0 )
-
-Example:
-
-.. code-block:: xml
-
- <ParameterList name="boundary conditions">
-   <ParameterList name="fixed level">
-     <ParameterList name="BC west">
-       <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="fixed level">
-         <ParameterList name="function-constant">
-           <Parameter name="value" type="double" value="0.0"/>
-         </ParameterList>
-       </ParameterList>
-     </ParameterList>
-   </ParameterList>
- </ParameterList>
 
 
 Zero head gradient boundary conditions
@@ -357,6 +392,14 @@ public:
     return CreateDynamicFunction("dynamic");
   }
   
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const {
+    return CreateWithFunction("fixed level flux", "fixed level");
+  }
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const {
+    return CreateWithFunction("fixed level flux", "velocity");
+  }
+
 };
 
 }  // namespace

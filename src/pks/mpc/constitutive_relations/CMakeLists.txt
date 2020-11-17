@@ -6,12 +6,12 @@
 #
 #
 
-include_directories(${ATS_SOURCE_DIR}/constitutive_relations/eos)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/wrm)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/elevation)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/porosity)
-include_directories(${ATS_SOURCE_DIR}/pks/energy/constitutive_relations/internal_energy)
-include_directories(${ATS_SOURCE_DIR}/pks/flow/constitutive_relations/overland_conductivity)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/internal_energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
 
 set(ats_mpc_relations_src_files
   ewc_model_base.cc

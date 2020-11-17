@@ -22,10 +22,10 @@ WRMFPDSmoothedPermafrostModel::WRMFPDSmoothedPermafrostModel(Teuchos::ParameterL
   } else {
     double sigma_ice_liq = plist.get<double>("interfacial tension ice-water", 33.1);
     double sigma_gas_liq = plist.get<double>("interfacial tension air-water", 72.7);
-    double T0 = plist.get<double>("heat of fusion reference temperature [K]", 273.15);
-    double heat_fusion = plist.get<double>("heat of fusion of water [J/kg]", 3.34e5);
-    double dens = plist.get<double>("density", 999.87);
-    double delT = plist.get<double>("smoothing length [K]", 1.0);
+    double T0 = plist.get<double>("reference temperature [K]", 273.15);
+    double heat_fusion = plist.get<double>("latent heat [J kg^-1]", 3.34e5);
+    double dens = plist.get<double>("water density [kg m^-3]", 999.87);
+    double delT = plist.get<double>("smoothing width [K]", 1.0);
     dp_ = dens * sigma_gas_liq / sigma_ice_liq * heat_fusion * delT / T0;
     AMANZI_ASSERT(dp_ > 0.);
   }
@@ -57,7 +57,7 @@ WRMFPDSmoothedPermafrostModel::saturations(double pc_liq, double pc_ice,
       sats[1] = std::max(sstar_ice, sl_sm);
       sats[2] = 1. - sats[1] / sstar_liq;
       sats[0] = 1. - sats[1] - sats[2];
-    }      
+    }
   }
 }
 
@@ -101,7 +101,7 @@ WRMFPDSmoothedPermafrostModel::dsaturations_dpc_liq(double pc_liq, double pc_ice
         dsats[1] =  sstarprime_liq * std::exp( (pc_liq - pc_ice)/dp_ )
             + (sstar_liq - sr) * std::exp((pc_liq - pc_ice)/dp_) / dp_;
         dsats[2] = -dsats[1] / sstar_liq + sl_sm / std::pow(sstar_liq, 2) * sstarprime_liq;
-        dsats[0] = -dsats[1] - dsats[2];            
+        dsats[0] = -dsats[1] - dsats[2];
       }
     }
   }

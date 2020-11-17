@@ -1,9 +1,31 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  A capillary pressure model based upon something other than p_atm - p.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Capillary pressure of ice on water.
+
+/*!
+.. _pc-ice-water-spec
+.. admonition:: pc-ice-water-spec
+
+    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
+    * `"interfacial tension ice-water [mN m^-1]`" ``[double]`` **33.1**
+    * `"interfacial tension air-water [mN m^-1]`" ``[double]`` **72.7**
+    * `"smoothing width [K]`" ``[double]`` **0.** Smoothing out the freeze curve allows this to be slightly easier to solve.
+
+    ONE OF
+
+    * `"latent heat [J kg^-1]`" ``[double]`` **3.34e5** Latent heat of fusion
+
+    OR
+
+    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion
+
+    END
+
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_PC_ICE_WATER_

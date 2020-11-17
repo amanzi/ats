@@ -1,9 +1,22 @@
 /*
-Author: Ethan Coon
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-Painter's permafrost model.
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+//! Painter's original, implicitly defined permafrost model.
 
- */
+/*!
+
+.. _wrm-implicit-permafrost-spec
+.. admonition:: wrm-implicit-permafrost-spec
+
+    * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
+    * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
+    * `"solver algorithm [bisection/toms]`" ``[string]`` **bisection** Use bisection or the TOMS algorithm from boost.
+
+*/
 
 #ifndef AMANZI_FLOWRELATIONS_WRM_IMPLICIT_PERMAFROST_MODEL_
 #define AMANZI_FLOWRELATIONS_WRM_IMPLICIT_PERMAFROST_MODEL_

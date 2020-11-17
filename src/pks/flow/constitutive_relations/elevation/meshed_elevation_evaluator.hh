@@ -38,6 +38,11 @@ Example:
 namespace Amanzi {
 namespace Flow {
 
+namespace Impl {
+  void slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect);
+}
+
+  
 class MeshedElevationEvaluator : public ElevationEvaluator {
 
  public:

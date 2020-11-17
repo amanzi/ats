@@ -26,6 +26,7 @@ class UpwindTotalFlux;
 class UpwindArithmeticMean;
 class Upwinding;
 }
+class MPCDelegateEWCSurface;
 
 class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
 
@@ -36,23 +37,29 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
                 const Teuchos::RCP<State>& S,
                 const Teuchos::RCP<TreeVector>& soln) :
       PK(pk_tree_list, global_list, S, soln),
-      StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln),
-      update_pcs_(0)
+      StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
   {
     dump_ = plist_->get<bool>("dump preconditioner", false);
+
+
   }
 
   // -- Initialize owned (dependent) variables.
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
-    UpdatePreconditioner(t, up, h, true);
-  }
+  virtual void set_states(const Teuchos::RCP<State>& S,
+                          const Teuchos::RCP<State>& S_inter,
+                          const Teuchos::RCP<State>& S_next);
 
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h, bool assemble);
-  
+  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+
+  // update the predictor to be physically consistent
+  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up0,
+          Teuchos::RCP<TreeVector> up);
+
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+
   // preconditioner application
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
@@ -65,11 +72,10 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
     PRECON_BLOCK_DIAGONAL = 1,
     PRECON_PICARD = 2,
     PRECON_EWC = 3,
-    PRECON_NO_FLOW_COUPLING = 4,    
+    PRECON_NO_FLOW_COUPLING = 4,
   };
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner_;
-  Teuchos::RCP<Operators::TreeOperator> linsolve_preconditioner_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
 
   // preconditioner methods
@@ -84,47 +90,39 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Teuchos::RCP<Operators::Operator> dWC_dT_block_;
   // -- d ( div q ) / dT  terms
   Teuchos::RCP<Operators::PDE_Diffusion> ddivq_dT_;
-  // -- d ( dWC/dt ) / dT terms
-  Teuchos::RCP<Operators::PDE_Accumulation> dWC_dT_;
 
   // dE / dp off-diagonal block
   Teuchos::RCP<Operators::Operator> dE_dp_block_;
   // -- d ( div hq ) / dp terms
-  Teuchos::RCP<Operators::PDE_Diffusion> ddivhq_dp_;
+  //Teuchos::RCP<Operators::PDE_Diffusion> ddivhq_dp_;
   // -- d ( dE/dt ) / dp terms
   Teuchos::RCP<Operators::PDE_Accumulation> dE_dp_;
 
   // dE / dT on-diagonal block additional terms that use q info
   // -- d ( div hq ) / dT terms
-  Teuchos::RCP<Operators::PDE_Diffusion> ddivhq_dT_;
+  //Teuchos::RCP<Operators::PDE_Diffusion> ddivhq_dT_;
 
-  Key domain_name_;
+  Key domain_;
   Key temp_key_;
   Key pres_key_;
   Key e_key_;
   Key wc_key_;
   Key tc_key_;
   Key kr_key_;
-  Key uw_kr_key_;
+  Key kr_uw_key_;
+  Key potential_key_;
+  Key pd_bar_key_;
   Key enth_key_;
-  Key hkr_key_;
-  Key uw_hkr_key_;
-  Key energy_flux_key_;
   Key mass_flux_key_;
-  Key mass_flux_dir_key_;
   Key rho_key_;
-  Key ddivq_dT_key_, ddivKgT_dp_key_;
 
-  bool is_fv_;
-  
   // EWC delegate
-  Teuchos::RCP<MPCDelegateEWCSubsurface> ewc_;
+  Teuchos::RCP<MPCDelegateEWCSurface> ewc_;
 
   // cruft for easier global debugging
   bool dump_;
-  int update_pcs_;
   Teuchos::RCP<Debugger> db_;
-  
+
 private:
   // factory registration
   static RegisteredPKFactory<MPCSurface> reg_;

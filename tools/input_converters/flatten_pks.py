@@ -20,7 +20,7 @@ from amanzi_xml.utils import errors as aerrors
 
 
 def coordinator_to_cycle_driver(xml):
-    cycle_driver = asearch.childByName(xml, "coordinator")
+    cycle_driver = asearch.child_by_name(xml, "coordinator")
     cycle_driver.set("name", "cycle driver")
     cycle_driver_pks = ParameterList("PK tree")
     cycle_driver.append(cycle_driver_pks)
@@ -29,10 +29,12 @@ def coordinator_to_cycle_driver(xml):
 
 def flatten(pks, flat_pks, cd_pks):
     while len(pks) > 0:
-        pk = pks.getchildren().pop(0)
+        pk_name = pks.getchildren()[0].get("name")
+        new_cd = ParameterList(pk_name)
+        pk = pks.pop(pk_name)
         flat_pks.append(pk)
-        new_cd = ParameterList(pk.get("name"))
-        new_cd.append(parameter.StringParameter("PK type", asearch.childByName(pk, "PK type").get("value")))
+        print(f'Flattened PK: {pk_name}')
+        new_cd.append(parameter.StringParameter("PK type", asearch.child_by_name(pk, "PK type").get("value")))
         cd_pks.append(new_cd)
 
         try:
@@ -44,13 +46,13 @@ def flatten(pks, flat_pks, cd_pks):
 
 def flatten_pks(xml):
     try:
-        cycle_driver = asearch.childByName(xml, "cycle driver")
+        cycle_driver = asearch.child_by_name(xml, "cycle driver")
     except aerrors.MissingXMLError:
         pass
     else:
         return
     
-    pks = asearch.childByName(xml, "PKs")
+    pks = asearch.child_by_name(xml, "PKs")
     cd_pks = coordinator_to_cycle_driver(xml)
     flat_pks = ParameterList("PKs")
     flatten(pks, flat_pks, cd_pks)
@@ -60,7 +62,7 @@ def flatten_pks(xml):
 
 if __name__ == "__main__":
     if "-h" in sys.argv or "--help" in sys.argv or "--h" in sys.argv:
-        print "Usage: python flatten_pks.py INFILE OUTFILE"
+        print("Usage: python flatten_pks.py INFILE OUTFILE")
         sys.exit(0)
 
     outfile = sys.argv.pop(-1)

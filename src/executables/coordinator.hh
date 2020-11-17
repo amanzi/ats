@@ -2,8 +2,8 @@
 //! Simulation controller and top-level driver
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -21,17 +21,17 @@ simulation, including starting and ending times and restart options.
     * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
 
     ONE OF
-    
+
     * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
     * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
     OR
-    
+
     * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
       simulation in timestep cycles.
 
       END
-    
+
     * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
       specifies a path to the checkpoint file to continue a stopped simulation.
     * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
@@ -69,7 +69,7 @@ Example:
      </ParameterList>
    </ParameterList>
 
-*/  
+*/
 
 #ifndef ATS_COORDINATOR_HH_
 #define ATS_COORDINATOR_HH_
@@ -146,10 +146,6 @@ private:
   // Epetra communicator
   Amanzi::Comm_ptr_type comm_;
 
-  // observations
-  //  ObservationData& output_observations_;
-  //  Teuchos::RCP<UnstructuredObservations> observations_;
-
   // vis and checkpointing
   std::vector<Teuchos::RCP<Amanzi::Visualization> > visualization_;
   std::vector<Teuchos::RCP<Amanzi::Visualization> > failed_visualization_;
@@ -158,14 +154,14 @@ private:
   std::string restart_filename_;
 
   // observations
-  Teuchos::RCP<Amanzi::UnstructuredObservations> observations_;
+  std::vector<Teuchos::RCP<Amanzi::UnstructuredObservations>> observations_;
 
   // timers
   Teuchos::RCP<Teuchos::Time> setup_timer_;
   Teuchos::RCP<Teuchos::Time> cycle_timer_;
   Teuchos::RCP<Teuchos::Time> timer_;
   double duration_;
-  
+
   // fancy OS
   Teuchos::RCP<Amanzi::VerboseObject> vo_;
 };
