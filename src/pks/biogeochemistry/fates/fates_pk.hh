@@ -142,7 +142,7 @@ namespace BGC {
     double dt_, dt_photosynthesis_, dt_site_dym_;
     double t_photosynthesis_, t_site_dym_;
     
-    bool surface_only_, salinity_on_;
+    bool surface_only_, salinity_on_, compute_avr_ponded_depth_;
     Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_, mesh_domain_;
     Key domain_surf_;
     Key trans_key_;
@@ -150,7 +150,7 @@ namespace BGC {
     Key poro_key_, sat_key_, suc_key_, soil_temp_key_;
     Key met_decomp_key_, cel_decomp_key_, lig_decomp_key_;
     Key longwave_key_, incident_rad_key_;
-    Key salinity_key_;
+    Key salinity_key_, ponded_depth_key_;
     int ncomp_salt_;
 
     std::vector<double> t_soil_;  // soil temperature

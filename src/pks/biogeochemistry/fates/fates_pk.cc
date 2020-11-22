@@ -39,7 +39,7 @@ FATES_PK::FATES_PK(Teuchos::ParameterList& pk_tree,
   dt_site_dym_ = plist_->get<double>("veg dynamics time step", 86400);
   surface_only_ = plist_->get<bool>("surface only", false);
   salinity_on_ = plist_->get<bool>("salinity", false);
-
+  compute_avr_ponded_depth_ = plist_->get<bool>("compute average ponded depth", false);
 }
 
 void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
@@ -181,6 +181,15 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
     S->RequireField(incident_rad_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(incident_rad_key_);
+  }
+
+  if (compute_avr_ponded_depth_) {
+    ponded_depth_key_ = Keys::getKey(domain_surf_,"time_average_ponded_depth");
+    if (!S->HasField(ponded_depth_key_)){    
+      S->RequireField(ponded_depth_key_, "state")->SetMesh(mesh_surf_)
+        ->SetComponent("cell", AmanziMesh::CELL, 1);
+      S->RequireFieldEvaluator(ponded_depth_key_);
+    }
   }
   
   if (!surface_only_){
@@ -354,6 +363,9 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
   double dtime = t_new - t_old;
 
+  if (compute_avr_ponded_depth_)
+    S_next_->GetFieldEvaluator(ponded_depth_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  
   S_next_->GetFieldEvaluator(precip_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& precip_rain = *S_next_->GetFieldData(precip_key_)->ViewComponent("cell", false);
 
