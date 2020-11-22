@@ -94,16 +94,30 @@ void ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S) {
   Key tcc_key = Keys::getKey(domain_name, "total_component_concentration");
   Key mol_den_key = Keys::getKey(domain_name,  "molar_density_liquid");
 
+
+  if (S->HasFieldEvaluator(tcc_key))
+    S->GetFieldEvaluator(tcc_key)->HasFieldChanged(S.ptr(),"state");
+
+  if (S->HasFieldEvaluator(mol_den_key))
+    S->GetFieldEvaluator(mol_den_key)->HasFieldChanged(S.ptr(),"state");
+  
   Teuchos::RCP<Epetra_MultiVector> tcc_copy =
-    S_->GetFieldData(tcc_key,"state")->ViewComponent("cell", true);
+    S->GetFieldData(tcc_key,"state")->ViewComponent("cell", true);
 
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->GetFieldData(mol_den_key)->ViewComponent("cell", true);
+    S->GetFieldData(mol_den_key)->ViewComponent("cell", true);
 
 
   ConvertConcentrationToAmanzi(chemistry_pk_, *mol_dens, *tcc_copy, *tcc_copy);
 
   chemistry_pk_->Initialize(S);
+
+  if (S->HasFieldEvaluator(tcc_key))
+    S->GetFieldEvaluator(tcc_key)->HasFieldChanged(S.ptr(),"state");
+
+  if (S->HasFieldEvaluator(mol_den_key))
+    S->GetFieldEvaluator(mol_den_key)->HasFieldChanged(S.ptr(),"state");
+
 
   ConvertConcentrationToATS(chemistry_pk_, *mol_dens, *tcc_copy, *tcc_copy);
 

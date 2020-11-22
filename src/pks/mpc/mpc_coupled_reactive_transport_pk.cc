@@ -120,15 +120,26 @@ void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S){
   Key sub_mol_den_key = Keys::getKey(subsurface_domain_key,  "molar_density_liquid");
   Key over_mol_den_key = Keys::getKey(overland_domain_key,  "molar_density_liquid");
 
+  if (S->HasFieldEvaluator(tcc_sub_key))
+    S->GetFieldEvaluator(tcc_sub_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(sub_mol_den_key))
+    S->GetFieldEvaluator(sub_mol_den_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(tcc_over_key))
+    S->GetFieldEvaluator(tcc_over_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(over_mol_den_key))
+    S->GetFieldEvaluator(over_mol_den_key)->HasFieldChanged(S.ptr(),"state");
+  
   Teuchos::RCP<Epetra_MultiVector> tcc_sub =
-    S_->GetFieldData(tcc_sub_key,"state")->ViewComponent("cell", true);
+    S->GetFieldData(tcc_sub_key,"state")->ViewComponent("cell", true);
+    
   Teuchos::RCP<const Epetra_MultiVector> mol_den_sub =
-    S_->GetFieldData(sub_mol_den_key)->ViewComponent("cell", true);
+    S->GetFieldData(sub_mol_den_key)->ViewComponent("cell", true);
 
   Teuchos::RCP<Epetra_MultiVector> tcc_over =
-    S_->GetFieldData(tcc_over_key,"state")->ViewComponent("cell", true);
+    S->GetFieldData(tcc_over_key,"state")->ViewComponent("cell", true);
+  
   Teuchos::RCP<const Epetra_MultiVector> mol_den_over =
-    S_->GetFieldData(over_mol_den_key)->ViewComponent("cell", true);
+    S->GetFieldData(over_mol_den_key)->ViewComponent("cell", true);
 
   ConvertConcentrationToAmanzi(chemistry_pk_subsurface_, *mol_den_sub,  *tcc_sub,  *tcc_sub);
   ConvertConcentrationToAmanzi(chemistry_pk_overland_, *mol_den_over,  *tcc_over,  *tcc_over);
@@ -136,18 +147,29 @@ void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S){
   chemistry_pk_overland_->Initialize(S);
   chemistry_pk_subsurface_->Initialize(S);
 
+  if (S->HasFieldEvaluator(tcc_sub_key))
+    S->GetFieldEvaluator(tcc_sub_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(sub_mol_den_key))
+    S->GetFieldEvaluator(sub_mol_den_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(tcc_over_key))
+    S->GetFieldEvaluator(tcc_over_key)->HasFieldChanged(S.ptr(),"state");
+  if (S->HasFieldEvaluator(over_mol_den_key))
+    S->GetFieldEvaluator(over_mol_den_key)->HasFieldChanged(S.ptr(),"state");
+
+  //WriteStateStatistics(*S, *vo_);  
+  
   ConvertConcentrationToATS(chemistry_pk_subsurface_, *mol_den_sub,  *tcc_sub,  *tcc_sub);
   ConvertConcentrationToATS(chemistry_pk_overland_, *mol_den_over,  *tcc_over,  *tcc_over);
 
+  //WriteStateStatistics(*S, *vo_);  
   tranport_pk_subsurface_->Initialize(S);
+  //WriteStateStatistics(*S, *vo_);
   tranport_pk_overland_->Initialize(S);
 
 
 
-  // //S_->WriteStatistics(vo_);
-  // std::cout<<(*tcc_over)<<"\n";
-  // exit(0);
-
+  //S_->WriteStatistics(vo_);
+  
 }
 
 
