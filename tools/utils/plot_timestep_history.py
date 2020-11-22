@@ -5,9 +5,6 @@ from __future__ import division
 
 import numpy as np
 
-from __future__ import print_function
-from __future__ import division
-
 def print_headers():
     print("cycle, time, dt, iteration count, wallclock avg (s)")
 
@@ -87,11 +84,15 @@ if __name__ == "__main__":
                         help="Do not use any existing .npz file -- instead reload from the logfile and overwrite the .npz file.")
     args = parser.parse_args()
 
-    cm = colors.cm_mapper(0,1,args.colormap)
+    if args.colors is not None:
+        cm = colors.cm_mapper(0,1,args.colormap)
+        args.colors = [cm(c) for c in args.colors]
+    else:
+        args.colors = colors.enumerated_colors(len(args.LOG_FILES))
+        
     fig, axs = get_axs()
         
-    fnames = args.LOG_FILES
-    for i,fname in enumerate(fnames):
+    for fname, color in zip(args.LOG_FILES, args.colors):
         if fname.endswith(".npz"):
             data = read_from_file(fname)
         elif os.path.isfile(fname+".npz") and not args.overwrite:
@@ -101,18 +102,7 @@ if __name__ == "__main__":
                 data = parse_logfile(fid)
             write_to_file(data, fname)
                 
-        if args.colors is None:
-            if len(fnames) > 1:
-                c = cm(float(i)/(len(fnames)-1))
-            else:
-                c = 'b'
-        else:
-            if type(args.colors[i]) is float:
-                c = cm(args.colors[i])
-            else:
-                c = args.colors[i]
-            
-        plot(data, axs, c, fname)
+        plot(data, axs, color, fname)
 
     decorate_axs(axs)
     plt.show()

@@ -27,7 +27,7 @@ surface equations are directly assembled into the subsurface discrete operator.
 
    * `"surface domain name`" ``[string]`` **surface** 
 
-   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
+   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:

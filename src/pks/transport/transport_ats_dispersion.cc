@@ -20,7 +20,7 @@
 #include "Tensor.hh"
 
 #include "TransportDefs.hh"
-#include "Transport_PK_ATS.hh"
+#include "transport_ats.hh"
 
 namespace Amanzi {
 namespace Transport{
@@ -29,7 +29,7 @@ namespace Transport{
 * Calculate dispersive tensor from given mass fluxes. The flux is
 * assumed to be scaled by face area.
 ******************************************************************* */
-void Transport_PK_ATS::CalculateDispersionTensor_(
+void Transport_ATS::CalculateDispersionTensor_(
     const Epetra_MultiVector& mass_flux, 
     const Epetra_MultiVector& porosity, const Epetra_MultiVector& saturation,
     const Epetra_MultiVector& mol_density )
@@ -67,7 +67,7 @@ void Transport_PK_ATS::CalculateDispersionTensor_(
 /* *******************************************************************
 * Calculate diffusion tensor and add it to the dispersion tensor.
 ******************************************************************* */
-void Transport_PK_ATS::CalculateDiffusionTensor_(
+void Transport_ATS::CalculateDiffusionTensor_(
     double md, int phase, 
     const Epetra_MultiVector& porosity, const Epetra_MultiVector& saturation,
     const Epetra_MultiVector& mol_density)
@@ -108,7 +108,7 @@ void Transport_PK_ATS::CalculateDiffusionTensor_(
 /* ******************************************************************
 * Check all phases for the given name.
 ****************************************************************** */
-int Transport_PK_ATS::FindDiffusionValue(const std::string& tcc_name, double* md, int* phase)
+int Transport_ATS::FindDiffusionValue(const std::string& tcc_name, double* md, int* phase)
 {
   for (int i = 0; i < TRANSPORT_NUMBER_PHASES; i++) {
     if (diffusion_phase_[i] == Teuchos::null) continue;
@@ -128,7 +128,7 @@ int Transport_PK_ATS::FindDiffusionValue(const std::string& tcc_name, double* md
 /* ******************************************************************
 *  Find direction of axi-symmetry.                                               
 ****************************************************************** */
-void Transport_PK_ATS::CalculateAxiSymmetryDirection()
+void Transport_ATS::CalculateAxiSymmetryDirection()
 {
   axi_symmetry_.resize(ncells_owned, -1);
   if (S_->HasField(permeability_key_)) {

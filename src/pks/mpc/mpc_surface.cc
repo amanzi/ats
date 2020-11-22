@@ -65,8 +65,8 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S) {
   tvs->PushBack(Teuchos::rcp(new TreeVectorSpace(Teuchos::rcpFromRef(pcB->DomainMap()))));
  
   preconditioner_ = Teuchos::rcp(new Operators::TreeOperator(tvs));
-  preconditioner_->SetOperatorBlock(0, 0, pcA);
-  preconditioner_->SetOperatorBlock(1, 1, pcB);
+  preconditioner_->set_operator_block(0, 0, pcA);
+  preconditioner_->set_operator_block(1, 1, pcB);
   
   // select the method used for preconditioning
   std::string precon_string = plist_->get<std::string>("preconditioner type",
@@ -220,8 +220,8 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S) {
 
     AMANZI_ASSERT(dWC_dT_block_ != Teuchos::null);
     AMANZI_ASSERT(dE_dp_block_ != Teuchos::null);
-    preconditioner_->SetOperatorBlock(0, 1, dWC_dT_block_);
-    preconditioner_->SetOperatorBlock(1, 0, dE_dp_block_);
+    preconditioner_->set_operator_block(0, 1, dWC_dT_block_);
+    preconditioner_->set_operator_block(1, 0, dE_dp_block_);
   }
 
   // set up sparsity structure

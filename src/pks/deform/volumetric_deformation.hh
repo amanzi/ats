@@ -81,13 +81,6 @@ node coordinate changes.  Three options are available:
     * `"deformation function`" ``[function-spec]`` **optional** Only used if
       "deformation mode" == "prescribed"
 
-    * `"global solve operator`" ``[matrix-volumetric-deformation-spec]``
-      Old-style Matrix (not Amanzi Operator) spec.  Only used if "deformation
-      strategy" == "global optimization"
-
-    * `"Solver`" ``[linear-operator-typed-spec]`` Solver for the optimization
-      problem. Only used if "deformation strategy" == "global optimization"
-
     EVALUATORS:
     - `"saturation_ice`"
     - `"saturation_liquid`"

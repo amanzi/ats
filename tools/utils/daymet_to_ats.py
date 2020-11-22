@@ -15,6 +15,7 @@ def file_id(lat, lon):
     """Returns a lat-lon id for use in filenames"""
     return '{:.4f}_{:.4f}'.format(lat,lon).replace('.','p')
 
+
 def daymet_rest_url(lat, lon, start, end, vars=None):
     """Generates the DayMet Rest API URL."""
     #
@@ -45,11 +46,11 @@ def daymet_rest_url(lat, lon, start, end, vars=None):
     end_str = 'end={}'.format(end)
 
     return base + '&'.join([lat_str, lon_str, var_str, start_str, end_str])
+
         
 def read_daymet(filename):
     """Reads a text file of the form provided by DayMet"""
     return np.genfromtxt(filename, skip_header=7, names=True, delimiter=',')
-
 
 
 def download_daymet(outdir, lat, lon, start, end, vars=None):
@@ -71,6 +72,7 @@ def download_daymet(outdir, lat, lon, start, end, vars=None):
         fid.write(resp.text)
 
     return read_daymet(filename)
+
 
 def daymet_to_ats(dat):
     """Accepts a numpy named array of DayMet data and returns a dictionary ATS data."""
@@ -167,7 +169,20 @@ def validate_start_end(start, end):
     return start, end
 
 
+def daymet_attrs(lat, lon, start, end):
+    # set the wind speed height, which is made up
+    attrs = dict()
+    attrs['wind speed reference height [m]'] = 2.0
+    attrs['DayMet latitude [deg]'] = lat
+    attrs['DayMet longitude [deg]'] = lon
+    attrs['DayMet start date'] = str(start)
+    attrs['DayMet end date'] = str(end)
+    return attrs
 
+
+def daymet_filename(lat, lon):
+    return 'daymet_raw_%s.h5'%file_id(lat, lon)
+    
 
 if __name__ == '__main__':
     parser = get_argument_parser()
@@ -185,17 +200,8 @@ if __name__ == '__main__':
     # convert to ats and write
     if not args.download_only:
         ats = daymet_to_ats(daymet)
-
-        # set the wind speed height, which is made up
-        attrs = dict()
-        attrs['wind speed reference height [m]'] = 2.0
-        attrs['DayMet latitude [deg]'] = args.lat
-        attrs['DayMet longitude [deg]'] = args.lon
-        attrs['DayMet start date'] = str(start)
-        attrs['DayMet end date'] = str(end)
-        
-        filename_out = 'daymet_raw_%s.h5'%file_id(args.lat, args.lon)
-        
+        attrs = daymet_attrs(args.lat, args.lon, start, end)        
+        filename_out = daymet_filename(args.lat, args.lon)        
         write_ats(ats, attrs, filename_out)
 
     sys.exit(0)

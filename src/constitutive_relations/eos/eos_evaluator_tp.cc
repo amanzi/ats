@@ -98,7 +98,14 @@ void EOSEvaluatorTP::EvaluateField_(const Teuchos::Ptr<State>& S,
        
         dens_v[0][id] = eos_->MolarDensity(eos_params);
                   
-        AMANZI_ASSERT(dens_v[0][id] > 0.);
+        if (dens_v[0][id] < 0.){
+          Errors::Message msg;
+          msg<<"Values of pressure and temperature result in negative density\n"<<
+            "Pressure: "<< pres_key_ <<", value : "<<pres_v[0][id]<<"\n"<<
+            "Temperature: "<< temp_key_ <<", value : "<<temp_v[0][id]<<"\n"<<
+            "Density "<< dens_v[0][id]<<"\n";
+          Exceptions::amanzi_throw(msg);
+        }
         
       }
     }

@@ -6,17 +6,15 @@
   The terms of use and "as is" disclaimer for this license are 
   provided in the top-level COPYRIGHT file.
 
-  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Author: Daniil Svyatskiy (dasvyat@lanl.gov)
 */
 
-
-#include "MultiscaleTransportPorosity_DPM.hh"
+#include "transport_ats.hh"
 
 namespace Amanzi {
 namespace Transport {
 
-Utils::RegisteredFactory<MultiscaleTransportPorosity, MultiscaleTransportPorosity_DPM>
-    MultiscaleTransportPorosity_DPM::factory_("dual porosity");
+RegisteredPKFactory<Transport_ATS> Transport_ATS::reg_("transport ATS");
 
 }  // namespace Transport
 }  // namespace Amanzi

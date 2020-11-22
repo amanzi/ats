@@ -1,9 +1,9 @@
 /*
   Transport PK
 
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Author: Konstantin Lipnikov (lipnikov@lanl.gov)
@@ -13,26 +13,23 @@
 
 #include "ReconstructionCell.hh"
 #include "OperatorDefs.hh"
-#include "Transport_PK_ATS.hh"
+#include "transport_ats.hh"
 
 namespace Amanzi {
 namespace Transport {
 
-/* ******************************************************************* 
+/* *******************************************************************
  * Routine takes a parallel overlapping vector C and returns a parallel
  * overlapping vector F(C).
  ****************************************************************** */
-
-void Transport_PK_ATS::FunctionalTimeDerivative(double t,
+void Transport_ATS::FunctionalTimeDerivative(double t,
                                                 const Epetra_Vector& component,
                                                 Epetra_Vector& f_component)
-
 {
-
   // distribute vector
   auto component_tmp = Teuchos::rcp(new Epetra_Vector(component));
   component_tmp->Import(component, *tcc->importer("cell"), Insert);
-  
+
   Teuchos::ParameterList plist = tp_list_->sublist("reconstruction");
   lifting_->Init(plist);
   lifting_->ComputeGradient(component_tmp);
@@ -58,11 +55,9 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
     }
   }
 
-
   limiter_->Init(plist, flux_);
-  limiter_->ApplyLimiter(component_tmp, 0, lifting_->gradient(), bc_model, bc_value); 
+  limiter_->ApplyLimiter(component_tmp, 0, lifting_->gradient(), bc_model, bc_value);
   limiter_->gradient()->ScatterMasterToGhosted("cell");
-  
 
   // ADVECTIVE FLUXES
   // We assume that limiters made their job up to round-off errors.
@@ -74,7 +69,7 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
   for (int f = 0; f < nfaces_wghost; f++) {  // loop over master and slave faces
     c1 = (*upwind_cell_)[f];
     c2 = (*downwind_cell_)[f];
-  
+
 
     if (c1 >= 0 && c2 >= 0) {
       u1 = component[c1];
@@ -100,13 +95,13 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
       f_component[c2] += tcc_flux;
 
     } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
-
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
 
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
+
     } else if (c1 >= 0 && c1 < ncells_owned && (c2 < 0)) {
       upwind_tcc = component[c1];
       upwind_tcc = std::max(upwind_tcc, umin);
@@ -114,7 +109,7 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
 
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
-      
+
     } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
@@ -125,21 +120,13 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
     }
   }
 
-                                                
-
   // process external sources
   if (srcs_.size() != 0) {
     ComputeAddSourceTerms(t, 1., f_component, current_component_, current_component_);
   }
 
-  // if (domain_ == "surface"){
-  //   double mass = 0., mass_mov_loc = 0;
-  //   for (int c = 0; c < ncells_owned; c++)  mass_mov_loc += f_component[c];
-  //   mesh_->get_comm()->SumAll(&mass_mov_loc, &mass, 1);
-  //   *vo_->os()<<"mass mov "<< mass<<"\n";
-  // }
 
-  for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity   
+  for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity
     double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
     if ((*ws_start)[0][c] < 1e-12)
       vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
@@ -169,14 +156,10 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
 
             tcc_flux = u * values[i];
 
-            //if (abs(tcc_flux) > 1e-9)
-            // if ((mesh_->face_centroid(f)[0]>9.5)&&(mesh_->face_centroid(f)[0]<10.5))              
-            //   std::cout<<mesh_->get_comm()->MyPID()<<" c2 "<<c2<<" mass "<<tcc_flux<<" "<<mesh_->face_centroid(f)<<"\n";
-            
             if (vol_phi_ws_den > water_tolerance_ ){
-              f_component[c2] += tcc_flux / vol_phi_ws_den;            
+              f_component[c2] += tcc_flux / vol_phi_ws_den;
             }
-            
+
           }
         }
       }
@@ -185,7 +168,7 @@ void Transport_PK_ATS::FunctionalTimeDerivative(double t,
 }
 
 
-  
+
 }  // namespace Transport
 }  // namespace Amanzi
 

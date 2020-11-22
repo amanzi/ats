@@ -61,21 +61,20 @@ namespace Transport {
 
 typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
-// class Transport_PK : public PK, public Explicit_TI::fnBase<Epetra_Vector> {
-class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
+class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
  public:
-  Transport_PK_ATS(Teuchos::ParameterList& pk_tree,
+  Transport_ATS(Teuchos::ParameterList& pk_tree,
                const Teuchos::RCP<Teuchos::ParameterList>& glist,
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& soln);
 
-    Transport_PK_ATS(const Teuchos::RCP<Teuchos::ParameterList>& glist,
+    Transport_ATS(const Teuchos::RCP<Teuchos::ParameterList>& glist,
                  Teuchos::RCP<State> S,
                  const std::string& pk_list_name,
                  std::vector<std::string>& component_names);
 
-    ~Transport_PK_ATS() = default;
+    ~Transport_ATS() = default;
 
   // members required by PK interface
   virtual void Setup(const Teuchos::Ptr<State>& S);
@@ -261,7 +260,7 @@ class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<CompositeVector> tcc;  // smart mirrow of tcc 
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_,mass_src_;
+  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
     
 #ifdef ALQUIMIA_ENABLED
@@ -331,12 +330,12 @@ class Transport_PK_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
     Teuchos::RCP<VerboseObject> vo_;
 
   // Forbidden.
-  Transport_PK_ATS(const Transport_PK_ATS&);
-  Transport_PK_ATS& operator=(const Transport_PK_ATS&);
+  Transport_ATS(const Transport_ATS&);
+  Transport_ATS& operator=(const Transport_ATS&);
 
  private:
   // factory registration
-  static RegisteredPKFactory<Transport_PK_ATS> reg_;
+  static RegisteredPKFactory<Transport_ATS> reg_;
 };
 
 }  // namespace Transport

@@ -21,8 +21,8 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S) {
-  
+void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
+{
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
 
@@ -43,7 +43,8 @@ void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S) {
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-void PK_BDF_Default::Initialize(const Teuchos::Ptr<State>& S) {
+void PK_BDF_Default::Initialize(const Teuchos::Ptr<State>& S)
+{
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
     // -- instantiate time stepper
@@ -66,33 +67,29 @@ void PK_BDF_Default::Initialize(const Teuchos::Ptr<State>& S) {
     // -- set initial state
     time_stepper_->SetInitialState(S->time(), solution_, solution_dot);
   }
-
 };
 
-void PK_BDF_Default::ResetTimeStepper(double time){
-  
+void PK_BDF_Default::ResetTimeStepper(double time)
+{
     // -- initialize time derivative
     Teuchos::RCP<TreeVector> solution_dot = Teuchos::rcp(new TreeVector(*solution_));
     solution_dot->PutScalar(0.0);
 
     // -- set initial state
     time_stepper_->SetInitialState(time, solution_, solution_dot);
-
     return;
 }
-  
 
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
 double PK_BDF_Default::get_dt() { return dt_; }
 
-  void PK_BDF_Default::set_dt(double dt) {dt_ = dt;}
-
+void PK_BDF_Default::set_dt(double dt) {dt_ = dt;}
 
 // -- Commit any secondary (dependent) variables.
-void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {
-
+void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) \
+{
   double dt = t_new -t_old;
   if (dt > 0. && time_stepper_ != Teuchos::null)
     time_stepper_->CommitSolution(dt, solution_, true);
@@ -100,28 +97,19 @@ void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<S
 
 void PK_BDF_Default::set_states(const Teuchos::RCP<State>& S,
         const Teuchos::RCP<State>& S_inter,
-        const Teuchos::RCP<State>& S_next) {
+        const Teuchos::RCP<State>& S_next)
+{
   S_ = S;
   S_inter_ = S_inter;
   S_next_ = S_next;
 }
 
 
-
-// void PK_BDF_Default::Solution_to_State(TreeVector& solution,
-//         const Teuchos::RCP<State>& S) {
-//   //AMANZI_ASSERT(solution.Data() == S->GetFieldData(key_));
-//   //  S->SetData(key_, name_, solution->Data());
-//   //  solution_evaluator_->SetFieldAsChanged();
-// };
-
-
-
-
 // -----------------------------------------------------------------------------
 // Advance from state S to state S_next at time S.time + dt.
 // -----------------------------------------------------------------------------
-bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
+bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
+{
   double dt = t_new -t_old;
   Teuchos::OSTab out = vo_->getOSTab();
 
@@ -174,7 +162,8 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
 
 
 // update the continuation parameter
-void PK_BDF_Default::UpdateContinuationParameter(double lambda) {
+void PK_BDF_Default::UpdateContinuationParameter(double lambda)
+{
   *S_next_->GetScalarData("continuation_parameter", name_) = lambda;
   ChangedSolution();
 }

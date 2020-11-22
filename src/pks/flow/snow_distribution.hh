@@ -33,11 +33,7 @@ daily (which all defaults are set for).
       above.  Likely only Jacobian term options are needed here, as the others
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
-
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the diffusion preconditioner.  Only used if this
-      PK is not implicitly coupled.  See LinearOperator_.
+    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
     
     Not typically provided by the user, defaults are good:
 

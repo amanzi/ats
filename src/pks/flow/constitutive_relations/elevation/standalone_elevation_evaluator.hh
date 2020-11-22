@@ -29,6 +29,7 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
  protected:
   Teuchos::RCP<Functions::CompositeVectorFunction> elevation_function_;
   Teuchos::RCP<Functions::CompositeVectorFunction> slope_function_;
+  Teuchos::RCP<Functions::CompositeVectorFunction> aspect_function_;
 
 };
 

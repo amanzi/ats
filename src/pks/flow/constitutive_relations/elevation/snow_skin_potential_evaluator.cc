@@ -38,7 +38,7 @@ SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(Teuchos::ParameterList& p
   elev_key_ = Keys::readKey(plist_, surf_domain, "elevation", "elevation");
   dependencies_.insert(elev_key_);
 
-  factor_ = plist_.get<double>("dt factor", -1.0);
+  factor_ = plist_.get<double>("dt factor [s]", -1.0);
 }
 
 

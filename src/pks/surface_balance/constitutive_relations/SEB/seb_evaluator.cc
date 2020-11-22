@@ -67,6 +67,9 @@ SEBEvaluator::SEBEvaluator(Teuchos::ParameterList& plist) :
     domain_ = std::string("surface_") + domain;
     domain_snow_ = std::string("snow_") + domain;
   }
+  domain_ = plist.get<std::string>("surface domain name", domain_);
+  domain_ss_ = plist.get<std::string>("subsurface domain name", domain_ss_);
+  domain_snow_ = plist.get<std::string>("snow domain name", domain_snow_);
 
   // my keys
   // -- sources
@@ -151,19 +154,20 @@ SEBEvaluator::SEBEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(ss_pres_key_);
 
   // parameters
-  min_wind_speed_ = plist.get<double>("minimum wind speed [m/s]?", 1.0);
+  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
+  min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
   dessicated_zone_thickness_ = plist.get<double>("dessicated zone thickness [m]", 0.1);
   AMANZI_ASSERT(dessicated_zone_thickness_ > 0.);
 
+  // developer parameter -- this should likely go away
   ss_topcell_based_evap_ = plist.get<bool>("subsurface top cell based evaporation", false);
 
   roughness_bare_ground_ = plist.get<double>("roughness length of bare ground [m]", 0.04);
   roughness_snow_covered_ground_ = plist.get<double>("roughness length of snow-covered ground [m]", 0.004);
   snow_ground_trans_ = plist.get<double>("snow-ground transitional depth [m]", 0.02);
-  min_snow_trans_ = plist.get<double>("minimum snow transitional depth", 1.e-8);
-  if (min_snow_trans_ < 0. || snow_ground_trans_ < min_snow_trans_) {
-    Errors::Message message("Invalid parameters: snow-ground transitional depth or minimum snow transitional depth.");
+  if (snow_ground_trans_ < 0) {
+    Errors::Message message("Invalid parameter: snow-ground transitional depth < 0.");
     Exceptions::amanzi_throw(message);
   }
 }
@@ -259,7 +263,7 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     met.QswIn = qSW_in[0][c];
     met.QlwIn = qLW_in[0][c];
     met.air_temp = air_temp[0][c];
-    met.relative_humidity = rel_hum[0][c];
+    met.relative_humidity = std::max(rel_hum[0][c], min_rel_hum_);
     met.Pr = Prain[0][c];
     
     // non-snow covered column
@@ -304,7 +308,7 @@ SEBEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       energy_source[0][c] += area_fracs[0][c] * flux.E_surf * 1.e-6; // convert to MW/m^2
 
       double area_to_volume = mesh.cell_volume(c) / mesh_ss.cell_volume(cells[0]);
-      double ss_mass_source_l = flux.M_subsurf * area_to_volume * params.density_water / 0.0180153; // convert from m/m^2/s to mol/m^3/s
+      double ss_mass_source_l = flux.M_subsurf * area_to_volume * params.density_water / 0.0180153; // convert from m/s to mol/m^3/s
       ss_mass_source[0][cells[0]] += area_fracs[0][c] * ss_mass_source_l;
       double ss_energy_source_l = flux.E_subsurf * area_to_volume * 1.e-6; // convert from W/m^2 to MW/m^3
       ss_energy_source[0][cells[0]] += area_fracs[0][c] * ss_energy_source_l;

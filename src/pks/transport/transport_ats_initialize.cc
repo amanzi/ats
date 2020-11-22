@@ -1,9 +1,9 @@
 /*
   Transport PK
 
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Author: Konstantin Lipnikov (lipnikov@lanl.gov)
@@ -17,11 +17,9 @@
 
 #include "errors.hh"
 #include "MultiFunction.hh"
-#include "GMVMesh.hh"
 
 #include "Mesh.hh"
-#include "Transport_PK_ATS.hh"
-
+#include "transport_ats.hh"
 
 namespace Amanzi {
 namespace Transport {
@@ -29,7 +27,7 @@ namespace Transport {
 /* ******************************************************************
 * Inialization of various transport structures.
 ****************************************************************** */
-void Transport_PK_ATS::InitializeAll_()
+void Transport_ATS::InitializeAll_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -47,7 +45,7 @@ void Transport_PK_ATS::InitializeAll_()
   if (tp_list_->isSublist("material properties")) {
     Teuchos::ParameterList& dlist = tp_list_->sublist("material properties");
 
-    int nblocks = 0; 
+    int nblocks = 0;
     for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {
       if (dlist.isSublist(dlist.name(i))) nblocks++;
     }
@@ -74,13 +72,13 @@ void Transport_PK_ATS::InitializeAll_()
 
   if (tp_list_->isSublist("molecular diffusion")) {
     Teuchos::ParameterList& dlist = tp_list_->sublist("molecular diffusion");
-    if (dlist.isParameter("aqueous names")) { 
+    if (dlist.isParameter("aqueous names")) {
       diffusion_phase_[0] = Teuchos::rcp(new DiffusionPhase());
       diffusion_phase_[0]->names() = dlist.get<Teuchos::Array<std::string> >("aqueous names").toVector();
       diffusion_phase_[0]->values() = dlist.get<Teuchos::Array<double> >("aqueous values").toVector();
     }
 
-    if (dlist.isParameter("gaseous names")) { 
+    if (dlist.isParameter("gaseous names")) {
       diffusion_phase_[1] = Teuchos::rcp(new DiffusionPhase());
       diffusion_phase_[1]->names() = dlist.get<Teuchos::Array<std::string> >("gaseous names").toVector();
       diffusion_phase_[1]->values() = dlist.get<Teuchos::Array<double> >("gaseous values").toVector();
@@ -142,12 +140,12 @@ void Transport_PK_ATS::InitializeAll_()
 /* ****************************************************************
 * Find place of the given component in a multivector.
 **************************************************************** */
-int Transport_PK_ATS::FindComponentNumber(const std::string component_name)
+int Transport_ATS::FindComponentNumber(const std::string component_name)
 {
   int ncomponents = component_names_.size();
   for (int i = 0; i < ncomponents; i++) {
     if (component_names_[i] == component_name) return i;
-  } 
+  }
   return -1;
 }
 

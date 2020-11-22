@@ -124,7 +124,7 @@ algorithms are supported by the `EWC Globalization Delegate`_ object.
     * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
     * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
 
-    * `"ewc delegate`" ``[ewc-delegate-spec]`` A `EWC Globalization Delegate`_ spec.
+    * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A `EWC Globalization Delegate`_ spec.
 
     INCLUDES:
 

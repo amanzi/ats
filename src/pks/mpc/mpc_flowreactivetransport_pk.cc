@@ -160,10 +160,11 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
 
   if (std::abs(t_old + dt_done - t_new) / (t_new - t_old) < 0.1*min_dt_) {
     // done, success
-    if (vo_->getVerbLevel() >= Teuchos::VERB_EXTREME) *vo_->os()<<"Slave step is successful\n";
+    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
+      *vo_->os()<<"Slave step is successful (use "<<ncycles<<" subcycles.)"<<"\n";
     return false;
   } else {
-    if (vo_->getVerbLevel() >= Teuchos::VERB_EXTREME) *vo_->os()<<"Slave step is failed\n";
+    if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os()<<"Slave step is failed\n";
     return true;
   }
 

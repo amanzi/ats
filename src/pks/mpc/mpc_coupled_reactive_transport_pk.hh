@@ -3,7 +3,7 @@
 #include "mpc_reactivetransport_pk.hh"
 #include "weak_mpc.hh"
 #include "mpc_coupled_transport.hh"
-#include "Transport_PK_ATS.hh"
+#include "transport_ats.hh"
 #include "Chemistry_PK.hh"
 
 namespace Amanzi {
@@ -48,8 +48,8 @@ private:
   // int transport_pk_index_, chemistry_pk_index_;
   Teuchos::RCP<CoupledTransport_PK> tranport_pk_;
   Teuchos::RCP<WeakMPC> chemistry_pk_;
-  Teuchos::RCP<Transport::Transport_PK_ATS> tranport_pk_overland_;
-  Teuchos::RCP<Transport::Transport_PK_ATS> tranport_pk_subsurface_;
+  Teuchos::RCP<Transport::Transport_ATS> tranport_pk_overland_;
+  Teuchos::RCP<Transport::Transport_ATS> tranport_pk_subsurface_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_overland_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_subsurface_;
 

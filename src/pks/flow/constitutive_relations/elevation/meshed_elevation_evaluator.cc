@@ -5,6 +5,9 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "boost/algorithm/string/predicate.hpp"
 
 #include "Mesh.hh"
@@ -14,6 +17,55 @@
 namespace Amanzi {
 namespace Flow {
 
+namespace Impl {
+
+void slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect)
+{      
+  // -- S = || n - (n dot z) z || / | n dot z |
+  slope = std::sqrt( std::pow(normal[0],2) + std::pow(normal[1],2))
+    / std::abs(normal[2]);
+
+  // and aspect
+  if (normal[0] > 0.0) {
+    // right half
+    if (normal[1] > 0.0) {
+      // upper right quadrant
+      aspect = std::atan(normal[0] / normal[1]);
+    } else if (normal[1] < 0.0) {
+      // lower right quadrant
+      aspect = M_PI - std::atan(normal[0] / -normal[1]);
+    } else {
+      // due east
+      aspect = M_PI_2;
+    }
+  } else if (normal[0] < 0.0) {
+    // left half
+    if (normal[1] > 0.0) {
+      // upper left quadrant
+      aspect = M_2_PI - std::atan(-normal[0] / normal[1]);
+    } else if (normal[1] < 0.0) {
+      // lower left quadrant
+      aspect = M_PI + std::atan(normal[0] / -normal[1]);
+    } else {
+      // due west
+      aspect = M_2_PI - M_PI_2;
+    }
+  } else {
+    // north or south
+    if (normal[1] > 0.0) {
+      aspect = 0.0;
+    } else if (normal[1] < 0.0) {
+      aspect = M_PI;
+    } else {
+      // normal is (0,0,1)
+      aspect = 0.;
+    }
+  }
+}
+
+} // namespace Impl    
+
+  
 MeshedElevationEvaluator::MeshedElevationEvaluator(Teuchos::ParameterList& plist) :
     ElevationEvaluator(plist) {};
 
@@ -30,9 +82,11 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
 
   Teuchos::Ptr<CompositeVector> elev = results[0];
   Teuchos::Ptr<CompositeVector> slope = results[1];
+  Teuchos::Ptr<CompositeVector> aspect = results[2];
 
   Epetra_MultiVector& elev_c = *elev->ViewComponent("cell", false);
   Epetra_MultiVector& slope_c = *slope->ViewComponent("cell", false);
+  Epetra_MultiVector& aspect_c = *aspect->ViewComponent("cell", false);
   
   // Get the elevation and slope values from the domain mesh.
   Key domain = Keys::getDomain(my_keys_[0]);
@@ -65,8 +119,9 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
     AmanziGeometry::Point x = domain_mesh->face_centroid(domain_face, true);
     elev_c[0][0] = x[2];
 
-    // Slope is zero by definition
+    // Slope is zero by definition, and aspect is undefined
     slope_c[0][0] = 0.;
+    aspect_c[0][0] = 0.;
 
     // Set the elevation on faces by getting the corresponding nodes and
     // averaging.
@@ -95,9 +150,7 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
 
       // Now slope.
       AmanziGeometry::Point n = domain_mesh->face_normal(domain_face);
-      // -- S = || n - (n dot z) z || / | n dot z |
-      slope_c[0][c] = std::sqrt( std::pow(n[0],2) + std::pow(n[1],2))
-          / std::abs(n[2]);
+      Impl::slope_aspect(n, slope_c[0][c], aspect_c[0][c]);
     }
 
     // Set the elevation on faces by getting the corresponding nodes and
@@ -156,9 +209,8 @@ void MeshedElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
       cross[2] += normals[count-1][0]*normals[0][1] - normals[count-1][1]*normals[0][0];
       cross /= count;
 
-      // -- S = || n - (n dot z) z || / | n dot z |
-      slope_c[0][c] = std::sqrt( std::pow(cross[0],2) + std::pow(cross[1],2))
-          / std::abs(cross[2]);
+      Impl::slope_aspect(cross, slope_c[0][c], aspect_c[0][c]);
+      
     }
 
     // Set the elevation on faces by getting the corresponding face and its
