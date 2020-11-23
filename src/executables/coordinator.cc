@@ -35,10 +35,10 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
-
+//#include "MeshInfo.hh"
 #include "coordinator.hh"
 
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 namespace ATS {
 
@@ -111,10 +111,22 @@ void Coordinator::coordinator_init() {
       analysis.OutputBCs();
     }
 
+    // -------------- MESH INFO --------------------------------------------
+    // std::string plist_name = "mesh info " + mesh->first;
+    // // in the case of just a domain mesh, we want to allow no name.
+    // if ((mesh->first == "domain") && !parameter_list_->isSublist(plist_name)) {
+    //   plist_name = "mesh info";
+    // }
+    // if (parameter_list_->isSublist(plist_name)) {
+    //   auto& mesh_info_list = parameter_list_->sublist(plist_name);
+    //   Teuchos::RCP<Amanzi::MeshInfo> mesh_info = Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, comm_));
+    //   mesh_info->WriteMeshCentroids(*(mesh->second.first));
+    // }
+
   }
 
   // create the time step manager
-  tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
+  tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager(*parameter_list_));
 }
 
 void Coordinator::setup() {
@@ -161,6 +173,9 @@ void Coordinator::initialize() {
   *S_->GetScalarData("dt", "coordinator") = 0.;
   S_->GetField("dt","coordinator")->set_initialized();
   S_->InitializeFields();
+
+  // Check final initialization
+  WriteStateStatistics(*S_, *vo_);
 
   // Initialize the process kernels (initializes all independent variables)
   pk_->Initialize(S_.ptr());
@@ -413,6 +428,8 @@ double Coordinator::get_dt(bool after_fail) {
   // get the physical step size
   double dt = pk_->get_dt();
 
+  Teuchos::OSTab tab = vo_->getOSTab();
+  
   if (dt < 0.) {
     return dt;
   }
@@ -429,7 +446,10 @@ double Coordinator::get_dt(bool after_fail) {
   }
 
   // ask the step manager if this step is ok
-  dt = tsm_->TimeStep(S_next_->time(), dt, after_fail);
+  double dt_proposed = tsm_->TimeStep(S_next_->time(), dt, after_fail);
+
+  dt = std::min(dt, dt_proposed);
+  
   return dt;
 }
 
@@ -564,7 +584,7 @@ void Coordinator::cycle_driver() {
   // iterate process kernels
   {
     Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
-#if !DEBUG_MODE
+#if DEBUG_MODE
   try {
 #endif
     bool fail = false;
@@ -582,17 +602,6 @@ void Coordinator::cycle_driver() {
         *vo_->os() << "----------------------------------------------------------------------"
                   << std::endl;
       }
-      if (S_->cycle() == 3311){
-              Teuchos::OSTab tab = vo_->getOSTab();
-        *vo_->os() << "======================================================================"
-                  << std::endl << std::endl;
-        *vo_->os() << "debug for cycle= " << S_->cycle();
-        *vo_->os() << std::setprecision(15) << ",  Time [days] = "<< S_->time() / (60*60*24);
-        *vo_->os() << ",  dt [days] = " << dt / (60*60*24)  << std::endl;
-        *vo_->os() << "----------------------------------------------------------------------"
-                  << std::endl;
-         
-      }
 
       *S_->GetScalarData("dt", "coordinator") = dt;
       *S_inter_->GetScalarData("dt", "coordinator") = dt;
@@ -607,8 +616,12 @@ void Coordinator::cycle_driver() {
 
     } // while not finished
 
+    // *vo_->os() << "Time "<<S_->time()<<" "<<t1_<<"\n";
+    // *vo_->os() << "Cycle "<<S_->cycle()<< " "<<cycle1_<<"\n";
+    // *vo_->os() << "Duration "<<timer_->totalElapsedTime(true)<<" "<<duration_<<" "<<duration<<"\n";
+    // *vo_->os() << "dt "<<dt<<"\n"; 
 
-#if !DEBUG_MODE
+#if DEBUG_MODE
   }
 
   catch (Amanzi::Exceptions::Amanzi_exception &e) {
