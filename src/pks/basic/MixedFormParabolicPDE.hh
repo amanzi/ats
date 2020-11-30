@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -25,7 +25,7 @@ primary form,
     \frac{d \Phi(u) }{d u} \frac{\partial u}{\partial t} - \nabla \cdot K(u) \grad u = Q(u,x,t)
 
 where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
-    
+
 .. _conservation-ode-pk-spec:
 .. admonition:: conservation-ode-pk-spec
 
@@ -53,14 +53,10 @@ where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
       error norm calculation.  Defaults to a small amount of water.  Units are
       the same as the conserved quantity.
 
-    * `"preconditioner`" ``[preconditioner-typed-spec]`` **optional**
-      Preconditioner for the solve.  Only used if the time integration scheme
-      is solved implicitly.
+    * `"inverse`" ``[inverse-typed-spec]`` **optional**
+      Linear inverse for the linear solve.  Only used if the time integration
+      scheme is solved implicitly.
 
-    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
-      to improve the inverse of the preconditioner.  Only used if this PK is
-      implicitly solved, but not implicitly coupled at a higher level.  See
-      LinearOperator_.
 
 */
 
@@ -69,8 +65,7 @@ where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
 #include "TreeVector.hh"
 #include "Operator.hh"
 #include "Operator_Factory.hh"
-#include "LinearOperator.hh"
-#include "LinearOperatorFactory.hh"
+#include "Inverse.hh"
 #include "SolverDefs.hh"
 
 #include "PK_Adaptors.hh"
@@ -116,7 +111,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (diffused_key_ != key_) {
       S_->template RequireDerivative<CompositeVector,CompositeVectorSpace>(diffused_key_, tag_new_, key_, tag_new_);
     }
-    
+
     // set up the diffusion operator
     diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
     Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
@@ -126,7 +121,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!diff_list.isParameter("flux key")) diff_list.set("flux key", diffusion_key_+"_flux");
     if (!diff_list.isParameter("boundary conditions key")) diff_list.set("boundary conditions key", diffusion_key_+"_bcs");
     diff_list.set("operator argument key", diffused_key_);
-    
+
     // set up the residual evaluator
     res_key_ = key_ + "_res";
     Teuchos::ParameterList& res_list = S_->FEList().sublist(res_key_);
@@ -153,17 +148,17 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!res_list.isParameter("rhs coefficients")) res_list.set("rhs coefficients", rhs_coefs);
 
     // -- preconditioner
-    if (!res_list.isSublist("preconditioner")) {
-      res_list.set("preconditioner", plist_->sublist("preconditioner"));
-    }    
-    
+    if (!res_list.isSublist("inverse")) {
+      res_list.set("inverse", plist_->sublist("inverse"));
+    }
+
     // NOTE: we cannot know the structure of u here -- it may be CELL if FV, or
     // it may be CELL+FACE if MFD.  It will get set by the operator.  But we do
     // need to supply the mesh.
     S_->template Require<CompositeVector,CompositeVectorSpace>(key_, tag_new_)
-        .SetMesh(mesh_);  
+        .SetMesh(mesh_);
     S_->template Require<CompositeVector,CompositeVectorSpace>(res_key_, tag_new_)
-        .SetMesh(mesh_);  
+        .SetMesh(mesh_);
     S_->template RequireDerivative<Operators::Operator, Operators::Operator_Factory>(
       res_key_, tag_new_, diffused_key_, tag_new_);
     S_->RequireEvaluator(res_key_, tag_new_);
@@ -201,7 +196,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     db_->WriteVectors({key_+"_old",key_+"_new"},
                       {u_old->Data().ptr(), u_new->Data().ptr()},
                       true);
-    
+
     S_->GetEvaluator(res_key_, tag_new_).Update(*S_, this->name());
     f->Data()->assign(S_->template Get<CompositeVector>(res_key_, tag_new_));
 
@@ -215,26 +210,12 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
   {
     const auto& lin_op = S_->template GetDerivativePtr<Operators::Operator>(res_key_, tag_new_, diffused_key_, tag_new_);
 
-    // check for a linear solver
-    if (!lin_solver_.get() && plist_->isParameter("linear solver")) {
-      auto ls_list = Teuchos::sublist(plist_, "linear solver");
-      AmanziSolvers::LinearOperatorFactory<Operators::Operator,CompositeVector,CompositeSpace> fac;
-      lin_solver_ = fac.Create(*ls_list, lin_op);
-    }
-
     Teuchos::OSTab tab = vo_->getOSTab();
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Precon application:" << std::endl;
-    
+
     db_->WriteVector("u_res", r->Data().ptr());
-
-    int ierr;
-    if (lin_solver_.get()) {
-      ierr = lin_solver_->applyInverse(*r->Data(), *Pr->Data());
-    } else {
-      ierr = lin_op->applyInverse(*r->Data(), *Pr->Data());
-    }
-
+    int ierr = lin_op->applyInverse(*r->Data(), *Pr->Data());
     db_->WriteVector("PC*u_res", Pr->Data().ptr());
 
     if (diffused_key_ != key_) {
@@ -248,8 +229,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
       Pr->Data()->reciprocal(*Pr->Data());
       // db_->WriteVector("dprimary/ddiffused*PC*u_res", Pr->Data().ptr());
     }
-    
-    
+
     // return ierr;
     return 0;  // keep trying, even if linear solver fails to converge.
   }
@@ -259,7 +239,7 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     Teuchos::OSTab tab = vo_->getOSTab();
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Precon update at t = " << t << std::endl;
-    
+
     S_->GetEvaluator(res_key_, tag_new_).UpdateDerivative(*S_, this->name(),
             diffused_key_, tag_new_);
     S_->GetEvaluator(diffused_key_, tag_new_).UpdateDerivative(*S_, this->name(),
@@ -289,9 +269,6 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
   Key diffusion_key_;
   Key res_key_;
 
-  Teuchos::RCP<AmanziSolvers::LinearOperator<
-                 Operators::Operator,CompositeVector,CompositeSpace> > lin_solver_;
-  
 };
 
 
@@ -304,7 +281,7 @@ public:
   void Setup() {
     Base_t::Setup();
     Base_t::SetupAtTag(tag_inter_);
-  
+
     // set up the diffusion operator
     diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
     Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
@@ -346,9 +323,9 @@ public:
     // it may be CELL+FACE if MFD.  It will get set by the operator.  But we do
     // need to supply the mesh.
     S_->template Require<CompositeVector,CompositeVectorSpace>(dudt_key_, tag_inter_)
-        .SetMesh(mesh_);  
+        .SetMesh(mesh_);
     S_->RequireEvaluator(dudt_key_, tag_inter_);
-    
+
   }
 
   void
@@ -360,7 +337,7 @@ public:
     // for time integrators to break our state model, by simply
     // copy-constructing the input vector and giving us the copy instead of the
     // vector at the right tag.
-    //    
+    //
     // For now, these check to ensure that the time integrator is giving
     // us what we expect, and is playing nice with state
     S_->set_time(tag_inter_, t);
@@ -372,7 +349,7 @@ public:
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "----------------------------------------------------------------" << std::endl
                  << "Time derivative calculation at: t = " << t << std::endl;
-    
+
     db_->WriteCellInfo(true);
     db_->WriteVector("u", u.Data().ptr());
 
@@ -407,7 +384,7 @@ public:
 
 };
 
-  
+
 
 
 
