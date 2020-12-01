@@ -134,28 +134,28 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
   // }
 
 
-  precip_key_ = Keys::getKey(domain_surf_,"precipitation_rain");
+  precip_key_ = Keys::readKey(*plist_, domain_surf_,"precipitation", "precipitation_rain");
   if (!S->HasField(precip_key_)){    
     S->RequireField(precip_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(precip_key_);
   }
 
-  air_temp_key_ = Keys::getKey(domain_surf_,"air_temperature");
+  air_temp_key_ =  Keys::readKey(*plist_, domain_surf_,"air temperature", "air_temperature");
   if (!S->HasField(air_temp_key_)){    
     S->RequireField(air_temp_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(air_temp_key_);
   }
 
-  humidity_key_ = Keys::getKey(domain_surf_,"relative_humidity");
+  humidity_key_ = Keys::readKey(*plist_, domain_surf_,"relative humidity", "relative_humidity");
   if (!S->HasField(humidity_key_)){    
     S->RequireField(humidity_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(humidity_key_);
   }
 
-  wind_key_ = Keys::getKey(domain_surf_,"wind");
+  wind_key_ = Keys::readKey(*plist_, domain_surf_,"wind", "wind");
   if (!S->HasField(wind_key_)){    
     S->RequireField(wind_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
