@@ -1,5 +1,5 @@
 Input Specification
--------------------
+%%%%%%%%%%%%%%%%%%%
 
 ATS input files are xml files, which can be quite annoying for a human
 to create from scratch.  xml is great from the code's perspective, but
@@ -26,4 +26,5 @@ updating it to the next newer version.  These are available at
    :caption: Versions
              
    input_spec/ATSNativeSpec_dev
+   input_spec/ATSNativeSpec_1_0
    input_spec/ATSNativeSpec_0_86

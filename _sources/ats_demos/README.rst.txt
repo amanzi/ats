@@ -1,5 +1,5 @@
 ATS Demonstrations
-==================
+******************
 
 This is a suite of demonstration problems which show the various
 capabilities and typical workflows of ATS simulations.
@@ -31,7 +31,7 @@ some of, and maybe all of, the following components:
   understand what is being done in each run.
 
 Running the demos
----------------------
+#################
 
 Running all of the demos can take some time, but individual demos are
 often fairly quick.  To run a given demo, make sure `ats` is compiled
@@ -50,7 +50,8 @@ This is particularly true for demos that show a full workflow, such as
 
 
 Visualizing the results
-------------------------
+#######################
+
 
 Inside each subdirectory is a jupyter notebook.  Jupyter comes fairly
 standard with most comprehensive python installations.  Anaconda
@@ -59,13 +60,13 @@ installation includes nearly all python packages used by ATS.
 
 
 Demonstration Problems
-----------------------
+######################
 
 .. inclusion-marker
 
 
 Richards Equation: Steady state
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+===============================
 
 
 `<ats_demos/01_richards_steadystate/richards_steadystate.ipynb>`_
@@ -76,7 +77,7 @@ hydrostatic balance.
 
 
 Richards Equation: Transient
->>>>>>>>>>>>>>>>>>>>>>>>>>>>
+============================
 
 `<ats_demos/02_richards/richards.ipynb>`_
 
@@ -86,7 +87,7 @@ flow of water in a porous media.
 
 
 Surface Water
->>>>>>>>>>>>>
+=============
 
 `<ats_demos/03_surface_water/surface_water.ipynb>`_
 
@@ -97,7 +98,7 @@ forcing.
 
 
 Integrated Hydrology
->>>>>>>>>>>>>>>>>>>>
+====================
 
 `<ats_demos/04_integrated_hydro/integrated_hydro.ipynb>`_
 
@@ -106,7 +107,7 @@ solving both surface and subsurface flow of water.
 
 
 Ecohydrology
->>>>>>>>>>>>
+============
 
 `<ats_demos/05_ecohydrology/ecohydrology.ipynb>`_
 
@@ -117,7 +118,7 @@ even simplified biogeochemistry processes for a full carbon cycle.
 
 
 Arctic Hydrology
->>>>>>>>>>>>>>>>
+================
 
 `<ats_demos/06_arctic_hydrology/arctic_hydrology.ipynb>`_
 
@@ -127,7 +128,7 @@ for solving coupled freeze-thaw processes in Arctic environments.
 
 
 Reactive Transport
->>>>>>>>>>>>>>>>>>
+==================
 
 `<ats_demos/07_reactive_transport/reactive_transport.ipynb>` (Work in progress)
 

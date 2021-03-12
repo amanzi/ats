@@ -1,11 +1,10 @@
-=======================================
-ATS Native XML Input Specification V1
-=======================================
+ATS Native XML Input Specification V0.86
+****************************************
 
 .. contents:: **Table of Contents**
 
 Notes
-=====
+#####
 
 * ATS's input spec is similar, but not identical, to Amanzi's Native
   input spec.  Much of this document is stolen from Amanzi's Native Spec.
@@ -15,7 +14,7 @@ Notes
 
   
 Syntax of the Specification
-===========================
+###########################
 
 * Input specification for each ParameterList entry consists of two parts.  
   First, a bulleted list defines the usage syntax and available options.  
@@ -69,7 +68,9 @@ Conventions:
 * Bold values are default values, and are used if the Parameter
   is not provided.
 
-
+Input Spec
+##########
+  
   
 Main
 ====

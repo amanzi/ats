@@ -1,5 +1,5 @@
 ATS Demo Problems
------------------
+%%%%%%%%%%%%%%%%%
 
 The best way to learn how to use ATS is by looking at our suite of
 demonstration problems.  This is a suite of problems that look to

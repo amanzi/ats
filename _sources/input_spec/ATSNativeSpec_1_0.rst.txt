@@ -1,11 +1,11 @@
 ATS Native XML Input Specification V1
-#######################################
+*************************************
 
 .. contents:: **Table of Contents**
 
   
 Syntax of the Specification
-#######################################
+###########################
 
 * Input specification for each ParameterList entry consists of two parts.  
   First, a bulleted list defines the usage syntax and available options.  
