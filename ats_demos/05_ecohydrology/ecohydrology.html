@@ -21,11 +21,12 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
@@ -218,20 +219,33 @@ div.nboutput.container div.prompt pre {
 /* all prompts */
 div.nbinput.container div.prompt,
 div.nboutput.container div.prompt {
-    min-width: 5ex;
-    padding-top: 0.3rem;
-    padding-right: 0.3rem;
-    text-align: right;
-    flex: 0;
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
 }
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
 @media (max-width: 540px) {
     div.nbinput.container div.prompt,
     div.nboutput.container div.prompt {
+        width: unset;
         text-align: left;
         padding: 0.4em;
     }
     div.nboutput.container div.prompt.empty {
         padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
     }
 }
 
@@ -324,7 +338,7 @@ div.nboutput.container div.output_area div[class*=highlight].math,
 div.nboutput.container div.output_area.rendered_html,
 div.nboutput.container div.output_area > div.output_javascript,
 div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 0.3rem;
+    padding: 5px;
 }
 
 /* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
@@ -398,98 +412,70 @@ div.rendered_html tbody tr:hover {
 <h1>Temperate Ecohydrology<a class="headerlink" href="#Temperate-Ecohydrology" title="Permalink to this headline">¶</a></h1>
 <p>Here we show a workflow for a simple hillslope. Demos shown here include:</p>
 <ul class="simple">
-<li>spinup</li>
-<li>prescribed P - ET</li>
-<li>inclusion of a litter layer</li>
-<li><em>Not yet complete:</em> transpiration from a vegetation model with prescribed LAI</li>
-<li>transpiration from a vegetation model with dynamic LAI</li>
-<li><em>Not yet complete:</em> transpiration from a vegetation model and evaporation from a surface energy balance (the full model?)</li>
+<li><p>spinup</p></li>
+<li><p>prescribed P - ET</p></li>
+<li><p>inclusion of a litter layer</p></li>
+<li><p><em>Not yet complete:</em> transpiration from a vegetation model with prescribed LAI</p></li>
+<li><p>transpiration from a vegetation model with dynamic LAI</p></li>
+<li><p><em>Not yet complete:</em> transpiration from a vegetation model and evaporation from a surface energy balance (the full model?)</p></li>
 </ul>
 <p>Author: Ethan Coon</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
 <span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;tools&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
-<span class="kn">import</span> <span class="nn">parse_xmf</span><span class="o">,</span> <span class="nn">parse_ats</span>
-<span class="kn">import</span> <span class="nn">column_data</span><span class="o">,</span> <span class="nn">transect_data</span>
+<span class="kn">import</span> <span class="nn">ats_xdmf</span>
 <span class="kn">import</span> <span class="nn">colors</span>
-<span class="kn">import</span> <span class="nn">mesh</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colorbar</span>
+
 <span class="kn">import</span> <span class="nn">h5py</span>
+
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/Users/uec/codes/anaconda/2/5.1.0/base/lib/python2.7/site-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
-  from ._conv import register_converters as _register_converters
-</pre></div></div>
 </div>
 <div class="section" id="Spinup">
 <h2>Spinup<a class="headerlink" href="#Spinup" title="Permalink to this headline">¶</a></h2>
 <p>For applications of temperate ecohydrology, spinup is all about getting antecedent soil moisture conditions correct. There can be no expectation of getting reasonable hydrographs if the antecedent soil moisture field is wrong.</p>
 <p>One way of doing this is to solve, to pseudo-steady state, the integrated hydrology problem with a constant source term that is given by the mean annual (or mean seasonal) precipitation minus evapotranspiration (P-ET) rate. This can be solved for long times, using an adaptive timestep that grows as the solution approaches steady state. This sets the mean background conditions for simulations with daily or other high-resolution inputs.</p>
 <p>The first step is to provide an initial condition for that run which is hydrostatic with the water table at the surface. Starting from fully saturated and drawing down to the steady state is faster and more efficient than starting from dry and filling up to the steady state. To do this, we don’t assume that this is a hillslope with fixed slope, but imagine that it is set by topography and therefore cannot be provided analytically.</p>
-<p>ATS doesn’t currently have a way of setting an initial condition as a function of depth, which would be ideal in this situation (contributions welcome!) But ATS does support initializing from a column, in which a column solution is draped from the topography across the full mesh. This is quite simple in this case, because it is hydrostatic and therefore a linear solution. The file <code class="docutils literal notranslate"><span class="pre">../data/column_data.h5</span></code> provides a working version of this initialization strategy up to 100m soil depth.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># create the column_data file</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">h5py</span>
-
-<span class="n">rho</span> <span class="o">=</span> <span class="mi">997</span>
-<span class="n">g</span> <span class="o">=</span> <span class="mf">9.80665</span>
-
-<span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
-<span class="n">pres</span> <span class="o">=</span> <span class="mf">101325.</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span><span class="mf">100.</span><span class="p">])</span><span class="o">*</span><span class="n">rho</span><span class="o">*</span><span class="n">g</span>
-
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;data/column_data.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
-    <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
-    <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;pressure&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">pres</span><span class="p">)</span>
-
-</pre></div>
-</div>
-</div>
+<p>To do this, we use the hydrostatic initial condition option.</p>
 <p>Given that initial condition, we solve to steady state. In this solve, we often use a too-large Manning’s coefficient. This slows up the surface water, which is safe to do because we’re looking at such long time scales. Surface water is still much faster than subsurface water, and as long as we aren’t trying to get high frequency hydrographs correct, this makes for much faster simulations (with longer timestep sizes) with little loss in predictive power.</p>
 <p>This run is for 20,000 days and is plotted below. The image is a bit hard to see without exaggerating in the vertical – a better way of seeing these runs is to open it in VisIt.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the saturation at a few times</span>
+<span></span><span class="c1"># plot the saturation at steady-state</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;spinup-gi.demo&quot;</span>
 
-<span class="n">keys</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">dat</span> <span class="o">=</span> <span class="n">parse_ats</span><span class="o">.</span><span class="n">readATS</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;visdump_data.h5&quot;</span><span class="p">,</span> <span class="n">timeunits</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
-<span class="n">dats</span> <span class="o">=</span> <span class="n">column_data</span><span class="o">.</span><span class="n">column_data</span><span class="p">([</span><span class="s1">&#39;surface-ponded_depth&#39;</span><span class="p">,</span><span class="s1">&#39;surface-elevation&#39;</span><span class="p">],</span>
-                               <span class="n">directory</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;visdump_surface_data.h5&quot;</span><span class="p">,</span>
-                               <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">&quot;visdump_surface_mesh.h5&quot;</span><span class="p">,</span> <span class="n">coord</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis</span><span class="o">.</span><span class="n">loadMeshPolygons</span><span class="p">()</span>
 
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
 <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">ax</span><span class="p">):</span>
     <span class="n">cax</span> <span class="o">=</span> <span class="n">colorbar</span><span class="o">.</span><span class="n">make_axes</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">cax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;saturation [-]&quot;</span><span class="p">)</span>
 
-    <span class="n">transect_data</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dat</span><span class="p">[</span><span class="s2">&quot;saturation_liquid.cell.0&quot;</span><span class="p">][</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]][:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax</span><span class="p">,</span> <span class="n">cax</span><span class="p">,</span>
-                       <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;jet_r&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;saturation [-]&quot;</span><span class="p">,</span> <span class="n">linewidths</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dats</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">dats</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">i</span><span class="p">,:]</span><span class="o">+</span><span class="n">dats</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">i</span><span class="p">,:],</span> <span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;{0} hours&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">))</span>
+    <span class="n">sat</span> <span class="o">=</span> <span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;saturation_liquid&quot;</span><span class="p">,</span> <span class="n">vis</span><span class="o">.</span><span class="n">cycles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">vis</span><span class="o">.</span><span class="n">getMeshPolygons</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;jet_r&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">poly</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">sat</span><span class="p">)</span>
+    <span class="n">poly</span><span class="o">.</span><span class="n">set_clim</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
 
 <span class="n">plot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+
+
 </pre></div>
 </div>
 </div>
@@ -497,11 +483,11 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" />
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_4_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_4_0.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
@@ -527,28 +513,28 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_6_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_6_0.png" />
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" />
 </div>
 </div>
 </div>
 <div class="section" id="Prescribed-P---ET">
 <h2>Prescribed P - ET<a class="headerlink" href="#Prescribed-P---ET" title="Permalink to this headline">¶</a></h2>
-<p>Often precipitation and evapotranspiration are known from either a preexisting land model run, remotely sensed or point data (e.g. eddy flux towers and weather stations) or other approaches. Here we do a few examples to generate datasets for use in ATS and then drive simulations with this prescribed data.</p>
+<p>Often precipitation and evapotranspiration are known from either a preexisting land model run, remotely sensed or point data (e.g. eddy flux towers and weather stations) or other approaches. Here we do a few examples to generate datasets for use in ATS and then drive simulations with this prescribed data.</p>
 <div class="section" id="Data-processing">
 <h3>Data processing<a class="headerlink" href="#Data-processing" title="Permalink to this headline">¶</a></h3>
 <p>Below is an example of how to generate, from raw data, the input files needed by ATS for P, E, and T for these examples. Included here is output from a CLM 4.5 run for the Asu Basin outside Manaus, Brazil. This run provides daily data of a variety of the water balance fluxes, including precipitation, evaporation, and transpiration. We read this file and generate the two HDF5 forcing files for use in ATS in the prescribed P-ET examples.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1">#</span>
 <span class="c1"># load the data</span>
 <span class="c1">#</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="s2">&quot;data/flux_output_w_fluxtowerR.txt&quot;</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="s2">&quot;data/flux_output_w_fluxtowerR.txt&quot;</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># note this read with column headers -- the file contains:</span>
-<span class="k">print</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
 <span class="c1"># daily data, converted to [s].  Note there are some units options in ATS, but it is easiest to write data in SI units.</span>
 <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)))</span>
@@ -575,7 +561,7 @@ div.rendered_html tbody tr:hover {
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
 
 <span class="c1"># write to disc</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;data/prescribed_pet.h5&#39;</span><span class="p">,</span><span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;data/prescribed_pet.h5&#39;</span><span class="p">,</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fid</span><span class="p">:</span>
     <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;time [s]&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">times</span><span class="p">)</span>
     <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;precipitation [m s^-1]&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">precip</span><span class="p">)</span>
     <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;evaporation [m s^-1]&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">evap</span><span class="p">)</span>
@@ -600,7 +586,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_9_1.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_9_1.png" />
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_8_1.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_8_1.png" />
 </div>
 </div>
 </div>
@@ -615,7 +601,7 @@ less frequently a problem and typically full evaporation is taken and the limite
 <p>Note the limiters used here are quite naive – better limiters should be implemented before this approach is used for real science.</p>
 <p>Note that the hydrographs in the distributed case are drier, because ET was not limited and full transpiration was taken.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
@@ -642,21 +628,21 @@ less frequently a problem and typically full evaporation is taken and the limite
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_11_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_11_0.png" />
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_10_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_10_0.png" />
 </div>
 </div>
 </div>
 </div>
 <div class="section" id="Prescribed-LAI,-calculated-transpiration">
 <h2>Prescribed LAI, calculated transpiration<a class="headerlink" href="#Prescribed-LAI,-calculated-transpiration" title="Permalink to this headline">¶</a></h2>
-<p>More realistic than prescribing transpiration is to actively calculate transpiration as a function of photosynthesis. This can be done through vegetation models, which actively simulate a carbon cycle and predict LAI and photosynthesis, or through a biophysics model, which takes as input a prescribed LAI as a function of time (including, e.g. seasonal variations) and calculates photosynthesis, stomatal conductance, and transpiration.</p>
+<p>More realistic than prescribing transpiration is to actively calculate transpiration as a function of photosynthesis. This can be done through vegetation models, which actively simulate a carbon cycle and predict LAI and photosynthesis, or through a biophysics model, which takes as input a prescribed LAI as a function of time (including, e.g. seasonal variations) and calculates photosynthesis, stomatal conductance, and transpiration.</p>
 <p>These approaches need no limiters – the limiter is in the stomatal conductance term, which is itself a function of soil moisture or mafic potential.</p>
 <p><strong>TO DO</strong> This is not yet implemented – the veg model and the biophysics calculation are in the same PK, and need to be refactored and split before this is possible. <em>ETC</em></p>
 </div>
 <div class="section" id="Dynamic-LAI,-calculated-transpiration">
 <h2>Dynamic LAI, calculated transpiration<a class="headerlink" href="#Dynamic-LAI,-calculated-transpiration" title="Permalink to this headline">¶</a></h2>
 <p>To do dynamic LAI and then calculate transpiration, a carbon cycle is needed. This includes models of biophysics, and plant growth/allocation. When this is done, a soil carbon model is solved as well, based on a century model.</p>
-<p>The vegetation model in ATS is a big-leaf model. (This is probably appropriate for the resolution at which ATS typically is solved – canopy gaps are likely as big as or comparable in size to the typical ATS cell.) It is a multi-leaf layer, multi-PFT (i.e. coexisting, height-ordered PFTs which shade each other) model, written by Chonggang Xu (LANL).</p>
+<p>The vegetation model in ATS is a big-leaf model. (This is probably appropriate for the resolution at which ATS typically is solved – canopy gaps are likely as big as or comparable in size to the typical ATS cell.) It is a multi-leaf layer, multi-PFT (i.e. coexisting, height-ordered PFTs which shade each other) model, written by Chonggang Xu (LANL).</p>
 <div class="section" id="Vegetation-Spinup">
 <h3>Vegetation Spinup<a class="headerlink" href="#Vegetation-Spinup" title="Permalink to this headline">¶</a></h3>
 <p>To use this model, vegetation must first be spun up to annual steadystate, and forced with meteorological data. Here we will use DayMet, which provides daily historical QA’d datasets for met data on a 1km continental US grid. These datasets were created using DayMet for the Coweeta Hydrologic Laboratory:</p>
@@ -665,7 +651,7 @@ less frequently a problem and typically full evaporation is taken and the limite
 <p><code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">$ATS_SRC_DIR/tools/utils/smooth_met.py</span> <span class="pre">-n</span> <span class="pre">10</span> <span class="pre">daymet_raw_35p0599_-83p4306.h5</span></code></p>
 <p><strong>Note:</strong> this needs some real work, whether via parameterization or other code cleanup, to get some more stable veg cases. <strong>ETC</strong></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[76]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython2 notranslate"><div class="highlight"><pre>
@@ -673,15 +659,16 @@ less frequently a problem and typically full evaporation is taken and the limite
 <span class="c1"># load and plot the spinup results</span>
 <span class="c1">#</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s1">&#39;spinup-vegetation.demo&#39;</span>
-
-<span class="n">keys</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">dat</span> <span class="o">=</span> <span class="n">parse_ats</span><span class="o">.</span><span class="n">readATS</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="n">directory</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="s1">&#39;visdump_surface_data.h5&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
+<span class="n">vis_surf</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
-<span class="n">biomass</span> <span class="o">=</span> <span class="n">parse_ats</span><span class="o">.</span><span class="n">getSurfaceData</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="s1">&#39;surface-leaf_biomass.cell.deciduous&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">biomass</span><span class="p">,</span> <span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;deciduous biomass&#39;</span><span class="p">)</span>
+<span class="n">biomass</span> <span class="o">=</span> <span class="n">vis_surf</span><span class="o">.</span><span class="n">getArray</span><span class="p">(</span><span class="s1">&#39;surface-leaf_biomass.cell.deciduous&#39;</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">biomass</span><span class="p">,</span> <span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;deciduous biomass&#39;</span><span class="p">)</span>
 
-<span class="n">lai</span> <span class="o">=</span> <span class="n">parse_ats</span><span class="o">.</span><span class="n">getSurfaceData</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">dat</span><span class="p">,</span> <span class="s1">&#39;surface-total_leaf_area_index.cell.0&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">lai</span><span class="p">,</span> <span class="s1">&#39;k-x&#39;</span><span class="p">)</span>
+<span class="n">lai</span> <span class="o">=</span> <span class="n">vis_surf</span><span class="o">.</span><span class="n">getArray</span><span class="p">(</span><span class="s1">&#39;surface-total_leaf_area_index.cell.0&#39;</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">times</span><span class="p">,</span> <span class="n">lai</span><span class="p">,</span> <span class="s1">&#39;k-x&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time [y]&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;biomass [kg C]&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time [y]&#39;</span><span class="p">)</span>
@@ -691,20 +678,87 @@ less frequently a problem and typically full evaporation is taken and the limite
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[76]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Text(0,0.5,u&#39;total LAI [-]&#39;)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ValueError</span>                                Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-17-3338947cd9e9&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">      8</span> fig<span class="ansi-blue-fg">,</span> axs <span class="ansi-blue-fg">=</span> plt<span class="ansi-blue-fg">.</span>subplots<span class="ansi-blue-fg">(</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">,</span><span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">,</span> figsize<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">(</span><span class="ansi-cyan-fg">13</span><span class="ansi-blue-fg">,</span><span class="ansi-cyan-fg">4</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      9</span> biomass <span class="ansi-blue-fg">=</span> vis_surf<span class="ansi-blue-fg">.</span>getArray<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;surface-leaf_biomass.cell.deciduous&#39;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">---&gt; 10</span><span class="ansi-red-fg"> </span>axs<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">.</span>plot<span class="ansi-blue-fg">(</span>times<span class="ansi-blue-fg">,</span> biomass<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">&#39;-x&#39;</span><span class="ansi-blue-fg">,</span> color<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#39;forestgreen&#39;</span><span class="ansi-blue-fg">,</span> label<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#39;deciduous biomass&#39;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     11</span>
+<span class="ansi-green-intense-fg ansi-bold">     12</span> lai <span class="ansi-blue-fg">=</span> vis_surf<span class="ansi-blue-fg">.</span>getArray<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;surface-total_leaf_area_index.cell.0&#39;</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_axes.py</span> in <span class="ansi-cyan-fg">plot</span><span class="ansi-blue-fg">(self, scalex, scaley, data, *args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1645</span>         &#34;&#34;&#34;
+<span class="ansi-green-intense-fg ansi-bold">   1646</span>         kwargs <span class="ansi-blue-fg">=</span> cbook<span class="ansi-blue-fg">.</span>normalize_kwargs<span class="ansi-blue-fg">(</span>kwargs<span class="ansi-blue-fg">,</span> mlines<span class="ansi-blue-fg">.</span>Line2D<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">-&gt; 1647</span><span class="ansi-red-fg">         </span>lines <span class="ansi-blue-fg">=</span> <span class="ansi-blue-fg">[</span><span class="ansi-blue-fg">*</span>self<span class="ansi-blue-fg">.</span>_get_lines<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">*</span>args<span class="ansi-blue-fg">,</span> data<span class="ansi-blue-fg">=</span>data<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">**</span>kwargs<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-intense-fg ansi-bold">   1648</span>         <span class="ansi-green-fg">for</span> line <span class="ansi-green-fg">in</span> lines<span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">   1649</span>             self<span class="ansi-blue-fg">.</span>add_line<span class="ansi-blue-fg">(</span>line<span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_base.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-fg">(self, *args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    214</span>                 this <span class="ansi-blue-fg">+=</span> args<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    215</span>                 args <span class="ansi-blue-fg">=</span> args<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">:</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-fg">--&gt; 216</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">yield</span> <span class="ansi-green-fg">from</span> self<span class="ansi-blue-fg">.</span>_plot_args<span class="ansi-blue-fg">(</span>this<span class="ansi-blue-fg">,</span> kwargs<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    217</span>
+<span class="ansi-green-intense-fg ansi-bold">    218</span>     <span class="ansi-green-fg">def</span> get_next_color<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_base.py</span> in <span class="ansi-cyan-fg">_plot_args</span><span class="ansi-blue-fg">(self, tup, kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    340</span>
+<span class="ansi-green-intense-fg ansi-bold">    341</span>         <span class="ansi-green-fg">if</span> x<span class="ansi-blue-fg">.</span>shape<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span> <span class="ansi-blue-fg">!=</span> y<span class="ansi-blue-fg">.</span>shape<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">--&gt; 342</span><span class="ansi-red-fg">             raise ValueError(f&#34;x and y must have same first dimension, but &#34;
+</span><span class="ansi-green-intense-fg ansi-bold">    343</span>                              f&#34;have shapes {x.shape} and {y.shape}&#34;)
+<span class="ansi-green-intense-fg ansi-bold">    344</span>         <span class="ansi-green-fg">if</span> x<span class="ansi-blue-fg">.</span>ndim <span class="ansi-blue-fg">&gt;</span> <span class="ansi-cyan-fg">2</span> <span class="ansi-green-fg">or</span> y<span class="ansi-blue-fg">.</span>ndim <span class="ansi-blue-fg">&gt;</span> <span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-red-fg">ValueError</span>: x and y must have same first dimension, but have shapes (1461,) and (501, 1)
 </pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_15_1.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_15_1.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_16_1.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_16_1.png" />
-</div>
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ValueError</span>                                Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-17-3338947cd9e9&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span>
+<span class="ansi-green-intense-fg ansi-bold">      8</span> fig<span class="ansi-blue-fg">,</span> axs <span class="ansi-blue-fg">=</span> plt<span class="ansi-blue-fg">.</span>subplots<span class="ansi-blue-fg">(</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">,</span><span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">,</span> figsize<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">(</span><span class="ansi-cyan-fg">13</span><span class="ansi-blue-fg">,</span><span class="ansi-cyan-fg">4</span><span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">      9</span> biomass <span class="ansi-blue-fg">=</span> vis_surf<span class="ansi-blue-fg">.</span>getArray<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;surface-leaf_biomass.cell.deciduous&#39;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">---&gt; 10</span><span class="ansi-red-fg"> </span>axs<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">.</span>plot<span class="ansi-blue-fg">(</span>times<span class="ansi-blue-fg">,</span> biomass<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">&#39;-x&#39;</span><span class="ansi-blue-fg">,</span> color<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#39;forestgreen&#39;</span><span class="ansi-blue-fg">,</span> label<span class="ansi-blue-fg">=</span><span class="ansi-blue-fg">&#39;deciduous biomass&#39;</span><span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">     11</span>
+<span class="ansi-green-intense-fg ansi-bold">     12</span> lai <span class="ansi-blue-fg">=</span> vis_surf<span class="ansi-blue-fg">.</span>getArray<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#39;surface-total_leaf_area_index.cell.0&#39;</span><span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_axes.py</span> in <span class="ansi-cyan-fg">plot</span><span class="ansi-blue-fg">(self, scalex, scaley, data, *args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1645</span>         &#34;&#34;&#34;
+<span class="ansi-green-intense-fg ansi-bold">   1646</span>         kwargs <span class="ansi-blue-fg">=</span> cbook<span class="ansi-blue-fg">.</span>normalize_kwargs<span class="ansi-blue-fg">(</span>kwargs<span class="ansi-blue-fg">,</span> mlines<span class="ansi-blue-fg">.</span>Line2D<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-fg">-&gt; 1647</span><span class="ansi-red-fg">         </span>lines <span class="ansi-blue-fg">=</span> <span class="ansi-blue-fg">[</span><span class="ansi-blue-fg">*</span>self<span class="ansi-blue-fg">.</span>_get_lines<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">*</span>args<span class="ansi-blue-fg">,</span> data<span class="ansi-blue-fg">=</span>data<span class="ansi-blue-fg">,</span> <span class="ansi-blue-fg">**</span>kwargs<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-intense-fg ansi-bold">   1648</span>         <span class="ansi-green-fg">for</span> line <span class="ansi-green-fg">in</span> lines<span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">   1649</span>             self<span class="ansi-blue-fg">.</span>add_line<span class="ansi-blue-fg">(</span>line<span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_base.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-fg">(self, *args, **kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    214</span>                 this <span class="ansi-blue-fg">+=</span> args<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">,</span>
+<span class="ansi-green-intense-fg ansi-bold">    215</span>                 args <span class="ansi-blue-fg">=</span> args<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">1</span><span class="ansi-blue-fg">:</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-fg">--&gt; 216</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">yield</span> <span class="ansi-green-fg">from</span> self<span class="ansi-blue-fg">.</span>_plot_args<span class="ansi-blue-fg">(</span>this<span class="ansi-blue-fg">,</span> kwargs<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">    217</span>
+<span class="ansi-green-intense-fg ansi-bold">    218</span>     <span class="ansi-green-fg">def</span> get_next_color<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-green-fg">~/code/miniconda/lib/python3.8/site-packages/matplotlib/axes/_base.py</span> in <span class="ansi-cyan-fg">_plot_args</span><span class="ansi-blue-fg">(self, tup, kwargs)</span>
+<span class="ansi-green-intense-fg ansi-bold">    340</span>
+<span class="ansi-green-intense-fg ansi-bold">    341</span>         <span class="ansi-green-fg">if</span> x<span class="ansi-blue-fg">.</span>shape<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span> <span class="ansi-blue-fg">!=</span> y<span class="ansi-blue-fg">.</span>shape<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">--&gt; 342</span><span class="ansi-red-fg">             raise ValueError(f&#34;x and y must have same first dimension, but &#34;
+</span><span class="ansi-green-intense-fg ansi-bold">    343</span>                              f&#34;have shapes {x.shape} and {y.shape}&#34;)
+<span class="ansi-green-intense-fg ansi-bold">    344</span>         <span class="ansi-green-fg">if</span> x<span class="ansi-blue-fg">.</span>ndim <span class="ansi-blue-fg">&gt;</span> <span class="ansi-cyan-fg">2</span> <span class="ansi-green-fg">or</span> y<span class="ansi-blue-fg">.</span>ndim <span class="ansi-blue-fg">&gt;</span> <span class="ansi-cyan-fg">2</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-red-fg">ValueError</span>: x and y must have same first dimension, but have shapes (1461,) and (501, 1)
+</pre></div></div>
 </div>
 </div>
 <div class="section" id="Dynamic-runs">
@@ -737,7 +791,7 @@ Text(0,0.5,u&#39;total LAI [-]&#39;)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_18_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_18_0.png" />
+<img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_17_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_17_0.png" />
 </div>
 </div>
 <div class="nbinput nblast docutils container">

@@ -21,11 +21,12 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
@@ -188,19 +189,19 @@ map out usage of the described physical capability.  These include
 everything needed to get started using ATS.  Any given run contains
 some of, and maybe all of, the following components:</p>
 <ul class="simple">
-<li>An input file: an <cite>.xml</cite> file read by ATS via <cite>ats
-–xml_file=../my_file.xml</cite> <strong>required</strong></li>
-<li>A mesh file for non-trivial meshes: typically an <cite>.exo</cite> file.  Most
+<li><p>An input file: an <cite>.xml</cite> file read by ATS via <cite>ats
+–xml_file=../my_file.xml</cite> <strong>required</strong></p></li>
+<li><p>A mesh file for non-trivial meshes: typically an <cite>.exo</cite> file.  Most
 meshes have included a python script or ipython notebook used to
-generate that mesh, showing that workflow.</li>
-<li>Forcing data: typically an <cite>.h5</cite> file, and often generated from
+generate that mesh, showing that workflow.</p></li>
+<li><p>Forcing data: typically an <cite>.h5</cite> file, and often generated from
 DayMet or other products.  Often a python script or ipython notebook
 is used to generate these files, and these are included to show that
-workflow as well.</li>
-<li>A jupyter notebook <cite>.ipynb</cite> which describes, documents, and plots
+workflow as well.</p></li>
+<li><p>A jupyter notebook <cite>.ipynb</cite> which describes, documents, and plots
 the results from the given run.  Note these can be viewed, including
 plots, without even running the simulation.  This is where to
-understand what is being done in each run.</li>
+understand what is being done in each run.</p></li>
 </ul>
 <div class="section" id="running-the-demos">
 <h2>Running the demos<a class="headerlink" href="#running-the-demos" title="Permalink to this headline">¶</a></h2>

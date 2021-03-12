@@ -75,7 +75,7 @@ ATS's top-level main accepts an XML list including a few required elements.
 .. admonition:: main-spec
 
     * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
-    * `"regions`" ``[region-typedsublist-spec-list]`` A list of Region_ objects.
+    * `"regions`" ``[region-spec-list]`` A list of Region_ objects.
     * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
@@ -147,8 +147,8 @@ of number of cells in each direction.
 
 Specified by `"mesh type`" of `"generate mesh`".
 
-.. _mesh-generate-mesh-spec:
-.. admonition:: mesh-generate-mesh-spec
+.. _mesh-type-generate-mesh-spec:
+.. admonition:: mesh-type-generate-mesh-spec
 
     * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
     * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
@@ -185,8 +185,8 @@ suffix is .exo, the code will partition automatically the serial file.
 
 Specified by `"mesh type`" of `"read mesh file`".
 
-.. _mesh-read-mesh-file-spec:
-.. admonition:: mesh-read-mesh-file-spec
+.. _mesh-type-read-mesh-file-spec:
+.. admonition:: mesh-type-read-mesh-file-spec
 
     * `"file`" ``[string]`` filename of a pre-generated mesh file
     * `"format`" ``[string]`` format of pre-generated mesh file. One of:
@@ -228,8 +228,8 @@ Specified by `"mesh type`" of `"logical`".
 .. todo::
    WIP: add spec!
 
-.. _mesh-logical-spec:
-.. admonition:: mesh-logical-spec
+.. _mesh-type-logical-spec:
+.. admonition:: mesh-type-logical-spec
 
     Not yet completed...
    
@@ -247,8 +247,8 @@ computation.
 
 Specified by `"mesh type`" of `"surface`".
 
-.. _mesh-surface-spec:
-.. admonition:: mesh-surface-spec
+.. _mesh-type-surface-spec:
+.. admonition:: mesh-type-surface-spec
 
     ONE OF
 
@@ -300,8 +300,8 @@ entity local ID, in a provided region of the provided entity type.
 
 Specified by `"mesh type`" of `"subgrid`".
 
-.. _mesh-subgrid-spec:
-.. admonition:: mesh-subgrid-spec
+.. _mesh-type-subgrid-spec:
+.. admonition:: mesh-type-subgrid-spec
 
     * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
     * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
@@ -324,8 +324,8 @@ Column Meshes
 
 Specified by `"mesh type`" of `"column`".
 
-.. _mesh-column-spec:
-.. admonition:: mesh-column-spec
+.. _mesh-type-column-spec:
+.. admonition:: mesh-type-column-spec
 
     * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
       Note that the `"build columns from set`" parameter must be set in that mesh.
@@ -372,7 +372,58 @@ must be specified over a set of regions are (N-1)-dimensional.
 Region specs are **not** denoted by a "type" parameter for legacy reasons.
 Instead, they take a single sublist whose name defines the type.
 
-``[region-typedsublist-spec]``
+.. _region-spec:
+.. admonition:: region-spec
+
+    ONE OF
+
+    * `"region: all`" ``[list]`` See All_.
+
+    OR
+
+    * `"region: box`" ``[region-box-spec]`` See Box_.
+
+    OR
+
+    * `"region: plane`" ``[region-plane-spec]`` See Plane_.
+
+    OR
+
+    * `"region: labeled set`" ``[region-labeled-set-spec]`` See `Labeled Set`_.
+
+    OR
+
+    * `"region: color function`" ``[region-color-function-spec]`` See `Function Color`_.
+
+    OR
+
+    * `"region: point`" ``[region-point-spec]`` See Point_.
+
+    OR
+
+    * `"region: logical`" ``[region-logical-spec]`` See Logical_.
+
+    OR
+
+    * `"region: polygon`" ``[region-polygon-spec]`` See Polygon_.
+
+    OR
+
+    * `"region: enumerated`" ``[region-enumerated-spec]`` See Enumerated_.
+
+    OR
+
+    * `"region: boundary`" ``[region-boundary-spec]`` See Boundary_.
+
+    OR
+
+    * `"region: box volume fractions`" ``[region-box-volume-fractions-spec]`` See `Box Volume Fractions`_.
+
+    OR
+
+    * `"region: line segment`" ``[region-line-segment-spec]`` See `Line Segment`_.
+
+    END
 
 
 .. warning:: Surface files contain labeled triangulated face sets.  The user is
@@ -458,9 +509,6 @@ All
 
 No parameters required.
 
-``[region-all-spec]``
-
-
 Example:
 
 .. code-block:: xml
@@ -469,7 +517,7 @@ Example:
      <ParameterList name="region: all">
      </ParameterList>
    </ParameterList>
- 
+  
 
 
 
@@ -778,8 +826,8 @@ aligned with coordinate axes.
 Boxes are allowed to be of zero thickness in only one direction in which case 
 they are equivalent to rectangles on a plane or segments on a line.
 
-.. _region-box-volume-fractions-spec:
-.. admonition:: region-box-volume-fractions-spec
+.. _region-box-volume-fraction-spec:
+.. admonition:: region-box-volume-fraction-spec
 
     * `"corner coordinate`" ``[Array(double)]`` Location of one box corner.
     * `"opposite corner coordinate`" ``[Array(double)]`` Location of the opposite box corner.
@@ -853,17 +901,17 @@ simulation, including starting and ending times and restart options.
     * `"start time units`" ``[string]`` **"s"** One of "s", "d", or "yr"
 
     ONE OF
-
+    
     * `"end time`" ``[double]`` Specifies the end of the simulation in model time.
     * `"end time units`" ``[string]`` **"s"** One of `"s`", `"d`", or `"yr`"
 
     OR
-
+    
     * `"end cycle`" ``[int]`` **optional** If provided, specifies the end of the
       simulation in timestep cycles.
 
       END
-
+    
     * `"restart from checkpoint file`" ``[string]`` **optional** If provided,
       specifies a path to the checkpoint file to continue a stopped simulation.
     * `"wallclock duration [hrs]`" ``[double]`` **optional** After this time, the
@@ -925,7 +973,7 @@ DOMAIN-NAME`".
     * `"file name base`" ``[string]`` **visdump_DOMAIN_data**
     * `"dynamic mesh`" ``[bool]`` **false** Write mesh data for every
       visualization dump; this facilitates visualizing deforming meshes.
-    * `"time unit`" ``[string]`` **s** A valid time unit to convert time
+    * `"time units`" ``[string]`` **s** A valid time unit to convert time
       into for output files.  One of `"s`", `"d`", `"y`", or `"yr 365`"
 
     INCLUDES:
@@ -973,11 +1021,6 @@ all domains/meshes.
 
     * `"file name base`" ``[string]`` **"checkpoint"**
     * `"file name digits`" ``[int]`` **5**
-    * `"single file checkpoint`" ``[bool]`` **true** If true, writes all
-      checkpoint to one file.  If false, uses a subdirectory with one file per
-      mesh.  false is required if meshes exist on other communicators than
-      MPI_COMM_WORLD, but this is toggled if the code detects that this is
-      necessary.
 
     INCLUDES:
 
@@ -1006,39 +1049,6 @@ every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be 
  
 Observation
 ##############
-.. _`UnstructuredObservation`:
-  Collection of Observations on an unstructured mesh to be written to a common file.
-
-
-.. _observation-spec:
-.. admonition:: observation-spec
-
-    * `"observation output filename`" ``[string]`` user-defined name for the file
-      that the observations are written to.
-
-    * `"delimiter`" ``[string]`` **, ** Delimiter to split columns of the file
-
-    *  `"write interval`" ``[int]`` **1** Interval of observations on which to flush IO files.
-
-    * `"time units`" ``[string]`` **s** Controls the unit of the time column in the observation file.
-
-    * `"domain`" ``[string]`` **""** Can be used to set the communicator which writes (usually not needed).
-
-    * `"observed quantities`" ``[observable-spec-list]`` A list of Observable_ objects that are all put in the same file.
-
-    INCLUDES:
-
-    * ``[io-event-spec]`` An IOEvent_ spec
-
-
-Note, for backwards compatibility, an ``observable-spec`` may be directly
-included within the `observation-spec` if it is the only variable to be
-observed in this file.
-
-
-
-
-.. _`Observable`:
  Collects, reduces, and writes observations during a simulation.
 
 Observations are a localized-in-space but frequent-in-time view of simulation
@@ -1049,55 +1059,40 @@ postprocessing.  In fact, these should be though of as orthogonal data queries
 to visualization -- vis is pointwise in time but complete in space, while
 observations are pointwise/finite in space but complete in time.
 
-Observables describe what is observed -- the variable, region,
-integration/averaging scheme, etc.
-
-A user may request any number of specific observables.  Each observable spec
+A user may request any number of specific observations.  Each observation spec
 involves a field quantity, a functional reduction operator, a region from which
 it will extract its source data, and a list of discrete times for its
 evaluation.  The observations are evaluated during the simulation and written
-to disk by the UnstructuredObservation_ object.
+to disk.
 
-.. _observable-spec:
-.. admonition:: observable-spec
+.. _observation-spec:
+.. admonition:: observation-spec
+
+    * `"observation output filename`" ``[string]`` user-defined name for the file
+      that the observations are written to.
 
     * `"variable`" ``[string]`` any ATS variable used by any PK, e.g. `"pressure`"
       or `"surface-water_content`"
 
     * `"region`" ``[string]`` the label of a user-defined region
 
-    * `"location name`" ``[string]`` **cell** The mesh location of the thing to
-      be measured, i.e. `"cell`", `"face`", or `"node`"
+    * `"location name`" ``[string]`` the mesh location of the thing to be measured,
+      i.e. `"cell`", `"face`", or `"node`"
 
-    * `"number of vectors`" ``[int]`` **1** Number of vector components to write.
+    * `"functional`" ``[string]`` the label of a function to apply to the variable
+      across the region.  One of:
 
-    * `"functional`" ``[string]`` the type of function to apply to the variable
-      on the region.  One of:
-
-      - `"point`" returns the value of the field quantity at a
-        point.  The region and location name should result in a single entity being
+      - `"observation data: point`" returns the value of the field quantity at a
+        point.  The region and location name must result in a single entity being
         selected.
+      - `"observation data: extensive integral`" returns the sum of an (extensive)
+        variable over the region.  This should be used for extensive quantities
+        such as `"water_content`" or `"energy`".
+      - `"observation data: intensive integral`" returns the volume-weighted
+        average of an (intensive) variable over the region.  This should be used
+        for intensive quantities such as `"temperature`" or `"saturation_liquid`".
 
-      - `"average`" returns the volume-weighted average of
-        the field across all entities in the region selected.  This is likely
-        what you want for intensive state variables such as `"temperature`" or
-        `"saturation_liquid`".
-
-      - `"integral`" returns the volume-weighted sum of a
-        variable over the region.  This should be used for example on intensive
-        sources, for instance `"surface-precipitation`", to get the total
-        source/sink.
-
-      - `"extensive integral`" returns the sum of an variable
-        over the region.  This should be used for extensive quantities such as
-        `"water_content`" or `"energy`" which already include the volume in
-        their value.
-
-      - `"minimum`" returns the min value over the region
-
-      - `"maximum`" returns the max value over the region
-
-    * `"direction normalized flux`" ``[bool]`` **false** For flux observations,
+    * `"direction normalized flux`" ``[bool]`` **optional** For flux observations,
       dots the face-normal flux with a vector to ensure fluxes are integrated
       pointing the same direction.
 
@@ -1107,9 +1102,48 @@ to disk by the UnstructuredObservation_ object.
       boundary faces and that the default vector is the outward normal direction
       for each face.
 
-    * `"time integrated`" ``[bool]`` **false** If true, observe the
-      time-integral, observing on all cycles and accumulating the
-      backwards-Euler product of dt times the observable at the new time.
+    INCLUDES:
+
+    * ``[io-event-spec]`` An IOEvent_ spec
+
+
+Example:
+
+.. code-block:: xml
+  
+  <ParameterList name="observations" type="ParameterList">
+    <!-- This measures the hydrograph out the "east" face of the surface domain -->
+    <ParameterList name="surface outlet flux" type="ParameterList">
+      <Parameter name="variable" type="string" value="surface-mass_flux" />
+      <Parameter name="direction normalized flux" type="bool" value="true" />
+      <Parameter name="region" type="string" value="east" />
+      <Parameter name="functional" type="string" value="observation data: extensive integral" />
+      <Parameter name="delimiter" type="string" value=" " />
+      <Parameter name="location name" type="string" value="face" />
+      <Parameter name="observation output filename" type="string" value="surface_outlet_flux.dat" />
+      <Parameter name="times start period stop" type="Array(double)" value="{0.0,86400.0,-1.0}" />
+    </ParameterList>
+    <!-- This measures the total water, in mols, in the entire subsurface domain -->
+    <ParameterList name="subsurface water content" type="ParameterList">
+      <Parameter name="variable" type="string" value="water_content" />
+      <Parameter name="region" type="string" value="computational domain" />
+      <Parameter name="functional" type="string" value="observation data: extensive integral" />
+      <Parameter name="delimiter" type="string" value=" " />
+      <Parameter name="location name" type="string" value="cell" />
+      <Parameter name="observation output filename" type="string" value="water_content.dat" />
+      <Parameter name="times start period stop" type="Array(double)" value="{0.0,86400.0,-1.0}" />
+    </ParameterList>
+    <!-- This tracks the temperature at a point -->
+    <ParameterList name="temperature_probeA" type="ParameterList">
+      <Parameter name="variable" type="string" value="temperature" />
+      <Parameter name="region" type="string" value="probeA" />
+      <Parameter name="functional" type="string" value="observation data: point" />
+      <Parameter name="delimiter" type="string" value=" " />
+      <Parameter name="location name" type="string" value="cell" />
+      <Parameter name="observation output filename" type="string" value="temperature_probeA.dat" />
+      <Parameter name="times start period stop" type="Array(double)" value="{0.0,86400.0,-1.0}" />
+    </ParameterList>
+  </ParameterList>
 
 
 
@@ -1118,7 +1152,7 @@ to disk by the UnstructuredObservation_ object.
 PK
 ###
  The interface for a Process Kernel, an equation or system of equations.
-
+  
 A process kernel represents a single or system of partial/ordinary
 differential equation(s) or conservation law(s), and is used as the
 fundamental unit for coupling strategies.
@@ -1146,7 +1180,7 @@ class PK, which is inherited and included by each actual PK, and lives in the
     * `"PK type`" ``[string]`` One of the registered PK types.  Note this must
       match the corresponding entry in the ``[pk-typed-spec]``
     * `"verbose object`" ``[verbose-object-spec]`` **optional** See `Verbose Object`_
-
+    
 Example:
 
 .. code-block:: xml
@@ -1164,7 +1198,7 @@ Example:
     <ParameterList name="Top level MPC">
       <Parameter name="PK type" type="string" value="strong MPC"/>
       <ParameterList name="sub PKs">
-        ...
+        ...   
       </ParameterList>
     </ParameterList>
   </ParameterList>
@@ -1228,11 +1262,11 @@ PKs.
     * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
       by user but by an MPC.
 
-    * `"time integrator`" ``[bdf1-ti-spec]`` **optional**
-      A TimeIntegrator_.  Note that this is only required if this PK is not
+    * `"time integrator`" ``[implicit-time-integrator-typed-spec]`` **optional**
+      A TimeIntegrator_.  Note that this is only provided if this PK is not
       strongly coupled to other PKs.
 
-    * `"inverse`" ``[inverse-typed-spec]`` **optional** A Preconditioner_.
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` **optional** A Preconditioner_.
       Note that this is only used if this PK is not strongly coupled to other PKs.
 
     INCLUDES:
@@ -1285,8 +1319,8 @@ code, so usually are not supplied by the user.
 
     - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_
     - ``[pk-physical-default-spec]`` *Is a* `PK: Physical`_
-
-
+    
+      
 
 
 
@@ -1330,7 +1364,7 @@ Solves Richards equation:
 
     * `"boundary conditions`" ``[subsurface-flow-bc-spec]`` Defaults to Neuman,
       0 normal flux.  See `Flow-specific Boundary Conditions`_
-
+ 
     * `"permeability type`" ``[string]`` **scalar** This controls the number of
       values needed to specify the absolute permeability.  One of:
 
@@ -1343,11 +1377,11 @@ Solves Richards equation:
       curve.  This needs to go away, and should get moved to State.
 
     IF
-
+    
     * `"source term`" ``[bool]`` **false** Is there a source term?
 
     THEN
-
+    
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
       not set, as the default is good. ``[mol s^-1]``
     * `"source term is differentiable`" ``[bool]`` **true** Can the source term
@@ -1358,7 +1392,7 @@ Solves Richards equation:
     END
 
     Math and solver algorithm options:
-
+      
     * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
       see PDE_Diffusion_.
 
@@ -1366,6 +1400,12 @@ Solves Richards equation:
       inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
+
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
 
     * `"surface rel perm strategy`" ``[string]`` **none** Approach for
       specifying the relative permeabiilty on the surface face.  `"clobber`" is
@@ -1378,7 +1418,7 @@ Solves Richards equation:
       - `"max`" : use the max of the boundary face and internal cell values
       - `"unsaturated`" : Uses the boundary face when the internal cell is not
         saturated.
-
+      
     * `"relative permeability method`" ``[string]`` **upwind with Darcy flux**
       Relative permeability is defined on cells, but must be calculated on
       faces to multiply a flux.  There are several methods commonly used.  Note
@@ -1393,7 +1433,7 @@ Solves Richards equation:
         Not a good method.
 
     Globalization and other process-based hacks:
-
+        
     * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
       face+cell diffusion discretization, this modifies the predictor to make
       sure that faces, which are a DAE, are consistent with the predicted cells
@@ -1418,7 +1458,7 @@ Solves Richards equation:
       **-1** Rejects timesteps whose max ice saturation change is greater than
       this value.  This can be useful to ensure temporally resolved solutions.
       Usually a good value is 0.1 or 0.2.
-
+      
     * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
       this limits an iterate's max pressure change to this value.  Not usually
       helpful.
@@ -1431,10 +1471,10 @@ Solves Richards equation:
 
     - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
-
+      
     Everything below this point is usually not provided by the user, but are
     documented here for completeness.
-
+    
     Keys name variables:
 
     * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
@@ -1466,14 +1506,14 @@ Solves Richards equation:
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
-
-    * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``
+      
+    * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``    
 
     * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
       face unknowns on discretizations that are cell-only (e.g. FV).  This can
       be useful for surface flow or other wierd boundary conditions.  Usually
       provided by MPCs that need them.
-
+    
     Physics control:
 
     * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
@@ -1482,7 +1522,7 @@ Solves Richards equation:
       (:math:`\rho / \mu`).
 
     IF
-
+    
     * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
@@ -1496,7 +1536,7 @@ Solves Richards equation:
 
     * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
       surface boundary conditions from the surface pressure (Dirichlet).
-
+      
     EVALUATORS:
 
     - `"conserved quantity`"
@@ -1557,13 +1597,13 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"overland conductivity evaluator`" ``[overland-conductivity-eval-spec]``
       See `Overland Conductivity Evaluator`_.
-
+    
     IF
-
+    
     * `"source term`" ``[bool]`` **false** Is there a source term?
 
     THEN
-
+    
     * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
       not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
     * `"mass source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
@@ -1584,6 +1624,10 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       is only needed to set Jacobian options, as all others probably should
       match those in `"diffusion`", and default to those values.
 
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
+
     * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
       water.  A small, but significant, amount of water.
 
@@ -1603,9 +1647,9 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
       tidal boundary condition.  TODO: This should live in the BC spec?
-
+      
     INCLUDES:
-
+    
     - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
     Everything below this point is usually not provided by the user, but are
@@ -1628,7 +1672,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
-
+    
     EVALUATORS:
 
     - `"conserved quantity`"
@@ -1697,7 +1741,11 @@ daily (which all defaults are set for).
       above.  Likely only Jacobian term options are needed here, as the others
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
-    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the solve.
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
     
     Not typically provided by the user, defaults are good:
 
@@ -1729,7 +1777,7 @@ Solves an advection-diffusion equation for energy:
     \frac{\partial E}{\partial t} - \nabla \cdot \kappa \nabla T + \nabla \cdot \mathbf{q} e(T) = Q_w e(T) + Q_e
 
 .. todo:: Document the energy error norm!
-
+    
 .. _energy-pk-spec:
 .. admonition:: energy-pk-spec
 
@@ -1741,14 +1789,14 @@ Solves an advection-diffusion equation for energy:
 
     * `"boundary conditions`" ``[energy-bc-spec]`` Defaults to 0 diffusive flux
       boundary condition.  See `Energy-specific Boundary Conditions`_
-
+      
     * `"thermal conductivity evaluator`"
       ``[thermal-conductivity-evaluator-spec]`` The thermal conductivity.  This
       needs to go away, and should get moved to State.
 
     * `"absolute error tolerance`" ``[double]`` **76.e-6** A small amount of
       energy, see error norm. `[MJ]`
-
+      
     * `"upwind conductivity method`" ``[string]`` **arithmetic mean** Method of
       moving cell-based thermal conductivities onto faces.  One of:
 
@@ -1756,9 +1804,9 @@ Solves an advection-diffusion equation for energy:
       - `"cell centered`" harmonic mean
 
     IF
-
+      
     * `"explicit advection`" ``[bool]`` **false** Treat the advection term implicitly.
-
+    
     ELSE
 
     * `"supress advective terms in preconditioner`" ``[bool]`` **false**
@@ -1771,19 +1819,23 @@ Solves an advection-diffusion equation for energy:
       Typically defaults are correct.
 
     END
-
+      
     * `"diffusion`" ``[pde-diffusion-spec]`` See PDE_Diffusion_, the diffusion operator.
 
     * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` See
       PDE_Diffusion_, the inverse operator.  Typically only adds Jacobian
       terms, as all the rest default to those values from `"diffusion`".
 
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` The Preconditioner_
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` A `LinearOperator`_
+      
     IF
-
+    
     * `"source term`" ``[bool]`` **false** Is there a source term?
-
+    
     THEN
-
+    
     * `"source key`" ``[string]`` **DOMAIN-total_energy_source** Typically
       not set, as the default is good. ``[MJ s^-1]``
 
@@ -1798,11 +1850,11 @@ Solves an advection-diffusion equation for energy:
     EVALUATORS:
 
     - `"source term`"
-
+    
     END
 
     Globalization:
-
+    
     * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
       face+cell diffusion discretization, this modifies the predictor to make
       sure that faces, which are a DAE, are consistent with the predicted cells
@@ -1815,7 +1867,7 @@ Solves an advection-diffusion equation for energy:
       0, stops nonlinear updates from being too big through clipping.
 
     The following are rarely set by the user, as the defaults are typically right.
-
+    
     Variable names:
 
     * `"conserved quantity key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E` `[MJ]`
@@ -1827,24 +1879,24 @@ Solves an advection-diffusion equation for energy:
     * `"advected energy flux`" ``[string]`` **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
     * `"thermal conductivity`" ``[string]`` **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
     * `"upwinded thermal conductivity`" ``[string]`` **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
-
+    
     * `"advection`" ``[pde-advection-spec]`` **optional** The PDE_Advection_ spec.  Only one current implementation, so defaults are typically fine.
-
+    
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
 
     IF
-
+    
     * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
-
+      
     THEN
 
     * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
-
+    
     END
 
     * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
@@ -1858,7 +1910,7 @@ Solves an advection-diffusion equation for energy:
     - `"thermal conductivity`"
     - `"conserved quantity`"
     - `"energy`"
-
+    
  
 
 
@@ -1984,6 +2036,13 @@ sinks.
       error norm calculation.  Defaults to a small amount of water.  Units are
       the same as the conserved quantity.
 
+    * `"preconditioner`" ``[preconditioner-typed-spec]`` Preconditioner for the
+      solve.
+
+    * `"linear solver`" ``[linear-solver-typed-spec]`` **optional** May be used
+      to improve the inverse of the diffusion preconditioner.  Only used if this
+      PK is not implicitly coupled.  See LinearOperator_.
+
     INCLUDES:
 
     - ``[pk-physical-bdf-default-spec]``
@@ -2007,7 +2066,7 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
 .. _subgrid-balance-pk-spec:
 .. admonition:: subgrid-balance-pk-spec
 
-    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``
+    * `"absolute error tolerance`" ``[double]`` **0.01** ``[m]``    
 
     INCLUDES:
 
@@ -2026,7 +2085,7 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
       model fractional areas, see note above. `[-]`
     * `"snow death rate key`" ``[string]`` **LAYER-death_rate** Deals with last
       tiny bit of snowmelt.
-
+    
 
 
 
@@ -2204,6 +2263,13 @@ node coordinate changes.  Three options are available:
     * `"deformation function`" ``[function-spec]`` **optional** Only used if
       "deformation mode" == "prescribed"
 
+    * `"global solve operator`" ``[matrix-volumetric-deformation-spec]``
+      Old-style Matrix (not Amanzi Operator) spec.  Only used if "deformation
+      strategy" == "global optimization"
+
+    * `"Solver`" ``[linear-operator-typed-spec]`` Solver for the optimization
+      problem. Only used if "deformation strategy" == "global optimization"
+
     EVALUATORS:
     - `"saturation_ice`"
     - `"saturation_liquid`"
@@ -2332,7 +2398,7 @@ surface equations are directly assembled into the subsurface discrete operator.
 
    * `"surface domain name`" ``[string]`` **surface** 
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:
@@ -2504,22 +2570,18 @@ algorithms are supported by the `EWC Globalization Delegate`_ object.
     * `"preconditioner type`" ``[string]`` **picard** See the above for
       detailed descriptions of the choices.  One of: `"none`", `"block
       diagonal`", `"no flow coupling`", `"picard`", `"ewc`", and `"smart ewc`".
-
+    
     * `"supress Jacobian terms: div hq / dp,T`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
     * `"supress Jacobian terms: d div q / dT`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
     * `"supress Jacobian terms: d div K grad T / dp`" ``[bool]`` **false** If using picard or ewc, do not include this block in the preconditioner.
 
-    * `"ewc delegate`" ``[mpc-delegate-ewc-spec]`` A `EWC Globalization Delegate`_ spec.
+    * `"ewc delegate`" ``[ewc-delegate-spec]`` A `EWC Globalization Delegate`_ spec.
 
     INCLUDES:
 
     - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
-
+    
  
-
-
-Surface MPC
---------------
 
 
 Permafrost MPC
@@ -2544,7 +2606,7 @@ and flow for integrated hydrology with freeze/thaw processes.
 
    * `"energy exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_energy_flux**
 
-   * `"water delegate`" ``[mpc-delegate-water-spec]`` A `Coupled Water
+   * `"water delegate`" ``[coupled-water-delegate-spec]`` A `Coupled Water
      Globalization Delegate`_ spec.
 
    INCLUDES:
@@ -2552,7 +2614,6 @@ and flow for integrated hydrology with freeze/thaw processes.
    - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
     
  
-
 
 
 Globalization Delegates
@@ -2596,7 +2657,7 @@ These methods work to alter the predictor around this nonlinearity.
     These methods work to alter the preconditioned correction for the same
     reasons described above.
 
-    * `"global water face limiter`" ``[double]`` **1.e99** This is simply a limit
+    * `"global water face limiter`" ``[default]`` **INF** This is simply a limit
       to the maximum allowed size of the correction (in [Pa]) on all faces.  Any
       correction larger than this is set to this.
 
@@ -2705,69 +2766,6 @@ provides the initial guess to the nonlinear solve.
 
 State
 ##############
- State, a container for data.
-
-State  is a  simple data-manager,  allowing PKs  to require,  read, and  write
-various fields.
-
-- Acts as a factory for data through the various require methods.
-- Provides some data protection by providing both const and non-const
-  data pointers to PKs.
-- Provides some initialization capability -- this is where all
-  independent variables can be initialized (as independent variables
-  are owned by state, not by any PK).
-
-
-``[state-spec]``
-
-* `"field evaluators`" ``[evaluator-typedinline-spec-list]`` A list of evaluators.
-* `"initial conditions`" ``[list]`` A list of constants --
-    `"initial conditions`" is a terrible name and will go away in the next
-    iteration of state.
-
-``[evaluator-typedinline-spec]``
-
-* `"field evaluator type`" ``[string]`` Type of the evaluator
-    
-Included for convenience in defining data that is not in the dependency graph,
-constants are things (like gravity, or atmospheric pressure) which are stored
-in state but never change.  Typically they're limited to scalars and dense,
-local vectors.
-
-``[constants-scalar-spec]``
-
-* `"value`" ``[double]`` Value of a scalar constant
-
-``[constants-vector-spec]``
-
-* `"value`" ``[Array(double)]`` Value of a dense, local vector.
-
-
-
-Example:
-
-.. code-block:: xml
-
-    <ParameterList name="state">
-      <ParameterList name="field evaluators">
-        <ParameterList name="pressure">
-          <Parameter name="field evaluator type" type="string" value="primary variable field evaluator" />
-        </ParameterList>
-      </ParameterList>
-
-      <ParameterList name="initial conditions">
-        <ParameterList name="atmospheric pressure">
-          <Parameter name="value" type="double" value="101325.0" />
-        </ParameterList>
-        <ParameterList name="gravity">
-          <Parameter name="value" type="Array(double)" value="{0.0,0.0,-9.80665}" />
-        </ParameterList>
-      </ParameterList>
-    </ParameterList>
-
-    
-
-
 
 State consists of two sublists, one for evaluators and the other for
 atomic constants.  The latter is currently called `"initial
@@ -2790,77 +2788,17 @@ example:
 
 Field Evaluators
 =================
- A FieldEvaluator is a node in the dependency graph.
-
-Evaluators combine data (variables) with functions (physics) providing the
-values inside of that data.  Evaluators are the core concept of a model in
-Amanzi-ATS: much if not all physics lives inside of an evaluator.
-
-All evaluators are one of three types: primary, secondary, or independent
-variable evaluators.  Primary variables are those that have no dependencies,
-and are solved for.  Independent variables have no dependencies as well, but
-are data provided by the user.  They may be constant or variable in time and
-space, but they are assumed given.  Secondary variables are functions of time
-and space, and of other variables.
-
-From a software perspective, evaluators are nodes in a dependency graph, and
-therefore provide the task ordering needed to evaluate the model.  Primary
-variable evaluators do next to no work, but provide a target for solver to tell
-the dependency graph when primary variables have been updated through the
-solution/iteration of the nonlinear solve.  Independent and secondary variable
-evaluators, on the other hand, implement the required processes needed to
-update their data.
-
-All field evaluators have keys they depend upon (unless they are a leaf) and
-keys they provide.
-
-All evaluator lists must provide an evaluator type, which is one of the types
-registered with the evaluator factory.
-
-.. _field-evaluator-spec:
-.. admonition:: field-evaluator-spec
-
-   * `"field evaluator type`" ``[string]`` Type registered in evaluator factory.
-   * `"write checkpoint`" ``[bool]`` **true** Write this data when checkpointing.
-   * `"write vis`" ``[bool]`` **true** Write this data when visualizing.
-
-
-
 
 
 PrimaryVariableEvaluator
 ------------------------
 
 
+
 IndependentVariableEvaluator
 ----------------------------
- A field evaluator providing user-supplied data as a leaf node.
 
-Independent variables are data provided by the user.  Independent variable
-evaluators are therefore leaf nodes in the dependency graph (they have no
-dependencies themselves) but do know how to update their data with values as a
-function of space and time.
-
-There are three ways for the user to provide that data: as static, constant
-values, from an Amanzi Function_, or from file.
-
-
-
-
-Constant
-^^^^^^^^
- An evaluator with no dependencies specified by a constant value.
-
-An independent variable evaluator that is constant in time.  This uses the same
-infrastructure as initial conditions for time-independent data.
-
-This is used by providing:
-
-`"field evaluator type`" == `"independent variable constant`"
-
-See the InitialConditions_ description for all parameters.
-
-
+Independent variables are provided either by a function or directly loaded from a file.
 
 From Function
 ^^^^^^^^^^^^^
@@ -2871,29 +2809,16 @@ From File
 
 
 
-SecondaryVariableEvaluators
----------------------------
+Water Content
+-------------
 
-All other evaluators are secondary variable evaluators, and these are grouped by physics concept or process type.
+Water content is the conserved quantity in most flow equations, including
+Richard's equation with and without ice.  A variety of evaluators are provided
+for inclusion of multiple phases.
 
-Conserved quantities
---------------------
-
-Nearly all ATS process kernels are conservation equations, where there
-is a formal conserved quantity, that, upon convergence, is conserved
-to tolerance.  These are always an "extensive" quantity.
-
-Water content in ATS is always measured on ``[mol]`` and therefore
-includes a factor of the cell volume.  Energy in ATS is always
-measured in ``[MJ]``.  Unlike nearly all other variables, this is not
-SI, and is done so because this makes for fairly evenly balanced
-equations between a coupled flow and energy problem.
-
-Richards Equation water content (liquid only)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- The Richards water content evaluator is an algebraic evaluator for liquid only water content
-  Generated via evaluator_generator with:
-Richards water content evaluator: the standard form as a function of liquid saturation.
+Richards Equation water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Richards water content evaluator is an algebraic evaluator for liquid only water content
 
 .. math::
   Theta = n * s * phi * cell volume
@@ -2957,1260 +2882,11 @@ EVALUATORS:
 
 
 
-Surface water content
-^^^^^^^^^^^^^^^^^^^^^
 
+Surface Water potential surfaces
+--------------------------------
 
-Snow or canopy water content
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Most other water contents can be formed as `Multiplicative`_
-evaluators.  See below for a few examples:
-
-Multiplicative evalutator for `snow-water_content`:
-
-.. code-block:: xml
-
-      <ParameterList name="snow-water_content" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
-        <Parameter name="evaluator dependencies" type="Array(string)" value="** DOC GENERATION ERROR: file not found 'snow-cell_volume, snow-water_equivalent, surface-molar_density_liquid' **" />
-        <Parameter name="units" type="string" value="mol" />
-      </ParameterList>
-
-Multiplicative evaluator for `canopy-water_content`:
-
-.. code-block:: xml
-
-      <ParameterList name="canopy-water_content" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
-        <Parameter name="evaluator dependencies" type="Array(string)" value="** DOC GENERATION ERROR: file not found 'canopy-cell_volume, canopy-water_equivalent, surface-molar_density_liquid' **" />
-        <Parameter name="units" type="string" value="mol" />
-      </ParameterList>
-
-Richards energy
-^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' richards_energy ' **
-
-Liquid+Gas energy
-^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' liquid_gas_energy ' **
-
-Liquid+Ice energy
-^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' liquid_ice_energy ' **
-
-Liquid+Ice+Gas energy
-^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' three_phase_energy ' **
-
-Surface water+ice energy
-^^^^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' surface_ice_energy ' **
-
-
-Subsurface flow evaluators
---------------------------
-
-Assorted evaluators used for subsurface flow processes,
-including water retention curves, compressible pore space, relative
-permeability, and their frozen equivalents.
-
-Many of these evaluators show up in nearly all ATS simulations, as
-subsurface flow of water is the core process underlying all of ATS
-physics.  For real examples, see `ats-demos <https://github.com/amanzi/ats-demos>`_
-
-Capillary pressure
-^^^^^^^^^^^^^^^^^^
-
-
-Capillary pressure of liquid on ice
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Water Retention Model and Relative Permeability
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- WRMEvaluator is an algebraic evaluator for liquid and gas saturations.
-
-Evaluates a set of WRMs on a partition of the mesh.
-
-* `"saturation key`" ``[string]`` **determined from evaluator name** The name
-         of the liquid saturation -- typically this is determined from
-         the evaluator name and need not be set.
-* `"other saturation key`" ``[string]`` **determined from evaluator name**
-         The name of the liquid saturation -- typically this is determined
-         from the evaluator name and need not be set.
-* `"capillary pressure key`" ``[string]`` **DOMAIN-capillary_pressure_gas_liq**
-         The name of the capillary pressure.
-* `"WRM parameters`" ``[wrm-partition-typed-spec-list]`` 
-
-
-
- RelPermEvaluator: evaluates relative permeability using water retention models.
-
-Uses a list of regions and water retention models on those regions to evaluate
-relative permeability, typically as a function of liquid saturation.
-
-Most of the parameters are provided to the WRM model, and not the evaluator.
-
-* `"use density on viscosity in rel perm`" ``[bool]`` **true** Include 
-
-* `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
-  how the rel perm is calculated on boundary faces.  Note, this may be
-  overwritten by upwinding later!  One of:
-
-  * `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
-  * `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
-  * `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
-  * `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
-  * `"one`" Sets the boundary kr to 1.
-  * `"surface rel perm`" Looks for a field on the surface mesh and uses that.
-
-* `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
-
-* `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-  and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-  this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
-
-* `"WRM parameters`" ``[wrm-spec-list]``  List (by region) of WRM specs.
-
-
-Keys:
-
-* `"rel perm`"
-* `"saturation`"
-* `"density`" (if `"use density on viscosity in rel perm`" == true)
-* `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
-* `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
-
-
-
-
-
-Van Genuchten Model
-~~~~~~~~~~~~~~~~~~~
- WRMVanGenuchten : water retention model using van Genuchten's parameterization
-
-van Genuchten's water retention curve.
-
-.. _wrm-van-genuchten-spec
-.. admonition:: wrm-van-genuchten-spec
-
-    * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
-
-    ONE OF:
-    * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
-    OR
-    * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
-    END
-
-    * `"residual saturation [-]`" ``[double]`` **0.0**
-    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
-    * `"Mualem exponent l [-]`" ``[double]`` **0.5**
-    * `"Krel function name`" ``[string]`` **Mualem**  `"Mualem`" or `"Burdine`"
-
-Example:
-
-.. code-block:: xml
-
-    <ParameterList name="moss" type="ParameterList">
-      <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM Type" type="string" value="van Genuchten" />
-      <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
-      <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
-      <Parameter name="residual saturation [-]" type="double" value="0.0" />
-      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
-    </ParameterList>
-
-
-
-
-Linear  Model
-~~~~~~~~~~~~~~~~~~~
- A linear sat-pc curve.
-
-  A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
-  nonlinear solver should always converge in one step.
-
-  No error-checking, so the user is responsible for ensuring that the pressure
-  is always less than atmospheric and within the acceptable range of the slope.
-
-  Note this is mostly for testing.
-
-
-
-
-Water Retention Model for Freeze-Thaw
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Original Implicit model
-~~~~~~~~~~~~~~~~~~~~~~~
- Painter's original, implicitly defined permafrost model.
-
-.. _wrm-implicit-permafrost-spec
-.. admonition:: wrm-implicit-permafrost-spec
-
-    * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
-    * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
-    * `"solver algorithm [bisection/toms]`" ``[string]`` **bisection** Use bisection or the TOMS algorithm from boost.
-
-
-
-
-Freezing point depression model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-Freezing point depression, smoothed model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-** DOC GENERATION ERROR: file not found ' wrm_fpd_smoothed_model ' **
-
-Interfrost model
-~~~~~~~~~~~~~~~~
-
-
-Sutra-ICE model
-~~~~~~~~~~~~~~~
-
-
-Compressible porosity
-^^^^^^^^^^^^^^^^^^^^^
-
-
-Standard model
-~~~~~~~~~~~~~~
- A simple model for allowing porosity to vary with pressure.
-
-Based on a linear increase, i.e.
-
-$$ \phi = \phi_{base} + H(p - p_{atm}) * \alpha $$
-
-where $H$ is the heaviside function and $\alpha$ is the provided
-compressibility.  If the inflection point is set to zero, the above function
-is exact.  However, then the porosity function is not smooth (has
-discontinuous derivatives).
-  
-* `"pore compressibility [Pa^-1]`" ``[double]``
-
-  $\alpha$ as described above
-  
-* `"pore compressibility inflection point [Pa]`" ``[double]`` **1000**
-
-  The inflection point above which the function is linear.
-
-Example:
-
-.. code-block::xml  
-
-  <ParameterList name="soil" type="ParameterList">
-    <Parameter name="region" type="string" value="soil" />
-    <Parameter name="pore compressibility [Pa^-1]" type="double" value="1.e-9" />
-    <Parameter name="pore compressibility inflection point [Pa]" type="double" value="1000." />
-  </ParameterList>
-
-
-
-
-Exponential model
-~~~~~~~~~~~~~~~~~
-
-
-The Leinjnse model is an exponential model of porosity as a function of
-pressure, based on (insert citation!):
-
-.. math:
-   p_\lambda = p - p_\text{ref}
-   \phi = 1 - (1-\phi_\text{base}) * (exp(- \alpha (p_\lambda - \delta)) - 0.5 \alpha \delta), p_\lambda > \delta
-   \phi = 1 - (1-\phi_\text{base}) * (1 - 0.5 \alpha / \delta p_\lambda^2)
-
-where :math:`\alpha` is the provided
-compressibility, and :math:`\delta` is the cutoff (inflection point). 
-
-If the inflection point is set to zero, the above function is exact.  However,
-then the porosity function is not smooth (has discontinuous derivatives).
-  
-* `"pore compressibility [Pa^-1]`" ``[double]`` :math:`\alpha` as described above
-  
-* `"pore compressibility inflection point [Pa]`" ``[double]`` **1000** The inflection point above which the function is linear.
-
-NOTE: provide a parameter in the `EWC Globalization Delegate`_ to turn Leijnse model ON 
-
-  <Parameter name="porosity leijnse model" type="bool" value="true"/>
-
-
-
-
-
-Viscosity Constant
-^^^^^^^^^^^^^^^^^^
-Like any quantity, a viscosity can simply be a constant value, at which
-point it is not a secondary variable but an independent variable.
-
-.. code-block:: xml
-
-      <ParameterList name="viscosity_liquid" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="independent variable constant" />
-        <Parameter name="value" type="double" value="8.9e-4" />
-        <Parameter name="units" type="string" value="Pa s" />
-      </ParameterList>
-
-Viscosity of Water
-^^^^^^^^^^^^^^^^^^
-
-
-
-
-Surface flow evaluators
------------------------
-
-Assorted evaluators used for surface flow, including potential
-surfaces, Manning's conductivity, and their frozen equivalents.
-
-Like the subsurface flow evaluators, many of these evaluators show up
-in nearly all ATS simulations.  For real examples, see `ats-demos
-<https://github.com/amanzi/ats-demos>`_
-
-
-Ponded Depth or Water Height
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-Ponded Depth, Frozen
-^^^^^^^^^^^^^^^^^^^^
-
-
-
-Effective, or Smoothed Height
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-Unfrozen fraction
-^^^^^^^^^^^^^^^^^
-
-
-
-Unfrozen Flowing Depth
-^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-SurfacePotential
-^^^^^^^^^^^^^^^^^^^
- PresElevEvaluator: evaluates h + z
-Evaluator type: ""
-
-.. math::
-  h + z
-
-* `"my key`" ``[string]`` **pres_elev** Names the surface water potential variable, h + z [m]
-* `"height key`" ``[string]`` **ponded_depth** Names the height variable. [m]
-* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
-
-
-NOTE: This is a legacy evaluator, and is not in the factory, so need not be in
-the input spec.  However, we include it here because this could easily be
-abstracted for new potential surfaces, kinematic wave, etc, at which point it
-would need to be added to the factory and the input spec.
-
-NOTE: This could easily be replaced by a generic Additive_ Evaluator.
-
-
-
-
-Overland Conductivity, sheet flow
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. _`Overland Conductivity Evaluator`:
-
-
-
-Overland Conductivity, litter resistance
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-
-Thermodynamic evaluators
--------------------------
-
-Internal energy, enthalpy, thermal conductivity, etc used for both
-surface and subsurface transport of energy.
-
-Internal energy
-^^^^^^^^^^^^^^^
-
-
-Linear
-~~~~~~
- Internal energy based on a linear fit.
-
-Linear internal energy model -- function of Cv and temperature
-
-.. math::
-
-    u = L_f +  C_v * (T - T_{ref})
-
-.. _iem-linear-spec
-.. admonition:: iem-linear-spec
-
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
-
-    ONE OF
-
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
-
-    OR
-
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
-
-    END
-
-
-
-
-Quadratic
-~~~~~~~~~
- Internal energy based on a quadratic fit to data.
-
-Quadratic internal energy model -- function of Cv and temperature
-
-.. math::
-
-    u = L_f + C_v * (T - T_{ref}) + b(T - T_{ref})^2
-
-.. _iem-quadratic-spec
-.. admonition:: iem-quadratic-spec
-
-    * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
-
-    ONE OF
-
-    * `"latent heat [J kg^-1]`" ``[double]`` Latent heat of fusion, L_f above
-    * `"heat capacity [J kg^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J kg^-1 K^-2]`" ``[double]`` b above
-
-    OR
-
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of fusion, L_f above.
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v above
-    * `"quadratic b [J mol^-1 K^-2]`" ``[double]`` b above
-
-    END
-
-
-
-
-Water Vapor
-~~~~~~~~~~~
- Internal energy model for air and water vapor.
-
-Internal energy model for air and water vapor, relative to water @237.15K
-
-.. _iem-water-vapor-spec
-.. admonition:: iem-water-vapor-spec
-
-    * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
-    * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
-
-
-
-
-Enthalpy
-~~~~~~~~
-
-
-Thermal Conductivity, two phases
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Wet-Dry Model
-~~~~~~~~~~~~~
-
-
-Peters-Lidard Model
-~~~~~~~~~~~~~~~~~~~
-
-
-Thermal Conductivity, three phases
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- Thermal conductivity based on a three-phase (air,liquid,ice) composition of the porous media.
-
-Wet-Dry Model
-~~~~~~~~~~~~~
- Three-phase thermal conductivity based on paper by Peters-Lidard.
-
-A three-phase thermal conductivity, based upon:
-
-- Interpolation between saturated and dry conductivities via a Kersten number.
-- Power-law Kersten number.
-- Empirical relationship for frozen soil based on Peters-Lidard
-
-See Atchley et al GMD 2015 Supplementary Material for equations.
-
-.. _thermal-conductivity-threephase-wetdry-spec:
-.. admonition:: thermal-conductivity-threephase-wetdry-spec
-
-    * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully saturated, unfrozen bulk soil.
-    * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully dried bulk soil.
-    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
-    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
-
-Usage:
-
-  <ParameterList name="thermal_conductivity">
-    <Parameter name="thermal conductivity type" type="string" value="three-phase wet/dry"/>
-    <Parameter name="thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="thermal conductivity, dry [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="unsaturated alpha frozen [-]" type="double" value=""/>
-    <Parameter name="unsaturated alpha unfrozen [-]" type="double" value=""/>
-    <Parameter name="saturated beta frozen [-]" type="double" value="1.0"/>
-    <Parameter name="epsilon" type="double" value="1.e-10"/>
-  </ParameterList>
-
-
-
-
-Peters-Lidard Model
-~~~~~~~~~~~~~~~~~~~
- Three-phase thermal conductivity based on paper by Peters-Lidard.
-
-A three-phase thermal conductivity, based upon:
-
-- A mixture model using interpolation across various components.
-- Power-law Kersten number.
-
-See Atchley et al GMD 2015 Supplementary Material for equations.
-
-.. _thermal-conductivity-threephase-peterslidard-spec:
-.. admonition:: thermal-conductivity-threephase-peterslidard-spec
-
-    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
-    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
-    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
-    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of ice
-    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
-
-Usage:
-
-  <ParameterList name="thermal_conductivity">
-    <Parameter name="thermal conductivity type" type="string" value="three-phase Peters-Lidard"/>
-    <Parameter name="thermal conductivity of soil [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="thermal conductivity of liquid [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="thermal conductivity of gas [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="thermal conductivity of ice [W m^-1 K^-1]" type="double" value=""/>
-
-    <Parameter name="unsaturated alpha unfrozen [-]" type="double" value=""/>
-    <Parameter name="unsaturated alpha frozen [-]" type="double" value=""/>
-
-    <Parameter name="epsilon" type="double" value="1.e-10"/>
-  </ParameterList>
-
-
-
-
-Volume-averaged Model
-~~~~~~~~~~~~~~~~~~~
-
-
-Sutra-ICE model
-~~~~~~~~~~~~~~~~~~~
-
-
-Thermal Conductivity, Surface
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Advected Energy Source
-^^^^^^^^^^^^^^^^^^^^^^
-
-
-Active Layer Averaged Temperature
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Water Table
-^^^^^^^^^^^
- An evaluator for calculating the depth to water table, relative to the surface.
-
-Note that postive values are below the surface, and negative values
-are not possible.  One may choose to, in post-processing, do:
-
-  water_table_height = where(ponded_depth > 0, ponded_depth, -water_table_depth)
-
-to calculate a water table height that is valid for both surface and
-subsurface water.
-
-Evaluator name: `"water table depth`"
-
-.. _water-table-depth-spec:
-.. admonition:: water-table-depth-spec
-
-    KEYS:
-      `"saturation_gas`"
-
-
-
-
-Thaw Depth
-^^^^^^^^^^
- An evaluator for calculating the depth to frozen soil/permafrost, relative to the surface.
-
-Note that postive values are below the surface, and negative values
-are not possible. 
-
-Evaluator name: `"thaw depth`"
-
-.. _thaw-depth-spec:
-.. admonition:: thaw-depth-spec
-
-    * `"transition width [K]`" ``[double]`` Width of the freeze curtain transition.
-
-    KEYS:
-      `"temperature`"
-
-
-
-
-
-Equations of State
-------------------
-
-The density of water can be specified in many ways, depending upon
-phase and problem of interest.  Options are available from the
-simplest (constant value) to functions of just temperature,
-temperature and pressure, and temperature/pressure/concentration
-(e.g. salinity).
-
-Note that density includes both molar and mass-based values.  Most
-density evaluators can provide either, or do provide both, the
-difference being simply a factor of the molecular mass of water.
-
-Finally, nearly all (except the constant value) equations of state use
-a common set of models which accept all of temperature, pressure, and
-concentration.  Many of these models ignore one or the other, so it
-should be preferred (but is not necessary) to choose the right model
-for a given evaluator.  Choosing a model that uses fewer of
-these than the evaluator provides is valid, but it is inefficient.
-Choosing a model that uses more than the evaluator provides will
-result in an error.
-
-Constant Value
-^^^^^^^^^^^^^^
-
-Like any quantity, a density can simply be a constant value, at which
-point it is not a secondary variable but an independent variable.
-
-.. code-block:: xml
-
-      <ParameterList name="surface-molar_density_liquid" type="ParameterList">
-        <Parameter name="field evaluator type" type="string" value="independent variable constant" />
-        <Parameter name="value" type="double" value="55000" />
-        <Parameter name="units" type="string" value="mol m^-3" />
-      </ParameterList>
-
-Isobaric (constant pressure)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Standard Equation of State
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Conc-Temp-Pres Equation of State
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Models
-^^^^^^
-
-Constant EOS
-~~~~~~~~~~~~
-
-
-Linear EOS
-~~~~~~~~~~
-
-
-Ideal Gas
-~~~~~~~~~
-
-
-EOS of Water
-~~~~~~~~~~~~
-
-
-EOS of Ice
-~~~~~~~~~~
-
-
-EOS of Vapor in Air
-~~~~~~~~~~~~~~~~~~~
-
-
-EOS of Saltwater
-~~~~~~~~~~~~~~~~
-
-
-Surface energy balance evaluators
----------------------------------
-
-Evaluators used to solve the fluxes to and from the atmosphere and
-between layers of the surface.  Typically in ATS these calculate
-evapotranspiration.
-
-Area Fractions
-^^^^^^^^^^^^^^
-
-Frequently, the surface of a grid cell is split across at least two
-"regions," for instance snow covered and bare ground.  This "subgrid"
-model allows smooth transitions between fully snow-covered and fully
-bare ground.
-
-These area fractions often get included as area-weights in calculating
-full-cell quantities.
-
-Surface Area Fractions
-~~~~~~~~~~~~~~~~~~~~~~
- A subgrid model for determining the area fraction of land and snow within a grid cell
-
-Requires the following dependencies:
-
-* `"snow depth key`" ``[string]`` **DOMAIN-snow_depth**
-         
-
-
-
-
-Potential Evapotranspiration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Models of potential evapotranspiration approximate the difference in
-vapor pressure between the atmosphere and the soil as a function of
-available energy, allowing the calculation of the max flux of ET that
-the atmosphere could accept.  This can then be limited based on water
-availability, etc.
-
-Priestley-Taylor Potential Evapotranspiration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Evaluates potential evapotranpiration (PET)
-
-Requires the following dependencies:
-
-* `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-* `"relative humicity key`" ``[string]`` **DOMAIN-relative_humidity**
-* `"elevation key`" ``[string]`` **DOMAIN-elevation**
-* `"shortwave radiation key`" ``[string]`` **DOMAIN-shortwave_radiation**
-
-
-
-
-Downregulation and limiters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Given a potential, the actual ET is often limited by available water
-(or nutrients or other quantities).  These evaluators are used to
-limit, downregulate, distribute, or otherwise move a potential to an
-actual ET.
-
-Transpiration Distribution
-~~~~~~~~~~~~~~~~~~~~~~~~~~
- Distributes and downregulates potential transpiration to the rooting zone.
-
-The transpiration distribution evaluator looks to take a potential
-evapotranspiration and distribute it across the vertical column based on water
-availability and rooting depths.  It also potentially limits the transpiration
-to avoid taking water where it is not available (thereby crashing the code).
-
-This model is based off of versions from both CLM 4.5 and PRMS.  It requires:
-
-1. A root distribution profile.
-2. A plant wilting factor (e.g. how water stressed is the plant?)
-3. A potential transpiration, typically calculated from data or a potential
-   difference based on a latent heat calculation.
-
-Note this also requires columnar meshes -- meaning that the subsurface mesh
-must have `"build columns from set`" provided.
-
-A normalized fraction of water is calculated through multiplying the water
-factor by the root distribution factor, integrating across the column, and
-dividing by the integral.  This gives a factor which sums to 1 and can be used
-to distribute the potential ET throughout the soil column.
-
-Then, this potential ET is down-regulated and multiplied by the plant wilting
-factor.  If there is no water locally, it cannot be taken.  Note that almost
-always, if there is no water, this did not contribute (much) to the integral
-and so is already small.  But if the entire root zone is dried out, this might
-have been a bunch of small numbers which then got normalized to 1, meaning they
-are all now significant.
-
-Finally, transpiration may be turned off for winter -- relative to time zero,
-parameters `"leaf on time`" and `"leaf off time`" are used to control when ET
-is zero.  By default these are set to 0 and 366 days, ensuring that
-transpiration is never turned off and the potential ET must include this
-factor.  This is the right choice for, e.g. ELM output, or eddy covariance flux
-tower data (where leaf on and off are already included in the potential
-calculation).  It is the wrong choice for, e.g. Priestly-Taylor or
-Penmann-Montief models, which are happy to predict transpiration all winter
-long.  Good choices for those models depend upon the local climate, but may be
-something like Julian day 101 for leaf on and Julian day 254 for leaf off (PRMS
-defaults for US temperate forests).
-
-Note that `"leaf on time`" and `"leaf off time`" are relative to the
-simulation's zero time, not the start time.  Typically these are Julian day of
-the year, but this assumes that the 0 time of the simulation (not the "start
-time", but time 0!) is Jan 1.  This leaf on/off cycle is modulo the `"year
-duration`" (typically 1 noleap).  Note if `"leaf off time`" < `"leaf on
-time`" is ok too -- this is the case if simulation time zero is mid-summer.
-
-.. _transpiration-distribution-evaluator-spec:
-.. admonition:: transpiration-distribution-evaluator
-
-    * `"year duration`" ``[double]`` **1**
-    * `"year duration units`" ``[string]`` **noleap**
-    * `"leaf on time`" ``[double]`` **0**
-    * `"leaf on time units`" ``[string]`` **d**
-    * `"leaf off time`" ``[double]`` **366**
-    * `"leaf off time units`" ``[string]`` **d**
-
-    * `"number of PFTs`" ``[int]`` **1** NOTE: must be 1 currently.
-
-    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
-      limit the total water sink as a function of the integral of the water
-      potential * rooting fraction.
-
-
-    KEYS:
-
-    * `"plant wilting factor`"
-    * `"rooting depth fraction`"
-    * `"potential transpiration`"
-    * `"cell volume`"
-    * `"surface cell volume`"
-
-
-WARNING: there is some odd code here in which some quantities are PFT based and
-some are not.  It isn't clear that those are correct for all usages.  And there
-is currently no accumulation on the result of this evaluator (which is
-PFT-based) to collapse it into a single sink for use in the water balance.
-DON'T USE THIS WITH MULTIPLE PFTS without really understanding what you are
-doing! (NOTE, error added for NPFTS > 1)  --etc
-
-
-
-
-Rooting Depth Fraction
-~~~~~~~~~~~~~~~~~~~~~~
-
-
-Plant Wilting Point
-~~~~~~~~~~~~~~~~~~~
-
-
-Soil Resistance
-^^^^^^^^^^^^^^^
-
-
-
-Radiation Balance Terms
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Often a balance of incoming and outgoing short and longwave radiations
-are required to determine the energy available to go into latent heat,
-and therefore potential evapotranspiration.
-
-Note that incoming shortwave radiation is typically a user-provided
-meterological forcing dataset.
-
-Surface Albedo
-~~~~~~~~~~~~~~
- AlbedoEvaluator: evaluates albedos and emissivities
-Evaluates the albedo and emissivity as an interpolation on the surface
-properties and cover.  This allows for two channels -- water/ice/land and
-snow.  Note this internally calculates albedo of snow based upon snow density.
-
-Channels are: 0 = land/ice/water, 1 = snow.
-
-* `"albedo ice [-]`" ``[double]`` **0.44** 
-* `"albedo water [-]`" ``[double]`` **0.1168** 
-* `"albedo ground surface [-]`" ``[double]`` **0.135** Defaults to that of tundra.
-
-* `"emissivity ice [-]`" ``[double]`` **0.98** 
-* `"emissivity water [-]`" ``[double]`` **0.995** 
-* `"emissivity ground surface [-]`" ``[double]`` **0.92** Defaults to that of tundra.
-* `"emissivity snow [-]`" ``[double]`` **0.98**
-
-* `"snow density key`" ``[string]`` **SNOW_DOMAIN-density** 
-* `"ponded depth key`" ``[string]`` **DOMAIN-ponded_depth** 
-* `"unfrozen fraction key`" ``[string]`` **DOMAIN-unfrozen_fraction**
-
-
-
-
-Incident Shortwave Radiation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Evaluates shortwave as a function of slope/aspect/etc.
-  Generated via evaluator_generator with:
-Aspect modified shortwave radiation is determined by a factor which
-is multiplied by the 'incoming radiation incident on a flat surface'
-to determine the 'incoming radiation incident on a sloping surface of
-a given aspect' as a function of latitude, slope, aspect, and Julian
-day of the year, and time of day.
-
-Note that some careful checking and experimentation has found that, in
-general, the daily average incident radiation times the 12-noon aspect
-modifier correlates reasonably well with the daily average of the
-product of the hourly incident radiation and the hourly aspect
-modifier.  It is notably better than the daily average radiation times
-the daily average aspect modifier.
-
-Derived from LandLab code, which is released under the MIT license:
-https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py
-
-
-
-Longwave Radiation
-~~~~~~~~~~~~~~~~~~
- Evaluates incoming longwave radiation from rel humidity and air temperature.
-
-.. _longwave_evaluator-spec:
-.. admonition:: longwave_evaluator-spec
-
-    * `"minimum relative humidity [-]`" ``[double]`` **0.1** Sets a minimum rel humidity, RH=0 breaks the model.
-
-    DEPENDENCIES:
-    
-    * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
-         
-
-
-
-Full Surface Energy Balance Models
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Finally, in addition to the potential-based models above, a few
-full-physics model are available.  These are often based on older,
-monolithic models.
-
-Bare Soil Surface Energy Balance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- SEBEvaluator: evaluates the Surface Energy Balance model on a column.
-
-Calculates source terms for surface fluxes to and from the atmosphere and a
-snowpack.  In the case of snow on the ground, this solves for a snow
-temperature, given a skin temperature, that satisfies a energy balance
-equation.  In the case of no-snow, this calculates a conductive heat flux to
-the ground from the atmosphere.
-  
-
-.. _seb_evaluator-spec:
-.. admonition:: seb_evaluator-spec
-
-   * `"roughness length of bare ground [m]`" **0.04** Defines a fetch controlling
-     latent and sensible heat fluxes.
-   * `"roughness length of snow-covered ground [m]`" **0.004** Defines a
-     fetch controlling latent and sensible heat fluxes.
-   * `"snow-ground transitional depth [m]`" **0.02** Snow height at which bare
-     ground starts to stick out due to subgrid topography, vegetation, etc.
-     Defines a transitional zone between "snow-covered" and "bare ground".
-   * `"dessicated zone thickness [m]`" Thickness of the immediate surface
-     layer over which vapor pressure diffusion must move water to evaporate
-     from dry soil.  More implies less evaporation.
-   * `"wind speed reference height [m]`" **2.0** Reference height at which
-     wind speed is measured.
-   * `"minimum wind speed [m s^-1]`" **1.0** Sets a floor on wind speed for
-     potential wierd data.  Models have trouble with no wind.
-   * `"minimum relative humidity [-]`" **1.0** Sets a floor on relative
-     humidity for potential wierd data.  Models have trouble with no
-     humidity.
-  
-   * `"save diagnostic data`" ``[bool]`` **false** Saves a suite of diagnostic variables to vis.
-
-   * `"surface domain name`" ``[string]`` **DEFAULT** Default set by parameterlist name.
-   * `"subsurface domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
-   * `"snow domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
- 
-    KEYS:
-    * `"surface mass source`" **DOMAIN-mass_source**  [m s^-1]
-    * `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
-    * `"subsurface mass source`" **DOMAIN-mass_source**  [mol s^-1]
-    * `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
-    * `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
-    * `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
-
-    * `"albedo`"  [-]
-    * `"snowmelt`" [m_SWE s^-1]
-    * `"evaporation`" [m s^-1]
-    * `"snow temperature`" [K]
-    * `"sensible heat flux`" **DOMAIN-qE_sensible_heat** [W m^-2]
-    * `"latent heat of evaporation`" **DOMAIN-qE_latent_heat** [W m^-2]
-    * `"latent heat of snowmelt`" **DOMAIN-qE_snowmelt** [W m^-2]
-    * `"outgoing longwave radiation`" **DOMAIN-qE_lw_out** [W m^-2]
-    * `"conducted energy flux`" **DOMAIN-qE_conducted** [W m^-2]
-
-    DEPENDENCIES:
-    * `"incoming shortwave radiation`" [W m^-2]
-    * `"incoming longwave radiation`" [W m^-2]
-    * `"air temperature`" [K]
-    * `"relative humidity`" [-]
-    * `"wind speed`" [m s^-1]
-    * `"precipitation rain`" [m s^-1]
-    * `"precipitation snow`" [m_SWE s^-1]
-    
-    
-    * `"snow depth`" [m]
-    * `"snow density`" [kg m^-3]
-    * `"snow death rate`" [m s^-1]  Snow "death" refers to the last bit of snowmelt that we want to remove discretely.
-    * `"ponded depth`" [m]
-    * `"unfrozen fraction`" [-]  1 --> all surface water, 0 --> all surface ice
-    * `"subgrid albedos`" [-] Dimension 2 field of (no-snow, snow) albedos.
-    * `"subgrid emissivity`" [-] Dimension 2 field of (no-snow, snow) emissivities.
-    * `"area fractions`" **DOMAIN-fractional_areas** Dimension 2 field of (no-snow, snow) area fractions (sum to 1).
-
-    * `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
-    * `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
-    * `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
-    * `"porosity`" [-] subsurface porosity
-    * `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
-    
-
-
-
-Common Land Model (ParFlow-CLM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is included here because it should eventually get split into
-evaluators.  Currently, the CLM SEB model is a PK only, see `Common
-Land Model PK`_.
-
-Snow evaluators
----------------
-
-Evaluators used for solving snowpack and/or snow redistribution laterally.
-
-SnowSurfacePotential
-^^^^^^^^^^^^^^^^^^^^^^
- PresElevEvaluator: evaluates h + z
-Evaluator type: "snow skin potential"
-
-.. math::
-  h + z + h_{{snow}} + dt * P_{{snow}}
-
-* `"my key`" ``[string]`` **snow_skin_potential** Names the potential variable evaluated [m]
-* `"ponded depth key`" ``[string]`` **ponded_depth** Names the surface water depth variable. [m]
-* `"snow depth key`" ``[string]`` **snow_depth** Names the snow depth variable. [m]
-* `"precipitation snow key`" ``[string]`` **precipitation_snow** Names the snow precipitation key. [m]
-* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
-* `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]
-
-NOTE: This is equivalent to a generic Additive_ Evaluator
-
-Example:
-
-.. code-block:: xml
-
-  <ParameterList name="snow_skin_potential" type="ParameterList">
-    <Parameter name="field evaluator type" type="string" value="snow skin potential" />
-    <Parameter name="dt factor [s]" type="double" value="864000.0" />
-  </ParameterList>
-
-
-
-
-Snow Melt Rate
-^^^^^^^^^^^^^^
- Evaluates snow melt
-
-Requires the following dependencies:
-
-* `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-* `"precipitation snow key`" ``[string]`` **DOMAIN-precipitation_snow**
-
-Allows the following parameters:
-
-* `"snow melt rate [mm day^-1 C^-1]`" ``[double]`` **2.74**
-    the melt rate per degree-day above 0 C.
-
-* `"snow-ground transition depth [m]`" ``[double]`` **0.02**
-    Snow depth at which bare ground starts to appear.
-
-* `"air-snow temperature difference [C]`" ``[double]`` **2.0**
-    Snow temperature is typicaly a few degrees colder than the air
-    temperature at snowmelt. This shifts air temp (positive is colder)
-    when calculating the snow temperature.
-
-.. note:
-    If snow temperature is known, the `"air-snow temperature difference`"
-    should be set to 0, and the `"air temperature key`" should be set to
-    the snow temperature key instead.
-
-
-
-
-
-Subgrid flow model evaluators
------------------------------
-
-Surface flow is sensitive to microtopographic effects, and the surface
-flow model of Jan2018_ can be used to represent these effects.
-
-Depression Depth
-^^^^^^^^^^^^^^^^
-
-
-Excluded Volume
-^^^^^^^^^^^^^^^
-
-
-Microtopographic Relief
-^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Drag Exponent
-^^^^^^^^^^^^^
-
-
-Surface Albedo with subgrid
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
- AlbedoSubgridEvaluator: evaluates albedos and emissivities with a subgrid model.
-Evaluates the albedo and emissivity as an interpolation on the surface
-properties and cover.  This allows for three channels -- water/ice, land, and
-snow.  Note this internally calculates albedo of snow based upon snow density.
-
-Channels are: 0 = land, 1 = water/ice, 2 = snow.
-
-* `"albedo ice [-]`" ``[double]`` **0.44** 
-* `"albedo water [-]`" ``[double]`` **0.1168** 
-* `"albedo ground surface [-]`" ``[double]`` **0.135** Defaults to that of tundra.
-
-* `"emissivity ice [-]`" ``[double]`` **0.98** 
-* `"emissivity water [-]`" ``[double]`` **0.995** 
-* `"emissivity ground surface [-]`" ``[double]`` **0.92** Defaults to that of tundra.
-* `"emissivity snow [-]`" ``[double]`` **0.98**
-
-* `"snow density key`" ``[string]`` **SNOW_DOMAIN-density** 
-* `"unfrozen fraction key`" ``[string]`` **DOMAIN-unfrozen_fraction**
-
-
-
-
-Surface Area Fractions with subgrid
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- A subgrid model for determining the area fraction of land, water, and snow within a grid cell with subgrid microtopography.
-
-  Uses the subgrid equation from Jan et al WRR 2018 for volumetric or
-  effective ponded depth to determine the area of water, then heuristically
-  places snow on top of that surface.
-
-Requires the following dependencies:
-
-* `"maximum ponded depth key`" ``[string]`` **DOMAIN-maximum_ponded_depth**
-         The name of del_max, the max microtopography value.
-* `"excluded volume key`" ``[string]`` **DOMAIN-excluded_volume**
-         The name of del_excluded, the integral of the microtopography.
-* `"pressure key`" ``[string]`` **DOMAIN-pressure**
-         The name of the pressure on the surface.
-
-
-  NOTE: this evaluator simplifies the situation by assuming constant
-  density.  This make it so that ice and water see the same geometry per
-  unit pressure, which isn't quite true thanks to density differences.
-  However, we hypothesize that these differences, on the surface (unlike in
-  the subsurface) really don't matter much. --etc
-
-
-
-
-
-Deformation
------------
-Evaluators for implementing ATS's simple deformation model targetting subsidence.
-
-Initial Elevation
-^^^^^^^^^^^^^^^^^
-
-
-Subsidence
-^^^^^^^^^^
-
-
-Deforming Porosity
-^^^^^^^^^^^^^^^^^^
-
-
-
-Carbon and Biogeochemistry Models
----------------------------------
-
-Carbon Decomposition Rate
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Moisture Content
-^^^^^^^^^^^^^^^^
-
-
-Cryo/bioturbation
-^^^^^^^^^^^^^^^^^
-
-
-Pool Decomposition
-^^^^^^^^^^^^^^^^^^
-
-
-Pool Transfer
-^^^^^^^^^^^^^
-
-
-
-Multiscale Models
------------------
-
-Subgrid Aggregation
-^^^^^^^^^^^^^^^^^^^^^^
- SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.
-
- * `"source domain name`" ``[string]`` Domain name of the source mesh.
-
-ONE OF:
-* `"field key suffix`" ``[string]`` **FIELD_SUFFIX from this** Set the suffix of the variable
-OR
-* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
-
-  
- 
-
-
-Subgrid disaggregation
-^^^^^^^^^^^^^^^^^^^^^^
- SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
-
- * `"source domain name`" ``[string]`` Domain name of the source mesh.
-
-ONE OF:
-* `"field key suffix`" ``[string]`` **FIELD_SUFFIX from this** Set the suffix of the variable
-OR
-* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
-
-  
- 
-
-
-
-
-
-
-Geometric evaluators
---------------------
-
-Evaluators that capture various aspects of the mesh geometry.
+Evaluators for 
 
 SurfaceElevation
 ^^^^^^^^^^^^^^^^^^
@@ -4235,47 +2911,71 @@ Example:
 
 
 
-Elevation of a Column
-^^^^^^^^^^^^^^^^^^^^^
- ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
-Evaluator type: `"elevation column`"
+SurfacePotential
+^^^^^^^^^^^^^^^^^^^
+ PresElevEvaluator: evaluates h + z
+Evaluator type: ""
 
-Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|``
+.. math::
+  h + z
 
-* `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
-* `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation variable. [-]
-* `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the elevation changes in time, and adds the `"deformation`" and `"base_porosity`" dependencies.
-* `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent mesh, which is the 3D version of this domain.  In the columnar meshes the surface elevation and slope are assigned based on the columns and not the base 3D domain.
+* `"my key`" ``[string]`` **pres_elev** Names the surface water potential variable, h + z [m]
+* `"height key`" ``[string]`` **ponded_depth** Names the height variable. [m]
+* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
+
+
+NOTE: This is a legacy evaluator, and is not in the factory, so need not be in
+the input spec.  However, we include it here because this could easily be
+abstracted for new potential surfaces, kinematic wave, etc, at which point it
+would need to be added to the factory and the input spec.
+
+NOTE: This could easily be replaced by a generic AdditiveEvaluator_
+
+
+
+
+SnowSurfacePotential
+^^^^^^^^^^^^^^^^^^^^^^
+ PresElevEvaluator: evaluates h + z
+Evaluator type: "snow skin potential"
+
+.. math::
+  h + z + h_{{snow}} + dt * P_{{snow}}
+
+* `"my key`" ``[string]`` **snow_skin_potential** Names the potential variable evaluated [m]
+* `"ponded depth key`" ``[string]`` **ponded_depth** Names the surface water depth variable. [m]
+* `"snow depth key`" ``[string]`` **snow_depth** Names the snow depth variable. [m]
+* `"precipitation snow key`" ``[string]`` **precipitation_snow** Names the snow precipitation key. [m]
+* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
+* `"dt factor`" ``[double]`` A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]
+
+NOTE: This is equivalent to a generic AdditiveEvaluator_
 
 Example:
 
 .. code-block:: xml
 
-  <ParameterList name="surface_star-elevation">
-    <Parameter name="field evaluator type" type="string" value="column elevation"/>
+  <ParameterList name="snow_skin_potential" type="ParameterList">
+    <Parameter name="field evaluator type" type="string" value="snow skin potential" />
+    <Parameter name="dt factor" type="double" value="864000.0" />
   </ParameterList>
 
 
 
 
-Depth Evaluator
-^^^^^^^^^^^^^^^
-
-
-Cell Volume evaluator
+Surface water content
 ^^^^^^^^^^^^^^^^^^^^^
 
 
 
-Coupling terms
---------------
+..
+    KEEP GOING!
 
+    
+Generic Evaluators
+---------------------------------
 
-Generic evaluators
-------------------
-
-These evaluators take arguments to allow the user to provide custom
-functions via the input spec.
+Several generic evaluators are provided.
 
 Additive
 ^^^^^^^^
@@ -4287,246 +2987,164 @@ Multiplicative
 
 Column summation
 ^^^^^^^^^^^^^^^^
- Sums a subsurface field vertically only a surface field.
-
-Simple vertical sum of all cells below each surface cell.  Note that their are
-options for including volume factors (multiply by subsurface cell volume, sum,
-divide by surface cell area) and density (useful for the most common use case
-of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 
-.. _column-sum-evaluator-spec:
-.. admonition:: column-sum-evaluator
+Subgrid disaggregation
+^^^^^^^^^^^^^^^^^^^^^^
+ SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
 
-    * `"include volume factor`" ``[bool]`` **true** In summing, multiply the
-      summand subsurface cell volume, then divide the sum by the surface cell
-      area.  Useful for converting volumetric fluxes to total fluxes.
+ * `"source domain name`" ``[string]`` Domain name of the source mesh.
 
-    * `"divide by density`" ``[bool]`` **true** Divide the summand by density.
-      Useful for converting molar fluxes to volumetric fluxes
-      (e.g. transpiration).
+ONE OF:
+* `"field key suffix`" ``[string]`` **FIELD_SUFFIX from this** Set the suffix of the variable
+OR
+* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
 
-    * `"column domain name`" ``[string]`` **"domain"** The domain of the
-      subsurface mesh.  Note this defaults to a sane thing based on the
-      variable's domain (typically "surface" or "surface_column:*") and is
-      rarely set by the user.
-
-    KEYS:
-
-    * `"summed`" The summand, defaults to the root suffix of the calculated
-      variable.
-    * `"cell volume`" Defaults to domain's cell volume.
-    * `"surface cell volume`" Defaults to surface domain's cell volume.
-    * `"molar density`" Defaults to domain's molar_density_liquid.
-
-
-
-
-Top cell
-^^^^^^^^
-** DOC GENERATION ERROR: file not found ' top_cell_evaluator ' **
-
-Arbitrary function
-^^^^^^^^^^^^^^^^^^
- A secondary variable evaluator which evaluates functions on its dependenecies.
-Uses functions to evaluate arbitrary algebraic functions of its dependencies.
-
-For example, one might write a dependency:
-
-  VARNAME = 0.2 * DEP1 - DEP2 + 3
-
-as:
-
-Note this is not done by region currently, but could easily be extended to do
-so if it was found useful.
-
-Example:
-..xml:
-    <ParameterList name="VARNAME">
-      <Parameter name="field evaluator type" type="string" value="secondary variable from function"/>
-      <Parameter name="evaluator dependencies" type="Array{string}" value="{DEP1, DEP2}"/>
-      <ParameterList name="function">
-        <ParameterList name="function-linear">
-          <Parameter name="x0" type="Array(double)" value="{0.0,0.0}" />
-          <Parameter name="y0" type="double" value="3." />
-          <Parameter name="gradient" type="Array(double)" value="{0.2, -1}" />
-        </ParameterList>
-      </ParameterList>
-    </ParameterList>
-
+  
  
 
 
 
-Not-so-generic evaluators
--------------------------
-Nearly all of these probably can or should be refactored into a more
-generic evaluator.  If not, they should get moved to a more-correct
-section of the documentation.
-
-Column Average Temperature
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-Can this become an option in `Column Summation`_?
-
-
-
-
-Column Water Content
-^^^^^^^^^^^^^^^^^^^^
-Can this become a `Column Summation`_?
-
-
-
-Gas Content
-^^^^^^^^^^^
-Can this become a `Column Summation`_?
-
-
-
-Max Thaw Depth
-^^^^^^^^^^^^^^
-Can this become a generic "Maximum" or similar?
-
-
-
-Thaw Depth (Columns)
-^^^^^^^^^^^^^^^^^^^^
-Can this become a `Subgrid Aggregation`_ of a `Thaw Depth`_?
-
-
-
-Water Table (Columns)
-^^^^^^^^^^^^^^^^^^^^^
-Can this become a `Subgrid Aggregation`_  of a `Water Table`_?
-
-
-
-
-
-
-    
 
 InitialConditions
 =================
 
-Initial condition specs are used in three places:
+Initial condition specs are used in two places:
 
-* In the `"initial conditions`" sublist of state, in which the value
+* within the PK_ spec which describes the initial condition of primary variables (true
+  initial conditions), and
+
+* in the `"initial conditions`" sublist of state, in which the value
   of atomic constants are provided (not really initial conditions and
   should be renamed).  These atomic values are not controlled by
-  evaluators, and are not included in the DaG.
+  evaluators, and are not included in the DaG.  Likely these should be
+  removed entirely.
+  
+Initialization of constant scalars
+------------------------------------
 
-* Within the PK_ spec which describes the initial condition of primary variables (true
-  initial conditions).
-
-* In `IndependentVariableEvaluator Constant <Constant_>`_
-
-The first may be of multiple types of data, while the latter two are
-nearly always fields on a mesh (e.g. CompositeVectors).  The specific
-available options differ by data type.
-
-Scalars
--------
-
-
-``[initial-conditions-scalar-spec]``
-
-* `"value`" ``[double]`` Set the value.
-
-
-Example:
+A constant scalar field is the global (with respect to the mesh)
+constant.  At the moment, the set of such fields includes atmospheric
+pressure.  The initialization requires to provide a named sublist with
+a single parameter `"value`".
 
 .. code-block:: xml
 
-  <ParameterList name="atmospheric_pressure">
-    <Parameter name="value" type="double" value="101325."/>
+  <ParameterList name="fluid_density">
+    <Parameter name="value" type="double" value="998.0"/>
   </ParameterList>
 
 
+Initialization of constant vectors
+------------------------------------
 
-
-
-Vectors of Scalars
-------------------
-
-
-``[initial-conditions-constantvector-spec]``
-
-* `"value`" ``[Array(double)]`` Set the value.
-
-
-Example:
+A constant vector field is the global (with respect to the mesh)
+vector constant.  At the moment, the set of such vector constants
+includes gravity.  The initialization requires to provide a named
+sublist with a single parameter `"Array(double)`". In two dimensions,
+is looks like
 
 .. code-block:: xml
 
   <ParameterList name="gravity">
-    <Parameter name="value" type="Array(double)" value="{{0.0, -9.81}}"/>
+    <Parameter name="value" type="Array(double)" value="{0.0, -9.81}"/>
+  </ParameterList>
+
+
+Initialization of scalar fields
+------------------------------------
+
+A variable scalar field is defined by a few functions (labeled for instance,
+`"Mesh Block i`" with non-overlapping ranges. 
+The required parameters for each function are `"region`", `"component`",
+and the function itself.
+
+.. code-block:: xml
+
+  <ParameterList name="porosity"> 
+    <ParameterList name="function">
+      <ParameterList name="Mesh Block 1">
+        <Parameter name="region" type="string" value="Computational domain"/>
+        <Parameter name="component" type="string" value="cell"/>
+        <ParameterList name="function">
+          <ParameterList name="function-constant">
+            <Parameter name="value" type="double" value="0.2"/>
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+      <ParameterList name="Mesh Block 2">
+        ...
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+
+Initialization of tensor fields
+------------------------------------
+ 
+A variable tensor (or vector) field is defined similarly to a variable
+scalar field.  The difference lies in the definition of the function
+which is now a multi-values function.  The required parameters are
+`"Number of DoFs`" and `"Function type`".
+
+.. code-block:: xml
+
+  <ParameterList name="function">
+    <Parameter name="Number of DoFs" type="int" value="2"/>
+    <Parameter name="Function type" type="string" value="composite function"/>
+    <ParameterList name="DoF 1 Function">
+      <ParameterList name="function-constant">
+        <Parameter name="value" type="double" value="1.9976e-12"/>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="DoF 2 Function">
+      <ParameterList name="function-constant">
+        <Parameter name="value" type="double" value="1.9976e-13"/>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+
+Initialization from a file
+------------------------------------
+
+Some data can be initialized from files. Additional sublist has to be
+added to named sublist of the `"state`" list with the file name and
+the name of attribute.  For a serial run, the file extension must be
+`".exo`".  For a parallel run, it must be `".par`".  Here is an
+example:
+
+.. code-block:: xml
+
+  <ParameterList name="permeability">
+    <ParameterList name="exodus file initialization">
+      <Parameter name="file" type="string" value="mesh_with_data.exo"/>
+      <Parameter name="attribute" type="string" value="perm"/>
+    </ParameterList>
   </ParameterList>
 
 
 
+example:
 
-Fields on a Mesh
-----------------
+.. code-block:: xml
 
+  <ParameterList name="state">
+    <ParameterList name="initial conditions">
+      <ParameterList name="fluid_density">
+        <Parameter name="value" type="double" value="998.0"/>
+      </ParameterList>
 
-The vast majority of Fields are vectors of data on a mesh entity.  This is a
-CompositeVector in Amanzi-ATS (as it may consist of multiple components, each
-on its own mesh entity).  Initializing these components may be done in avariety
-of ways:
+      <ParameterList name="fluid_viscosity">
+        <Parameter name="value" type="double" value="0.001"/>
+      </ParameterList>
 
+      <ParameterList name="gravity">
+        <Parameter name="value" type="Array(double)" value="{0.0, -9.81}"/>
+      </ParameterList>
 
-``[initial-conditions-compositevector-spec]``
-
-* `"restart file`" ``[string]`` **optional** If provided, read IC value from a
-  checkpoint file of this name.
-
-* `"cells from file`" ``[string]`` **optional** If provided, read IC value for
-  cells from a checkpoint file of this name.
-
-* `"exodus file initialization`" ``[exodus-file-reader-spec]`` **optional** If provided, initialize data from an Exodus file.
-
-
-* `"constant`" ``[double]`` **optional** If provided, set the IC to this value everywhere.
-
-* `"initialize from 1D column`" ``[initialize-1d-column-spec]`` **optional**
-   If provided, initialize data by interpolating from a 1D solution in depth
-   relative to the surface.
-
-* `"function`" ``[composite-vector-function-spec-list]`` **optional** If
-   provided, a region-based list of functions to evaluate piecewise over the
-   domain.
-
-* `"initialize faces from cell`" ``[bool]`` **false** In the case of mimetic
-   or other face-inclusive discretizations, calculate initial face data by
-   averages of the neighboring cells.
-
-* `"write checkpoint`" ``[bool]`` **true** Write this data when checkpointing.
-
-* `"write vis`" ``[bool]`` **true** Write this data when visualizing.
-
-
-Capability for 1D column initialization:
-
-``[initialize-1d-column-spec]``
-* `"file`" ``[string]`` Filename including data.
-* `"z header`" ``[string]`` **"/z"**  Name of the data in the above file for z-coordinate of this field.
-* `"f header`" ``[string]`` **"/field-name"** Name of the data in the above file for this field.
-* `"coordinate orientation`" ``[string]`` **"standard"** Either `"standard`" or `"depth`" -- is positive z up (standard) or down (depth)?
-
-ONE OF:
-* `"surface sideset`" ``[string]`` Name of the face-set in the mesh which determines the zero surface for interpolation.  This must cover the entire top surface boundary.
-OR:
-* `"surface sidesets`" ``[Array(string)]`` List of the names for the case of multiple sidesets needed.
-END
-
-ExodusII file reader control:
-
-``[exodus-file-reader-spec]``
-* `"file`" ``[string]`` Filename
-* `"attributes`" ``[Array(string)]`` List of Exodus attributes to read, unclear when/if/how this works?
-
-
+    </ParameterList>
+  </ParameterList>
 
 
 
@@ -4623,69 +3241,10 @@ Example:
    </ParameterList>
  </ParameterList>
 
-Dirichlet (head) boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Used for both surface and subsurface flows, this provides head data (in [m]
-above the land surface), typically as a function of x & y.  In the subsurface
-case, the z-value is given by hydrostatic relative to that head.
-
-.. math::
-  p = p_{atm} + rho * g * (h(x,y) + z_{surf} - z)
-
-where h is the head function provided.
-
-Example:
-
-.. code-block:: xml
-
- <ParameterList name="boundary conditions">
-   <ParameterList name="head">
-     <ParameterList name="BC west">
-       <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="boundary head">
-         <ParameterList name="function-constant">
-           <Parameter name="value" type="double" value="0.01"/>
-         </ParameterList>
-       </ParameterList>
-     </ParameterList>
-   </ParameterList>
- </ParameterList>
-
-
-Dirichlet (fixed level) boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This fixes the water table at a constant elevation.  It is a head condition
-that adapts to the surface elevation, adjusting the head to a datum that is a
-fixed absolute z coordinate.
-
-.. math::
-  p = p_{atm} + rho * g * (h(x,y) - z)
-
-where h is the head function provided.
-
-Example:
-
-.. code-block:: xml
-
- <ParameterList name="boundary conditions">
-   <ParameterList name="fixed level">
-     <ParameterList name="BC west">
-       <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="fixed level">
-         <ParameterList name="function-constant">
-           <Parameter name="value" type="double" value="0.0"/>
-         </ParameterList>
-       </ParameterList>
-     </ParameterList>
-   </ParameterList>
- </ParameterList>
-
 
 Neumann (mass flux) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.
+Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], in the outward normal direction) on boundaries.
 
 Example:
 
@@ -4703,33 +3262,6 @@ Example:
      </ParameterList>
    </ParameterList>
  </ParameterList>
-
-Neumann (fix level flux) boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
-
-Example:
-
-.. code-block:: xml
-    
-     <ParameterList name="boundary conditions">
-       <ParameterList name="fixed level flux">
-          <ParameterList name="river level south">
-            <Parameter name="regions" type="Array(string)" value="{river south}"/>
-            <ParameterList name="fixed level">
-               <ParameterList name="function-constant">
-                 <Parameter name="value" type="double" value="0.5"/>
-               </ParameterList>
-            </ParameterList>
-            <ParameterList name="velocity">
-               <ParameterList name="function-constant">
-                 <Parameter name="value" type="double" value="-25"/>
-               </ParameterList>
-            </ParameterList>            
-          </ParameterList>
-       </ParameterList>
-    </ParameterList>
-
 
  
 Seepage face boundary conditions
@@ -4789,12 +3321,6 @@ capability is experimental and has not been well tested.
   - if :math:`q \cdot \hat{n} < q_0`, then :math:`q = q_0`
   - if :math:`p > p_{atm}`, then :math:`p = p_{atm}`
 
-Note the condition also accepts a parameter:
-
-* `"explicit time index`" ``[bool]`` **false** If true, the _type_ of the BC is
-  evaluated at the old time, keeping it fixed while the nonlinear solve
-  iterates.
-
 Example: seepage with infiltration
 
 .. code-block:: xml
@@ -4802,7 +3328,6 @@ Example: seepage with infiltration
  <ParameterList name="boundary conditions">
    <ParameterList name="seepage face with infiltration">
      <ParameterList name="BC west">
-       <Parameter name="explicit time index" type="bool" value="true"/>
        <Parameter name="regions" type="Array(string)" value="{west}"/>
        <ParameterList name="outward mass flux">
          <ParameterList name="function-constant">
@@ -4815,6 +3340,56 @@ Example: seepage with infiltration
 
 Note it would be straightforward to add both p0 and q0 in the same condition;
 this has simply not had a use case yet.
+
+
+Dirichlet (head) boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Used for surface flows, this provides head data (in [m]) on boundaries.
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="head">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="boundary head">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.01"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
+
+
+Fixed level boundary conditions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For surface flows only.  This fixes the water table at a constant elevation.
+It is a head condition that adapts to the surface elevation such that
+
+.. math::
+  h = max( h0 - z, 0 )
+
+Example:
+
+.. code-block:: xml
+
+ <ParameterList name="boundary conditions">
+   <ParameterList name="fixed level">
+     <ParameterList name="BC west">
+       <Parameter name="regions" type="Array(string)" value="{west}"/>
+       <ParameterList name="fixed level">
+         <ParameterList name="function-constant">
+           <Parameter name="value" type="double" value="0.0"/>
+         </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+ </ParameterList>
 
 
 Zero head gradient boundary conditions
@@ -4922,11 +3497,6 @@ The type of boundary conditions maybe changed in time depending on the switch fu
    </ParameterList>
 
  
-
-
-Energy-specific Boundary Conditions
-----------------------------------
-
 
 
 
@@ -5066,7 +3636,7 @@ via the time discretization scheme:
     * `"verbose object`" ``[verbose-object-spec]`` A `Verbose Object`_
 
     * `"residual debugger`" ``[residual-debugger-spec]`` A `Residual Debugger`_ object.
-
+      
     * `"max preconditioner lag iterations`" ``[int]`` **0** specifies frequency
       of preconditioner recalculation.
 
@@ -5165,8 +3735,8 @@ The timestep for step :math:`k+1`, :math:`\Delta t_{k+1}`, is given by:
 where :math:`\Delta t_{k}` is the previous timestep and :math:`N_k` is the number of 
 nonlinear iterations required to solve step :math:`k`:.
 
-.. _timestep-controller-standard-spec:
-.. admonition:: timestep-controller-standard-spec
+.. _timestep-controller-typed-standard-spec:
+.. admonition:: timestep-controller-typed-standard-spec
 
     * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
     * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
@@ -5188,8 +3758,8 @@ decreases, converges in few iterations, increases, but then fails again.  It
 also tries to grow the step geometrically to more quickly recover from tricky
 nonlinearities.
 
-.. _timestep-controller-smarter-spec:
-.. admonition:: timestep-controller-smarter-spec
+.. _timestep-controller-typed-smarter-spec:
+.. admonition:: timestep-controller-typed-smarter-spec
 
     * `"max iterations`" ``[int]`` :math:`N^{max}`, decrease the timestep if the previous step took more than this.
     * `"min iterations`" ``[int]`` :math:`N^{min}`, increase the timestep if the previous step took less than this.
@@ -5223,8 +3793,8 @@ even machine roundoff can eventually alter number of iterations enough to alter
 the timestep history, resulting in solutions which are enough different to
 cause doubt over their correctness.
 
-.. _timestep-controller-from-file-spec:
-.. admonition:: timestep-controller-from-file-spec
+.. _timestep-controller-typed-from-file-spec:
+.. admonition:: timestep-controller-typed-from-file-spec
 
     * `"file name`" ``[string]`` Path to hdf5 file containing timestep information.
     * `"timestep header`" ``[string]`` Name of the dataset containing the history of timestep sizes.
@@ -5289,8 +3859,8 @@ inexact is not made by the Solver, but instead by the PK.  Both use the
 ApplyPreconditioner() method -- if this applies the true Jacobian, then the
 method is Newton.  If it applies an appoximation, it is inexact Newton.
 
-.. _solver-newton-spec:
-.. admonition:: solver-newton-spec
+.. _solver-typed-newton-spec:
+.. admonition:: solver-typed-newton-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
       tolerance. The error is calculated by a PK.
@@ -5347,16 +3917,16 @@ a new ApplyPreconditioner() which uses the Krylov method with the action of the
 forward operator to (hopefully) improve, relative to the supplied approximate
 inverse, the estimate of the inverse.
 
-.. _solver-jfnk-spec:
-.. admonition:: solver-jfnk-spec
+.. _solver-typed-jfnk-spec:
+.. admonition:: solver-typed-jfnk-spec
 
     * `"nonlinear solver`" ``[solver-typed-spec]`` The outer nonlinear solver to use.
 
-    * `"inverse`" ``[inverse-typed-spec]`` The Krylov method to use.
+    * `"linear operator`" ``[linear-operator-typed-spec]`` The Krylov method to use.
 
     * `"JF matrix parameters`" ``[jf-matrix-spec]`` See jf-matrix-spec_
-
-
+    
+ 
 
 
 
@@ -5372,17 +3942,16 @@ the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
 .. _jf-matrix-spec:
 .. admonition:: jf-matrix-spec
 
-    * `"typical solution value`" ``[double]`` **100** Used in relative action
-      approximations. OPTION NOT IMPLEMENTED
+    * "typical solution value" [double] **100** Used in relative action
+      approximations. **OPTION NOT IMPLEMENTED**
 
-    * `"finite difference epsilon`" ``[double]`` **1.e-8** defines the base finite
+    * "finite difference epsilon" [double] **1.e-8** defines the base finite
       difference epsilon.
 
-    * `"method for epsilon`" ``[string]`` defines a method for calculating finite
+    * "method for epsilon" [string] defines a method for calculating finite
       difference epsilon. Available option is "Knoll-Keyes", "Knoll-Keyes L2",
       "Brown-Saad".  See Knoll
-
-
+ 
 
 
 Solver: Newton with Line Search
@@ -5402,8 +3971,8 @@ provide the correct magnitude.
 
 Note, this always monitors the residual.
 
-.. _solver-backtracking-spec:
-.. admonition:: solver-backtracking-spec
+.. _solver-typed-backtracking-spec:
+.. admonition:: solver-typed-backtracking-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
       tolerance. The error is calculated by a PK.
@@ -5449,8 +4018,8 @@ value.
 Few if any PKs support this method currently -- it requires the PK to provide more
 interface about how to update the continuation parameter.
 
-.. _solver-continuation-spec:
-.. admonition:: solver-continuation-spec
+.. _solver-typed-continuation-spec:
+.. admonition:: solver-typed-continuation-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
       tolerance. The error is calculated by a PK.
@@ -5480,8 +4049,8 @@ especially with an approximate Jacobian.
   (3) (1998) 766–798.
 
 
-.. _solver-nka-spec:
-.. admonition:: solver-nka-spec
+.. _solver-typed-nka-spec:
+.. admonition:: solver-typed-nka-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
       tolerance. The error is calculated by a PK.
@@ -5498,8 +4067,8 @@ especially with an approximate Jacobian.
       indicating divergence of the solver. The error is calculated by a PK.
 
     * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
-      identify divergence of the solver. If the relative l2 (little l) norm of
-      the solution increment is above this value, the solver is terminated.
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
 
     * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
       identify divergence of the solver. If the relative maximum norm of the
@@ -5507,7 +4076,7 @@ especially with an approximate Jacobian.
       value, the solver is terminated.
 
     * `"diverged residual tolerance`" ``[double]`` **1e10** Defines another way
-      to identify divergence of the solver. If the relative l2 norm of the
+      to identify divergence of the solver. If the relative L2 norm of the
       residual (with respect to the initial residual) is above this value, the
       solver is terminated.
 
@@ -5549,8 +4118,8 @@ Solver: Anderson Acceleration
 
 This is a variation of the GMRES solver for nonlinear problems.
 
-.. _solver-aa-spec:
-.. admonition:: solver-aa-spec
+.. _solver-typed-aa-spec:
+.. admonition:: solver-typed-aa-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
       tolerance. The error is calculated by a PK.
@@ -5602,8 +4171,8 @@ an :math:`\alpha` that minimizes the reduction in the residual.
 
 Note, this always monitors the residual.
 
-.. _solver-nka-ls-spec:
-.. admonition solver-nka-ls-spec
+.. _solver-typed-nka-ls-spec:
+.. admonition solver-typed-nka-ls-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
       tolerance. The error is calculated by a PK.
@@ -5658,8 +4227,8 @@ large (e.g. for steep nonlinearities such as phase change).
 
 Note this always monitors the residual, and the correction is always modified.
 
-.. _solver-nka-bt-ats-spec:
-.. admonition:: solver-nka-bt-ats-spec
+.. _solver-typed-nka-bt-ats-spec:
+.. admonition:: solver-typed-nka-bt-ats-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
       tolerance. The error is calculated by a PK.
@@ -5710,7 +4279,7 @@ Note this always monitors the residual, and the correction is always modified.
       the bad step anyway and hopes to recover in later iterates.
 
     IF
-
+    
     * `"Anderson mixing`" ``[bool]`` **false** If true, use Anderson mixing instead of NKA.
 
     THEN
@@ -5733,22 +4302,45 @@ Linear Solvers
 .. _LinearOperator:
 .. _`LinearSolvers`:
 .. _`Linear Solver`:
-.. _`Inverse`:
 
- Base class for providing ApplyInverse() methods on operators.
+ Iterative methods for determining the inverse of a linear operator.
 
-Matrix provides existing Operators with an inverse.  Note this may be
-iterative or non-iterative, assembled or non-assembled, approximate or exact to
-machine precision.
+Linear solvers are iterative methods which wrap Operators/Matrices and provide
+a solution for the true inverse.  The provided Operator must implement a
+forward application (which may be an assembled Matrix-Vector product, or may be
+a matrix-free forward application) and an approximate inverse (the
+preconditioner).
 
-.. _inverse-typed-spec:
-.. admonition:: inverse-typed-spec
+Note that linear operators here differ from preconditioners not in their
+exactness of the solution, but in their interface.  A Preconditioner_ works with
+raw vectors and matrices, and may need assembled matrices.  LinearOperators
+work with the action of matrices only, and never need assembled matrices.  As
+such they are templated with an arbitrary Matrix and Vector type, whereas
+Preconditioners are not.
 
-   * `"iterative method`" ``[string]`` **optional**
-   * `"direct method`" ``[string]`` **optional**
-   * `"preconditioning method`" ``[string]`` **optional**
+.. _linear-solver-typed-spec:
+.. admonition:: linear-solver-typed-spec
 
-DOCUMENT ME!
+    * `"iterative method type`" ``[string]`` Iterative method to be used.
+    * `"_iterative_method_type_ parameters`" ``[_iterative_method_type_-spec]``
+      Parameters associated with the requested iterative method.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="linear solver" type="ParameterList">
+      <Parameter name="iterative method" type="string" value="gmres" />
+      <ParameterList name="verbose object" type="ParameterList">
+        <Parameter name="verbosity level" type="string" value="medium" />
+      </ParameterList>
+      <ParameterList name="gmres parameters" type="ParameterList">
+        <Parameter name="preconditioning strategy" type="string" value="left" />
+        <Parameter name="error tolerance" type="double" value="1e-06" />
+        <Parameter name="convergence criteria" type="Array(string)" value="{relative residual,make one iteration}" />
+        <Parameter name="maximum number of iteration" type="int" value="80" />
+      </ParameterList>
+    </ParameterList>
 
 
 
@@ -5757,8 +4349,8 @@ Linear Solver: PCG
 --------------------
  Preconditioned conjugate gradient method for a linear solver.
 
-.. _iterative-method-pcg-spec:
-.. admonition:: iterative-method-pcg-spec
+.. _linear-solver-typed-pcg-spec:
+.. admonition:: linear-solver-typed-pcg-spec
 
     * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
@@ -5766,7 +4358,7 @@ Linear Solver: PCG
 
     * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
       criteria, any of which can be applied.  Valid include:
 
       - `"relative rhs`" : measure error relative to the norm of the RHS vector
@@ -5785,8 +4377,8 @@ Based on the methods of Yu. Kuznetsov, 1968; Y.Saad, 1986.  Deflated version of
 GMRES is due to R.Morgan, GMRES with deflated restarting, 2002 SISC; S.Rollin,
 W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
 
-.. _iterative-method-gmres-spec:
-.. admonition:: iterative-method-gmres-spec
+.. _linear-solver-typed-gmres-spec:
+.. admonition:: linear-solver-typed-gmres-spec
 
     * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
@@ -5794,7 +4386,7 @@ W.Fichtner, Improving accuracy of GMRES with deflated restarting, 2007 SISC.
 
     * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
       criteria, any of which can be applied.  Valid include:
 
       - `"relative rhs`" : measure error relative to the norm of the RHS vector
@@ -5825,8 +4417,8 @@ Linear Solver: NKA
 This is effectively equivalent to GMRES with a rolling restart, where vectors
 fall off the end of the space.
 
-.. _iterative-method-nka-spec:
-.. admonition:: iterative-method-nka-spec
+.. _linear-solver-typed-nka-spec:
+.. admonition:: linear-solver-typed-nka-spec
 
     * `"error tolerance`" ``[double]`` **1.e-6** Tolerance on which to declare success.
 
@@ -5834,7 +4426,7 @@ fall off the end of the space.
 
     * `"overflow tolerance`" ``[double]`` **3.e50** Error above this value results in failure.
 
-    * `"convergence criterial`" ``[Array(string)]`` **{relative rhs}** A list of
+    * `"convergence criterial`" ``[Array(string)]`` **"{relative rhs}"** A list of
       criteria, any of which can be applied.  Valid include:
 
       - `"relative rhs`" : measure error relative to the norm of the RHS vector
@@ -5859,22 +4451,14 @@ Linear Solver: Amesos
 
 
 
-Linear Solver: Amesos
----------------------
-  Direct solvers via Trilinos.
+Linear Solver: Belos GMRES
+--------------------------
+ Trilinos/Belos implementation of GMRES
+
+Generalized minimum residual method (Yu.Kuznetsov, 1968; Y.Saad, 1986)
 
 .. warning:: undocumented
-
-
-
-
-Linear Solver: Belos (GMRES)
-----------------------------
- Trilinos/Belos implementations of iterative methods.
-Includes GMRES
-
-.. warning:: undocumented
-
+    
 
 
 
@@ -5883,7 +4467,39 @@ Preconditioners
 ===============
 .. _Preconditioner:
 
- A base class for assembled preconditioners.
+  Base class for preconditioners.
+
+Provides approximate inverses of matrices.
+
+Note that preconditioners here differ from linear operators not in the
+approximate nature of their inverse, but in their interface.  Preconditioners
+work with raw vectors and matrices, and may need assembled matrices.  A `Linear
+Solver`_ works with the action of matrices only, and never need assembled
+matrices.  As such they are templated with an arbitrary Matrix and Vector type,
+whereas Preconditioners are not.
+
+
+.. _preconditioner-typed-spec:
+.. admonition:: preconditioner-typed-spec
+
+    * `"preconditioner type`" ``[string]`` **identity** Iterative method to be used.
+    * `"_preconditioner_type_ parameters`" ``[_preconditioner_type_-spec]``
+      Parameters associated with the requested preconditioner.
+
+Example:
+
+.. code-block:: xml
+
+     <ParameterList name="my preconditioner">
+       <Parameter name="type" type="string" value="trilinos ml"/>
+        <ParameterList name="trilinos ml parameters"> ?????? check me!
+            ... 
+        </ParameterList>
+     </ParameterList>
+      
+ 
+
+
 
 Identity
 --------
@@ -5892,7 +4508,7 @@ Identity
 Simply copies the input vector to the output -- uses the Identity matrix as a
 preconditioner.
 
-This is provided when using the `"preconditioning method`"=`"identity`" in the
+This is provided when using the `"preconditioner type`"=`"identity`" in the
 `Preconditioner`_ spec.
 
 No parameters are required.
@@ -5907,7 +4523,7 @@ Diagonal
 Simply applys the pointwise inverse of the diagonal of the matrix as an
 extremely cheap matrix.
 
-This is provided when using the `"preconditioning method`"=`"diagonal`" in the
+This is provided when using the `"preconditioner type`"=`"diagonal`" in the
 `Preconditioner`_ spec.
 
 No parameters are required.
@@ -5917,68 +4533,28 @@ No parameters are required.
 
 Block ILU
 ---------
- Ifpack suite of preconditioners, including block ILU.
+ Incomplete LU preconditioner.
 
-The Ifpack (Incomplete Factorization Package) from Trilinos provides
-additive-Schwarz-based incomplete factorization methods, including ILU and many
-others.
+Incomplete LU is an approximate scheme based on partial factorization.  The
+implementation here is that provided in the Ifpack package of Trilinos.  This
+approach is a block solve that performs the ILU on each MPI process and uses
+Additive Schwarz to combine the blocks.
 
-The method is provided in the parent list, e.g. `"preconditioning method`" =
-`"ifpack: METHOD`" when calling the Preconditioner factory.
+This is provided when using the `"preconditioner type`"=`"block ilu`" in the
+`Preconditioner`_ spec.
 
-Valid methods include:
+.. _preconditioner-typed-block-ilu-spec:
+.. admonition:: preconditioner-typed-block-ilu-spec:
 
-- `"point relaxation`" : Additive Schwarz + relaxation
-- `"block relaxation`" : Additive Schwarz + block relaxation
-- `"Amesos`" : Additive Schwarz with Amesos on block
-- `"IC`" : Additive Schwarz + Incomplete Cholesky (symmetry required)
-- `"ICT`" : Additive Schwarz + tolerance based Incomplete Cholesky (symmetry required)
-- `"ILU`" : Additive Schwarz + Incomplete LU
-- `"ILUT`" : Additive Schwarz + tolerance based Incomplete LU
-- `"block ilu`" : is the same as `"ILU`", as this is the legacy Amanzi name.
-
-Note that all of these can be used without Additive Schwarz by appending
-"stand-alone".
-
-The full list of relevant parameters is somewhat method-dependent, and is documented extensively at
-
-.. url:: https://docs.trilinos.org/dev/packages/ifpack/doc/html/index.html
-
-Here we document a subset of the most frequently used parameters -- advanced
-users should read the Ifpack User Guide above to see all options.
-
-.. _preconditioner-ifpack-ilu-spec:
-.. admonition:: preconditioner-ifpack-ilu-spec:
-
-    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
-      perform better for nonsymmetric cases.
-    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
-    * `"fact: relax value`" ``[double]`` **0.0** If nonzero, dropped values are added to the diagonal (times this factor).
-    * `"fact: absolute threshold`" ``[double]`` **0.0** Defines the value to
-      add to each diagonal element (times the sign of the actual diagonal
-      element).
-    * `"fact: relative threshold`" ``[double]`` **1.0** Multiplies the
-      diagonal by this value before checking the threshold.
+    * `"fact: relax value`" ``[double]`` **1.0**
+    * `"fact: absolute threshold`" ``[double]`` **0.0**
+    * `"fact: relative threshold`" ``[double]`` **1.0**
     * `"fact: level-of-fill`" ``[int]`` **0**
+    * `"overlap`" ``[int]`` **0** Overlap of the combination.
+    * `"schwarz: combine mode`" ``[string]`` **Add** 
 
-.. _preconditioner-ifpack-relaxation-spec:
-.. admonition:: preconditioner-ifpack-relaxation-spec:
+The internal parameters for block ILU are as follows:
 
-    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
-      perform better for nonsymmetric cases.
-    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
-    * `"relaxation: type`" ``[string]`` **Jacobi**
-    * `"relaxation: sweeps`" ``[int]`` **1**
-    * `"relaxation: damping factor`" ``[double]`` **1.0**
-
-.. _preconditioner-ifpack-amesos-spec:
-.. admonition:: preconditioner-amesos-relaxation-spec:
-
-    * `"schwarz: combine mode`" ``[string]`` **Add** Note that `"Zero`" may
-      perform better for nonsymmetric cases.
-    * `"overlap`" ``[int]`` **0** overlap of the Additive Schwarz
-    * `"amesos: solver type`" ``[string]`` **Amesos_Klu**
-    
 Example:
 
 .. code-block:: xml
@@ -5996,21 +4572,20 @@ Example:
 
 
 
-Boomer AMG and Euclid
-----------------------
- Hypre based preconditioners include Algebraic MultiGrid and global ILU
+Boomer AMG
+----------
+ HYPRE's algebraic multigrid preconditioner.
 
 Boomer AMG is a HYPRE product consisting of a variety of Algebraic Multigrid
 methods.  It is accessed through Ifpack.
 
-This is provided when using the `"preconditioning method`"=`"boomer amg`" or
-`"preconditioning method`" = `"hypre: boomer amg`" in the `Preconditioner`_
-spec.
+This is provided when using the `"preconditioner type`"=`"boomer amg`" in the
+`Preconditioner`_ spec.
 
-.. _preconditioner-boomer-amg-spec:
-.. admonition:: preconditioner-boomer-amg-spec:
+.. _preconditioner-typed-boomer-amg-spec:
+.. admonition:: preconditioner-typed-boomer-amg-spec:
 
-    * `"tolerance`" ``[double]`` **0.** If is not zero, the preconditioner is dynamic
+    * `"tolerance`" ``[double]`` **0.** If is not zero, the preconditioner is dynamic 
       and approximate the inverse matrix with the prescribed tolerance (in
       the energy norm ???).
 
@@ -6020,10 +4595,10 @@ spec.
 
     * `"strong threshold`" ``[double]`` **0.5** defines the number of V-cycles. Default is 5.
 
-    * `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6
+    * `"relaxation type`" ``[int]`` **6** defines the smoother to be used. Default is 6 
       which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method. TODO: add others!
 
-    * `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0
+    * `"coarsen type`" ``[int]`` **0** defines the coarsening strategy to be used. Default is 0 
       which specifies a Falgout method. TODO: add others!
 
     * `"max multigrid levels`" ``[int]`` optionally defined the maximum number of multigrid levels.
@@ -6050,7 +4625,7 @@ spec.
       smoothing info, and `"3`'" prints both.
 
 Example:
-
+  
 .. code-block:: xml
 
   <ParameterList name="boomer amg parameters">
@@ -6065,14 +4640,20 @@ Example:
   </ParameterList>
 
 
+
+
+Euclid
+------
+ HYPRE's parallel ILU as a preconditioner.
+
 Euclid is a Parallel Incomplete LU, provided as part of the HYPRE project
 through the Ifpack interface.
 
-This is provided when using the `"preconditioning method`"=`"euclid`" or
-=`"hypre: euclid`" in the `Preconditioner`_ spec.
+This is provided when using the `"preconditioner type`"=`"euclid`" in the
+`Preconditioner`_ spec.
 
-.. _preconditioner-euclid-spec:
-.. admonition:: preconditioner-euclid-spec:
+.. _preconditioner-typed-euclid-spec:
+.. admonition:: preconditioner-typed-euclid-spec:
 
     * `"ilu(k) fill level`" ``[int]`` **1** The factorization level.
     * `"ilut drop tolerance`" ``[double]`` **0** Defines a drop tolerance relative to the largest absolute value of any entry in the row being factored.
@@ -6082,12 +4663,11 @@ This is provided when using the `"preconditioning method`"=`"euclid`" or
 
 
 
-
 ML (Trilinos AMG)
 -----------------
  Trilinos ML smoothed aggregation multigrid.
 
-This is provided when using the `"preconditioning method`"=`"ml`" in the
+This is provided when using the `"preconditioner type`"=`"ml`" in the
 `Preconditioner`_ spec.
 
 .. warning:: no input spec defined
@@ -6131,59 +4711,56 @@ IOEvent
 
 The IOEvent is used for multiple objects that need to indicate simulation times or cycles on which to do something.
 
-.. _io-event-spec:
-.. admonition:: io-event-spec
+* `"cycles start period stop`" ``[Array(int)]`` **optional**
 
-   * `"cycles start period stop`" ``[Array(int)]`` **optional**
+    The first entry is the start cycle, the second is the cycle
+    period, and the third is the stop cycle or -1, in which case there
+    is no stop cycle. A visualization dump is written at such
+    cycles that satisfy cycle = start + n*period, for n=0,1,2,... and
+    cycle < stop if stop != -1.0.
 
-      The first entry is the start cycle, the second is the cycle
-      period, and the third is the stop cycle or -1, in which case there
-      is no stop cycle. A visualization dump is written at such
-      cycles that satisfy cycle = start + n*period, for n=0,1,2,... and
-      cycle < stop if stop != -1.0.
+* `"cycles start period stop 0`" ``[Array(int)]`` **optional** 
 
-   * `"cycles start period stop 0`" ``[Array(int)]`` **optional** 
+    If multiple cycles start period stop parameters are needed, then use these
+    parameters.  If one with 0 is found, then one with 1 is looked for, etc,
+    until the Nth one is not found.
 
-      If multiple cycles start period stop parameters are needed, then use these
-      parameters.  If one with 0 is found, then one with 1 is looked for, etc,
-      until the Nth one is not found.
-
-   * `"cycles`" ``[Array(int)]``  **optional**
+* `"cycles`" ``[Array(int)]``  **optional**
   
-      An array of discrete cycles that at which a visualization dump is
-      written.
+    An array of discrete cycles that at which a visualization dump is
+    written.
 
-   * `"times start period stop`" ``[Array(double)]`` **optional** 
+* `"times start period stop`" ``[Array(double)]`` **optional** 
 
-      The first entry is the start time, the second is the time period,
-      and the third is the stop time or -1, in which case there is no
-      stop time. A visualization dump is written at such times that
-      satisfy time = start + n*period, for n=0,1,2,... and time < stop
-      if stop != -1.0.
+    The first entry is the start time, the second is the time period,
+    and the third is the stop time or -1, in which case there is no
+    stop time. A visualization dump is written at such times that
+    satisfy time = start + n*period, for n=0,1,2,... and time < stop
+    if stop != -1.0.
 
-   * `"times start period stop units`" ``[string]`` **s** 
+* `"times start period stop units`" ``string`` **s** 
 
-      Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
+    Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
     
-    * `"times start period stop 0`" ``[Array(double)]`` **optional**
+* `"times start period stop 0`" ``[Array(double)]`` **optional**
 
-      If multiple start period stop parameters are needed, then use this these
-      parameters with N=0,1,2.  If one with 0 is found, then one with 1 is
-      looked for, etc, until the Nth one is not found.
+    If multiple start period stop parameters are needed, then use this these
+    parameters with N=0,1,2.  If one with 0 is found, then one with 1 is
+    looked for, etc, until the Nth one is not found.
 
-    * `"times start period stop 0 units`" ``[string]`` **s** 
+* `"times start period stop 0 units`" ``string`` **s** 
 
-      Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
-      See above for continued integer listings.
+    Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
+    See above for continued integer listings.
 
-    * `"times`" ``[Array(double)]`` **optional** 
+* `"times`" ``[Array(double)]`` **optional** 
 
-      An array of discrete times that at which a visualization dump
-      shall be written.
+    An array of discrete times that at which a visualization dump
+    shall be written.
 
-    * `"times units`" ``[string]`` **s** 
+* `"times units`" ``string`` **s** 
 
-      Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
+    Units corresponding to this spec.  One of `"s`", `"d`", `"yr`", or `"yr 365`"
     
  
 
@@ -6243,26 +4820,6 @@ from the `"Verbose Object`" spec is set to `"high`" or higher.
 
 
 
-
-Residual Debugger
-=================
-
-
-Debugging object for writing vectors to file within an iterative
-process for use with vis tools.
-
-.. _residual-debugger-spec:
-.. admonition:: residual-debugger-spec
-
-    * `"file name base`" ``[string]`` **amanzi_dbg** Prefix for output filenames.
-
-    INCLUDES:
-
-    * ``[io-event-spec]`` An IOEvent_ spec
-
-
-
-
    
 
 Function
@@ -6288,59 +4845,59 @@ Note, this does not follow the `"typed`" format for legacy reasons.
 
   ONE OF:
 
-  * `"function: constant`" ``[function-constant-spec]``
+  * `"function: constant`" ``[constant-function-spec]``
 
   OR:
 
-  * `"function: tabular`" ``[function-tabular-spec]``
+  * `"function: tabular`" ``[tabular-function-spec]``
 
   OR:
 
-  * `"function: smooth step`" ``[function-smooth-step-spec]``
+  * `"function: smooth step`" ``[smooth-step-function-spec]``
 
   OR:
 
-  * `"function: polynomial`" ``[function-polynomial-spec]``
+  * `"function: polynomial`" ``[polynomial-function-spec]``
 
   OR:
 
-  * `"function: monomial`" ``[function-monomial-spec]``
+  * `"function: monomial`" ``[monomial-function-spec]``
 
   OR:
 
-  * `"function: linear`" ``[function-linear-spec]``
+  * `"function: linear`" ``[linear-function-spec]``
 
   OR:
 
-  * `"function: separable`" ``[function-separable-spec]``
+  * `"function: separable`" ``[separable-function-spec]``
 
   OR:
 
-  * `"function: additive`" ``[function-additive-spec]``
+  * `"function: additive`" ``[additive-function-spec]``
 
   OR:
 
-  * `"function: multiplicative`" ``[function-multiplicative-spec]``
+  * `"function: multiplicative`" ``[multiplicative-function-spec]``
 
   OR:
 
-  * `"function: composition`" ``[function-composition-spec]``
+  * `"function: composition`" ``[composition-function-spec]``
 
   OR:
 
-  * `"function: static head`" ``[function-static-head-spec]``
+  * `"function: static head`" ``[static-head-function-spec]``
 
   OR:
 
-  * `"function: standard math`" ``[function-standard-math-spec]``
+  * `"function: standard math`" ``[standard-math-function-spec]``
 
   OR:
 
-  * `"function: bilinear`" ``[function-bilinear-spec]``
+  * `"function: bilinear`" ``[bilinear-function-spec]``
 
   OR:
 
-  * `"function: distance`" ``[function-distance-spec]``
+  * `"function: distance`" ``[distance-function-spec]``
 
   END
 
@@ -6824,8 +5381,8 @@ Operator
  Operator represents a linear map, and typically encapsulates a discretization.
 ``Operator`` represents a map from linear space X to linear space Y.  Typically,
 this map is a linear map, and encapsulates much of the discretization involved
-in moving from continuous to discrete equations. The spaces X and Y are described
-by CompositeVectors (CV). A few maps X->Y are supported.
+in moving from continuous to discrete equations. The spaces X and Y are described 
+by CompositeVectors (CV). A few maps X->Y are supported. 
 
 An ``Operator`` provides an interface for applying both the forward and inverse
 linear map (assuming the map is invertible).
@@ -6858,13 +5415,7 @@ This class is usually used as part of a preconditioner, providing the linearizat
 
 for a grid element :math:`\Omega_E`.
 
-
-.. _pde-accumulation-spec:
-.. admonition:: pde-accumulation-spec
-
-  * `"entity kind`" ``[string]`` **optional** Typically set by the PK
-  * `"number of vectors`" ``[int]`` **optional** Typically set by the PK
-
+No options are available here.
 
 
 
@@ -6882,7 +5433,7 @@ and potentially not that valid, this also supports and implementation with an ad
 source, i.e.:
 
 .. math::
-  \nabla \cdot K k (\nabla u + b g z)
+  \nabla \cdot k (\nabla u + \hat{z})
 
 for gravitational terms in Richards equations.
 
@@ -6890,16 +5441,15 @@ The input spec for a diffusion operator consists of:
 
 * `"discretization primary`" ``[string]`` See below for supported options.
 
-  - `"fv: default`" the standard two-point flux finite volume discretization
-  - `"nlfv: default`" the nonlinear finite volume method of ???
-  - MFD methods, including:
-
-    - `"mfd: default`"
-    - `"mfd: monotone for hex`"
-    - `"mfd: optimized for monotonicity`"
-    - `"mfd: two-point flux approximation`"
-    - `"mfd: optimized for sparsity`"
-    - `"mfd: support operator`"
+ - `"fv: default`" the standard two-point flux finite volume discretization
+ - `"nlfv: default`" the nonlinear finite volume method of ???
+ - MFD methods, including:
+  - `"mfd: default`"
+  - `"mfd: monotone for hex`"
+  - `"mfd: optimized for monotonicity`"
+  - `"mfd: two-point flux approximation`"
+  - `"mfd: optimized for sparsity`"
+  - `"mfd: support operator`"
 
  Note that the most commonly used are `"fv: default`" for simple test
  problems (this method is not particularly accurate for distorted
@@ -6927,13 +5477,6 @@ The input spec for a diffusion operator consists of:
 
 
  Diffusion generates local Ops and global Operators for an elliptic operator.
-
-A diffusion PDE for generating both local and global operators.
-
-* `"discretization primary`" ``[string]``
-
-
-
 Example:
 
 .. code-block:: xml
@@ -6947,6 +5490,15 @@ Example:
       <Parameter name="gravity term discretization" type="string" value="hydraulic head"/>
       <Parameter name="nonlinear coefficient" type="string" value="upwind: face"/>
       <Parameter name="Newton correction" type="string" value="true Jacobian"/>
+
+      <ParameterList name="consistent faces">
+        <ParameterList name="linear solver">
+          ...
+        </ParameterList>
+        <ParameterList name="preconditioner">
+          ...
+        </ParameterList>
+      </ParameterList>
     </ParameterList>
 
 
