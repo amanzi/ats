@@ -3,6 +3,7 @@ ATS Native XML Input Specification V-dev
 
 
 .. contents:: **Table of Contents**
+   :depth: 2
 
   
 Syntax of the Specification
@@ -451,6 +452,10 @@ file and *OUTFLOW PLANE* is a planar region. *BLOODY SAND* is a volumetric
 region defined by the value 25 in color function file.
 
 
+
+
+.. contents:: **Region Types**
+   :local:
 
 
 All
@@ -1172,6 +1177,9 @@ Example:
 
 
 
+
+.. contents:: **List of PKs**
+   :local:
 
 Base PKs
 ========
@@ -2705,7 +2713,7 @@ provides the initial guess to the nonlinear solve.
 
 
 State
-##############
+#####
  State, a container for data.
 
 State  is a  simple data-manager,  allowing PKs  to require,  read, and  write
@@ -2719,31 +2727,33 @@ various fields.
   are owned by state, not by any PK).
 
 
-``[state-spec]``
+.. _state-spec:
+.. admonition:: state-spec
 
-* `"field evaluators`" ``[evaluator-typedinline-spec-list]`` A list of evaluators.
-* `"initial conditions`" ``[list]`` A list of constants --
-    `"initial conditions`" is a terrible name and will go away in the next
-    iteration of state.
+   * `"field evaluators`" ``[evaluator-typedinline-spec-list]`` A list of evaluators.
 
-``[evaluator-typedinline-spec]``
+   * `"initial conditions`" ``[list]`` A list of constant-in-time variables :
+       `"initial conditions`" is a terrible name and will go away in the next
+       iteration of state.
 
-* `"field evaluator type`" ``[string]`` Type of the evaluator
-    
-Included for convenience in defining data that is not in the dependency graph,
-constants are things (like gravity, or atmospheric pressure) which are stored
-in state but never change.  Typically they're limited to scalars and dense,
-local vectors.
+.. _evaluator-typedinline-spec:
+.. admonition:: evaluator-typedinline-spec
 
-``[constants-scalar-spec]``
+   * `"field evaluator type`" ``[string]`` Type of the evaluator Included for
+      convenience in defining data that is not in the dependency graph,
+      constants are things (like gravity, or atmospheric pressure) which are
+      stored in state but never change.  Typically they're limited to scalars
+      and dense, local vectors.
 
-* `"value`" ``[double]`` Value of a scalar constant
+.. _constants-scalar-spec:
+.. admonition:: constants-scalar-spec
 
-``[constants-vector-spec]``
+   * `"value`" ``[double]`` Value of a scalar constant
 
-* `"value`" ``[Array(double)]`` Value of a dense, local vector.
+.. _constants-vector-spec:
+.. admonition:: constants-vector-spec
 
-
+   * `"value`" ``[Array(double)]`` Value of a dense, local vector.
 
 Example:
 
@@ -2766,7 +2776,6 @@ Example:
       </ParameterList>
     </ParameterList>
 
-    
 
 
 
@@ -2828,6 +2837,9 @@ registered with the evaluator factory.
 
 
 
+
+.. contents:: **List of Evalutors**
+   :local:
 
 PrimaryVariableEvaluator
 ------------------------
@@ -2892,35 +2904,75 @@ equations between a coupled flow and energy problem.
 
 Richards Equation water content (liquid only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- The Richards water content evaluator is an algebraic evaluator for liquid only water content
-  Generated via evaluator_generator with:
-Richards water content evaluator: the standard form as a function of liquid saturation.
+ Richards water content evaluator: the standard form as a function of liquid saturation.
 
 .. math::
-  Theta = n * s * phi * cell volume
+  \Theta = n s \phi V
 
-``[field-evaluator-type-richards-water-content-spec]``
+Specified with evaluator type: `"richards water content`"
 
-* `"porosity key`" ``[string]`` **DOMAIN-porosity** 
-* `"molar density liquid key`" ``[string]`` **DOMAIN-molar_density_liquid** 
-* `"saturation liquid key`" ``[string]`` **DOMAIN-saturation_liquid** 
-* `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
+.. _field-evaluator-type-richards-water-content-spec:
+.. admonition:: field-evaluator-type-richards-water-content-spec
 
-EVALUATORS:
-- `"porosity`"
-- `"molar density liquid`"
-- `"saturation liquid`"
-- `"cell volume`"
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"saturation liquid`"
+   - `"cell volume`"
 
 
 
 
 Liquid+Gas water content
 ^^^^^^^^^^^^^^^^^^^^^^^^
+ Water content for liquid + water vapor.
+
+.. math::
+  \Theta = (n_l s_l + n_g s_g \omega) \phi V
+
+
+Specified with evaluator type: `"liquid+gas water content`"
+
+.. _field-evaluator-type-liquid-gas-water-content-spec:
+.. admonition:: field-evaluator-type-liquid-gas-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"molar density gas`"
+   - `"saturation liquid`"
+   - `"saturation gas`"
+   - `"mol frac gas`"
+   - `"cell volume`"
+
+
 
 
 Liquid+Ice water content
 ^^^^^^^^^^^^^^^^^^^^^^^^
+ Water content for liquid + water vapor.
+
+.. math::
+  \Theta = (n_l s_l + n_i s_i) \phi V
+
+
+Specified with evaluator type: `"liquid+ice water content`"
+
+.. _field-evaluator-type-liquid-ice-water-content-spec:
+.. admonition:: field-evaluator-type-liquid-ice-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"molar density ice`"
+   - `"saturation liquid`"
+   - `"saturation ice`"
+   - `"cell volume`"
+
+
 
 
 Liquid+Ice+Gas water content
@@ -2928,32 +2980,24 @@ Liquid+Ice+Gas water content
  Three phase water content: vapor, liquid, and ice.
 
 .. math::
-  Theta = (n_l * s_l + n_i * s_i + n_g * s_g * \omega_g ) * \phi * |E|
+  \Theta = (n_l s_l + n_i s_i + n_g s_g \omega_g ) \phi V
 
-* `"porosity key`" ``[string]`` **DOMAIN-porosity** 
+Specified with evaluator type: `"three phase water content`"
 
-* `"molar density liquid key`" ``[string]`` **DOMAIN-molar_density_liquid** 
-* `"saturation liquid key`" ``[string]`` **DOMAIN-saturation_liquid** 
+.. _field-evaluator-type-three-phase-water-content-spec:
+.. admonition:: field-evaluator-type-three-phase-water-content-spec
 
-* `"molar density ice key`" ``[string]`` **DOMAIN-molar_density_ice** 
-* `"saturation ice key`" ``[string]`` **DOMAIN-saturation_ice** 
+   DEPENDENCIES:
 
-* `"molar density gas key`" ``[string]`` **DOMAIN-molar_density_gas** 
-* `"saturation gas key`" ``[string]`` **DOMAIN-saturation_gas** 
-* `"mol frac gas key`" ``[string]`` **DOMAIN-mol_frac_gas** The molar fraction of water vapor in the gaseous phase.
-
-* `"cell volume key`" ``[string]`` **DOMAIN-cell_volume**
-
-EVALUATORS:
-- `"porosity`"
-- `"molar density liquid`"
-- `"saturation liquid`"
-- `"molar density ice`"
-- `"saturation ice`"
-- `"molar density gas`"
-- `"saturation gas`"
-- `"molar fraction gas`"
-- `"cell volume`"
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"saturation liquid`"
+   - `"molar density ice`"
+   - `"saturation ice`"
+   - `"molar density gas`"
+   - `"saturation gas`"
+   - `"molar fraction gas`"
+   - `"cell volume`"
 
 
 
