@@ -160,7 +160,7 @@ void Coordinator::initialize() {
     Amanzi::ReadCheckpoint(*S_, restart_filename_);
     t0_ = S_->time();
     cycle0_ = S_->cycle();
-    
+
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first)) {
@@ -172,16 +172,11 @@ void Coordinator::initialize() {
   // Final checks.
   S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();
-  S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-
-  //WriteStateStatistics(*S_, *vo_);
   // commit the initial conditions.
   pk_->CommitStep(0., 0., S_);
 
-
-  //WriteStateStatistics(*S_, *vo_);  
   // Write dependency graph.
   S_->WriteDependencyGraph();
   S_->InitializeIOFlags(); 
@@ -189,8 +184,6 @@ void Coordinator::initialize() {
   // Check final initialization
   WriteStateStatistics(*S_, *vo_);
 
-
-  
   // visualization
   auto vis_list = Teuchos::sublist(parameter_list_,"visualization");
   for (auto& entry : *vis_list) {
