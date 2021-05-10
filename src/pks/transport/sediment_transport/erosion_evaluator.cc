@@ -25,6 +25,7 @@ ErosionRateEvaluator :: ErosionRateEvaluator(Teuchos::ParameterList& plist) :
   gamma_ = plist_.get<double>("specific weight of water");
   umax_ = plist_.get<double>("max current");
   xi_ = plist_.get<double>("Chezy parameter");
+  Cf_ = plist_.get<double>("drag coefficient");
 
   double pi = boost::math::constants::pi<double>();
 
@@ -45,6 +46,7 @@ ErosionRateEvaluator ::ErosionRateEvaluator (const ErosionRateEvaluator & other)
   lambda_ = other.lambda_;
   umax_ = other.umax_;
   xi_ = other.xi_;
+  Cf_ = other.Cf_;
 } 
 
 
@@ -60,7 +62,8 @@ void ErosionRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector& result_c = *result->ViewComponent("cell");
   
   for (int c=0; c<vel.MyLength(); c++){
-    double tau_0 = gamma_ * lambda_ * (sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]));
+    //double tau_0 = gamma_ * lambda_ * (sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]));
+    double tau_0 = gamma_ * Cf_ * (sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c])*sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]));
     if (tau_0 > tau_e_){
       result_c[0][c] = Qe_0_*(tau_0 / tau_e_ - 1);
     }else{
