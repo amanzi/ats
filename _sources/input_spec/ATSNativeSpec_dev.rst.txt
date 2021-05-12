@@ -81,7 +81,7 @@ ATS's top-level main accepts an XML list including a few required elements.
     * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
-    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.      
+    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.
     * `"PKs`" ``[pk-typed-spec-list]`` A list of PK_ objects.
     * `"state`" ``[state-spec]`` See State_.
 
@@ -1022,7 +1022,7 @@ Observation
     * `"observation output filename`" ``[string]`` user-defined name for the file
       that the observations are written to.
 
-    * `"delimiter`" ``[string]`` **, ** Delimiter to split columns of the file
+    * `"delimiter`" ``[string]`` **\, ** Delimiter to split columns of the file
 
     *  `"write interval`" ``[int]`` **1** Interval of observations on which to flush IO files.
 
@@ -1357,7 +1357,7 @@ Solves Richards equation:
 
     THEN
 
-    * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
+    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
       not set, as the default is good. ``[mol s^-1]``
     * `"source term is differentiable`" ``[bool]`` **true** Can the source term
       be differentiated with respect to the primary variable?
@@ -1573,9 +1573,9 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     THEN
 
-    * `"source key`" ``[string]`` **DOMAIN-mass_source** Typically
+    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
       not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
-    * `"mass source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+    * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
     * `"source term is differentiable`" ``[bool]`` **true** Can the source term
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from
@@ -1716,6 +1716,233 @@ daily (which all defaults are set for).
 .. todo::
     For this PK, all variable root names are hard-coded.  This should get changed.
     
+
+
+
+
+Transport PK
+------------
+
+The Transport PK describes the conservation of mass of components transported
+with water as it flows. The transport PK is based on the advection-diffusion 
+equation, applies to one or more components that are dissolved in the aqueous 
+phase, and is currently used in both surface and subsurface compartments. 
+The key difference between surface and subsurface transport is in capturing 
+the volume of water. In the subsurface, the volume of water is set by the 
+porosity and saturation of the porous medium, while in the surface it is set 
+by the ponded depth.
+
+
+
+The advection-diffusion equation for component *i* in partially saturated porous media may be written as
+
+.. math::
+  \frac{\partial (\phi s_l C_i)}{\partial t}
+  =
+  - \boldsymbol{\nabla} \cdot (\boldsymbol{q} C_i)
+  + \boldsymbol{\nabla} \cdot (\phi s_l\, (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
+
+The advection-diffusion equation for component *i* in the surface may be written as
+
+.. math::
+  \frac{\partial (C_i)}{\partial t}
+  =
+  - \boldsymbol{\nabla} \cdot (\boldsymbol{q_s} C_i)
+  + \boldsymbol{\nabla} \cdot ( (\boldsymbol{D^*}_l + \tau \boldsymbol{D}_i) \boldsymbol{\nabla} C_i) + Q_s,
+
+.. _transport-spec:
+.. admonition:: transport-spec
+
+    * `"PK type`" ``[string]`` **"transport ats"**
+
+    * `"PK origin`" ``[string]`` **"Amanzi"** This PK uses Amanzi
+
+    * `"domain name`" [string] specifies mesh name that defined domain of this PK.
+      Default is `"domain`".
+
+    * `"number of liquid components`" [int] is the number of liquid components.
+
+    * `"number of aqueous components`" [int] The total number of aqueous components.
+      Default value is the total number of liquid components.
+
+    * `"number of gaseous components`" [int] The total number of gaseous components.
+      Default value is 0.
+
+    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
+      transport are dependent on the boundary conditions for flow. See
+      `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
+
+    * `"number of liquid components`" ``[int]`` No default. Indicates how many
+      components will be transported.
+
+    * `"number of aqueous components`" ``[int]`` No default. Indicates the number of
+      aqueous components.
+
+    * `"number of gaseous components`" ``[int]`` No default. Indicates the number of
+      gaseous components.
+
+    * `"component names`" ``[Array(string)]`` No default. Provides the names of the
+      components that will be transported.
+
+    * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of each component.
+
+    Molecular diffusion and material properties:
+
+    * `"molecular diffusion`" [list] defines names of solutes in aqueous and gaseous phases and related
+      diffusivity values.
+
+.. code-block:: xml
+
+      <ParameterList name="molecular diffusion">
+         <Parameter name="aqueous names" type=Array(string)" value="{CO2(l),Tc-99}"/>
+         <Parameter name="aqueous values" type=Array(double)" value="{1e-8,1e-9}"/>
+      </ParameterList>
+
+    * "material properties" [material-properties-spec-list] Defines material properties.
+
+      * `"region`" [Array(string)] Defines geometric regions for material SOIL.
+      * `"model`" [string] Defines dispersivity model, choose exactly one of the following: `"scalar`", `"Bear`",
+        `"Burnett-Frind`", or `"Lichtner-Kelkar-Robinson`".
+      * `"parameters for MODEL`" [list] where `"MODEL`" is the model name.
+
+      IF model == scalar
+
+      ONE OF
+
+      * `"alpha`" [double] defines dispersivity in all directions, [m].
+
+      OR
+
+      * `"dispersion coefficient`" [double] defines dispersion coefficient [m^2 s^-1].
+
+      END
+
+      ELSE IF model == Bear
+
+      * `"alpha_l`" [double] defines dispersion in the direction of Darcy velocity, [m].
+      * `"alpha_t`" [double] defines dispersion in the orthogonal direction, [m].
+
+      ELSE IF model == Burnett-Frind
+
+      * `"alphaL`" [double] defines the longitudinal dispersion in the direction of Darcy velocity, [m].
+      * `"alpha_th`" [double] Defines the transverse dispersion in the horizonla direction orthogonal directions, [m].
+      * `"alpha_tv`" [double] Defines dispersion in the orthogonal directions, [m].
+         When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the direction of the Darcy velocity.
+         This and the above parameters must be defined for `"Burnett-Frind`" and `"Lichtner-Kelkar-Robinson`" models.
+
+      ELSE IF model == `"Lichtner-Kelker-Robinson`"
+
+      * `"alpha_lh`" [double] defines the longitudinal dispersion in the horizontal direction, [m].
+      * `"alpha_lv`" [double] Defines the longitudinal dispersion in the vertical direction, [m].
+         When `"alpha_lh`" equals to `"alpha_lv`", we obtain dispersion in the direction of the Darcy velocity.
+      * `"alpha_th`" [double] Defines the transverse dispersion in the horizontal direction orthogonal directions, [m].
+      * `"alpha_tv" [double] Defines dispersion in the orthogonal directions.
+         When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the direction of the Darcy velocity.
+
+      END
+
+      * `"aqueous tortuosity`" [double] Defines tortuosity for calculating diffusivity of liquid solutes, [-].
+      * `"gaseous tortuosity`" [double] Defines tortuosity for calculating diffusivity of gas solutes, [-].
+
+
+    Source terms:
+
+    * `"source terms`" [list] Provides solute source.
+       * `"component mass source`" [list]  Defines solute source injection rate.
+          * `"spatial distribution method`" [string] One of:
+             - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
+             - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
+
+       * `"geochemical`" [list]  Defines a source by setting solute concentration for all components (in moles/L) and an injection
+           rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
+
+           - `"geochemical conditions`" [Array(string)] List of geochemical constraints providing concentration for solute injection.
+
+    Keys:
+
+    * `"saturation liquid`" This variable is a multiplier in in the
+      accumulation term. For subsurface transport, this will typically be the
+      saturation (`"saturation_liquid`"). For surface transport, this will
+      typically be the ponded depth (`"ponded_depth`").
+
+    * `"previous saturation liquid`"
+
+    * `"molar density liquid`"  Transport is solved
+      for concentrations in units of mol fractions. Molar density is needed for conversion.
+
+    * `"water flux`"
+
+    * `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
+      surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
+      concentrations specified by the `"geochemical conditions`".  Note that if
+      this PK is coupled to a surface flow PK, the unit of the water source
+      there *must* be in [mol m^-2 s^-1], *not* in [m s^-1] as is an option for
+      that PK (e.g. `"water source in meters`" must be set to `"false`" in the
+      overland flow PK).
+
+      The injection rate of a solute [molC s^-1], when given as the product of
+      a concentration and a water source, is evaluated as:
+
+          Concentration [mol C L^-1] *
+            1000 [L m^-3] of water *
+            water source [mol H2O m^-3 s^-1] *
+            volume of injection domain [m^3] /
+            molar density of water [mol H2O m^-3]
+
+    Physical model and assumptions:
+
+    * `"physical models and assumptions`" [list] Defines material properties.
+
+      * `"effective transport porosity`" [bool] If *true*, effective transport porosity
+      will be used by dispersive-diffusive fluxes instead of total porosity.
+      Default is *false*.
+
+    Math and solver algorithm options:
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+      Typically we use finite volume here.  See PDE_Diffusion_
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+      above.  Likely only Jacobian term options are needed here, as the others
+      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+
+    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+
+    * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
+
+    * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
+      It permits values 1 or 2. Default value is 1.
+
+    * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
+      It permits values 1 or 2 and values 3 or 4 when expert parameter
+      `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
+      Default value is 1.
+
+    * `"reconstruction`" [list] collects reconstruction parameters. The available options are
+      describe in the separate section below.
+
+    * `"transport subcycling`" ``[boolean]`` **true** The code will default to subcycling for transport within
+      the master PK if there is one.
+
+
+    Developer parameters:
+
+    * `"enable internal tests`" [bool] turns on various internal tests during
+      run time. Default value is `"false`".
+
+    * `"generic RK implementation`" [bool] leads to generic implementation of
+      all Runge-Kutta methods. Default value is `"false`".
+
+    * `"internal tests tolerance`" [double] tolerance for internal tests such as the
+      divergence-free condition. The default value is 1e-6.
+
+    * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
+      tracked closely each time step if verbosity `"high`". Default value is the first
+      solute in the global list of `"aqueous names`" and the first gas in the global list
+      of `"gaseous names`".
+
+    * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
+      tracking solutes. Default value is a seepage face boundary, see Flow PK.
 
 
 
@@ -1972,8 +2199,6 @@ sinks.
 .. _balance-pk-spec:
 .. admonition:: balance-pk-spec
 
-    * `"domain`" ``[string]`` Mesh on which the balance is to be done.
-
     * `"primary variable key`" ``[string]`` The primary variable associated with
       this PK.  Note there is no default -- this must be provided by the user.
 
@@ -1996,7 +2221,7 @@ sinks.
     INCLUDES:
 
     - ``[pk-physical-bdf-default-spec]``
-      
+
 
 
 
@@ -3034,23 +3259,186 @@ Multiplicative evaluator for `canopy-water_content`:
 
 Richards energy
 ^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' richards_energy ' **
+ Energy content evaluator for a standard Richards equation's water content.
+
+Energy associated with a soil and pore-water system, in [KJ]
+
+.. math::
+  E = V * ( \phi u_l s_l n_l + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"richards energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+Note that this ignores energy in the gas phase.
+
+.. _field-evaluator-type-richards-energy-spec:
+.. admonition:: field-evaluator-type-richards-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
 
 Liquid+Gas energy
 ^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' liquid_gas_energy ' **
+ Energy content evaluator for a standard Richards equation, including energy in the gas phase.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"liquid+gas energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+.. _field-evaluator-type-liquid-gas-energy-spec:
+.. admonition:: field-evaluator-type-liquid-gas-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density gas`" [mol m^-3]
+   - `"saturation gas`" [-]
+   - `"internal energy gas`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
 
 Liquid+Ice energy
 ^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' liquid_ice_energy ' **
+ Energy content evaluator for a two-phase system, including energy in an ice phase.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_i s_i n_i)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"liquid+ice energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+Note that this ignores energy in the gas phase.
+
+.. _field-evaluator-type-liquid-ice-energy-spec:
+.. admonition:: field-evaluator-type-liquid-ice-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"saturation ice`" [-]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
 
 Liquid+Ice+Gas energy
 ^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' three_phase_energy ' **
+ Energy content evaluator for a three-phase, gas, liquid, ice system including the surrounding soil.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_i s_i n_i + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"three phase energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+.. _field-evaluator-type-three-phase-energy-spec:
+.. admonition:: field-evaluator-type-three-phase-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"saturation ice`" [-]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"molar density gas`" [mol m^-3]
+   - `"saturation gas`" [-]
+   - `"internal energy gas`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
 
 Surface water+ice energy
 ^^^^^^^^^^^^^^^^^^^^^^^^
-** DOC GENERATION ERROR: file not found ' surface_ice_energy ' **
+ Energy content for a surface water, partially frozen system.
+
+The energy associated with ponded water, in [KJ], given by:
+
+.. math::
+  E = V * ( \eta h u_l n_l + (1 - \eta) h u_i n_i )
+
+Specified with evaluator type: `"surface ice energy`"
+
+.. _field-evaluator-type-surface-ice-energy-spec:
+.. admonition:: field-evaluator-type-surface-ice-energy-spec
+
+   DEPENDENCIES:
+
+   - `"ponded depth`"  Height of water above the land surface [m]
+   - `"unfrozen fraction`"  The fraction of unfrozen water ranges from 0 to 1. [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"cell volume`" [m^2]
+
+
+
 
 
 Subsurface flow evaluators
@@ -3074,59 +3462,88 @@ Capillary pressure of liquid on ice
 
 Water Retention Model and Relative Permeability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- WRMEvaluator is an algebraic evaluator for liquid and gas saturations.
+ Evaluates saturation through water retention models.
 
-Evaluates a set of WRMs on a partition of the mesh.
+Water Retention Models (WRMs) determine the saturation as a function of
+pressure and the relative permeability as a function of saturation.  Most
+commonly used in practice is the van Genuchten model, but others are available.
 
-* `"saturation key`" ``[string]`` **determined from evaluator name** The name
-         of the liquid saturation -- typically this is determined from
-         the evaluator name and need not be set.
-* `"other saturation key`" ``[string]`` **determined from evaluator name**
-         The name of the liquid saturation -- typically this is determined
-         from the evaluator name and need not be set.
-* `"capillary pressure key`" ``[string]`` **DOMAIN-capillary_pressure_gas_liq**
-         The name of the capillary pressure.
-* `"WRM parameters`" ``[wrm-partition-typed-spec-list]`` 
+.. _wrm-evaluator-spec
+.. admonition:: wrm-evaluator-spec
+
+   * `"WRM parameters`" ``[wrm-partition-typed-spec-list]``
+
+   KEYS:
+
+   * `"saturation`" **determined from evaluator name** The name
+       of the liquid saturation -- typically this is determined from
+       the evaluator name and need not be set.
+   * `"other saturation`"  **determined from evaluator name**
+       The name of the other saturation, usually gas -- typically this is determined
+       from the evaluator name and need not be set.
+   * `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
+       The name of the capillary pressure.
 
 
 
- RelPermEvaluator: evaluates relative permeability using water retention models.
+ A collection of WRMs along with a Mesh Partition.
+
+A WRM partition is a list of (region, WRM) pairs, where the regions partition
+the mesh.
+
+.. _wrm-partition-spec
+.. admonition:: wrm-partition-spec
+
+   * `"region`" ``[string]`` Region on which the WRM is valid.
+   * `"WRM type`" ``[string]`` Name of the WRM type.
+   * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
+      parameter spec for each type.
+
+
+
+ Evaluates relative permeability using water retention models.
 
 Uses a list of regions and water retention models on those regions to evaluate
 relative permeability, typically as a function of liquid saturation.
 
 Most of the parameters are provided to the WRM model, and not the evaluator.
+Typically these share lists to ensure the same water retention curves, and this
+one is updated with the parameters of the WRM evaluator.  This is handled by
+flow PKs.
 
-* `"use density on viscosity in rel perm`" ``[bool]`` **true** Include 
+Some additional parameters are available.
 
-* `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
-  how the rel perm is calculated on boundary faces.  Note, this may be
-  overwritten by upwinding later!  One of:
+.. _rel-perm-evaluator-spec
+.. admonition:: rel-perm-evaluator-spec
 
-  * `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
-  * `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
-  * `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
-  * `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
-  * `"one`" Sets the boundary kr to 1.
-  * `"surface rel perm`" Looks for a field on the surface mesh and uses that.
+   * `"use density on viscosity in rel perm`" ``[bool]`` **true** Include
 
-* `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
+   * `"boundary rel perm strategy`" ``[string]`` **boundary pressure** Controls
+     how the rel perm is calculated on boundary faces.  Note, this may be
+     overwritten by upwinding later!  One of:
 
-* `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
-  and K_sat is very small.  To avoid roundoff propagation issues, rescaling
-  this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
+      * `"boundary pressure`" Evaluates kr of pressure on the boundary face, upwinds normally.
+      * `"interior pressure`" Evaluates kr of the pressure on the interior cell (bad idea).
+      * `"harmonic mean`" Takes the harmonic mean of kr on the boundary face and kr on the interior cell.
+      * `"arithmetic mean`" Takes the arithmetic mean of kr on the boundary face and kr on the interior cell.
+      * `"one`" Sets the boundary kr to 1.
+      * `"surface rel perm`" Looks for a field on the surface mesh and uses that.
 
-* `"WRM parameters`" ``[wrm-spec-list]``  List (by region) of WRM specs.
+   * `"minimum rel perm cutoff`" ``[double]`` **0.** Provides a lower bound on rel perm.
 
+   * `"permeability rescaling`" ``[double]`` Typically rho * kr / mu is very big
+     and K_sat is very small.  To avoid roundoff propagation issues, rescaling
+     this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
-Keys:
+   * `"WRM parameters`" ``[wrm-spec-list]``  List (by region) of WRM specs.
 
-* `"rel perm`"
-* `"saturation`"
-* `"density`" (if `"use density on viscosity in rel perm`" == true)
-* `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
-* `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
+   KEYS:
 
+   * `"rel perm`"
+   * `"saturation`"
+   * `"density`" (if `"use density on viscosity in rel perm`" == true)
+   * `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
+   * `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
 
 
@@ -3480,7 +3897,7 @@ Peters-Lidard Model
 
 
 Thermal Conductivity, three phases
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  Thermal conductivity based on a three-phase (air,liquid,ice) composition of the porous media.
 
 Wet-Dry Model
@@ -3503,20 +3920,8 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
     * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
     * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
     * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
+    * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
     * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
-
-Usage:
-
-  <ParameterList name="thermal_conductivity">
-    <Parameter name="thermal conductivity type" type="string" value="three-phase wet/dry"/>
-    <Parameter name="thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="thermal conductivity, dry [W m^-1 K^-1]" type="double" value=""/>
-    <Parameter name="unsaturated alpha frozen [-]" type="double" value=""/>
-    <Parameter name="unsaturated alpha unfrozen [-]" type="double" value=""/>
-    <Parameter name="saturated beta frozen [-]" type="double" value="1.0"/>
-    <Parameter name="epsilon" type="double" value="1.e-10"/>
-  </ParameterList>
 
 
 
@@ -3562,7 +3967,27 @@ Usage:
 
 
 Volume-averaged Model
-~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+ A volume-averaged thermal conductivity based on TCs of raw components.
+
+A simple model of three-phase thermal conductivity, based upon volume-averaging
+of four consitutive components.
+
+See Atchley et al GMD 2015 Supplementary Material for equations.
+
+.. _thermal-conductivity-volume-averaged-spec:
+.. admonition:: thermal-conductivity-volume-averaged-spec
+
+    * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of soil **grains**
+    * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of liquid water.
+    * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of air.
+    * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` Thermal
+      conductivity of frozen water.
+
+
 
 
 Sutra-ICE model
@@ -3983,9 +4408,9 @@ the ground from the atmosphere.
    * `"snow domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
  
     KEYS:
-    * `"surface mass source`" **DOMAIN-mass_source**  [m s^-1]
+    * `"surface water source`" **DOMAIN-water_source**  [m s^-1]
     * `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
-    * `"subsurface mass source`" **DOMAIN-mass_source**  [mol s^-1]
+    * `"subsurface water source`" **DOMAIN-water_source**  [mol s^-1]
     * `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
     * `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
     * `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
@@ -4369,7 +4794,7 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 Top cell
 ^^^^^^^^
-** DOC GENERATION ERROR: file not found ' top_cell_evaluator ' **
+
 
 Arbitrary function
 ^^^^^^^^^^^^^^^^^^
@@ -4580,7 +5005,7 @@ BoundaryConditions
 
 
 
-In general, boundary conditions are provided in a heirarchical list by
+In general, boundary conditions are provided in a hierarchical list by
 boundary condition type, then functional form.  Boundary condition specs are
 split between two types -- those which require a user-provided function
 (i.e. Dirichlet data, etc) and those which do not (i.e. zero gradient
@@ -4969,8 +5394,14 @@ The type of boundary conditions maybe changed in time depending on the switch fu
  
 
 
+Transport-specific Boundary Conditions
+--------------------------------------
+
+
+
+
 Energy-specific Boundary Conditions
-----------------------------------
+-----------------------------------
 
 
 
