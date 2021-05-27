@@ -37,6 +37,7 @@ set(ats_flow_src_files
   snow_distribution_pk.cc
   snow_distribution_physics.cc
   snow_distribution_ti.cc
+  preferential_pk.cc
   )
 
 set(ats_flow_inc_files
@@ -50,6 +51,7 @@ set(ats_flow_inc_files
   overland.hh
   icy_overland.hh
   snow_distribution.hh
+  preferential.hh
   )
 
 
@@ -119,6 +121,11 @@ register_evaluator_with_factory(
 
 register_evaluator_with_factory(
   HEADERFILE snow_distribution_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE preferential_pk_reg.hh
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
