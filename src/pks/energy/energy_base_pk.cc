@@ -48,7 +48,6 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     decoupled_from_subsurface_(false),
     niter_(0),
     flux_exists_(true)
-   // implicit_advection_(true)
 {
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
@@ -150,11 +149,6 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S)
   matrix_diff_ = opfactory.Create(mfd_plist, mesh_, bc_);
   matrix_diff_->SetTensorCoefficient(Teuchos::null);
   matrix_ = matrix_diff_->global_operator();
-
-  // -- create the forward operator for the advection term
-  //Teuchos::ParameterList advect_plist = plist_->sublist("advection");
-  //matrix_adv_ = Teuchos::rcp(new Operators::PDE_AdvectionUpwind(advect_plist, mesh_));
-  //matrix_adv_->SetBCs(bc_adv_, bc_adv_);
 
   // -- create the operators for the preconditioner
   //    diffusion
