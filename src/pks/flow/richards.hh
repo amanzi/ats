@@ -279,6 +279,7 @@ protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
   virtual void SetupRichardsFlow_(const Teuchos::Ptr<State>& S);
+  virtual void SetupDiscretization_(const Teuchos::Ptr<State>& S);
 
   // boundary condition members
   void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);

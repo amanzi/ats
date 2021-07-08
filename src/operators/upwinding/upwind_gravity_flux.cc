@@ -27,21 +27,37 @@ UpwindGravityFlux::UpwindGravityFlux(std::string pkname,
     face_coef_(face_coef),
     K_(K) {};
 
-
 void UpwindGravityFlux::Update(const Teuchos::Ptr<State>& S,
                                const Teuchos::Ptr<Debugger>& db) {
 
   Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
   Teuchos::RCP<const Epetra_Vector> g_vec = S->GetConstantVectorData("gravity");
   Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *g_vec, face.ptr());
+  CalculateCoefficientsOnFaces(*cell, "cell", *g_vec, face.ptr(), "face");
+};
+  
+
+void UpwindGravityFlux::Update(const Teuchos::Ptr<State>& S,
+                               const std::string cell_key,
+                               const std::string cell_component,
+                               const std::string face_key,
+                               const std::string face_component,
+                               const Teuchos::Ptr<Debugger>& db) {
+
+  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_key);
+  Teuchos::RCP<const Epetra_Vector> g_vec = S->GetConstantVectorData("gravity");
+  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_key, pkname_);
+  CalculateCoefficientsOnFaces(*cell,cell_component,*g_vec, face.ptr(), face_component);
+
 };
 
 
 void UpwindGravityFlux::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
+        const std::string cell_component,
         const Epetra_Vector& g_vec,
-        const Teuchos::Ptr<CompositeVector>& face_coef) {
+        const Teuchos::Ptr<CompositeVector>& face_coef,
+        const std::string face_component) {
 
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> dirs;
@@ -54,9 +70,9 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   for (int i=0; i!=g_vec.MyLength(); ++i) gravity[i] = g_vec[i];
 
   // initialize the face coefficients
-  face_coef->ViewComponent("face",true)->PutScalar(0.0);
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  face_coef->ViewComponent(face_component,true)->PutScalar(0.0);
+  if (face_coef->HasComponent(cell_component)) {
+    face_coef->ViewComponent(cell_component,true)->PutScalar(1.0);
   }
 
   // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
@@ -66,13 +82,13 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   // communicate the resulting face coeficients.
 
   // communicate ghosted cells
-  cell_coef.ScatterMasterToGhosted("cell");
+  cell_coef.ScatterMasterToGhosted(cell_component);
 
-  Epetra_MultiVector& face_coef_v = *face_coef->ViewComponent("face",true);
-  const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent("cell",true);
+  Epetra_MultiVector& face_coef_v = *face_coef->ViewComponent(face_component,true);
+  const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent(cell_component,true);
 
 
-  for (unsigned int c=0; c!=cell_coef.size("cell", true); ++c) {
+  for (unsigned int c=0; c!=cell_coef.size(cell_component, true); ++c) {
     mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
     AmanziGeometry::Point Kgravity = (*K_)[c] * gravity;
 

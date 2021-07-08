@@ -34,17 +34,28 @@ public:
                     std::string face_coef,
                     const Teuchos::RCP<std::vector<WhetStone::Tensor> > K);
 
+  virtual
   void Update(const Teuchos::Ptr<State>& S,
               const Teuchos::Ptr<Debugger>& db=Teuchos::null);
 
+  virtual
+  void Update(const Teuchos::Ptr<State>& S,
+              const std::string cell_key,
+              const std::string cell_component,
+              const std::string face_key,
+              const std::string face_component,              
+              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
 
+  virtual
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
+        const std::string cell_component,
         const Epetra_Vector& gravity,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+        const Teuchos::Ptr<CompositeVector>& face_coef,
+        const std::string face_component);
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
+  CoefficientLocation() override { return "upwind: face"; }
 
 private:
 

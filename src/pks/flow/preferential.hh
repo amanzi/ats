@@ -49,44 +49,44 @@ public:
   // virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {CalculateDiagnostics(S);};
 
   // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup(const Teuchos::Ptr<State>& S) override;
 
-  // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  // // -- Initialize owned (dependent) variables.
+  // virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  // // -- Commit any secondary (dependent) variables.
+  // virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
 
-  // -- limit changes in a valid time step
-  virtual bool ValidStep();
+  // // -- limit changes in a valid time step
+  // virtual bool ValidStep();
 
-  // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
+  // // -- Update diagnostics for vis.
+  // virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
 
-  // ConstantTemperature is a BDFFnBase
-  // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+  // // ConstantTemperature is a BDFFnBase
+  // // computes the non-linear functional g = g(t,u,udot)
+  // virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
+  //                  Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
 
-  // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  // // applies preconditioner to u and returns the result in Pu
+  // virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
-  // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  // // updates the preconditioner
+  // virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
+  // virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
+  //         Teuchos::RCP<TreeVector> u);
 
-  // problems with pressures -- setting a range of admissible pressures
-  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up);
+  // // problems with pressures -- setting a range of admissible pressures
+  // virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up);
 
-  // evaluating consistent faces for given BCs and cell values
-  virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
+  // // evaluating consistent faces for given BCs and cell values
+  // virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
 protected:
-  // // Create of physical evaluators.
-  // virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
-  // virtual void SetupRichardsFlow_(const Teuchos::Ptr<State>& S);
+  // Create of physical evaluators.
+  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) override;
+  virtual void SetupPreferentialFlow_(const Teuchos::Ptr<State>& S);
 
   // // boundary condition members
   // void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);
@@ -94,8 +94,8 @@ protected:
 
   // // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
   // virtual void SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S);
-  // virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S);
-  // virtual bool UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S);
+  virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) override;
+  virtual bool UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S) override;
 
   // virtual void UpdateVelocity_(const Teuchos::Ptr<State>& S);
   // virtual void InitializeHydrostatic_(const Teuchos::Ptr<State>& S);
@@ -136,7 +136,9 @@ protected:
 
   // void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
-
+protected:
+   Key coef_grav_key_, dcoef_grav_key_; 
+  
 private:
   // factory registration
   static RegisteredPKFactory<Preferential> reg_;

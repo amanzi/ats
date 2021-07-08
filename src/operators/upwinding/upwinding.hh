@@ -46,6 +46,17 @@ class Upwinding {
   Update(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<Debugger>& db=Teuchos::null) = 0;
 
   virtual void
+  Update(const Teuchos::Ptr<State>& S,
+         const std::string cell_key,
+         const std::string cell_component,
+         const std::string face_key,
+         const std::string face_component,              
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null){
+    AMANZI_ASSERT(0);
+  };
+
+  
+  virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S, 
                     std::string potential_key,
                     const CompositeVector& dconductivity,
