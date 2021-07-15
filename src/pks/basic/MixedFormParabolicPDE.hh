@@ -12,19 +12,24 @@
 This is the canonical nonlinear parabolic PDE, in mixed form.
 
 .. math::
-    \frac{\partial \Phi(u) }{\partial t} - \nabla \cdot K(u) \grad u = Q(u,x,t)
+    \frac{\partial \Psi(u) }{\partial t} - \nabla \cdot K(u) \grad \Phi(u) = Q(u,x,t)
 
-Where the conserved quantity :math:`\Phi` is a function of the primary variable
+Where the conserved quantity :math:`\Psi` is a function of the primary variable
 :math:`u`, diffusive fluxes are provided as a function of the coefficient
-:math:`K` and gradients in :math:`u`, and a source term :math:`Q` is provided.
+:math:`K` and gradients in a potential :math:`\Phi` which is also a function of
+the primary variable, and a source term :math:`Q` is provided.
 
 Note that while this is mixed form, some classes here may solve it in the
 primary form,
 
 .. math::
-    \frac{d \Phi(u) }{d u} \frac{\partial u}{\partial t} - \nabla \cdot K(u) \grad u = Q(u,x,t)
+    \frac{d \Psi(u) }{d u} \frac{\partial u}{\partial t} - \nabla \cdot K(u) \grad \Phi(u) = Q(u,x,t)
 
-where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
+where we then must assume that :math:`\frac{d \Psi(u) }{d u} > 0`.
+
+Note that frequently \Phi(u) = u (e.g. the potential field is the primary
+variable) but not always -- specifically for surface water where the potential
+field is :math:`h(p) + z` for primary variable pressure.
 
 .. _conservation-ode-pk-spec:
 .. admonition:: conservation-ode-pk-spec
@@ -34,7 +39,9 @@ where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
     * `"primary variable key`" ``[string]`` The primary variable, :math:`u`.
       Note there is no default -- this must be provided by the user.
 
-    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Psi`
+
+    * `"diffusion operand key`" ``[string]`` The diffused quantity :math:`\Phi`
 
     * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
       quantity per second, :math:`Q`.
@@ -42,7 +49,8 @@ where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
     * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
       Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
       implies explicit, 0.5 implies C-N.  Note, only used in the implicit
-      scheme.
+      scheme -- prefer to use an explicit time integrator over :math:`\theta ==
+      0`.
 
     * `"modify predictor positivity preserving`" ``[bool]`` **false** If true,
       predictors are modified to ensure that the conserved quantity is always >
@@ -51,12 +59,11 @@ where we then must assume that :math:`\frac{d \Phi(u) }{d u} > 0`.
 
     * `"absolute error tolerance`" ``[double]`` **550.0** a_tol in the standard
       error norm calculation.  Defaults to a small amount of water.  Units are
-      the same as the conserved quantity.
+      the same as the conserved quantity (default assumes mols).
 
     * `"inverse`" ``[inverse-typed-spec]`` **optional**
       Linear inverse for the linear solve.  Only used if the time integration
       scheme is solved implicitly.
-
 
 */
 
@@ -89,31 +96,56 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
   public:
   using Base_t::Base_t;
 
-  void Setup() {
+  void Setup()
+  {
+    // Call any other mixin Setup methods, including time integration setup.
     Base_t::Setup();
+
+    // Some mixins need a time tag at which to require their evaluators
+    // (e.g. conserved quantity, etc).
     Base_t::SetupAtTag(tag_new_);
 
-    // set up the accumulation evaluator
+    // Set up accumulation
+    // -------------------
+    // This evaluator calculates dPsi/dt, a function of Psi and time at two
+    // time tags.
+    // -- Note the suffix _t indicates a time derivative -- the output
     accumulation_key_ = conserved_quantity_key_ + "_t";
     Teuchos::ParameterList& acc_list = S_->FEList().sublist(accumulation_key_);
+    // -- Note, I'm not sure why a user would override these by setting them in
+    //    the parameterlist manually, but have chosen not to error or overwrite
+    //    the user's values in case that changes.
     if (!acc_list.isParameter("conserved quantity key"))
       acc_list.set("conserved quantity key", conserved_quantity_key_);
+    // -- Note that by not hard-coding tag_old and tag_new, this same PK is used
+    //    for subcycling.
     if (!acc_list.isParameter("tag")) acc_list.set("tag", tag_new_);
     if (!acc_list.isParameter("tag old")) acc_list.set("tag old", tag_old_);
     if (!acc_list.isParameter("tag new")) acc_list.set("tag new", tag_new_);
     if (!acc_list.isParameter("evaluator type")) acc_list.set("evaluator type", "accumulation operator");
 
+    // -- Require a vector to store the output dPsi/dt.
     S_->template Require<CompositeVector,CompositeVectorSpace>(accumulation_key_, tag_new_)
         .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
 
-    // set up the diffused key -- allows primary and diffused to be different
-    diffused_key_ = Keys::readKey(*plist_, layer_, "diffusion operand", Keys::getVarName(key_));
-    if (diffused_key_ != key_) {
+    // Set up diffusion
+    // ----------------
+    // This evaluator calculates q and local matrices for MFD or FV
+    // representations of the div k K grad operator.  The evaluator itself is
+    // the PDE_Diffusion(withGravity) object.
+    //
+    // Note we don't actually use the local matrices in this PK, so we don't
+    // require them.  We require the residual evaluator (which is a global
+    // operator) and that in turn requires the local matrices.  But by setting
+    // up the parameter list here, we can make the input file simpler and save
+    // the user from having to write all this themselves.
+    //
+    // -- Input includes a diffused variable -- allows primary and diffused variables to be different
+    diffused_key_ = Keys::readKey(*plist_, domain_, "diffusion operand", Keys::getVarName(key_));
+    if (diffused_key_ != key_)
       S_->template RequireDerivative<CompositeVector,CompositeVectorSpace>(diffused_key_, tag_new_, key_, tag_new_);
-    }
-
-    // set up the diffusion operator
-    diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
+    // -- Require the diffusion evaluator (a PDE_Diffusion object)
+    diffusion_key_ = Keys::readKey(*plist_, domain_, "diffusion operator");
     Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
     if (!diff_list.isParameter("evaluator type")) diff_list.set("evaluator type", "diffusion operator");
     if (!diff_list.isParameter("local operator key")) diff_list.set("local operator key", diffusion_key_);
@@ -122,12 +154,18 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!diff_list.isParameter("boundary conditions key")) diff_list.set("boundary conditions key", diffusion_key_+"_bcs");
     diff_list.set("operator argument key", diffused_key_);
 
-    // set up the residual evaluator
+    // Set up the residual evaluator
+    // -----------------------------
+    // This evaluator is the global operator (or potentially a collection of
+    // global operators), and calculates r = A*p - b
     res_key_ = key_ + "_res";
     Teuchos::ParameterList& res_list = S_->FEList().sublist(res_key_);
-    // -- operator
+    // -- operator at the new time
     if (!res_list.isParameter("tag")) res_list.set("tag", tag_new_);
+    // -- type is an Evaluator_OperatorApply, which uses an Operator object.
     if (!res_list.isParameter("evaluator type")) res_list.set("evaluator type", "operator application");
+    // -- the global operand on the diagonal (for coupled PKs, the MPC could
+    //    add additional terms for offdiagonal operators)
     res_list.set("diagonal primary x key", diffused_key_);
     if (!res_list.isParameter("diagonal local operators keys")) res_list.set("diagonal local operators keys",
                  Teuchos::Array<std::string>(1, diffusion_key_));
@@ -147,10 +185,10 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (!res_list.isParameter("additional rhss keys")) res_list.set("additional rhss keys", rhss);
     if (!res_list.isParameter("rhs coefficients")) res_list.set("rhs coefficients", rhs_coefs);
 
-    // -- preconditioner
-    if (!res_list.isSublist("inverse")) {
-      res_list.set("inverse", plist_->sublist("inverse"));
-    }
+    // -- preconditioner -- could be provided in this PK's list, or in the
+    //    State evaluator list.
+    if (!res_list.isSublist("inverse")) res_list.set("inverse", plist_->sublist("inverse"));
+
 
     // NOTE: we cannot know the structure of u here -- it may be CELL if FV, or
     // it may be CELL+FACE if MFD.  It will get set by the operator.  But we do
@@ -240,10 +278,9 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Precon update at t = " << t << std::endl;
 
-    S_->GetEvaluator(res_key_, tag_new_).UpdateDerivative(*S_, this->name(),
-            diffused_key_, tag_new_);
-    S_->GetEvaluator(diffused_key_, tag_new_).UpdateDerivative(*S_, this->name(),
-            key_, tag_new_);
+    S_->GetEvaluator(res_key_, tag_new_).UpdateDerivative(*S_, this->name(), diffused_key_, tag_new_);
+    if (diffused_key_ != key_)
+      S_->GetEvaluator(diffused_key_, tag_new_).UpdateDerivative(*S_, this->name(), key_, tag_new_);
   }
 
   // -- Update diagnostics for vis.
@@ -251,7 +288,6 @@ class MixedFormParabolicPDE_Implicit : public Base_t {
 
  protected:
   using Base_t::plist_;
-  using Base_t::layer_;
   using Base_t::domain_;
   using Base_t::tag_new_;
   using Base_t::tag_old_;
@@ -278,12 +314,13 @@ class MixedFormParabolicPDE_Explicit : public Base_t {
 public:
   using Base_t::Base_t;
 
-  void Setup() {
+  void Setup()
+  {
     Base_t::Setup();
     Base_t::SetupAtTag(tag_inter_);
 
     // set up the diffusion operator
-    diffusion_key_ = Keys::readKey(*plist_, layer_, "diffusion operator");
+    diffusion_key_ = Keys::readKey(*plist_, domain_, "diffusion operator");
     Teuchos::ParameterList& diff_list = S_->FEList().sublist(diffusion_key_);
     if (!diff_list.isParameter("evaluator type")) diff_list.set("evaluator type", "diffusion operator");
     if (!diff_list.isParameter("local operator key")) diff_list.set("local operator key", diffusion_key_);
@@ -368,7 +405,7 @@ public:
 
  protected:
   using Base_t::plist_;
-  using Base_t::layer_;
+  using Base_t::domain_;
   using Base_t::tag_inter_;
   using Base_t::is_source_;
   using Base_t::S_;
@@ -385,10 +422,11 @@ public:
 };
 
 
-
-
-
-
+// These are the actual classes.  They take the main PK
+// (MixedFormParabolicPDE_*) and "mix in" the other classes that provide some
+// functions.
+//
+// An implicitly time-integrated parabolic PDE in mixed form.
 using PK_MixedFormParabolicPDE_Implicit =
     PK_Implicit_Adaptor<MixedFormParabolicPDE_Implicit<
                           PK_MixinConservationEquation<
@@ -396,6 +434,8 @@ using PK_MixedFormParabolicPDE_Implicit =
                               PK_MixinLeafCompositeVector<
                                 PK_Default>>>>>;
 
+// An explicitly time-integrated parabolic PDE.  Maybe this should be renamed,
+// it isn't really in mixed form anymore, but in primary form.
 using PK_MixedFormParabolicPDE_Explicit =
     PK_Explicit_Adaptor<MixedFormParabolicPDE_Explicit<
                           PK_MixinConservationEquation<
@@ -403,6 +443,10 @@ using PK_MixedFormParabolicPDE_Explicit =
                               PK_MixinLeafCompositeVector<
                                 PK_Default>>>>>;
 
+// A predictor-corrector scheme -- this combines both the implicit and explicit
+// forms, then uses the explicit as a guess for the implicit.  The goal is for
+// this to become the basis for higher order methods, but for now it really is
+// just using the explicit as a guess for the implicit.
 using PK_MixedFormParabolicPDE_PredictorCorrector =
     PK_ImplicitExplicit_Adaptor<MixedFormParabolicPDE_Implicit<
                           MixedFormParabolicPDE_Explicit<

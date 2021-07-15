@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -18,7 +18,7 @@ sinks.
 
 Where the conserved quantity :math:`\Phi` is a function of the primary variable
 :math:`u`, and a source term :math:`Q` is provided.
-    
+
 .. _conservation-ode-pk-spec:
 .. admonition:: conservation-ode-pk-spec
 
@@ -148,7 +148,7 @@ public:
 
     db_->WriteCellInfo(true);
     db_->WriteVectors({"u_old","u_new"}, {u_old->Data().ptr(), u_new->Data().ptr()});
-    
+
     S_->GetEvaluator(res_key_, tag_new_).Update(*S_, this->name());
     f->Data()->assign(S_->template Get<CompositeVector>(res_key_, tag_new_));
     db_->WriteVector("u_res", f->Data().ptr());
@@ -160,7 +160,7 @@ public:
     Teuchos::OSTab tab = vo_->getOSTab();
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Precon application:" << std::endl;
-    
+
     db_->WriteVector("u_res", r->Data().ptr());
 
     const auto& dr_du = S_->template GetDerivative<CompositeVector>(res_key_, tag_new_,
@@ -177,7 +177,7 @@ public:
     Teuchos::OSTab tab = vo_->getOSTab();
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "Precon update at t = " << t << std::endl;
-    
+
     S_->GetEvaluator(res_key_, tag_new_).UpdateDerivative(*S_, this->name(),
             key_, tag_new_);
 
@@ -215,8 +215,9 @@ public:
   void Setup() {
     Base_t::Setup();
     Base_t::SetupAtTag(tag_inter_);
-  
-    // here we just need the source and the conserved quantity's derivative
+
+    // here we just need the source and the conserved quantity's derivative, we
+    // don't actually need the conserved quantity.
     S_->template Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_inter_)
         .SetMesh(mesh_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
     S_->RequireEvaluator(source_key_, tag_inter_);
@@ -237,7 +238,7 @@ public:
     // for time integrators to break our state model, by simply
     // copy-constructing the input vector and giving us the copy instead of the
     // vector at the right tag.
-    //    
+    //
     // For now, these check to ensure that the time integrator is giving
     // us what we expect, and is playing nice with state
     S_->set_time(tag_inter_, t);
@@ -249,7 +250,7 @@ public:
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "----------------------------------------------------------------" << std::endl
                  << "Time derivative calculation at: t = " << t << std::endl;
-    
+
     db_->WriteCellInfo(true);
     db_->WriteVector("u", u.Data().ptr());
 
@@ -278,7 +279,7 @@ public:
 
 };
 
-  
+
 
 
 

@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -31,7 +31,7 @@ and source terms.
     * `"finite difference source term`" ``[bool]`` **false** If the source is
       not differentiable, should we attempt to form a local finite difference
       to calculate dQ/du?
-    
+
     * `"time discretization theta`" ``[double]`` **1.0** :math:`\theta` in a
       Crank-Nicholson time integration scheme.  1.0 implies fully implicit, 0.0
       implies explicit, 0.5 implies C-N.  Note, only used in the implicit
@@ -81,23 +81,24 @@ public:
               const Teuchos::RCP<State>& S)
     : Base_t(pk_tree, global_plist, S)
   {
-    layer_ = plist_->template get<std::string>("layer name", domain_);
-
     // process keys
-    conserved_quantity_key_ = Keys::readKey(*plist_, layer_, "conserved quantity");
+    // -- the conserved quantity
+    conserved_quantity_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
 
+    // -- the source key
     is_source_ = plist_->template get<bool>("is source term", true);
     if (is_source_) {
       source_is_extensive_ = plist_->template get<bool>("source is extensive", false);
-      source_key_ = Keys::readKey(*plist_, layer_, "source", Keys::getVarName(conserved_quantity_key_)+"_source");
+      source_key_ = Keys::readKey(*plist_, domain_, "source", Keys::getVarName(conserved_quantity_key_)+"_source");
       if (!source_is_extensive_) {
         intensive_source_key_ = source_key_;
         source_key_ = intensive_source_key_ + "_times_volume";
       }
     }
 
+    // -- cell volume needed for error norms even if not for source
     cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
-    
+
     // process error norm constants
     atol_ = plist_->template get<double>("absolute error tolerance factor", 1.);
     rtol_ = plist_->template get<double>("relative error tolerance factor", 1.);
@@ -149,7 +150,7 @@ public:
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) {
     using Reduction_t = Amanzi::Reductions::MaxLocArray<int,double,GO>;
     using Reductor_t = Amanzi::Reductions::MaxLoc<double, GO>;
-    
+
     // Abs tol based on old conserved quantity -- we know these have been vetted
     // at some level whereas the new quantity is some iterate, and may be
     // anything from negative to overflow.
@@ -170,12 +171,12 @@ public:
 
       auto du_v = du->Data()->template ViewComponent<>(comp,false);
       AMANZI_ASSERT(du_v.extent(1) == 1);
-      
+
       if (comp == "cell") {
         // error done relative to extensive, conserved quantity
         auto cv_v = cv.template ViewComponent<>(comp, false);
         auto conserved_v = conserved.template ViewComponent<>(comp, false);
-        
+
         Kokkos::parallel_reduce("ConservationEquation::ErrorNorm(cell) reduction",
                 du_v.extent(0),
                 KOKKOS_LAMBDA(const int& c, Reductor_t& enorm) {
@@ -192,7 +193,7 @@ public:
         auto conserved_v = conserved.template ViewComponent<>("cell", false);
 
         const AmanziMesh::Mesh* m = mesh_.get();
-        
+
         Kokkos::parallel_reduce("ConservationEquation::ErrorNorm(face) reduction",
                 du_v.extent(0),
                 KOKKOS_LAMBDA(const int& f, Reductor_t& enorm) {
@@ -208,7 +209,7 @@ public:
                   enorm += l_enorm;
                 }, enorm_comp);
       }
-      
+
       // note, now it is GID
       enorm_comp.loc = du->Data()->getMap()->ComponentMap(comp)
                        ->getGlobalElement(enorm_comp.loc);
@@ -246,7 +247,7 @@ public:
   bool ValidStep(const Key& tag_old, const Key& tag_new) {
     bool valid =  Base_t::ValidStep(tag_old, tag_new);
     if (!valid) return valid;
-    
+
     if (admit_only_positivity_preserving_) {
       Errors::Message msg("ConservationEquation: \"admit only positivity preserving\" is not yet implemented.");
       throw(msg);
@@ -300,12 +301,11 @@ public:
   using Base_t::domain_;
   using Base_t::vo_;
 
-  Key layer_;
   Key conserved_quantity_key_;
   Key cv_key_;
   Key source_key_;
   Key intensive_source_key_;
-  
+
   bool is_source_, source_is_extensive_;
 
   double theta_;
@@ -315,7 +315,7 @@ public:
   bool admit_only_positivity_preserving_;
 
   double atol_, rtol_, fluxtol_;
-  
+
 };
 
 }  // namespace Basic
