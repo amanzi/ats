@@ -1,41 +1,45 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html4" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>&lt;no title&gt; &mdash; ATS 1.0 documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" /> 
 </head>
@@ -78,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -94,6 +99,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -128,18 +134,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>&lt;no title&gt;</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/input_spec/symbol_table.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -177,112 +185,124 @@
     text-align: unset;
 }
 </style>
-<table class="docutils align-default">
+<table border="1" class="docutils">
 <colgroup>
-<col style="width: 32%" />
-<col style="width: 68%" />
+<col width="32%" />
+<col width="68%" />
 </colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Symbol</p></th>
-<th class="head"><p>Description</p></th>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Symbol</th>
+<th class="head">Description</th>
 </tr>
 </thead>
-<tbody>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(E\)</span></p></td>
-<td><p>extensive energy of a cell <span class="math notranslate nohighlight">\([MJ]\)</span></p></td>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(boldsymbol{D}_l\)</span></td>
+<td>diffusion coefficient <span class="math notranslate nohighlight">\([m^2/s]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(e\)</span></p></td>
-<td><p>specific enthalpy <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(boldsymbol{D^*}_l\)</span></td>
+<td>dispersion coefficient <span class="math notranslate nohighlight">\([m^2/s]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(g\)</span></p></td>
-<td><p>gravitational acceleration vector <span class="math notranslate nohighlight">\([m s^-2]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(E\)</span></td>
+<td>extensive energy of a cell <span class="math notranslate nohighlight">\([MJ]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(h\)</span></p></td>
-<td><p>ponded depth, or the water head over the surface <span class="math notranslate nohighlight">\([m]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(e\)</span></td>
+<td>specific enthalpy <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
 </tr>
-<tr class="row-even"><td><p></p></td>
-<td><p>alternative, in context of the subsurface, water head <span class="math notranslate nohighlight">\([m]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(g\)</span></td>
+<td>gravitational acceleration vector <span class="math notranslate nohighlight">\([m s^-2]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(h_{snow}\)</span></p></td>
-<td><p>snow depth <span class="math notranslate nohighlight">\([m]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(h\)</span></td>
+<td>ponded depth, or the water head over the surface <span class="math notranslate nohighlight">\([m]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(K\)</span></p></td>
-<td><p>absolute permeability <span class="math notranslate nohighlight">\([m^2]\)</span></p></td>
+<tr class="row-even"><td></td>
+<td>alternative, in context of the subsurface, water head <span class="math notranslate nohighlight">\([m]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\kappa\)</span></p></td>
-<td><p>thermal conductivity <span class="math notranslate nohighlight">\([MW m^-1 K^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(h_{snow}\)</span></td>
+<td>snow depth <span class="math notranslate nohighlight">\([m]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(k_r\)</span></p></td>
-<td><p>relative permeability <span class="math notranslate nohighlight">\([-]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(K\)</span></td>
+<td>absolute permeability <span class="math notranslate nohighlight">\([m^2]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(n_X\)</span></p></td>
-<td><p>molar density of phase X <span class="math notranslate nohighlight">\([mol m^-3]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\kappa\)</span></td>
+<td>thermal conductivity <span class="math notranslate nohighlight">\([MW m^-1 K^-1]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\vert \partial \Omega \vert\)</span></p></td>
-<td><p>volume of a discrete element <span class="math notranslate nohighlight">\(\partial \Omega\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(k_r\)</span></td>
+<td>relative permeability <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(p\)</span></p></td>
-<td><p>pressure of the liquid phase <span class="math notranslate nohighlight">\([Pa]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(n_X\)</span></td>
+<td>molar density of phase X <span class="math notranslate nohighlight">\([mol m^-3]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(P_{r}\)</span></p></td>
-<td><p>precipitation of rain <span class="math notranslate nohighlight">\([m s^-1]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\vert \partial \Omega \vert\)</span></td>
+<td>volume of a discrete element <span class="math notranslate nohighlight">\(\partial \Omega\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(P_{s}\)</span></p></td>
-<td><p>precipitation of snow, in snow-water-equivalent (SWE)  <span class="math notranslate nohighlight">\([m SWE s^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(p\)</span></td>
+<td>pressure of the liquid phase <span class="math notranslate nohighlight">\([Pa]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(Q_e\)</span></p></td>
-<td><p>source of energy <span class="math notranslate nohighlight">\([MJ s^-1]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(P_{r}\)</span></td>
+<td>precipitation of rain <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(Q_w\)</span></p></td>
-<td><p>mass source of water <span class="math notranslate nohighlight">\([mol s^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(P_{s}\)</span></td>
+<td>precipitation of snow, in snow-water-equivalent (SWE)  <span class="math notranslate nohighlight">\([m SWE s^-1]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(s_X\)</span></p></td>
-<td><p>saturation of phase X <span class="math notranslate nohighlight">\([-]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(Q_e\)</span></td>
+<td>source of energy <span class="math notranslate nohighlight">\([MJ s^-1]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
-<td><p>time variable <span class="math notranslate nohighlight">\([s]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(Q_s\)</span></td>
+<td>source of solute mass <span class="math notranslate nohighlight">\([mol s^-1]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(z\)</span></p></td>
-<td><p>elevation <span class="math notranslate nohighlight">\([m]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(Q_w\)</span></td>
+<td>mass source of water <span class="math notranslate nohighlight">\([mol s^-1]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\nu\)</span></p></td>
-<td><p>dynamic viscosity of water <span class="math notranslate nohighlight">\([Pa s]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(s_X\)</span></td>
+<td>saturation of phase X <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\phi\)</span></p></td>
-<td><p>porosity of the soil <span class="math notranslate nohighlight">\([-]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(t\)</span></td>
+<td>time variable <span class="math notranslate nohighlight">\([s]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{q}\)</span></p></td>
-<td><p>Darcy flux vector <span class="math notranslate nohighlight">\([mol  m^-2 s^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(z\)</span></td>
+<td>elevation <span class="math notranslate nohighlight">\([m]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{q_s}\)</span></p></td>
-<td><p>surface flux vector <span class="math notranslate nohighlight">\([mol  m s^-1]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\nu\)</span></td>
+<td>dynamic viscosity of water <span class="math notranslate nohighlight">\([Pa s]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\rho\)</span></p></td>
-<td><p>mass density of a phase <span class="math notranslate nohighlight">\([kg m^-3]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\phi\)</span></td>
+<td>porosity of the soil <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
-<td><p>time variable <span class="math notranslate nohighlight">\([s]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{q}\)</span></td>
+<td>Darcy flux vector <span class="math notranslate nohighlight">\([mol  m^-2 s^-1]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(T\)</span></p></td>
-<td><p>temperature <span class="math notranslate nohighlight">\([K]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{q_s}\)</span></td>
+<td>surface flux vector <span class="math notranslate nohighlight">\([mol  m s^-1]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\Theta\)</span></p></td>
-<td><p>extensive water content of a cell <span class="math notranslate nohighlight">\([mol]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\rho\)</span></td>
+<td>mass density of a phase <span class="math notranslate nohighlight">\([kg m^-3]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(u_X\)</span></p></td>
-<td><p>specific internal energy of phase X <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(t\)</span></td>
+<td>time variable <span class="math notranslate nohighlight">\([s]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\mathbf{V}\)</span></p></td>
-<td><p>Darcy velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(T\)</span></td>
+<td>temperature <span class="math notranslate nohighlight">\([K]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\mathbf{V_s}\)</span></p></td>
-<td><p>surface velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\tau\)</span></td>
+<td>tortuosity <span class="math notranslate nohighlight">\([-]\)</span></td>
 </tr>
-<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(x\)</span>,:math:<cite>y</cite>,:math:<cite>z</cite></p></td>
-<td><p>spatial coordinates <span class="math notranslate nohighlight">\([m]\)</span></p></td>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\Theta\)</span></td>
+<td>extensive water content of a cell <span class="math notranslate nohighlight">\([mol]\)</span></td>
 </tr>
-<tr class="row-odd"><td><p></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(u_X\)</span></td>
+<td>specific internal energy of phase X <span class="math notranslate nohighlight">\([MJ mol^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(\mathbf{V}\)</span></td>
+<td>Darcy velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math notranslate nohighlight">\(\mathbf{V_s}\)</span></td>
+<td>surface velocity vector <span class="math notranslate nohighlight">\([m s^-1]\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math notranslate nohighlight">\(x\)</span>,:math:<cite>y</cite>,:math:<cite>z</cite></td>
+<td>spatial coordinates <span class="math notranslate nohighlight">\([m]\)</span></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -292,20 +312,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, jointly shared by contributor institutions
+        &#169; Copyright 2020, jointly shared by contributor institutions.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -313,7 +338,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

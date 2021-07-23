@@ -2,18 +2,14 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
-    "#### Richards' Equation, transient problems"
+    "# Richards' Equation, transient problems"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "This tests and demonstrates a variety of Richards equation solutions, demonstrating boundary conditions and seepage face conditions.  All are on a single column of cells, oriented vertically, and are initialized as the hydrostatic solution.  Infilitration is turned on, and/or seepage occurs to raise or lower the water table.\n",
     "\n",
@@ -22,13 +18,19 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 26,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 1,
+   "metadata": {},
    "outputs": [],
    "source": [
-    "%matplotlib inline\n",
+    "%matplotlib inline"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
     "import sys,os\n",
     "sys.path.append(os.path.join(os.environ['ATS_SRC_DIR'],'tools', 'utils'))\n",
     "import ats_xdmf\n",
@@ -39,13 +41,12 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 27,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 3,
+   "metadata": {},
    "outputs": [],
    "source": [
     "def plot(dirname, title):\n",
+    "    \"\"\"A generic plotting function that plots saturation as a function of depth.\"\"\"\n",
     "    fig = plt.figure()\n",
     "\n",
     "    vis = ats_xdmf.VisFile(dirname, time_unit='d')\n",
@@ -62,19 +63,15 @@
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
-    "The first example simply looks at infiltrating into a column, slowly filling up the subsurface."
+    "The first example simply looks at infiltrating into a column, slowly filling up the subsurface.  Note that the color scheme goes from the initial condition in blue to later times in red."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 28,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 5,
+   "metadata": {},
    "outputs": [
     {
      "data": {
@@ -90,24 +87,20 @@
     }
    ],
    "source": [
-    "plot(\"./richards-infiltration.demo\", \"infiltration example\")"
+    "plot(\"./infiltration.demo\", \"infiltration example\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "The next set of problems look at seepage faces, which are boundary conditions that allow water to seep out if the soil is saturated, but don't allow water in.  Starting from a water table below the seepage face at 8m, we infiltrate until the water table rises to this seepage face.  The water table does not rise above the seepage face, but instead flows out of the domain reaching steady-state."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 29,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 6,
+   "metadata": {},
    "outputs": [
     {
      "data": {
@@ -123,24 +116,20 @@
     }
    ],
    "source": [
-    "plot(\"richards-seepage_infiltration.demo\", \"infiltration to seepage face\")"
+    "plot(\"seepage_infiltration.demo\", \"infiltration to seepage face\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "In the second example, we start from a water table above the seepage face, and let the water seep out until the water table draws down to the seepage face.  The water table does not go below the seepage face at 6m."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 30,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 7,
+   "metadata": {},
    "outputs": [
     {
      "data": {
@@ -156,14 +145,12 @@
     }
    ],
    "source": [
-    "plot(\"richards-seepage_drawdown.demo\", \"drawdown example\")"
+    "plot(\"seepage_drawdown.demo\", \"drawdown example\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "The next example shows how a seepage face works in a more dynamic system that ebbs and flows.  We set a seepage face above the water table, and infiltrate until the water table is at the seepage face.  Then we draw down the water table by taking water out of the bottom of the domain.  The water table drops below the seepage face.\n",
     "\n",
@@ -172,10 +159,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 31,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 8,
+   "metadata": {},
    "outputs": [
     {
      "data": {
@@ -191,14 +176,12 @@
     }
    ],
    "source": [
-    "plot(\"richards-seepage_exfiltration.demo\", \"on-and-off example, FV\")"
+    "plot(\"seepage_exfiltration.demo\", \"on-and-off example, FV\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "Demonstration and test of a more general seepage condition in which an infiltration flux is specified on the seepage face.  The condition has constraints on both sides -- infiltration is less than or equal to the specified flux, and the pressure is less than atmospheric.  This is useful for, for instance, spinning up coupled surface-subsurface runs.  The subsurface only is run, with this type of BC everywhere and the infiltration as the mean annual rainfall rate.  Everywhere there are rivers end up with atmospheric pressure, while everywhere there is not ponded water sees the infiltration condition (at steady-state).\n",
     "\n",
@@ -207,10 +190,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 32,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 9,
+   "metadata": {},
    "outputs": [
     {
      "data": {
@@ -226,47 +207,35 @@
     }
    ],
    "source": [
-    "plot(\"richards-infiltration_then_seepage.demo\", \n",
+    "plot(\"infiltration_then_seepage.demo\", \n",
     "     \"infiltrate-then-seep example\")"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "outputs": [],
    "source": []
   }
  ],
  "metadata": {
   "kernelspec": {
-   "argv": [
-    "/Users/uec/code/miniconda/bin/python",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-   ],
    "display_name": "Python 3",
-   "env": null,
-   "interrupt_mode": "signal",
    "language": "python",
-   "metadata": null,
    "name": "python3"
   },
   "language_info": {
    "codemirror_mode": {
     "name": "ipython",
-    "version": 2
+    "version": 3
    },
    "file_extension": ".py",
    "mimetype": "text/x-python",
    "name": "python",
    "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython2",
-   "version": "2.7.14"
+   "pygments_lexer": "ipython3",
+   "version": "3.8.3"
   },
   "name": "richards.ipynb"
  },

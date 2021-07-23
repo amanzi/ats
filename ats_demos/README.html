@@ -1,41 +1,45 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html4" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>ATS Demonstrations &mdash; ATS 1.0 documentation</title>
   
 
   
-  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
         <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" /> 
 </head>
@@ -78,6 +82,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -94,6 +99,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -128,18 +134,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>ATS Demonstrations</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="../_sources/ats_demos/README.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -189,28 +197,30 @@ map out usage of the described physical capability.  These include
 everything needed to get started using ATS.  Any given run contains
 some of, and maybe all of, the following components:</p>
 <ul class="simple">
-<li><p>An input file: an <cite>.xml</cite> file read by ATS via <cite>ats
-–xml_file=../my_file.xml</cite> <strong>required</strong></p></li>
-<li><p>A mesh file for non-trivial meshes: typically an <cite>.exo</cite> file.  Most
+<li>An input file: an <cite>.xml</cite> file read by ATS via <cite>ats
+../my_file.xml</cite> <strong>required</strong></li>
+<li>A mesh file for non-trivial meshes: typically an <cite>.exo</cite> file.  Most
 meshes have included a python script or ipython notebook used to
-generate that mesh, showing that workflow.</p></li>
-<li><p>Forcing data: typically an <cite>.h5</cite> file, and often generated from
+generate that mesh, showing that workflow.</li>
+<li>Forcing data: typically an <cite>.h5</cite> file, and often generated from
 DayMet or other products.  Often a python script or ipython notebook
 is used to generate these files, and these are included to show that
-workflow as well.</p></li>
-<li><p>A jupyter notebook <cite>.ipynb</cite> which describes, documents, and plots
+workflow as well.</li>
+<li>A jupyter notebook <cite>.ipynb</cite> which describes, documents, and plots
 the results from the given run.  Note these can be viewed, including
 plots, without even running the simulation.  This is where to
-understand what is being done in each run.</p></li>
+understand what is being done in each run.</li>
 </ul>
 <div class="section" id="running-the-demos">
 <h2>Running the demos<a class="headerlink" href="#running-the-demos" title="Permalink to this headline">¶</a></h2>
 <p>Running all of the demos can take some time, but individual demos are
 often fairly quick.  To run a given demo, make sure <cite>ats</cite> is compiled
-and (preferably) in your path, and then:</p>
+and (preferably) in your path, or that you have a docker container ready to go, and then:</p>
 <p><code class="docutils literal notranslate"><span class="pre">`python</span> <span class="pre">run_demos.py</span> <span class="pre">path_to_suite.cfg`</span></code></p>
 <p>or</p>
-<p><code class="docutils literal notranslate"><span class="pre">`python</span> <span class="pre">run_demos.py</span> <span class="pre">path_to_suite.cfg</span> <span class="pre">-t</span> <span class="pre">suite_name-test_name`</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span> <span class="pre">run_demos.py</span> <span class="pre">path_to_suite.cfg</span> <span class="pre">-t</span> <span class="pre">test_name`</span></code></p>
+<p>or (with docker):</p>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span> <span class="pre">run_demos.py</span> <span class="pre">path_to_suite.cfg</span> <span class="pre">-e</span> <span class="pre">metsi/ats:latest</span> <span class="pre">-t</span> <span class="pre">test_name`</span></code></p>
 <p>Note that some individual runs may depend upon results from previous
 runs in that suite, and so all demos in that suite should be run.
 This is particularly true for demos that show a full workflow, such as
@@ -284,20 +294,25 @@ both the surface and subsurface, and even in frozen environments.</p>
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2020, jointly shared by contributor institutions
+        &#169; Copyright 2020, jointly shared by contributor institutions.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -305,7 +320,6 @@ both the surface and subsurface, and even in frozen environments.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

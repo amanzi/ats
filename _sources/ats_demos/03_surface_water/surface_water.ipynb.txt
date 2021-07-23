@@ -2,30 +2,24 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
-    "#### Surface Water Runoff"
+    "# Surface Water Runoff"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
-    "This is a simple 1D ramp on which we rain and apply a series of boundary conditions.  Note these also show the use of observations, which allow for visualization that is spatially sparse but is evaluated frequently in time.  The most common use of this is hydrographs (which is what we use this for here).\n",
+    "This is a simple 1D ramp on which we rain and apply a series of boundary conditions.  Rain flows downhill (to the right in these images), and leaves out the right side boundary.  Note these also show the use of observations, which allow for visualization that is spatially sparse but is evaluated frequently in time.  The most common use of this is hydrographs (which is what we use this for here).\n",
     "\n",
     "Author: Ethan Coon"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 1,
+   "metadata": {},
    "outputs": [],
    "source": [
     "%matplotlib inline\n",
@@ -34,19 +28,18 @@
     "import ats_xdmf\n",
     "import colors\n",
     "import numpy as np\n",
-    "from matplotlib import pyplot as plt"
+    "from matplotlib import pyplot as plt\n",
+    "import pandas"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 32,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 2,
+   "metadata": {},
    "outputs": [],
    "source": [
-    "# plot the solution\n",
     "def plot(directory):\n",
+    "    \"\"\"A generic plotting script plotting ponded depth and discharge/runoff\"\"\"\n",
     "    vis = ats_xdmf.VisFile(directory, domain='surface', time_unit='s')\n",
     "    vis.loadMesh(order=['x','y'])\n",
     "\n",
@@ -72,8 +65,8 @@
     "    ax[0].set_xlabel('x-coordinate [m]')\n",
     "    ax[0].set_ylabel('ponded depth [m]')\n",
     "    \n",
-    "    hydro = np.loadtxt(os.path.join(directory, 'surface_outlet_flux.dat'))\n",
-    "    ax[1].plot(hydro[:,0]/60.0, hydro[:,1], 'b')\n",
+    "    hydro = pandas.read_csv(os.path.join(directory, 'surface_outlet_flux.dat'), comment='#')\n",
+    "    ax[1].plot(hydro[\"time [s]\"][:]/60.0, hydro[\"surface outlet flux\"][:], 'b')\n",
     "    ax[1].set_xlabel('time [min]')\n",
     "    ax[1].set_ylabel('discharge flow rate [mol/s]')\n",
     "    \n",
@@ -86,19 +79,15 @@
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
-    "The baseline problem -- this simply rains with no flux boundaries (and hence no discharge).  The rain turns off after 60 minutes, and the simulation continues to drain for 3 hours."
+    "The baseline problem -- this simply rains with no flux boundaries (and hence no discharge).  The rain turns off after 60 minutes, and the simulation continues to drain for 3 hours.  Note the ponded depth plots are a little weird here -- they should probably get updated to plot h + z, i.e. the ponded depth on top of the baseline elevation (the ramp)."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 33,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 3,
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -126,19 +115,15 @@
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "Often it is useful to set a max river stage, or head boundary condition, which lets water out once the head gets above a certain level (e.g. 15 cm here).  In this example, the mesh is so coarse and the domain is sufficiently sloped that the entire domain still drains (the most downhill cell's elevation is more than 15cm about the boundary elevation), but this would not be the case in a higher-resolution or less-sloping run."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 34,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 4,
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -161,24 +146,20 @@
     }
    ],
    "source": [
-    "plot(\"surface_water-max_head.demo\")"
+    "plot(\"max_head.demo\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "There are two other alternatives to setting the max ponded depth at the outlet.  The first is a \"zero ponded depth gradient\" boundary, where the water level is assumed to parallel the topography.  Note this is really only useful in synthetic cases, where you know that this will not result in water flowing **_into_** the domain."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 35,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 5,
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -201,14 +182,12 @@
     }
    ],
    "source": [
-    "plot(\"surface_water-zero_gradient.demo\")"
+    "plot(\"zero_gradient.demo\")"
    ]
   },
   {
    "cell_type": "markdown",
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "source": [
     "Finally, the second is a critical depth boundary condition, which sets the flux based on ponded depth, and is standard in the literature.\n",
     "\n",
@@ -223,10 +202,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 36,
-   "metadata": {
-    "collapsed": false
-   },
+   "execution_count": 6,
+   "metadata": {},
    "outputs": [
     {
      "name": "stdout",
@@ -249,46 +226,34 @@
     }
    ],
    "source": [
-    "plot(\"surface_water-critical_depth.demo\")"
+    "plot(\"critical_depth.demo\")"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {
-    "collapsed": false
-   },
+   "metadata": {},
    "outputs": [],
    "source": []
   }
  ],
  "metadata": {
   "kernelspec": {
-   "argv": [
-    "/Users/uec/code/miniconda/bin/python",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-   ],
    "display_name": "Python 3",
-   "env": null,
-   "interrupt_mode": "signal",
    "language": "python",
-   "metadata": null,
    "name": "python3"
   },
   "language_info": {
    "codemirror_mode": {
     "name": "ipython",
-    "version": 2
+    "version": 3
    },
    "file_extension": ".py",
    "mimetype": "text/x-python",
    "name": "python",
    "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython2",
-   "version": "2.7.14"
+   "pygments_lexer": "ipython3",
+   "version": "3.8.3"
   },
   "name": "surface_water.ipynb"
  },

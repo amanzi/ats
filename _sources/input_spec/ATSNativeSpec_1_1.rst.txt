@@ -1,4 +1,4 @@
-ATS Native XML Input Specification V-dev
+ATS Native XML Input Specification V-1.1
 ****************************************
 
 
