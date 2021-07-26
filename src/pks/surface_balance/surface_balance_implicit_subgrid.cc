@@ -187,8 +187,6 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
         Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) {
   int cycle = S_next_->cycle();
 
-  AMANZI_ASSERT(S_next_->GetFieldEvaluator(new_snow_key_).get() == S_next_->GetFieldEvaluator(source_key_).get());
-
   // first calculate the "snow death rate", or rate of snow SWE that must melt over this
   // timestep if the snow is to go to zero.
   auto& snow_death_rate = *S_next_->GetFieldData(snow_death_rate_key_, name_)->ViewComponent("cell",false);

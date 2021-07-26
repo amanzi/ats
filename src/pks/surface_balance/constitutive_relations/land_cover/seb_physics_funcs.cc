@@ -186,7 +186,10 @@ double EvaporativeResistanceCoef(double saturation_gas,
     // lot of assumptions here of hard-coded parameters including C&H WRM, a
     // residual water content of 0.0556 (not sure why this was chosen), and
     // more.
-    double s_res = 0.0556 / porosity;
+    //
+    // The result of using this with other WRMs requires some adaptation...
+    // also with arbitrary values.
+    double s_res = std::max(0.0556 / porosity, 0.4);
     double vp_diffusion = 0.000022 * std::pow(porosity,2)
                           * std::pow(1-s_res, 2 + 3*Clapp_Horn_b);
     // Sakagucki and Zeng 2009 eqaution (10)
