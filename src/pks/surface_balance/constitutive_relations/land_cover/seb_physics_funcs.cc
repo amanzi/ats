@@ -189,7 +189,7 @@ double EvaporativeResistanceCoef(double saturation_gas,
     //
     // The result of using this with other WRMs requires some adaptation...
     // also with arbitrary values.
-    double s_res = std::max(0.0556 / porosity, 0.4);
+    double s_res = std::min(0.0556 / porosity, 0.4);
     double vp_diffusion = 0.000022 * std::pow(porosity,2)
                           * std::pow(1-s_res, 2 + 3*Clapp_Horn_b);
     // Sakagucki and Zeng 2009 eqaution (10)
