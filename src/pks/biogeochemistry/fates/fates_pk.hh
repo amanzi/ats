@@ -77,6 +77,8 @@ namespace BGC {
     //void fatesreportparameters(int* proc);
     void set_fates_global_elements();
     void get_nlevsclass(int*);
+    void get_numpft(int*);
+    void get_nlevage(int*);
     void dynamics_driv_per_site(int*, int*, site_info*, TimeInput*, double*,
                                 double*, double*, double*, double*,
                                 double*);
@@ -87,7 +89,11 @@ namespace BGC {
     void wrap_accumulatefluxes(int*, double*);
     void prep_canopyfluxes(int*); 
         
-    void calculate_biomass(int*, double*  ats_biomass_array, int nsites, int num_scls);
+    void calculate_biomass(int* nc, double*  ats_biomass_array, double* ats_bstore_pa_array, int nsites, int num_scls);
+    void calculate_gpp(int* nc, double* ats_gpp_pa_array, double *ats_gpp_si_array, int nsites, int num_scls, double* dt_tstep) ;
+    void calculate_mortality(int *nc, double *ats_mortality_si_pft_array, int nsites, int num_pft, int nlevsclass);
+    void calculate_lai(int *nc, double *ats_lai_si_age_array, int nsites, int num_scls);
+      
   
 #ifdef __cplusplus
   } // extern "C"
@@ -151,6 +157,11 @@ namespace BGC {
     Key met_decomp_key_, cel_decomp_key_, lig_decomp_key_;
     Key longwave_key_, incident_rad_key_;
     Key salinity_key_, ponded_depth_key_;
+    Key transpiration_beta_factor_key_;
+    Key gross_primary_prod_key_pa_, gross_primary_prod_key_si_;
+    Key leaf_area_key_;
+    Key storage_biomass_key_;
+    Key mortality_key_;
     int ncomp_salt_;
 
     std::vector<double> t_soil_;  // soil temperature
@@ -160,7 +171,7 @@ namespace BGC {
     std::vector<double> suc_; //suction head
     std::vector<double> salinity_; //suction head
 
-    int patchno_, nlevdecomp_, nlevsclass_;
+    int patchno_, nlevdecomp_, nlevsclass_, numpft_, nlevage_;
     int ncells_owned_, ncells_per_col_, clump_;
     int masterproc_;
     std::vector<site_info> site_;

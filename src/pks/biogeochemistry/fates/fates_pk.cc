@@ -107,6 +107,8 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
   
   // Get from FATES the total number of cohort size class bins output
   get_nlevsclass(&nlevsclass_);
+  get_numpft(&numpft_);
+  get_nlevage(&nlevage_);
   
   // requirements: primary variable
   S->RequireField(key_, name_)->SetMesh(mesh_surf_)
@@ -182,6 +184,40 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
       ->SetComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(incident_rad_key_);
   }
+
+  transpiration_beta_factor_key_=Keys::getKey(domain_surf_,"transpiration_beta_factor");
+  if (!S->HasField(transpiration_beta_factor_key_)){    
+    S->RequireField(transpiration_beta_factor_key_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);   
+  }
+  gross_primary_prod_key_pa_=Keys::getKey(domain_surf_,"gross_primary_prodactivity_pa");
+  if (!S->HasField(gross_primary_prod_key_pa_)){    
+    S->RequireField(gross_primary_prod_key_pa_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);   
+  }
+  gross_primary_prod_key_si_=Keys::getKey(domain_surf_,"gross_primary_prodactivity_si");
+  if (!S->HasField(gross_primary_prod_key_si_)){    
+    S->RequireField(gross_primary_prod_key_si_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);   
+  }
+  leaf_area_key_=Keys::getKey(domain_surf_,"leaf_area");
+  if (!S->HasField(leaf_area_key_)){    
+    S->RequireField(leaf_area_key_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, nlevage_);   
+  }
+  storage_biomass_key_=Keys::getKey(domain_surf_,"storage_biomass");
+  if (!S->HasField(storage_biomass_key_)){    
+    S->RequireField(storage_biomass_key_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);   
+  }
+
+  mortality_key_=Keys::getKey(domain_surf_,"bio_mortality");
+  if (!S->HasField(mortality_key_)){    
+    S->RequireField(mortality_key_, name_)->SetMesh(mesh_surf_)
+      ->SetComponent("cell", AmanziMesh::CELL, numpft_);   
+  }
+
+
 
   if (compute_avr_ponded_depth_) {
     ponded_depth_key_ = Keys::getKey(domain_surf_,"time_average_ponded_depth");
@@ -338,13 +374,38 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   init_coldstart(&clump_);
 
   Epetra_MultiVector& biomass = *S->GetFieldData(key_, name_)->ViewComponent("cell", false);
-  double* data_ptr;
+  Epetra_MultiVector& bstore  = *S->GetFieldData(storage_biomass_key_, name_)->ViewComponent("cell", false);
+  double* data_ptr_mass;
+  double* data_ptr_storage;
   int data_dim;
 
   biomass.PutScalar(0.);
-  biomass.ExtractView(&data_ptr, &data_dim);
-  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
+  biomass.ExtractView(&data_ptr_mass, &data_dim);
+  bstore.PutScalar(0.);
+  bstore.ExtractView(&data_ptr_storage, &data_dim);
+    
+  calculate_biomass(&clump_, data_ptr_mass, data_ptr_storage, data_dim, nlevsclass_);
   S->GetField(key_, name_)->set_initialized();
+  S->GetField(storage_biomass_key_, name_)->set_initialized(); 
+
+  S->GetFieldData(gross_primary_prod_key_pa_, name_)->ViewComponent("cell", false)->PutScalar(0.);
+  S->GetField(gross_primary_prod_key_pa_, name_)->set_initialized();
+  S->GetFieldData(gross_primary_prod_key_si_, name_)->ViewComponent("cell", false)->PutScalar(0.);
+  S->GetField(gross_primary_prod_key_si_, name_)->set_initialized();
+
+  Epetra_MultiVector& lai = *S->GetFieldData(leaf_area_key_, name_)->ViewComponent("cell", false);
+  double *data_ptr_lai;
+  lai.PutScalar(0.); 
+  lai.ExtractView(&data_ptr_lai, &data_dim); 
+  calculate_lai(&clump_, data_ptr_lai, data_dim, nlevage_); 
+  S->GetField(leaf_area_key_, name_)->set_initialized();
+
+  S->GetFieldData(transpiration_beta_factor_key_, name_)->ViewComponent("cell", false)->PutScalar(0.);
+  S->GetField(transpiration_beta_factor_key_, name_)->set_initialized();
+
+  S->GetFieldData(mortality_key_, name_)->ViewComponent("cell", false)->PutScalar(0.);
+  S->GetField(mortality_key_, name_)->set_initialized();
+
 
 }
 
@@ -626,15 +687,44 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 void FATES_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S){
 
   Epetra_MultiVector& biomass = *S->GetFieldData(key_, name_)->ViewComponent("cell", false);
-  double* data_ptr;
+  Epetra_MultiVector& bstore  = *S->GetFieldData(storage_biomass_key_, name_)->ViewComponent("cell", false);
+  double* data_ptr_mass;
+  double* data_ptr_storage;
   int data_dim;
 
   biomass.PutScalar(0.);
+  biomass.ExtractView(&data_ptr_mass, &data_dim);
+  bstore.PutScalar(0.);
+  bstore.ExtractView(&data_ptr_storage, &data_dim);
 
-  biomass.ExtractView(&data_ptr, &data_dim);
-
-  calculate_biomass(&clump_, data_ptr, data_dim, nlevsclass_);
+  calculate_biomass(&clump_, data_ptr_mass, data_ptr_storage, data_dim, nlevsclass_);
   
+  Epetra_MultiVector& gpp_pa = *S->GetFieldData(gross_primary_prod_key_pa_, name_)->ViewComponent("cell", false);
+  Epetra_MultiVector& gpp_si = *S->GetFieldData(gross_primary_prod_key_si_, name_)->ViewComponent("cell", false);
+  double* data_ptr_gpp_pa;
+  double* data_ptr_gpp_si;
+  double dt = t_new - t_old;
+
+  gpp_pa.PutScalar(0.);
+  gpp_pa.ExtractView(&data_ptr_gpp_pa, &data_dim);
+  gpp_si.PutScalar(0.);
+  gpp_si.ExtractView(&data_ptr_gpp_si, &data_dim);
+
+  calculate_gpp(&clump_, data_ptr_gpp_pa, data_ptr_gpp_si, data_dim, nlevsclass_, &dt);
+
+  Epetra_MultiVector& mortality = *S->GetFieldData(mortality_key_, name_)->ViewComponent("cell", false);
+  double* data_ptr_mort;
+  mortality.PutScalar(0.);
+  mortality.ExtractView(&data_ptr_mort, &data_dim); 
+
+  calculate_mortality(&clump_, data_ptr_mort, data_dim, numpft_, nlevsclass_);
+
+
+  Epetra_MultiVector& lai = *S->GetFieldData(leaf_area_key_, name_)->ViewComponent("cell", false);
+  double *data_ptr_lai;
+  lai.PutScalar(0.); 
+  lai.ExtractView(&data_ptr_lai, &data_dim); 
+  calculate_lai(&clump_, data_ptr_lai, data_dim, nlevage_); 
 }
 
 
