@@ -17,6 +17,7 @@ jobs:
       with:
         repository: amanzi/amanzi
         submodules: true
+        ref:        amanzi-1.2
     - name: Extract the branch name
       id: branch
       working-directory: Docker
