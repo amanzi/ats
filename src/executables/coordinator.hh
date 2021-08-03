@@ -110,10 +110,10 @@ public:
 
   // PK methods
   void setup();
-  void initialize();
+  double initialize(); // returns dt if a restarted run
   void finalize();
   void report_memory();
-  bool advance(double t_old, double t_new);
+  bool advance(double t_old, double t_new, double& dt_next);
   void visualize(bool force=false);
   void checkpoint(double dt, bool force=false);
   double get_dt(bool after_fail=false);

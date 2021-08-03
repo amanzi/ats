@@ -110,15 +110,13 @@ void Coordinator::coordinator_init() {
           ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
 
-    // -------------- ANALYSIS --------------------------------------------
-    if (parameter_list_->isSublist("analysis")){
-
+    // writes region information
+    if (parameter_list_->isSublist("analysis")) {
       Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
       analysis.Init(parameter_list_->sublist("analysis").sublist(mesh->first));
       analysis.RegionAnalysis();
       analysis.OutputBCs();
     }
-
   }
 
   // create the time step manager
@@ -135,7 +133,7 @@ void Coordinator::setup() {
   S_->Setup();
 }
 
-void Coordinator::initialize() {
+double Coordinator::initialize() {
   Teuchos::OSTab tab = vo_->getOSTab();
   int size = comm_->NumProc();
   int rank = comm_->MyPID();
@@ -156,11 +154,12 @@ void Coordinator::initialize() {
 
   // Restart from checkpoint part 2:
   // -- load all other data
+  double dt_restart = -1;
   if (restart_) {
-    Amanzi::ReadCheckpoint(*S_, restart_filename_);
+    dt_restart = Amanzi::ReadCheckpoint(*S_, restart_filename_);
     t0_ = S_->time();
     cycle0_ = S_->cycle();
-    
+
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first)) {
@@ -175,23 +174,17 @@ void Coordinator::initialize() {
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-
-  //WriteStateStatistics(*S_, *vo_);
   // commit the initial conditions.
-  pk_->CommitStep(0., 0., S_);
+  pk_->CommitStep(S_->time(), S_->time(), S_);
 
-
-  //WriteStateStatistics(*S_, *vo_);  
   // Write dependency graph.
   S_->WriteDependencyGraph();
-  S_->InitializeIOFlags(); 
+  S_->InitializeIOFlags();
 
   // Check final initialization
   WriteStateStatistics(*S_, *vo_);
 
-
-  
-  // visualization
+  // Set up visualization
   auto vis_list = Teuchos::sublist(parameter_list_,"visualization");
   for (auto& entry : *vis_list) {
     std::string domain_name = entry.first;
@@ -252,7 +245,7 @@ void Coordinator::initialize() {
     }
   }
 
-  // make observations
+  // make observations at time 0
   for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
 
   S_->set_time(t0_); // in case steady state solve changed this
@@ -298,6 +291,7 @@ void Coordinator::initialize() {
   // (e.g. from construction), whereas S_inter and S_next are only valid after
   // set_states() is called.  This allows for standard interfaces.
   pk_->set_states(S_, S_inter_, S_next_);
+  return dt_restart;
 }
 
 void Coordinator::finalize() {
@@ -458,7 +452,7 @@ double Coordinator::get_dt(bool after_fail) {
 }
 
 
-bool Coordinator::advance(double t_old, double t_new) {
+bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
   double dt = t_new - t_old;
 
   S_next_->advance_time(dt);
@@ -475,7 +469,8 @@ bool Coordinator::advance(double t_old, double t_new) {
     // make observations, vis, and checkpoints
     for (const auto& obs : observations_) obs->MakeObservations(S_next_.ptr());
     visualize();
-    checkpoint(dt);
+    dt_next = get_dt(fail);
+    checkpoint(dt_next); // checkpoint with the new dt
 
     // we're done with this time step, copy the state
     *S_ = *S_next_;
@@ -519,6 +514,7 @@ bool Coordinator::advance(double t_old, double t_new) {
         mesh->second.first->deform(node_ids, old_positions, false, &final_positions);
       }
     }
+    dt_next = get_dt(fail);
   }
   return fail;
 }
@@ -560,23 +556,19 @@ void Coordinator::cycle_driver() {
   const double duration(duration_ * 3600);
 
   // start at time t = t0 and initialize the state.
+  double dt_restart = -1;
   {
     Teuchos::TimeMonitor monitor(*setup_timer_);
     setup();
-    initialize();
-
+    dt_restart = initialize();
   }
 
-  ////exit(0);
-
-  // get the intial timestep -- note, this would have to be fixed for a true restart
-  double dt = get_dt(false);
+  // get the intial timestep
+  double dt = dt_restart > 0 ? dt_restart : get_dt(false);
 
   // visualization at IC
   visualize();
   checkpoint(dt);
-
-
 
   // iterate process kernels
   {
@@ -608,15 +600,11 @@ void Coordinator::cycle_driver() {
       S_->set_final_time(S_->time() + dt);
       S_->set_intermediate_time(S_->time());
 
-      fail = advance(S_->time(), S_->time() + dt);
-      dt = get_dt(fail);
+      fail = advance(S_->time(), S_->time() + dt, dt);
     } // while not finished
 
-
 #if !DEBUG_MODE
-  }
-
-  catch (Amanzi::Exceptions::Amanzi_exception &e) {
+  } catch (Amanzi::Exceptions::Amanzi_exception &e) {
     // write one more vis for help debugging
     S_next_->advance_cycle();
     visualize(true); // force vis
@@ -635,14 +623,12 @@ void Coordinator::cycle_driver() {
 #endif
   }
 
-
   // finalizing simulation
   WriteStateStatistics(*S_, *vo_);
   report_memory();
   Teuchos::TimeMonitor::summarize(*vo_->os());
 
   finalize();
-
 } // cycle driver
 
 
