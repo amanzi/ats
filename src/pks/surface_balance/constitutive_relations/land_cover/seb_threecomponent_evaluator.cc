@@ -275,6 +275,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.porosity = poro[0][cells[0]];
         surf.saturation_gas = sat_gas[0][cells[0]];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
+        surf.water_transition_depth = lc.second.water_transition_depth;
 
         // must ensure that energy is put into melting snow precip, even if it
         // all melts so there is no snow column
@@ -342,6 +343,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.porosity = 1.;
         surf.saturation_gas = 0.;
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
+        surf.water_transition_depth = lc.second.water_transition_depth;
 
         // must ensure that energy is put into melting snow precip, even if it
         // all melts so there is no snow column
@@ -408,6 +410,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.saturation_gas = 0.; // does not matter
         surf.porosity = 1.; // does not matter
         surf.unfrozen_fraction = unfrozen_fraction[0][c]; // does not matter
+        surf.water_transition_depth = lc.second.water_transition_depth;
 
         met.Ps = Psnow[0][c] / area_fracs[2][c];
 

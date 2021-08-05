@@ -269,6 +269,7 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       if (area_fracs[0][c] > 0) {
         Relations::GroundProperties surf;
         surf.temp = surf_temp[0][c];
+        surf.water_transition_depth = lc.second.water_transition_depth;
         if (ponded_depth[0][c] > lc.second.water_transition_depth) {
           surf.pressure = surf_pres[0][c];
           surf.porosity = 1.;
@@ -358,6 +359,7 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.dz = lc.second.dessicated_zone_thickness;
         surf.albedo = sg_albedo[1][c];
         surf.emissivity = emissivity[1][c];
+        surf.water_transition_depth = lc.second.water_transition_depth;
 
         met.Ps = Psnow[0][c] / area_fracs[1][c];
 

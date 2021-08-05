@@ -85,7 +85,6 @@ struct ModelParams {
 
   // other parameters
   double evap_transition_width;
-  double water_ground_transition_depth;
 };
 
 
@@ -101,9 +100,9 @@ struct GroundProperties {
   double emissivity;                    // [-]
   double saturation_gas;                // [-]
   double roughness;                     // [m] surface roughness of a bare domain
-  double fractional_area;               // [-] not used by SEB, but useful for later bookkeeping
   double snow_death_rate;               // [kg/m^2/s] snow that must die this timestep, make it melt!
-  double unfrozen_fraction;		// [-] fraction of ground water that is unfrozen
+  double unfrozen_fraction;             // [-] fraction of ground water that is unfrozen
+  double water_transition_depth;        // [m] microtopographic relief, smoothing factor between water and bare ground
 
   GroundProperties() :
       temp(NaN),
@@ -115,9 +114,9 @@ struct GroundProperties {
       emissivity(NaN),
       saturation_gas(NaN),
       roughness(NaN),
-      fractional_area(0.),
       snow_death_rate(0.),
-      unfrozen_fraction(0.)
+      unfrozen_fraction(0.),
+      water_transition_depth(0.02)
   {}
 
   void UpdateVaporPressure();

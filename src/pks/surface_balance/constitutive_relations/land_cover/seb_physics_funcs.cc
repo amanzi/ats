@@ -445,7 +445,7 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
   if (model_1p1) {
     // NOTE: this old model allows indepedent values of evap_transition_width
     // (which governs where the flux goes, in units of Pa) and
-    // water_ground_transition_depth (which governs where the
+    // water_transition_depth (which governs where the
     // saturation/pressure are used to calculate how much water to take, in
     // units of [m]).  This was deprecated because it allowed inconsistencies.
     if (mb.Me < 0) {
@@ -461,7 +461,7 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
     }
   } else {
     evap_to_subsurface_fraction = 1 - std::min(1.0,
-          surf.ponded_depth / params.water_ground_transition_depth);
+          surf.ponded_depth / surf.water_transition_depth);
   }
   AMANZI_ASSERT(evap_to_subsurface_fraction >= 0. && evap_to_subsurface_fraction <= 1.);
 
