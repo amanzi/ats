@@ -56,7 +56,6 @@ void Coupled_ReactiveTransport_PK_ATS::cast_sub_pks_()
 void Coupled_ReactiveTransport_PK_ATS::Setup(const Teuchos::Ptr<State>& S)
 {
   Amanzi::PK_MPCAdditive<PK>::Setup(S);
-
   cast_sub_pks_();
 
   // communicate chemistry engine to transport.
@@ -94,29 +93,36 @@ double Coupled_ReactiveTransport_PK_ATS::get_dt()
 
 void Coupled_ReactiveTransport_PK_ATS::set_states(const Teuchos::RCP<State>& S,
                                                   const Teuchos::RCP<State>& S_inter,
-                                                  const Teuchos::RCP<State>& S_next) {
-  //  PKDefaultBase::set_states(S, S_inter, S_next);
+                                                  const Teuchos::RCP<State>& S_next)
+{
   //S_ = S;
   S_inter_ = S_inter;
   S_next_ = S_next;
 
   //chemistry_pk_->set_states(S, S_inter, S_next);
   tranport_pk_->set_states(S, S_inter, S_next);
-
 }
 
 
 
-void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S){
-
-  //Amanzi::ReactiveTransport_PK_ATS::Initialize(S);
-
+void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
+{
   Key subsurface_domain_key = tranport_pk_subsurface_->domain();
   Key overland_domain_key = tranport_pk_overland_->domain();
   Key tcc_sub_key = Keys::getKey(subsurface_domain_key, "total_component_concentration");
   Key tcc_over_key = Keys::getKey(overland_domain_key, "total_component_concentration");
   Key sub_mol_den_key = Keys::getKey(subsurface_domain_key,  "molar_density_liquid");
   Key over_mol_den_key = Keys::getKey(overland_domain_key,  "molar_density_liquid");
+
+  // NOTE: this requires that Reactive-Transport is done last, or at least
+  // after the density of water can be evaluated.  This could be problematic
+  // for, e.g., salinity intrusion problems where water density is a function
+  // of concentration itself, but should work for all other problems?
+  //
+  // Note also then that these fields and evaluators should be required here,
+  // but aren't. --fixme
+  S_->GetFieldEvaluator(sub_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
+  S_->GetFieldEvaluator(over_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
 
   Teuchos::RCP<Epetra_MultiVector> tcc_sub =
     S_->GetFieldData(tcc_sub_key,"state")->ViewComponent("cell", true);
@@ -139,13 +145,6 @@ void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S){
 
   tranport_pk_subsurface_->Initialize(S);
   tranport_pk_overland_->Initialize(S);
-
-
-
-  // //S_->WriteStatistics(vo_);
-  // std::cout<<(*tcc_over)<<"\n";
-  // exit(0);
-
 }
 
 
