@@ -121,7 +121,7 @@ class WiltingPointLimiter(object):
             return (self._pc_closed - pc) / (self._pc_closed - self._pc_open)
 
     def label( self ):
-        return "WiltingPoint model"
+        return "WP: pc_open=%1.2e [Pa], pc_closed=%1.2e"%(self._pc_open, self._pc_closed)
 
     def short_label( self ):
         return self.label()
@@ -222,13 +222,39 @@ if __name__ == "__main__":
             raise argparse.ArgumentTypeError("WRM must be van Genucten parameters (alpha, n, sr, label, smoothing_interval_sat)")
         else:
             return label, VanGenuchten(alpha=alpha, n=n, sr=sr, smoothing_interval_sat=smooth_int_sat)
+
+    def option_to_wp(s):
+        print("got: {}".format(s))
+        try:
+            s = shlex.split(s)
+            print("s = {}".format(s))
+            assert(2 <= len(s) <= 3)
+
+            pc_open, pc_closed = map(float, s[0:2])
+
+            if len(s) > 2:
+                label = s[2]
+            else:
+                label = None
+
+            print("Wilting Point limiter:")
+            print(f"  pc_open = {pc_open}")
+            print(f"  pc_closed = {pc_closed}")
+            print(f"  label = {label}")
             
+        except:
+            raise argparse.ArgumentTypeError("Wilting point limiter must be parameters  (pc_open, pc_closed, label)")
+        else:
+            return label, WiltingPointLimiter(pc_open, pc_closed)
+
+        
     parser.add_argument('--wrm', type=option_to_wrm, action='append', help='WRM parameters, "alpha n sr [label [smoothing_interval_sat]]"')
+    parser.add_argument('--wp', type=option_to_wp, action='append', help='wilting point capillary pressure parameters, "stomata_pc_open stomata_pc_closed [label]"')
     parser.add_argument('--y-units', type=str, choices=['Pa','m','hPa','cm'], default='Pa', help='units of the y-axis, in log space')
     parser.add_argument('--kr', action='store_true', help='Plot relative permeability curve')
 
     args = parser.parse_args()
-    color_list = colors.enumerated_colors(len(args.wrm))
+    color_list = colors.enumerated_colors(len(args.wrm)+len(args.wp))
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -239,6 +265,8 @@ if __name__ == "__main__":
     else:
         for (label,wrm), color in zip(args.wrm, color_list):
             plot(wrm, ax, color, y_units=args.y_units, label=label)
+        for (label,wp), color in zip(args.wp, color_list[len(args.wrm):]):
+            plot(wp, ax, color, y_units=args.y_units, label=label)
     ax.legend()
     plt.show()
     sys.exit(0)

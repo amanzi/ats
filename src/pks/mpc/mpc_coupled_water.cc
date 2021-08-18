@@ -32,6 +32,7 @@ MPCCoupledWater::Setup(const Teuchos::Ptr<State>& S) {
   domain_ss_ = plist_->get<std::string>("domain name","domain");
   domain_surf_ = (domain_ss_.empty() || domain_ss_ == "domain") ? "surface" : std::string("surface_")+domain_ss_;
   domain_surf_ = plist_->get<std::string>("surface domain name",domain_surf_);
+
   // grab the meshes
   surf_mesh_ = S->GetMesh(domain_surf_);
   domain_mesh_ = S->GetMesh(domain_ss_);
@@ -71,23 +72,44 @@ MPCCoupledWater::Setup(const Teuchos::Ptr<State>& S) {
 
   // grab the debuggers
   domain_db_ = domain_flow_pk_->debugger();
-  surf_db_ = surf_flow_pk_->debugger();
   water_->set_db(domain_db_);
+  surf_db_ = surf_flow_pk_->debugger();
+
+  // With this MPC, thanks to the form of the error/solver, it is often easier
+  // to figure out what subsurface face or cell to debug, and it is hard to
+  // figure out what the corresponding cell of the surface system is.
+  // Therefore, for all debug cells of the subsurface, if that cell is in the
+  // top layer of cells, we add the corresponding face's surface cell.
+  AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
+
+  int ncells_surf = surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL,
+          AmanziMesh::Parallel_type::OWNED);
+  if (debug_cells.size() > 0) {
+    const auto& domain_cell_map = domain_mesh_->cell_map(false);
+    const auto& surf_cell_map = surf_mesh_->cell_map(false);
+    AmanziMesh::Entity_ID_List surf_debug_cells;
+    for (int sc=0; sc!=ncells_surf; ++sc) {
+      int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
+      AmanziMesh::Entity_ID_List fcells;
+      domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      AMANZI_ASSERT(fcells.size() == 1);
+      auto gid = domain_cell_map.GID(fcells[0]);
+      if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
+        surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+    }
+    if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
+  }
 }
 
 void
-
 MPCCoupledWater::Initialize(const Teuchos::Ptr<State>& S) {
    // initialize coupling terms
   S->GetFieldData(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)->PutScalar(0.);
   S->GetField(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)->set_initialized();
-  // Initialize all sub PKs.
 
+  // Initialize all sub PKs.
   MPC<PK_PhysicalBDF_Default>::Initialize(S);
 
-  // // ensure continuity of ICs... surface takes precedence.
-  // CopySurfaceToSubsurface(*S->GetFieldData(Keys::getKey(domain_surf_,"pressure"), sub_pks_[1]->name()),
-  //       		  S->GetFieldData(Keys::getKey(domain_ss_,"pressure"), sub_pks_[0]->name()).ptr());
   // ensure continuity of ICs... subsurface takes precedence.
   CopySubsurfaceToSurface(*S->GetFieldData(Keys::getKey(domain_ss_,"pressure"), sub_pks_[0]->name()),
 			  S->GetFieldData(Keys::getKey(domain_surf_,"pressure"), sub_pks_[1]->name()).ptr());
@@ -119,7 +141,6 @@ MPCCoupledWater::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 
   // The residual of the surface flow equation provides the mass flux from
   // subsurface to surface.
-
   Epetra_MultiVector& source = *S_next_->GetFieldData(Keys::getKey(domain_surf_,"surface_subsurface_flux"),
           name_)->ViewComponent("cell",false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell",false);
@@ -201,13 +222,11 @@ MPCCoupledWater::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
 
   // Merge surface cells with subsurface faces
   if (modified) {
-
     S_next_->GetFieldEvaluator(Keys::getKey(domain_surf_,"relative_permeability"))->HasFieldChanged(S_next_.ptr(),name_);
     Teuchos::RCP<const CompositeVector> h_prev = S_inter_->GetFieldData(Keys::getKey(domain_surf_,"ponded_depth"));
     MergeSubsurfaceAndSurfacePressure(*h_prev, u->SubVector(0)->Data().ptr(),
             u->SubVector(1)->Data().ptr());
   }
-
 
   // Hack surface faces
   bool newly_modified = false;
