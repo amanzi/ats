@@ -94,6 +94,7 @@ void Richards::FunctionalResidual(double t_old,
 
   // accumulation term
   AddAccumulation_(res.ptr());
+  db_->WriteVector("res (acc)", res.ptr(), true);
 
   // source term
   if (is_source_term_) {
@@ -102,6 +103,7 @@ void Richards::FunctionalResidual(double t_old,
     } else {
       AddSources_(S_next_.ptr(), res.ptr());
     }
+    db_->WriteVector("res (src)", res.ptr(), false);
   }
 };
 

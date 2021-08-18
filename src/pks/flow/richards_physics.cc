@@ -57,7 +57,7 @@ void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   // update the water content at both the old and new times.
   S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
   S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-    
+
   // get these fields
   Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetFieldData(conserved_key_);
   Teuchos::RCP<const CompositeVector> wc0 = S_inter_->GetFieldData(conserved_key_);
@@ -65,9 +65,6 @@ void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   // Water content only has cells, while the residual has cells and faces.
   g->ViewComponent("cell",false)->Update(1.0/dt, *wc1->ViewComponent("cell",false),
           -1.0/dt, *wc0->ViewComponent("cell",false), 1.0);
-  
-  db_->WriteVector("res (acc)", g, true);
-
 };
 
 
@@ -96,11 +93,7 @@ void Richards::AddSources_(const Teuchos::Ptr<State>& S,
       g_c[0][c] -= source1[0][c] * cv[0][c];
     }
 
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-      *vo_->os() << "Adding external source term" << std::endl;
-      db_->WriteVector("  Q_ext", S->GetFieldData(source_key_).ptr(), false);
-    }  
-    db_->WriteVector("res (src)", g, false);
+    db_->WriteVector("  source", S->GetFieldData(source_key_).ptr(), false);
   }
 }
 
