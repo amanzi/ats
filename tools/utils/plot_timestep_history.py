@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 """Loads and plots timestep history for a given run."""
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
+from matplotlib import pyplot as plt
 
 def print_headers():
     print("cycle, time, dt, iteration count, wallclock avg (s)")
@@ -67,8 +65,6 @@ def read_from_file(fname):
             
 if __name__ == "__main__":
     import sys,os
-    from matplotlib import pyplot as plt
-
     import argparse
     import colors
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
