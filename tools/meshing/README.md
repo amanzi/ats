@@ -5,12 +5,12 @@ There are currently four frequently used approaches for generating 3D ATS meshes
 
 - `extrude`
 - `meshing_ats`
-- GIS/python-based workflow
+- GIS/python-based workflow https://github.com/ecoon/watershed-workflow
 - LaGrit/TetGen/others
 
-Anything that can write an Exodus II file or can be converted
-to a valid unstructured Exodus II file is usable.  These are just our
-most commonly used tools.
+Anything that can write an Exodus II file or can be converted to a
+valid unstructured Exodus II file (e.g. VTK) is usable.  These are
+just our most commonly used tools.
 
 
 extrude
@@ -44,7 +44,7 @@ to `extrude` and/or `meshing_ats` for extrusion.  It can handle DEMs
 for you, and can download USGS datasets to do so.  It works with
 watershed shapefiles, etc.
 
-See [the repo|https://github.com/ecoon/ideal-octo-waffle.git]
+See [the repo|https://github.com/ecoon/watershed-workflow.git]
 
 
 LaGrit/TetGen/others

@@ -38,11 +38,17 @@ import collections
 import argparse
 
 try:
+    sys.path.append(os.path.join(os.environ["SEACAS_DIR"],"lib"))
+except KeyError:
+    pass
+
+try:
     import exodus3 as exodus
 except ImportError:
-    sys.path.append(os.path.join(os.environ["SEACAS_DIR"],"lib"))
-    import exodus3 as exodus
-
+    try:
+        import exodus
+    except ImportError:
+        raise ImportError("Cannot find an exodus*.py python wrapper library as either exodus.py or exodus3.py")
 
 class SideSet(object):
     def __init__(self, name, setid, elem_list, side_list):
@@ -284,6 +290,22 @@ class Mesh2D(object):
         return cls(points, gons)
             
     @classmethod
+    def from_Column(cls, x, y, z, width=1):
+        """Generates a single surface cell, to be the top of the column
+
+        Centered at x,y,z, with dx == dy == width.
+        """
+        xs = np.array([-width/2., width/2.])
+        ys = np.array([-width/2., width/2.])
+        Xc, Yc = np.meshgrid(xs,ys)
+        Xc = Xc.flatten()
+        Yc = Yc.flatten()
+        Zc = np.array([z,]*4, 'd')
+        conn = [list(range(4)),]
+        coords = np.array([Xc,Yc,Zc])
+        return cls(coords.transpose(), conn)
+
+    @classmethod
     def from_Transect(cls, x, z, width=1):
         """Creates a 2D surface strip mesh from transect data"""
         # coordinates
@@ -442,10 +464,10 @@ class Mesh3D(object):
             self.side_sets = []
             
         if material_ids is not None:
-            self.material_id_list = collections.Counter(material_ids).keys()
+            self.material_ids_list = collections.Counter(material_ids).keys()
             self.material_ids = material_ids
         else:
-            self.material_id_list = [10000,]
+            self.material_ids_list = [10000,]
             self.material_ids = [10000,]*len(self.elem_to_face_conn)
 
         self.validate()
@@ -882,6 +904,30 @@ class Mesh3D(object):
         return cls(coords, faces, cells, side_sets=side_sets, material_ids=material_ids)
 
 
+def summarize_extrusion(layer_types, layer_data, ncells_per_layer, mat_ids, surface_cell_id=0):
+    """
+    Summarizes extruded data by printing info to log file.
+
+    This is useful in rapidly debugging and understanding the layering before
+    you do the extrusion process.
+    """
+    count = 0
+    print("Cell summary:")
+    print("-"*60)
+    print("l_id\t| c_id\t|mat_id\t| dz\t\t| z_top")
+    print("-"*60)
+    rep_z = 0.
+    for i,thick in enumerate(layer_data):
+        for j in range(ncells_per_layer[i]):
+            try:
+                mat_id = mat_ids[i][surface_cell_id]
+            except (TypeError,IndexError):
+                mat_id = mat_ids[i]
+            print(" %02i \t| %02i \t| %4i \t| %10.6f \t| %10.6f"%(i,
+                         count,mat_id,thick/ncells_per_layer[i], rep_z))
+            count += 1
+            rep_z += thick/ncells_per_layer[i]
+    
 
 def commandline_options():
     parser = argparse.ArgumentParser(description='Extrude a 2D mesh to make a 3D mesh')
