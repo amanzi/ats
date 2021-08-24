@@ -7,11 +7,19 @@ import sys,os
 import numpy as np
 from matplotlib import pyplot as plt
 
+# This is the standard path for SEACAS if Amanzi TPLS are built via
+# bootstrap with --build-shared
+try:
+    import exodus
+except ImportError:
+    sys.path.append(os.path.join(os.environ['AMANZI_TPLS_DIR'],'SEACAS', 'lib'))
+    import exodus
+
 # This is the standard path for ATS's source directory    
 try:
     import meshing_ats
 except ImportError:
-    sys.path.append(os.path.join(os.environ['ATS_SRC_DIR'],'tools','meshing', 'meshing_ats'))
+    sys.path.append(os.path.join(os.environ['ATS_SRC_DIR'],'tools','meshing_ats', 'meshing_ats'))
     import meshing_ats
 
 # set up the surface mesh, which is a single cell
@@ -95,13 +103,18 @@ layer_ncells.append(int(round(layer_data[-1] / 2.0)))
 layer_mat_ids.append(1002)
 
 # -- print out a summary --
-meshing_ats.summarize_extrusion(layer_types, layer_data, layer_ncells, layer_mat_ids)
+count = 0
+print "Cell summary:"
+print "--------------------------------------"
+print "l_id| c_id| mat_id| dz"
+for i,thick in enumerate(layer_data):
+    for j in range(layer_ncells[i]):
+        print " %02i | %02i | %04i | %g"%(i,count,layer_mat_ids[i],thick/layer_ncells[i])
+        count += 1
 
 # Extrude the 3D model with this structure and write to file
 m3 = meshing_ats.Mesh3D.extruded_Mesh2D(m2, layer_types, 
                                         layer_data, 
                                         layer_ncells, 
                                         layer_mat_ids)
-if os.path.exists('column2.exo'):
-    os.remove('column2.exo')
-m3.write_exodus("column2.exo")
+m3.write_exodus("column.exo")
