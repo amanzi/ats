@@ -1,5 +1,5 @@
 import sys,os
-sys.path.append(os.path.join(os.environ['ATS_DIR'],'tools','meshing_ats'))
+sys.path.append(os.path.join(os.environ['ATS_DIR'],'tools','meshing','meshing_ats'))
 import meshing_ats
 
 import numpy as np
@@ -13,9 +13,6 @@ nsurf_cells = 100
 
 x_c = np.linspace(0.0, xmax, nsurf_cells + 1)
 y_c = np.array([0.0, ymax])
-
-
-
 
 topsoil_max_thickness = 0.1
 topsoil_nmesh_layers = 2
@@ -56,4 +53,6 @@ mat_ids = [10000,] + [20000,]*(len(restsoil_zones_thickness) - 1) + [30000,]
 #make 3D mesh
 m3 = meshing_ats.Mesh3D.extruded_Mesh2D(m2, types, thicknesses, ncells, mat_ids)
 #write 3D mesh
+if os.path.exists('meshing_ats_example.exo'):
+    os.remove('meshing_ats_example.exo')
 m3.write_exodus("meshing_ats_example.exo")
