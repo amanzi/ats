@@ -32,7 +32,9 @@ class OverlandConductivityEvaluator : public SecondaryVariableFieldEvaluator {
 
   Teuchos::RCP<ManningConductivityModel> get_Model() { return model_; }
 
-private:
+  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+
+ private:
   Teuchos::RCP<ManningConductivityModel> model_;
 
   Key depth_key_;
