@@ -7,21 +7,22 @@
   Author: Ethan Coon (ecoon@ornl.gov)
 */
 
-#include "energy_bc_factory.hh"
-#include "advection_factory.hh"
+#include "Mesh_Algorithms.hh"
+#include "CompositeVectorFunction.hh"
+#include "CompositeVectorFunctionFactory.hh"
 
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
 #include "PDE_AdvectionUpwind.hh"
+
+#include "energy_bc_factory.hh"
+#include "advection_factory.hh"
 
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
 #include "upwind_total_flux.hh"
 
 #include "enthalpy_evaluator.hh"
-
-#include "CompositeVectorFunction.hh"
-#include "CompositeVectorFunctionFactory.hh"
 #include "pk_helpers.hh"
 
 #include "energy_base.hh"
@@ -794,7 +795,7 @@ EnergyBase::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
     Epetra_MultiVector& dT_bf = *du->Data()->ViewComponent("boundary_face", false);
 
     for (int bf=0; bf!=T_bf.MyLength(); ++bf) {
-      AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
+      AmanziMesh::Entity_ID f = AmanziMesh::getBoundaryFaceFace(*mesh_, bf);
 
       // NOTE: this should get refactored into a helper class, much like predictor_delegate_bc_flux
       // as this would be necessary to deal with general discretizations.  Note that this is not
@@ -802,7 +803,7 @@ EnergyBase::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
       if (bc_markers()[f] == Operators::OPERATOR_BC_NEUMANN &&
           bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
         // diffusive flux BC
-        AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
+        AmanziMesh::Entity_ID c = AmanziMesh::getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
         double T_bf_val = (Acc(0,0)*(T_c[0][c] - dT_c[0][c]) - bc_values()[f]*mesh_->face_area(f)) / Acc(0,0);
         dT_bf[0][bf] = T_bf[0][bf] - T_bf_val;

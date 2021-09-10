@@ -8,58 +8,10 @@
 */
 
 //! A set of helper functions for doing common things in PKs.
+#include "Mesh_Algorithms.hh"
 #include "pk_helpers.hh"
 
-
 namespace Amanzi {
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the corresponding face ID
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
-{
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return fmap.LID(bfmap.GID(bf));
-}
-
-// -----------------------------------------------------------------------------
-// Given a face ID, get the corresponding boundary face ID (assuming it is a bf)
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryBoundaryFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return bfmap.LID(fmap.GID(f));
-}
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the cell internal to that face.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
-{
-  return getFaceOnBoundaryInternalCell(mesh, getBoundaryFaceFace(mesh, bf));
-}
-
-
-// -----------------------------------------------------------------------------
-// Given a face ID, and assuming it is a boundary face, get the cell internal.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  AmanziMesh::Entity_ID_List cells;
-  mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-  if (cells.size() != 1) {
-    Errors::Message message("getFaceOnBoundaryInternalCell called with non-internal face "+std::to_string(f));
-    Exceptions::amanzi_throw(message);
-  }
-  return cells[0];
-}
-
 
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector.

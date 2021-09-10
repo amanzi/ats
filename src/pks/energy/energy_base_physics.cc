@@ -10,12 +10,10 @@ Solves:
 
 de/dt + q dot grad h = div Ke grad T + S?
 ------------------------------------------------------------------------- */
-
-#include "advection.hh"
-#include "FieldEvaluator.hh"
-#include "energy_base.hh"
+#include "Mesh_Algorithms.hh"
 #include "Op.hh"
-#include "pk_helpers.hh"
+
+#include "energy_base.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -184,7 +182,7 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
       if (bc_markers()[f] == Operators::OPERATOR_BC_NEUMANN &&
           bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
         // diffusive flux BC
-        AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
+        AmanziMesh::Entity_ID c = AmanziMesh::getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
         T_bf[0][bf] = (Acc(0,0)*T_c[0][c] - bc_values()[f]*mesh_->face_area(f)) / Acc(0,0);
       }
@@ -199,7 +197,7 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
 
   int nbfaces = enth_bf.MyLength();
   for (int bf=0; bf!=nbfaces; ++bf) {
-    AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
+    AmanziMesh::Entity_ID f = AmanziMesh::getBoundaryFaceFace(*mesh_, bf);
 
     if (bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
       bc_adv_->bc_value()[f] = enth_bf[0][bf];

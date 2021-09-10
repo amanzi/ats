@@ -17,34 +17,6 @@
 
 namespace Amanzi {
 
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the corresponding face ID
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf);
-
-// -----------------------------------------------------------------------------
-// Given a face ID, get the corresponding boundary face ID (assuming it is a bf)
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryBoundaryFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
-
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the cell internal to that face.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf);
-
-
-// -----------------------------------------------------------------------------
-// Given a face ID, and assuming it is a boundary face, get the cell internal.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
-
-
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector's boundary_face
 // component.
