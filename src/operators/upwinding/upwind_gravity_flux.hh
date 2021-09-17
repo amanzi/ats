@@ -36,7 +36,7 @@ public:
 
   virtual
   void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null);
+              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
 
   virtual
   void Update(const Teuchos::Ptr<State>& S,

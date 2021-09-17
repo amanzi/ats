@@ -213,77 +213,9 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
   }
   S->GetField(uw_coef_key_,name_)->set_io_vis(false);
 
-  Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
-  //    If using approximate Jacobian for the preconditioner, we also need
-  //    derivative information.  For now this means upwinding the derivative.
-  jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
-  if (jacobian_) {
-    jacobian_lag_ = mfd_pc_plist.get<int>("Newton correction lag", 0);
-
-    if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
-      // MFD -- upwind required
-      dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
-      duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
-
-      S->RequireField(duw_coef_key_, name_)
-        ->SetMesh(mesh_)->SetGhosted()
-        ->SetComponent("face", AmanziMesh::FACE, 1);
-
-      upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-                                      dcoef_key_, duw_coef_key_, flux_dir_key_, 1.e-8));
-    } else {
-      // FV -- no upwinding
-      dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
-      duw_coef_key_ = std::string();
-    }
-  }
-  
-  // Globalization and other timestep control flags
-  // -- predictors
-  modify_predictor_with_consistent_faces_ =
-    plist_->get<bool>("modify predictor with consistent faces", false);
-  modify_predictor_bc_flux_ =
-    plist_->get<bool>("modify predictor for flux BCs", false);
-  modify_predictor_first_bc_flux_ =
-    plist_->get<bool>("modify predictor for initial flux BCs", false);
-  modify_predictor_wc_ =
-    plist_->get<bool>("modify predictor via water content", false);
-
-  // -- correctors
-  p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
-  patm_limit_ = plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
-
-  // -- valid step controls
-  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
-  sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
-}
-
-
-void Richards::SetupDiscretization_(const Teuchos::Ptr<State>& S){
-
-
-    // -- require the data on appropriate locations
-  std::string coef_location = upwinding_->CoefficientLocation();
-  // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
   mfd_plist.set("nonlinear coefficient", coef_location);
-  mfd_plist.set("gravity", true);
-
-  Operators::PDE_DiffusionFactory opfactory;
-  matrix_diff_ = opfactory.CreateWithGravity(mfd_plist, mesh_, bc_);
-  matrix_ = matrix_diff_->global_operator();
-
-  // -- create the operator, data for flux directions
-  Teuchos::ParameterList face_diff_list(mfd_plist);
-  face_diff_list.set("nonlinear coefficient", "none");
-  face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_, bc_);
-
-  S->RequireField(flux_dir_key_, name_)->SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
-
-  // -- create the operators for the preconditioner
-  //    diffusion
-  // NOTE: Can this be a clone of the primary operator? --etc
+  mfd_plist.set("gravity", true);  
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
   mfd_pc_plist.set("nonlinear coefficient", coef_location);
   mfd_pc_plist.set("gravity", true);
@@ -311,9 +243,88 @@ void Richards::SetupDiscretization_(const Teuchos::Ptr<State>& S){
     mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
   }
 
+  Operators::PDE_DiffusionFactory opfactory;
   preconditioner_diff_ = opfactory.CreateWithGravity(mfd_pc_plist, mesh_, bc_);
   preconditioner_ = preconditioner_diff_->global_operator();
 
+  /*******************************************/
+  //    If using approximate Jacobian for the preconditioner, we also need
+  //    derivative information.  For now this means upwinding the derivative.
+  jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
+  if (jacobian_) {
+    jacobian_lag_ = mfd_pc_plist.get<int>("Newton correction lag", 0);
+
+    if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
+      // MFD -- upwind required
+      dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
+      duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
+
+      S->RequireField(duw_coef_key_, name_)
+        ->SetMesh(mesh_)->SetGhosted()
+        ->SetComponent("face", AmanziMesh::FACE, 1);
+
+      upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
+                                      dcoef_key_, duw_coef_key_, flux_dir_key_, 1.e-8));
+    } else {
+      // FV -- no upwinding
+      dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
+      duw_coef_key_ = std::string();
+    }
+  }
+
+  // -- flux is managed here as a primary variable
+  S->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+                                ->SetComponent("face", AmanziMesh::FACE, 1);
+  S->RequireFieldEvaluator(flux_key_);
+
+  // -- also need a velocity, but only for vis/diagnostics
+  S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
+                                ->SetComponent("cell", AmanziMesh::CELL, 3);  
+    
+  // Globalization and other timestep control flags
+  // -- predictors
+  modify_predictor_with_consistent_faces_ =
+    plist_->get<bool>("modify predictor with consistent faces", false);
+  modify_predictor_bc_flux_ =
+    plist_->get<bool>("modify predictor for flux BCs", false);
+  modify_predictor_first_bc_flux_ =
+    plist_->get<bool>("modify predictor for initial flux BCs", false);
+  modify_predictor_wc_ =
+    plist_->get<bool>("modify predictor via water content", false);
+
+  // -- correctors
+  p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
+  patm_limit_ = plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
+
+  // -- valid step controls
+  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
+  sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+}
+
+
+void Richards::SetupDiscretization_(const Teuchos::Ptr<State>& S){
+
+
+  // -- require the data on appropriate locations
+  std::string coef_location = upwinding_->CoefficientLocation();
+
+  // -- create the forward operator for the diffusion term
+  Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
+  mfd_plist.set("nonlinear coefficient", coef_location);
+  mfd_plist.set("gravity", true);
+
+  Operators::PDE_DiffusionFactory opfactory;
+  matrix_diff_ = opfactory.CreateWithGravity(mfd_plist, mesh_, bc_);
+  matrix_ = matrix_diff_->global_operator();
+
+  // -- create the operator, data for flux directions
+  Teuchos::ParameterList face_diff_list(mfd_plist);
+  face_diff_list.set("nonlinear coefficient", "none");
+  face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_, bc_);
+
+  S->RequireField(flux_dir_key_, name_)->SetMesh(mesh_)->SetGhosted()
+      ->SetComponent("face", AmanziMesh::FACE, 1);
+  
   // -- accumulation terms
   Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
   acc_pc_plist.set<std::string>("entity kind", "cell");
@@ -375,15 +386,6 @@ void Richards::SetupDiscretization_(const Teuchos::Ptr<State>& S){
     matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S->RequireField(key_, name_)->Update(matrix_cvs)->SetGhosted();
 
-  // -- flux is managed here as a primary variable
-  S->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
-                                ->SetComponent("face", AmanziMesh::FACE, 1);
-  S->RequireFieldEvaluator(flux_key_);
-
-  // -- also need a velocity, but only for vis/diagnostics
-  S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
-                                ->SetComponent("cell", AmanziMesh::CELL, 3);
-  
 }
 
 // -------------------------------------------------------------

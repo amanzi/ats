@@ -51,6 +51,10 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
     Richards(pk_tree, glist,  S, solution)
 {
     coef_grav_key_ = Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
+    // set up an additional primary variable evaluator for flux
+    std::cout<<"flux_key_"<<flux_key_<<" domain "<<domain_<<"\n";
+    Teuchos::ParameterList& pv_sublist = S->GetEvaluatorList(flux_key_);
+    pv_sublist.set("field evaluator type", "primary variable");
 }
 
 // -------------------------------------------------------------
@@ -189,7 +193,41 @@ void Preferential::SetupPreferentialFlow_(const Teuchos::Ptr<State>& S)
   }
   S->GetField(uw_coef_key_,name_)->set_io_vis(false);
 
+
+  Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
+  mfd_plist.set("nonlinear coefficient", coef_location);
+  mfd_plist.set("gravity", true);  
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
+  mfd_pc_plist.set("nonlinear coefficient", coef_location);
+  mfd_pc_plist.set("gravity", true);
+  if (!mfd_pc_plist.isParameter("discretization primary"))
+    mfd_pc_plist.set("discretization primary", mfd_plist.get<std::string>("discretization primary"));
+  if (!mfd_pc_plist.isParameter("discretization secondary") && mfd_plist.isParameter("discretization secondary"))
+    mfd_pc_plist.set("discretization secondary", mfd_plist.get<std::string>("discretization secondary"));
+  if (!mfd_pc_plist.isParameter("schema") && mfd_plist.isParameter("schema"))
+    mfd_pc_plist.set("schema", mfd_plist.get<Teuchos::Array<std::string> >("schema"));
+  if (mfd_pc_plist.get<bool>("include Newton correction", false)) {
+    if (mfd_pc_plist.get<std::string>("discretization primary") == "fv: default") {
+      mfd_pc_plist.set("Newton correction", "true Jacobian");
+    } else {
+      mfd_pc_plist.set("Newton correction", "approximate Jacobian");
+    }
+  }
+
+  precon_used_ = plist_->isSublist("preconditioner") ||
+    plist_->isSublist("inverse") ||
+    plist_->isSublist("linear solver");
+  if (precon_used_) {
+    mfd_pc_plist.set("inverse", plist_->sublist("inverse"));
+    // old style... deprecate me!
+    mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("preconditioner"));
+    mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
+  }
+
+  Operators::PDE_DiffusionFactory opfactory;
+  preconditioner_diff_ = opfactory.CreateWithGravity(mfd_pc_plist, mesh_, bc_);
+  preconditioner_ = preconditioner_diff_->global_operator();
+  
   //    If using approximate Jacobian for the preconditioner, we also need
   //    derivative information.  For now this means upwinding the derivative.
   jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
@@ -222,6 +260,15 @@ void Preferential::SetupPreferentialFlow_(const Teuchos::Ptr<State>& S)
     }
   }
 
+  // -- flux is managed here as a primary variable
+  S->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+                                ->SetComponent("face", AmanziMesh::FACE, 1);
+  S->RequireFieldEvaluator(flux_key_);
+
+  // -- also need a velocity, but only for vis/diagnostics
+  S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
+                                ->SetComponent("cell", AmanziMesh::CELL, 3);  
+  
   // Globalization and other timestep control flags
   // -- predictors
   modify_predictor_with_consistent_faces_ =
@@ -262,23 +309,32 @@ void Preferential::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
   // to state.
-  if (plist_->isSublist("water retention evaluator")) {
+  // if (plist_->isSublist("water retention evaluator")) {
+  //   auto& wrm_plist = S->GetEvaluatorList(sat_key_);
+  //   wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
+  //   wrm_plist.set("field evaluator type", "WRM");
+  // }
+
+  if (plist_->isSublist("water retention evaluator for gravity term")) {
     auto& wrm_plist = S->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
+    wrm_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
     wrm_plist.set("field evaluator type", "WRM");
   }
 
   if (!S->HasFieldEvaluator(coef_key_) && (S->GetEvaluatorList(coef_key_).numParams() == 0)) {
     Teuchos::ParameterList& kr_plist = S->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S->GetEvaluatorList(sat_key_));
+    kr_plist.setParameters(plist_->sublist("water retention evaluator"));
     kr_plist.set("field evaluator type", "WRM rel perm");
+    //std::cout<<kr_plist<<"\n";
   }
+  
   if (!S->HasFieldEvaluator(coef_grav_key_) && (S->GetEvaluatorList(coef_grav_key_).numParams() == 0)) {
     Teuchos::ParameterList& kr_plist = S->GetEvaluatorList(coef_grav_key_);
-    kr_plist.setParameters(S->GetEvaluatorList(sat_key_));
+    kr_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
     kr_plist.set("field evaluator type", "WRM rel perm");
+    // std::cout<<kr_plist<<"\n";
   }
-
+  
   // -- saturation
   S->RequireField(sat_key_)->SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -487,7 +543,10 @@ bool Preferential::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
     *vo_->os() << "  Updating permeability?";
 
   Teuchos::RCP<const CompositeVector> rel_perm = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> rel_perm_grav = S->GetFieldData(coef_grav_key_);
   bool update_perm = S->GetFieldEvaluator(coef_key_)
+      ->HasFieldChanged(S, name_);
+  update_perm |= S->GetFieldEvaluator(coef_grav_key_)
       ->HasFieldChanged(S, name_);
 
   // requirements due to the upwinding method
@@ -538,18 +597,36 @@ bool Preferential::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   if (update_perm) {
     Teuchos::RCP<CompositeVector> uw_rel_perm = S->GetFieldData(uw_coef_key_, name_);
 
-    // Move rel perm on boundary_faces into uw_rel_perm on faces
+    // // Move rel perm on boundary_faces into uw_rel_perm on faces
     const Epetra_Import& vandelay = mesh_->exterior_face_importer();
     const Epetra_MultiVector& rel_perm_bf =
-        *rel_perm->ViewComponent("boundary_face",false);
+         *rel_perm->ViewComponent("boundary_face",false);
+    const Epetra_MultiVector& rel_perm_grav_bf =
+         *rel_perm_grav->ViewComponent("boundary_face",false);
 
     Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
     uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
+    Epetra_MultiVector& uw_rel_perm_grav = *uw_rel_perm->ViewComponent("grav",false);
+    uw_rel_perm_grav.Export(rel_perm_grav_bf, vandelay, Insert);
     
     // Upwind, only overwriting boundary faces if the wind says to do so.
     upwinding_->Update(S, coef_key_, "cell", uw_coef_key_, "face");
     upwinding_->Update(S, coef_grav_key_, "cell", uw_coef_key_, "grav");
 
+    // Epetra_MultiVector& test_face = *uw_rel_perm->ViewComponent("face",false);
+    // Epetra_MultiVector& test_grav = *uw_rel_perm->ViewComponent("grav",false);
+    // const Epetra_MultiVector& test_coef = *S->GetFieldData(coef_key_)->ViewComponent("cell",false);
+    // const Epetra_MultiVector& test_coef_grav = *S->GetFieldData(coef_grav_key_)->ViewComponent("cell",false);
+
+
+    // for (int f=0; f<test_face.MyLength(); f++){
+    //   if (abs(test_face[0][f] - test_grav[0][f]) > 1e-10){
+    //     //std::cout<<"coef "<<test_coef[0][0]<<" coef_grav "<<test_coef_grav[0][0]<<"\n";
+    //     std::cout<<"face "<<f<<": "<<test_face[0][f]<<" "<<test_grav[0][f]<<"\n";
+    //     exit(0);
+    //   }
+    // }
+    
     if (clobber_policy_ == "clobber") {
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
@@ -589,10 +666,25 @@ bool Preferential::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
       uw_rel_perm->ScatterMasterToGhosted("grav");
   }
 
+  // Teuchos::RCP<CompositeVector> uw_rel_perm = S->GetFieldData(uw_coef_key_, name_);
+  // Epetra_MultiVector& test_face = *uw_rel_perm->ViewComponent("face",false);
+  // Epetra_MultiVector& test_grav = *uw_rel_perm->ViewComponent("grav",false);
+  // const Epetra_MultiVector& test_coef = *S->GetFieldData(coef_key_)->ViewComponent("cell",false);
+  // const Epetra_MultiVector& test_coef_grav = *S->GetFieldData(coef_grav_key_)->ViewComponent("cell",false);
+  // for (int f=0; f<test_face.MyLength(); f++){
+  //   if (abs(test_face[0][f] - test_grav[0][f]) > 1e-10){
+  //     //std::cout<<"coef "<<test_coef[0][0]<<" coef_grav "<<test_coef_grav[0][0]<<"\n";
+  //     std::cout<<"face "<<f<<": "<<test_face[0][f]<<" "<<test_grav[0][f]<<"\n";
+  //     exit(0);
+  //   }
+  // }
+
+  
   // debugging
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     *vo_->os() << " " << update_perm << std::endl;
   }
+
   return update_perm;
 };
 
@@ -604,8 +696,10 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& 
     *vo_->os() << "  Updating permeability derivatives?";
 
   bool update_perm = S->GetFieldEvaluator(coef_key_)->HasFieldDerivativeChanged(S, name_, key_);
+  update_perm |= S->GetFieldEvaluator(coef_grav_key_)->HasFieldDerivativeChanged(S, name_, key_);
   Teuchos::RCP<const CompositeVector> drel_perm = S->GetFieldData(dcoef_key_);
-
+  Teuchos::RCP<const CompositeVector> drel_grav_perm = S->GetFieldData(dcoef_grav_key_);
+  
   if (update_perm) {
     if (!duw_coef_key_.empty()) {
       Teuchos::RCP<CompositeVector> duw_rel_perm = S->GetFieldData(duw_coef_key_, name_);
@@ -619,9 +713,21 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& 
       duw_rel_perm->ScatterMasterToGhosted("grav");
     } else {
       drel_perm->ScatterMasterToGhosted("cell");
+      drel_grav_perm->ScatterMasterToGhosted("cell");
     }
   }
 
+  // Teuchos::RCP<CompositeVector> duw_rel_perm = S->GetFieldData(duw_coef_key_, name_);
+  // Epetra_MultiVector& test_face = *duw_rel_perm->ViewComponent("face",false);
+  // Epetra_MultiVector& test_grav = *duw_rel_perm->ViewComponent("grav",false);
+  // for (int f=0; f<test_face.MyLength(); f++){
+  //   if (abs(test_face[0][f] - test_grav[0][f]) > 1e-10){
+  //     //std::cout<<"coef "<<test_coef[0][0]<<" coef_grav "<<test_coef_grav[0][0]<<"\n";
+  //     std::cout<<"duw face "<<f<<": "<<test_face[0][f]<<" "<<test_grav[0][f]<<"\n";
+  //     exit(0);
+  //   }
+  // }
+  
   // debugging
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     *vo_->os() << " " << update_perm << std::endl;

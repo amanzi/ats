@@ -33,13 +33,23 @@ public:
                   double flux_epsilon);
 
   virtual void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null);
+              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
+
+  virtual
+  void Update(const Teuchos::Ptr<State>& S,
+              const std::string cell_key,
+              const std::string cell_component,
+              const std::string face_key,
+              const std::string face_component,              
+              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
 
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
+        const std::string cell_component,
         const CompositeVector& flux,
         const Teuchos::Ptr<CompositeVector>& face_coef,
+        const std::string face_component,
         const Teuchos::Ptr<Debugger>& db);
 
   virtual void
@@ -48,10 +58,10 @@ public:
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
                     const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
+  CoefficientLocation() override { return "upwind: face"; }
   
 private:
 
