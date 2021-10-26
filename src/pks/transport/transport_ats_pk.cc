@@ -160,7 +160,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   const auto& tcc_fac = S->RequireField(tcc_key_)->SetMesh(mesh_)->SetGhosted(true);
   name_ = "state"; // note: this is required because the chemistry PK is Amanzi code and uses this.
   S->RequireField(tcc_key_, name_, subfield_names)
-      ->SetComponent("cell", AmanziMesh::CELL, ncomponents);
+      ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
