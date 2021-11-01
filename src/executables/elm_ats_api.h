@@ -19,11 +19,24 @@ void ats_initialize(ELM_ATS_DRIVER ats);
 void ats_advance(ELM_ATS_DRIVER ats, double *dt);
 // call driver advance_test()
 void ats_advance_test(ELM_ATS_DRIVER ats);
+//
+//
+void ats_set_mesh(ELM_ATS_DRIVER ats,
+  double *surf_gridsX, double *surf_gridsY,
+  double *surf_gridsZ, double *col_verticesZ,
+  const int len_gridsX, const int len_gridsY, const int len_verticesZ);
+void ats_set_materials(ELM_ATS_DRIVER ats,
+  double *porosity, double* hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
+  double *eff_porosity);
+void ats_set_initialconditions(ELM_ATS_DRIVER ats,
+  double *patm, double *soilpressure, double *wtd);
+void ats_set_boundaryconditions(ELM_ATS_DRIVER ats);      // (TODO)
 // call driver set_sources()
 // soil_infiltration & soil_evaporation are 1D arrays of length ncols
 // root_transpiration is a 1D array array of length (ncells)
 void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
   double *root_transpiration, int *ncols, int *ncells);
+//
 // call driver get_waterstate()
 // surface_pressure is a 1D array of length ncols
 // soil_pressure & saturation are 1D arrays array of length (ncells)
@@ -35,6 +48,7 @@ void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *so
 // elev, surf_area_m2, lat, lon are 1D arrays of length ncols - lat lon necessary for every cell?
 void ats_get_mesh_info(ELM_ATS_DRIVER ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
   double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon);
+
 #ifdef __cplusplus
 }
 #endif

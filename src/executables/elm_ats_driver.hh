@@ -11,6 +11,9 @@ Provides an interface to ATS functionality for ELM
 #include "elm_ats_coordinator.hh"
 #include "State.hh"
 
+#include "elm_ats_data.hh"
+#include "elm_ats_plist.hh"
+
 namespace ATS {
 
 class ELM_ATSDriver {
@@ -27,8 +30,15 @@ public:
   void advance_test();
   void finalize();
 
+  void set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,
+    const int len_gridsX, const int len_gridsY, const int len_vertices);
+  void set_materials(double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
+    double *eff_porosity);
+  void set_initialconditions(double *patm, double *soilpressure, double *wtd);
+  void set_boundaryconditions();
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
     int *ncols, int *ncells);
+
   void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation,
     int *ncols, int *ncells);
   void get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col, double *dz,
@@ -58,9 +68,18 @@ private:
   Amanzi::Key sub_mol_dens_key_;
   Amanzi::Key sub_mass_dens_key_;
 
+  Teuchos::RCP<Teuchos::ParameterList> pks_plist_;
+  Teuchos::RCP<Teuchos::ParameterList> state_plist_;
+  Amanzi::Key subpk_key_;
+  Amanzi::Key srfpk_key_;
+  Amanzi::Key sub_pv_key_;
+  Amanzi::Key srf_pv_key_;
+
+
   int ncolumns_;
   int ncol_cells_;
 
+  elm_data elmdata_;
 
 };
 

@@ -32,12 +32,40 @@ void ats_advance(ELM_ATS_DRIVER ats, double *dt) {
 void ats_advance_test(ELM_ATS_DRIVER ats) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
 }
+//
+// call driver set_mesh()
+void ats_set_mesh(ELM_ATS_DRIVER ats,
+  double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,
+  const int len_gridsX, const int len_gridsY, const int len_vertices) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->set_mesh(surf_gridsX, surf_gridsY, surf_gridsZ, col_verticesZ,
+    len_gridsX, len_gridsY, len_vertices);
+}
+// call driver set_materials()
+void ats_set_materials(ELM_ATS_DRIVER ats,
+  double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
+  double *eff_porosity){
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->set_materials(porosity, hksat, CH_bsw, CH_smpsat, CH_sr, eff_porosity);
+}
+// call driver set_initialconditions()
+void ats_set_initialconditions(ELM_ATS_DRIVER ats,
+  double *patm, double *soilpressure, double *wtd){
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->set_initialconditions(patm, soilpressure, wtd);
+}
+// call driver set_boundaryconditions
+void ats_set_boundaryconditions(ELM_ATS_DRIVER ats){
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->set_boundaryconditions();
+}
 // call driver set_sources()
 void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
   double *root_transpiration, int *ncols, int *ncells) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
   ->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
 }
+//
 // call driver get_waterstate()
 void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure,
   double *saturation, int *ncols, int *ncells) {

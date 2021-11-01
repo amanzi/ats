@@ -96,6 +96,16 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   // -- parse input file
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
 
+  // -- reset input plist for specific needs of elm, e.g. materials
+  // by default, elm starts from time 0, with time-steps of 1800.0 s.
+  //   (those may be changing when running each time-step)
+  if (elmdata_.NCELLS_>0){
+    ATS::elm_ats_plist elm_plist_(plist);
+    double start_ts = 0.0;
+    double dt = 1800.0;
+    elm_plist_.set_plist(elmdata_, start_ts, dt);
+  }
+
   // -- set default verbosity level to no output
   Amanzi::VerboseObject::global_default_level = Teuchos::VERB_NONE;
 
@@ -130,9 +140,20 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   sub_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "molar density", "molar_density_liquid");
   sub_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "mass density", "mass_density_liquid");
 
+
+  // PKs list, ...
+  pks_plist_   = Teuchos::sublist(plist, "PKs");
+  state_plist_ = Teuchos::sublist(plist, "state");
+  subpk_key_ = "flow";
+  srfpk_key_ = "overland flow";
+  sub_pv_key_ = Teuchos::sublist(pks_plist_, subpk_key_)->get<std::string>("primary variable key");
+  srf_pv_key_ = Teuchos::sublist(pks_plist_, srfpk_key_)->get<std::string>("primary variable key");
+
   // assume for now that mesh info has been communicated
   mesh_subsurf_ = S_->GetMesh(domain_sub_);
   mesh_surf_ = S_->GetMesh(domain_srf_);
+
+
 
   // build columns to allow indexing by column
   mesh_subsurf_->build_columns();
@@ -232,6 +253,107 @@ void ELM_ATSDriver::finalize()
 }
 
 
+//------------------------------------------------------------------------------------------------------------------------
+void
+ELM_ATSDriver::set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,
+  const int len_gridsX, const int len_gridsY, const int len_verticesZ)
+{
+	//
+	elmdata_.NX_ = len_gridsX;            // vertices along X/Y/Z_axis
+	elmdata_.NY_ = len_gridsY;
+	elmdata_.NZ_ = len_verticesZ;
+	elmdata_.NCOLS_ = (elmdata_.NX_-1)*(elmdata_.NY_-1);
+	elmdata_.NCELLS_ = elmdata_.NCOLS_*(elmdata_.NZ_-1);
+
+	  // the following NOT YET used, but assuming rectangular grids
+	  // and soil-column intrusion downwardly
+	elmdata_.surf_gridsX_.reserve(elmdata_.NX_);
+	  for (int i=0; i<elmdata_.NX_-1; i++){
+		  elmdata_.surf_gridsX_.push_back(surf_gridsX[i]);
+	  }
+	  elmdata_.surf_gridsY_.reserve(elmdata_.NY_);
+	  for (int j=0; j<elmdata_.NY_-1; j++){
+		  elmdata_.surf_gridsY_.push_back(surf_gridsY[j]);
+	  }
+	  //surf_gridsZ_.reserve(NX_*NY_); // NOT YET
+
+	  elmdata_.cols_verticesZ_.reserve(elmdata_.NZ_);
+	  for (int k=0; k<elmdata_.NZ_-1; k++){
+		  elmdata_.cols_verticesZ_.push_back(col_verticesZ[k]);
+	  }
+
+
+}
+
+void
+ELM_ATSDriver::set_materials(double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
+  double *eff_porosity)
+{
+	elmdata_.porosity_.reserve(elmdata_.NCELLS_);
+	elmdata_.hksat_.reserve(elmdata_.NCELLS_);
+	elmdata_.CH_bsw_.reserve(elmdata_.NCELLS_);
+	elmdata_.CH_smpsat_.reserve(elmdata_.NCELLS_);
+	elmdata_.CH_sr_.reserve(elmdata_.NCELLS_);
+	elmdata_.eff_porosity_.reserve(elmdata_.NCELLS_);
+	for (int i=0; i<elmdata_.NCELLS_-1; i++) {
+		elmdata_.porosity_.push_back(porosity[i]);
+		elmdata_.hksat_.push_back(hksat[i]);
+		elmdata_.CH_bsw_.push_back(CH_bsw[i]);
+		elmdata_.CH_smpsat_.push_back(CH_smpsat[i]);
+		elmdata_.CH_sr_.push_back(CH_sr[i]);
+		elmdata_.eff_porosity_.push_back(eff_porosity[i]);
+	}
+}
+
+void
+ELM_ATSDriver::set_initialconditions(double *patm, double *soilpressure, double *wtd)
+{
+  std::vector<double> col_patm;
+  std::vector<double> col_wtd;
+  std::vector<double> col_surfp;
+  col_patm.reserve(elmdata_.NCOLS_);
+  col_wtd.reserve(elmdata_.NCOLS_);
+  col_surfp.reserve(elmdata_.NCOLS_);
+  for (int ij=0; ij<elmdata_.NCOLS_; ij++) {
+    col_patm.push_back(patm[ij]);
+    col_wtd.push_back(wtd[ij]);
+    col_surfp.push_back(soilpressure[ij*(elmdata_.NZ_-1)]);
+    // temporarilly set (TODO: better to include surface water depth from ELM)
+  }
+
+  std::vector<double> soilp;
+  soilp.reserve(elmdata_.NCELLS_);
+  for (int ijk=0; ijk<elmdata_.NCELLS_; ijk++) {
+    soilp.push_back(soilpressure[ijk]);
+  }
+
+  // real IC, i.e. primary variable in PKs
+  Epetra_MultiVector& srf_pv = *S_->GetW<Amanzi::CompositeVector>(srf_pv_key_, Amanzi::Tags::NEXT, srfpk_key_)
+      .ViewComponent("cell", false);
+  Epetra_MultiVector& sub_pv = *S_->GetW<Amanzi::CompositeVector>(sub_pv_key_, Amanzi::Tags::NEXT, subpk_key_)
+      .ViewComponent("cell", false);
+
+  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+    srf_pv[0][col] = col_surfp[col];
+
+    auto& col_iter = mesh_subsurf_->cells_of_column(col);
+    for (std::size_t i=0; i!=col_iter.size(); ++i) {
+      sub_pv[0][col_iter[i]] = soilp[col*ncol_cells_+i];
+    }
+  }
+  // mark sources as changed
+  ChangedEvaluatorPrimary(srf_pv_key_, Amanzi::Tags::NEXT, *S_);
+  ChangedEvaluatorPrimary(sub_pv_key_, Amanzi::Tags::NEXT, *S_);
+
+}
+
+void
+ELM_ATSDriver::set_boundaryconditions()
+{
+  //TODO
+}
+
+
 /*
 assume that incoming data is in form
 soil_infiltration(ncols)
@@ -301,6 +423,7 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
 }
 
+//----------------------------------------------------------------------------------------------------------------------------
 
 void
 ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation, int *ncols, int *ncells)
@@ -360,6 +483,8 @@ void ELM_ATSDriver::get_mesh_info(int *ncols_local, int *ncols_global, int *ncel
 }
 
 
+//-----------------------------------------------------------------------------------------------
+
 // helper function for collecting column dz and depth
 void ELM_ATSDriver::col_depth(double *dz, double *depth) {
 
@@ -416,6 +541,8 @@ void ELM_ATSDriver::col_depth(double *dz, double *depth) {
   }
 
 }
+
+
 
 
 } // namespace ATS

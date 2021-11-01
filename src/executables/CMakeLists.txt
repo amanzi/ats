@@ -184,6 +184,7 @@ set(elm_ats_src_files
   ats_mesh_factory.cc
   elm_ats_coordinator.cc
   elm_ats_driver.cc
+  elm_ats_plist.cc
   elm_ats_api.cc
   )
 
@@ -192,6 +193,8 @@ set(elm_ats_inc_files
   ats_mesh_factory.hh
   elm_ats_coordinator.hh
   elm_ats_driver.hh
+  elm_ats_data.hh
+  elm_ats_plist.hh
   elm_ats_api.h
   )
 
