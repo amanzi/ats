@@ -330,8 +330,9 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 		      surf.unfrozen_fraction * params.H_vaporization + (1-surf.unfrozen_fraction) * params.H_sublimation,
 		      vapor_pressure_air, vapor_pressure_skin, params.P_atm);
 
-  // fQc is the energy conducted between surface and snow layers, but there is no snow here
-  eb.fQc = 0.;
+  // fQc is the energy balance -- this is not used in this branch (e.g. no snow
+  // branch) but is kept here anyway for use by diagnostic variables
+  eb.fQc = eb.fQswIn + eb.fQlwIn - eb.fQlwOut + eb.fQh + eb.fQe;
   return eb;
 }
 

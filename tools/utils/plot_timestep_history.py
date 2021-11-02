@@ -28,6 +28,10 @@ def parse_logfile(fid, wallclock=False):
                 faildata.append(data.pop())
             data.append([cyc,time,dt])
 
+    ngood = len(data)
+    nbad = len(faildata)
+    print(f"  total timesteps = {ngood+nbad}")
+    print(f"  bad timesteps = {nbad}")
     return np.array(data), np.array(faildata)
 
 
@@ -61,6 +65,11 @@ def write_to_file(data, fnamebase):
 def read_from_file(fname):
     """Reads a .npz file"""
     read = np.load(fname)
+    ngood = len(read['good_timesteps'])
+    nbad = len(read['bad_timesteps'])
+    print(f"File: {filename}")
+    print(f"  total timesteps = {ngood+nbad}")
+    print(f"  bad timesteps = {nbad}")
     return [read["good_timesteps"], read["bad_timesteps"]]
             
 if __name__ == "__main__":
@@ -94,6 +103,7 @@ if __name__ == "__main__":
         elif os.path.isfile(fname+".npz") and not args.overwrite:
             data = read_from_file(fname+".npz")
         else:
+            print(f"File: {fname}")
             with open(fname,'r') as fid:
                 data = parse_logfile(fid)
             write_to_file(data, fname)
