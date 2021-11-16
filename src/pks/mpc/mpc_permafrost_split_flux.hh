@@ -33,6 +33,9 @@ dE_s / dt = (dE_s / dt)^* + QE_ext + h * Q_ext + qE_ss + h * q_ss
 dE / dt = div (  kappa grad T) + hq )
 kappa grad T |_s = qE_ss
 
+Note that this can be used with either a 3D subsurface solve, by setting the
+2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but setting the
+2nd sub-PK to be a DomainSetMPC.
 
 ------------------------------------------------------------------------- */
 
@@ -48,7 +51,6 @@ namespace Amanzi {
 class MPCPermafrostSplitFlux : public MPC<PK> {
 
  public:
-
   MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
           const Teuchos::RCP<Teuchos::ParameterList>& plist,
           const Teuchos::RCP<State>& S,
@@ -59,23 +61,41 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt();
+  virtual double get_dt() override;
 
   // -- initialize in reverse order
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  
-  // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Setup(const Teuchos::Ptr<State>& S) override;
 
-  virtual void set_dt(double dt);
+  // -- advance each sub pk dt.
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
+
+  virtual double get_dt() override;
+  virtual void set_dt(double dt) override;
 
   virtual void CommitStep(double t_old, double t_new,
-                          const Teuchos::RCP<State>& S);
-  
-  virtual void CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
+                          const Teuchos::RCP<State>& S) override;
+
+ protected:
+  bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
+  bool AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit);
+
+  void CopyPrimaryToStar_(const Teuchos::Ptr<const State>& S,
           const Teuchos::Ptr<State>& S_star);
-  virtual void CopyStarToPrimary(double dt);
+  void CopyStarToPrimary_(double dt);
+
+  void CopyPrimaryToStar_DomainSet_(const Teuchos::Ptr<const State>& S,
+          const Teuchos::Ptr<State>& S_star);
+  void CopyStarToPrimary_DomainSet_Pressure_(double dt);
+  void CopyStarToPrimary_DomainSet_Flux_(double dt);
+  void CopyStarToPrimary_DomainSet_Hybrid_(double dt);
+
+  void CopyPrimaryToStar_Standard_(const Teuchos::Ptr<const State>& S,
+          const Teuchos::Ptr<State>& S_star);
+  void CopyStarToPrimary_Standard_Pressure_(double dt);
+  void CopyStarToPrimary_Standard_Flux_(double dt);
+  void CopyStarToPrimary_Standard_Hybrid_(double dt);
+
 
  protected:
   Key p_primary_variable_;
@@ -87,17 +107,24 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
   Key T_primary_variable_star_;
   Key T_conserved_variable_star_;
   Key T_lateral_flow_source_;
-  
+
+  Key domain_star_;
+  Key domain_;
   Key cv_key_;
+  bool is_domain_set_;
+  bool subcycled_;
+  double subcycled_target_dt_;
+  double subcycled_min_dt_;
+  double cycle_dt_;
+
   Teuchos::RCP<PrimaryVariableFieldEvaluator> p_eval_pvfe_;
   Teuchos::RCP<PrimaryVariableFieldEvaluator> T_eval_pvfe_;
-  
+
  private:
   // factory registration
   static RegisteredPKFactory<MPCPermafrostSplitFlux> reg_;
-
-
 };
+
 } // close namespace Amanzi
 
 #endif

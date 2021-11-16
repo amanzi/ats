@@ -25,6 +25,7 @@ void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
 {
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
+  dt_ = plist_->get<double>("initial time step [s]", dt_);
 
   // preconditioner assembly
   assemble_preconditioner_ = plist_->get<bool>("assemble preconditioner", true);
