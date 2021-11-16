@@ -38,8 +38,8 @@ class DomainSetMPC : public MPC<PK> {
                           const Teuchos::RCP<State>& S) override;
 
  protected:
-  bool AdvanceStepStandard_(double t_old, double t_new, bool reinit);
-  bool AdvanceStepSubcycled_(double t_old, double t_new, bool reinit);
+  bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
+  bool AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit);
 
  protected:
   std::string pks_set_;

@@ -60,9 +60,6 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
   virtual ~MPCPermafrostSplitFlux() = default;
 
   // PK methods
-  // -- dt is the minimum of the sub pks
-  virtual double get_dt() override;
-
   // -- initialize in reverse order
   virtual void Initialize(const Teuchos::Ptr<State>& S) override;
   virtual void Setup(const Teuchos::Ptr<State>& S) override;
@@ -75,6 +72,7 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
 
   virtual void CommitStep(double t_old, double t_new,
                           const Teuchos::RCP<State>& S) override;
+  virtual bool ValidStep() override;
 
  protected:
   bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
@@ -99,26 +97,43 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
 
  protected:
   Key p_primary_variable_;
+  Key p_primary_variable_suffix_;
+  Key p_sub_primary_variable_;
+  Key p_sub_primary_variable_suffix_;
   Key p_primary_variable_star_;
   Key p_conserved_variable_star_;
   Key p_lateral_flow_source_;
+  Key p_lateral_flow_source_suffix_;
 
   Key T_primary_variable_;
+  Key T_primary_variable_suffix_;
+  Key T_sub_primary_variable_;
+  Key T_sub_primary_variable_suffix_;
   Key T_primary_variable_star_;
   Key T_conserved_variable_star_;
   Key T_lateral_flow_source_;
+  Key T_lateral_flow_source_suffix_;
 
-  Key domain_star_;
-  Key domain_;
   Key cv_key_;
+
+  Key domain_;
+  Key domain_sub_;
+  Key domain_star_;
+  Key domain_snow_;
+
+  std::string coupling_;
+
   bool is_domain_set_;
   bool subcycled_;
   double subcycled_target_dt_;
   double subcycled_min_dt_;
   double cycle_dt_;
 
+  // note, only one of these set will be used, the pointers or the vectors
   Teuchos::RCP<PrimaryVariableFieldEvaluator> p_eval_pvfe_;
   Teuchos::RCP<PrimaryVariableFieldEvaluator> T_eval_pvfe_;
+  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator>> p_eval_pvfes_;
+  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator>> T_eval_pvfes_;
 
  private:
   // factory registration

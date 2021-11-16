@@ -20,7 +20,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
     : MPC<PK>(pk_tree, global_list, S, solution),
       PK(pk_tree, global_list, S, solution),
       subcycled_(false),
-      target_dt_(-1.)
+      subcycled_target_dt_(-1.)
 {
   // grab the list of subpks
   auto subpks = this->plist_->template get<Teuchos::Array<std::string> >("PKs order");
@@ -39,7 +39,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   ds_name_ = std::get<0>(triple);
   if (!is_ds || !S->HasDomainSet(ds_name_)) {
     Errors::Message msg;
-    msg << "DomainSetMPC: \"" << dset_name_ << "\" should be a domain-set of the form DOMAIN_*-PK_NAME";
+    msg << "DomainSetMPC: \"" << ds_name_ << "\" should be a domain-set of the form DOMAIN_*-PK_NAME";
     Exceptions::amanzi_throw(msg);
   }
 
@@ -56,7 +56,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   MPC<PK>::init_(S, getCommSelf());
 
   // check whether we are subcycling
-  subycled_ = plist_->template get<bool>("subcyle subdomains", false);
+  subcycled_ = plist_->template get<bool>("subcyle subdomains", false);
   if (subcycled_) {
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
     subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
@@ -102,8 +102,8 @@ void DomainSetMPC::set_dt(double dt)
 bool
 DomainSetMPC::AdvanceStep(double t_old, double t_new, bool reinit)
 {
-  if (subcycled_) return AdvanceStepSubcycled_(t_old, t_new, reinit);
-  else return AdvanceStepStandard_(t_old, t_new, reinit);
+  if (subcycled_) return AdvanceStep_Subcycled_(t_old, t_new, reinit);
+  else return AdvanceStep_Standard_(t_old, t_new, reinit);
 }
 
 
@@ -147,7 +147,7 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
     if (vo_->os_OK(Teuchos::VERB_EXTREME))
       *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
 
-    bool done = False;
+    bool done = false;
     double t_inner = t_old;
     S_inter_->set_time(t_old);
     while (!done) {
@@ -162,7 +162,7 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
         *vo_->os() << "  step valid? " << valid_inner << std::endl;
 
         // DEBUGGING
-        std::cout << col_domain << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400.
+        std::cout << ds_name_ << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400.
                   << ") failed/!valid = " << fail_inner << "," << !valid_inner << std::endl;
         // END DEBUGGING
       }
@@ -171,8 +171,8 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
         // FIXME: figure out a way to get child domains, rather than guess at these! --etc
         S_next_->AssignDomain(*S_inter_, domain);
         S_next_->AssignDomain(*S_inter_, "surface_"+domain);
-        S_next_->AssignDomain(*S_inter_, "snow_"+col_domain);
-        S_next_->AssignDomain(*S_inter_, "canopy_"+col_domain);
+        S_next_->AssignDomain(*S_inter_, "snow_"+domain);
+        S_next_->AssignDomain(*S_inter_, "canopy_"+domain);
 
         dt_inner = sub_pks_[i]->get_dt();
         S_next_->set_time(S_inter_->time());
@@ -187,9 +187,9 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
         if (std::abs(t_new - t_inner) < 1.e-10) done = true;
 
         // FIXME: figure out a way to get child domains, rather than guess at these! --etc
-        S_inter_->AssignDomain(*S_next_, col_domain);
-        S_inter_->AssignDomain(*S_next_, "surface_"+col_domain);
-        S_inter_->AssignDomain(*S_next_, "snow_"+col_domain);
+        S_inter_->AssignDomain(*S_next_, domain);
+        S_inter_->AssignDomain(*S_next_, "surface_"+domain);
+        S_inter_->AssignDomain(*S_next_, "snow_"+domain);
 
         S_inter_->set_time(S_next_->time());
         S_inter_->set_cycle(S_next_->cycle());
