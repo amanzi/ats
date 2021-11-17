@@ -116,6 +116,7 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
 
   Key cv_key_;
 
+  Key domain_set_;
   Key domain_;
   Key domain_sub_;
   Key domain_star_;
