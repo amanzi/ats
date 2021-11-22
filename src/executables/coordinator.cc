@@ -90,7 +90,7 @@ void Coordinator::coordinator_init() {
   for (auto& sublist : observation_plist) {
     if (observation_plist.isSublist(sublist.first)) {
       observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
-                observation_plist.sublist(sublist.first), S_.ptr())));
+                observation_plist.sublist(sublist.first))));
     } else {
       Errors::Message msg("\"observations\" list must only include sublists.");
       Exceptions::amanzi_throw(msg);
@@ -132,6 +132,7 @@ void Coordinator::setup() {
   S_->RequireScalar("dt", "coordinator");
 
   pk_->Setup(S_.ptr());
+  for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
 }
 
