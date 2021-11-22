@@ -35,12 +35,10 @@ AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
       coefs_[name] = plist.get<double>(pname, 1.0);
     }  
   }
+
+  shift_ = plist.get<double>("constant shift", 0.);
 }
 
-
-AdditiveEvaluator::AdditiveEvaluator(const AdditiveEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    coefs_(other.coefs_) {}
 
 Teuchos::RCP<FieldEvaluator>
 AdditiveEvaluator::Clone() const
@@ -53,8 +51,8 @@ void
 AdditiveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  result->PutScalar(0.);
-  
+  result->PutScalar(shift_);
+
   for (std::map<Key, double>::const_iterator it=coefs_.begin();
        it!=coefs_.end(); ++it) {
     Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(it->first);

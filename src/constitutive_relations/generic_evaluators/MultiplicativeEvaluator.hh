@@ -1,11 +1,28 @@
 /*
-  MultiplicativeEvaluator is the generic evaluator for multipying two vectors.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! A generic evaluator for multiplying a collection of fields.
 
-#ifndef AMANZI_RELATIONS_MULTIPLICATIVE_EVALUATOR_
-#define AMANZI_RELATIONS_MULTIPLICATIVE_EVALUATOR_
+/*!
+
+.. _multiplicative-evaluator-spec:
+.. admonition:: multiplicative-evaluator-spec
+   * `"coefficient`" ``[double]`` **1** A constant prefix to the product.
+   * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
+
+   ONE OF
+   * `"evaluator dependencies`" ``[Array(string)]`` The fields to multiply.
+   OR
+   * `"evaluator dependency suffixes`" ``[Array(string)]``
+   END
+
+*/
+
+#pragma once
 
 #include "Factory.hh"
 #include "secondary_variable_field_evaluator.hh"
@@ -40,5 +57,4 @@ class MultiplicativeEvaluator : public SecondaryVariableFieldEvaluator {
 } // namespace
 } // namespace
 
-#endif
 
