@@ -733,6 +733,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   mol_dens_ = S_next_->GetFieldData(molar_density_key_)->ViewComponent("cell", false);
   solid_qty_ = S_next_->GetFieldData(solid_residue_mass_key_, name_)->ViewComponent("cell", false);
 
+#ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")){
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source"){
@@ -744,7 +745,6 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     }
   }
 
-
   if (plist_->sublist("boundary conditions").isSublist("geochemical")){
     for (auto& bc : bcs_){
       if (bc->name() == "alquimia bc"){
@@ -754,7 +754,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
       }
     }
   }
-    
+#endif
 
   
   // We use original tcc and make a copy of it later if needed.

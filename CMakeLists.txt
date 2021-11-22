@@ -10,7 +10,7 @@ message(STATUS "\n-- CMake: Configuring ATS build/install.\n--")
 message(STATUS "----------------------------------------")
 project(ATS)
 add_subdirectory(src)
-add_subdirectory(testing)
+#add_subdirectory(testing)
 
 # ATS Custom CMake Modules and Macros
 set(ATS_MODULE_PATH "${AMANZI_SOURCE_DIR}/src/physics/ats/tools/cmake")
