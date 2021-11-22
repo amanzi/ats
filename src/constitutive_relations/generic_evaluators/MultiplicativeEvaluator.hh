@@ -12,7 +12,14 @@
 .. _multiplicative-evaluator-spec:
 .. admonition:: multiplicative-evaluator-spec
    * `"coefficient`" ``[double]`` **1** A constant prefix to the product.
+
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
+
+   * `"DEPENDENCY dof`" ``[double]`` **0** Degree of Freedom for each given
+      dependency to use in the multiplication.  NOTE, this should only be
+      provided if the dependency has more than 1 DoF -- if it just has one
+      leaving this blank results in better error checking than providing the
+      value 0 manually.
 
    ONE OF
    * `"evaluator dependencies`" ``[Array(string)]`` The fields to multiply.
@@ -46,10 +53,15 @@ class MultiplicativeEvaluator : public SecondaryVariableFieldEvaluator {
   void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
+  void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+
  protected:
   double coef_;
   bool positive_;
-  
+  std::vector<int> dofs_;
+  std::vector<bool> dof_provided_;
+  bool any_dof_provided_;
+
  private:
   static Utils::RegisteredFactory<FieldEvaluator,MultiplicativeEvaluator> factory_;
 };

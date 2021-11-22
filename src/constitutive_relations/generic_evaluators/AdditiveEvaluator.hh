@@ -13,7 +13,7 @@
 .. admonition:: additive-evaluator-spec
    * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
 
-   * `"DEPENDENCY coefficient`" ``[double]`` A multiple for each dependency in
+   * `"DEPENDENCY coefficient`" ``[double]`` **1.0** A multiple for each dependency in
      the list below.
 
    ONE OF
