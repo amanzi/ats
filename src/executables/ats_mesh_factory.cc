@@ -312,9 +312,10 @@ createMeshSurface(const std::string& mesh_name,
           *vo.os() << "  Registered mesh \"" << mesh3d_name << "\"." << std::endl;
         }
       } else {
-        S.AliasMesh(mesh_surface_plist.get<std::string>("parent domain", "domain"), mesh3d_name);
+        auto target = mesh_surface_plist.get<std::string>("parent domain", "domain");
+        S.AliasMesh(target, mesh3d_name);
         if (vo.os_OK(Teuchos::VERB_HIGH)) {
-          *vo.os() << "  Aliased mesh \"" << mesh3d_name << "\" to \"" << mesh_name << "\"." << std::endl;
+          *vo.os() << "  Aliased mesh \"" << mesh3d_name << "\" to \"" << target << "\"." << std::endl;
         }
       }
     }
@@ -415,7 +416,16 @@ createMeshColumn(const std::string& mesh_name,
   auto mesh = AmanziMesh::createColumnMesh(parent, lid, parent_list);
   bool deformable = mesh_plist.get<bool>("deformable mesh",false);
 
-  checkVerifyMesh(mesh_plist, mesh);
+  // build columns and verify
+  if (mesh != Teuchos::null) {
+    if (mesh_plist.isParameter("build columns from set")) {
+      std::string regionname = mesh_plist.get<std::string>("build columns from set");
+      mesh->build_columns(regionname);
+    } else if (mesh_plist.get("build columns", false)) {
+      mesh->build_columns();
+    }
+    checkVerifyMesh(mesh_plist, mesh);
+  }
   S.RegisterMesh(mesh_name, mesh, deformable);
   if (vo.os_OK(Teuchos::VERB_HIGH)) {
     *vo.os() << "  based on column LID: " << lid << std::endl
