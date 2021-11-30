@@ -77,7 +77,7 @@ def seb_twocomponent(xml, eval_name):
             albedo.setName(dname+'-albedos')
             albedo_type = asearch.child_by_name(albedo, "field evaluator type")
             if albedo_type.getValue() == "albedo":
-                albedo_type.setValue("two-component subgrid albedos")
+                albedo_type.setValue("subgrid albedos, two components")
 
 
 
@@ -124,7 +124,7 @@ def seb_threecomponent(xml, eval_name):
             albedo.setName(dname+'-albedos')
             albedo_type = asearch.child_by_name(albedo, "field evaluator type")
             if albedo_type.getValue() == "albedo":
-                albedo_type.setValue("three-component subgrid albedos")
+                albedo_type.setValue("subgrid albedos, three components")
 
 def create_landcover(xml, eval_name='water_source', water_transition_depth=0.02):
     """Adds a default land-cover section that will be the same as the Arctic defaults."""

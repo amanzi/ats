@@ -82,7 +82,7 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
     // -- diagnostics
     albedo_key_ = Keys::readKey(plist, domain_, "albedo", "albedo");
     my_keys_.push_back(albedo_key_);
-    melt_key_ = Keys::readKey(plist, domain_snow_, "snowmelt", "melt");
+    melt_key_ = Keys::readKey(plist, domain_snow_, "snow melt", "melt");
     my_keys_.push_back(melt_key_);
     evap_key_ = Keys::readKey(plist, domain_, "evaporation", "evaporative_flux");
     my_keys_.push_back(evap_key_);
@@ -666,7 +666,7 @@ SEBThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
     if (diagnostics_) {
       S->RequireField(albedo_key_, albedo_key_)->Update(domain_fac_owned);
-      S->RequireField(melt_key_, melt_key_)->Update(domain_fac_owned);
+      S->RequireField(melt_key_, melt_key_)->Update(domain_fac_owned_snow);
       S->RequireField(evap_key_, evap_key_)->Update(domain_fac_owned);
       S->RequireField(snow_temp_key_, snow_temp_key_)->Update(domain_fac_owned_snow);
       S->RequireField(qE_sh_key_, qE_sh_key_)->Update(domain_fac_owned);
