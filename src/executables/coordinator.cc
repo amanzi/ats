@@ -102,10 +102,7 @@ void Coordinator::coordinator_init() {
        mesh!=S_->mesh_end(); ++mesh) {
 
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
-      std::string node_key;
-      if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
-      else node_key = std::string("vertex_coordinate");
-
+      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
       S_->RequireField(node_key)->SetMesh(mesh->second.first)->SetGhosted()
           ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
@@ -151,6 +148,32 @@ double Coordinator::initialize() {
   *S_->GetScalarData("dt", "coordinator") = 0.;
   S_->GetField("dt","coordinator")->set_initialized();
   S_->InitializeFields();
+
+  // save vertex coordinates.  Note that, if this vector isn't used by any
+  // other PKs/evaluators, the nodal coordinates won't change.
+  for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
+       mesh!=S_->mesh_end(); ++mesh) {
+    if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
+      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
+      // this could either be State or a later owning PK
+      auto owner = S_->GetField(node_key)->owner();
+      // collect the old coordinates
+      Epetra_MultiVector& vc = *S_->GetFieldData(node_key, owner)
+        ->ViewComponent("node", true);
+
+      std::vector<int> node_ids(vc.MyLength());
+      Amanzi::AmanziGeometry::Point_List old_positions(vc.MyLength());
+      for (int n=0; n!=vc.MyLength(); ++n) {
+        Amanzi::AmanziGeometry::Point node_coord;
+        mesh->second.first->node_get_coordinates(n, &node_coord);
+        vc[0][n] = node_coord[0];
+        vc[1][n] = node_coord[1];
+        if (mesh->second.first->space_dimension() == 3)
+          vc[2][n] = node_coord[2];
+      }
+      S_->GetField(node_key, owner)->set_initialized();
+    }
+  }
 
   // Initialize the process kernels
   pk_->Initialize(S_.ptr());
@@ -493,10 +516,7 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         // collect the old coordinates
-        std::string node_key;
-        if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
-        else node_key = std::string("vertex_coordinate");
-
+        auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
         Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetFieldData(node_key);
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
