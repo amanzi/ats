@@ -40,7 +40,7 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
   // determine the coupling strategy: "pressure" passes the pressure field,
   // "flux" the flux field, while "hybrid" passes one or the other depending
   // upon conditions.  "hybrid" is the most robust.
-  coupling_ = plist_->get<std::string>("coupling type", "pressure");
+  coupling_ = plist_->get<std::string>("coupling type", "hybrid");
   if (coupling_ != "pressure" && coupling_ != "flux" && coupling_ != "hybrid") {
     Errors::Message msg("WeakMPCSemiCoupled: \"coupling type\" must be one of \"pressure\", \"flux\", or \"hybrid\".");
     Exceptions::amanzi_throw(msg);
@@ -88,7 +88,7 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
   init_(S);
 
   // check whether we are subcycling
-  subcycled_ = plist_->template get<bool>("subcyle subdomains", false);
+  subcycled_ = plist_->template get<bool>("subcycle subdomains", false);
   if (subcycled_) {
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
     subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
@@ -340,7 +340,6 @@ void MPCPermafrostSplitFlux::CommitStep(double t_old, double t_new,
         const Teuchos::RCP<State>& S)
 {
   auto& pstar = *S->GetFieldData(p_primary_variable_star_)->ViewComponent("cell", false);
-  std::cout << "PRECOMMIT: pstar = " << pstar[0][0] << std::endl;
 
   // NOTE: in AJC code, these were flipped.  I believe this is correct, but
   // might be worth checking to see which works better.  Note it should result
@@ -361,7 +360,6 @@ void MPCPermafrostSplitFlux::CommitStep(double t_old, double t_new,
   CopyPrimaryToStar_(S.ptr(), S.ptr());
 
   auto& pstar2 = *S->GetFieldData(p_primary_variable_star_)->ViewComponent("cell", false);
-  std::cout << "POSTCOMMIT: pstar = " << pstar2[0][0] << std::endl;
 }
 
 

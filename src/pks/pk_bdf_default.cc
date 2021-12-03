@@ -141,7 +141,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
     bool valid = ValidStep();
     if (valid) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "successful timestep" << std::endl;
+        *vo_->os() << "successful advance" << std::endl;
       // update the timestep size
       if (dt_solver < dt_ && dt_solver >= dt) {
         // We took a smaller step than we recommended, and it worked fine (not
@@ -158,7 +158,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
     }
   } else {
     if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << "unsuccessful timestep" << std::endl;
+      *vo_->os() << "unsuccessful advance" << std::endl;
     // take the decreased timestep size
     dt_ = dt_solver;
   }

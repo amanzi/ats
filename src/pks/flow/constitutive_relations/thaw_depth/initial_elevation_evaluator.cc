@@ -1,10 +1,9 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 
 /*
-  The elevation evaluator gets the subsurface temperature and computes the thaw depth 
-  over time.
+An evaluator that simply saves the initial valule of another field for later use.
 
-  Authors: Ahmad Jan (jana@ornl.gov)
+Authors: Ahmad Jan (jana@ornl.gov)
 */
 
 #include "initial_elevation_evaluator.hh"
@@ -12,28 +11,22 @@
 namespace Amanzi {
 namespace Flow {
 
-
-
 InitialElevationEvaluator::InitialElevationEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+  : SecondaryVariableFieldEvaluator(plist),
+    updated_once_(false)
 {
-  Key dset_name = plist.get<std::string>("domain set name", "column");
-  
-  domain_ = Keys::getDomain(my_key_); //surface_column domain
-  int col_id = Keys::getDomainSetIndex<int>(domain_);
-  
-  Key domain_ss = Keys::getDomainInSet(dset_name, col_id);
-
+  Key domain_surf = Keys::getDomain(my_key_);
+  Key domain_ss = Keys::readDomainHint(plist, domain_surf, "surface", "subsurface");
   bp_key_ = Keys::readKey(plist, domain_ss, "base porosity", "base_porosity");
+  dependencies_.insert(bp_key_);
 
+  // fixme -- hard-code this to checkpoint?  Or make sure this evaluates based
+  // on the un-deformed initial mesh prior to re-deforming the mesh on restart?
+  // I believe that it currently relies on the user to "checkpoint" this.
+  // --ETC
 }
-  
 
-InitialElevationEvaluator::InitialElevationEvaluator(const InitialElevationEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
-    bp_key_(other.bp_key_)
-{}
-  
+
 Teuchos::RCP<FieldEvaluator>
 InitialElevationEvaluator::Clone() const
 {
@@ -44,58 +37,53 @@ InitialElevationEvaluator::Clone() const
 void
 InitialElevationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
-{ 
+{
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  
-  // search through the column and find the deepest unfrozen cell
 
+  // search through the column and find the deepest unfrozen cell
   std::string domain_ss = Keys::getDomain(bp_key_);
   const auto& top_z_centroid = S->GetMesh(domain_ss)->face_centroid(0);
-  
-  res_c[0][0] = std::max(res_c[0][0],top_z_centroid[2]);
-  
-}
-  
-void
-InitialElevationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
-{}
 
- 
-// Custom EnsureCompatibility forces this to be updated once.
+  AMANZI_ASSERT(res_c.MyLength() == 1);
+  res_c[0][0] = top_z_centroid[2];
+}
+
+
+// Custom EnsureCompatibility forces this to be updated once and only once.
+//
+// This is a bit of a hack...
 bool
 InitialElevationEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
-
   if (!updated_once_) {
-    UpdateField_(S);
-    updated_once_ = true;
-    return true;
+    bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+    if (changed) {
+      UpdateField_(S);
+      updated_once_ = true;
+    }
+    return changed;
   }
-  return changed;
+  return false;
 }
 
 void
 InitialElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 {
-
-  AMANZI_ASSERT(my_key_ != std::string(""));
-   
   Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
-  
+
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
   S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
   bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+my_key_, true);
   S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-  
+
   if (my_fac->Mesh() != Teuchos::null) {
     // Recurse into the tree to propagate info to leaves.
-    for (KeySet::const_iterator key=dependencies_.begin();
-         key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+    for (const auto& dep : dependencies_) {
+      S->RequireField(dep)
+        ->SetMesh(S->GetMesh(Keys::getDomain(dep)));
+      S->RequireFieldEvaluator(dep)->EnsureCompatibility(S);
     }
   }
 }

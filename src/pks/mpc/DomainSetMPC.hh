@@ -1,5 +1,4 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! A DomainSet coupler, weakly couples PKs on domains of the same structure.
 /*
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
@@ -7,8 +6,33 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! A DomainSet coupler, weakly couples PKs on domains of the same structure.
 
 /*!
+
+Typically this is used for perfectly parallel, decoupled subdomain PKs that
+just all need to be advanced.  It allows for both synchronized timestepping (if
+one fails, all take a smaller timestep) and subcycled timestepping.
+
+.. _domain-set-mpc-spec:
+.. admonition:: domain-set-mpc-spec
+
+   IF
+   * `"subcycle subdomains`" ``[bool]`` **false** If true, turn on subcycling.
+     In this case, this PK never fails.
+
+   THEN
+   * `"subcycling target time step [s]`" ``[double]`` Step size to target or
+     subcycling.  Note that this may be adjusted to meet events, etc.
+
+   * `"minimum subcycled time step [s]`" ``[double]`` **1e-4** Errors out if
+     any subdomain solve fails below this step size (throwing time-step crash
+     error).
+
+   END
+
+   INCLUDES:
+   - ``[mpc-spec]`` *Is an* MPC_.
 
  */
 

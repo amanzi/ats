@@ -56,7 +56,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   MPC<PK>::init_(S, getCommSelf());
 
   // check whether we are subcycling
-  subcycled_ = plist_->template get<bool>("subcyle subdomains", false);
+  subcycled_ = plist_->template get<bool>("subcycle subdomains", false);
   if (subcycled_) {
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
     subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
@@ -162,8 +162,8 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
         *vo_->os() << "  step valid? " << valid_inner << std::endl;
 
         // DEBUGGING
-        std::cout << ds_name_ << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400.
-                  << ") failed/!valid = " << fail_inner << "," << !valid_inner << std::endl;
+        // std::cout << ds_name_ << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400.
+        //           << ") failed/!valid = " << fail_inner << "," << !valid_inner << std::endl;
         // END DEBUGGING
       }
 
@@ -215,7 +215,12 @@ bool
 DomainSetMPC::ValidStep()
 {
   if (subcycled_) return true; // this was already checked in advance
-  else return MPC<PK>::ValidStep();
+  else {
+    int valid_l = MPC<PK>::ValidStep() ? 1 : 0;
+    int valid_g(-1);
+    solution_->Comm()->MinAll(&valid_l, &valid_g, 1);
+    return (valid_g == 1);
+  }
 }
 
 

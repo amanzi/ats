@@ -1,12 +1,15 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
-An operator-split permafrost coupler, based on flux.
+//! An operator-split permafrost coupler, splitting overland flow from subsurface.
 
+/*!
 solve:
 
 (dTheta_s / dt)^* = div k_s grad (z+h)
@@ -17,9 +20,9 @@ dTheta_s / dt = (dTheta_s / dt)^* + Q_ext + q_ss
 dTheta / dt = div k (grad p + rho*g*\hat{z})
 k  (grad p + rho*g*\hat{z}) |_s = q_ss
 
-This effectively does an operator splitting on the surface flow equation, but
-instead of the typical strateegy of passing pressure, passes the divergence of
-lateral fluxes as a fixed source term.
+This effectively does an operator splitting on the surface flow equation,
+passing some combination of pressure and divergence of fluxes to the
+subsurface.
 
 This is the permafrost analog, so deals with energy as well in a similar
 strategy.  In this case advection and diffusion of energy are handled in the
@@ -37,7 +40,38 @@ Note that this can be used with either a 3D subsurface solve, by setting the
 2nd sub-PK to be a 3D permafrost MPC, or a bunch of columns, but setting the
 2nd sub-PK to be a DomainSetMPC.
 
-------------------------------------------------------------------------- */
+
+.. _mpc-permafrost-split-flux-spec
+.. admonition:: mpc-permafrost-split-flux-spec
+
+   * `"domain name`" ``[string]`` The subsurface domain, e.g. "domain" (for a
+     3D subsurface ) or "column:*" (for the intermediate scale model.
+
+   * `"star domain name`" ``[string]`` The surface domain, typically
+     `"surface_star`" by convention.
+
+   * `"coupling type`" ``[string]`` **hybrid** One of: `"pressure`" (pass the
+     pressure field when coupling flow in the operator splitting), `"flux`"
+     (pass the divergence of fluxes as a source), or `"hybrid`" a mixture of
+     the two that seems the most robust.
+
+   IF
+   * `"subcycle subdomains`" ``[bool]`` **false** If true, subcycle surface_star
+     system.  Typically this is paired with the `"subcycle subdomains`"
+     option in the DomainSetMPC for columns in the ISM.
+
+   THEN
+   * `"subcycling target time step [s]`" ``[double]`` Step size to target or
+     subcycling.  Note that this may be adjusted to meet events, etc.
+
+   * `"minimum subcycled time step [s]`" ``[double]`` **1e-4** Errors out if
+     any subdomain solve fails below this step size (throwing time-step crash
+     error).
+
+   INCLUDES:
+   - ``[mpc-spec]`` *Is an* MPC_.
+
+*/
 
 #ifndef PKS_MPC_PERMAFROST_SPLIT_FLUX_HH_
 #define PKS_MPC_PERMAFROST_SPLIT_FLUX_HH_

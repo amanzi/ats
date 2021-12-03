@@ -33,7 +33,7 @@ AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
     for (auto name : names) {
       Key pname = name + std::string(" coefficient");
       coefs_[name] = plist.get<double>(pname, 1.0);
-    }  
+    }
   }
 
   shift_ = plist.get<double>("constant shift", 0.);

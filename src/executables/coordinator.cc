@@ -348,6 +348,7 @@ double rss_usage() { // return ru_maxrss in MBytes
 void Coordinator::report_memory() {
   // report the memory high water mark (using ru_maxrss)
   // this should be called at the very end of a simulation
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     double global_ncells(0.0);
     double local_ncells(0.0);
@@ -376,20 +377,19 @@ void Coordinator::report_memory() {
     comm_->MinAll(&mem,&min_mem,1);
     comm_->MaxAll(&mem,&max_mem,1);
 
-    Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "======================================================================" << std::endl;
-    *vo_->os() << "All meshes combined have " << global_ncells << " cells." << std::endl;
-    *vo_->os() << "Memory usage (high water mark):" << std::endl;
-    *vo_->os() << std::fixed << std::setprecision(1);
-    *vo_->os() << "  Maximum per core:   " << std::setw(7) << max_mem
-          << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
-          << " Bytes" << std::endl;
-    *vo_->os() << "  Minimum per core:   " << std::setw(7) << min_mem
-          << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
-         << " Bytes" << std::endl;
-    *vo_->os() << "  Total:              " << std::setw(7) << total_mem
-          << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
-          << " Bytes" << std::endl;
+    *vo_->os() << "======================================================================" << std::endl
+               << "All meshes combined have " << global_ncells << " cells." << std::endl
+               << "Memory usage (high water mark):" << std::endl
+               << std::fixed << std::setprecision(1)
+               << "  Maximum per core:   " << std::setw(7) << max_mem
+               << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
+               << " Bytes" << std::endl
+               << "  Minimum per core:   " << std::setw(7) << min_mem
+               << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
+               << " Bytes" << std::endl
+               << "  Total:              " << std::setw(7) << total_mem
+               << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
+               << " Bytes" << std::endl;
   }
 
 
@@ -404,13 +404,12 @@ void Coordinator::report_memory() {
   comm_->MinAll(&doubles_count,&min_doubles_count,1);
   comm_->MaxAll(&doubles_count,&max_doubles_count,1);
 
-  Teuchos::OSTab tab = vo_->getOSTab();
-  *vo_->os() << "Doubles allocated in state fields " << std::endl;
-  *vo_->os() << "  Maximum per core:   " << std::setw(7)
-             << max_doubles_count*8/1024/1024 << " MBytes" << std::endl;
-  *vo_->os() << "  Minimum per core:   " << std::setw(7)
-             << min_doubles_count*8/1024/1024 << " MBytes" << std::endl;
-  *vo_->os() << "  Total:              " << std::setw(7)
+  *vo_->os() << "Doubles allocated in state fields " << std::endl
+             << "  Maximum per core:   " << std::setw(7)
+             << max_doubles_count*8/1024/1024 << " MBytes" << std::endl
+             << "  Minimum per core:   " << std::setw(7)
+             << min_doubles_count*8/1024/1024 << " MBytes" << std::endl
+             << "  Total:              " << std::setw(7)
              << global_doubles_count*8/1024/1024 << " MBytes" << std::endl;
 }
 
@@ -502,6 +501,9 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
     *S_ = *S_next_;
     *S_inter_ = *S_next_;
 
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("good") << "successful cycle" << vo_->reset() << std::endl;
+
   } else {
     // Failed the timestep.
     // Potentially write out failed timestep for debugging
@@ -538,6 +540,9 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
       }
     }
     dt_next = get_dt(fail);
+
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("bad") << "failed cycle" << vo_->reset() << std::endl;
   }
   return fail;
 }
@@ -605,14 +610,14 @@ void Coordinator::cycle_driver() {
            (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
            dt > 0.) {
       if (vo_->os_OK(Teuchos::VERB_LOW)) {
-        Teuchos::OSTab tab = vo_->getOSTab();
         *vo_->os() << "======================================================================"
-                  << std::endl << std::endl;
-        *vo_->os() << "Cycle = " << S_->cycle();
-        *vo_->os() << ",  Time [days] = "<< std::setprecision(16) << S_->time() / (60*60*24);
-        *vo_->os() << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)  << std::endl;
-        *vo_->os() << "----------------------------------------------------------------------"
-                  << std::endl;
+                   << std::endl << std::endl
+                   << vo_->color("good") << "Cycle = " << S_->cycle()
+                   << ",  Time [days] = "<< std::setprecision(16) << S_->time() / (60*60*24)
+                   << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)
+                   << vo_->reset() << std::endl
+                   << "----------------------------------------------------------------------"
+                   << std::endl;
       }
 
       *S_->GetScalarData("dt", "coordinator") = dt;
