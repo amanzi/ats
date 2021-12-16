@@ -13,13 +13,16 @@ include_directories(
 set(ats_basic_inc_files
   PK_MixinConservationEquation.hh
   ConservationODE.hh
-  MixedFormParabolicPDE.hh
+  ParabolicPDE_MixedFormImplicit.hh
+  ParabolicPDE_PrimaryFormExplicit.hh
+  ParabolicPDE_PredictorCorrector.hh
   EvaluatorUpwindPotentialDifference.hh
   )
 
 set(ats_basic_src_files
   EvaluatorUpwindPotentialDifference.cc
   )
+
 
 set(ats_basic_link_libs
   ${Teuchos_LIBRARIES}
@@ -51,7 +54,7 @@ register_evaluator_with_factory(
 )
 
 register_evaluator_with_factory(
-  HEADERFILE MixedFormParabolicPDE_reg.hh
+  HEADERFILE ParabolicPDE_reg.hh
   LISTNAME ATS_REG
 )
 

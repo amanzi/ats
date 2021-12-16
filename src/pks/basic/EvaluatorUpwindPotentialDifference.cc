@@ -22,7 +22,7 @@ EvaluatorUpwindPotentialDifference::EvaluatorUpwindPotentialDifference(
     Key my_key = my_keys_[0].first;
     KeyPair domain_key = Keys::splitKey(my_key);
 
-    if (Keys::startsWith(domain_key.second, "upwind_")) {
+    if (Keys::starts_with(domain_key.second, "upwind_")) {
       Key my_default = domain_key.second.substr(7,domain_key.second.size());
       dependencies_.emplace_back(std::make_pair(
           Keys::readKey(plist, domain_key.first, "upwinded field", my_default),

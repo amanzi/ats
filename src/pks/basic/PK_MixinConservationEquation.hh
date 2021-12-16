@@ -14,8 +14,8 @@ standalone PK, but provides tools for conservation equations.  This includes
 dealing with all needed keys, data, and evaluators for the conserved quantity
 and source terms.
 
-.. _conservation-equation-pk-spec:
-.. admonition:: conservation-equation-pk-spec
+.. _mixin-conservation-equation-spec:
+.. admonition:: mixin-conservation-equation-spec
 
     * `"domain`" ``[string]`` Mesh on which the balance is to be done.
 
