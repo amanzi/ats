@@ -53,19 +53,19 @@ SurfaceBalanceBase::Setup(const Teuchos::Ptr<State>& S) {
   PK_PhysicalBDF_Default::Setup(S);
 
   // requirements: primary variable
-  S->RequireField(key_, name_)->SetMesh(mesh_)->
+  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(mesh_)->
       SetComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: source terms from above
   if (is_source_) {
-    S->RequireField(source_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(source_key_);
   }
 
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    S->RequireField(conserved_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(conserved_key_);
   }
@@ -103,7 +103,7 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
     std::vector<std::string> vnames;
     std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
     vnames.push_back("u_old"); vnames.push_back("u_new");
-    vecs.push_back(S_inter_->GetFieldData(key_).ptr());
+    vecs.push_back(S_inter_->GetPtr<CompositeVector>(key_).ptr());
     vecs.push_back(u_new->Data().ptr());
     db_->WriteVectors(vnames, vecs, true);
   }
@@ -111,16 +111,16 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
   if (conserved_quantity_) {
     S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
     S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-    Teuchos::RCP<const CompositeVector> conserved1 = S_next_->GetFieldData(conserved_key_);
-    Teuchos::RCP<const CompositeVector> conserved0 = S_inter_->GetFieldData(conserved_key_);
+    Teuchos::RCP<const CompositeVector> conserved1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
+    Teuchos::RCP<const CompositeVector> conserved0 = S_inter_->GetPtr<CompositeVector>(conserved_key_);
     g->Data()->Update(1.0/dt, *conserved1, -1.0/dt, *conserved0, 0.0);
 
     if (vo_->os_OK(Teuchos::VERB_HIGH)) {
       std::vector<std::string> vnames;
       std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
       vnames.push_back("C_old"); vnames.push_back("C_new");
-      vecs.push_back(S_inter_->GetFieldData(conserved_key_).ptr());
-      vecs.push_back(S_next_->GetFieldData(conserved_key_).ptr());
+      vecs.push_back(S_inter_->GetPtr<CompositeVector>(conserved_key_).ptr());
+      vecs.push_back(S_next_->GetPtr<CompositeVector>(conserved_key_).ptr());
       db_->WriteVectors(vnames, vecs, true);
     }
   } else {
@@ -131,21 +131,21 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
   db_->WriteVector("res(acc)", g->Data().ptr());
 
   S_next_->GetFieldEvaluator(cell_vol_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> cv = S_next_->GetFieldData(cell_vol_key_);
+  Teuchos::RCP<const CompositeVector> cv = S_next_->GetPtr<CompositeVector>(cell_vol_key_);
 
   if (is_source_) {
     if (theta_ < 1.0) {
       S_inter_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-      g->Data()->Multiply(-(1.0 - theta_), *S_inter_->GetFieldData(source_key_), *cv, 1.);
+      g->Data()->Multiply(-(1.0 - theta_), *S_inter_->GetPtr<CompositeVector>(source_key_), *cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-        db_->WriteVector("source0", S_inter_->GetFieldData(source_key_).ptr(), false);
+        db_->WriteVector("source0", S_inter_->GetPtr<CompositeVector>(source_key_).ptr(), false);
       }
     }
     if (theta_ > 0.0) {
       S_next_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
-      g->Data()->Multiply(-theta_, *S_next_->GetFieldData(source_key_), *cv, 1.);
+      g->Data()->Multiply(-theta_, *S_next_->GetPtr<CompositeVector>(source_key_), *cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-        db_->WriteVector("source1", S_next_->GetFieldData(source_key_).ptr(), false);
+        db_->WriteVector("source1", S_next_->GetPtr<CompositeVector>(source_key_).ptr(), false);
       }
     }
     db_->WriteVector("res(source)", g->Data().ptr());
@@ -167,7 +167,7 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
     // add derivative of conserved quantity wrt primary
     S_next_->GetFieldEvaluator(conserved_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-    auto dconserved_dT = S_next_->GetFieldData(Keys::getDerivKey(conserved_key_, key_));
+    auto dconserved_dT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(conserved_key_, key_));
     db_->WriteVector("d(cons)/d(prim)", dconserved_dT.ptr());
     preconditioner_acc_->AddAccumulationTerm(*dconserved_dT, h, "cell", false);
 
@@ -179,19 +179,19 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
       if (!source_finite_difference_) {
         // evaluate the derivative through chain rule and the DAG
         S_next_->GetFieldEvaluator(source_key_)->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-        dsource_dT = S_next_->GetFieldData(Keys::getDerivKey(source_key_,key_));
+        dsource_dT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(source_key_,key_));
       } else {
         // evaluate the derivative through finite differences
-        S_next_->GetFieldData(key_, name_)->Shift(eps_);
+        S_next_->GetW<CompositeVector>(key_, name_).Shift(eps_);
         ChangedSolution();
         S_next_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
-        auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S_next_->GetFieldData(source_key_)));
+        auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S_next_->GetPtr<CompositeVector>(source_key_)));
 
-        S_next_->GetFieldData(key_, name_)->Shift(-eps_);
+        S_next_->GetW<CompositeVector>(key_, name_).Shift(-eps_);
         ChangedSolution();
         S_next_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
 
-        dsource_dT_nc->Update(-1/eps_, *S_next_->GetFieldData(source_key_), 1/eps_);
+        dsource_dT_nc->Update(-1/eps_, *S_next_->GetPtr<CompositeVector>(source_key_), 1/eps_);
         dsource_dT = dsource_dT_nc;
       }
 

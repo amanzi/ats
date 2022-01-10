@@ -42,9 +42,9 @@ void ExcludedVolumeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
  
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& delta_init_c = *S->GetFieldData(delta_init_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& delta_evolve_c = *S->GetFieldData(delta_evolve_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& sg_entity_c = *S->GetFieldData(sg_entity_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& delta_init_c = *S->Get<CompositeVector>(delta_init_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& delta_evolve_c = *S->Get<CompositeVector>(delta_evolve_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& sg_entity_c = *S->Get<CompositeVector>(sg_entity_key_).ViewComponent("cell",false);
 
   Key domain = Keys::getDomain(delta_init_key_);
   assert(!domain.empty());

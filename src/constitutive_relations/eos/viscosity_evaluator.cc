@@ -50,7 +50,7 @@ Teuchos::RCP<FieldEvaluator> ViscosityEvaluator::Clone() const {
 void ViscosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                          const Teuchos::Ptr<CompositeVector>& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
 
   // evaluate p_s / p_atm
   for (CompositeVector::name_iterator comp=result->begin();
@@ -73,7 +73,7 @@ void ViscosityEvaluator::EvaluateFieldPartialDerivative_(
   AMANZI_ASSERT(wrt_key == temp_key_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
 
   // evaluate d/dT( p_s / p_atm )
   for (CompositeVector::name_iterator comp=result->begin();

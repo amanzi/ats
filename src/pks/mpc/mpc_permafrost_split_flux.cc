@@ -67,12 +67,12 @@ void MPCPermafrostSplitFlux::Setup(const Teuchos::Ptr<State>& S)
 {
   MPC<PK>::Setup(S);
 
-  S->RequireField(p_lateral_flow_source_, p_lateral_flow_source_)
+  S->Require<CompositeVector,CompositeVectorSpace>(p_lateral_flow_source_, Tags::NEXT,  p_lateral_flow_source_)
       ->SetMesh(S->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
       ->SetComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(p_lateral_flow_source_);
 
-  S->RequireField(T_lateral_flow_source_, T_lateral_flow_source_)
+  S->Require<CompositeVector,CompositeVectorSpace>(T_lateral_flow_source_, Tags::NEXT,  T_lateral_flow_source_)
       ->SetMesh(S->GetMesh(Keys::getDomain(T_lateral_flow_source_)))
       ->SetComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(T_lateral_flow_source_);
@@ -142,9 +142,9 @@ MPCPermafrostSplitFlux::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
                                     const Teuchos::Ptr<State>& S_star)
 {
   // copy p primary variable
-  auto& p_star = *S_star->GetFieldData(p_primary_variable_star_, S_star->GetField(p_primary_variable_star_)->owner())
+  auto& p_star = *S_star->GetW<CompositeVector>(p_primary_variable_star_, S_star->GetField(p_primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
-  const auto& p = *S->GetFieldData(p_primary_variable_)->ViewComponent("cell",false);
+  const auto& p = *S->Get<CompositeVector>(p_primary_variable_).ViewComponent("cell",false);
   for (int c=0; c!=p_star.MyLength(); ++c) {
     if (p[0][c] <= 101325.0) {
       p_star[0][c] = 101325.;
@@ -158,9 +158,9 @@ MPCPermafrostSplitFlux::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
   peval_pvfe->SetFieldAsChanged(S_star.ptr());
 
   // copy T primary variable
-  auto& T_star = *S_star->GetFieldData(T_primary_variable_star_, S_star->GetField(T_primary_variable_star_)->owner())
+  auto& T_star = *S_star->GetW<CompositeVector>(T_primary_variable_star_, S_star->GetField(T_primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
-  const auto& T = *S->GetFieldData(T_primary_variable_)->ViewComponent("cell",false);
+  const auto& T = *S->Get<CompositeVector>(T_primary_variable_).ViewComponent("cell",false);
   T_star = T;
 
   auto Teval = S_star->GetFieldEvaluator(T_primary_variable_star_);
@@ -195,31 +195,31 @@ MPCPermafrostSplitFlux::CopyStarToPrimary(double dt)
   S_next_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
-  auto& q_div = *S_next_->GetFieldData(p_lateral_flow_source_, S_next_->GetField(p_lateral_flow_source_)->owner())
+  auto& q_div = *S_next_->GetW<CompositeVector>(p_lateral_flow_source_, S_next_->GetField(p_lateral_flow_source_).owner())
                 ->ViewComponent("cell",false);
   q_div.Update(1.0/dt,
-               *S_next_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                0.);
 
   // scale by cell volume as this will get rescaled in the source calculation
-  q_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), q_div, 0.);
+  q_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), q_div, 0.);
 
   // mark the source evaluator as changed to ensure the total source gets updated.
   p_eval_pvfe_->SetFieldAsChanged(S_next_.ptr());
 
   // grab the data, difference
-  auto& qE_div = *S_next_->GetFieldData(T_lateral_flow_source_, S_next_->GetField(T_lateral_flow_source_)->owner())
+  auto& qE_div = *S_next_->GetW<CompositeVector>(T_lateral_flow_source_, S_next_->GetField(T_lateral_flow_source_).owner())
                 ->ViewComponent("cell",false);
   qE_div.Update(1.0/dt,
-               *S_next_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                0.);
 
   // scale by cell volume as this will get rescaled in the source calculation
-  qE_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), qE_div, 0.);
+  qE_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), qE_div, 0.);
 
   // mark the source evaluator as changed to ensure the total source gets updated.
   T_eval_pvfe_->SetFieldAsChanged(S_next_.ptr());

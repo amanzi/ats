@@ -45,13 +45,13 @@ UpwindElevationStabilized::UpwindElevationStabilized(const std::string& pkname,
 void UpwindElevationStabilized::Update(const Teuchos::Ptr<State>& S,
                                         const Teuchos::Ptr<Debugger>& db)
 {
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
 
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_);
-  Teuchos::RCP<const CompositeVector> elev = S->GetFieldData(elevation_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetFieldData(ponded_depth_);
-  Teuchos::RCP<const CompositeVector> manning_coef = S->GetFieldData(manning_coef_);
-  Teuchos::RCP<const CompositeVector> density = S->GetFieldData(density_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_);
+  Teuchos::RCP<const CompositeVector> elev = S->GetPtr<CompositeVector>(elevation_);
+  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(ponded_depth_);
+  Teuchos::RCP<const CompositeVector> manning_coef = S->GetPtr<CompositeVector>(manning_coef_);
+  Teuchos::RCP<const CompositeVector> density = S->GetPtr<CompositeVector>(density_);
 
   CalculateCoefficientsOnFaces(*slope, *manning_coef, *pd, *elev, *density, face.ptr(), db);
 };

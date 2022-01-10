@@ -98,9 +98,9 @@ void
 IncidentShortwaveRadiationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> aspect = S->GetFieldData(aspect_key_);
-  Teuchos::RCP<const CompositeVector> qSWin = S->GetFieldData(qSWin_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> aspect = S->GetPtr<CompositeVector>(aspect_key_);
+  Teuchos::RCP<const CompositeVector> qSWin = S->GetPtr<CompositeVector>(qSWin_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -122,9 +122,9 @@ void
 IncidentShortwaveRadiationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> aspect = S->GetFieldData(aspect_key_);
-  Teuchos::RCP<const CompositeVector> qSWin = S->GetFieldData(qSWin_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> aspect = S->GetPtr<CompositeVector>(aspect_key_);
+  Teuchos::RCP<const CompositeVector> qSWin = S->GetPtr<CompositeVector>(qSWin_key_);
   double time = S->time();
 
   if (wrt_key == slope_key_) {

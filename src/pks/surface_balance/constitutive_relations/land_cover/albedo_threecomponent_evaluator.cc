@@ -56,8 +56,8 @@ AlbedoThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   auto mesh = S->GetMesh(domain_);
 
   // collect dependencies
-  const auto& snow_dens = *S->GetFieldData(snow_dens_key_)->ViewComponent("cell",false);
-  const auto& unfrozen_fraction = *S->GetFieldData(unfrozen_fraction_key_)->ViewComponent("cell",false);
+  const auto& snow_dens = *S->Get<CompositeVector>(snow_dens_key_).ViewComponent("cell",false);
+  const auto& unfrozen_fraction = *S->Get<CompositeVector>(unfrozen_fraction_key_).ViewComponent("cell",false);
 
   // collect output vecs
   auto& albedo = *results[0]->ViewComponent("cell",false);
@@ -114,7 +114,7 @@ void AlbedoThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
   // see if we can find a master fac
   for (auto my_key : my_keys_) {
     // Ensure my field exists, and claim ownership.
-    auto my_fac = S->RequireField(my_key, my_key);
+    auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key, Tags::NEXT,  my_key);
     my_fac->Update(domain_fac_owned);
 
     // Check plist for vis or checkpointing control.
@@ -126,7 +126,7 @@ void AlbedoThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
 
   // Loop over dependencies, making sure they are the same mesh
   for (auto key : dependencies_) {
-    auto fac = S->RequireField(key);
+    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(key, Tags::NEXT);
     if (Keys::starts_with(key, domain_snow_)) {
       fac->Update(domain_fac_snow);
     } else {

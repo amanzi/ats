@@ -47,8 +47,8 @@ SnowMeltRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   auto mesh = S->GetMesh(domain_);
 
-  const auto& air_temp = *S->GetFieldData(temp_key_)->ViewComponent("cell", false);
-  const auto& swe = *S->GetFieldData(snow_key_)->ViewComponent("cell", false);
+  const auto& air_temp = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
+  const auto& swe = *S->Get<CompositeVector>(snow_key_).ViewComponent("cell", false);
   auto& res = *result->ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
@@ -77,8 +77,8 @@ SnowMeltRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
   auto mesh = S->GetMesh(domain_);
-  const auto& air_temp = *S->GetFieldData(temp_key_)->ViewComponent("cell", false);
-  const auto& swe = *S->GetFieldData(snow_key_)->ViewComponent("cell", false);
+  const auto& air_temp = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
+  const auto& swe = *S->Get<CompositeVector>(snow_key_).ViewComponent("cell", false);
   auto& res = *result->ViewComponent("cell", false);
 
   if (wrt_key == temp_key_) {

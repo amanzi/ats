@@ -40,12 +40,12 @@ TwoPhase::TwoPhase(Teuchos::ParameterList& FElist,
 void TwoPhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // Get data and evaluators needed by the PK
   // -- energy, the conserved quantity
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(conserved_key_);
 
   // -- thermal conductivity
-  S->RequireField(conductivity_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList tcm_plist =
     plist_->sublist("thermal conductivity evaluator");

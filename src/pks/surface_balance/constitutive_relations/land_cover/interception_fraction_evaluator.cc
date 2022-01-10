@@ -70,11 +70,11 @@ void
 InterceptionFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results)
 {
-  Teuchos::RCP<const CompositeVector> ai = S->GetFieldData(ai_key_);
-  Teuchos::RCP<const CompositeVector> rain = S->GetFieldData(rain_key_);
-  Teuchos::RCP<const CompositeVector> snow = S->GetFieldData(snow_key_);
-  Teuchos::RCP<const CompositeVector> drainage = S->GetFieldData(drainage_key_);
-  Teuchos::RCP<const CompositeVector> air_temp = S->GetFieldData(air_temp_key_);
+  Teuchos::RCP<const CompositeVector> ai = S->GetPtr<CompositeVector>(ai_key_);
+  Teuchos::RCP<const CompositeVector> rain = S->GetPtr<CompositeVector>(rain_key_);
+  Teuchos::RCP<const CompositeVector> snow = S->GetPtr<CompositeVector>(snow_key_);
+  Teuchos::RCP<const CompositeVector> drainage = S->GetPtr<CompositeVector>(drainage_key_);
+  Teuchos::RCP<const CompositeVector> air_temp = S->GetPtr<CompositeVector>(air_temp_key_);
 
   for (CompositeVector::name_iterator comp=results[0]->begin();
        comp!=results[0]->end(); ++comp) {
@@ -107,11 +107,11 @@ InterceptionFractionEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
         Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results)
 {
   if (wrt_key == drainage_key_) {
-    Teuchos::RCP<const CompositeVector> ai = S->GetFieldData(ai_key_);
-    Teuchos::RCP<const CompositeVector> rain = S->GetFieldData(rain_key_);
-    Teuchos::RCP<const CompositeVector> snow = S->GetFieldData(snow_key_);
-    Teuchos::RCP<const CompositeVector> drainage = S->GetFieldData(drainage_key_);
-    Teuchos::RCP<const CompositeVector> air_temp = S->GetFieldData(air_temp_key_);
+    Teuchos::RCP<const CompositeVector> ai = S->GetPtr<CompositeVector>(ai_key_);
+    Teuchos::RCP<const CompositeVector> rain = S->GetPtr<CompositeVector>(rain_key_);
+    Teuchos::RCP<const CompositeVector> snow = S->GetPtr<CompositeVector>(snow_key_);
+    Teuchos::RCP<const CompositeVector> drainage = S->GetPtr<CompositeVector>(drainage_key_);
+    Teuchos::RCP<const CompositeVector> air_temp = S->GetPtr<CompositeVector>(air_temp_key_);
 
     for (CompositeVector::name_iterator comp=results[0]->begin();
          comp!=results[0]->end(); ++comp) {

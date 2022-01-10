@@ -57,8 +57,8 @@ Teuchos::RCP<FieldEvaluator> PCIceEvaluator::Clone() const {
 void PCIceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                          const Teuchos::Ptr<CompositeVector>& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> dens = S->GetFieldData(dens_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
   double lambda = S->HasField("continuation_parameter") ?
     std::pow(10., -2*(*S->GetScalarData("continuation_parameter"))) : 1.;
   
@@ -83,8 +83,8 @@ void PCIceEvaluator::EvaluateFieldPartialDerivative_(
     const Teuchos::Ptr<CompositeVector>& result) {
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> dens = S->GetFieldData(dens_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
   double lambda = S->HasField("continuation_parameter") ?
     std::pow(10., -2*(*S->GetScalarData("continuation_parameter"))) : 1.;
 

@@ -34,15 +34,15 @@ namespace Relations {
 
 void Volumetric_FluxEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // for now just passing... might do something later here?
-  S->RequireField(my_key_, my_key_);
-  S->RequireField(flux_key_);
+  S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
+  S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT);
 }
 
   void Volumetric_FluxEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                                                 const Teuchos::Ptr<CompositeVector>& result){
 
-    const Epetra_MultiVector& darcy_flux = *S->GetFieldData(flux_key_)->ViewComponent("face",false);
-    const Epetra_MultiVector& molar_density = *S->GetFieldData(dens_key_)->ViewComponent("cell",false);
+    const Epetra_MultiVector& darcy_flux = *S->Get<CompositeVector>(flux_key_).ViewComponent("face",false);
+    const Epetra_MultiVector& molar_density = *S->Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
 
     Epetra_MultiVector& res_v = *result->ViewComponent("face",false);
 

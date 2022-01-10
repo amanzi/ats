@@ -201,16 +201,16 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
       S_next_->GetFieldEvaluator(kr_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
       Teuchos::RCP<const CompositeVector> dkrdT =
-        S_next_->GetFieldData(Keys::getDerivKey(kr_key_, temp_key_));
+        S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(kr_key_, temp_key_));
       Teuchos::RCP<const CompositeVector> kr_uw =
-        S_next_->GetFieldData(kr_uw_key_);
+        S_next_->GetPtr<CompositeVector>(kr_uw_key_);
       Teuchos::RCP<const CompositeVector> flux =
-        S_next_->GetFieldData(mass_flux_key_);
+        S_next_->GetPtr<CompositeVector>(mass_flux_key_);
 
       S_next_->GetFieldEvaluator(potential_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
       Teuchos::RCP<const CompositeVector> pres_elev =
-        S_next_->GetFieldData(potential_key_);
+        S_next_->GetPtr<CompositeVector>(potential_key_);
 
       // form the operator
       ddivq_dT_->SetScalarCoefficient(kr_uw, dkrdT);
@@ -223,12 +223,12 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     S_next_->GetFieldEvaluator(e_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
     Teuchos::RCP<const CompositeVector> dE_dp =
-      S_next_->GetFieldData(Keys::getDerivKey(e_key_, pres_key_));
+      S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(e_key_, pres_key_));
 
     // -- scale to dE/dh
     S_next_->GetFieldEvaluator(pd_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
-    auto dh_dp = S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_, pres_key_));
+    auto dh_dp = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(pd_bar_key_, pres_key_));
 
     // -- add it in
     CompositeVector dE_dh(dE_dp->Map());
@@ -284,7 +284,7 @@ int MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
     // tack on the variable change from h to p
     const Epetra_MultiVector& dh_dp =
-      *S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_,pres_key_))->ViewComponent("cell",false);
+      *S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(pd_bar_key_,pres_key_))->ViewComponent("cell",false);
     Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell",false);
 
     for (unsigned int c=0; c!=Pu_c.MyLength(); ++c) {

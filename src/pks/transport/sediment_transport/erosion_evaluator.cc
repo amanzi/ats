@@ -56,7 +56,7 @@ Teuchos::RCP<FieldEvaluator> ErosionRateEvaluator ::Clone() const {
 void ErosionRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  const Epetra_MultiVector& vel = *S->GetFieldData(velocity_key_)->ViewComponent("cell");
+  const Epetra_MultiVector& vel = *S->Get<CompositeVector>(velocity_key_).ViewComponent("cell");
   Epetra_MultiVector& result_c = *result->ViewComponent("cell");
   
   for (int c=0; c<vel.MyLength(); c++){

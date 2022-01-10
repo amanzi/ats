@@ -22,7 +22,7 @@ void OverlandPressureFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 
   // update the rel perm according to the scheme of choice.
   UpdatePermeabilityData_(S_next_.ptr());
-  auto cond = S_next_->GetFieldData(uw_cond_key_, name_);
+  auto cond = S_next_->GetPtrW<CompositeVector>(uw_cond_key_, name_);
 
   // update the stiffness matrix
   matrix_->Init();
@@ -34,8 +34,8 @@ void OverlandPressureFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // derive fluxes -- this gets done independently fo update as precon does
   // not calculate fluxes.
   S->GetFieldEvaluator(potential_key_)->HasFieldChanged(S.ptr(), name_);
-  auto pres_elev = S->GetFieldData(potential_key_);
-  auto flux = S->GetFieldData(flux_key_, name_);
+  auto pres_elev = S->GetPtr<CompositeVector>(potential_key_);
+  auto flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
   if (S == S_next_.ptr()) flux_pvfe_->SetFieldAsChanged(S);
 
@@ -57,9 +57,9 @@ void OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>&
   S_inter_->GetFieldEvaluator(conserved_key_)
       ->HasFieldChanged(S_inter_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> wc1 =
-      S_next_->GetFieldData(conserved_key_);
+      S_next_->GetPtr<CompositeVector>(conserved_key_);
   Teuchos::RCP<const CompositeVector> wc0 =
-      S_inter_->GetFieldData(conserved_key_);
+      S_inter_->GetPtr<CompositeVector>(conserved_key_);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     std::vector<std::string> vnames;
@@ -84,15 +84,15 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
   Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
 
   const Epetra_MultiVector& cv1 =
-    *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false);
+    *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false);
 
   if (is_source_term_) {
     // Add in external source term.
     S_next_->GetFieldEvaluator(source_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
     const Epetra_MultiVector& source1 =
-        *S_next_->GetFieldData(source_key_)->ViewComponent("cell",false);
-    db_->WriteVector("  source", S_next_->GetFieldData(source_key_).ptr(), false);
+        *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
+    db_->WriteVector("  source", S_next_->GetPtr<CompositeVector>(source_key_).ptr(), false);
 
     if (source_in_meters_) {
       // External source term is in [m water / s], not in [mols / s], so a
@@ -102,9 +102,9 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
       S_next_->GetFieldEvaluator(source_molar_dens_key_)
           ->HasFieldChanged(S_next_.ptr(), name_);
 
-      const Epetra_MultiVector& nliq1 = *S_next_->GetFieldData(molar_dens_key_)
+      const Epetra_MultiVector& nliq1 = *S_next_->GetPtr<CompositeVector>(molar_dens_key_)
           ->ViewComponent("cell",false);
-      const Epetra_MultiVector& nliq1_s = *S_next_->GetFieldData(source_molar_dens_key_)
+      const Epetra_MultiVector& nliq1_s = *S_next_->GetPtr<CompositeVector>(source_molar_dens_key_)
           ->ViewComponent("cell",false);
 
       int ncells = g_c.MyLength();
@@ -124,7 +124,7 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
     // Add in source term from coupling.
     S_next_->GetFieldEvaluator(ss_flux_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
-    Teuchos::RCP<const CompositeVector> source1 = S_next_->GetFieldData(ss_flux_key_);
+    Teuchos::RCP<const CompositeVector> source1 = S_next_->GetPtr<CompositeVector>(ss_flux_key_);
 
     // source term is in units of [mol / s]
     g_c.Update(-1., *source1->ViewComponent("cell",false), 1.);

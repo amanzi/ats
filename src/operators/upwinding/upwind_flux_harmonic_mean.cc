@@ -36,9 +36,9 @@ UpwindFluxHarmonicMean::UpwindFluxHarmonicMean(std::string pkname,
 void UpwindFluxHarmonicMean::Update(const Teuchos::Ptr<State>& S,
                              const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  Teuchos::RCP<const CompositeVector> cell = S->GetPtr<CompositeVector>(cell_coef_);
+  Teuchos::RCP<const CompositeVector> flux = S->GetPtr<CompositeVector>(flux_);
+  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
   CalculateCoefficientsOnFaces(*cell, *flux, face.ptr(), db);
 };
 

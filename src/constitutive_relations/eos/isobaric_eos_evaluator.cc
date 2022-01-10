@@ -81,7 +81,7 @@ Teuchos::RCP<FieldEvaluator> IsobaricEOSEvaluator::Clone() const {
 void IsobaricEOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                          const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> dep_cv = S->GetFieldData(dep_key_);
+  Teuchos::RCP<const CompositeVector> dep_cv = S->GetPtr<CompositeVector>(dep_key_);
   Teuchos::RCP<const double> pres = S->GetScalarData(pres_key_);
   std::vector<double> eos_params(2);
 
@@ -131,7 +131,7 @@ void IsobaricEOSEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<St
         Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> dep_cv = S->GetFieldData(dep_key_);
+  Teuchos::RCP<const CompositeVector> dep_cv = S->GetPtr<CompositeVector>(dep_key_);
   Teuchos::RCP<const double> pres = S->GetScalarData(pres_key_);
   std::vector<double> eos_params(2);  
 

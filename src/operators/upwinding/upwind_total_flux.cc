@@ -36,9 +36,9 @@ UpwindTotalFlux::UpwindTotalFlux(std::string pkname,
 void UpwindTotalFlux::Update(const Teuchos::Ptr<State>& S,
                              const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  Teuchos::RCP<const CompositeVector> cell = S->GetPtr<CompositeVector>(cell_coef_);
+  Teuchos::RCP<const CompositeVector> flux = S->GetPtr<CompositeVector>(flux_);
+  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
   CalculateCoefficientsOnFaces(*cell, *flux, face.ptr(), db);
 };
 
@@ -187,12 +187,12 @@ UpwindTotalFlux::UpdateDerivatives(const Teuchos::Ptr<State>& S,
   const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell",true);
 
   // Grab potential
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(potential_key);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key);
   pres->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
 
   // Grab flux direction
-  const Epetra_MultiVector& flux_v = *S->GetFieldData(flux_)->ViewComponent("face",false);
+  const Epetra_MultiVector& flux_v = *S->Get<CompositeVector>(flux_).ViewComponent("face",false);
 
   // Grab mesh and allocate space
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = dconductivity.Mesh();

@@ -36,7 +36,7 @@ ThawDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 { 
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const auto& temp_c = *S->GetFieldData(temp_key_)->ViewComponent("cell", false);
+  const auto& temp_c = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
 
   // search through the column and find the first frozen cell
   const auto& surf_mesh = S->GetMesh(domain_);
@@ -85,7 +85,7 @@ ThawDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 {
   AMANZI_ASSERT(my_key_ != std::string(""));
    
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

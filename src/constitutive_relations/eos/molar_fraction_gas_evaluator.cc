@@ -58,7 +58,7 @@ MolarFractionGasEvaluator::Clone() const {
 void MolarFractionGasEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
   const double& p_atm = *(S->GetScalarData("atmospheric_pressure"));
 
   // evaluate p_s / p_atm
@@ -82,7 +82,7 @@ void MolarFractionGasEvaluator::EvaluateFieldPartialDerivative_(
   AMANZI_ASSERT(wrt_key == temp_key_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
   const double& p_atm = *(S->GetScalarData("atmospheric_pressure"));
 
   // evaluate d/dT( p_s / p_atm )

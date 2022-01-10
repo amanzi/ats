@@ -53,7 +53,7 @@ Teuchos::RCP<FieldEvaluator> PCLiquidEvaluator::Clone() const {
 void PCLiquidEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                          const Teuchos::Ptr<CompositeVector>& result) {
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
   Teuchos::RCP<const double> p_atm = S->GetScalarData(p_atm_key_);
 
   // evaluate pc
@@ -76,7 +76,7 @@ void PCLiquidEvaluator::EvaluateFieldPartialDerivative_(
   AMANZI_ASSERT(wrt_key == pres_key_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
   Teuchos::RCP<const double> p_atm = S->GetScalarData(p_atm_key_);
 
   // evaluate d/dT( p_s / p_atm )

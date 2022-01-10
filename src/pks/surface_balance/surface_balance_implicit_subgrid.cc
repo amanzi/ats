@@ -62,13 +62,13 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
   SurfaceBalanceBase::Setup(S);
 
   // requireiments: things I use
-  S->RequireField(new_snow_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(new_snow_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(new_snow_key_);
 
   // requirements: other primary variables
   Teuchos::RCP<FieldEvaluator> fm;
-  S->RequireField(snow_dens_key_, name_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(snow_dens_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(snow_dens_key_);
   fm = S->GetFieldEvaluator(snow_dens_key_);
@@ -78,7 +78,7 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
     Exceptions::amanzi_throw(message);
   }
 
-  S->RequireField(snow_death_rate_key_, name_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(snow_death_rate_key_);
   fm = S->GetFieldEvaluator(snow_death_rate_key_);
@@ -90,7 +90,7 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
 
   // requirements: internally we must track snow age, this should become an
   // evaluator with snow_density.
-  S->RequireField(snow_age_key_, name_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(snow_age_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: area fractions will be updated by us to make sure the old
@@ -121,7 +121,7 @@ ImplicitSubgrid::Initialize(const Teuchos::Ptr<State>& S) {
     } else {
       // initialize density to fresh powder, age to 0
       Relations::ModelParams params;
-      S->GetFieldData(snow_dens_key_,name_)->PutScalar(params.density_freshsnow);
+      S->GetW<CompositeVector>(snow_dens_key_,name_).PutScalar(params.density_freshsnow);
       S->GetField(snow_dens_key_, name_)->set_initialized();
     }
   }
@@ -135,12 +135,12 @@ ImplicitSubgrid::Initialize(const Teuchos::Ptr<State>& S) {
       S->GetField(snow_age_key_, name_)->Initialize(plist_->sublist("initial condition snow age"));
     } else {
       // initialize age to fresh powder, age to 0
-      S->GetFieldData(snow_age_key_,name_)->PutScalar(0.);
+      S->GetW<CompositeVector>(snow_age_key_,name_).PutScalar(0.);
       S->GetField(snow_age_key_, name_)->set_initialized();
     }
   }
 
-  S->GetFieldData(snow_death_rate_key_,name_)->PutScalar(0.);
+  S->GetW<CompositeVector>(snow_death_rate_key_,name_).PutScalar(0.);
   S->GetField(snow_death_rate_key_, name_)->set_initialized();
 }
 
@@ -189,15 +189,15 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 
   // first calculate the "snow death rate", or rate of snow SWE that must melt over this
   // timestep if the snow is to go to zero.
-  auto& snow_death_rate = *S_next_->GetFieldData(snow_death_rate_key_, name_)->ViewComponent("cell",false);
+  auto& snow_death_rate = *S_next_->GetW<CompositeVector>(snow_death_rate_key_, name_).ViewComponent("cell",false);
   S_next_->GetFieldEvaluator(cell_vol_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const auto& cell_volume = *S_next_->GetFieldData(cell_vol_key_)->ViewComponent("cell",false);
+  const auto& cell_volume = *S_next_->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
   snow_death_rate.PutScalar(0.);
 
   S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
   S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const auto& swe_old_v = *S_inter_->GetFieldData(conserved_key_)->ViewComponent("cell", false);
-  const auto& swe_new_v = *S_next_->GetFieldData(conserved_key_)->ViewComponent("cell", false);
+  const auto& swe_old_v = *S_inter_->Get<CompositeVector>(conserved_key_).ViewComponent("cell", false);
+  const auto& swe_new_v = *S_next_->Get<CompositeVector>(conserved_key_).ViewComponent("cell", false);
   for (int c=0; c!=snow_death_rate.MyLength(); ++c) {
     if (swe_new_v[0][c] <= 0.) {
       snow_death_rate[0][c] = swe_old_v[0][c] / (t_new - t_old) / cell_volume[0][c];
@@ -209,19 +209,19 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   SurfaceBalanceBase::FunctionalResidual(t_old, t_new, u_old, u_new, g);
 
   // now fill the role of age/density evaluator, as these depend upon old and new values
-  const auto& cell_vol = *S_next_->GetFieldData(cell_vol_key_)->ViewComponent("cell",false);
+  const auto& cell_vol = *S_next_->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
 
-  const auto& snow_age_old = *S_inter_->GetFieldData(snow_age_key_)->ViewComponent("cell",false);
-  auto& snow_age_new = *S_next_->GetFieldData(snow_age_key_, name_)->ViewComponent("cell",false);
+  const auto& snow_age_old = *S_inter_->Get<CompositeVector>(snow_age_key_).ViewComponent("cell",false);
+  auto& snow_age_new = *S_next_->GetW<CompositeVector>(snow_age_key_, name_).ViewComponent("cell",false);
 
-  const auto& snow_dens_old = *S_inter_->GetFieldData(snow_dens_key_)->ViewComponent("cell",false);
-  auto& snow_dens_new = *S_next_->GetFieldData(snow_dens_key_, name_)->ViewComponent("cell",false);
+  const auto& snow_dens_old = *S_inter_->Get<CompositeVector>(snow_dens_key_).ViewComponent("cell",false);
+  auto& snow_dens_new = *S_next_->GetW<CompositeVector>(snow_dens_key_, name_).ViewComponent("cell",false);
 
   S_next_->GetFieldEvaluator(new_snow_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const auto& new_snow = *S_next_->GetFieldData(new_snow_key_)->ViewComponent("cell",false);
+  const auto& new_snow = *S_next_->Get<CompositeVector>(new_snow_key_).ViewComponent("cell",false);
 
   S_next_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const auto& source = *S_next_->GetFieldData(source_key_)->ViewComponent("cell",false);
+  const auto& source = *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
 
   Relations::ModelParams params;
   double dt_days = (t_new - t_old) / 86400.;
@@ -260,8 +260,8 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   vnames.push_back("snow dens");
 
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_next_->GetFieldData(snow_age_key_).ptr());
-  vecs.push_back(S_next_->GetFieldData(snow_dens_key_).ptr());
+  vecs.push_back(S_next_->GetPtr<CompositeVector>(snow_age_key_).ptr());
+  vecs.push_back(S_next_->GetPtr<CompositeVector>(snow_dens_key_).ptr());
   db_->WriteVectors(vnames, vecs, false);
 }
 

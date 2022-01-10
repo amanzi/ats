@@ -61,8 +61,8 @@ void ThermalConductivityTwoPhaseEvaluator::EvaluateField_(
       const Teuchos::Ptr<State>& S,
       const Teuchos::Ptr<CompositeVector>& result) {
   // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
-  Teuchos::RCP<const CompositeVector> sat = S->GetFieldData(sat_key_);
+  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
+  Teuchos::RCP<const CompositeVector> sat = S->GetPtr<CompositeVector>(sat_key_);
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
 
   for (CompositeVector::name_iterator comp = result->begin();

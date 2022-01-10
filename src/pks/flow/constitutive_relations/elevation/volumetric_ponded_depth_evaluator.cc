@@ -46,9 +46,9 @@ VolumetricPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   for (const auto& comp : *result) {
     auto& res = *result->ViewComponent(comp,false);
-    const auto& pd = *S->GetFieldData(pd_key_)->ViewComponent(comp,false);
-    const auto& del_max = *S->GetFieldData(delta_max_key_)->ViewComponent(comp,false);
-    const auto& del_ex = *S->GetFieldData(delta_ex_key_)->ViewComponent(comp,false);
+    const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent(comp,false);
+    const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent(comp,false);
+    const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent(comp,false);
 
     for (int c=0; c!=res.MyLength(); ++c){
       AMANZI_ASSERT(Microtopography::validParameters(del_max[0][c], del_ex[0][c]));
@@ -64,9 +64,9 @@ VolumetricPondedDepthEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::P
 {
   for (const auto& comp : *result) {
     auto& res = *result->ViewComponent(comp,false);
-    const auto& pd = *S->GetFieldData(pd_key_)->ViewComponent(comp,false);
-    const auto& del_max = *S->GetFieldData(delta_max_key_)->ViewComponent(comp,false);
-    const auto& del_ex = *S->GetFieldData(delta_ex_key_)->ViewComponent(comp,false);
+    const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent(comp,false);
+    const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent(comp,false);
+    const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent(comp,false);
 
     if (wrt_key == pd_key_) {
       for (int c=0; c!=res.MyLength(); ++c){

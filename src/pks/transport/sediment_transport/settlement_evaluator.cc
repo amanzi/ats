@@ -62,8 +62,8 @@ Teuchos::RCP<FieldEvaluator> SettlementRateEvaluator ::Clone() const {
 void SettlementRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  const Epetra_MultiVector& vel = *S->GetFieldData(velocity_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& tcc = *S->GetFieldData(sediment_key_)->ViewComponent("cell");
+  const Epetra_MultiVector& vel = *S->Get<CompositeVector>(velocity_key_).ViewComponent("cell");
+  const Epetra_MultiVector& tcc = *S->Get<CompositeVector>(sediment_key_).ViewComponent("cell");
   Epetra_MultiVector& result_c = *result->ViewComponent("cell");
   
   for (int c=0; c<result_c.MyLength(); c++){

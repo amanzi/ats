@@ -49,7 +49,7 @@ IcyHeightEvaluator::Clone() const {
 void IcyHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
 
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
@@ -60,11 +60,11 @@ void IcyHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
   const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_l = *S->GetFieldData(dens_key_)
+  const Epetra_MultiVector& rho_l = *S->GetPtr<CompositeVector>(dens_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_i = *S->GetFieldData(dens_ice_key_)
+  const Epetra_MultiVector& rho_i = *S->GetPtr<CompositeVector>(dens_ice_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& eta = *S->GetFieldData(unfrozen_frac_key_)
+  const Epetra_MultiVector& eta = *S->GetPtr<CompositeVector>(unfrozen_frac_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData(patm_key_);
@@ -96,13 +96,13 @@ void IcyHeightEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
 
   // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(pres_key_)
+  const Epetra_MultiVector& pres_c = *S->GetPtr<CompositeVector>(pres_key_)
       ->ViewComponent("cell",false);
-   const Epetra_MultiVector& rho_l = *S->GetFieldData(dens_key_)
+   const Epetra_MultiVector& rho_l = *S->GetPtr<CompositeVector>(dens_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_i = *S->GetFieldData(dens_ice_key_)
+  const Epetra_MultiVector& rho_i = *S->GetPtr<CompositeVector>(dens_ice_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& eta = *S->GetFieldData(unfrozen_frac_key_)
+  const Epetra_MultiVector& eta = *S->GetPtr<CompositeVector>(unfrozen_frac_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData(patm_key_);

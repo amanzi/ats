@@ -58,11 +58,11 @@ void PoolTransferEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
   if (!init_model_) InitModel_(S, result->NumVectors("cell"));
   
-  Teuchos::RCP<const CompositeVector> carbon_cv = S->GetFieldData(carbon_key_);
+  Teuchos::RCP<const CompositeVector> carbon_cv = S->GetPtr<CompositeVector>(carbon_key_);
   const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
   
   const Epetra_MultiVector& C = *carbon_cv->ViewComponent("cell",false);
-  const Epetra_MultiVector& k = *S->GetFieldData(decay_key_)
+  const Epetra_MultiVector& k = *S->GetPtr<CompositeVector>(decay_key_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& transfer_c = *results[0]->ViewComponent("cell",false);
   Epetra_MultiVector& co2_c = *results[1]->ViewComponent("cell",false);

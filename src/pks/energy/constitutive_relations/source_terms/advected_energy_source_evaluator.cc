@@ -40,21 +40,21 @@ AdvectedEnergySourceEvaluator::Clone() const {
 void
 AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
-  const Epetra_MultiVector& int_enth = *S->GetFieldData(internal_enthalpy_key_)
+  const Epetra_MultiVector& int_enth = *S->GetPtr<CompositeVector>(internal_enthalpy_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& ext_enth = *S->GetFieldData(external_enthalpy_key_)
+  const Epetra_MultiVector& ext_enth = *S->GetPtr<CompositeVector>(external_enthalpy_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& water_source = *S->GetFieldData(water_source_key_)
+  const Epetra_MultiVector& water_source = *S->GetPtr<CompositeVector>(water_source_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& cv = *S->GetFieldData(cell_vol_key_)
+  const Epetra_MultiVector& cv = *S->GetPtr<CompositeVector>(cell_vol_key_)
       ->ViewComponent("cell",false);
 
   Epetra_MultiVector& res = *result->ViewComponent("cell",false);
   
   if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
-    const Epetra_MultiVector& int_dens = *S->GetFieldData(internal_density_key_)
+    const Epetra_MultiVector& int_dens = *S->GetPtr<CompositeVector>(internal_density_key_)
                                          ->ViewComponent("cell",false);
-    const Epetra_MultiVector& ext_dens = *S->GetFieldData(external_density_key_)
+    const Epetra_MultiVector& ext_dens = *S->GetPtr<CompositeVector>(external_density_key_)
                                          ->ViewComponent("cell",false);
 
     unsigned int ncells = res.MyLength();
@@ -91,7 +91,7 @@ AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   
 
   if (include_conduction_) {
-    const Epetra_MultiVector& cond = *S->GetFieldData(conducted_source_key_)
+    const Epetra_MultiVector& cond = *S->GetPtr<CompositeVector>(conducted_source_key_)
         ->ViewComponent("cell",false);
     unsigned int ncells = res.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
@@ -104,7 +104,7 @@ void
 AdvectedEnergySourceEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
   if (include_conduction_ && wrt_key == conducted_source_key_) {
-    *result->ViewComponent("cell",false) = *S->GetFieldData(cell_vol_key_)
+    *result->ViewComponent("cell",false) = *S->GetPtr<CompositeVector>(cell_vol_key_)
         ->ViewComponent("cell",false);
   } else {
     result->PutScalar(0.);

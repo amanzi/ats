@@ -23,7 +23,7 @@ void OverlandFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // update the stiffness matrix
   matrix_->Init();
   Teuchos::RCP<const CompositeVector> cond =
-    S_next_->GetFieldData(Keys::getKey(domain_,"upwind_overland_conductivity"), name_);
+    S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_overland_conductivity"), name_);
   matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
@@ -35,9 +35,9 @@ void OverlandFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 
   // derive fluxes -- this gets done independently fo update as precon does
   // not calculate fluxes.
-  Teuchos::RCP<const CompositeVector> pres_elev = S->GetFieldData(Keys::getKey(domain_,"pres_elev"));
+  Teuchos::RCP<const CompositeVector> pres_elev = S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"pres_elev"));
   Teuchos::RCP<CompositeVector> flux =
-      S->GetFieldData("surface-mass_flux", name_);
+      S->GetPtrW<CompositeVector>("surface-mass_flux", name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
 
   // assemble the stiffness matrix
@@ -60,11 +60,11 @@ void OverlandFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   S_inter_->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> wc1 =
-      S_next_->GetFieldData(Keys::getKey(domain_,"ponded_depth"));
+      S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"));
   Teuchos::RCP<const CompositeVector> wc0 =
-      S_inter_->GetFieldData(Keys::getKey(domain_,"ponded_depth"));
+      S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"));
   Teuchos::RCP<const CompositeVector> cv =
-      S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"));
+      S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
 
   // Water content only has cells, while the residual has cells and faces.
   g->ViewComponent("cell",false)->Multiply(1.0/dt,
@@ -83,14 +83,14 @@ void OverlandFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g) {
   Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
 
   const Epetra_MultiVector& cv1 =
-      *S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+      *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
 
   if (is_source_term_) {
     // Add in external source term.
     S_next_->GetFieldEvaluator(source_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
     const Epetra_MultiVector& source1 =
-        *S_next_->GetFieldData(source_key_)->ViewComponent("cell",false);
+        *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
 
     g_c.Multiply(-1., source1, cv1, 1.);
   }

@@ -37,10 +37,10 @@ UpwindPotentialDifference::UpwindPotentialDifference(std::string pkname,
 void UpwindPotentialDifference::Update(const Teuchos::Ptr<State>& S,
                                        const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const CompositeVector> potential = S->GetFieldData(potential_);
-  Teuchos::RCP<const CompositeVector> overlap = S->GetFieldData(overlap_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  Teuchos::RCP<const CompositeVector> cell = S->GetPtr<CompositeVector>(cell_coef_);
+  Teuchos::RCP<const CompositeVector> potential = S->GetPtr<CompositeVector>(potential_);
+  Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_);
+  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
   CalculateCoefficientsOnFaces(*cell, *potential, *overlap, face.ptr());
 };
 
@@ -141,12 +141,12 @@ UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
   
   // Grab potential
   AMANZI_ASSERT(potential_key == potential_);
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(potential_key);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key);
   pres->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
 
   // Grab overlap
-  Teuchos::RCP<const CompositeVector> overlap = S->GetFieldData(overlap_);
+  Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_);
   overlap->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& overlap_c = *overlap->ViewComponent("cell",true);
 

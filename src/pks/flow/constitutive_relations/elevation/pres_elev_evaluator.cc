@@ -36,8 +36,8 @@ PresElevEvaluator::Clone() const {
 void PresElevEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   // update pressure + elevation
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-  Teuchos::RCP<const CompositeVector> elev = S->GetFieldData(elev_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+  Teuchos::RCP<const CompositeVector> elev = S->GetPtr<CompositeVector>(elev_key_);
 
   result->Update(1.0, *elev, 1.0, *pres, 0.0);
 }

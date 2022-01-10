@@ -51,8 +51,8 @@ void ReactiveTransport_PK_ATS::Setup(const Teuchos::Ptr<State>& S)
   Amanzi::PK_MPCAdditive<PK>::Setup(S);
   cast_sub_pks_();
 
-  S->RequireField(tcc_key_, "state")->SetMesh(S->GetMesh(domain_))->SetGhosted();
-  S->RequireField(mol_den_key_)->SetMesh(S->GetMesh(domain_))->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT,  "state").SetMesh(S->GetMesh(domain_))->SetGhosted();
+  S->Require<CompositeVector,CompositeVectorSpace>(mol_den_key_, Tags::NEXT).SetMesh(S->GetMesh(domain_))->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S->RequireFieldEvaluator(mol_den_key_);
 }
@@ -78,11 +78,11 @@ void ReactiveTransport_PK_ATS::cast_sub_pks_()
 void ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
 {
   Teuchos::RCP<Epetra_MultiVector> tcc_copy =
-    S_->GetFieldData(tcc_key_,"state")->ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_,"state").ViewComponent("cell", true);
 
   S->GetFieldEvaluator(mol_den_key_)->HasFieldChanged(S, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->GetFieldData(mol_den_key_)->ViewComponent("cell", true);
+    S_->Get<CompositeVector>(mol_den_key_).ViewComponent("cell", true);
 
   ConvertConcentrationToAmanzi(chemistry_pk_, *mol_dens, *tcc_copy, *tcc_copy);
   chemistry_pk_->Initialize(S);
@@ -159,7 +159,7 @@ bool ReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool rein
 
       S_->GetFieldEvaluator(mol_den_key_)->HasFieldChanged(S_.ptr(), name_);
       Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-        S_->GetFieldData(mol_den_key_)->ViewComponent("cell", true);
+        S_->Get<CompositeVector>(mol_den_key_).ViewComponent("cell", true);
 
       pk_fail = AdvanceChemistry(chemistry_pk_, *mol_dens, tcc_copy, t_old, t_new, reinit);
 

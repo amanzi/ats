@@ -32,7 +32,7 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   }
-  S->RequireField(conserved_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell",AmanziMesh::CELL,true);
   S->RequireFieldEvaluator(conserved_key_);
 
@@ -40,7 +40,7 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
   if (cell_vol_key_.empty()) {
     cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
   }
-  S->RequireField(cell_vol_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell",AmanziMesh::CELL,true);
   S->RequireFieldEvaluator(cell_vol_key_);
 
@@ -74,9 +74,9 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
   S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& conserved = *S_inter_->GetFieldData(conserved_key_)
+  const Epetra_MultiVector& conserved = *S_inter_->GetPtr<CompositeVector>(conserved_key_)
       ->ViewComponent("cell",true);
-  const Epetra_MultiVector& cv = *S_inter_->GetFieldData(cell_vol_key_)
+  const Epetra_MultiVector& cv = *S_inter_->GetPtr<CompositeVector>(cell_vol_key_)
       ->ViewComponent("cell",true);
 
   // VerboseObject stuff.

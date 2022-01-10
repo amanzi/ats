@@ -69,9 +69,9 @@ void EOSEvaluatorCTP::EvaluateField_(const Teuchos::Ptr<State>& S,
   int num_dep = dependencies_.size();  
   std::vector<double> eos_params(num_dep);
 
-  Teuchos::RCP<const CompositeVector> conc = S->GetFieldData(conc_key_);  
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
+  Teuchos::RCP<const CompositeVector> conc = S->GetPtr<CompositeVector>(conc_key_);  
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
 
   // Pull dependencies out of state.  
 
@@ -151,9 +151,9 @@ void EOSEvaluatorCTP::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>&
   std::vector<double> eos_params(num_dep);
    
   // Pull dependencies out of state.  
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-  Teuchos::RCP<const CompositeVector> conc = S->GetFieldData(conc_key_);    
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+  Teuchos::RCP<const CompositeVector> conc = S->GetPtr<CompositeVector>(conc_key_);    
 
   
   Teuchos::Ptr<CompositeVector> molar_dens, mass_dens;

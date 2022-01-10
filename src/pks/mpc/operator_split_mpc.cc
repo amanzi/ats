@@ -77,14 +77,14 @@ bool OperatorSplitMPC::AdvanceStep(double t_old, double t_new, bool reinit) {
 
   // BEGIN THE NON-GENERIC PART TO BE REMOVED
   // also copy and mark the subsurface system
-  CopySurfaceToSubsurface(*S_inter_->GetFieldData(primary_variable_),
-                          S_inter_->GetFieldData("pressure",S_inter_->GetField("pressure")->owner()).ptr());
+  CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(primary_variable_),
+                          S_inter_->GetW<CompositeVector>("pressure",S_inter_->GetField("pressure").owner()).ptr());
   auto eval = S_inter_->GetFieldEvaluator("pressure");
   auto eval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval);
   eval_pvfe->SetFieldAsChanged(S_inter_.ptr());
 
-  CopySurfaceToSubsurface(*S_next_->GetFieldData(primary_variable_),
-                          S_next_->GetFieldData("pressure",S_next_->GetField("pressure")->owner()).ptr());
+  CopySurfaceToSubsurface(*S_next_->GetPtr<CompositeVector>(primary_variable_),
+                          S_next_->GetW<CompositeVector>("pressure",S_next_->GetField("pressure").owner()).ptr());
   auto eval2 = S_next_->GetFieldEvaluator("pressure");
   auto eval_pvfe2 = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval2);
   eval_pvfe2->SetFieldAsChanged(S_next_.ptr());
@@ -107,9 +107,9 @@ bool OperatorSplitMPC::AdvanceStep(double t_old, double t_new, bool reinit) {
 void
 OperatorSplitMPC::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
                                     const Teuchos::Ptr<State>& S_star) {
-  auto& pv_star = *S_star->GetFieldData(primary_variable_star_, S_star->GetField(primary_variable_star_)->owner())
+  auto& pv_star = *S_star->GetW<CompositeVector>(primary_variable_star_, S_star->GetField(primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
-  auto& pv = *S->GetFieldData(primary_variable_)
+  auto& pv = *S->GetPtr<CompositeVector>(primary_variable_)
              ->ViewComponent("cell",false);
   for (int c=0; c!=pv_star.MyLength(); ++c) {
     if (pv[0][c] <= 101325.0) {
@@ -130,9 +130,9 @@ OperatorSplitMPC::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
 void
 OperatorSplitMPC::CopyStarToPrimary(const Teuchos::Ptr<const State>& S_star,
                                     const Teuchos::Ptr<State>& S) {
-  auto& pv_star = *S_star->GetFieldData(primary_variable_star_)
+  auto& pv_star = *S_star->GetPtr<CompositeVector>(primary_variable_star_)
                   ->ViewComponent("cell",false);
-  auto& pv = *S->GetFieldData(primary_variable_, S->GetField(primary_variable_)->owner())
+  auto& pv = *S->GetW<CompositeVector>(primary_variable_, S->GetField(primary_variable_).owner())
                   ->ViewComponent("cell",false);
   for (int c=0; c!=pv_star.MyLength(); ++c) {
     if (pv_star[0][c] > 101325.0) {

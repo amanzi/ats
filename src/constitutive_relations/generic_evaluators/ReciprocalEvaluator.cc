@@ -59,7 +59,7 @@ ReciprocalEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     if (key == reciprocal_key_) {
       for (auto lcv_name : *result) {
         auto& res_c = *result->ViewComponent(lcv_name, false);
-        const auto& dep_c = *S->GetFieldData(key)->ViewComponent(lcv_name, false);
+        const auto& dep_c = *S->Get<CompositeVector>(key).ViewComponent(lcv_name, false);
         for (int c=0; c!=res_c.MyLength(); ++c) {
           if (std::abs(dep_c[0][c]) < 1e-15) {
             Errors::Message msg;
@@ -72,7 +72,7 @@ ReciprocalEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     } else {
       for (auto lcv_name : *result) {
         auto& res_c = *result->ViewComponent(lcv_name, false);
-        const auto& dep_c = *S->GetFieldData(key)->ViewComponent(lcv_name, false);
+        const auto& dep_c = *S->Get<CompositeVector>(key).ViewComponent(lcv_name, false);
         for (int c=0; c!=res_c.MyLength(); ++c) {
           res_c[0][c] *= dep_c[0][c];
         }
@@ -99,18 +99,18 @@ ReciprocalEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& 
 
   if ((*key == wrt_key) && (*key!=reciprocal_key_)) {
     key++;
-    Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(*key);
+    Teuchos::RCP<const CompositeVector> dep = S->GetPtr<CompositeVector>(*key);
     for (CompositeVector::name_iterator lcv=result->begin(); lcv!=result->end(); ++lcv) {
       Epetra_MultiVector& res_c = *result->ViewComponent(*lcv, false);
       const Epetra_MultiVector& dep_c = *dep->ViewComponent(*lcv, false);
       for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] = coef_/dep_c[0][c];
     }
   } else {
-    *result = *S->GetFieldData(*key);
+    *result = *S->GetPtr<CompositeVector>(*key);
     result->Scale(coef_);
     key++;
     if ((*key == wrt_key)&&(*key==reciprocal_key_)) {
-      Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(*key);
+      Teuchos::RCP<const CompositeVector> dep = S->GetPtr<CompositeVector>(*key);
       for (CompositeVector::name_iterator lcv=result->begin(); lcv!=result->end(); ++lcv) {
         Epetra_MultiVector& res_c = *result->ViewComponent(*lcv, false);
         const Epetra_MultiVector& dep_c = *dep->ViewComponent(*lcv, false);

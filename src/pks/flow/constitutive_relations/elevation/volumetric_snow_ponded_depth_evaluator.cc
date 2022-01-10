@@ -68,10 +68,10 @@ VolumetricSnowPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   auto& vpd = *results[0]->ViewComponent("cell",false);
   auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S->GetFieldData(pd_key_)->ViewComponent("cell",false);
-  const auto& sd = *S->GetFieldData(sd_key_)->ViewComponent("cell",false);
-  const auto& del_max = *S->GetFieldData(delta_max_key_)->ViewComponent("cell",false);
-  const auto& del_ex = *S->GetFieldData(delta_ex_key_)->ViewComponent("cell",false);
+  const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell",false);
+  const auto& sd = *S->Get<CompositeVector>(sd_key_).ViewComponent("cell",false);
+  const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell",false);
+  const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell",false);
 
   for (int c=0; c!=vpd.MyLength(); ++c) {
     AMANZI_ASSERT(Microtopography::validParameters(del_max[0][c], del_ex[0][c]));
@@ -90,10 +90,10 @@ VolumetricSnowPondedDepthEvaluator::EvaluateFieldPartialDerivative_(const Teucho
 {
   auto& vpd = *results[0]->ViewComponent("cell",false);
   auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S->GetFieldData(pd_key_)->ViewComponent("cell",false);
-  const auto& sd = *S->GetFieldData(sd_key_)->ViewComponent("cell",false);
-  const auto& del_max = *S->GetFieldData(delta_max_key_)->ViewComponent("cell",false);
-  const auto& del_ex = *S->GetFieldData(delta_ex_key_)->ViewComponent("cell",false);
+  const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell",false);
+  const auto& sd = *S->Get<CompositeVector>(sd_key_).ViewComponent("cell",false);
+  const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell",false);
+  const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell",false);
 
   if (wrt_key == pd_key_) {
     for (int c=0; c!=vpd.MyLength(); ++c) {
@@ -119,12 +119,12 @@ void
 VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 {
   // require my keys
-  auto my_fac = S->RequireField(vol_pd_key_, vol_pd_key_);
+  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(vol_pd_key_, Tags::NEXT,  vol_pd_key_);
   my_fac->SetMesh(S->GetMesh(domain_surf_))
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  auto my_fac_snow = S->RequireField(vol_sd_key_, vol_sd_key_);
+  auto my_fac_snow = S->Require<CompositeVector,CompositeVectorSpace>(vol_sd_key_, Tags::NEXT,  vol_sd_key_);
   my_fac_snow->SetOwned(false);
   my_fac_snow->SetMesh(S->GetMesh(domain_snow_))
     ->SetGhosted()
@@ -137,7 +137,7 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
   S->GetField(vol_pd_key_, vol_pd_key_)->set_io_checkpoint(checkpoint_my_key);
 
   for (auto dep_key : dependencies_) {
-    auto fac = S->RequireField(dep_key);
+    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
     if (Keys::getDomain(dep_key) == domain_snow_) {
       fac->SetMesh(S->GetMesh(domain_snow_))
         ->SetGhosted()

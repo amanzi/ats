@@ -45,14 +45,14 @@ MultiplicativeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   AMANZI_ASSERT(dependencies_.size() > 1);
   KeySet::const_iterator key = dependencies_.begin();
-  *result = *S->GetFieldData(*key);
+  *result = *S->GetPtr<CompositeVector>(*key);
   result->Scale(coef_);
   key++;
 
   for (auto lcv_name : *result) {
     auto& res_c = *result->ViewComponent(lcv_name, false);
     for (; key!=dependencies_.end(); ++key) {
-      const auto& dep_c = *S->GetFieldData(*key)->ViewComponent(lcv_name, false);
+      const auto& dep_c = *S->Get<CompositeVector>(*key).ViewComponent(lcv_name, false);
       for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
     }
     if (positive_) {
@@ -71,13 +71,13 @@ MultiplicativeEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
 
   KeySet::const_iterator key = dependencies_.begin();
   while (*key == wrt_key) key++;
-  *result = *S->GetFieldData(*key);
+  *result = *S->GetPtr<CompositeVector>(*key);
   result->Scale(coef_);
   key++;
 
   for (; key!=dependencies_.end(); ++key) {
     if (*key != wrt_key) {
-      Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(*key);
+      Teuchos::RCP<const CompositeVector> dep = S->GetPtr<CompositeVector>(*key);
       for (CompositeVector::name_iterator lcv=result->begin(); lcv!=result->end(); ++lcv) {
         Epetra_MultiVector& res_c = *result->ViewComponent(*lcv, false);
         const Epetra_MultiVector& dep_c = *dep->ViewComponent(*lcv, false);

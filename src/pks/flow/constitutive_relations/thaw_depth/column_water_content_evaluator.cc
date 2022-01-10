@@ -49,7 +49,7 @@ ColumnWaterContentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   
   // search through the column and find the deepest unfrozen cell
 
-  const auto& wc_c = *S->GetFieldData(wc_key_)->ViewComponent("cell", false);
+  const auto& wc_c = *S->Get<CompositeVector>(wc_key_).ViewComponent("cell", false);
 
   int col_cells = wc_c.MyLength();
   double col_sum = 0;
@@ -89,7 +89,7 @@ ColumnWaterContentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
   AMANZI_ASSERT(my_key_ != std::string(""));
    
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

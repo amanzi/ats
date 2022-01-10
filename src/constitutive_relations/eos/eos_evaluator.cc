@@ -110,7 +110,7 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   int k;
   for (k=0, dep=dependencies_.begin();
        dep!=dependencies_.end(); ++k, ++dep)  {
-    dep_cv[k] = S->GetFieldData(*dep);
+    dep_cv[k] = S->GetPtr<CompositeVector>(*dep);
   }
 
   Teuchos::Ptr<CompositeVector> molar_dens, mass_dens;

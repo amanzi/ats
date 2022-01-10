@@ -67,8 +67,8 @@ bool PK_Physical_Default::ValidStep() {
     *vo_->os() << "Validating time step." << std::endl;
 
   if (max_valid_change_ > 0.0) {
-    const CompositeVector& var_new = *S_next_->GetFieldData(key_);
-    const CompositeVector& var_old = *S_inter_->GetFieldData(key_);
+    const CompositeVector& var_new = *S_next_->GetPtr<CompositeVector>(key_);
+    const CompositeVector& var_old = *S_inter_->GetPtr<CompositeVector>(key_);
     CompositeVector dvar(var_new);
     dvar.Update(-1., var_old, 1.);
     double change = 0.;
@@ -120,13 +120,13 @@ void PK_Physical_Default::Initialize(const Teuchos::Ptr<State>& S) {
     field->Initialize(ic_plist);
 
     // communicate just to make sure values are initialized for valgrind's sake
-    if (field->GetFieldData()->Ghosted())
-      field->GetFieldData()->ScatterMasterToGhosted();
+    if (field->Get<CompositeVector>().Ghosted())
+      field->Get<CompositeVector>().ScatterMasterToGhosted();
     solution_evaluator_->SetFieldAsChanged(S);
   }
 
   // -- Push the data into the solution.
-  solution_->SetData(field->GetFieldData());
+  solution_->SetData(field->GetPtr<CompositeVector>());
 };
 
 } // namespace

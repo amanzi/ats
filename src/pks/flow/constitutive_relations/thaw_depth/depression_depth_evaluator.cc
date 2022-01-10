@@ -42,9 +42,9 @@ void DepressionDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
  
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& delta_init_c = *S->GetFieldData(delta_init_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& delta_evolve_c = *S->GetFieldData(delta_evolve_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& sg_entity_c = *S->GetFieldData(sg_entity_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& delta_init_c = *S->Get<CompositeVector>(delta_init_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& delta_evolve_c = *S->Get<CompositeVector>(delta_evolve_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& sg_entity_c = *S->Get<CompositeVector>(sg_entity_key_).ViewComponent("cell",false);
 
   Key domain = Keys::getDomain(delta_init_key_);
   assert(!domain.empty());
@@ -68,7 +68,7 @@ DepressionDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 {
   AMANZI_ASSERT(my_key_ != std::string(""));
    
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
@@ -83,7 +83,7 @@ DepressionDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     dep_fac->AddComponent("cell", AmanziMesh::CELL, 1);
     dep_fac->SetGhosted(true);
     for (const auto& key : dependencies_) { 
-      Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
+      Teuchos::RCP<CompositeVectorSpace> fac = S->Require<CompositeVector,CompositeVectorSpace>(key, Tags::NEXT);
       fac->Update(*dep_fac);
     }
     // Recurse into the tree to propagate info to leaves.

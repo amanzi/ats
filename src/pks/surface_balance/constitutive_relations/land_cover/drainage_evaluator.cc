@@ -55,9 +55,9 @@ void DrainageEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   // Pull dependencies out of state.
   const Epetra_MultiVector& wc =
-      *S->GetFieldData(wc_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
   const Epetra_MultiVector& ai =
-      *S->GetFieldData(ai_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
 
   Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell",false);
   Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell",false);
@@ -90,9 +90,9 @@ DrainageEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
 {
   // Pull dependencies out of state.
   const Epetra_MultiVector& wc =
-      *S->GetFieldData(wc_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
   const Epetra_MultiVector& ai =
-      *S->GetFieldData(ai_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
 
   Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell",false);
   Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell",false);

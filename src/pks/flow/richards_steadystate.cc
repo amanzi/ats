@@ -33,7 +33,7 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
   //PKDefaultBase::solution_to_state(*up, S_next_);
 
-  Teuchos::RCP<const CompositeVector> pres = S_next_ -> GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> pres = S_next_ -> GetPtr<CompositeVector>(key_);
   // update boundary conditions
   bc_pressure_->Compute(S_next_->time());
   bc_flux_->Compute(S_next_->time());
@@ -46,10 +46,10 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
 
   // Create the preconditioner
   Teuchos::RCP<const CompositeVector> rel_perm =
-      S_next_->GetFieldData(uw_coef_key_);
+      S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 
   S_next_->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
+  Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
   preconditioner_diff_->SetDensity(rho);
 
   preconditioner_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
@@ -161,7 +161,7 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
   std::vector<std::string> vnames;
   vnames.push_back("p_old"); vnames.push_back("p_new");
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_inter_->GetFieldData(key_).ptr()); vecs.push_back(u.ptr());
+  vecs.push_back(S_inter_->GetPtr<CompositeVector>(key_).ptr()); vecs.push_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
 #endif
 
@@ -184,18 +184,18 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
   // dump s_old, s_new
   vnames[0] = "sl_old"; vnames[1] = "sl_new";
 
-  vecs[0] = S_inter_->GetFieldData(Keys::getKey(domain_,"saturation_liquid")).ptr();
-  vecs[1] = S_next_->GetFieldData(Keys::getKey(domain_,"saturation_liquid")).ptr();
+  vecs[0] = S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"saturation_liquid")).ptr();
+  vecs[1] = S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"saturation_liquid")).ptr();
 
   if (S_next_->HasField(Keys::getKey(domain_,"saturation_ice"))) {
     vnames.push_back("si_old");
     vnames.push_back("si_new");
-    vecs.push_back(S_inter_->GetFieldData(Keys::getKey(domain_,"saturation_ice")).ptr());
-    vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"saturation_ice")).ptr());
+    vecs.push_back(S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"saturation_ice")).ptr());
+    vecs.push_back(S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"saturation_ice")).ptr());
   }
 
   vnames.push_back("k_rel");
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"relative_permeability")).ptr());
+  vecs.push_back(S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"relative_permeability")).ptr());
 
   db_->WriteVectors(vnames,vecs,true);
 
@@ -206,11 +206,11 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
   if (niter_ < 23) {
     std::stringstream namestream;
     namestream << "flow_residual_" << niter_;
-    *S_next_->GetFieldData(namestream.str(),name_) = *res;
+    *S_next_->GetPtr<CompositeVector>(namestream.str(),name_) = *res;
 
     std::stringstream solnstream;
     solnstream << "flow_solution_" << niter_;
-    *S_next_->GetFieldData(solnstream.str(),name_) = *u;
+    *S_next_->GetPtr<CompositeVector>(solnstream.str(),name_) = *u;
   }
 #endif
 };

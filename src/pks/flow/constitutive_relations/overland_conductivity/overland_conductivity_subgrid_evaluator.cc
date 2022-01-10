@@ -62,14 +62,14 @@ OverlandConductivitySubgridEvaluator::Clone() const {
 void OverlandConductivitySubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> mobile_depth = S->GetFieldData(mobile_depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> mobile_depth = S->GetPtr<CompositeVector>(mobile_depth_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> coef = S->GetPtr<CompositeVector>(coef_key_);
 
-  Teuchos::RCP<const CompositeVector> frac_cond = S->GetFieldData(frac_cond_key_);
-  Teuchos::RCP<const CompositeVector> drag = S->GetFieldData(drag_exp_key_);
+  Teuchos::RCP<const CompositeVector> frac_cond = S->GetPtr<CompositeVector>(frac_cond_key_);
+  Teuchos::RCP<const CompositeVector> drag = S->GetPtr<CompositeVector>(drag_exp_key_);
 
-  Teuchos::RCP<const CompositeVector> dens = S->GetFieldData(dens_key_);
+  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
 
   std::string comp = "cell";
   const Epetra_MultiVector& mobile_depth_v = *mobile_depth->ViewComponent(comp,false);
@@ -78,7 +78,7 @@ void OverlandConductivitySubgridEvaluator::EvaluateField_(const Teuchos::Ptr<Sta
 
   const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
   const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-  const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+  const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
   Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
 
   int ncomp = result->size(comp, false);
@@ -94,14 +94,14 @@ void OverlandConductivitySubgridEvaluator::EvaluateFieldPartialDerivative_(
     const Teuchos::Ptr<State>& S,
     Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> mobile_depth = S->GetFieldData(mobile_depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> mobile_depth = S->GetPtr<CompositeVector>(mobile_depth_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> coef = S->GetPtr<CompositeVector>(coef_key_);
 
-  Teuchos::RCP<const CompositeVector> frac_cond = S->GetFieldData(frac_cond_key_);
-  Teuchos::RCP<const CompositeVector> drag = S->GetFieldData(drag_exp_key_);
+  Teuchos::RCP<const CompositeVector> frac_cond = S->GetPtr<CompositeVector>(frac_cond_key_);
+  Teuchos::RCP<const CompositeVector> drag = S->GetPtr<CompositeVector>(drag_exp_key_);
 
-  Teuchos::RCP<const CompositeVector> dens = S->GetFieldData(dens_key_);
+  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
 
   if (wrt_key == mobile_depth_key_) {
     std::string comp = "cell";
@@ -111,7 +111,7 @@ void OverlandConductivitySubgridEvaluator::EvaluateFieldPartialDerivative_(
 
     const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
     const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-    const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+    const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
     Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
 
     int ncomp = result->size(comp, false);
@@ -128,7 +128,7 @@ void OverlandConductivitySubgridEvaluator::EvaluateFieldPartialDerivative_(
 
     const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
     const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-    const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+    const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
     Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
 
     int ncomp = result->size(comp, false);
@@ -145,7 +145,7 @@ void OverlandConductivitySubgridEvaluator::EvaluateFieldPartialDerivative_(
 
     const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
     const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-    const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+    const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
     Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
 
     int ncomp = result->size(comp, false);
@@ -161,7 +161,7 @@ void OverlandConductivitySubgridEvaluator::EvaluateFieldPartialDerivative_(
 void OverlandConductivitySubgridEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // Ensure my field exists.  Requirements should be already set.
   AMANZI_ASSERT(my_key_ != std::string(""));
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
 
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>("visualize", true);
@@ -188,7 +188,7 @@ void OverlandConductivitySubgridEvaluator::EnsureCompatibility(const Teuchos::Pt
         msg << "Evaluator for key \"" << my_key_ << "\" depends upon itself.";
         Exceptions::amanzi_throw(msg);
       }
-      Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
+      Teuchos::RCP<CompositeVectorSpace> fac = S->Require<CompositeVector,CompositeVectorSpace>(key, Tags::NEXT);
       fac->Update(*dep_fac);
 
       if (key == mobile_depth_key_ && my_fac->HasComponent("boundary_face")) {

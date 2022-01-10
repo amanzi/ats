@@ -57,8 +57,8 @@ Teuchos::RCP<FieldEvaluator> OverlandSourceFromSubsurfaceFluxEvaluator::Clone() 
 
 void OverlandSourceFromSubsurfaceFluxEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // for now just passing... might do something later here?
-  S->RequireField(my_key_, my_key_);
-  S->RequireField(flux_key_);
+  S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
+  S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT);
 }
 
 
@@ -104,11 +104,11 @@ void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluateField_(const Teuchos::Pt
   }
 
   Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S->GetMesh(subsurface_mesh_key_);
-  const Epetra_MultiVector& flux = *S->GetFieldData(flux_key_)->ViewComponent("face",false);
+  const Epetra_MultiVector& flux = *S->Get<CompositeVector>(flux_key_).ViewComponent("face",false);
   const Epetra_MultiVector& res_v = *result->ViewComponent("cell",false);
 
   if (volume_basis_) {
-    const Epetra_MultiVector& dens = *S->GetFieldData(dens_key_)->ViewComponent("cell",false);
+    const Epetra_MultiVector& dens = *S->Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
 
     int ncells = result->size("cell",false);
     for (int c=0; c!=ncells; ++c) {

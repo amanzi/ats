@@ -57,12 +57,12 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   // Get data and evaluators needed by the PK
   // -- energy, the conserved quantity
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(conserved_key_);
 
   // -- thermal conductivity
-  S->RequireField(conductivity_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList& tcm_plist =
     plist_->sublist("thermal conductivity evaluator");
@@ -82,14 +82,14 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
     // -- ensure mass source from subsurface exists
     Key key_ss = Keys::getKey(domain_,"surface_subsurface_flux");
 
-    S->RequireField(key_ss)
+    S->Require<CompositeVector,CompositeVectorSpace>(key_ss, Tags::NEXT)
         ->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
   }
 
   if (coupled_to_subsurface_via_temp_) {
     S->RequireFieldEvaluator("surface_subsurface_energy_flux");
     // -- energy source term from subsurface
-    S->RequireField("surface_subsurface_energy_flux")
+    S->Require<CompositeVector,CompositeVectorSpace>("surface_subsurface_energy_flux", Tags::NEXT)
         ->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
   }
 }
@@ -115,14 +115,14 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
     // TODO: make this go away!  This should be in an MPC?
     Teuchos::ParameterList& ic_plist = plist_->sublist("initial condition");
     if (ic_plist.get<bool>("initialize surface temperature from subsurface",false)) {
-      Teuchos::RCP<CompositeVector> surf_temp_cv = S->GetFieldData(key_, name_);
+      Teuchos::RCP<CompositeVector> surf_temp_cv = S->GetPtrW<CompositeVector>(key_, name_);
       Epetra_MultiVector& surf_temp = *surf_temp_cv->ViewComponent("cell",false);
 
 
       Key domain_ss = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
       Key key_ss = Keys::readKey(*plist_, domain_ss, "subsurface temperature", "temperature");
 
-      Teuchos::RCP<const CompositeVector> subsurf_temp = S->GetFieldData(key_ss);
+      Teuchos::RCP<const CompositeVector> subsurf_temp = S->GetPtr<CompositeVector>(key_ss);
       unsigned int ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
 
       if (subsurf_temp->HasComponent("face")) {
@@ -155,7 +155,7 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
     } else if (ic_plist.get<bool>("initialize surface_star temperature from surface cells",false)) {
 
       AMANZI_ASSERT(domain_ == "surface_star");
-      Epetra_MultiVector& surf_temp = *S->GetFieldData(key_, name_)->ViewComponent("cell",false);
+      Epetra_MultiVector& surf_temp = *S->GetW<CompositeVector>(key_, name_).ViewComponent("cell",false);
 
       unsigned int ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
 
@@ -163,7 +163,7 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
         int id = mesh_->cell_map(false).GID(c);
         std::stringstream name;
         name << "surface_column_" << id;
-        const Epetra_MultiVector& temp = *S->GetFieldData(Keys::getKey(name.str(),"temperature"))->ViewComponent("cell",false);
+        const Epetra_MultiVector& temp = *S->GetPtr<CompositeVector>(Keys::getKey(name.str(),"temperature"))->ViewComponent("cell",false);
         surf_temp[0][c] = temp[0][0];
       }
       S->GetField(key_,name_)->set_initialized();
@@ -206,14 +206,14 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
     Key key_ss = Keys::getKey(domain_,"surface_subsurface_flux");
 
     const Epetra_MultiVector& source1 =
-      *S->GetFieldData(key_ss)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(key_ss).ViewComponent("cell",false);
     const Epetra_MultiVector& enth_surf =
-      *S->GetFieldData(enthalpy_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(enthalpy_key_).ViewComponent("cell",false);
     const Epetra_MultiVector& enth_subsurf =
-      *S->GetFieldData(Keys::getKey(domain_ss,"enthalpy"))->ViewComponent("cell",false);
+      *S->GetPtrW<CompositeVector>(Keys::getKey(domain_ss,"enthalpy"))->ViewComponent("cell",false);
 
     const Epetra_MultiVector& pd =
-      *S->GetFieldData(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell",false);
+      *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell",false);
 
     AmanziMesh::Entity_ID_List cells;
 
@@ -245,7 +245,7 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
   // -- conduction source
   if (coupled_to_subsurface_via_temp_) {
     const Epetra_MultiVector& e_source1 =
-        *S->GetFieldData("surface_subsurface_energy_flux")
+        *S->GetPtr<CompositeVector>("surface_subsurface_energy_flux")
         ->ViewComponent("cell",false);
 
     AmanziMesh::Entity_ID_List cells;
@@ -277,12 +277,12 @@ void EnergySurfaceIce::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double 
     // (i.e. SEB PK) has defined a dsource_dT, but 3, the source
     // evaluator does not think it depends upon T (because it is
     // hacked in by the PK).
-    CompositeVector acc(S->GetFieldData(Keys::getKey(domain_,"conducted_energy_source"))->Map());
+    CompositeVector acc(S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"conducted_energy_source"))->Map());
     Epetra_MultiVector& acc_c = *acc.ViewComponent("cell", false);
 
     const Epetra_MultiVector& dsource_dT =
-      *S->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")))->ViewComponent("cell",false);
-    const Epetra_MultiVector& cell_vol = *S->GetFieldData(cell_vol_key_)->ViewComponent("cell",false);
+      *S->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")))->ViewComponent("cell",false);
+    const Epetra_MultiVector& cell_vol = *S->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
     unsigned int ncells = dsource_dT.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
       acc_c[0][c] = -dsource_dT[0][c] * cell_vol[0][c];
@@ -291,7 +291,7 @@ void EnergySurfaceIce::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double 
 
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
       *vo_->os() << "Adding hacked source to PC:" << std::endl;
-      db_->WriteVector("de_src_dT", S->GetFieldData(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature"))).ptr(), false);
+      db_->WriteVector("de_src_dT", S->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature"))).ptr(), false);
     }
 
   }

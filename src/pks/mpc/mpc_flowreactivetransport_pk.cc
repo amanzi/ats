@@ -97,7 +97,7 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
   Teuchos::RCP<const Field> field_tmp = S_->GetFieldCopy("mass_flux", "next_timestep");
   Key copy_owner = field_tmp->owner();
   Teuchos::RCP<Epetra_MultiVector> flux_copy = S_->GetFieldCopyData("mass_flux", "next_timestep", copy_owner)->ViewComponent("face", true);
-  *flux_copy = *S_next_->GetFieldData("mass_flux")->ViewComponent("face", true);
+  *flux_copy = *S_next_->Get<CompositeVector>("mass_flux").ViewComponent("face", true);
  
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os()<<"Master step is successful\n";
 

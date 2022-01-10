@@ -73,8 +73,8 @@ void MPCCoupledCells::Setup(const Teuchos::Ptr<State>& S) {
   preconditioner_->set_operator_block(1, 1, pcB);
   
   // create coupling blocks and push them into the preconditioner...
-  S->RequireField(A_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireField(y2_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->Require<CompositeVector,CompositeVectorSpace>(A_key_, Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->Require<CompositeVector,CompositeVectorSpace>(y2_key_, Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(A_key_);
   S->RequireFieldEvaluator(y2_key_);
 
@@ -85,8 +85,8 @@ void MPCCoupledCells::Setup(const Teuchos::Ptr<State>& S) {
     preconditioner_->set_operator_block(0, 1, dA_dy2_->global_operator());
   }
 
-  S->RequireField(B_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireField(y1_key_)->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->Require<CompositeVector,CompositeVectorSpace>(B_key_, Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->Require<CompositeVector,CompositeVectorSpace>(y1_key_, Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(B_key_);
   S->RequireFieldEvaluator(y1_key_);
 
@@ -112,7 +112,7 @@ void MPCCoupledCells::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     dA_dy2_->global_operator()->Init();
     S_next_->GetFieldEvaluator(A_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, y2_key_);
-    Teuchos::RCP<const CompositeVector> dA_dy2_v = S_next_->GetFieldData(dA_dy2_key_);
+    Teuchos::RCP<const CompositeVector> dA_dy2_v = S_next_->GetPtr<CompositeVector>(dA_dy2_key_);
     db_->WriteVector("  dwc_dT", dA_dy2_v.ptr());
     
     // -- update the cell-cell block
@@ -124,7 +124,7 @@ void MPCCoupledCells::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     dB_dy1_->global_operator()->Init();
     S_next_->GetFieldEvaluator(B_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, y1_key_);
-    Teuchos::RCP<const CompositeVector> dB_dy1_v = S_next_->GetFieldData(dB_dy1_key_);
+    Teuchos::RCP<const CompositeVector> dB_dy1_v = S_next_->GetPtr<CompositeVector>(dB_dy1_key_);
     db_->WriteVector("  dE_dp", dB_dy1_v.ptr());
     
     // -- update the cell-cell block

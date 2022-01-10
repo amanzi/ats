@@ -173,34 +173,34 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   double snow_eps = 1.e-5;
 
   // collect met data
-  const auto& qSW_in = *S->GetFieldData(met_sw_key_)->ViewComponent("cell",false);
-  const auto& qLW_in = *S->GetFieldData(met_lw_key_)->ViewComponent("cell",false);
-  const auto& air_temp = *S->GetFieldData(met_air_temp_key_)->ViewComponent("cell",false);
-  const auto& rel_hum = *S->GetFieldData(met_rel_hum_key_)->ViewComponent("cell",false);
-  const auto& wind_speed = *S->GetFieldData(met_wind_speed_key_)->ViewComponent("cell",false);
-  const auto& Prain = *S->GetFieldData(met_prain_key_)->ViewComponent("cell",false);
-  const auto& Psnow = *S->GetFieldData(met_psnow_key_)->ViewComponent("cell",false);
+  const auto& qSW_in = *S->Get<CompositeVector>(met_sw_key_).ViewComponent("cell",false);
+  const auto& qLW_in = *S->Get<CompositeVector>(met_lw_key_).ViewComponent("cell",false);
+  const auto& air_temp = *S->Get<CompositeVector>(met_air_temp_key_).ViewComponent("cell",false);
+  const auto& rel_hum = *S->Get<CompositeVector>(met_rel_hum_key_).ViewComponent("cell",false);
+  const auto& wind_speed = *S->Get<CompositeVector>(met_wind_speed_key_).ViewComponent("cell",false);
+  const auto& Prain = *S->Get<CompositeVector>(met_prain_key_).ViewComponent("cell",false);
+  const auto& Psnow = *S->Get<CompositeVector>(met_psnow_key_).ViewComponent("cell",false);
 
   // collect snow properties
-  const auto& snow_depth = *S->GetFieldData(snow_depth_key_)->ViewComponent("cell",false);
-  const auto& snow_dens = *S->GetFieldData(snow_dens_key_)->ViewComponent("cell",false);
-  const auto& snow_death_rate = *S->GetFieldData(snow_death_rate_key_)->ViewComponent("cell",false);
+  const auto& snow_depth = *S->Get<CompositeVector>(snow_depth_key_).ViewComponent("cell",false);
+  const auto& snow_dens = *S->Get<CompositeVector>(snow_dens_key_).ViewComponent("cell",false);
+  const auto& snow_death_rate = *S->Get<CompositeVector>(snow_death_rate_key_).ViewComponent("cell",false);
 
   // collect skin properties
-  const auto& mol_dens = *S->GetFieldData(mol_dens_key_)->ViewComponent("cell",false);
-  const auto& mass_dens = *S->GetFieldData(mass_dens_key_)->ViewComponent("cell",false);
-  const auto& ponded_depth = *S->GetFieldData(ponded_depth_key_)->ViewComponent("cell",false);
-  const auto& unfrozen_fraction = *S->GetFieldData(unfrozen_fraction_key_)->ViewComponent("cell",false);
-  const auto& sg_albedo = *S->GetFieldData(sg_albedo_key_)->ViewComponent("cell",false);
-  const auto& emissivity = *S->GetFieldData(sg_emissivity_key_)->ViewComponent("cell",false);
-  const auto& area_fracs = *S->GetFieldData(area_frac_key_)->ViewComponent("cell",false);
-  const auto& surf_pres = *S->GetFieldData(surf_pres_key_)->ViewComponent("cell",false);
-  const auto& surf_temp = *S->GetFieldData(surf_temp_key_)->ViewComponent("cell",false);
+  const auto& mol_dens = *S->Get<CompositeVector>(mol_dens_key_).ViewComponent("cell",false);
+  const auto& mass_dens = *S->Get<CompositeVector>(mass_dens_key_).ViewComponent("cell",false);
+  const auto& ponded_depth = *S->Get<CompositeVector>(ponded_depth_key_).ViewComponent("cell",false);
+  const auto& unfrozen_fraction = *S->Get<CompositeVector>(unfrozen_fraction_key_).ViewComponent("cell",false);
+  const auto& sg_albedo = *S->Get<CompositeVector>(sg_albedo_key_).ViewComponent("cell",false);
+  const auto& emissivity = *S->Get<CompositeVector>(sg_emissivity_key_).ViewComponent("cell",false);
+  const auto& area_fracs = *S->Get<CompositeVector>(area_frac_key_).ViewComponent("cell",false);
+  const auto& surf_pres = *S->Get<CompositeVector>(surf_pres_key_).ViewComponent("cell",false);
+  const auto& surf_temp = *S->Get<CompositeVector>(surf_temp_key_).ViewComponent("cell",false);
 
   // collect subsurface properties
-  const auto& sat_gas = *S->GetFieldData(sat_gas_key_)->ViewComponent("cell",false);
-  const auto& poro = *S->GetFieldData(poro_key_)->ViewComponent("cell",false);
-  const auto& ss_pres = *S->GetFieldData(ss_pres_key_)->ViewComponent("cell",false);
+  const auto& sat_gas = *S->Get<CompositeVector>(sat_gas_key_).ViewComponent("cell",false);
+  const auto& poro = *S->Get<CompositeVector>(poro_key_).ViewComponent("cell",false);
+  const auto& ss_pres = *S->Get<CompositeVector>(ss_pres_key_).ViewComponent("cell",false);
 
   // collect output vecs
   auto& water_source = *results[0]->ViewComponent("cell",false);
@@ -223,23 +223,23 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector *qE_sh(nullptr), *qE_lh(nullptr), *qE_sm(nullptr);
   Epetra_MultiVector *qE_lw_out(nullptr), *qE_cond(nullptr), *albedo(nullptr);
   if (diagnostics_) {
-    albedo = S->GetFieldData(albedo_key_, albedo_key_)->ViewComponent("cell",false).get();
+    albedo = S->GetW<CompositeVector>(albedo_key_, albedo_key_).ViewComponent("cell",false).get();
     albedo->PutScalar(0.);
-    melt_rate = S->GetFieldData(melt_key_, melt_key_)->ViewComponent("cell",false).get();
+    melt_rate = S->GetW<CompositeVector>(melt_key_, melt_key_).ViewComponent("cell",false).get();
     melt_rate->PutScalar(0.);
-    evap_rate = S->GetFieldData(evap_key_, evap_key_)->ViewComponent("cell",false).get();
+    evap_rate = S->GetW<CompositeVector>(evap_key_, evap_key_).ViewComponent("cell",false).get();
     evap_rate->PutScalar(0.);
-    snow_temp = S->GetFieldData(snow_temp_key_, snow_temp_key_)->ViewComponent("cell",false).get();
+    snow_temp = S->GetW<CompositeVector>(snow_temp_key_, snow_temp_key_).ViewComponent("cell",false).get();
     snow_temp->PutScalar(273.15);
-    qE_sh = S->GetFieldData(qE_sh_key_, qE_sh_key_)->ViewComponent("cell",false).get();
+    qE_sh = S->GetW<CompositeVector>(qE_sh_key_, qE_sh_key_).ViewComponent("cell",false).get();
     qE_sh->PutScalar(0.);
-    qE_lh = S->GetFieldData(qE_lh_key_, qE_lh_key_)->ViewComponent("cell",false).get();
+    qE_lh = S->GetW<CompositeVector>(qE_lh_key_, qE_lh_key_).ViewComponent("cell",false).get();
     qE_lh->PutScalar(0.);
-    qE_sm = S->GetFieldData(qE_sm_key_, qE_sm_key_)->ViewComponent("cell",false).get();
+    qE_sm = S->GetW<CompositeVector>(qE_sm_key_, qE_sm_key_).ViewComponent("cell",false).get();
     qE_sm->PutScalar(0.);
-    qE_lw_out = S->GetFieldData(qE_lw_out_key_, qE_lw_out_key_)->ViewComponent("cell",false).get();
+    qE_lw_out = S->GetW<CompositeVector>(qE_lw_out_key_, qE_lw_out_key_).ViewComponent("cell",false).get();
     qE_lw_out->PutScalar(0.);
-    qE_cond = S->GetFieldData(qE_cond_key_, qE_cond_key_)->ViewComponent("cell",false).get();
+    qE_cond = S->GetW<CompositeVector>(qE_cond_key_, qE_cond_key_).ViewComponent("cell",false).get();
     qE_cond->PutScalar(0.);
   }
 
@@ -416,7 +416,7 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     std::vector<std::string> vnames;
     std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
     vnames.push_back("area fractions");
-    vecs.push_back(S->GetFieldData(area_frac_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(area_frac_key_).ptr());
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
 
@@ -426,13 +426,13 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vnames.clear();
     vecs.clear();
     vnames.push_back("air_temp");
-    vecs.push_back(S->GetFieldData(met_air_temp_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_air_temp_key_).ptr());
     vnames.push_back("rel_hum");
-    vecs.push_back(S->GetFieldData(met_rel_hum_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_rel_hum_key_).ptr());
     vnames.push_back("precip_rain");
-    vecs.push_back(S->GetFieldData(met_prain_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_prain_key_).ptr());
     vnames.push_back("precip_snow");
-    vecs.push_back(S->GetFieldData(met_psnow_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_psnow_key_).ptr());
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
 
@@ -440,15 +440,15 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
 
     vnames.push_back("p_ground");
-    vecs.push_back(S->GetFieldData(surf_pres_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(surf_pres_key_).ptr());
     vnames.push_back("ponded_depth");
-    vecs.push_back(S->GetFieldData(ponded_depth_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(ponded_depth_key_).ptr());
     vnames.push_back("unfrozen_fraction");
-    vecs.push_back(S->GetFieldData(unfrozen_fraction_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(unfrozen_fraction_key_).ptr());
     vnames.push_back("snow_depth");
-    vecs.push_back(S->GetFieldData(snow_depth_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(snow_depth_key_).ptr());
     vnames.push_back("snow_death");
-    vecs.push_back(S->GetFieldData(snow_death_rate_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(snow_death_rate_key_).ptr());
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
 
@@ -456,9 +456,9 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
 
     vnames.push_back("T_ground");
-    vecs.push_back(S->GetFieldData(surf_temp_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(surf_temp_key_).ptr());
     vnames.push_back("snow_temp");
-    vecs.push_back(S->GetFieldData(snow_temp_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(snow_temp_key_).ptr());
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
 
@@ -466,19 +466,19 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
 
     vnames.push_back("inc shortwave radiation");
-    vecs.push_back(S->GetFieldData(met_sw_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_sw_key_).ptr());
     vnames.push_back("inc longwave radiation");
-    vecs.push_back(S->GetFieldData(met_lw_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(met_lw_key_).ptr());
     vnames.push_back("inc latent heat");
-    vecs.push_back(S->GetFieldData(qE_lh_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(qE_lh_key_).ptr());
     vnames.push_back("inc sensible heat");
-    vecs.push_back(S->GetFieldData(qE_sh_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(qE_sh_key_).ptr());
     vnames.push_back("out longwave radiation");
-    vecs.push_back(S->GetFieldData(qE_lw_out_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(qE_lw_out_key_).ptr());
     vnames.push_back("out conducted energy");
-    vecs.push_back(S->GetFieldData(qE_cond_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(qE_cond_key_).ptr());
     vnames.push_back("out melting energy");
-    vecs.push_back(S->GetFieldData(qE_sm_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(qE_sm_key_).ptr());
 
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
@@ -487,9 +487,9 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
 
     vnames.push_back("water_source");
-    vecs.push_back(S->GetFieldData(water_source_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(water_source_key_).ptr());
     vnames.push_back("evap flux");
-    vecs.push_back(S->GetFieldData(evap_key_).ptr());
+    vecs.push_back(S->GetPtr<CompositeVector>(evap_key_).ptr());
     db_->WriteVectors(vnames, vecs, true);
     db_->WriteDivider();
 
@@ -582,7 +582,7 @@ SEBTwoComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
     for (auto my_key : my_keys_) {
-      auto my_fac = S->RequireField(my_key, my_key);
+      auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key, Tags::NEXT,  my_key);
       if (Keys::getDomain(my_key) == domain_snow_) {
         my_fac->Update(domain_fac_owned_snow);
       } else if (Keys::getDomain(my_key) == domain_) {
@@ -602,19 +602,19 @@ SEBTwoComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     }
 
     if (diagnostics_) {
-      S->RequireField(albedo_key_, albedo_key_)->Update(domain_fac_owned);
-      S->RequireField(melt_key_, melt_key_)->Update(domain_fac_owned);
-      S->RequireField(evap_key_, evap_key_)->Update(domain_fac_owned);
-      S->RequireField(snow_temp_key_, snow_temp_key_)->Update(domain_fac_owned);
-      S->RequireField(qE_sh_key_, qE_sh_key_)->Update(domain_fac_owned);
-      S->RequireField(qE_lh_key_, qE_lh_key_)->Update(domain_fac_owned);
-      S->RequireField(qE_sm_key_, qE_sm_key_)->Update(domain_fac_owned);
-      S->RequireField(qE_lw_out_key_, qE_lw_out_key_)->Update(domain_fac_owned);
-      S->RequireField(qE_cond_key_, qE_cond_key_)->Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(albedo_key_, Tags::NEXT,  albedo_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(melt_key_, Tags::NEXT,  melt_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(evap_key_, Tags::NEXT,  evap_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(snow_temp_key_, Tags::NEXT,  snow_temp_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(qE_sh_key_, Tags::NEXT,  qE_sh_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(qE_lh_key_, Tags::NEXT,  qE_lh_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(qE_sm_key_, Tags::NEXT,  qE_sm_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(qE_lw_out_key_, Tags::NEXT,  qE_lw_out_key_).Update(domain_fac_owned);
+      S->Require<CompositeVector,CompositeVectorSpace>(qE_cond_key_, Tags::NEXT,  qE_cond_key_).Update(domain_fac_owned);
     }
 
     for (auto dep_key : dependencies_) {
-      auto fac = S->RequireField(dep_key);
+      auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
       if (Keys::getDomain(dep_key) == domain_ss_) {
         fac->Update(domain_fac_ss);
       } else if (dep_key == sg_albedo_key_ ||
@@ -632,7 +632,7 @@ SEBTwoComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
     // additionally MANUALLY require the area frac, because it is not in the
     // list of dependencies :ISSUE:#8
-    //S->RequireField(area_frac_key_)->Update(domain_fac_2);
+    //S->Require<CompositeVector,CompositeVectorSpace>(area_frac_key_, Tags::NEXT).Update(domain_fac_2);
 
     compatible_ = true;
   }

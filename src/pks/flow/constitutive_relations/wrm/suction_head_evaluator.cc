@@ -80,7 +80,7 @@ void SuctionHeadEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // Evaluate suction.
   // -- Evaluate the model to calculate suction on cells.
-  const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
+  const Epetra_MultiVector& sat_c = *S->GetPtr<CompositeVector>(sat_key_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
@@ -106,7 +106,7 @@ void SuctionHeadEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<St
     // d(psi) / dsl 
     
    
-    const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
+    const Epetra_MultiVector& sat_c = *S->GetPtr<CompositeVector>(sat_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 

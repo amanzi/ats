@@ -49,8 +49,8 @@ void
 LongwaveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  const auto& air_temp = *S->GetFieldData(air_temp_key_)->ViewComponent("cell", false);
-  const auto& rel_hum = *S->GetFieldData(rel_hum_key_)->ViewComponent("cell", false);
+  const auto& air_temp = *S->Get<CompositeVector>(air_temp_key_).ViewComponent("cell", false);
+  const auto& rel_hum = *S->Get<CompositeVector>(rel_hum_key_).ViewComponent("cell", false);
   auto& res = *result->ViewComponent("cell", false);
 
   for (int c=0; c!=res.MyLength(); ++c) {

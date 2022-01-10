@@ -57,7 +57,7 @@ ThawDepthColumnsEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   const auto& top_z_centroid = S->GetMesh(domain_ss)->face_centroid(0);
   AmanziGeometry::Point z_centroid(top_z_centroid);
 
-  const auto& temp_c = *S->GetFieldData(temp_key_)
+  const auto& temp_c = *S->GetPtr<CompositeVector>(temp_key_)
     ->ViewComponent("cell", false);
     
   int col_cells = temp_c.MyLength();
@@ -98,7 +98,7 @@ ThawDepthColumnsEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
   AMANZI_ASSERT(my_key_ != std::string(""));
    
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

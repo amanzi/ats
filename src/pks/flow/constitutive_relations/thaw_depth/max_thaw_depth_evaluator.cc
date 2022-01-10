@@ -37,7 +37,7 @@ void MaxThawDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
  
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& thawdepth_c = *S->GetFieldData(td_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& thawdepth_c = *S->Get<CompositeVector>(td_key_).ViewComponent("cell", false);
   Key domain = Keys::getDomain(td_key_);
   assert(!domain.empty());
 

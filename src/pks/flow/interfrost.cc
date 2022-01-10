@@ -23,13 +23,13 @@ Interfrost::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   S_next_->GetFieldEvaluator(key_)->HasFieldChanged(S_next_.ptr(), name_);
   S_inter_->GetFieldEvaluator(key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
-  const Epetra_MultiVector& pres1 = *S_next_->GetFieldData(key_)
+  const Epetra_MultiVector& pres1 = *S_next_->GetPtr<CompositeVector>(key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres0 = *S_inter_->GetFieldData(key_)
+  const Epetra_MultiVector& pres0 = *S_inter_->GetPtr<CompositeVector>(key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& cv1 = *S_next_->GetFieldData("cell_volume")
+  const Epetra_MultiVector& cv1 = *S_next_->GetPtr<CompositeVector>("cell_volume")
       ->ViewComponent("cell",false);  
-  const Epetra_MultiVector& dThdp = *S_next_->GetFieldData("DThetaDp_coef")
+  const Epetra_MultiVector& dThdp = *S_next_->GetPtr<CompositeVector>("DThetaDp_coef")
       ->ViewComponent("cell",false);
 
   Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
@@ -67,7 +67,7 @@ Interfrost::UpdatePreconditioner(double t,
   UpdateBoundaryConditions_(S_next_.ptr());
 
   Teuchos::RCP<const CompositeVector> rel_perm =
-      S_next_->GetFieldData(uw_coef_key_);
+      S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     const Epetra_MultiVector& kr = *rel_perm->ViewComponent("face",false);
@@ -108,14 +108,14 @@ Interfrost::UpdatePreconditioner(double t,
   preconditioner_->Init();
 
   S_next_->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
+  Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
   preconditioner_diff_->SetDensity(rho);
 
   Key dkrdp_key = Keys::getDerivKey(uw_coef_key_, key_);
-  Teuchos::RCP<const CompositeVector> dkrdp = S_next_->GetFieldData(dkrdp_key);
+  Teuchos::RCP<const CompositeVector> dkrdp = S_next_->GetPtr<CompositeVector>(dkrdp_key);
    preconditioner_diff_->SetScalarCoefficient(rel_perm_modified, dkrdp);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  Teuchos::RCP<CompositeVector> flux = S_next_->GetFieldData(flux_key_, name_);
+  Teuchos::RCP<CompositeVector> flux = S_next_->GetPtrW<CompositeVector>(flux_key_, name_);
   preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
   preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), Teuchos::null);
   
@@ -127,26 +127,26 @@ Interfrost::UpdatePreconditioner(double t,
   // -- get the accumulation deriv
   Key dwc_dp_key = Keys::getDerivKey(conserved_key_, key_);
   const Epetra_MultiVector& dwc_dp =
-      *S_next_->GetFieldData(dwc_dp_key)->ViewComponent("cell",false);
+      *S_next_->Get<CompositeVector>(dwc_dp_key).ViewComponent("cell",false);
   const Epetra_MultiVector& pres =
-      *S_next_->GetFieldData(key_)->ViewComponent("cell",false);
+      *S_next_->Get<CompositeVector>(key_).ViewComponent("cell",false);
 
 #if DEBUG_FLAG
-  db_->WriteVector("    dwc_dp", S_next_->GetFieldData(dwc_dp_key).ptr());
+  db_->WriteVector("    dwc_dp", S_next_->GetPtr<CompositeVector>(dwc_dp_key).ptr());
 #endif
 
   // -- and the extra interfrost deriv
   S_next_->GetFieldEvaluator("DThetaDp_coef")
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   const Epetra_MultiVector& dThdp_coef =
-      *S_next_->GetFieldData("DThetaDp_coef")->ViewComponent("cell",false);
+      *S_next_->Get<CompositeVector>("DThetaDp_coef").ViewComponent("cell",false);
   const Epetra_MultiVector& d_dThdp_coef_dp =
-      *S_next_->GetFieldData("dDThetaDp_coef_dpressure")
+      *S_next_->GetPtr<CompositeVector>("dDThetaDp_coef_dpressure")
       ->ViewComponent("cell",false);
   const Epetra_MultiVector& pres0 =
-      *S_inter_->GetFieldData(key_)->ViewComponent("cell",false);
+      *S_inter_->Get<CompositeVector>(key_).ViewComponent("cell",false);
   const Epetra_MultiVector& cv =
-      *S_next_->GetFieldData("cell_volume")->ViewComponent("cell",false);
+      *S_next_->Get<CompositeVector>("cell_volume").ViewComponent("cell",false);
   
   // -- update the cell-cell block
 
@@ -171,7 +171,7 @@ void
 Interfrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   Permafrost::SetupPhysicalEvaluators_(S);
 
-  S->RequireField("DThetaDp_coef")
+  S->Require<CompositeVector,CompositeVectorSpace>("DThetaDp_coef", Tags::NEXT)
       ->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator("DThetaDp_coef");

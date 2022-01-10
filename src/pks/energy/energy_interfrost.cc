@@ -24,7 +24,7 @@ void
 InterfrostEnergy::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   ThreePhase::SetupPhysicalEvaluators_(S);
 
-  S->RequireField("DEnergyDT_coef")
+  S->Require<CompositeVector,CompositeVectorSpace>("DEnergyDT_coef", Tags::NEXT)
       ->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator("DEnergyDT_coef");
@@ -45,10 +45,10 @@ InterfrostEnergy::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   S_inter_->GetFieldEvaluator(key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   // get the energy at each time
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(cell_vol_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& dEdT_coef = *S_next_->GetFieldData("DEnergyDT_coef")->ViewComponent("cell",false);
-  const Epetra_MultiVector& T1 = *S_next_->GetFieldData(key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& T0 = *S_inter_->GetFieldData(key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& cv = *S_next_->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& dEdT_coef = *S_next_->Get<CompositeVector>("DEnergyDT_coef").ViewComponent("cell",false);
+  const Epetra_MultiVector& T1 = *S_next_->Get<CompositeVector>(key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& T0 = *S_inter_->Get<CompositeVector>(key_).ViewComponent("cell",false);
 
   Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
 
@@ -70,7 +70,7 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
-  Teuchos::RCP<const CompositeVector> temp = S_next_->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> temp = S_next_->GetPtr<CompositeVector>(key_);
 
   // update boundary conditions
   bc_temperature_->Compute(S_next_->time());
@@ -81,7 +81,7 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   // div K_e grad u
   UpdateConductivityData_(S_next_.ptr());
   Teuchos::RCP<const CompositeVector> conductivity =
-      S_next_->GetFieldData(conductivity_key_);
+      S_next_->GetPtr<CompositeVector>(conductivity_key_);
 
   preconditioner_->Init();
   preconditioner_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
@@ -91,17 +91,17 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   // -- update the accumulation derivatives, de/dT
   S_next_->GetFieldEvaluator("DEnergyDT_coef")
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  const Epetra_MultiVector& dcoef_dT = *S_next_->GetFieldData("dDEnergyDT_coef_dtemperature")
+  const Epetra_MultiVector& dcoef_dT = *S_next_->GetPtr<CompositeVector>("dDEnergyDT_coef_dtemperature")
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& coef = *S_next_->GetFieldData("DEnergyDT_coef")
+  const Epetra_MultiVector& coef = *S_next_->GetPtr<CompositeVector>("DEnergyDT_coef")
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(cell_vol_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& T1 = *S_next_->GetFieldData(key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& T0 = *S_inter_->GetFieldData(key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& cv = *S_next_->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& T1 = *S_next_->Get<CompositeVector>(key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& T0 = *S_inter_->Get<CompositeVector>(key_).ViewComponent("cell",false);
 
 
 #if DEBUG_FLAG
-  db_->WriteVector("    de_dT", S_next_->GetFieldData(de_dT_key_).ptr());
+  db_->WriteVector("    de_dT", S_next_->GetPtr<CompositeVector>(de_dT_key_).ptr());
 #endif
 
   // -- get the matrices/rhs that need updating
@@ -118,10 +118,10 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
   // update with advection terms
   if (implicit_advection_ && implicit_advection_in_pc_) {
-    Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetFieldData("mass_flux");
+    Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetPtr<CompositeVector>("mass_flux");
     S_next_->GetFieldEvaluator(enthalpy_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-    Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetFieldData(Keys::getDerivKey(enthalpy_key_,key_));
+    Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(enthalpy_key_,key_));
     preconditioner_adv_->Setup(*mass_flux);
     preconditioner_adv_->UpdateMatrices(mass_flux.ptr(), dhdT.ptr());
     ApplyDirichletBCsToEnthalpy_(S_next_.ptr());

@@ -53,7 +53,7 @@ SubgridAggregateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
   for (const auto& subdomain : *ds) {
     ds->DoImport(subdomain,
-                 *S->GetFieldData(Keys::getKey(subdomain, var_key_))->ViewComponent("cell", false),
+                 *S->GetPtrW<CompositeVector>(Keys::getKey(subdomain, var_key_))->ViewComponent("cell", false),
                  result_v);
   }
 }
@@ -86,7 +86,7 @@ SubgridAggregateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
       dependencies_.insert(Keys::getKey(subdomain, var_key_));
     }
 
-    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+    Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
     my_fac->SetMesh(S->GetMesh(domain_))->SetComponent("cell", AmanziMesh::CELL, 1);
 
     // check plist for vis or checkpointing control
@@ -98,7 +98,7 @@ SubgridAggregateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (const auto& subdomain : *ds) {
       auto key = Keys::getKey(subdomain, var_key_);
-      S->RequireField(key)->SetMesh(S->GetMesh(subdomain))
+      S->Require<CompositeVector,CompositeVectorSpace>(key, Tags::NEXT).SetMesh(S->GetMesh(subdomain))
         ->AddComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
     }

@@ -35,11 +35,11 @@ PorosityEvaluator::Clone() const {
 void PorosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  Epetra_MultiVector& phi_c = *S->GetFieldData(my_key_,my_key_)
+  Epetra_MultiVector& phi_c = *S->GetPtrW<CompositeVector>(my_key_,my_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& deformation_c = *S->GetFieldData("deformation")
+  const Epetra_MultiVector& deformation_c = *S->GetPtr<CompositeVector>("deformation")
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& cv = *S->GetFieldData("cell_volume")
+  const Epetra_MultiVector& cv = *S->GetPtr<CompositeVector>("cell_volume")
       ->ViewComponent("cell",false);
 
   // deformation actually stores rock_volume_old

@@ -76,7 +76,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
   vecs.push_back(u.ptr());
 
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"skin_potential")).ptr());
+  vecs.push_back(S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"skin_potential")).ptr());
 
   db_->WriteVectors(vnames, vecs, true);
 #endif
@@ -88,7 +88,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
 
 #if DEBUG_FLAG
-  db_->WriteVector("k_s", S_next_->GetFieldData(Keys::getKey(domain_,"upwind_conductivity")).ptr(), true);
+  db_->WriteVector("k_s", S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity")).ptr(), true);
   db_->WriteVector("res (post diffusion)", res.ptr(), true);
 #endif
 
@@ -153,7 +153,7 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
   UpdatePermeabilityData_(S_next_.ptr());
   
   Teuchos::RCP<const CompositeVector> cond =
-    S_next_->GetFieldData(Keys::getKey(domain_,"upwind_conductivity"));
+    S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity"));
 
   // Jacobian
   Key deriv_key = Keys::getDerivKey(Keys::getKey(domain_,"conductivity"),key_);
@@ -176,13 +176,13 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
 
   S_next_->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))
       ->HasFieldChanged(S_next_.ptr(), name_);
-  auto potential = S_next_->GetFieldData(Keys::getKey(domain_, "skin_potential"));
+  auto potential = S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_, "skin_potential"));
   preconditioner_diff_->UpdateMatricesNewtonCorrection(Teuchos::null, potential.ptr());
   
   // 2.b Update local matrices diagonal with the accumulation terms.
   // -- update the accumulation derivatives
 
-  const CompositeVector& cell_volume = *S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"));
+  const CompositeVector& cell_volume = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
   CompositeVector cv_times_10(cell_volume); cv_times_10.Scale(10);
   preconditioner_acc_->AddAccumulationTerm(cv_times_10, "cell");
 
@@ -197,7 +197,7 @@ double SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   const Epetra_MultiVector& res_c = *res->ViewComponent("cell",false);
   const Epetra_MultiVector& precip_c = *u->Data()->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"))
+  const Epetra_MultiVector& cv = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"))
       ->ViewComponent("cell",false);
   double dt = S_next_->time() - S_inter_->time();
   std::vector<double> time(1, S_next_->time());
@@ -281,8 +281,8 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit) {
   time[0] = t_old + dt_factor_;
   double Ps_new = (*precip_func_)(time);
   double Ps_mean = (Ps_new + Ps_old)/2.;
-  S_inter_->GetFieldData(key_,name_)->PutScalar(Ps_mean);
-  S_next_->GetFieldData(key_,name_)->PutScalar(Ps_mean);
+  S_inter_->GetW<CompositeVector>(key_,name_).PutScalar(Ps_mean);
+  S_next_->GetW<CompositeVector>(key_,name_).PutScalar(Ps_mean);
 
   double my_dt = -1;
   double my_t_old = t_old;
@@ -311,7 +311,7 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit) {
   // commit the precip to the OLD time as well -- this ensures that
   // even if a coupled PK fails at any point in the coming
   // distribution time, we keep the new value.
-  *S_inter_->GetFieldData(key_,name_) = *S_next_->GetFieldData(key_);
+  *S_inter_->GetPtrW<CompositeVector>(key_,name_) = *S_next_->GetPtr<CompositeVector>(key_);
 
   // clean up
   S_next_->set_time(t_new);

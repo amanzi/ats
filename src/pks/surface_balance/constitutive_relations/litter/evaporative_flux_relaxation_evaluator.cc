@@ -92,10 +92,10 @@ void
 EvaporativeFluxRelaxationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> wc = S->GetFieldData("litter_water_content");
-  Teuchos::RCP<const CompositeVector> rho = S->GetFieldData("surface_molar_density_liquid");
-  Teuchos::RCP<const CompositeVector> L = S->GetFieldData("litter_thickness");
-  Teuchos::RCP<const CompositeVector> cv = S->GetFieldData("surface_cell_volume");
+  Teuchos::RCP<const CompositeVector> wc = S->GetPtr<CompositeVector>("litter_water_content");
+  Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>("surface_molar_density_liquid");
+  Teuchos::RCP<const CompositeVector> L = S->GetPtr<CompositeVector>("litter_thickness");
+  Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>("surface_cell_volume");
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -117,10 +117,10 @@ void
 EvaporativeFluxRelaxationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> wc = S->GetFieldData("litter_water_content");
-  Teuchos::RCP<const CompositeVector> rho = S->GetFieldData("surface_molar_density_liquid");
-  Teuchos::RCP<const CompositeVector> L = S->GetFieldData("litter_thickness");
-  Teuchos::RCP<const CompositeVector> cv = S->GetFieldData("surface_cell_volume");
+  Teuchos::RCP<const CompositeVector> wc = S->GetPtr<CompositeVector>("litter_water_content");
+  Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>("surface_molar_density_liquid");
+  Teuchos::RCP<const CompositeVector> L = S->GetPtr<CompositeVector>("litter_thickness");
+  Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>("surface_cell_volume");
 
   if (wrt_key == "litter_water_content") {
     for (CompositeVector::name_iterator comp=result->begin();

@@ -33,17 +33,17 @@ void Transport_ATS::CreateDefaultState(
   S_->RequireScalar("fluid_density", name);
 
   if (!S_->HasField(saturation_key_)) {
-    S_->RequireField(saturation_key_, name)->SetMesh(mesh)->SetGhosted(true)
+    S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT,  name).SetMesh(mesh)->SetGhosted(true)
         ->SetComponent("cell", AmanziMesh::CELL, 1);
   }
 
   if (!S_->HasField(prev_saturation_key_)) {
-    S_->RequireField(prev_saturation_key_, name)->SetMesh(mesh_)->SetGhosted(true)
+    S_->Require<CompositeVector,CompositeVectorSpace>(prev_saturation_key_, Tags::NEXT,  name).SetMesh(mesh_)->SetGhosted(true)
         ->SetComponent("cell", AmanziMesh::CELL, 1);
   }
 
   if (!S_->HasField(flux_key_)) {
-    S_->RequireField(flux_key_, name)->SetMesh(mesh_)->SetGhosted(true)
+    S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT,  name).SetMesh(mesh_)->SetGhosted(true)
         ->SetComponent("face", AmanziMesh::FACE, 1);
   }
 
@@ -63,16 +63,16 @@ void Transport_ATS::CreateDefaultState(
   *(S_->GetScalarData("fluid_density", name)) = 1000.0;
   S_->GetField("fluid_density", name)->set_initialized();
 
-  S_->GetFieldData(saturation_key_, name)->PutScalar(1.0);
+  S_->GetW<CompositeVector>(saturation_key_, name).PutScalar(1.0);
   S_->GetField(saturation_key_, name)->set_initialized();
 
-  S_->GetFieldData(prev_saturation_key_, name)->PutScalar(1.0);
+  S_->GetW<CompositeVector>(prev_saturation_key_, name).PutScalar(1.0);
   S_->GetField(prev_saturation_key_, name)->set_initialized();
 
-  S_->GetFieldData(tcc_key_, name)->PutScalar(0.0);
+  S_->GetW<CompositeVector>(tcc_key_, name).PutScalar(0.0);
   S_->GetField(tcc_key_, name)->set_initialized();
 
-  S_->GetFieldData(flux_key_, name)->PutScalar(0.0);
+  S_->GetW<CompositeVector>(flux_key_, name).PutScalar(0.0);
   S_->GetField(flux_key_, name)->set_initialized();
 
   S_->InitializeFields();
@@ -85,7 +85,7 @@ void Transport_ATS::CreateDefaultState(
 void Transport_ATS::Policy(Teuchos::Ptr<State> S)
 {
   if (mesh_->get_comm()->NumProc() > 1) {
-    if (!S->GetFieldData(tcc_key_)->Ghosted()) {
+    if (!S->Get<CompositeVector>(tcc_key_).Ghosted()) {
       Errors::Message msg;
       msg << "Field \"total component concentration\" has no ghost values."
           << " Transport PK is giving up.\n";

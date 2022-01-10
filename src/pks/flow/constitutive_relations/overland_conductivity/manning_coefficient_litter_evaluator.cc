@@ -82,8 +82,8 @@ ManningCoefficientLitterEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> ld = S->GetFieldData(ld_key_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetFieldData(pd_key_);
+  Teuchos::RCP<const CompositeVector> ld = S->GetPtr<CompositeVector>(ld_key_);
+  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(pd_key_);
 
   // cell values
   {
@@ -133,8 +133,8 @@ ManningCoefficientLitterEvaluator::EvaluateFieldPartialDerivative_(const Teuchos
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> ld = S->GetFieldData(ld_key_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetFieldData(pd_key_);
+  Teuchos::RCP<const CompositeVector> ld = S->GetPtr<CompositeVector>(ld_key_);
+  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(pd_key_);
 
   {
     // cell values

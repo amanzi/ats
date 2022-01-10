@@ -46,7 +46,7 @@ Teuchos::RCP<FieldEvaluator> OrganicMatterRateEvaluator ::Clone() const {
 void OrganicMatterRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  const Epetra_MultiVector& bio = *S->GetFieldData(biomass_key_)->ViewComponent("cell");
+  const Epetra_MultiVector& bio = *S->Get<CompositeVector>(biomass_key_).ViewComponent("cell");
   Epetra_MultiVector& result_c = *result->ViewComponent("cell");
 
   result_c.PutScalar(0.);

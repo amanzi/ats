@@ -43,7 +43,7 @@ TopCellsSurfaceEvaluator::Clone() const {
 void
 TopCellsSurfaceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
-  Teuchos::RCP<const CompositeVector> surf_vector = S->GetFieldData(dependency_key_);
+  Teuchos::RCP<const CompositeVector> surf_vector = S->GetPtr<CompositeVector>(dependency_key_);
   const Epetra_MultiVector& surf_vector_cells = *surf_vector->ViewComponent("cell",false);
   Epetra_MultiVector& result_cells = *result->ViewComponent("cell",false);
 
@@ -69,7 +69,7 @@ void
 TopCellsSurfaceEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // Ensure my field exists.  Requirements should be already set.  Claim ownership.
   AMANZI_ASSERT(my_key_ != std::string(""));
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
 
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

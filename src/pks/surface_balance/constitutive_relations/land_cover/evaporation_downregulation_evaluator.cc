@@ -57,9 +57,9 @@ void
 EvaporationDownregulationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  const Epetra_MultiVector& sat_gas = *S->GetFieldData(sat_gas_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& poro = *S->GetFieldData(poro_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& pot_evap = *S->GetFieldData(pot_evap_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& sat_gas = *S->Get<CompositeVector>(sat_gas_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& poro = *S->Get<CompositeVector>(poro_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& pot_evap = *S->Get<CompositeVector>(pot_evap_key_).ViewComponent("cell",false);
   Epetra_MultiVector& surf_evap = *result->ViewComponent("cell",false);
   auto& sub_mesh = *S->GetMesh(domain_sub_);
   auto& surf_mesh = *S->GetMesh(domain_surf_);
@@ -82,9 +82,9 @@ EvaporationDownregulationEvaluator::EvaluateFieldPartialDerivative_(const Teucho
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
   if (wrt_key == pot_evap_key_) {
-    const Epetra_MultiVector& sat_gas = *S->GetFieldData(sat_gas_key_)->ViewComponent("cell",false);
-    const Epetra_MultiVector& poro = *S->GetFieldData(poro_key_)->ViewComponent("cell",false);
-    const Epetra_MultiVector& pot_evap = *S->GetFieldData(pot_evap_key_)->ViewComponent("cell",false);
+    const Epetra_MultiVector& sat_gas = *S->Get<CompositeVector>(sat_gas_key_).ViewComponent("cell",false);
+    const Epetra_MultiVector& poro = *S->Get<CompositeVector>(poro_key_).ViewComponent("cell",false);
+    const Epetra_MultiVector& pot_evap = *S->Get<CompositeVector>(pot_evap_key_).ViewComponent("cell",false);
     Epetra_MultiVector& surf_evap = *result->ViewComponent("cell",false);
     auto& sub_mesh = *S->GetMesh(domain_sub_);
     auto& surf_mesh = *S->GetMesh(domain_surf_);
@@ -112,18 +112,18 @@ EvaporationDownregulationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
       models_[lc.first] = Teuchos::rcp(new EvaporationDownregulationModel(lc.second));
     }
 
-    S->RequireField(my_key_, my_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_)
       ->SetMesh(S->GetMesh(domain_surf_))
       ->SetGhosted(false)
       ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    S->RequireField(poro_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(poro_key_, Tags::NEXT)
       ->SetMesh(S->GetMesh(domain_sub_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(sat_gas_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, Tags::NEXT)
       ->SetMesh(S->GetMesh(domain_sub_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(pot_evap_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(pot_evap_key_, Tags::NEXT)
       ->SetMesh(S->GetMesh(domain_surf_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 

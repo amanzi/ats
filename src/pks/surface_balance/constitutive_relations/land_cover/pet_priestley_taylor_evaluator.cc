@@ -113,11 +113,11 @@ void
 PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  const auto& air_temp = *S->GetFieldData(air_temp_key_)->ViewComponent("cell", false);
-  const auto& surf_temp = *S->GetFieldData(surf_temp_key_)->ViewComponent("cell", false);
-  const auto& rel_hum = *S->GetFieldData(rel_hum_key_)->ViewComponent("cell", false);
-  const auto& elev = *S->GetFieldData(elev_key_)->ViewComponent("cell", false);
-  const auto& rad = *S->GetFieldData(rad_key_)->ViewComponent("cell",false);
+  const auto& air_temp = *S->Get<CompositeVector>(air_temp_key_).ViewComponent("cell", false);
+  const auto& surf_temp = *S->Get<CompositeVector>(surf_temp_key_).ViewComponent("cell", false);
+  const auto& rel_hum = *S->Get<CompositeVector>(rel_hum_key_).ViewComponent("cell", false);
+  const auto& elev = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell", false);
+  const auto& rad = *S->Get<CompositeVector>(rad_key_).ViewComponent("cell",false);
 
   auto mesh = result->Mesh();
   auto& res = *result->ViewComponent("cell", false);
@@ -166,7 +166,7 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // apply a limiter if requested
   if (limiter_) {
-    const auto& limiter = *S->GetFieldData(limiter_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S->Get<CompositeVector>(limiter_key_).ViewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter(limiter_dof_)->MaxValue(&limiter_max);
@@ -177,7 +177,7 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     res(0)->Multiply(1, *limiter(limiter_dof_), *res(0), 0);
   }
   if (one_minus_limiter_) {
-    const auto& limiter = *S->GetFieldData(one_minus_limiter_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S->Get<CompositeVector>(one_minus_limiter_key_).ViewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter.MaxValue(&limiter_max);
@@ -195,8 +195,8 @@ PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
   if (limiter_ && wrt_key == limiter_key_) {
-    const auto& limiter = *S->GetFieldData(limiter_key_)->ViewComponent("cell", false);
-    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S->Get<CompositeVector>(limiter_key_).ViewComponent("cell", false);
+    const auto& evap_val = *S->Get<CompositeVector>(my_key_).ViewComponent("cell", false);
     auto& res_c = *(*result->ViewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(1, *limiter(limiter_dof_), *evap_val(0), 0);
     for (int c=0; c!=res_c.MyLength(); ++c) {
@@ -205,8 +205,8 @@ PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
       }
     }
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
-    const auto& limiter = *S->GetFieldData(one_minus_limiter_key_)->ViewComponent("cell", false);
-    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S->Get<CompositeVector>(one_minus_limiter_key_).ViewComponent("cell", false);
+    const auto& evap_val = *S->Get<CompositeVector>(my_key_).ViewComponent("cell", false);
     auto& res_c = *result->ViewComponent("cell", false);
     res_c.ReciprocalMultiply(-1, limiter, evap_val, 0);
     for (int c=0; c!=res_c.MyLength(); ++c) {
@@ -226,7 +226,7 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
             {"pt_alpha_"+evap_type_});
 
     // see if we can find a master fac
-    auto my_fac = S->RequireField(my_key_, my_key_);
+    auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
     my_fac->SetMesh(S->GetMesh(domain_))
       ->SetGhosted()
       ->SetComponent("cell", AmanziMesh::CELL, 1);
@@ -238,7 +238,7 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
 
     for (auto dep_key : dependencies_) {
-      auto fac = S->RequireField(dep_key);
+      auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
       if (dep_key == limiter_key_) {
         fac->SetMesh(S->GetMesh(domain_))
           ->SetGhosted()

@@ -48,10 +48,10 @@ void OverlandPressureWaterContentEvaluator::EvaluateField_(const Teuchos::Ptr<St
         const Teuchos::Ptr<CompositeVector>& result) {
 
   Epetra_MultiVector& res = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres = *S->GetFieldData(pres_key_)
+  const Epetra_MultiVector& pres = *S->GetPtr<CompositeVector>(pres_key_)
       ->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& cv = *S->GetFieldData(cv_key_)
+  const Epetra_MultiVector& cv = *S->GetPtr<CompositeVector>(cv_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData("atmospheric_pressure");
@@ -86,10 +86,10 @@ void OverlandPressureWaterContentEvaluator::EvaluateFieldPartialDerivative_(cons
   AMANZI_ASSERT(wrt_key == pres_key_);
 
   Epetra_MultiVector& res = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres = *S->GetFieldData(pres_key_)
+  const Epetra_MultiVector& pres = *S->GetPtr<CompositeVector>(pres_key_)
       ->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& cv = *S->GetFieldData(cv_key_)
+  const Epetra_MultiVector& cv = *S->GetPtr<CompositeVector>(cv_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData("atmospheric_pressure");

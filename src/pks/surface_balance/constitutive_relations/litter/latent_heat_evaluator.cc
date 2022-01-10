@@ -11,7 +11,7 @@
     paramDeclarationList =   double Le_;
     modelDerivDeclarationList =   double DLatentHeatDEvaporativeFlux(double qe) const;
     evalClassName = LatentHeat
-    keyCompositeVectorList =   Teuchos::RCP<const CompositeVector> qe = S->GetFieldData("evaporative_flux");
+    keyCompositeVectorList =   Teuchos::RCP<const CompositeVector> qe = S->GetPtr<CompositeVector>("evaporative_flux");
     namespace = SurfaceBalance
     modelInitializeParamsList =   Le_ = plist.get<double>("latent heat of vaporization [MJ/mol]", 0.0449994810744);
     myMethodDeclarationArgs = double qe
@@ -84,7 +84,7 @@ void
 LatentHeatEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> qe = S->GetFieldData("evaporative_flux");
+  Teuchos::RCP<const CompositeVector> qe = S->GetPtr<CompositeVector>("evaporative_flux");
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -103,7 +103,7 @@ void
 LatentHeatEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> qe = S->GetFieldData("evaporative_flux");
+  Teuchos::RCP<const CompositeVector> qe = S->GetPtr<CompositeVector>("evaporative_flux");
 
   if (wrt_key == "evaporative_flux") {
     for (CompositeVector::name_iterator comp=result->begin();

@@ -109,7 +109,7 @@ void Richards::Setup(const Teuchos::Ptr<State>& S)
 void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
 {
   // Get data for special-case entities.
-  S->RequireField(cell_vol_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(cell_vol_key_);
   S->RequireGravity();
@@ -201,10 +201,10 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
   // -- require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
   if (coef_location == "upwind: face") {
-    S->RequireField(uw_coef_key_, name_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, Tags::NEXT,  name_).SetMesh(mesh_)
         ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
   } else if (coef_location == "standard: cell") {
-    S->RequireField(uw_coef_key_, name_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, Tags::NEXT,  name_).SetMesh(mesh_)
         ->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
   } else {
     Errors::Message message("Unknown upwind coefficient location in Richards flow.");
@@ -226,7 +226,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
   face_diff_list.set("nonlinear coefficient", "none");
   face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_, bc_);
 
-  S->RequireField(flux_dir_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(flux_dir_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
       ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // -- create the operators for the preconditioner
@@ -273,7 +273,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
       dcoef_key_ = Keys::getDerivKey(coef_key_, key_);
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
 
-      S->RequireField(duw_coef_key_, name_)
+      S->Require<CompositeVector,CompositeVectorSpace>(duw_coef_key_, Tags::NEXT,  name_)
         ->SetMesh(mesh_)->SetGhosted()
         ->SetComponent("face", AmanziMesh::FACE, 1);
 
@@ -297,11 +297,11 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
   //   AMANZI_ASSERT(0); // untested!
 
   //   // Create the vapor diffusion vectors
-  //   S->RequireField("vapor_diffusion_pressure", name_)->SetMesh(mesh_)->SetGhosted()
+  //   S->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_pressure", Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
   //       ->SetComponent("cell", AmanziMesh::CELL, 1);
   //   S->GetField("vapor_diffusion_pressure",name_)->set_io_vis(true);
 
-  //   S->RequireField("vapor_diffusion_temperature", name_)->SetMesh(mesh_)->SetGhosted()
+  //   S->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_temperature", Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
   //     ->SetComponent("cell", AmanziMesh::CELL, 1);
   //   S->GetField("vapor_diffusion_temperature",name_)->set_io_vis(true);
 
@@ -317,7 +317,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
     source_term_is_differentiable_ =
         plist_->get<bool>("source term is differentiable", true);
     explicit_source_ = plist_->get<bool>("explicit source term", false);
-    S->RequireField(source_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(source_key_);
   }
@@ -333,7 +333,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
       domain_surf = plist_->get<std::string>("surface domain name", "surface_"+domain_);
     }
     ss_flux_key_ = Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", "surface_subsurface_flux");
-    S->RequireField(ss_flux_key_)->SetMesh(S->GetMesh(domain_surf))
+    S->Require<CompositeVector,CompositeVectorSpace>(ss_flux_key_, Tags::NEXT).SetMesh(S->GetMesh(domain_surf))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   }
 
@@ -347,7 +347,7 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
       domain_surf = plist_->get<std::string>("surface domain name", "surface_"+domain_);
     }
     ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
-    S->RequireField(ss_primary_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(ss_primary_key_, Tags::NEXT)
       ->SetMesh(S->GetMesh(domain_surf))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
@@ -363,15 +363,15 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
   compute_boundary_values_ = plist_->get<bool>("compute boundary values", false);
   if (compute_boundary_values_)
     matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  S->RequireField(key_, name_)->Update(matrix_cvs)->SetGhosted();
+  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).Update(matrix_cvs)->SetGhosted();
 
   // -- flux is managed here as a primary variable
-  S->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
                                 ->SetComponent("face", AmanziMesh::FACE, 1);
   S->RequireFieldEvaluator(flux_key_);
 
   // -- also need a velocity, but only for vis/diagnostics
-  S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(velocity_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
                                 ->SetComponent("cell", AmanziMesh::CELL, 3);
 
   // Globalization and other timestep control flags
@@ -402,12 +402,12 @@ void Richards::SetupRichardsFlow_(const Teuchos::Ptr<State>& S)
 void Richards::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- Absolute permeability.
   //       For now, we assume scalar permeability.  This will change.
-  S->RequireField(perm_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(perm_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
   S->RequireFieldEvaluator(perm_key_);
 
   // -- water content, and evaluator
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(conserved_key_);
 
@@ -426,9 +426,9 @@ void Richards::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   }
 
   // -- saturation
-  S->RequireField(sat_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(sat_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireField(sat_gas_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   auto wrm = S->RequireFieldEvaluator(sat_key_);
   S->RequireFieldEvaluator(sat_gas_key_);
@@ -441,7 +441,7 @@ void Richards::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   locations2[1] = AmanziMesh::BOUNDARY_FACE;
   names2[0] = "cell";
   names2[1] = "boundary_face";
-  S->RequireField(coef_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(coef_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponents(names2, locations2, num_dofs2);
   S->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
   S->RequireFieldEvaluator(coef_key_);
@@ -452,12 +452,12 @@ void Richards::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   wrms_ = wrm_eval->get_WRMs();
 
   // -- Liquid density and viscosity for the transmissivity.
-  S->RequireField(molar_dens_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(molar_dens_key_);
 
   // -- liquid mass density for the gravity fluxes
-  S->RequireField(mass_dens_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(mass_dens_key_); // simply picks up the molar density one.
 
@@ -487,12 +487,12 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S)
   for (unsigned int i=1; i!=23; ++i) {
     std::stringstream namestream;
     namestream << "flow_residual_" << i;
-    S->GetFieldData(namestream.str(),name_)->PutScalar(0.);
+    S->GetPtr<CompositeVector>(namestream.str(),name_)->PutScalar(0.);
     S->GetField(namestream.str(),name_)->set_initialized();
 
     std::stringstream solnstream;
     solnstream << "flow_solution_" << i;
-    S->GetFieldData(solnstream.str(),name_)->PutScalar(0.);
+    S->GetPtr<CompositeVector>(solnstream.str(),name_)->PutScalar(0.);
     S->GetField(solnstream.str(),name_)->set_initialized();
   }
 #endif
@@ -502,19 +502,19 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S)
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
-  S->GetFieldData(uw_coef_key_,name_)->PutScalar(1.0);
+  S->GetW<CompositeVector>(uw_coef_key_,name_).PutScalar(1.0);
   S->GetField(uw_coef_key_,name_)->set_initialized();
 
   if (!duw_coef_key_.empty()) {
-    S->GetFieldData(duw_coef_key_,name_)->PutScalar(1.0);
+    S->GetW<CompositeVector>(duw_coef_key_,name_).PutScalar(1.0);
     S->GetField(duw_coef_key_,name_)->set_initialized();
   }
 
-  S->GetFieldData(flux_key_, name_)->PutScalar(0.0);
+  S->GetW<CompositeVector>(flux_key_, name_).PutScalar(0.0);
   S->GetField(flux_key_, name_)->set_initialized();
-  S->GetFieldData(flux_dir_key_, name_)->PutScalar(0.0);
+  S->GetW<CompositeVector>(flux_dir_key_, name_).PutScalar(0.0);
   S->GetField(flux_dir_key_, name_)->set_initialized();
-  S->GetFieldData(velocity_key_, name_)->PutScalar(0.0);
+  S->GetW<CompositeVector>(velocity_key_, name_).PutScalar(0.0);
   S->GetField(velocity_key_, name_)->set_initialized();
 
   // absolute perm
@@ -542,7 +542,7 @@ void Richards::Initialize(const Teuchos::Ptr<State>& S)
   //   //vapor diffusion
   //   matrix_vapor_->CreateMFDmassMatrices(Teuchos::null);
   //   // residual vector for vapor diffusion
-  //   res_vapor = Teuchos::rcp(new CompositeVector(*S->GetFieldData(key_)));
+  //   res_vapor = Teuchos::rcp(new CompositeVector(*S->GetPtr<CompositeVector>(key_)));
   // }
 };
 
@@ -561,7 +561,7 @@ void Richards::InitializeHydrostatic_(const Teuchos::Ptr<State>& S)
     double p_atm = *S->GetScalarData("atmospheric_pressure");
 
     // set pressure on the column of faces and cells
-    Teuchos::RCP<CompositeVector> pres = S->GetFieldData(key_, name_);
+    Teuchos::RCP<CompositeVector> pres = S->GetPtrW<CompositeVector>(key_, name_);
     Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
     if (pres->HasComponent("face"))
       flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face",false)));
@@ -634,7 +634,7 @@ void Richards::InitializeHydrostatic_(const Teuchos::Ptr<State>& S)
     double g = -(*gvec)[z_index];
     double p_atm = *S->GetScalarData("atmospheric_pressure");
 
-    Teuchos::RCP<CompositeVector> pres = S->GetFieldData(key_, name_);
+    Teuchos::RCP<CompositeVector> pres = S->GetPtrW<CompositeVector>(key_, name_);
     Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
     for (int c=0; c!=pres_c.MyLength(); ++c) {
       pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->cell_centroid(c)[z_index]);
@@ -675,9 +675,9 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 
   if (update) {
     // update the stiffness matrix and derive fluxes
-    Teuchos::RCP<const CompositeVector> rel_perm = S->GetFieldData(uw_coef_key_);
-    Teuchos::RCP<const CompositeVector> rho = S->GetFieldData(mass_dens_key_);
-    Teuchos::RCP<CompositeVector> pres = S->GetFieldData(key_, name_);
+    Teuchos::RCP<const CompositeVector> rel_perm = S->GetPtr<CompositeVector>(uw_coef_key_);
+    Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>(mass_dens_key_);
+    Teuchos::RCP<CompositeVector> pres = S->GetPtrW<CompositeVector>(key_, name_);
 
     matrix_->Init();
     matrix_diff_->SetDensity(rho);
@@ -686,7 +686,7 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
     matrix_diff_->ApplyBCs(true, true, true);
 
     // derive fluxes
-    Teuchos::RCP<CompositeVector> flux = S->GetFieldData(flux_key_, name_);
+    Teuchos::RCP<CompositeVector> flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
     matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
 
     if (compute_boundary_values_) {
@@ -697,9 +697,9 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
   // As a diagnostic, calculate the mass balance error
 // #if DEBUG_FLAG
 //   if (S_next_ != Teuchos::null) {
-//     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetFieldData(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> wc0 = S_->GetFieldData(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> mass_flux = S->GetFieldData(flux_key_, name_);
+//     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
+//     Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_);
+//     Teuchos::RCP<const CompositeVector> mass_flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
 //     CompositeVector error(*wc1);
 
 //     for (unsigned int c=0; c!=error.size("cell"); ++c) {
@@ -735,9 +735,9 @@ Richards::ValidStep()
     *vo_->os() << "Validating time step." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
-    const Epetra_MultiVector& sl_new = *S_next_->GetFieldData(sat_key_)
+    const Epetra_MultiVector& sl_new = *S_next_->GetPtr<CompositeVector>(sat_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& sl_old = *S_inter_->GetFieldData(sat_key_)
+    const Epetra_MultiVector& sl_old = *S_inter_->GetPtr<CompositeVector>(sat_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector dsl(sl_new);
     dsl.Update(-1., sl_old, 1.);
@@ -752,9 +752,9 @@ Richards::ValidStep()
     }
   }
   if (sat_ice_change_limit_ > 0.0) {
-    const Epetra_MultiVector& si_new = *S_next_->GetFieldData(sat_ice_key_)
+    const Epetra_MultiVector& si_new = *S_next_->GetPtr<CompositeVector>(sat_ice_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& si_old = *S_inter_->GetFieldData(sat_ice_key_)
+    const Epetra_MultiVector& si_old = *S_inter_->GetPtr<CompositeVector>(sat_ice_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector dsi(si_new);
     dsi.Update(-1., si_old, 1.);
@@ -784,9 +784,9 @@ void Richards::CalculateDiagnostics(const Teuchos::RCP<State>& S)
   // update the cell velocities
   UpdateBoundaryConditions_(S.ptr());
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(key_);
-  Teuchos::RCP<const CompositeVector> rel_perm = S->GetFieldData(uw_coef_key_);
-  Teuchos::RCP<const CompositeVector> rho = S->GetFieldData(mass_dens_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(key_);
+  Teuchos::RCP<const CompositeVector> rel_perm = S->GetPtr<CompositeVector>(uw_coef_key_);
+  Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>(mass_dens_key_);
   // update the stiffness matrix
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
@@ -794,7 +794,7 @@ void Richards::CalculateDiagnostics(const Teuchos::RCP<State>& S)
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
-  Teuchos::RCP<CompositeVector> flux = S->GetFieldData(flux_key_, name_);
+  Teuchos::RCP<CompositeVector> flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
 
   UpdateVelocity_(S.ptr());
@@ -812,7 +812,7 @@ bool Richards::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
 
-  Teuchos::RCP<const CompositeVector> rel_perm = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> rel_perm = S->GetPtr<CompositeVector>(coef_key_);
   bool update_perm = S->GetFieldEvaluator(coef_key_)
       ->HasFieldChanged(S, name_);
 
@@ -824,9 +824,9 @@ bool Richards::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
 
     if (update_dir) {
       // update the direction of the flux -- note this is NOT the flux
-      Teuchos::RCP<const CompositeVector> rho = S->GetFieldData(mass_dens_key_);
-      Teuchos::RCP<CompositeVector> flux_dir = S->GetFieldData(flux_dir_key_, name_);
-      Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(key_);
+      Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>(mass_dens_key_);
+      Teuchos::RCP<CompositeVector> flux_dir = S->GetPtrW<CompositeVector>(flux_dir_key_, name_);
+      Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(key_);
 
 
       face_matrix_diff_->SetDensity(rho);
@@ -862,7 +862,7 @@ bool Richards::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   }
 
   if (update_perm) {
-    Teuchos::RCP<CompositeVector> uw_rel_perm = S->GetFieldData(uw_coef_key_, name_);
+    Teuchos::RCP<CompositeVector> uw_rel_perm = S->GetPtrW<CompositeVector>(uw_coef_key_, name_);
 
     // Move rel perm on boundary_faces into uw_rel_perm on faces
     const Epetra_Import& vandelay = mesh_->exterior_face_importer();
@@ -892,7 +892,7 @@ bool Richards::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
-      const Epetra_MultiVector& pres = *S->GetFieldData(key_)->ViewComponent("cell",false);
+      const Epetra_MultiVector& pres = *S->Get<CompositeVector>(key_).ViewComponent("cell",false);
       const auto& fmap = mesh_->face_map(true);
       const auto& bfmap = mesh_->exterior_face_map(true);
       for (int bf=0; bf!=rel_perm_bf.MyLength(); ++bf) {
@@ -928,11 +928,11 @@ bool Richards::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S)
     *vo_->os() << "  Updating permeability derivatives?";
 
   bool update_perm = S->GetFieldEvaluator(coef_key_)->HasFieldDerivativeChanged(S, name_, key_);
-  Teuchos::RCP<const CompositeVector> drel_perm = S->GetFieldData(dcoef_key_);
+  Teuchos::RCP<const CompositeVector> drel_perm = S->GetPtr<CompositeVector>(dcoef_key_);
 
   if (update_perm) {
     if (!duw_coef_key_.empty()) {
-      Teuchos::RCP<CompositeVector> duw_rel_perm = S->GetFieldData(duw_coef_key_, name_);
+      Teuchos::RCP<CompositeVector> duw_rel_perm = S->GetPtrW<CompositeVector>(duw_coef_key_, name_);
       duw_rel_perm->PutScalar(0.);
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
@@ -1053,7 +1053,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
   // Neumann type boundary conditions
   // -------------------------------------
   const Epetra_MultiVector& rel_perm =
-    *S->GetFieldData(uw_coef_key_)->ViewComponent("face",false);
+    *S->Get<CompositeVector>(uw_coef_key_).ViewComponent("face",false);
 
   // standard Neumann flux BCs
   bc_counts.push_back(bc_flux_->size());
@@ -1074,7 +1074,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
 
   } else {
     // Neumann boundary conditions that turn off if temp < freezing
-    const Epetra_MultiVector& temp = *S->GetFieldData(Keys::getKey(domain_,"temperature"))->ViewComponent("face");
+    const Epetra_MultiVector& temp = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"temperature"))->ViewComponent("face");
     for (const auto& bc : *bc_flux_) {
       int f = bc.first;
 #ifdef ENABLE_DBC
@@ -1093,11 +1093,11 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
   }
 
   // seepage face -- pressure <= specified value (usually 101325), outward mass flux >= 0
-  S->GetFieldData(flux_key_)->ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux = *S->GetFieldData(flux_key_)->ViewComponent("face", true);
+  S->Get<CompositeVector>(flux_key_).ScatterMasterToGhosted("face");
+  const Epetra_MultiVector& flux = *S->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
 
   const double& p_atm = *S->GetScalarData("atmospheric_pressure");
-  Teuchos::RCP<const CompositeVector> u = S->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> u = S->GetPtr<CompositeVector>(key_);
   double seepage_tol = 10.;
 
   bc_counts.push_back(bc_seepage_->size());
@@ -1138,8 +1138,8 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
     } else {
       Sl = S;
     }
-    const Epetra_MultiVector& flux = *Sl->GetFieldData(flux_key_)->ViewComponent("face", true);
-    Teuchos::RCP<const CompositeVector> u = Sl->GetFieldData(key_);
+    const Epetra_MultiVector& flux = *Sl->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
+    Teuchos::RCP<const CompositeVector> u = Sl->GetPtr<CompositeVector>(key_);
   int i = 0;
   for (const auto& bc : *bc_seepage_infilt_) {
     int f = bc.first;
@@ -1202,7 +1202,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
   if (coupled_to_surface_via_head_) {
     // Face is Dirichlet with value of surface head
     Teuchos::RCP<const AmanziMesh::Mesh> surface = S->GetMesh("surface");
-    const Epetra_MultiVector& head = *S->GetFieldData("surface_pressure")
+    const Epetra_MultiVector& head = *S->GetPtr<CompositeVector>("surface_pressure")
         ->ViewComponent("cell",false);
 
     unsigned int ncells_surface = head.MyLength();
@@ -1228,7 +1228,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
   if (coupled_to_surface_via_flux_) {
     // Face is Neumann with value of surface residual
     Teuchos::RCP<const AmanziMesh::Mesh> surface = S->GetMesh(Keys::getDomain(ss_flux_key_));
-    const Epetra_MultiVector& ss_flux = *S->GetFieldData(ss_flux_key_)->ViewComponent("cell",false);
+    const Epetra_MultiVector& ss_flux = *S->Get<CompositeVector>(ss_flux_key_).ViewComponent("cell",false);
     unsigned int ncells_surface = ss_flux.MyLength();
     bc_counts[bc_counts.size()-1] = ncells_surface;
     for (unsigned int c=0; c!=ncells_surface; ++c) {
@@ -1336,12 +1336,12 @@ bool Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
 
   UpdatePermeabilityData_(S_next_.ptr());
   Teuchos::RCP<const CompositeVector> rel_perm =
-    S_next_->GetFieldData(uw_coef_key_);
+    S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 
   matrix_->Init();
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-  Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
-  Teuchos::RCP<const CompositeVector> pres = S_next_->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
+  Teuchos::RCP<const CompositeVector> pres = S_next_->GetPtr<CompositeVector>(key_);
   matrix_diff_->SetDensity(rho);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
   //matrix_diff_->ApplyBCs(true, true, true);
@@ -1391,10 +1391,10 @@ bool Richards::ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u)
 
 //   bool update = UpdatePermeabilityData_(S_next_.ptr());
 //   Teuchos::RCP<const CompositeVector> rel_perm =
-//       S_next_->GetFieldData(uw_coef_key_);
+//       S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 //   matrix_->CreateMFDstiffnessMatrices(rel_perm.ptr());
 //   matrix_->CreateMFDrhsVectors();
-//   Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
+//   Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
 //   Teuchos::RCP<const Epetra_Vector> gvec = S_next_->GetConstantVectorData("gravity");
 //   AddGravityFluxes_(gvec.ptr(), rel_perm.ptr(), rho.ptr(), matrix_.ptr());
 //   matrix_->ApplyBoundaryConditions(markers, values);
@@ -1437,12 +1437,12 @@ void Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
   //  UpdatePermeabilityData_(S_next_.ptr());
 
   Teuchos::RCP<const CompositeVector> rel_perm =
-    S_next_->GetFieldData(uw_coef_key_);
+    S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 
   S_next_->GetFieldEvaluator(mass_dens_key_)
       ->HasFieldChanged(S_next_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> rho =
-      S_next_->GetFieldData(mass_dens_key_);
+      S_next_->GetPtr<CompositeVector>(mass_dens_key_);
 
 
   // Update the preconditioner with darcy and gravity fluxes

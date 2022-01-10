@@ -30,7 +30,7 @@ void DivGradTest::setup(const Teuchos::Ptr<State>& S) {
   names2[0] = "cell";
   names2[1] = "face";
 
-  S->RequireField(key_, name_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
                     ->SetComponents(names2, locations2, num_dofs2);
 
   // Get data for non-field quanitites.
@@ -80,7 +80,7 @@ void DivGradTest::initialize(const Teuchos::Ptr<State>& S) {
   // initialize primary variable from the ic_plist condition
   PKPhysicalBase::initialize(S);
 
-  S->GetFieldData(key_)->ScatterMasterToGhosted("face");
+  S->Get<CompositeVector>(key_).ScatterMasterToGhosted("face");
 
   // initialize boundary conditions
   int nfaces = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
@@ -98,7 +98,7 @@ void DivGradTest::initialize(const Teuchos::Ptr<State>& S) {
   matrix_->ApplyBoundaryConditions(bc_markers_, bc_values_);
 
   // derive consistent faces
-  Teuchos::RCP<CompositeVector> soln = S->GetFieldData(key_, name_);
+  Teuchos::RCP<CompositeVector> soln = S->GetPtrW<CompositeVector>(key_, name_);
 
   bool fail = TestRegularFaceValues_(soln);
   if (fail) {

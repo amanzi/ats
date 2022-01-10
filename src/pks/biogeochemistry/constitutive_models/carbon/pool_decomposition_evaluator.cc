@@ -44,11 +44,11 @@ PoolDecompositionEvaluator::Clone() const {
 void PoolDecompositionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> carbon_cv = S->GetFieldData(carbon_key_);
+  Teuchos::RCP<const CompositeVector> carbon_cv = S->GetPtr<CompositeVector>(carbon_key_);
   const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
   
   const Epetra_MultiVector& C = *carbon_cv->ViewComponent("cell",false);
-  const Epetra_MultiVector& k = *S->GetFieldData(decay_key_)
+  const Epetra_MultiVector& k = *S->GetPtr<CompositeVector>(decay_key_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
   res_c.Multiply(1., C, k, 0.);

@@ -41,8 +41,8 @@ UnfrozenEffectiveDepthEvaluator::Clone() const {
 void UnfrozenEffectiveDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
-  Teuchos::RCP<const CompositeVector> uf = S->GetFieldData(uf_key_);
+  Teuchos::RCP<const CompositeVector> depth = S->GetPtr<CompositeVector>(depth_key_);
+  Teuchos::RCP<const CompositeVector> uf = S->GetPtr<CompositeVector>(uf_key_);
   
   for (auto compname : *result) {
     auto& result_c = *result->ViewComponent(compname, false);
@@ -60,8 +60,8 @@ void UnfrozenEffectiveDepthEvaluator::EvaluateFieldPartialDerivative_(
     const Teuchos::Ptr<State>& S,
     Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
-  Teuchos::RCP<const CompositeVector> uf = S->GetFieldData(uf_key_);
+  Teuchos::RCP<const CompositeVector> depth = S->GetPtr<CompositeVector>(depth_key_);
+  Teuchos::RCP<const CompositeVector> uf = S->GetPtr<CompositeVector>(uf_key_);
 
   if (wrt_key == depth_key_) {
     for (auto compname : *result) {

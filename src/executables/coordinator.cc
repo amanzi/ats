@@ -106,7 +106,7 @@ void Coordinator::coordinator_init() {
       if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
       else node_key = std::string("vertex_coordinate");
 
-      S_->RequireField(node_key)->SetMesh(mesh->second.first)->SetGhosted()
+      S_->Require<CompositeVector,CompositeVectorSpace>(node_key, Tags::NEXT).SetMesh(mesh->second.first)->SetGhosted()
           ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
 
@@ -497,7 +497,7 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
         if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
         else node_key = std::string("vertex_coordinate");
 
-        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetFieldData(node_key);
+        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetPtr<CompositeVector>(node_key);
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
 

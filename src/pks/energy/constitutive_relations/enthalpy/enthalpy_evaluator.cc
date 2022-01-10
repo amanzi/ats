@@ -55,13 +55,13 @@ EnthalpyEvaluator::Clone() const {
 void EnthalpyEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   Teuchos::OSTab tab = vo_->getOSTab();
-  Teuchos::RCP<const CompositeVector> u_l = S->GetFieldData(ie_key_);
+  Teuchos::RCP<const CompositeVector> u_l = S->GetPtr<CompositeVector>(ie_key_);
   *result = *u_l;
 
 
   if (include_work_) {
-    Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-    Teuchos::RCP<const CompositeVector> n_l = S->GetFieldData(dens_key_);
+    Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+    Teuchos::RCP<const CompositeVector> n_l = S->GetPtr<CompositeVector>(dens_key_);
 
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {
@@ -87,7 +87,7 @@ void EnthalpyEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
   } else if (wrt_key ==pres_key_) {
     AMANZI_ASSERT(include_work_);
     
-    Teuchos::RCP<const CompositeVector> n_l = S->GetFieldData(dens_key_);
+    Teuchos::RCP<const CompositeVector> n_l = S->GetPtr<CompositeVector>(dens_key_);
 
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {
@@ -104,8 +104,8 @@ void EnthalpyEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
   } else if (wrt_key ==dens_key_) {
     AMANZI_ASSERT(include_work_);
     
-    Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-    Teuchos::RCP<const CompositeVector> n_l = S->GetFieldData(dens_key_);
+    Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+    Teuchos::RCP<const CompositeVector> n_l = S->GetPtr<CompositeVector>(dens_key_);
 
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {

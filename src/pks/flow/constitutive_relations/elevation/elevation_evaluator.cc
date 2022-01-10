@@ -81,7 +81,7 @@ void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
        my_key!=my_keys_.end(); ++my_key) {
     // Ensure my field exists, and claim ownership.
-    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(*my_key, *my_key);
+    Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(*my_key, Tags::NEXT,  *my_key);
 
     // Check plist for vis or checkpointing control.
     bool io_my_key = plist_.get<bool>(std::string("visualize ")+*my_key, true);
@@ -101,7 +101,7 @@ void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   } else {
     for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
          my_key!=my_keys_.end(); ++my_key) {
-      Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(*my_key, *my_key);
+      Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(*my_key, Tags::NEXT,  *my_key);
 
       // Cannot just Update() the factory, since the locations may differ, but
       // at least we can ensure the mesh exists.

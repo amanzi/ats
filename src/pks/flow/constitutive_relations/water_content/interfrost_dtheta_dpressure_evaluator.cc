@@ -65,9 +65,9 @@ void
 InterfrostDthetaDpressureEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetFieldData(sl_key_);
-Teuchos::RCP<const CompositeVector> phi = S->GetFieldData(phi_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
+Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -88,9 +88,9 @@ void
 InterfrostDthetaDpressureEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetFieldData(sl_key_);
-Teuchos::RCP<const CompositeVector> phi = S->GetFieldData(phi_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
+Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
 
   if (wrt_key == nl_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

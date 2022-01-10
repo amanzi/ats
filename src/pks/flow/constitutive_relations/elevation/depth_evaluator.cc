@@ -24,7 +24,7 @@ DepthEvaluator::Clone() const {
 void
 DepthEvaluator::UpdateField_(const Teuchos::Ptr<State>& S) {
   if (temporally_variable_ || !computed_once_) {
-    CompositeVector& result = *S->GetFieldData(my_key_, my_key_);
+    CompositeVector& result = *S->GetPtrW<CompositeVector>(my_key_, my_key_);
     for (auto& comp : result) {
       if (comp == "cell") {
         // evaluate depths

@@ -51,7 +51,7 @@ SubgridDisaggregateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   auto ds = S->GetDomainSet(domain_);
   ds->DoExport(Keys::getDomain(my_key_),
-               *S->GetFieldData(source_key_)->ViewComponent("cell", false),
+               *S->Get<CompositeVector>(source_key_).ViewComponent("cell", false),
                *result->ViewComponent("cell", false));
 }
 
@@ -81,7 +81,7 @@ SubgridDisaggregateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
       Exceptions::amanzi_throw(msg);
     }
 
-    auto my_fac = S->RequireField(my_key_, my_key_);
+    auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
     my_fac->SetMesh(S->GetMesh(Keys::getDomain(my_key_)))
       ->SetComponent("cell", AmanziMesh::CELL, 1);
 
@@ -91,7 +91,7 @@ SubgridDisaggregateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
     S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
 
-    S->RequireField(source_key_)
+    S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT)
       ->SetMesh(S->GetMesh(source_domain_))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(source_key_)->EnsureCompatibility(S);

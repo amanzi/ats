@@ -36,9 +36,9 @@ UpwindFluxFactory::Create(Teuchos::ParameterList& oplist,
   auto domain = Keys::getDomain(face_coef);
 
   if (model_type == "manning upwind") {
-    S->RequireField(flux)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(flux, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S->RequireField(cell_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(cell_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     return Teuchos::rcp(new UpwindTotalFlux(pkname, cell_coef, face_coef, flux, flux_eps));
 
@@ -57,9 +57,9 @@ UpwindFluxFactory::Create(Teuchos::ParameterList& oplist,
     //           << "============== WARNING WARNING WARNING WARNING WARNING =============" << std::endl;
     // Errors::Message msg(message.str());
     // Exceptions::amanzi_throw(msg);
-    S->RequireField(flux)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(flux, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S->RequireField(cell_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(cell_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     return Teuchos::rcp(new UpwindFluxHarmonicMean(pkname, cell_coef, face_coef, flux, flux_eps));
 
@@ -69,13 +69,13 @@ UpwindFluxFactory::Create(Teuchos::ParameterList& oplist,
     std::string manning_coef = Keys::readKey(oplist, domain, "coefficient", "manning_coefficient");
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
 
-    S->RequireField(flux)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(flux, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S->RequireField(cell_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(cell_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(slope)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(slope, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(manning_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(manning_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     return Teuchos::rcp(new UpwindFluxSplitDenominator(pkname, cell_coef, face_coef, flux, flux_eps, slope, manning_coef, slope_regularization));
@@ -90,11 +90,11 @@ UpwindFluxFactory::Create(Teuchos::ParameterList& oplist,
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
     double manning_exp = oplist.get<double>("Manning exponent", 2.0/3);
 
-    S->RequireField(slope)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(slope, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(elev)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(elev, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(manning_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(manning_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     // add boundary face components?
 
@@ -108,21 +108,21 @@ UpwindFluxFactory::Create(Teuchos::ParameterList& oplist,
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-8);
     double manning_exp = oplist.get<double>("Manning exponent");
 
-    S->RequireField(flux)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(flux, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S->RequireField(cell_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(cell_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(slope)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(slope, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(elev)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(elev, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S->RequireField(manning_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(manning_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     return Teuchos::rcp(new UpwindFluxFOCont(pkname, cell_coef, face_coef, flux, slope, manning_coef, elev, slope_regularization, manning_exp));
 
   } else if (model_type == "manning cell centered") {
-    S->RequireField(cell_coef)->SetGhosted()->SetMesh(S->GetMesh(domain))
+    S->Require<CompositeVector,CompositeVectorSpace>(cell_coef, Tags::NEXT).SetGhosted()->SetMesh(S->GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     return Teuchos::rcp(new UpwindCellCentered(pkname, cell_coef, face_coef));
   } else {

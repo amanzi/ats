@@ -55,7 +55,7 @@ AdditiveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   for (std::map<Key, double>::const_iterator it=coefs_.begin();
        it!=coefs_.end(); ++it) {
-    Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(it->first);
+    Teuchos::RCP<const CompositeVector> dep = S->GetPtr<CompositeVector>(it->first);
     result->Update(it->second, *dep, 1.0);
   }
 }

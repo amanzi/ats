@@ -55,7 +55,7 @@ void HeightEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // Ensure my field exists.  Requirements should be already set.
   AMANZI_ASSERT(my_key_ != std::string(""));
   S->RequireGravity();
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   my_fac->SetOwned(false);
 
   // check plist for vis or checkpointing control
@@ -80,7 +80,7 @@ void HeightEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
     // Loop over my dependencies, ensuring they meet the requirements.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(*key);
+      Teuchos::RCP<CompositeVectorSpace> fac = S->Require<CompositeVector,CompositeVectorSpace>(*key, Tags::NEXT);
       fac->Update(*dep_fac);
     }
 
@@ -109,13 +109,13 @@ void HeightEvaluator::UpdateFieldDerivative_(const Teuchos::Ptr<State>& S,
   Teuchos::RCP<CompositeVector> dmy;
   if (S->HasField(dmy_key)) {
     // Get the field...
-    dmy = S->GetFieldData(dmy_key, my_key_);
+    dmy = S->GetPtrW<CompositeVector>(dmy_key, my_key_);
   } else {
     // or create the field.  Note we have to do extra work that is normally
     // done by State in initialize.
-    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_);
+    Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT);
     Teuchos::RCP<CompositeVectorSpace> new_fac =
-      S->RequireField(dmy_key, my_key_);
+      S->Require<CompositeVector,CompositeVectorSpace>(dmy_key, Tags::NEXT,  my_key_);
     new_fac->Update(*my_fac);
     dmy = Teuchos::rcp(new CompositeVector(*my_fac));
     S->SetData(dmy_key, my_key_, dmy);
@@ -148,7 +148,7 @@ void HeightEvaluator::UpdateFieldDerivative_(const Teuchos::Ptr<State>& S,
 
       Key ddep_key = Keys::getDerivKey(*dep,wrt_key);
 
-      Teuchos::RCP<const CompositeVector> ddep = S->GetFieldData(ddep_key);
+      Teuchos::RCP<const CompositeVector> ddep = S->GetPtr<CompositeVector>(ddep_key);
       // -- partial F / partial dep
       EvaluateFieldPartialDerivative_(S, *dep, tmp.ptr());
 
@@ -171,7 +171,7 @@ void HeightEvaluator::UpdateFieldDerivative_(const Teuchos::Ptr<State>& S,
 void HeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
 
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
@@ -182,7 +182,7 @@ void HeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
   const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho = *S->GetFieldData(dens_key_)
+  const Epetra_MultiVector& rho = *S->GetPtr<CompositeVector>(dens_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData(patm_key_);
@@ -208,9 +208,9 @@ void HeightEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>&
 
   // -- cells need the function eval
   const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(pres_key_)
+  const Epetra_MultiVector& pres_c = *S->GetPtr<CompositeVector>(pres_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho = *S->GetFieldData(dens_key_)
+  const Epetra_MultiVector& rho = *S->GetPtr<CompositeVector>(dens_key_)
       ->ViewComponent("cell",false);
 
   const double& p_atm = *S->GetScalarData(patm_key_);

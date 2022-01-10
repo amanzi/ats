@@ -102,11 +102,11 @@ void
 MacroporeSurfaceFluxEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> pM = S->GetFieldData(pM_key_);
-Teuchos::RCP<const CompositeVector> ps = S->GetFieldData(ps_key_);
-Teuchos::RCP<const CompositeVector> krs = S->GetFieldData(krs_key_);
-Teuchos::RCP<const CompositeVector> krM = S->GetFieldData(krM_key_);
-Teuchos::RCP<const CompositeVector> K = S->GetFieldData(K_key_);
+Teuchos::RCP<const CompositeVector> pM = S->GetPtr<CompositeVector>(pM_key_);
+Teuchos::RCP<const CompositeVector> ps = S->GetPtr<CompositeVector>(ps_key_);
+Teuchos::RCP<const CompositeVector> krs = S->GetPtr<CompositeVector>(krs_key_);
+Teuchos::RCP<const CompositeVector> krM = S->GetPtr<CompositeVector>(krM_key_);
+Teuchos::RCP<const CompositeVector> K = S->GetPtr<CompositeVector>(K_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -129,11 +129,11 @@ void
 MacroporeSurfaceFluxEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> pM = S->GetFieldData(pM_key_);
-Teuchos::RCP<const CompositeVector> ps = S->GetFieldData(ps_key_);
-Teuchos::RCP<const CompositeVector> krs = S->GetFieldData(krs_key_);
-Teuchos::RCP<const CompositeVector> krM = S->GetFieldData(krM_key_);
-Teuchos::RCP<const CompositeVector> K = S->GetFieldData(K_key_);
+Teuchos::RCP<const CompositeVector> pM = S->GetPtr<CompositeVector>(pM_key_);
+Teuchos::RCP<const CompositeVector> ps = S->GetPtr<CompositeVector>(ps_key_);
+Teuchos::RCP<const CompositeVector> krs = S->GetPtr<CompositeVector>(krs_key_);
+Teuchos::RCP<const CompositeVector> krM = S->GetPtr<CompositeVector>(krM_key_);
+Teuchos::RCP<const CompositeVector> K = S->GetPtr<CompositeVector>(K_key_);
 
   if (wrt_key == pM_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

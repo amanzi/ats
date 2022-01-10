@@ -75,11 +75,11 @@ void
 InterfrostSlWcEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> phi = S->GetFieldData(phi_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetFieldData(sl_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> ni = S->GetFieldData(ni_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetFieldData(cv_key_);
+Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
+Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> ni = S->GetPtr<CompositeVector>(ni_key_);
+Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -102,11 +102,11 @@ void
 InterfrostSlWcEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> phi = S->GetFieldData(phi_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetFieldData(sl_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> ni = S->GetFieldData(ni_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetFieldData(cv_key_);
+Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
+Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> ni = S->GetPtr<CompositeVector>(ni_key_);
+Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
 
   if (wrt_key == phi_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

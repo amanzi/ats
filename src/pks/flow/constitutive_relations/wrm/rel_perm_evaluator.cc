@@ -105,7 +105,7 @@ void RelPermEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
 
     // Ensure my field exists.  Requirements should be already set.
     AMANZI_ASSERT(my_key_ != std::string(""));
-    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+    Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
 
     // check plist for vis or checkpointing control
     bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
@@ -125,7 +125,7 @@ void RelPermEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
       for (KeySet::const_iterator key=dependencies_.begin();
            key!=dependencies_.end(); ++key) {
         if (*key != surf_rel_perm_key_) {
-          Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(*key);
+          Teuchos::RCP<CompositeVectorSpace> fac = S->Require<CompositeVector,CompositeVectorSpace>(*key, Tags::NEXT);
           fac->Update(*dep_fac);
         }
       }
@@ -139,7 +139,7 @@ void RelPermEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
       // Check the dependency for surf rel perm
 
       Key domain = Keys::getDomain(surf_rel_perm_key_);
-      S->RequireField(surf_rel_perm_key_)
+      S->Require<CompositeVector,CompositeVectorSpace>(surf_rel_perm_key_, Tags::NEXT)
           ->SetMesh(S->GetMesh(domain))
           ->AddComponent("cell",AmanziMesh::CELL,1);
 
@@ -163,7 +163,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // Evaluate k_rel.
   // -- Evaluate the model to calculate krel on cells.
-  const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
+  const Epetra_MultiVector& sat_c = *S->GetPtr<CompositeVector>(sat_key_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
@@ -175,7 +175,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // -- Potentially evaluate the model on boundary faces as well.
   if (result->HasComponent("boundary_face")) {
-    const Epetra_MultiVector& sat_bf = *S->GetFieldData(sat_key_)
+    const Epetra_MultiVector& sat_bf = *S->GetPtr<CompositeVector>(sat_key_)
                                        ->ViewComponent("boundary_face",false);
     Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -215,7 +215,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // Patch k_rel with surface rel perm values
   if (boundary_krel_ == BoundaryRelPerm::SURF_REL_PERM) {
-    const Epetra_MultiVector& surf_kr = *S->GetFieldData(surf_rel_perm_key_)
+    const Epetra_MultiVector& surf_kr = *S->GetPtr<CompositeVector>(surf_rel_perm_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -237,9 +237,9 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // Potentially scale quantities by dens / visc
   if (is_dens_visc_) {
     // -- Scale cells.
-    const Epetra_MultiVector& dens_c = *S->GetFieldData(dens_key_)
+    const Epetra_MultiVector& dens_c = *S->GetPtr<CompositeVector>(dens_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& visc_c = *S->GetFieldData(visc_key_)
+    const Epetra_MultiVector& visc_c = *S->GetPtr<CompositeVector>(visc_key_)
         ->ViewComponent("cell",false);
 
     for (unsigned int c=0; c!=ncells; ++c) {
@@ -248,9 +248,9 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
     // Potentially scale boundary faces.
     if (result->HasComponent("boundary_face")) {
-      const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
+      const Epetra_MultiVector& dens_bf = *S->GetPtr<CompositeVector>(dens_key_)
           ->ViewComponent("boundary_face",false);
-      const Epetra_MultiVector& visc_bf = *S->GetFieldData(visc_key_)
+      const Epetra_MultiVector& visc_bf = *S->GetPtr<CompositeVector>(visc_key_)
           ->ViewComponent("boundary_face",false);
       Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -281,7 +281,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // Evaluate k_rel.
     // -- Evaluate the model to calculate krel on cells.
-    const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
+    const Epetra_MultiVector& sat_c = *S->GetPtr<CompositeVector>(sat_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
@@ -294,7 +294,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // -- Potentially evaluate the model on boundary faces as well.
     if (result->HasComponent("boundary_face")) {
-      // const Epetra_MultiVector& sat_bf = *S->GetFieldData(sat_key_)
+      // const Epetra_MultiVector& sat_bf = *S->GetPtr<CompositeVector>(sat_key_)
       //                                    ->ViewComponent("boundary_face",false);
       Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -341,7 +341,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // Patch k_rel with surface rel perm values
     if (boundary_krel_ == BoundaryRelPerm::SURF_REL_PERM) {
-      const Epetra_MultiVector& surf_kr = *S->GetFieldData(surf_rel_perm_key_)
+      const Epetra_MultiVector& surf_kr = *S->GetPtr<CompositeVector>(surf_rel_perm_key_)
           ->ViewComponent("cell",false);
       Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -364,9 +364,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     // Potentially scale quantities by dens / visc
     if (is_dens_visc_) {
       // -- Scale cells.
-      const Epetra_MultiVector& dens_c = *S->GetFieldData(dens_key_)
+      const Epetra_MultiVector& dens_c = *S->GetPtr<CompositeVector>(dens_key_)
           ->ViewComponent("cell",false);
-      const Epetra_MultiVector& visc_c = *S->GetFieldData(visc_key_)
+      const Epetra_MultiVector& visc_c = *S->GetPtr<CompositeVector>(visc_key_)
           ->ViewComponent("cell",false);
 
       for (unsigned int c=0; c!=ncells; ++c) {
@@ -375,9 +375,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
       // Potentially scale boundary faces.
       if (result->HasComponent("boundary_face")) {
-        const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
+        const Epetra_MultiVector& dens_bf = *S->GetPtr<CompositeVector>(dens_key_)
             ->ViewComponent("boundary_face",false);
-        const Epetra_MultiVector& visc_bf = *S->GetFieldData(visc_key_)
+        const Epetra_MultiVector& visc_bf = *S->GetPtr<CompositeVector>(visc_key_)
             ->ViewComponent("boundary_face",false);
         Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -396,9 +396,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);
     // note density > 0
-    const Epetra_MultiVector& dens_c = *S->GetFieldData(dens_key_)
+    const Epetra_MultiVector& dens_c = *S->GetPtr<CompositeVector>(dens_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& kr_c = *S->GetFieldData(my_key_)
+    const Epetra_MultiVector& kr_c = *S->GetPtr<CompositeVector>(my_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
@@ -409,9 +409,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // Potentially scale boundary faces.
     if (result->HasComponent("boundary_face")) {
-      const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
+      const Epetra_MultiVector& dens_bf = *S->GetPtr<CompositeVector>(dens_key_)
           ->ViewComponent("boundary_face",false);
-      const Epetra_MultiVector& kr_bf = *S->GetFieldData(my_key_)
+      const Epetra_MultiVector& kr_bf = *S->GetPtr<CompositeVector>(my_key_)
           ->ViewComponent("boundary_face",false);
       Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
@@ -426,9 +426,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
   } else if (wrt_key == visc_key_) {
     AMANZI_ASSERT(is_dens_visc_);
     // note density > 0
-    const Epetra_MultiVector& visc_c = *S->GetFieldData(visc_key_)
+    const Epetra_MultiVector& visc_c = *S->GetPtr<CompositeVector>(visc_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& kr_c = *S->GetFieldData(my_key_)
+    const Epetra_MultiVector& kr_c = *S->GetPtr<CompositeVector>(my_key_)
         ->ViewComponent("cell",false);
     Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
@@ -440,9 +440,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // Potentially scale boundary faces.
     if (result->HasComponent("boundary_face")) {
-      const Epetra_MultiVector& visc_bf = *S->GetFieldData(visc_key_)
+      const Epetra_MultiVector& visc_bf = *S->GetPtr<CompositeVector>(visc_key_)
           ->ViewComponent("boundary_face",false);
-      const Epetra_MultiVector& kr_bf = *S->GetFieldData(my_key_)
+      const Epetra_MultiVector& kr_bf = *S->GetPtr<CompositeVector>(my_key_)
           ->ViewComponent("boundary_face",false);
       Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 

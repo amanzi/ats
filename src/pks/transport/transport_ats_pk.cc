@@ -157,18 +157,18 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
     Exceptions::amanzi_throw(msg);
   }
 
-  const auto& tcc_fac = S->RequireField(tcc_key_)->SetMesh(mesh_)->SetGhosted(true);
+  const auto& tcc_fac = S->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true);
   name_ = "state"; // note: this is required because the chemistry PK is Amanzi code and uses this.
   S->RequireField(tcc_key_, name_, subfield_names)
       ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
-  S->RequireField(cv_key_);
+  S->Require<CompositeVector,CompositeVectorSpace>(cv_key_, Tags::NEXT);
   S->RequireFieldEvaluator(cv_key_);
 
   // other things that I own
-  S->RequireField(prev_saturation_key_, name_)->SetMesh(mesh_)->SetGhosted(true)
+  S->Require<CompositeVector,CompositeVectorSpace>(prev_saturation_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted(true)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
   S->GetField(prev_saturation_key_, name_)->set_io_vis(false);
 
@@ -191,30 +191,30 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
 
   // require state fields
   if (abs_perm) {
-    S->RequireField(permeability_key_)->SetMesh(mesh_)->SetGhosted(true)
+    S->Require<CompositeVector,CompositeVectorSpace>(permeability_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, dim);
     S->RequireFieldEvaluator(permeability_key_);
   }
 
-  S->RequireField(flux_key_)->SetMesh(mesh_)->SetGhosted(true)
+  S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::FACE, 1);
   S->RequireFieldEvaluator(flux_key_);
 
-  S->RequireField(saturation_key_)->SetMesh(mesh_)->SetGhosted(true)
+  S->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(saturation_key_);
 
-  S->RequireField(porosity_key_, porosity_key_)->SetMesh(mesh_)->SetGhosted(true)
+  S->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, Tags::NEXT,  porosity_key_).SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(porosity_key_);
 
-  S->RequireField(molar_density_key_, molar_density_key_)->SetMesh(mesh_)->SetGhosted(true)
+  S->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::NEXT,  molar_density_key_).SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(molar_density_key_);
 
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
-    S->RequireField(water_src_key_, water_src_key_)->SetMesh(mesh_)->SetGhosted(true)
+    S->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT,  water_src_key_).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(water_src_key_);
     has_water_src_key_ = true;
@@ -224,7 +224,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
       geochem_src_factor_key_ = water_src_key_;
     } else {
       // set the coefficient as water source / water density
-      S->RequireField(geochem_src_factor_key_, geochem_src_factor_key_)
+      S->Require<CompositeVector,CompositeVectorSpace>(geochem_src_factor_key_, Tags::NEXT,  geochem_src_factor_key_)
         ->SetMesh(mesh_)->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
 
@@ -239,7 +239,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
 
   // this is the not-yet-existing source, and is dead code currently!
   if (plist_->sublist("source terms").isSublist("component concentration source")) {
-    S->RequireField(water_src_key_, water_src_key_)->SetMesh(mesh_)->SetGhosted(true)
+    S->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT,  water_src_key_).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(water_src_key_);
     has_water_src_key_ = true;
@@ -326,22 +326,22 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
   // state pre-prosessing
   Teuchos::RCP<const CompositeVector> cv;
 
-  ws_ = S->GetFieldData(saturation_key_)->ViewComponent("cell", false);
-  ws_prev_ = S->GetFieldData(prev_saturation_key_)->ViewComponent("cell", false);
+  ws_ = S->Get<CompositeVector>(saturation_key_).ViewComponent("cell", false);
+  ws_prev_ = S->Get<CompositeVector>(prev_saturation_key_).ViewComponent("cell", false);
 
-  phi_ = S->GetFieldData(porosity_key_)->ViewComponent("cell", false);
+  phi_ = S->Get<CompositeVector>(porosity_key_).ViewComponent("cell", false);
 
-  mol_dens_ = S->GetFieldData(molar_density_key_)->ViewComponent("cell", false);
-  mol_dens_prev_ = S->GetFieldData(molar_density_key_)->ViewComponent("cell", false);
+  mol_dens_ = S->Get<CompositeVector>(molar_density_key_).ViewComponent("cell", false);
+  mol_dens_prev_ = S->Get<CompositeVector>(molar_density_key_).ViewComponent("cell", false);
 
-  tcc = S->GetFieldData(tcc_key_, name_);
+  tcc = S->GetPtrW<CompositeVector>(tcc_key_, name_);
   *tcc_tmp = *tcc;
 
-  flux_ = S->GetFieldData(flux_key_)->ViewComponent("face", true);
-  solid_qty_ = S->GetFieldData(solid_residue_mass_key_, name_)->ViewComponent("cell", false);
+  flux_ = S->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
+  solid_qty_ = S->GetW<CompositeVector>(solid_residue_mass_key_, name_).ViewComponent("cell", false);
 
   //create vector of conserved quatities
-  conserve_qty_ = S->GetFieldData(conserve_qty_key_, name_)->ViewComponent("cell", true);
+  conserve_qty_ = S->GetW<CompositeVector>(conserve_qty_key_, name_).ViewComponent("cell", true);
 
   // upwind
   const Epetra_Map& fmap_wghost = mesh_->face_map(true);
@@ -519,7 +519,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
         S->GetFieldEvaluator(geochem_src_factor_key_)->HasFieldChanged(S.ptr(), name_);
       }
 
-      auto src_factor = S->GetFieldData(geochem_src_factor_key_)->ViewComponent("cell",false);
+      auto src_factor = S->Get<CompositeVector>(geochem_src_factor_key_).ViewComponent("cell",false);
       src->set_conversion(-1000., src_factor, false);
 
       for (const auto& n : src->tcc_names()) {
@@ -554,7 +554,7 @@ void Transport_ATS::InitializeFields_(const Teuchos::Ptr<State>& S)
   if (S->HasField(saturation_key_)) {
     if (S->GetField(saturation_key_)->owner() == name_) {
       if (!S->GetField(saturation_key_, name_)->initialized()) {
-        S->GetFieldData(saturation_key_, name_)->PutScalar(1.0);
+        S->GetW<CompositeVector>(saturation_key_, name_).PutScalar(1.0);
         S->GetField(saturation_key_, name_)->set_initialized();
 
         if (vo_->os_OK(Teuchos::VERB_MEDIUM))
@@ -574,7 +574,7 @@ void Transport_ATS::InitializeFields_(const Teuchos::Ptr<State>& S)
     }
   }
   InitializeFieldFromField_(tcc_matrix_key_, tcc_key_, S, false, false);
-  S->GetFieldData(solid_residue_mass_key_, name_)->PutScalar(0.0);
+  S->GetW<CompositeVector>(solid_residue_mass_key_, name_).PutScalar(0.0);
   S->GetField(solid_residue_mass_key_, name_)->set_initialized();
   S->GetField(conserve_qty_key_, name_)->set_initialized();
 }
@@ -594,8 +594,8 @@ void Transport_ATS::InitializeFieldFromField_(const std::string& field0,
         if (call_evaluator)
             S->GetFieldEvaluator(field1)->HasFieldChanged(S.ptr(), name_);
 
-        const CompositeVector& f1 = *S->GetFieldData(field1);
-        CompositeVector& f0 = *S->GetFieldData(field0, name_);
+        const CompositeVector& f1 = *S->GetPtr<CompositeVector>(field1);
+        CompositeVector& f0 = *S->GetPtrW<CompositeVector>(field0, name_);
 
         double vmin0, vmax0, vavg0;
         double vmin1, vmax1, vavg1;
@@ -623,14 +623,14 @@ void Transport_ATS::InitializeFieldFromField_(const std::string& field0,
 * ***************************************************************** */
 double Transport_ATS::StableTimeStep()
 {
-  S_next_->GetFieldData(flux_key_)->ScatterMasterToGhosted("face");
+  S_next_->Get<CompositeVector>(flux_key_).ScatterMasterToGhosted("face");
 
-  flux_ = S_next_->GetFieldData(flux_key_)->ViewComponent("face", true);
+  flux_ = S_next_->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
 
   Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->cell_map(false)));
   IdentifyUpwindCells();
 
-  tcc = S_inter_->GetFieldData(tcc_key_, name_);
+  tcc = S_inter_->GetPtrW<CompositeVector>(tcc_key_, name_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
   // loop over faces and accumulate upwinding fluxes
@@ -647,8 +647,8 @@ double Transport_ATS::StableTimeStep()
 
   // modify estimate for other models
   // if (multiscale_porosity_) {
-  //   const Epetra_MultiVector& wcm_prev = *S_next_->GetFieldData("prev_water_content_matrix")->ViewComponent("cell");
-  //   const Epetra_MultiVector& wcm = *S_next_->GetFieldData("water_content_matrix")->ViewComponent("cell");
+  //   const Epetra_MultiVector& wcm_prev = *S_next_->Get<CompositeVector>("prev_water_content_matrix").ViewComponent("cell");
+  //   const Epetra_MultiVector& wcm = *S_next_->Get<CompositeVector>("water_content_matrix").ViewComponent("cell");
 
   //   double dtg = S_->final_time() - S_->initial_time();
   //   for (int c = 0; c < ncells_owned; ++c) {
@@ -759,18 +759,18 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << "----------------------------------------------------------------" << std::endl;
 
   S_next_->GetFieldEvaluator(flux_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  flux_ = S_next_->GetFieldData(flux_key_)->ViewComponent("face", true);
+  flux_ = S_next_->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
   *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
 
   S_next_->GetFieldEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  ws_ = S_next_->GetFieldData(saturation_key_)->ViewComponent("cell", false);
+  ws_ = S_next_->Get<CompositeVector>(saturation_key_).ViewComponent("cell", false);
 
   S_next_->GetFieldEvaluator(molar_density_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  mol_dens_ = S_next_->GetFieldData(molar_density_key_)->ViewComponent("cell", false);
+  mol_dens_ = S_next_->Get<CompositeVector>(molar_density_key_).ViewComponent("cell", false);
 
   // this is locally created and has no evaluator -- should get a primary
   // variable FE owned by this PK
-  solid_qty_ = S_next_->GetFieldData(solid_residue_mass_key_, name_)->ViewComponent("cell", false);
+  solid_qty_ = S_next_->GetW<CompositeVector>(solid_residue_mass_key_, name_).ViewComponent("cell", false);
 
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
@@ -778,7 +778,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
       if (src->name() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid
         S_next_->GetFieldEvaluator(geochem_src_factor_key_)->HasFieldChanged(S_next_.ptr(), name_);
-        auto src_factor = S_next_->GetFieldData(geochem_src_factor_key_)->ViewComponent("cell",false);
+        auto src_factor = S_next_->Get<CompositeVector>(geochem_src_factor_key_).ViewComponent("cell",false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
         src_alq->set_conversion(-1000, src_factor, false);
@@ -798,7 +798,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 #endif
 
   // We use original tcc and make a copy of it later if needed.
-  tcc = S_inter_->GetFieldData(tcc_key_, name_);
+  tcc = S_inter_->GetPtrW<CompositeVector>(tcc_key_, name_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
@@ -841,7 +841,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     mol_dens_end = mol_dens_;
   }
 
-  db_->WriteVector("sat_old", S_inter_->GetFieldData(prev_saturation_key_).ptr());
+  db_->WriteVector("sat_old", S_inter_->GetPtr<CompositeVector>(prev_saturation_key_).ptr());
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
@@ -1150,21 +1150,21 @@ void Transport_ATS::AddMultiscalePorosity_(
 {
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell");
   Epetra_MultiVector& tcc_matrix =
-     *S_inter_->GetFieldData("total_component_concentration_matrix", name_)->ViewComponent("cell");
+     *S_inter_->GetW<CompositeVector>("total_component_concentration_matrix", name_).ViewComponent("cell");
 
-  const Epetra_MultiVector& wcf_prev = *S_inter_->GetFieldData("prev_water_content")->ViewComponent("cell");
-  const Epetra_MultiVector& wcf = *S_inter_->GetFieldData("water_content")->ViewComponent("cell");
+  const Epetra_MultiVector& wcf_prev = *S_inter_->Get<CompositeVector>("prev_water_content").ViewComponent("cell");
+  const Epetra_MultiVector& wcf = *S_inter_->Get<CompositeVector>("water_content").ViewComponent("cell");
 
-  const Epetra_MultiVector& wcm_prev = *S_inter_->GetFieldData("prev_water_content_matrix")->ViewComponent("cell");
-  const Epetra_MultiVector& wcm = *S_inter_->GetFieldData("water_content_matrix")->ViewComponent("cell");
+  const Epetra_MultiVector& wcm_prev = *S_inter_->Get<CompositeVector>("prev_water_content_matrix").ViewComponent("cell");
+  const Epetra_MultiVector& wcm = *S_inter_->Get<CompositeVector>("water_content_matrix").ViewComponent("cell");
 
   // multi-node matrix requires more input data
-  const Epetra_MultiVector& phi_matrix = *S_inter_->GetFieldData("porosity_matrix")->ViewComponent("cell");
+  const Epetra_MultiVector& phi_matrix = *S_inter_->Get<CompositeVector>("porosity_matrix").ViewComponent("cell");
 
   int nnodes(1);
   Teuchos::RCP<Epetra_MultiVector> tcc_matrix_aux;
   if (S_inter_->HasField("total_component_concentration_matrix_aux")) {
-    tcc_matrix_aux = S_inter_->GetFieldData("total_component_concentration_matrix_aux", name_)->ViewComponent("cell");
+    tcc_matrix_aux = S_inter_->GetW<CompositeVector>("total_component_concentration_matrix_aux", name_).ViewComponent("cell");
     nnodes = tcc_matrix_aux->NumVectors() + 1;
   }
   WhetStone::DenseVector tcc_m(nnodes);
@@ -1224,7 +1224,7 @@ void Transport_ATS::AddMultiscalePorosity_(
 void Transport_ATS::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
 {
 
-  Teuchos::RCP<CompositeVector> tcc_vec_S = S->GetFieldData(tcc_key_, name_);
+  Teuchos::RCP<CompositeVector> tcc_vec_S = S->GetPtrW<CompositeVector>(tcc_key_, name_);
 
   *tcc_vec_S = *tcc_tmp;
   InitializeFieldFromField_(prev_saturation_key_, saturation_key_, S.ptr(), false, true);
@@ -1424,7 +1424,7 @@ void Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   const Epetra_Map& cmap_wghost = mesh_->cell_map(true);
 
   // distribute vector of concentrations
-  S_inter_->GetFieldData(tcc_key_)->ScatterMasterToGhosted("cell");
+  S_inter_->Get<CompositeVector>(tcc_key_).ScatterMasterToGhosted("cell");
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
 
@@ -1516,7 +1516,7 @@ void Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
   Epetra_Vector f_component(cmap_wghost);//,  f_component2(cmap_wghost);
 
   // distribute old vector of concentrations
-  S_inter_->GetFieldData(tcc_key_)->ScatterMasterToGhosted("cell");
+  S_inter_->Get<CompositeVector>(tcc_key_).ScatterMasterToGhosted("cell");
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
 
@@ -1596,7 +1596,7 @@ void Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
 // {
 //   dt_ = dt_cycle;  // overwrite the maximum stable transport step
 
-//   S_inter_->GetFieldData("total_component_concentration")->ScatterMasterToGhosted("cell");
+//   S_inter_->Get<CompositeVector>("total_component_concentration").ScatterMasterToGhosted("cell");
 //   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
 //   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
 
@@ -1701,7 +1701,7 @@ void Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
             //val = std::max(val, fabs(values[k])/tcc_c[imap][c]);
             //val = std::max(val, fabs(values[k]));
             const Epetra_MultiVector& flux_interface_ =
-              *S_next_->GetFieldData(coupled_flux_key)->ViewComponent("cell", false);
+              *S_next_->Get<CompositeVector>(coupled_flux_key).ViewComponent("cell", false);
             val = std::max(val, fabs(flux_interface_[0][c]));
           }
         }

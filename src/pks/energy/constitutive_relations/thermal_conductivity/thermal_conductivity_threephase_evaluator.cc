@@ -72,10 +72,10 @@ void ThermalConductivityThreePhaseEvaluator::EvaluateField_(
     const Teuchos::Ptr<State>& S,
     const Teuchos::Ptr<CompositeVector>& result) {
   // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> sat = S->GetFieldData(sat_key_);
-  Teuchos::RCP<const CompositeVector> sat2 = S->GetFieldData(sat2_key_);
+  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> sat = S->GetPtr<CompositeVector>(sat_key_);
+  Teuchos::RCP<const CompositeVector> sat2 = S->GetPtr<CompositeVector>(sat2_key_);
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
 
   for (CompositeVector::name_iterator comp = result->begin();
@@ -117,10 +117,10 @@ void ThermalConductivityThreePhaseEvaluator::EvaluateFieldPartialDerivative_(
     const Teuchos::Ptr<State>& S, Key wrt_key,
     const Teuchos::Ptr<CompositeVector>& result) {
   // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> sat = S->GetFieldData(sat_key_);
-  Teuchos::RCP<const CompositeVector> sat2 = S->GetFieldData(sat2_key_);
+  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> sat = S->GetPtr<CompositeVector>(sat_key_);
+  Teuchos::RCP<const CompositeVector> sat2 = S->GetPtr<CompositeVector>(sat2_key_);
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
 
   for (CompositeVector::name_iterator comp = result->begin();

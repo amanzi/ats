@@ -145,7 +145,7 @@ namespace Amanzi {
       Epetra_MultiVector& stem_diameter = *results[3]->ViewComponent("cell");
       Epetra_MultiVector& plant_area = *results[4]->ViewComponent("cell");
 
-      const Epetra_MultiVector& elev = *S->GetFieldData(elev_key_)->ViewComponent("cell");
+      const Epetra_MultiVector& elev = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell");
       
       int ncells = biomass.MyLength();
 

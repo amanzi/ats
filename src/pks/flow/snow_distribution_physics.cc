@@ -23,7 +23,7 @@ void SnowDistribution::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // update the stiffness matrix
   matrix_->Init();
   Teuchos::RCP<const CompositeVector> cond =
-    S_next_->GetFieldData(Keys::getKey(domain_,"upwind_conductivity"), name_);
+    S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity"), name_);
 
   matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
@@ -31,7 +31,7 @@ void SnowDistribution::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   
   // update the potential
   S->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> potential = S->GetFieldData(Keys::getKey(domain_,"skin_potential"));
+  Teuchos::RCP<const CompositeVector> potential = S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"skin_potential"));
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*potential, *g);
@@ -44,13 +44,13 @@ void SnowDistribution::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 void
 SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   // get these fields
-  Teuchos::RCP<const CompositeVector> h1 = S_next_->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> h1 = S_next_->GetPtr<CompositeVector>(key_);
   Epetra_MultiVector h1_positive(*h1->ViewComponent("cell",false));
   const auto& h1_v(*h1->ViewComponent("cell",false));
   for (int c=0; c!=h1_positive.MyLength(); ++c)
     h1_positive[0][c] = h1_v[0][c] > 0. ? h1_v[0][c] : 0.;
 
-  Teuchos::RCP<const CompositeVector> h0 = S_inter_->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> h0 = S_inter_->GetPtr<CompositeVector>(key_);
   Epetra_MultiVector h0_positive(*h0->ViewComponent("cell",false));
   const auto& h0_v(*h0->ViewComponent("cell",false));
   for (int c=0; c!=h0_positive.MyLength(); ++c)
@@ -58,7 +58,7 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   
   
   Teuchos::RCP<const CompositeVector> cv1 =
-      S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"));
+      S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
 
   // note 10 is for conversion from precip m SWE to actual m
   double dt = S_next_->time() - S_inter_->time();

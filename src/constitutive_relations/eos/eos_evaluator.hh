@@ -40,14 +40,6 @@ class EOSEvaluator : public SecondaryVariablesFieldEvaluator {
   // the actual model
   Teuchos::RCP<EOS> eos_;
   EOSMode mode_;
-
-  // Keys for fields
-  // dependencies
-  // Key temp_key_;
-  // Key pres_key_;
-
- // private:
- //  static Utils::RegisteredFactory<FieldEvaluator,EOSEvaluator> factory_;
 };
 
 } // namespace

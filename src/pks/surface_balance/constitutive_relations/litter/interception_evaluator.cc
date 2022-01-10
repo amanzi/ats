@@ -48,9 +48,9 @@ void InterceptionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                          const Teuchos::Ptr<CompositeVector>& result) {
   // Pull dependencies out of state.
   const Epetra_MultiVector& ai =
-      *S->GetFieldData(ai_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
   const Epetra_MultiVector& source =
-      *S->GetFieldData(source_key_)->ViewComponent("cell",false);  
+      *S->Get<CompositeVector>(source_key_).ViewComponent("cell",false);  
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
   double coef = source_in_meters_ ? n_liq_ : 1.;
@@ -68,9 +68,9 @@ void InterceptionEvaluator::EvaluateFieldPartialDerivative_(
 
   // Pull dependencies out of state.
   const Epetra_MultiVector& ai =
-      *S->GetFieldData(ai_key_)->ViewComponent("cell",false);
+      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
   const Epetra_MultiVector& source =
-      *S->GetFieldData(source_key_)->ViewComponent("cell",false);  
+      *S->Get<CompositeVector>(source_key_).ViewComponent("cell",false);  
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
   double coef = source_in_meters_ ? n_liq_ : 1.;

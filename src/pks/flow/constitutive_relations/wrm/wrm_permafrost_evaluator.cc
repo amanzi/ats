@@ -162,9 +162,9 @@ void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell",false);
   Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& pc_liq_c = *S->GetFieldData(pc_liq_key_)
+  const Epetra_MultiVector& pc_liq_c = *S->GetPtr<CompositeVector>(pc_liq_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& pc_ice_c = *S->GetFieldData(pc_ice_key_)
+  const Epetra_MultiVector& pc_ice_c = *S->GetPtr<CompositeVector>(pc_ice_key_)
       ->ViewComponent("cell",false);
 
   double sats[3];
@@ -182,9 +182,9 @@ void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S->GetFieldData(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S->GetPtr<CompositeVector>(pc_liq_key_)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S->GetFieldData(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S->GetPtr<CompositeVector>(pc_ice_key_)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.
@@ -226,9 +226,9 @@ WRMPermafrostEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
   Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell",false);
   Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& pc_liq_c = *S->GetFieldData(pc_liq_key_)
+  const Epetra_MultiVector& pc_liq_c = *S->GetPtr<CompositeVector>(pc_liq_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& pc_ice_c = *S->GetFieldData(pc_ice_key_)
+  const Epetra_MultiVector& pc_ice_c = *S->GetPtr<CompositeVector>(pc_ice_key_)
       ->ViewComponent("cell",false);
 
   double dsats[3];
@@ -264,9 +264,9 @@ WRMPermafrostEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S->GetFieldData(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S->GetPtr<CompositeVector>(pc_liq_key_)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S->GetFieldData(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S->GetPtr<CompositeVector>(pc_ice_key_)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.

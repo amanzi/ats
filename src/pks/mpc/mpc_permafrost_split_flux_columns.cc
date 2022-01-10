@@ -111,13 +111,13 @@ void MPCPermafrostSplitFluxColumns::Setup(const Teuchos::Ptr<State>& S)
     for (const auto& col_domain : *S->GetDomainSet(domain_col_)) {
       std::string col_surf_domain = "surface_" + domain_col_;
       Key pkey = Keys::getKey(col_surf_domain, p_lateral_flow_source_suffix_);
-      S->RequireField(pkey, pkey)
+      S->Require<CompositeVector,CompositeVectorSpace>(pkey, Tags::NEXT,  pkey)
           ->SetMesh(S->GetMesh(col_surf_domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(pkey);
 
       Key Tkey = Keys::getKey(col_surf_domain, T_lateral_flow_source_suffix_);
-      S->RequireField(Tkey, Tkey)
+      S->Require<CompositeVector,CompositeVectorSpace>(Tkey, Tags::NEXT,  Tkey)
           ->SetMesh(S->GetMesh(col_surf_domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
       S->RequireFieldEvaluator(Tkey);
@@ -213,12 +213,12 @@ MPCPermafrostSplitFluxColumns::CopyPrimaryToStar(const Teuchos::Ptr<const State>
   const auto& col_domain_set = *S_->GetDomainSet(domain_col_);
 
   // copy p primary variables into star primary variable
-  auto& p_star = *S_star->GetFieldData(p_primary_variable_star_, S_star->GetField(p_primary_variable_star_)->owner())
+  auto& p_star = *S_star->GetW<CompositeVector>(p_primary_variable_star_, S_star->GetField(p_primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
   auto ds_iter = col_domain_set.begin();
   for (int c=0; c!=p_star.MyLength(); ++c) {
     Key pkey = Keys::getKey("surface_"+(*ds_iter), p_primary_variable_suffix_);
-    const auto& p = *S->GetFieldData(pkey)->ViewComponent("cell",false);
+    const auto& p = *S->Get<CompositeVector>(pkey).ViewComponent("cell",false);
     AMANZI_ASSERT(p.MyLength() == 1);
     if (p[0][0] <= 101325.0) {
       p_star[0][c] = 101325.;
@@ -233,12 +233,12 @@ MPCPermafrostSplitFluxColumns::CopyPrimaryToStar(const Teuchos::Ptr<const State>
   peval_pvfe->SetFieldAsChanged(S_star.ptr());
 
   // copy T primary variable
-  auto& T_star = *S_star->GetFieldData(T_primary_variable_star_, S_star->GetField(T_primary_variable_star_)->owner())
+  auto& T_star = *S_star->GetW<CompositeVector>(T_primary_variable_star_, S_star->GetField(T_primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
   ds_iter = col_domain_set.begin();
   for (int c=0; c!=p_star.MyLength(); ++c) {
     Key Tkey = Keys::getKey("surface_"+ (*ds_iter), T_primary_variable_suffix_);
-    const auto& T = *S->GetFieldData(Tkey)->ViewComponent("cell",false);
+    const auto& T = *S->Get<CompositeVector>(Tkey).ViewComponent("cell",false);
     AMANZI_ASSERT(T.MyLength() == 1);
     T_star[0][c] = T[0][0];
     ++ds_iter;
@@ -267,14 +267,14 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
   const auto& col_domain_set = *S_->GetDomainSet(domain_col_);
 
   // copy p primary variables into star primary variable
-  const auto& p_star = *S_next_->GetFieldData(p_primary_variable_star_)
+  const auto& p_star = *S_next_->GetPtr<CompositeVector>(p_primary_variable_star_)
                        ->ViewComponent("cell",false);
 
   auto ds_iter = col_domain_set.begin();
   for (int c=0; c!=p_star.MyLength(); ++c) {
     if (p_star[0][c] > 101325.0000001) {
       Key pkey = Keys::getKey("surface_" + (*ds_iter), p_primary_variable_suffix_);
-      auto& p = *S_inter_->GetFieldData(pkey, S_inter_->GetField(pkey)->owner())->ViewComponent("cell",false);
+      auto& p = *S_inter_->GetW<CompositeVector>(pkey, S_inter_->GetField(pkey).owner())->ViewComponent("cell",false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
@@ -283,8 +283,8 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
       AMANZI_ASSERT(eval_pv.get());
       eval_pv->SetFieldAsChanged(S_inter_.ptr());
 
-      CopySurfaceToSubsurface(*S_inter_->GetFieldData(pkey),
-              S_inter_->GetFieldData(Keys::getKey(*ds_iter, p_primary_variable_suffix_),
+      CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(pkey),
+              S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, p_primary_variable_suffix_),
                       S_inter_->GetField(Keys::getKey(*ds_iter, p_primary_variable_suffix_))->owner()).ptr());
     }
     ++ds_iter;
@@ -292,11 +292,11 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
 
   // copy p primary variables into star primary variable
   ds_iter = col_domain_set.begin();
-  const auto& T_star = *S_next_->GetFieldData(T_primary_variable_star_)
+  const auto& T_star = *S_next_->GetPtr<CompositeVector>(T_primary_variable_star_)
                        ->ViewComponent("cell",false);
   for (int c=0; c!=T_star.MyLength(); ++c) {
     Key Tkey = Keys::getKey("surface_"+ (*ds_iter), T_primary_variable_suffix_);
-    auto& T = *S_inter_->GetFieldData(Tkey, S_inter_->GetField(Tkey)->owner())->ViewComponent("cell",false);
+    auto& T = *S_inter_->GetW<CompositeVector>(Tkey, S_inter_->GetField(Tkey).owner())->ViewComponent("cell",false);
     AMANZI_ASSERT(T.MyLength() == 1);
     T[0][0] = T_star[0][c];
 
@@ -305,8 +305,8 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
     AMANZI_ASSERT(eval_pv.get());
     eval_pv->SetFieldAsChanged(S_inter_.ptr());
 
-    CopySurfaceToSubsurface(*S_inter_->GetFieldData(Tkey),
-                            S_inter_->GetFieldData(Keys::getKey(*ds_iter, T_primary_variable_suffix_),
+    CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(Tkey),
+                            S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, T_primary_variable_suffix_),
                                     S_inter_->GetField(Keys::getKey(*ds_iter, T_primary_variable_suffix_))->owner()).ptr());
     ++ds_iter;
   }
@@ -347,29 +347,29 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
   S_next_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
-  Epetra_MultiVector q_div(*S_next_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false));
+  Epetra_MultiVector q_div(*S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false));
   q_div.Update(1.0/dt,
-               *S_next_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
-  q_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), q_div, 0.);
+  q_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), q_div, 0.);
 
   // grab the energy, difference
-  Epetra_MultiVector qE_div(*S_next_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false));
+  Epetra_MultiVector qE_div(*S_next_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false));
   qE_div.Update(1.0/dt,
-               *S_next_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
-  qE_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), qE_div, 0.);
+  qE_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), qE_div, 0.);
 
   // grab the pressure from the star system as well
-  const auto& p_star = *S_next_->GetFieldData(p_primary_variable_star_)
+  const auto& p_star = *S_next_->GetPtr<CompositeVector>(p_primary_variable_star_)
                        ->ViewComponent("cell",false);
-  const auto& T_star = *S_next_->GetFieldData(T_primary_variable_star_)
+  const auto& T_star = *S_next_->GetPtr<CompositeVector>(T_primary_variable_star_)
                        ->ViewComponent("cell",false);
 
   // in the case of water loss, use pressure.  in the case of water gain, use flux.
@@ -378,12 +378,12 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
     if (p_star[0][c] > 101325. && q_div[0][c] < 0.) {
       // use the Dirichlet
       Key pkey = Keys::getKey("surface_"+ (*ds_iter), p_primary_variable_suffix_);
-      auto& p = *S_inter_->GetFieldData(pkey, S_inter_->GetField(pkey)->owner())->ViewComponent("cell",false);
+      auto& p = *S_inter_->GetW<CompositeVector>(pkey, S_inter_->GetField(pkey).owner())->ViewComponent("cell",false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
       Key Tkey = Keys::getKey("surface_"+ (*ds_iter), T_primary_variable_suffix_);
-      auto& T = *S_inter_->GetFieldData(Tkey, S_inter_->GetField(Tkey)->owner())->ViewComponent("cell",false);
+      auto& T = *S_inter_->GetW<CompositeVector>(Tkey, S_inter_->GetField(Tkey).owner())->ViewComponent("cell",false);
       AMANZI_ASSERT(T.MyLength() == 1);
       T[0][0] = T_star[0][c];
 
@@ -399,30 +399,30 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
       eval_tv->SetFieldAsChanged(S_inter_.ptr());
 
       // copy from surface to subsurface to ensure consistency
-      CopySurfaceToSubsurface(*S_inter_->GetFieldData(pkey),
-                              S_inter_->GetFieldData(Keys::getKey(*ds_iter, p_primary_variable_suffix_),
+      CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(pkey),
+                              S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, p_primary_variable_suffix_),
                                                      S_inter_->GetField(Keys::getKey(*ds_iter, p_primary_variable_suffix_))->owner()).ptr());
-      CopySurfaceToSubsurface(*S_inter_->GetFieldData(Tkey),
-                              S_inter_->GetFieldData(Keys::getKey(*ds_iter, T_primary_variable_suffix_),
+      CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(Tkey),
+                              S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, T_primary_variable_suffix_),
                                                      S_inter_->GetField(Keys::getKey(*ds_iter, T_primary_variable_suffix_))->owner()).ptr());
 
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
-      (*S_next_->GetFieldData(p_lf_key, p_lf_key)->ViewComponent("cell",false))[0][0] = 0.;
+      (*S_next_->GetW<CompositeVector>(p_lf_key, p_lf_key).ViewComponent("cell",false))[0][0] = 0.;
       p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
 
       Key T_lf_key = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
-      (*S_next_->GetFieldData(T_lf_key, T_lf_key)->ViewComponent("cell",false))[0][0] = 0.;
+      (*S_next_->GetW<CompositeVector>(T_lf_key, T_lf_key).ViewComponent("cell",false))[0][0] = 0.;
       T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
 
     } else {
       // use flux
       Key p_lf_key = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
-      (*S_next_->GetFieldData(p_lf_key, p_lf_key)->ViewComponent("cell",false))[0][0] = q_div[0][c];
+      (*S_next_->GetW<CompositeVector>(p_lf_key, p_lf_key).ViewComponent("cell",false))[0][0] = q_div[0][c];
       p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
 
       Key T_lf_key = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
-      (*S_next_->GetFieldData(T_lf_key, T_lf_key)->ViewComponent("cell",false))[0][0] = qE_div[0][c];
+      (*S_next_->GetW<CompositeVector>(T_lf_key, T_lf_key).ViewComponent("cell",false))[0][0] = qE_div[0][c];
       T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
     }
     ++ds_iter;
@@ -464,40 +464,40 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryFlux_(double dt)
   S_next_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
-  Epetra_MultiVector q_div(*S_next_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false));
+  Epetra_MultiVector q_div(*S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false));
   q_div.Update(1.0/dt,
-               *S_next_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(p_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
-  q_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), q_div, 0.);
+  q_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), q_div, 0.);
 
   // copy into columns
   auto ds_iter = col_domain_set.begin();
   for (int c=0; c!=q_div.MyLength(); ++c) {
     Key pkey = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
-    (*S_next_->GetFieldData(pkey, pkey)->ViewComponent("cell",false))[0][0] = q_div[0][c];
+    (*S_next_->GetW<CompositeVector>(pkey, pkey).ViewComponent("cell",false))[0][0] = q_div[0][c];
     p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
     ++ds_iter;
   }
 
   // grab the data, difference
-  Epetra_MultiVector qE_div(*S_next_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false));
+  Epetra_MultiVector qE_div(*S_next_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false));
   qE_div.Update(1.0/dt,
-               *S_next_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(T_conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(T_conserved_variable_star_).ViewComponent("cell",false),
                0.);
 
   // scale by cell volume as this will get rescaled in the source calculation
-  qE_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), qE_div, 0.);
+  qE_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), qE_div, 0.);
 
   // copy into columns
   ds_iter = col_domain_set.begin();
   for (int c=0; c!=qE_div.MyLength(); ++c) {
     Key Tkey = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
-    (*S_next_->GetFieldData(Tkey, Tkey)->ViewComponent("cell",false))[0][0] = qE_div[0][c];
+    (*S_next_->GetW<CompositeVector>(Tkey, Tkey).ViewComponent("cell",false))[0][0] = qE_div[0][c];
     T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
     ++ds_iter;
   }

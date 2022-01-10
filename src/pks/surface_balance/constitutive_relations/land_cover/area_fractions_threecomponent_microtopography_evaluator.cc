@@ -59,11 +59,11 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EvaluateField_(const Teucho
 {
   Epetra_MultiVector& res = *result->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& pd = *S->GetFieldData(ponded_depth_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& sd = *S->GetFieldData(snow_depth_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& vsd = *S->GetFieldData(vol_snow_depth_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& del_max = *S->GetFieldData(delta_max_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& del_ex = *S->GetFieldData(delta_ex_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& pd = *S->Get<CompositeVector>(ponded_depth_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& sd = *S->Get<CompositeVector>(snow_depth_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& vsd = *S->Get<CompositeVector>(vol_snow_depth_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell", false);
 
   for (int c=0; c!=res.MyLength(); ++c) {
     // calculate area of land
@@ -125,7 +125,7 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EvaluateField_(const Teucho
 void
 AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // see if we can find a master fac
-  auto my_fac = S->RequireField(my_key_, my_key_);
+  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   my_fac->SetMesh(S->GetMesh(domain_))
       ->SetGhosted()
       ->SetComponent("cell", AmanziMesh::CELL, 3);
@@ -138,7 +138,7 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility(const T
 
 
   for (auto dep_key : dependencies_) {
-    auto fac = S->RequireField(dep_key);
+    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
     if (Keys::getDomain(dep_key) == domain_snow_) {
       fac->SetMesh(S->GetMesh(domain_snow_))
           ->SetGhosted()

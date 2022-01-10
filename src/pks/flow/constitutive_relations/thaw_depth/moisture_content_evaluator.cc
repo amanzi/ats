@@ -76,9 +76,9 @@ MoistureContentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   std::string domain_ss = Keys::getDomain(temp_key_);
 
-  const auto& temp_c = *S->GetFieldData(temp_key_)->ViewComponent("cell", false);
-  const auto& cv_c = *S->GetFieldData(cv_key_)->ViewComponent("cell", false);
-  const auto& sat_c = *S->GetFieldData(sat_key_)->ViewComponent("cell", false);
+  const auto& temp_c = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
+  const auto& cv_c = *S->Get<CompositeVector>(cv_key_).ViewComponent("cell", false);
+  const auto& sat_c = *S->Get<CompositeVector>(sat_key_).ViewComponent("cell", false);
 
   int col_cells = temp_c.MyLength();
   double col_sum = 0;
@@ -92,7 +92,7 @@ MoistureContentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
   }
   else if (volumetric_wc_) {
-    const auto& por_c = *S->GetFieldData(por_key_)->ViewComponent("cell", false);
+    const auto& por_c = *S->Get<CompositeVector>(por_key_).ViewComponent("cell", false);
     for (int i=0; i!=col_cells; ++i) {
       if (temp_c[0][i] >= trans_temp) {
         col_sum += por_c[0][i] * sat_c[0][i];
@@ -140,7 +140,7 @@ MoistureContentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
   AMANZI_ASSERT(my_key_ != std::string(""));
    
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
   
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

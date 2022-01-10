@@ -40,7 +40,7 @@ public:
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Epetra_Vector& gravity,
+        const AmanziGeometry::Point& gravity,
         const Teuchos::Ptr<CompositeVector>& face_coef);
 
   virtual std::string

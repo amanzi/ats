@@ -40,7 +40,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
   if (cell_vol_key_ == std::string()) {
     cell_vol_key_ = plist_->get<std::string>("cell volume key", "cell_volume");
   }
-  S->RequireField(cell_vol_key_)->SetMesh(mesh_)
+  S->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(cell_vol_key_);
   
@@ -49,7 +49,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
   if (is_diffusion_) {
     div_diff_flux_key_ = plist_->get<std::string>("divergence of bioturbation fluxes", "div_bioturbation");
 
-    S->RequireField(div_diff_flux_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(div_diff_flux_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S->RequireFieldEvaluator(div_diff_flux_key_);
   }
@@ -59,7 +59,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
   if (is_source_) {
     source_key_ = plist_->get<std::string>("source key", "carbon_source");
 
-    S->RequireField(source_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S->RequireFieldEvaluator(source_key_);
   }
@@ -69,7 +69,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
   if (is_decomp_) {
     decomp_key_ = plist_->get<std::string>("decomposition rate", "carbon_decomposition_rate");
 
-    S->RequireField(div_diff_flux_key_)->SetMesh(mesh_)
+    S->Require<CompositeVector,CompositeVectorSpace>(div_diff_flux_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S->RequireFieldEvaluator(div_diff_flux_key_);
   }
@@ -91,7 +91,7 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Explicit deriv calculation: t = " << t << std::endl;
   db_->WriteCellInfo(true);
-  db_->WriteVector("C_old", S_inter_->GetFieldData(key_).ptr());
+  db_->WriteVector("C_old", S_inter_->GetPtr<CompositeVector>(key_).ptr());
 
   // Evaluate the derivative
   Teuchos::RCP<CompositeVector> dudt = f.Data();
@@ -106,7 +106,7 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   AddDecomposition_(S_inter_.ptr(), dudt.ptr());
 
   // scale all by cell volume
-  const Epetra_MultiVector& cv = *S_inter_->GetFieldData(cell_vol_key_)
+  const Epetra_MultiVector& cv = *S_inter_->GetPtr<CompositeVector>(cell_vol_key_)
       ->ViewComponent("cell",false);
   Epetra_MultiVector& dudt_c = *dudt->ViewComponent("cell",false);
   for (int c=0; c!=dudt_c.MyLength(); ++c) {
@@ -131,7 +131,7 @@ CarbonSimple::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& g) {
   if (is_diffusion_) {
     S->GetFieldEvaluator(div_diff_flux_key_)->HasFieldChanged(S, name_);
-    Teuchos::RCP<const CompositeVector> diff = S->GetFieldData(div_diff_flux_key_);
+    Teuchos::RCP<const CompositeVector> diff = S->GetPtr<CompositeVector>(div_diff_flux_key_);
     g->Update(1., *diff, 0.);
     db_->WriteVector(" turbation rate", diff.ptr(), true);
   } else {
@@ -145,7 +145,7 @@ CarbonSimple::AddSources_(const Teuchos::Ptr<State>& S,
                           const Teuchos::Ptr<CompositeVector>& g) {
   if (is_source_) {
     S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
-    Teuchos::RCP<const CompositeVector> src = S->GetFieldData(source_key_);
+    Teuchos::RCP<const CompositeVector> src = S->GetPtr<CompositeVector>(source_key_);
     g->Update(1., *src, 1.);
     db_->WriteVector(" source", src.ptr(), true);
   }
@@ -157,7 +157,7 @@ CarbonSimple::AddDecomposition_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& g) {
   if (is_decomp_) {
     S->GetFieldEvaluator(decomp_key_)->HasFieldChanged(S, name_);
-    Teuchos::RCP<const CompositeVector> src = S->GetFieldData(decomp_key_);
+    Teuchos::RCP<const CompositeVector> src = S->GetPtr<CompositeVector>(decomp_key_);
     g->Update(1., *src, 1.);
     db_->WriteVector(" decomp", src.ptr(), true);
   }

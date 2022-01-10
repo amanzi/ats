@@ -57,9 +57,9 @@ void
 RootingDepthFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  const Epetra_MultiVector& z = *S->GetFieldData(z_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S->GetFieldData(cv_key_)->ViewComponent("cell", false);
-  const Epetra_MultiVector& surf_cv = *S->GetFieldData(surf_cv_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& z = *S->Get<CompositeVector>(z_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S->Get<CompositeVector>(cv_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& surf_cv = *S->Get<CompositeVector>(surf_cv_key_).ViewComponent("cell", false);
   Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
 
   auto& subsurf_mesh = *S->GetMesh(domain_sub_);
@@ -112,7 +112,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
   // Ensure my field exists.  Requirements should be already set.
   AMANZI_ASSERT(!my_key_.empty());
-  auto my_fac = S->RequireField(my_key_, my_key_);
+  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
 
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
@@ -130,14 +130,14 @@ RootingDepthFractionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
   dep_fac_one.SetMesh(my_fac->Mesh())
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireField(z_key_)->Update(dep_fac_one);
-  S->RequireField(cv_key_)->Update(dep_fac_one);
+  S->Require<CompositeVector,CompositeVectorSpace>(z_key_, Tags::NEXT).Update(dep_fac_one);
+  S->Require<CompositeVector,CompositeVectorSpace>(cv_key_, Tags::NEXT).Update(dep_fac_one);
 
   CompositeVectorSpace surf_fac_one;
   surf_fac_one.SetMesh(S->GetMesh(Keys::getDomain(surf_cv_key_)))
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireField(surf_cv_key_)->Update(surf_fac_one);
+  S->Require<CompositeVector,CompositeVectorSpace>(surf_cv_key_, Tags::NEXT).Update(surf_fac_one);
 
   // Recurse into the tree to propagate info to leaves.
   for (KeySet::const_iterator key=dependencies_.begin();

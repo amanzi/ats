@@ -42,7 +42,7 @@ void EnergyTest::commit_step() {
 }
 
 void EnergyTest::initialize_owned() {
-  Teuchos::RCP<CompositeVector> temp = S0->GetFieldData("temperature", "energy");
+  Teuchos::RCP<CompositeVector> temp = S0->GetPtrW<CompositeVector>("temperature", "energy");
 
   int c_owned = temp->size("cell");
   for (int c=0; c != c_owned; ++c) {
@@ -57,7 +57,7 @@ void EnergyTest::initialize_owned() {
 void EnergyTest::initialize_mass_flux() {
   const Epetra_BlockMap& fmap = mesh->face_map(true);
   Teuchos::RCP<CompositeVector> mass_flux =
-    S0->GetFieldData("mass_flux", "state");
+    S0->GetPtrW<CompositeVector>("mass_flux", "state");
 
   for (int f=fmap.MinLID(); f<=fmap.MaxLID(); f++) {
     const AmanziGeometry::Point& normal = mesh->face_normal(f);
@@ -69,7 +69,7 @@ void EnergyTest::initialize_mass_flux() {
 
 void EnergyTest::evaluate_error_temp(double t, double* L1, double* L2) {
   const Epetra_BlockMap& cmap = mesh->cell_map(true);
-  Teuchos::RCP<const CompositeVector> temp = S1->GetFieldData("temperature");
+  Teuchos::RCP<const CompositeVector> temp = S1->GetPtr<CompositeVector>("temperature");
 
   double d;
   *L1 = 0.0;

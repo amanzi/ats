@@ -47,7 +47,7 @@ UnfrozenFractionEvaluator::Clone() const {
 // Required methods from SecondaryVariableFieldEvaluator
 void UnfrozenFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -67,7 +67,7 @@ void UnfrozenFractionEvaluator::EvaluateFieldPartialDerivative_(
     Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
 
   AMANZI_ASSERT(wrt_key == temp_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {

@@ -33,11 +33,11 @@ namespace Flow {
 void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- Absolute permeability.
   //       For now, we assume scalar permeability.  This will change.
-  S->RequireField(perm_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(perm_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(perm_key_);
   
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(conserved_key_);
 
@@ -52,7 +52,7 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   // -- rel perm on cells + boundary faces
 
-  S->RequireField(coef_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(coef_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponents(names2,locations2,num_dofs2);
  
   // -- This setup is a little funky -- we use four evaluators to capture the physics.
@@ -82,16 +82,16 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   
   // -- Liquid density and viscosity for the transmissivity.
 
-  S->RequireField(molar_dens_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(molar_dens_key_);
 
-  /* S->RequireField("viscosity_liquid")->SetMesh(S->GetMesh())->SetGhosted()
+  /* S->Require<CompositeVector,CompositeVectorSpace>("viscosity_liquid", Tags::NEXT).SetMesh(S->GetMesh())->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator("viscosity_liquid");
   */
   // -- liquid mass density for the gravity fluxes
-  S->RequireField(mass_dens_key_)->SetMesh(mesh_)->SetGhosted()
+  S->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(mass_dens_key_); // simply picks up the molar density one.
 

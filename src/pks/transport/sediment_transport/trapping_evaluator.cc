@@ -65,12 +65,12 @@ Teuchos::RCP<FieldEvaluator> TrappingRateEvaluator ::Clone() const {
 void TrappingRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  const Epetra_MultiVector& vel = *S->GetFieldData(velocity_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& tcc = *S->GetFieldData(sediment_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& depth = *S->GetFieldData(ponded_depth_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& bio_n = *S->GetFieldData("surface-stem_density")->ViewComponent("cell");
-  const Epetra_MultiVector& bio_d = *S->GetFieldData("surface-stem_diameter")->ViewComponent("cell");
-  const Epetra_MultiVector& bio_h = *S->GetFieldData("surface-stem_height")->ViewComponent("cell");
+  const Epetra_MultiVector& vel = *S->Get<CompositeVector>(velocity_key_).ViewComponent("cell");
+  const Epetra_MultiVector& tcc = *S->Get<CompositeVector>(sediment_key_).ViewComponent("cell");
+  const Epetra_MultiVector& depth = *S->Get<CompositeVector>(ponded_depth_key_).ViewComponent("cell");
+  const Epetra_MultiVector& bio_n = *S->Get<CompositeVector>("surface-stem_density").ViewComponent("cell");
+  const Epetra_MultiVector& bio_d = *S->Get<CompositeVector>("surface-stem_diameter").ViewComponent("cell");
+  const Epetra_MultiVector& bio_h = *S->Get<CompositeVector>("surface-stem_height").ViewComponent("cell");
   Epetra_MultiVector& result_c = *result->ViewComponent("cell");
 
 

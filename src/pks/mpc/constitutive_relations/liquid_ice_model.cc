@@ -133,8 +133,8 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
 void LiquidIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   // update scalars
   p_atm_ = *S->GetScalarData("atmospheric_pressure");
-  rho_rock_ = (*S->GetFieldData(Keys::getKey(domain,"density_rock"))->ViewComponent("cell"))[0][c];
-  poro_ = (*S->GetFieldData(Keys::getKey(domain,"base_porosity"))->ViewComponent("cell"))[0][c];
+  rho_rock_ = (*S->GetPtrW<CompositeVector>(Keys::getKey(domain,"density_rock"))->ViewComponent("cell"))[0][c];
+  poro_ = (*S->GetPtrW<CompositeVector>(Keys::getKey(domain,"base_porosity"))->ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
   if(!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];

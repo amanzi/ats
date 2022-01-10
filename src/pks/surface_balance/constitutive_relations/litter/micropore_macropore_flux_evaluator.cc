@@ -112,11 +112,11 @@ void
 MicroporeMacroporeFluxEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> pm = S->GetFieldData(pm_key_);
-  Teuchos::RCP<const CompositeVector> pM = S->GetFieldData(pM_key_);
-  Teuchos::RCP<const CompositeVector> krM = S->GetFieldData(krM_key_);
-  Teuchos::RCP<const CompositeVector> krm = S->GetFieldData(krm_key_);
-  Teuchos::RCP<const CompositeVector> K = S->GetFieldData(K_key_);
+  Teuchos::RCP<const CompositeVector> pm = S->GetPtr<CompositeVector>(pm_key_);
+  Teuchos::RCP<const CompositeVector> pM = S->GetPtr<CompositeVector>(pM_key_);
+  Teuchos::RCP<const CompositeVector> krM = S->GetPtr<CompositeVector>(krM_key_);
+  Teuchos::RCP<const CompositeVector> krm = S->GetPtr<CompositeVector>(krm_key_);
+  Teuchos::RCP<const CompositeVector> K = S->GetPtr<CompositeVector>(K_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -139,11 +139,11 @@ void
 MicroporeMacroporeFluxEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> pm = S->GetFieldData(pm_key_);
-  Teuchos::RCP<const CompositeVector> pM = S->GetFieldData(pM_key_);
-  Teuchos::RCP<const CompositeVector> krM = S->GetFieldData(krM_key_);
-  Teuchos::RCP<const CompositeVector> krm = S->GetFieldData(krm_key_);
-  Teuchos::RCP<const CompositeVector> K = S->GetFieldData(K_key_);
+  Teuchos::RCP<const CompositeVector> pm = S->GetPtr<CompositeVector>(pm_key_);
+  Teuchos::RCP<const CompositeVector> pM = S->GetPtr<CompositeVector>(pM_key_);
+  Teuchos::RCP<const CompositeVector> krM = S->GetPtr<CompositeVector>(krM_key_);
+  Teuchos::RCP<const CompositeVector> krm = S->GetPtr<CompositeVector>(krm_key_);
+  Teuchos::RCP<const CompositeVector> K = S->GetPtr<CompositeVector>(K_key_);
 
   if (wrt_key == pm_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

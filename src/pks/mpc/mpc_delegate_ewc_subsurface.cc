@@ -46,9 +46,9 @@ bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RC
   }
 
   // T, p at the previous step
-  const Epetra_MultiVector& T1 = *S_inter_->GetFieldData(temp_key_)
+  const Epetra_MultiVector& T1 = *S_inter_->GetPtr<CompositeVector>(temp_key_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& p1 = *S_inter_->GetFieldData(pres_key_)
+  const Epetra_MultiVector& p1 = *S_inter_->GetPtr<CompositeVector>(pres_key_)
       ->ViewComponent("cell",false);
 
   // project energy and water content
@@ -57,15 +57,15 @@ bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RC
 
   // -- get wc and energy data
   const Epetra_MultiVector& wc0 = *wc_prev2_;
-  const Epetra_MultiVector& wc1 = *S_inter_->GetFieldData(wc_key_)
+  const Epetra_MultiVector& wc1 = *S_inter_->GetPtr<CompositeVector>(wc_key_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& wc2 = *S_next_->GetFieldData(wc_key_, wc_key_)
+  Epetra_MultiVector& wc2 = *S_next_->GetPtrW<CompositeVector>(wc_key_, wc_key_)
       ->ViewComponent("cell",false);
 
   const Epetra_MultiVector& e0 = *e_prev2_;
-  const Epetra_MultiVector& e1 = *S_inter_->GetFieldData(e_key_)
+  const Epetra_MultiVector& e1 = *S_inter_->GetPtr<CompositeVector>(e_key_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& e2 = *S_next_->GetFieldData(e_key_, e_key_)
+  Epetra_MultiVector& e2 = *S_next_->GetPtrW<CompositeVector>(e_key_, e_key_)
       ->ViewComponent("cell",false);
 
   // -- project
@@ -76,7 +76,7 @@ bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RC
   e2.Update(dt_ratio, e1, 1. - dt_ratio);
 
   // -- extra data
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(cv_key_)
+  const Epetra_MultiVector& cv = *S_next_->GetPtr<CompositeVector>(cv_key_)
       ->ViewComponent("cell",false);
 
   int rank = mesh_->get_comm()->MyPID();
@@ -318,14 +318,14 @@ void MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u,
   Epetra_MultiVector& dT_std = *Pu->SubVector(1)->Data()->ViewComponent("cell",false);
 
   // additional data required
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData("cell_volume")->ViewComponent("cell",false);
+  const Epetra_MultiVector& cv = *S_next_->Get<CompositeVector>("cell_volume").ViewComponent("cell",false);
   const double p_atm = *S_next_->GetScalarData("atmospheric_pressure");
 
   // old values
-  const Epetra_MultiVector& p_old = *S_next_->GetFieldData(pres_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& T_old = *S_next_->GetFieldData(temp_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& wc_old = *S_next_->GetFieldData(wc_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& e_old = *S_next_->GetFieldData(e_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& p_old = *S_next_->Get<CompositeVector>(pres_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& T_old = *S_next_->Get<CompositeVector>(temp_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& wc_old = *S_next_->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& e_old = *S_next_->Get<CompositeVector>(e_key_).ViewComponent("cell",false);
 
   // min change values... ewc is not useful near convergence
   double dT_min = 0.01;

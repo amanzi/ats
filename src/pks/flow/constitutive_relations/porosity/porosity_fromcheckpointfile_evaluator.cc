@@ -42,7 +42,7 @@ PorosityFromCheckpointFileEvaluator::Clone() const {
 void PorosityFromCheckpointFileEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
-  //  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
+  //  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
 
   // evaluate the model
   for (CompositeVector::name_iterator comp=result->begin();

@@ -61,10 +61,10 @@ SnowSkinPotentialEvaluator::Clone() const {
 void SnowSkinPotentialEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   // update pressure + elevation
-  Teuchos::RCP<const CompositeVector> pd = S->GetFieldData(pd_key_);
-  Teuchos::RCP<const CompositeVector> sd = S->GetFieldData(sd_key_);
-  Teuchos::RCP<const CompositeVector> precip = S->GetFieldData(precip_key_);
-  Teuchos::RCP<const CompositeVector> elev = S->GetFieldData(elev_key_);
+  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(pd_key_);
+  Teuchos::RCP<const CompositeVector> sd = S->GetPtr<CompositeVector>(sd_key_);
+  Teuchos::RCP<const CompositeVector> precip = S->GetPtr<CompositeVector>(precip_key_);
+  Teuchos::RCP<const CompositeVector> elev = S->GetPtr<CompositeVector>(elev_key_);
 
 
   // note factor of 10 accounts for change from precip in m SWE to actual m.

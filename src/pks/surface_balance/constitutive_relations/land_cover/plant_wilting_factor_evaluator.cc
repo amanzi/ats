@@ -50,7 +50,7 @@ PlantWiltingFactorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
   }
 
-  const Epetra_MultiVector& pc_v = *S->GetFieldData(pc_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& pc_v = *S->Get<CompositeVector>(pc_key_).ViewComponent("cell", false);
   Epetra_MultiVector& result_v = *result->ViewComponent("cell",false);
 
   auto& subsurf_mesh = *S->GetMesh(domain_sub_);
@@ -75,7 +75,7 @@ PlantWiltingFactorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
   if (wrt_key == pc_key_) {
-    const Epetra_MultiVector& pc_v = *S->GetFieldData(pc_key_)->ViewComponent("cell", false);
+    const Epetra_MultiVector& pc_v = *S->Get<CompositeVector>(pc_key_).ViewComponent("cell", false);
     Epetra_MultiVector& result_v = *result->ViewComponent("cell",false);
 
     auto& subsurf_mesh = *S->GetMesh(domain_sub_);

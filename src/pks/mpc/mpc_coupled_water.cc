@@ -45,7 +45,7 @@ MPCCoupledWater::Setup(const Teuchos::Ptr<State>& S) {
   StrongMPC<PK_PhysicalBDF_Default>::Setup(S);
 
   // require the coupling fields, claim ownership
-  S->RequireField(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)
+  S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_surf_, Tags::NEXT, "surface_subsurface_flux"), name_)
     ->SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // Create the preconditioner.
@@ -104,15 +104,15 @@ MPCCoupledWater::Setup(const Teuchos::Ptr<State>& S) {
 void
 MPCCoupledWater::Initialize(const Teuchos::Ptr<State>& S) {
    // initialize coupling terms
-  S->GetFieldData(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)->PutScalar(0.);
+  S->GetPtrW<CompositeVector>(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)->PutScalar(0.);
   S->GetField(Keys::getKey(domain_surf_,"surface_subsurface_flux"), name_)->set_initialized();
 
   // Initialize all sub PKs.
   MPC<PK_PhysicalBDF_Default>::Initialize(S);
 
   // ensure continuity of ICs... subsurface takes precedence.
-  CopySubsurfaceToSurface(*S->GetFieldData(Keys::getKey(domain_ss_,"pressure"), sub_pks_[0]->name()),
-			  S->GetFieldData(Keys::getKey(domain_surf_,"pressure"), sub_pks_[1]->name()).ptr());
+  CopySubsurfaceToSurface(*S->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_,"pressure"), sub_pks_[0]->name()),
+			  S->GetPtrW<CompositeVector>(Keys::getKey(domain_surf_,"pressure"), sub_pks_[1]->name()).ptr());
 
   // Initialize my timestepper.
   PK_BDF_Default::Initialize(S);
@@ -141,7 +141,7 @@ MPCCoupledWater::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 
   // The residual of the surface flow equation provides the mass flux from
   // subsurface to surface.
-  Epetra_MultiVector& source = *S_next_->GetFieldData(Keys::getKey(domain_surf_,"surface_subsurface_flux"),
+  Epetra_MultiVector& source = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_surf_,"surface_subsurface_flux"),
           name_)->ViewComponent("cell",false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell",false);
 
@@ -223,7 +223,7 @@ MPCCoupledWater::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
   // Merge surface cells with subsurface faces
   if (modified) {
     S_next_->GetFieldEvaluator(Keys::getKey(domain_surf_,"relative_permeability"))->HasFieldChanged(S_next_.ptr(),name_);
-    Teuchos::RCP<const CompositeVector> h_prev = S_inter_->GetFieldData(Keys::getKey(domain_surf_,"ponded_depth"));
+    Teuchos::RCP<const CompositeVector> h_prev = S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_surf_,"ponded_depth"));
     MergeSubsurfaceAndSurfacePressure(*h_prev, u->SubVector(0)->Data().ptr(),
             u->SubVector(1)->Data().ptr());
   }
@@ -351,11 +351,11 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
 
 //   // old ponded depth
 //   S_next_->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S_next_.ptr(), name_);
-//   *surf_Ph->ViewComponent("cell",false) = *S_next_->GetFieldData("ponded_depth")->ViewComponent("cell",false);
+//   *surf_Ph->ViewComponent("cell",false) = *S_next_->Get<CompositeVector>("ponded_depth").ViewComponent("cell",false);
 
 //   // new ponded depth
 //   Teuchos::RCP<TreeVector> tv_p = Teuchos::rcp(new TreeVector());
-//   Teuchos::RCP<CompositeVector> cv_p = S_next_->GetFieldData("surface-pressure", sub_pks_[1]->name());
+//   Teuchos::RCP<CompositeVector> cv_p = S_next_->GetPtrW<CompositeVector>("surface-pressure", sub_pks_[1]->name());
 //   cv_p->ViewComponent("cell",false)->Update(-1., surf_Pp_c, 1.);
 //   tv_p->SetData(cv_p);
 
@@ -366,7 +366,7 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
 
 //     // put delta ponded depth into surf_Ph_cell
 //     surf_Ph->ViewComponent("cell",false)
-//         ->Update(-1., *S_next_->GetFieldData("ponded_depth")->ViewComponent("cell",false), 1.);
+//         ->Update(-1., *S_next_->Get<CompositeVector>("ponded_depth").ViewComponent("cell",false), 1.);
 
 //     // update delta faces
 //     precon_surf_->UpdateConsistentFaceCorrection(*surf_p, surf_Ph.ptr());
@@ -381,14 +381,14 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
 //       vnames.push_back("delta_pd");
 
 //       std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-//       vecs.push_back(S_next_->GetFieldData("ponded_depth").ptr());
+//       vecs.push_back(S_next_->GetPtr<CompositeVector>("ponded_depth").ptr());
 //       vecs.push_back(surf_Ph.ptr());
 //       surf_db_->WriteVectors(vnames, vecs, true);
 //     }
 //   }
 
 //   // revert solution so we don't break things
-//   S_next_->GetFieldData("surface-pressure",sub_pks_[1]->name())
+//   S_next_->GetPtrW<CompositeVector>("surface-pressure",sub_pks_[1]->name())
 //       ->ViewComponent("cell",false)->Update(1., surf_Pp_c, 1.);
 //   sub_pks_[1]->ChangedSolution();
 // }

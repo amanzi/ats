@@ -82,7 +82,7 @@ void WRMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   }
 
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(cap_pres_key_)
+  const Epetra_MultiVector& pres_c = *S->GetPtr<CompositeVector>(cap_pres_key_)
       ->ViewComponent("cell",false);
 
   // calculate cell values
@@ -94,7 +94,7 @@ void WRMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // Potentially do face values as well.
   if (results[0]->HasComponent("boundary_face")) {
     Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pres_bf = *S->GetFieldData(cap_pres_key_)
+    const Epetra_MultiVector& pres_bf = *S->GetPtr<CompositeVector>(cap_pres_key_)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.
@@ -149,7 +149,7 @@ void WRMEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
   AMANZI_ASSERT(wrt_key == cap_pres_key_);
 
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(cap_pres_key_)
+  const Epetra_MultiVector& pres_c = *S->GetPtr<CompositeVector>(cap_pres_key_)
       ->ViewComponent("cell",false);
 
   // calculate cell values
@@ -161,7 +161,7 @@ void WRMEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
   // Potentially do face values as well.
   if (results[0]->HasComponent("boundary_face")) {
     Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pres_bf = *S->GetFieldData(cap_pres_key_)
+    const Epetra_MultiVector& pres_bf = *S->GetPtr<CompositeVector>(cap_pres_key_)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.

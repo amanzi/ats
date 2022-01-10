@@ -71,7 +71,7 @@ RadiationBalanceEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 
     for (const auto& my_key : my_keys_) {
       // require all domains are the same
-      S->RequireField(my_key, my_key)
+      S->Require<CompositeVector,CompositeVectorSpace>(my_key, Tags::NEXT,  my_key)
         ->SetMesh(S->GetMesh(domain_surf_))
         ->SetGhosted(false)
         ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -82,12 +82,12 @@ RadiationBalanceEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
       if (dep == albedo_surf_key_ ||
           dep == emissivity_surf_key_ ||
           dep == area_frac_key_) {
-        S->RequireField(dep)
+        S->Require<CompositeVector,CompositeVectorSpace>(dep, Tags::NEXT)
           ->SetMesh(S->GetMesh(domain_surf_))
           ->SetGhosted(false)
           ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 2);
       } else {
-        S->RequireField(dep)
+        S->Require<CompositeVector,CompositeVectorSpace>(dep, Tags::NEXT)
           ->SetMesh(S->GetMesh(domain_surf_))
           ->SetGhosted(false)
           ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -107,15 +107,15 @@ RadiationBalanceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector& rad_bal_snow = *results[1]->ViewComponent("cell",false);
   Epetra_MultiVector& rad_bal_can = *results[2]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& albedo = *S->GetFieldData(albedo_surf_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& emiss = *S->GetFieldData(emissivity_surf_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& sw_in = *S->GetFieldData(sw_in_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& lw_in = *S->GetFieldData(lw_in_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& temp_surf = *S->GetFieldData(temp_surf_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& temp_snow = *S->GetFieldData(temp_snow_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& temp_canopy = *S->GetFieldData(temp_canopy_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& area_frac = *S->GetFieldData(area_frac_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& lai = *S->GetFieldData(lai_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& albedo = *S->Get<CompositeVector>(albedo_surf_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& emiss = *S->Get<CompositeVector>(emissivity_surf_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& sw_in = *S->Get<CompositeVector>(sw_in_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& lw_in = *S->Get<CompositeVector>(lw_in_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& temp_surf = *S->Get<CompositeVector>(temp_surf_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& temp_snow = *S->Get<CompositeVector>(temp_snow_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& temp_canopy = *S->Get<CompositeVector>(temp_canopy_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& area_frac = *S->Get<CompositeVector>(area_frac_key_).ViewComponent("cell",false);
+  const Epetra_MultiVector& lai = *S->Get<CompositeVector>(lai_key_).ViewComponent("cell",false);
 
   auto mesh = results[0]->Mesh();
 

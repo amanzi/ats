@@ -85,13 +85,13 @@ void
 SurfaceIceEnergyEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> h = S->GetFieldData(h_key_);
-Teuchos::RCP<const CompositeVector> eta = S->GetFieldData(eta_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> ul = S->GetFieldData(ul_key_);
-Teuchos::RCP<const CompositeVector> ni = S->GetFieldData(ni_key_);
-Teuchos::RCP<const CompositeVector> ui = S->GetFieldData(ui_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetFieldData(cv_key_);
+Teuchos::RCP<const CompositeVector> h = S->GetPtr<CompositeVector>(h_key_);
+Teuchos::RCP<const CompositeVector> eta = S->GetPtr<CompositeVector>(eta_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> ul = S->GetPtr<CompositeVector>(ul_key_);
+Teuchos::RCP<const CompositeVector> ni = S->GetPtr<CompositeVector>(ni_key_);
+Teuchos::RCP<const CompositeVector> ui = S->GetPtr<CompositeVector>(ui_key_);
+Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -116,13 +116,13 @@ void
 SurfaceIceEnergyEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-Teuchos::RCP<const CompositeVector> h = S->GetFieldData(h_key_);
-Teuchos::RCP<const CompositeVector> eta = S->GetFieldData(eta_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetFieldData(nl_key_);
-Teuchos::RCP<const CompositeVector> ul = S->GetFieldData(ul_key_);
-Teuchos::RCP<const CompositeVector> ni = S->GetFieldData(ni_key_);
-Teuchos::RCP<const CompositeVector> ui = S->GetFieldData(ui_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetFieldData(cv_key_);
+Teuchos::RCP<const CompositeVector> h = S->GetPtr<CompositeVector>(h_key_);
+Teuchos::RCP<const CompositeVector> eta = S->GetPtr<CompositeVector>(eta_key_);
+Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
+Teuchos::RCP<const CompositeVector> ul = S->GetPtr<CompositeVector>(ul_key_);
+Teuchos::RCP<const CompositeVector> ni = S->GetPtr<CompositeVector>(ni_key_);
+Teuchos::RCP<const CompositeVector> ui = S->GetPtr<CompositeVector>(ui_key_);
+Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
 
   if (wrt_key == h_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

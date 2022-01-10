@@ -116,9 +116,9 @@ void MPCCoupledWaterSplitFlux::CommitStep(double t_old, double t_new,
 void
 MPCCoupledWaterSplitFlux::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
                                     const Teuchos::Ptr<State>& S_star) {
-  auto& pv_star = *S_star->GetFieldData(primary_variable_star_, S_star->GetField(primary_variable_star_)->owner())
+  auto& pv_star = *S_star->GetW<CompositeVector>(primary_variable_star_, S_star->GetField(primary_variable_star_).owner())
                   ->ViewComponent("cell",false);
-  auto& pv = *S->GetFieldData(primary_variable_)
+  auto& pv = *S->GetPtr<CompositeVector>(primary_variable_)
              ->ViewComponent("cell",false);
   for (int c=0; c!=pv_star.MyLength(); ++c) {
     if (pv[0][c] <= 101325.0) {
@@ -153,19 +153,19 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary(double dt) {
   S_next_->GetFieldEvaluator(conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
-  star_pk->debugger()->WriteVector("WC0", S_inter_->GetFieldData(conserved_variable_star_).ptr());
-  star_pk->debugger()->WriteVector("WC1", S_next_->GetFieldData(conserved_variable_star_).ptr());
-  auto& q_div = *S_next_->GetFieldData(lateral_flow_source_, S_next_->GetField(lateral_flow_source_)->owner())
+  star_pk->debugger()->WriteVector("WC0", S_inter_->GetPtr<CompositeVector>(conserved_variable_star_).ptr());
+  star_pk->debugger()->WriteVector("WC1", S_next_->GetPtr<CompositeVector>(conserved_variable_star_).ptr());
+  auto& q_div = *S_next_->GetW<CompositeVector>(lateral_flow_source_, S_next_->GetField(lateral_flow_source_).owner())
                 ->ViewComponent("cell",false);
   q_div.Update(1.0/dt,
-               *S_next_->GetFieldData(conserved_variable_star_)->ViewComponent("cell",false),
+               *S_next_->Get<CompositeVector>(conserved_variable_star_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_inter_->GetFieldData(conserved_variable_star_)->ViewComponent("cell",false),
+               *S_inter_->Get<CompositeVector>(conserved_variable_star_).ViewComponent("cell",false),
                0.);
 
   // scale by cell volume as this will get rescaled in the source calculation
-  q_div.ReciprocalMultiply(1.0, *S_next_->GetFieldData(cv_key_)->ViewComponent("cell",false), q_div, 0.);
-  star_pk->debugger()->WriteVector("qdiv", S_next_->GetFieldData(lateral_flow_source_).ptr());
+  q_div.ReciprocalMultiply(1.0, *S_next_->Get<CompositeVector>(cv_key_).ViewComponent("cell",false), q_div, 0.);
+  star_pk->debugger()->WriteVector("qdiv", S_next_->GetPtr<CompositeVector>(lateral_flow_source_).ptr());
 
   // mark the source evaluator as changed to ensure the total source gets updated.
   eval_pvfe_->SetFieldAsChanged(S_next_.ptr());

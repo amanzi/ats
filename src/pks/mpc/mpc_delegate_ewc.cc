@@ -106,9 +106,9 @@ void MPCDelegateEWC::initialize(const Teuchos::Ptr<State>& S) {
   // Create and initialize old stored data for previous steps.
 
   if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
-    const Epetra_MultiVector& wc = *S->GetFieldData(wc_key_)
+    const Epetra_MultiVector& wc = *S->GetPtr<CompositeVector>(wc_key_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& e = *S->GetFieldData(e_key_)
+    const Epetra_MultiVector& e = *S->GetPtr<CompositeVector>(e_key_)
         ->ViewComponent("cell",false);
 
     wc_prev2_ = Teuchos::rcp(new Epetra_MultiVector(wc));
@@ -149,8 +149,8 @@ void MPCDelegateEWC::commit_state(double dt, const Teuchos::RCP<State>& S) {
   if ((predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC)
       && S_inter_ != Teuchos::null) {
     // stash water content and energy in S_work.
-    *wc_prev2_ = *S_inter_->GetFieldData(wc_key_)->ViewComponent("cell",false);
-    *e_prev2_ = *S_inter_->GetFieldData(e_key_)->ViewComponent("cell",false);
+    *wc_prev2_ = *S_inter_->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
+    *e_prev2_ = *S_inter_->Get<CompositeVector>(e_key_).ViewComponent("cell",false);
     time_prev2_ = S_inter_->time();
   }
 }
@@ -206,25 +206,25 @@ void MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector>
   Key dedT_key = Keys::getKey(e_key_, temp_key_);
   S_next_->GetFieldEvaluator(e_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
-  const Epetra_MultiVector& dedT = *S_next_->GetFieldData(dedT_key)
+  const Epetra_MultiVector& dedT = *S_next_->GetPtr<CompositeVector>(dedT_key)
       ->ViewComponent("cell",false);
 
   Key dedp_key = Keys::getKey(e_key_, pres_key_);
   S_next_->GetFieldEvaluator(e_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
-  const Epetra_MultiVector& dedp = *S_next_->GetFieldData(dedp_key)
+  const Epetra_MultiVector& dedp = *S_next_->GetPtr<CompositeVector>(dedp_key)
       ->ViewComponent("cell",false);
 
   Key dwcdT_key = Keys::getKey(wc_key_, temp_key_);
   S_next_->GetFieldEvaluator(wc_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
-  const Epetra_MultiVector& dwcdT = *S_next_->GetFieldData(dwcdT_key)
+  const Epetra_MultiVector& dwcdT = *S_next_->GetPtr<CompositeVector>(dwcdT_key)
       ->ViewComponent("cell",false);
 
   Key dwcdp_key = Keys::getKey(wc_key_, pres_key_);
   S_next_->GetFieldEvaluator(wc_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
-  const Epetra_MultiVector& dwcdp = *S_next_->GetFieldData(dwcdp_key)
+  const Epetra_MultiVector& dwcdp = *S_next_->GetPtr<CompositeVector>(dwcdp_key)
       ->ViewComponent("cell",false);
 
   int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);

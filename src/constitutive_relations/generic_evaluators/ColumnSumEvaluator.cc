@@ -69,14 +69,14 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& dep_c = *S->GetFieldData(dep_key_)->ViewComponent("cell", false);
+  const Epetra_MultiVector& dep_c = *S->Get<CompositeVector>(dep_key_).ViewComponent("cell", false);
 
   if (cv_key_ != "") {
-    const Epetra_MultiVector& cv = *S->GetFieldData(cv_key_)->ViewComponent("cell", false);
-    const Epetra_MultiVector& surf_cv = *S->GetFieldData(surf_cv_key_)->ViewComponent("cell", false);
+    const Epetra_MultiVector& cv = *S->Get<CompositeVector>(cv_key_).ViewComponent("cell", false);
+    const Epetra_MultiVector& surf_cv = *S->Get<CompositeVector>(surf_cv_key_).ViewComponent("cell", false);
 
     if (molar_dens_key_ != "") {
-      const Epetra_MultiVector& dens = *S->GetFieldData(molar_dens_key_)->ViewComponent("cell",false);
+      const Epetra_MultiVector& dens = *S->Get<CompositeVector>(molar_dens_key_).ViewComponent("cell",false);
 
       Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
@@ -100,7 +100,7 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   } else {
     if (molar_dens_key_ != "") {
-      const Epetra_MultiVector& dens = *S->GetFieldData(molar_dens_key_)->ViewComponent("cell",false);
+      const Epetra_MultiVector& dens = *S->Get<CompositeVector>(molar_dens_key_).ViewComponent("cell",false);
 
       Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
@@ -151,7 +151,7 @@ ColumnSumEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
 void
 ColumnSumEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
 {
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
 
   // check plist for vis or checkpointing control
   bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);

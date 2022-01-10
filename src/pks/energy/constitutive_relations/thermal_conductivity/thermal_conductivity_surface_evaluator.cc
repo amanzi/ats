@@ -54,8 +54,8 @@ void ThermalConductivitySurfaceEvaluator::EvaluateField_(
       const Teuchos::Ptr<State>& S,
       const Teuchos::Ptr<CompositeVector>& result) {
   // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> eta = S->GetFieldData(uf_key_);
-  Teuchos::RCP<const CompositeVector> height = S->GetFieldData(height_key_);
+  Teuchos::RCP<const CompositeVector> eta = S->GetPtr<CompositeVector>(uf_key_);
+  Teuchos::RCP<const CompositeVector> height = S->GetPtr<CompositeVector>(height_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {

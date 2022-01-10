@@ -60,8 +60,8 @@ SurfaceRelPermEvaluator::Clone() const {
 void SurfaceRelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   if (is_temp_) {
-    Teuchos::RCP<const CompositeVector> uf = S->GetFieldData(uf_key_);
-    Teuchos::RCP<const CompositeVector> h = S->GetFieldData(h_key_);
+    Teuchos::RCP<const CompositeVector> uf = S->GetPtr<CompositeVector>(uf_key_);
+    Teuchos::RCP<const CompositeVector> h = S->GetPtr<CompositeVector>(h_key_);
 
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {
@@ -76,7 +76,7 @@ void SurfaceRelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
 
   } else {
-    Teuchos::RCP<const CompositeVector> h = S->GetFieldData(h_key_);
+    Teuchos::RCP<const CompositeVector> h = S->GetPtr<CompositeVector>(h_key_);
 
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {

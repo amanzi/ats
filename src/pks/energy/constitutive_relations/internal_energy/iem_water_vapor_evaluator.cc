@@ -59,8 +59,8 @@ void IEMWaterVaporEvaluator::InitializeFromPlist_() {
 
 void IEMWaterVaporEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> mol_frac = S->GetFieldData(mol_frac_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> mol_frac = S->GetPtr<CompositeVector>(mol_frac_key_);
 
   for (CompositeVector::name_iterator comp=result->begin();
        comp!=result->end(); ++comp) {
@@ -79,8 +79,8 @@ void IEMWaterVaporEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 void IEMWaterVaporEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> mol_frac = S->GetFieldData(mol_frac_key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Teuchos::RCP<const CompositeVector> mol_frac = S->GetPtr<CompositeVector>(mol_frac_key_);
 
   if (wrt_key == temp_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

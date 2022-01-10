@@ -125,14 +125,14 @@ void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
   S_->GetFieldEvaluator(over_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
 
   Teuchos::RCP<Epetra_MultiVector> tcc_sub =
-    S_->GetFieldData(tcc_sub_key,"state")->ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_sub_key,"state").ViewComponent("cell", true);
   Teuchos::RCP<const Epetra_MultiVector> mol_den_sub =
-    S_->GetFieldData(sub_mol_den_key)->ViewComponent("cell", true);
+    S_->Get<CompositeVector>(sub_mol_den_key).ViewComponent("cell", true);
 
   Teuchos::RCP<Epetra_MultiVector> tcc_over =
-    S_->GetFieldData(tcc_over_key,"state")->ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_over_key,"state").ViewComponent("cell", true);
   Teuchos::RCP<const Epetra_MultiVector> mol_den_over =
-    S_->GetFieldData(over_mol_den_key)->ViewComponent("cell", true);
+    S_->Get<CompositeVector>(over_mol_den_key).ViewComponent("cell", true);
 
   ConvertConcentrationToAmanzi(chemistry_pk_subsurface_, *mol_den_sub,  *tcc_sub,  *tcc_sub);
   ConvertConcentrationToAmanzi(chemistry_pk_overland_, *mol_den_over,  *tcc_over,  *tcc_over);
@@ -185,9 +185,9 @@ bool Coupled_ReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, b
       Teuchos::RCP<Epetra_MultiVector> tcc_over =
         S_->GetFieldCopyData(tcc_over_key,"subcycling", "state")->ViewComponent("cell", true);
       Teuchos::RCP<const Epetra_MultiVector> mol_dens_sub =
-        S_->GetFieldData(sub_mol_den_key)->ViewComponent("cell", true);
+        S_->Get<CompositeVector>(sub_mol_den_key).ViewComponent("cell", true);
       Teuchos::RCP<const Epetra_MultiVector> mol_dens_over =
-        S_->GetFieldData(over_mol_den_key)->ViewComponent("cell", true);
+        S_->Get<CompositeVector>(over_mol_den_key).ViewComponent("cell", true);
 
       AdvanceChemistry(chemistry_pk_subsurface_, *mol_dens_sub,  tcc_sub,  t_old, t_new, reinit);
       AdvanceChemistry(chemistry_pk_overland_,   *mol_dens_over, tcc_over, t_old, t_new, reinit);

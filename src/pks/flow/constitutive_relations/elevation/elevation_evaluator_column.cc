@@ -66,7 +66,7 @@ void ElevationEvaluatorColumn::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
   
   //Now get slope
   if (domain_sf == surface_domain_){
-    Teuchos::RCP<CompositeVector> elev_ngb = S->GetFieldData(my_keys_[0], S->GetField(my_keys_[0])->owner() );
+    Teuchos::RCP<CompositeVector> elev_ngb = S->GetW<CompositeVector>(my_keys_[0], S->GetField(my_keys_[0]).owner() );
     elev_ngb->ScatterMasterToGhosted("cell");
     const Epetra_MultiVector& elev_ngb_c = *elev_ngb->ViewComponent("cell",true);
     
@@ -138,7 +138,7 @@ void ElevationEvaluatorColumn::EvaluateElevationAndSlope_(const Teuchos::Ptr<Sta
   if (elev->HasComponent("face")) {
     Epetra_MultiVector& elev_f = *elev->ViewComponent("face", false);
 
-    Teuchos::RCP<CompositeVector> elev_ngb = S->GetFieldData(my_keys_[0], S->GetField(my_keys_[0])->owner() );
+    Teuchos::RCP<CompositeVector> elev_ngb = S->GetW<CompositeVector>(my_keys_[0], S->GetField(my_keys_[0]).owner() );
     elev_ngb->ScatterMasterToGhosted("cell");
     const Epetra_MultiVector& elev_ngb_c = *elev_ngb->ViewComponent("cell",true);
     int nfaces = elev_f.MyLength();

@@ -31,16 +31,16 @@ UpwindGravityFlux::UpwindGravityFlux(std::string pkname,
 void UpwindGravityFlux::Update(const Teuchos::Ptr<State>& S,
                                const Teuchos::Ptr<Debugger>& db) {
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const Epetra_Vector> g_vec = S->GetConstantVectorData("gravity");
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *g_vec, face.ptr());
+  Teuchos::RCP<const CompositeVector> cell = S->GetPtr<CompositeVector>(cell_coef_);
+  const auto& g_vec = S->Get<AmanziGeometry::Point>("gravity");
+  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
+  CalculateCoefficientsOnFaces(*cell, g_vec, face.ptr());
 };
 
 
 void UpwindGravityFlux::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Epetra_Vector& g_vec,
+        const AmanziGeometry::Point& gravity,
         const Teuchos::Ptr<CompositeVector>& face_coef) {
 
   AmanziMesh::Entity_ID_List faces;
@@ -48,10 +48,6 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   double flow_eps = 1.e-10;
 
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
-
-  // set up gravity
-  AmanziGeometry::Point gravity(g_vec.MyLength());
-  for (int i=0; i!=g_vec.MyLength(); ++i) gravity[i] = g_vec[i];
 
   // initialize the face coefficients
   face_coef->ViewComponent("face",true)->PutScalar(0.0);

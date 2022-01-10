@@ -64,9 +64,9 @@ OverlandConductivityEvaluator::Clone() const
 void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> depth = S->GetPtr<CompositeVector>(depth_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> coef = S->GetPtr<CompositeVector>(coef_key_);
 
 #ifdef ENABLE_DBC
   double min_coef = 1.;
@@ -96,7 +96,7 @@ void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
 
     if (dens_) {
-      const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+      const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
       for (int i=0; i!=ncomp; ++i) result_v[0][i] *= dens_v[0][i];
     }
   }
@@ -107,9 +107,9 @@ void
 OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
+  Teuchos::RCP<const CompositeVector> depth = S->GetPtr<CompositeVector>(depth_key_);
+  Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
+  Teuchos::RCP<const CompositeVector> coef = S->GetPtr<CompositeVector>(coef_key_);
 
   if (wrt_key == depth_key_) {
     for (const auto& comp : *result) {
@@ -132,7 +132,7 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
       }
 
       if (dens_) {
-        const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+        const Epetra_MultiVector& dens_v = *S->Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
         for (int i=0; i!=ncomp; ++i) {
           result_v[0][i] *= dens_v[0][i];
         }

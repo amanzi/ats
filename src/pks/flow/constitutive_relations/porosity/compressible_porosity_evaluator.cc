@@ -54,8 +54,8 @@ void CompressiblePorosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
   const double& patm = *S->GetScalarData("atmospheric_pressure");
 
   // evaluate the model
@@ -83,8 +83,8 @@ void CompressiblePorosityEvaluator::EvaluateFieldPartialDerivative_(
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(pres_key_);
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+  Teuchos::RCP<const CompositeVector> poro = S->GetPtr<CompositeVector>(poro_key_);
   const double& patm = *S->GetScalarData("atmospheric_pressure");
 
   if (wrt_key == pres_key_) {

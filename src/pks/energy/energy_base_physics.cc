@@ -31,8 +31,8 @@ void EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   // get the energy at each time
-  Teuchos::RCP<const CompositeVector> e1 = S_next_->GetFieldData(conserved_key_);
-  Teuchos::RCP<const CompositeVector> e0 = S_inter_->GetFieldData(conserved_key_);
+  Teuchos::RCP<const CompositeVector> e1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
+  Teuchos::RCP<const CompositeVector> e0 = S_inter_->GetPtr<CompositeVector>(conserved_key_);
 
   // Update the residual with the accumulation of energy over the
   // timestep, on cells.
@@ -62,8 +62,8 @@ void EnergyBase::AddAdvection_(const Teuchos::Ptr<State>& S,
 
   // debugging
   db_->WriteBoundaryConditions(bc_adv_->bc_model(), bc_adv_->bc_value());
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
-  Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);
+  Teuchos::RCP<const CompositeVector> flux = S->GetPtr<CompositeVector>(flux_key_);
+  Teuchos::RCP<const CompositeVector> enth = S->GetPtr<CompositeVector>(enthalpy_key_);
   db_->WriteVectors({" adv flux", " enthalpy"}, {flux.ptr(), enth.ptr()}, true);
 
   matrix_adv_->global_operator()->Init();
@@ -82,9 +82,9 @@ void EnergyBase::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // update the thermal conductivity
   UpdateConductivityData_(S_next_.ptr());
   Teuchos::RCP<const CompositeVector> conductivity =
-      S_next_->GetFieldData(uw_conductivity_key_);
+      S_next_->GetPtr<CompositeVector>(uw_conductivity_key_);
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(key_);
+  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(key_);
 
   // update the stiffness matrix
   matrix_diff_->global_operator()->Init();
@@ -93,7 +93,7 @@ void EnergyBase::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   matrix_diff_->ApplyBCs(true, true, true);
 
   // update the flux
-  Teuchos::RCP<CompositeVector> flux = S->GetFieldData(energy_flux_key_, name_);
+  Teuchos::RCP<CompositeVector> flux = S->GetPtrW<CompositeVector>(energy_flux_key_, name_);
   matrix_diff_->UpdateFlux(temp.ptr(), flux.ptr());
 
   // calculate the residual
@@ -115,9 +115,9 @@ void EnergyBase::AddSources_(const Teuchos::Ptr<State>& S,
     // Update the source term
     S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
     const Epetra_MultiVector& source1 =
-        *S->GetFieldData(source_key_)->ViewComponent("cell",false);
+        *S->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
     const Epetra_MultiVector& cv =
-      *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+      *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
@@ -127,7 +127,7 @@ void EnergyBase::AddSources_(const Teuchos::Ptr<State>& S,
 
     if (vo_->os_OK(Teuchos::VERB_EXTREME))
       *vo_->os() << "Adding external source term" << std::endl;
-    db_->WriteVector("  Q_ext", S->GetFieldData(source_key_).ptr(), false);
+    db_->WriteVector("  Q_ext", S->GetPtr<CompositeVector>(source_key_).ptr(), false);
     db_->WriteVector("res (src)", g, false);
   }
 }
@@ -142,20 +142,20 @@ void EnergyBase::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
     if (!is_source_term_finite_differentiable_) {
       // evaluate the derivative through the dag
       S->GetFieldEvaluator(source_key_)->HasFieldDerivativeChanged(S, name_, key_);
-      dsource_dT = S->GetFieldData(Keys::getDerivKey(source_key_, key_));
+      dsource_dT = S->GetPtrW<CompositeVector>(Keys::getDerivKey(source_key_, key_));
     } else {
       // evaluate the derivative through finite differences
       double eps = 1.e-8;
-      S->GetFieldData(key_, name_)->Shift(eps);
+      S->GetW<CompositeVector>(key_, name_).Shift(eps);
       ChangedSolution();
       S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
-      auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S->GetFieldData(source_key_)));
+      auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S->GetPtr<CompositeVector>(source_key_)));
 
-      S->GetFieldData(key_, name_)->Shift(-eps);
+      S->GetW<CompositeVector>(key_, name_).Shift(-eps);
       ChangedSolution();
       S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
 
-      dsource_dT_nc->Update(-1/eps, *S->GetFieldData(source_key_), 1/eps);
+      dsource_dT_nc->Update(-1/eps, *S->GetPtr<CompositeVector>(source_key_), 1/eps);
       dsource_dT = dsource_dT_nc;
     }
     db_->WriteVector("  dQ_ext/dT", dsource_dT.ptr(), false);
@@ -170,7 +170,7 @@ void EnergyBase::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
 void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
 
   // in the diffusive flux condition, first update the boundary face temperatures for FV
-  auto& T_vec = *S->GetFieldData(key_, name_);
+  auto& T_vec = *S->GetPtrW<CompositeVector>(key_, name_);
   if (T_vec.HasComponent("boundary_face")) {
     Epetra_MultiVector& T_bf = *T_vec.ViewComponent("boundary_face", false);
     const Epetra_MultiVector& T_c = *T_vec.ViewComponent("cell", false);
@@ -195,7 +195,7 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
   S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
 
   const Epetra_MultiVector& enth_bf =
-    *S->GetFieldData(enthalpy_key_)->ViewComponent("boundary_face",false);
+    *S->Get<CompositeVector>(enthalpy_key_).ViewComponent("boundary_face",false);
 
   int nbfaces = enth_bf.MyLength();
   for (int bf=0; bf!=nbfaces; ++bf) {
