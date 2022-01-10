@@ -27,23 +27,23 @@ UpwindArithmeticMean::UpwindArithmeticMean(Key pkname,
 
 void UpwindArithmeticMean::Update(const Teuchos::Ptr<State>& S,
                                   const Teuchos::Ptr<Debugger>& db) {
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, face.ptr());
+  const CompositeVector& cell = S->Get<CompositeVector>(cell_coef_);
+  CompositeVector& face = S->GetW<CompositeVector>(face_coef_, pkname_);
+  CalculateCoefficientsOnFaces(cell, face);
 };
 
 
 void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Teuchos::Ptr<CompositeVector>& face_coef) {
+        CompositeVector& face_coef) {
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   AmanziMesh::Entity_ID_List faces;
 
   // initialize the face coefficients
-  face_coef->ViewComponent("face",true)->PutScalar(0.0);
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  face_coef.ViewComponent("face",true)->PutScalar(0.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
@@ -55,7 +55,7 @@ void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
   // communicate ghosted cells
   cell_coef.ScatterMasterToGhosted("cell");
 
-  Epetra_MultiVector& face_coef_f = *face_coef->ViewComponent("face",true);
+  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent("face",true);
   const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell",true);
 
   int c_used = cell_coef.size("cell", true);
@@ -81,7 +81,7 @@ void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
 
 void
 UpwindArithmeticMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                                        Key potential_key, 
+                                        Key potential_key,
                                         const CompositeVector& dconductivity,
                                         const std::vector<int>& bc_markers,
                                         const std::vector<double>& bc_values,
@@ -92,19 +92,19 @@ UpwindArithmeticMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
   const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell",true);
 
   // Grab potential
-  Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(potential_key);
-  pres->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
+  const CompositeVector& pres = S->Get<CompositeVector>(potential_key);
+  pres.ScatterMasterToGhosted("cell");
+  const Epetra_MultiVector& pres_v = *pres.ViewComponent("cell",true);
 
   // Grab mesh and allocate space
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = pres->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = pres.Mesh();
   unsigned int nfaces_owned = mesh->num_entities(AmanziMesh::FACE,AmanziMesh::Parallel_type::OWNED);
   Jpp_faces->resize(nfaces_owned);
 
   // workspace
   double dK_dp[2];
   double p[2];
-  
+
   for (unsigned int f=0; f!=nfaces_owned; ++f) {
     // get neighboring cells
     AmanziMesh::Entity_ID_List cells;
@@ -115,7 +115,7 @@ UpwindArithmeticMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
     Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > Jpp =
       Teuchos::rcp(new Teuchos::SerialDenseMatrix<int, double>(mcells, mcells));
     (*Jpp_faces)[f] = Jpp;
-    
+
     if (mcells == 1) {
       if (bc_markers[f] == Operators::OPERATOR_BC_DIRICHLET) {
         p[0] = pres_v[0][cells[0]];
