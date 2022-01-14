@@ -22,7 +22,7 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
   StandaloneElevationEvaluator(Teuchos::ParameterList& elev_plist);
   StandaloneElevationEvaluator(const StandaloneElevationEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
   virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
@@ -33,7 +33,7 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
   Teuchos::RCP<Functions::CompositeVectorFunction> aspect_function_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,StandaloneElevationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,StandaloneElevationEvaluator> reg_;
 };
 
 } //namespace

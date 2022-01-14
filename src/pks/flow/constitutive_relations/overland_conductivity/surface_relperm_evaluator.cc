@@ -13,7 +13,7 @@ namespace Amanzi {
 namespace Flow {
 
 SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
   // create the model
   SurfaceRelPermModelFactory fac;
   model_ = fac.createModel(plist_.sublist("surface rel perm model"));
@@ -43,20 +43,20 @@ SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(Teuchos::ParameterList& plist) 
 
 
 SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(const SurfaceRelPermEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     is_temp_(other.is_temp_),
     uf_key_(other.uf_key_),
     h_key_(other.h_key_),
     model_(other.model_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 SurfaceRelPermEvaluator::Clone() const {
   return Teuchos::rcp(new SurfaceRelPermEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void SurfaceRelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   if (is_temp_) {

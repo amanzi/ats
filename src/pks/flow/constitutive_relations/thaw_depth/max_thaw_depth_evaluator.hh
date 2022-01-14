@@ -11,21 +11,21 @@
 
 #include "Factory.hh"
 //#include "thaw_depth_evaluator.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class MaxThawDepthEvaluator : public SecondaryVariableFieldEvaluator {
+class MaxThawDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   MaxThawDepthEvaluator(Teuchos::ParameterList& plist);
   MaxThawDepthEvaluator(const MaxThawDepthEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   //virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
@@ -36,7 +36,7 @@ protected:
   double threshold_td_;
 private:
 
-  static Utils::RegisteredFactory<FieldEvaluator,MaxThawDepthEvaluator> reg_;  
+  static Utils::RegisteredFactory<Evaluator,MaxThawDepthEvaluator> reg_;  
   //  static std::vector<double> base_thawdepth;
   //static bool init_flag;
 };

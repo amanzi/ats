@@ -13,7 +13,6 @@ set(ats_operators_src_files
   advection/advection_factory.cc
   upwinding/upwind_cell_centered.cc
   upwinding/upwind_arithmetic_mean.cc
-  upwinding/UpwindFluxFactory.cc
   upwinding/upwind_flux_split_denominator.cc  
   upwinding/upwind_flux_fo_cont.cc 
   upwinding/upwind_flux_harmonic_mean.cc
@@ -30,7 +29,6 @@ set(ats_operators_inc_files
   advection/advection_donor_upwind.hh
   advection/advection_factory.hh
   upwinding/upwinding.hh
-  upwinding/UpwindFluxFactory.hh
   upwinding/upwind_arithmetic_mean.hh
   upwinding/upwind_cell_centered.hh
   upwinding/upwind_flux_fo_cont.hh

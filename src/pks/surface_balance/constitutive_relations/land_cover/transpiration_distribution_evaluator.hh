@@ -79,7 +79,7 @@ from the LandCover type.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -89,16 +89,16 @@ class Function;
 namespace SurfaceBalance {
 namespace Relations {
 
-class TranspirationDistributionEvaluator : public SecondaryVariableFieldEvaluator {
+class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -128,7 +128,7 @@ class TranspirationDistributionEvaluator : public SecondaryVariableFieldEvaluato
   Teuchos::RCP<Function> limiter_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,TranspirationDistributionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,TranspirationDistributionEvaluator> reg_;
 
 };
 

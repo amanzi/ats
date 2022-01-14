@@ -13,7 +13,7 @@ namespace Flow {
   
 
 DepressionDepthEvaluator::DepressionDepthEvaluator(Teuchos::ParameterList& plist) :
-   SecondaryVariableFieldEvaluator(plist){
+   EvaluatorSecondaryMonotypeCV(plist){
 
   std::string domain_name=Keys::getDomain(my_key_);
   if (my_key_.empty())
@@ -28,13 +28,13 @@ DepressionDepthEvaluator::DepressionDepthEvaluator(Teuchos::ParameterList& plist
 
   
 DepressionDepthEvaluator::DepressionDepthEvaluator(const DepressionDepthEvaluator& other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
     delta_init_key_(other.delta_init_key_),
   delta_evolve_key_(other.delta_evolve_key_),
   sg_entity_key_(other.sg_entity_key_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 DepressionDepthEvaluator::Clone() const {
   return Teuchos::rcp(new DepressionDepthEvaluator(*this));
 }
@@ -89,7 +89,7 @@ DepressionDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

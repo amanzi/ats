@@ -46,7 +46,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 IncidentShortwaveRadiationEvaluator::IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("incident shortwave radiation parameters");
   model_ = Teuchos::rcp(new IncidentShortwaveRadiationModel(sublist));
@@ -56,7 +56,7 @@ IncidentShortwaveRadiationEvaluator::IncidentShortwaveRadiationEvaluator(Teuchos
 
 // Copy constructor
 IncidentShortwaveRadiationEvaluator::IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     slope_key_(other.slope_key_),
     aspect_key_(other.aspect_key_),
     qSWin_key_(other.qSWin_key_),    
@@ -64,7 +64,7 @@ IncidentShortwaveRadiationEvaluator::IncidentShortwaveRadiationEvaluator(const I
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 IncidentShortwaveRadiationEvaluator::Clone() const
 {
   return Teuchos::rcp(new IncidentShortwaveRadiationEvaluator(*this));
@@ -108,7 +108,7 @@ IncidentShortwaveRadiationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S
     const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
     const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
     Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
-    double time = S->time();
+    double time = S->get_time();
 
     int ncomp = result->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
@@ -125,7 +125,7 @@ IncidentShortwaveRadiationEvaluator::EvaluateFieldPartialDerivative_(const Teuch
   Teuchos::RCP<const CompositeVector> slope = S->GetPtr<CompositeVector>(slope_key_);
   Teuchos::RCP<const CompositeVector> aspect = S->GetPtr<CompositeVector>(aspect_key_);
   Teuchos::RCP<const CompositeVector> qSWin = S->GetPtr<CompositeVector>(qSWin_key_);
-  double time = S->time();
+  double time = S->get_time();
 
   if (wrt_key == slope_key_) {
     for (CompositeVector::name_iterator comp=result->begin();

@@ -24,19 +24,19 @@ set(ats_flow_src_files
   richards_pk.cc
   richards_ti.cc
   richards_physics.cc
-  richards_steadystate.cc
-  permafrost_pk.cc
-  interfrost.cc
-  overland_pressure_pk.cc
-  overland_pressure_physics.cc
-  overland_pressure_ti.cc
-  overland_pk.cc
-  overland_physics.cc
-  overland_ti.cc
-  icy_overland.cc
-  snow_distribution_pk.cc
-  snow_distribution_physics.cc
-  snow_distribution_ti.cc
+  #richards_steadystate.cc
+  # permafrost_pk.cc
+  # interfrost.cc
+  # overland_pressure_pk.cc
+  # overland_pressure_physics.cc
+  # overland_pressure_ti.cc
+  # overland_pk.cc
+  # overland_physics.cc
+  # overland_ti.cc
+  # icy_overland.cc
+  # snow_distribution_pk.cc
+  # snow_distribution_physics.cc
+  # snow_distribution_ti.cc
   )
 
 set(ats_flow_inc_files
@@ -87,40 +87,40 @@ register_evaluator_with_factory(
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
-register_evaluator_with_factory(
-  HEADERFILE richards_steadystate_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE richards_steadystate_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE permafrost_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE permafrost_pk_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE interfrost_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE interfrost_pk_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE overland_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE overland_pk_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE overland_pressure_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE overland_pressure_pk_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE icy_overland_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE icy_overland_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE snow_distribution_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE snow_distribution_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
 generate_evaluators_registration_header(
   HEADERFILE ats_flow_pks_registration.hh

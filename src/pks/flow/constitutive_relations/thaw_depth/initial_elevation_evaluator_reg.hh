@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,InitialElevationEvaluator> InitialElevationEvaluator::reg_("initial elevation");
+Utils::RegisteredFactory<Evaluator,InitialElevationEvaluator> InitialElevationEvaluator::reg_("initial elevation");
 
 }
 }

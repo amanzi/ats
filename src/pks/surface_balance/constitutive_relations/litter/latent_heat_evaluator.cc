@@ -33,7 +33,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 LatentHeatEvaluator::LatentHeatEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("latent_heat parameters");
   model_ = Teuchos::rcp(new LatentHeatModel(sublist));
@@ -43,13 +43,13 @@ LatentHeatEvaluator::LatentHeatEvaluator(Teuchos::ParameterList& plist) :
 
 // Copy constructor
 LatentHeatEvaluator::LatentHeatEvaluator(const LatentHeatEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     qe_key_(other.qe_key_),    
     model_(other.model_) {}
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 LatentHeatEvaluator::Clone() const
 {
   return Teuchos::rcp(new LatentHeatEvaluator(*this));

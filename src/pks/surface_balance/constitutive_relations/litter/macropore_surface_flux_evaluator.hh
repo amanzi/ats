@@ -22,7 +22,7 @@
 #define AMANZI_SURFACEBALANCE_MACROPORE_SURFACE_FLUX_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -30,16 +30,16 @@ namespace Relations {
 
 class MacroporeSurfaceFluxModel;
 
-class MacroporeSurfaceFluxEvaluator : public SecondaryVariableFieldEvaluator {
+class MacroporeSurfaceFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   MacroporeSurfaceFluxEvaluator(Teuchos::ParameterList& plist);
   MacroporeSurfaceFluxEvaluator(const MacroporeSurfaceFluxEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -59,7 +59,7 @@ class MacroporeSurfaceFluxEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<MacroporeSurfaceFluxModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,MacroporeSurfaceFluxEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,MacroporeSurfaceFluxEvaluator> reg_;
 
 };
 

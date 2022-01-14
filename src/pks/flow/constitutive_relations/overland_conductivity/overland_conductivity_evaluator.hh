@@ -10,21 +10,21 @@
 #define AMANZI_FLOWRELATIONS_OVERLAND_CONDUCTIVITY_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class ManningConductivityModel;
 
-class OverlandConductivityEvaluator : public SecondaryVariableFieldEvaluator {
+class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   OverlandConductivityEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -43,7 +43,7 @@ private:
   bool dens_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,OverlandConductivityEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,OverlandConductivityEvaluator> factory_;
 };
 
 } //namespace

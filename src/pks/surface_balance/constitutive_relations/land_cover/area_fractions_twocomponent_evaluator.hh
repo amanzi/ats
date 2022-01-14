@@ -43,28 +43,28 @@ Ordering of the area fractions calculated are: [bare ground/water, snow].
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class AreaFractionsTwoComponentEvaluator : public SecondaryVariableFieldEvaluator {
+class AreaFractionsTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   AreaFractionsTwoComponentEvaluator(Teuchos::ParameterList& plist);
   AreaFractionsTwoComponentEvaluator(const AreaFractionsTwoComponentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new AreaFractionsTwoComponentEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -80,7 +80,7 @@ class AreaFractionsTwoComponentEvaluator : public SecondaryVariableFieldEvaluato
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,AreaFractionsTwoComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,AreaFractionsTwoComponentEvaluator> reg_;
 
 };
 

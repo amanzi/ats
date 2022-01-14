@@ -31,7 +31,7 @@ void TestSnowDist::setup(const Teuchos::Ptr<State>& S) {
   S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(S->GetMesh("surface"))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("precipitation_snow");
+  S->RequireEvaluator("precipitation_snow");
   S->Require<CompositeVector,CompositeVectorSpace>("precipitation_snow", Tags::NEXT).SetMesh(S->GetMesh("surface"))
       ->AddComponent("cell", AmanziMesh::CELL,1);
 };
@@ -49,11 +49,11 @@ bool TestSnowDist::advance(double dt) {
     }
   }
     
-  S_next_->GetFieldEvaluator("precipitation_snow")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("precipitation_snow")->HasFieldChanged(S_next_.ptr(), name_);
   S_next_->GetPtrW<CompositeVector>("snow_depth", name_)
     ->Update(10.*dt, *S_next_->GetPtr<CompositeVector>("precipitation_snow"), 1.); // factor of 10 for SWE-to-snow ht conversion
 
-  solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+  solution_evaluator_->SetChanged(S_next_.ptr());
   return false;
 };
 

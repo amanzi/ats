@@ -11,46 +11,42 @@
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class SuctionHeadEvaluator : public SecondaryVariableFieldEvaluator {
+class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   explicit
   SuctionHeadEvaluator(Teuchos::ParameterList& plist);
-
   SuctionHeadEvaluator(Teuchos::ParameterList& plist,
                    const Teuchos::RCP<WRMPartition>& wrms);
+  SuctionHeadEvaluator(const SuctionHeadEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  SuctionHeadEvaluator(const SuctionHeadEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-  
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
-  
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
 
   Teuchos::RCP<WRMPartition> wrms_;
-  Key sat_key_;  
+  Key sat_key_;
   double min_val_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SuctionHeadEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,SuctionHeadEvaluator> factory_;
 };
 
 } //namespace

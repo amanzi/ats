@@ -3,7 +3,7 @@
 /*
   The Active layer average temperature evaluator gets the subsurface temperature.
   This computes the average active layer temperature.
-  This is SecondaryVariablesFieldEvaluator and depends on the subsurface temperature, 
+  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature, 
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
@@ -12,21 +12,21 @@
 #define AMANZI_FLOWRELATIONS_ALTTEMP_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class ActiveLayerAverageTempEvaluator : public SecondaryVariableFieldEvaluator {
+class ActiveLayerAverageTempEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   ActiveLayerAverageTempEvaluator(Teuchos::ParameterList& plist);
   ActiveLayerAverageTempEvaluator(const ActiveLayerAverageTempEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -45,7 +45,7 @@ protected:
 
   
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,ActiveLayerAverageTempEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ActiveLayerAverageTempEvaluator> reg_;
 
 };
   

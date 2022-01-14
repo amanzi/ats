@@ -13,7 +13,7 @@
 namespace Amanzi {
 
 OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+  EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain_name = "surface";
   
@@ -29,7 +29,7 @@ OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList&
 
   
 OrganicMatterRateEvaluator ::OrganicMatterRateEvaluator (const OrganicMatterRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other) {
+  EvaluatorSecondaryMonotypeCV(other) {
 
   biomass_key_ = other.biomass_key_;
   Bmax_ = other.Bmax_;
@@ -38,7 +38,7 @@ OrganicMatterRateEvaluator ::OrganicMatterRateEvaluator (const OrganicMatterRate
 } 
 
 
-Teuchos::RCP<FieldEvaluator> OrganicMatterRateEvaluator ::Clone() const {
+Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator ::Clone() const {
   return Teuchos::rcp(new OrganicMatterRateEvaluator (*this));
 }
 

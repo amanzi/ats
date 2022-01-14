@@ -29,7 +29,7 @@ https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radi
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -37,16 +37,16 @@ namespace Relations {
 
 class IncidentShortwaveRadiationModel;
 
-class IncidentShortwaveRadiationEvaluator : public SecondaryVariableFieldEvaluator {
+class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist);
   IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -64,7 +64,7 @@ class IncidentShortwaveRadiationEvaluator : public SecondaryVariableFieldEvaluat
   Teuchos::RCP<IncidentShortwaveRadiationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,IncidentShortwaveRadiationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,IncidentShortwaveRadiationEvaluator> reg_;
 
 };
 

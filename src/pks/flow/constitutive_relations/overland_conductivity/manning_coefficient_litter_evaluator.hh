@@ -13,7 +13,7 @@ Manning's coefficient that varies based on litter thickness and ponded depth.
 #include "Teuchos_RCP.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -25,16 +25,16 @@ typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel> > ManningCoefLis
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, ManningCoefList> ManningCoefPartition;
 
   
-class ManningCoefficientLitterEvaluator : public SecondaryVariableFieldEvaluator {
+class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
   ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -50,7 +50,7 @@ class ManningCoefficientLitterEvaluator : public SecondaryVariableFieldEvaluator
   Teuchos::RCP<ManningCoefPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ManningCoefficientLitterEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ManningCoefficientLitterEvaluator> reg_;
 
 };
 

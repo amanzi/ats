@@ -14,63 +14,49 @@ namespace Amanzi {
 namespace Flow {
 
 PCIceEvaluator::PCIceEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist)
+{
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
-  // my keys
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("capillary pressure of ice-water key",
-            "capillary_pressure_liq_ice");
-  }
-
-  Key domain_name = Keys::getDomain(my_key_);
-  // -- temperature
- 
- temp_key_ = plist_.get<std::string>("temperature key", Keys::getKey(domain_name,"temperature"));
-
-  dependencies_.insert(temp_key_);
+  temp_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
+  dependencies_.insert(KeyTag{temp_key_, tag});
 
   // Construct my PCIce model
   model_ = Teuchos::rcp(new PCIceWater(plist_.sublist("capillary pressure of ice-water")));
-
   if (model_->IsMolarBasis()) {
-    dens_key_ = plist_.get<std::string>("molar density key", Keys::getKey(domain_name,"molar_density_liquid"));
+    dens_key_ = Keys::readKey(plist_, domain_name, "molar density", "molar_density_liquid");
+    dependencies_.insert(KeyTag{dens_key_, tag});
   } else {
-    dens_key_ = plist_.get<std::string>("mass density key", Keys::getKey(domain_name, "mass_density_liquid"));
-
+    dens_key_ = Keys::readKey(plist_, domain_name, "mass density", "mass_density_liquid");
+    dependencies_.insert(KeyTag{dens_key_, tag});
   }
-  dependencies_.insert(dens_key_);
 };
 
 
-PCIceEvaluator::PCIceEvaluator(const PCIceEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    model_(other.model_),
-    temp_key_(other.temp_key_),
-    dens_key_(other.dens_key_) {}
-
-
-Teuchos::RCP<FieldEvaluator> PCIceEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> PCIceEvaluator::Clone() const {
   return Teuchos::rcp(new PCIceEvaluator(*this));
 }
 
 
-void PCIceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-                         const Teuchos::Ptr<CompositeVector>& result) {
+void PCIceEvaluator::Evaluate_(const State& S,
+                         const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
-  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
-  double lambda = S->HasField("continuation_parameter") ?
-    std::pow(10., -2*(*S->GetScalarData("continuation_parameter"))) : 1.;
-  
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
+  double lambda = S.HasData("continuation_parameter") ?
+    std::pow(10., -2*(S.Get<double>("continuation_parameter"))) : 1.;
 
   // evaluate pc
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
     const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result[0]->size(*comp);
     for (int id=0; id!=count; ++id) {
       result_v[0][id] = lambda * model_->CapillaryPressure(temp_v[0][id], dens_v[0][id]);
     }
@@ -78,38 +64,40 @@ void PCIceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void PCIceEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void PCIceEvaluator::EvaluatePartialDerivative_(
+    const State& S, const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
-  Teuchos::RCP<const CompositeVector> dens = S->GetPtr<CompositeVector>(dens_key_);
-  double lambda = S->HasField("continuation_parameter") ?
-    std::pow(10., -2*(*S->GetScalarData("continuation_parameter"))) : 1.;
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
+  double lambda = S.HasData("continuation_parameter") ?
+    std::pow(10., -2*(S.Get<double>("continuation_parameter"))) : 1.;
 
   if (wrt_key == temp_key_) {
     // evaluate d/dT( pc )
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
       const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp,false));
-      Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
 
-      int count = result->size(*comp);
+      int count = result[0]->size(*comp);
       for (int id=0; id!=count; ++id) {
         result_v[0][id] = lambda * model_->DCapillaryPressureDT(temp_v[0][id], dens_v[0][id]);
       }
     }
   } else if (wrt_key == dens_key_) {
     // evaluate d/drho( pc )
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
       const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp,false));
-      Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
 
-      int count = result->size(*comp);
+      int count = result[0]->size(*comp);
       for (int id=0; id!=count; ++id) {
         result_v[0][id] = lambda * model_->DCapillaryPressureDRho(temp_v[0][id], dens_v[0][id]);
       }

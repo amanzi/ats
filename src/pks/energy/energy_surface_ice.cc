@@ -59,7 +59,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- energy, the conserved quantity
   S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
+  S->RequireEvaluator(conserved_key_);
 
   // -- thermal conductivity
   S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
@@ -69,7 +69,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   tcm_plist.set("evaluator name", conductivity_key_);
   Teuchos::RCP<Energy::ThermalConductivitySurfaceEvaluator> tcm =
     Teuchos::rcp(new Energy::ThermalConductivitySurfaceEvaluator(tcm_plist));
-  S->SetFieldEvaluator(conductivity_key_, tcm);
+  S->SetEvaluator(conductivity_key_, tcm);
 
   // -- coupling to subsurface
   coupled_to_subsurface_via_temp_ =
@@ -87,7 +87,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   }
 
   if (coupled_to_subsurface_via_temp_) {
-    S->RequireFieldEvaluator("surface_subsurface_energy_flux");
+    S->RequireEvaluator("surface_subsurface_energy_flux");
     // -- energy source term from subsurface
     S->Require<CompositeVector,CompositeVectorSpace>("surface_subsurface_energy_flux", Tags::NEXT)
         ->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -199,8 +199,8 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
       domain_ss = plist_->get<std::string>("subsurface domain name", "domain");
     }
 
-    S->GetFieldEvaluator(Keys::getKey(domain_ss,"enthalpy"))->HasFieldChanged(S.ptr(), name_);
-    S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(Keys::getKey(domain_ss,"enthalpy"))->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
 
     // -- advection source
     Key key_ss = Keys::getKey(domain_,"surface_subsurface_flux");
@@ -268,8 +268,8 @@ void EnergySurfaceIce::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double 
   // implemented correctly, as they are part of a PK (surface energy
   // balance!)
   if (is_source_term_ &&
-      S->HasFieldEvaluator(Keys::getKey(domain_,"conducted_energy_source")) &&
-      !S->GetFieldEvaluator(Keys::getKey(domain_,"conducted_energy_source"))->IsDependency(S, key_) &&
+      S->HasEvaluator(Keys::getKey(domain_,"conducted_energy_source")) &&
+      !S->GetEvaluator(Keys::getKey(domain_,"conducted_energy_source"))->IsDependency(S, key_) &&
       S->HasField(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")))) {
 
     // This checks if 1, there is a source, and, 2, there is a

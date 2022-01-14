@@ -19,7 +19,7 @@ energy/water-content space instead of temperature/pressure space.
 #define EWC_PC_INCREASING_PRESSURE 0
 
 #include "ewc_model.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "mpc_delegate_ewc_subsurface.hh"
 
 
@@ -52,8 +52,8 @@ bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RC
       ->ViewComponent("cell",false);
 
   // project energy and water content
-  double dt_next = S_next_->time() - S_inter_->time();
-  double dt_prev = S_inter_->time() - time_prev2_;
+  double dt_next = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
+  double dt_prev = S_->get_time(tag_inter_) - time_prev2_;
 
   // -- get wc and energy data
   const Epetra_MultiVector& wc0 = *wc_prev2_;

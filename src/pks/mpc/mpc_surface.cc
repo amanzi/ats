@@ -198,7 +198,7 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     // -- dkr/dT
     if (ddivq_dT_ != Teuchos::null) {
       // -- update and upwind d kr / dT
-      S_next_->GetFieldEvaluator(kr_key_)
+      S_next_->GetEvaluator(kr_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
       Teuchos::RCP<const CompositeVector> dkrdT =
         S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(kr_key_, temp_key_));
@@ -207,7 +207,7 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
       Teuchos::RCP<const CompositeVector> flux =
         S_next_->GetPtr<CompositeVector>(mass_flux_key_);
 
-      S_next_->GetFieldEvaluator(potential_key_)
+      S_next_->GetEvaluator(potential_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
       Teuchos::RCP<const CompositeVector> pres_elev =
         S_next_->GetPtr<CompositeVector>(potential_key_);
@@ -220,13 +220,13 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     }
 
     // -- dE/dp diagonal term
-    S_next_->GetFieldEvaluator(e_key_)
+    S_next_->GetEvaluator(e_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
     Teuchos::RCP<const CompositeVector> dE_dp =
       S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(e_key_, pres_key_));
 
     // -- scale to dE/dh
-    S_next_->GetFieldEvaluator(pd_bar_key_)
+    S_next_->GetEvaluator(pd_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
     auto dh_dp = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(pd_bar_key_, pres_key_));
 

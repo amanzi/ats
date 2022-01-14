@@ -28,7 +28,7 @@
 #define AMANZI_SURFACEBALANCE_LATENT_HEAT_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -36,16 +36,16 @@ namespace Relations {
 
 class LatentHeatModel;
 
-class LatentHeatEvaluator : public SecondaryVariableFieldEvaluator {
+class LatentHeatEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   LatentHeatEvaluator(Teuchos::ParameterList& plist);
   LatentHeatEvaluator(const LatentHeatEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -61,7 +61,7 @@ class LatentHeatEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<LatentHeatModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LatentHeatEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,LatentHeatEvaluator> reg_;
 
 };
 

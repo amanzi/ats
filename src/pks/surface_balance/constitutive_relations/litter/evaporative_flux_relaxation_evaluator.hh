@@ -22,7 +22,7 @@
 #define AMANZI_SURFACEBALANCE_EVAPORATIVE_FLUX_RELAXATION_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -30,16 +30,16 @@ namespace Relations {
 
 class EvaporativeFluxRelaxationModel;
 
-class EvaporativeFluxRelaxationEvaluator : public SecondaryVariableFieldEvaluator {
+class EvaporativeFluxRelaxationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   EvaporativeFluxRelaxationEvaluator(Teuchos::ParameterList& plist);
   EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -57,7 +57,7 @@ class EvaporativeFluxRelaxationEvaluator : public SecondaryVariableFieldEvaluato
   Teuchos::RCP<EvaporativeFluxRelaxationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EvaporativeFluxRelaxationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,EvaporativeFluxRelaxationEvaluator> reg_;
 
 };
 

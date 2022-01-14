@@ -10,21 +10,21 @@
 #define AMANZI_FLOWRELATIONS_UNFROZEN_FRACTION_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class UnfrozenFractionModel;
 
-class UnfrozenFractionEvaluator : public SecondaryVariableFieldEvaluator {
+class UnfrozenFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   UnfrozenFractionEvaluator(Teuchos::ParameterList& plist);
   UnfrozenFractionEvaluator(const UnfrozenFractionEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -38,7 +38,7 @@ protected:
   Key temp_key_;
 
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,UnfrozenFractionEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,UnfrozenFractionEvaluator> fac_;
 
 
 };

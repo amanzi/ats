@@ -102,27 +102,27 @@ the ground from the atmosphere.
 
 #include "Factory.hh"
 #include "Debugger.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class SEBTwoComponentEvaluator : public SecondaryVariablesFieldEvaluator {
+class SEBTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   SEBTwoComponentEvaluator(Teuchos::ParameterList& plist);
   SEBTwoComponentEvaluator(const SEBTwoComponentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const {
     return Teuchos::rcp(new SEBTwoComponentEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
 
@@ -170,7 +170,7 @@ class SEBTwoComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   bool compatible_;
   bool model_1p1_;
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SEBTwoComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,SEBTwoComponentEvaluator> reg_;
 };
 
 }  // namespace Relations

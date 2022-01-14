@@ -10,7 +10,7 @@
 #define AMANZI_FLOWRELATIONS_SURFACE_KR_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "surface_relperm_model.hh"
 
 namespace Amanzi {
@@ -18,17 +18,17 @@ namespace Flow {
 
 class SurfaceRelPermModel;
 
-class SurfaceRelPermEvaluator : public SecondaryVariableFieldEvaluator {
+class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   SurfaceRelPermEvaluator(Teuchos::ParameterList& plist);
   SurfaceRelPermEvaluator(const SurfaceRelPermEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
   Teuchos::RCP<SurfaceRelPermModel> get_Model() { return model_; }
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -41,7 +41,7 @@ class SurfaceRelPermEvaluator : public SecondaryVariableFieldEvaluator {
   Key h_key_;
 
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,SurfaceRelPermEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,SurfaceRelPermEvaluator> fac_;
 
 
 };

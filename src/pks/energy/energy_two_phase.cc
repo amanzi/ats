@@ -42,7 +42,7 @@ void TwoPhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- energy, the conserved quantity
   S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
+  S->RequireEvaluator(conserved_key_);
 
   // -- thermal conductivity
   S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
@@ -52,7 +52,7 @@ void TwoPhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   tcm_plist.set("evaluator name", conductivity_key_);
   Teuchos::RCP<Energy::ThermalConductivityTwoPhaseEvaluator> tcm =
     Teuchos::rcp(new Energy::ThermalConductivityTwoPhaseEvaluator(tcm_plist));
-  S->SetFieldEvaluator(conductivity_key_, tcm);
+  S->SetEvaluator(conductivity_key_, tcm);
 
 }
 

@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,LatentHeatEvaluator> LatentHeatEvaluator::reg_("latent heat from evaporative flux");
+Utils::RegisteredFactory<Evaluator,LatentHeatEvaluator> LatentHeatEvaluator::reg_("latent heat from evaporative flux");
 
 } //namespace
 } //namespace

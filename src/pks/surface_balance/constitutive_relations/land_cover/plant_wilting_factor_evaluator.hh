@@ -39,7 +39,7 @@ https://doi.org/10.1016/j.agrformet.2014.02.009
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -48,16 +48,16 @@ namespace Relations {
 
 class PlantWiltingFactorModel;
 
-class PlantWiltingFactorEvaluator : public SecondaryVariableFieldEvaluator {
+class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist);
   PlantWiltingFactorEvaluator(const PlantWiltingFactorEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -74,7 +74,7 @@ class PlantWiltingFactorEvaluator : public SecondaryVariableFieldEvaluator {
   std::map<std::string,Teuchos::RCP<PlantWiltingFactorModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PlantWiltingFactorEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,PlantWiltingFactorEvaluator> reg_;
 
 };
 

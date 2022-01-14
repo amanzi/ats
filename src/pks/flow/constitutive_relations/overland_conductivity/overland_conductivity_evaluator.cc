@@ -16,7 +16,7 @@ namespace Amanzi {
 namespace Flow {
 
 OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_key_);
 
@@ -53,14 +53,14 @@ OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterL
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 OverlandConductivityEvaluator::Clone() const
 {
   return Teuchos::rcp(new OverlandConductivityEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {

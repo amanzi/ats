@@ -14,7 +14,7 @@ namespace Energy {
 
 
 IEMEvaluator::IEMEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   AMANZI_ASSERT(plist_.isSublist("IEM parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("IEM parameters");
@@ -26,20 +26,14 @@ IEMEvaluator::IEMEvaluator(Teuchos::ParameterList& plist) :
 
 
 IEMEvaluator::IEMEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<IEM>& iem) :
-    SecondaryVariableFieldEvaluator(plist),
+    EvaluatorSecondaryMonotypeCV(plist),
     iem_(iem) {
 
   InitializeFromPlist_();
 }
 
 
-IEMEvaluator::IEMEvaluator(const IEMEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    iem_(other.iem_),
-    temp_key_(other.temp_key_) {}
-
-
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 IEMEvaluator::Clone() const {
   return Teuchos::rcp(new IEMEvaluator(*this));
 }
@@ -47,24 +41,27 @@ IEMEvaluator::Clone() const {
 
 void IEMEvaluator::InitializeFromPlist_() {
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  std::string domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temp_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temp_key_);
+  dependencies_.insert(KeyTag{temp_key_, tag});
 }
 
 
-void IEMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+void IEMEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = iem_->InternalEnergy(temp_v[0][i]);
     }
@@ -72,17 +69,19 @@ void IEMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void IEMEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void IEMEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+{
   AMANZI_ASSERT(wrt_key == temp_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = iem_->DInternalEnergyDT(temp_v[0][i]);
     }

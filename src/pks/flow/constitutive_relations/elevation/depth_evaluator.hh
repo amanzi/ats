@@ -13,21 +13,21 @@
 namespace Amanzi {
 namespace Flow {
 
-class DepthEvaluator : public IndependentVariableFieldEvaluator {
+class DepthEvaluator : public IndependentVariableEvaluator {
 
  public:
   explicit
   DepthEvaluator(Teuchos::ParameterList& plist);
   DepthEvaluator(const DepthEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  // Required methods from IndependentVariableFieldEvaluator
+  // Required methods from IndependentVariableEvaluator
   virtual void UpdateField_(const Teuchos::Ptr<State>& S) override;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,DepthEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,DepthEvaluator> reg_;
 
 };
 

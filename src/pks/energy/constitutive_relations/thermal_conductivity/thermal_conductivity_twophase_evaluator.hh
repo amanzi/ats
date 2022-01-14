@@ -10,7 +10,7 @@
 #ifndef AMANZI_ENERGY_RELATIONS_TC_TWOPHASE_EVALUATOR_HH_
 #define AMANZI_ENERGY_RELATIONS_TC_TWOPHASE_EVALUATOR_HH_
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "thermal_conductivity_twophase.hh"
 
 namespace Amanzi {
@@ -18,23 +18,23 @@ namespace Energy {
 
 // Equation of State model
 class ThermalConductivityTwoPhaseEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
-
-  typedef std::pair<std::string,Teuchos::RCP<ThermalConductivityTwoPhase> > RegionModelPair;
+  using RegionModelPair = std::pair<std::string,Teuchos::RCP<ThermalConductivityTwoPhase> >;
 
   // constructor format for all derived classes
   ThermalConductivityTwoPhaseEvaluator(Teuchos::ParameterList& plist);
-  ThermalConductivityTwoPhaseEvaluator(const ThermalConductivityTwoPhaseEvaluator& other);
+  ThermalConductivityTwoPhaseEvaluator(const ThermalConductivityTwoPhaseEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldModel
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+ protected:
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::vector<RegionModelPair> tcs_;

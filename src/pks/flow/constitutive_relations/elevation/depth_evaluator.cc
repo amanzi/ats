@@ -12,15 +12,15 @@ namespace Flow {
 
 
 DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist)
-    : IndependentVariableFieldEvaluator(plist)
+    : IndependentVariableEvaluator(plist)
 {}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 DepthEvaluator::Clone() const {
   return Teuchos::rcp(new DepthEvaluator(*this));
 }
 
-// Required methods from IndependentVariableFieldEvaluator
+// Required methods from IndependentVariableEvaluator
 void
 DepthEvaluator::UpdateField_(const Teuchos::Ptr<State>& S) {
   if (temporally_variable_ || !computed_once_) {

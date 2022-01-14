@@ -15,7 +15,7 @@ namespace Flow {
 
 
 GasContentEvaluator::GasContentEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   
@@ -38,13 +38,13 @@ GasContentEvaluator::GasContentEvaluator(Teuchos::ParameterList& plist)
   
 
 GasContentEvaluator::GasContentEvaluator(const GasContentEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     temp_key_(other.temp_key_),
     cv_key_(other.cv_key_),
     sat_key_(other.sat_key_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 GasContentEvaluator::Clone() const
 {
   return Teuchos::rcp(new GasContentEvaluator(*this));
@@ -95,7 +95,7 @@ bool
 GasContentEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -123,7 +123,7 @@ GasContentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

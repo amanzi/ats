@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,MicrotopographicReliefEvaluator> MicrotopographicReliefEvaluator::reg_("microtopographic relief");
+Utils::RegisteredFactory<Evaluator,MicrotopographicReliefEvaluator> MicrotopographicReliefEvaluator::reg_("microtopographic relief");
 
 }
 }

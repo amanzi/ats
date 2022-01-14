@@ -16,12 +16,12 @@ namespace Flow {
 void
 Interfrost::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
   Permafrost::AddAccumulation_(g);
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
 
   // addition dp/dt part
-  S_next_->GetFieldEvaluator("DThetaDp_coef")->HasFieldChanged(S_next_.ptr(), name_);
-  S_next_->GetFieldEvaluator(key_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator("DThetaDp_coef")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   const Epetra_MultiVector& pres1 = *S_next_->GetPtr<CompositeVector>(key_)
       ->ViewComponent("cell",false);
@@ -53,7 +53,7 @@ Interfrost::UpdatePreconditioner(double t,
   }
 
   // update state with the solution up.
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
   //PKDefaultBase::solution_to_state(*up, S_next_);
 
@@ -62,8 +62,8 @@ Interfrost::UpdatePreconditioner(double t,
   UpdatePermeabilityDerivativeData_(S_next_.ptr());
 
   // update boundary conditions
-  bc_pressure_->Compute(S_next_->time());
-  bc_flux_->Compute(S_next_->time());
+  bc_pressure_->Compute(S_->get_time(tag_next_));
+  bc_flux_->Compute(S_->get_time(tag_next_));
   UpdateBoundaryConditions_(S_next_.ptr());
 
   Teuchos::RCP<const CompositeVector> rel_perm =
@@ -107,7 +107,7 @@ Interfrost::UpdatePreconditioner(double t,
   // Update the preconditioner with darcy and gravity fluxes
   preconditioner_->Init();
 
-  S_next_->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
   preconditioner_diff_->SetDensity(rho);
 
@@ -121,7 +121,7 @@ Interfrost::UpdatePreconditioner(double t,
   
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives
-  S_next_->GetFieldEvaluator(conserved_key_)
+  S_next_->GetEvaluator(conserved_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
 
   // -- get the accumulation deriv
@@ -136,7 +136,7 @@ Interfrost::UpdatePreconditioner(double t,
 #endif
 
   // -- and the extra interfrost deriv
-  S_next_->GetFieldEvaluator("DThetaDp_coef")
+  S_next_->GetEvaluator("DThetaDp_coef")
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   const Epetra_MultiVector& dThdp_coef =
       *S_next_->Get<CompositeVector>("DThetaDp_coef").ViewComponent("cell",false);
@@ -174,7 +174,7 @@ Interfrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   S->Require<CompositeVector,CompositeVectorSpace>("DThetaDp_coef", Tags::NEXT)
       ->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator("DThetaDp_coef");
+  S->RequireEvaluator("DThetaDp_coef");
 }
 
 

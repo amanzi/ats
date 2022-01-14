@@ -14,7 +14,7 @@ namespace Flow {
 
 
 CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   
@@ -42,7 +42,7 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(Teuchos::ParameterLis
   
 
 CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     temp_key_(other.temp_key_),
     pres_key_(other.pres_key_),
     por_key_(other.por_key_),
@@ -50,7 +50,7 @@ CarbonDecomposeRateEvaluator::CarbonDecomposeRateEvaluator(const CarbonDecompose
     q10_(other.q10_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 CarbonDecomposeRateEvaluator::Clone() const
 {
   return Teuchos::rcp(new CarbonDecomposeRateEvaluator(*this));
@@ -112,7 +112,7 @@ bool
 CarbonDecomposeRateEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -140,7 +140,7 @@ CarbonDecomposeRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

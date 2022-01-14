@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,EvaporativeFluxRelaxationEvaluator> EvaporativeFluxRelaxationEvaluator::reg_("evaporative flux relaxation");
+Utils::RegisteredFactory<Evaluator,EvaporativeFluxRelaxationEvaluator> EvaporativeFluxRelaxationEvaluator::reg_("evaporative flux relaxation");
 
 } //namespace
 } //namespace

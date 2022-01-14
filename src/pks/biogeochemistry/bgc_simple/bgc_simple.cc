@@ -144,9 +144,9 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
   // requirements: other primary variables
   S->Require<CompositeVector,CompositeVectorSpace>(trans_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(trans_key_);
-  trans_eval_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(
-      S->GetFieldEvaluator(trans_key_));
+  S->RequireEvaluator(trans_key_);
+  trans_eval_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(
+      S->GetEvaluator(trans_key_));
   if (trans_eval_ == Teuchos::null) {
     Errors::Message message("BGC: error, failure to initialize primary variable for transpiration");
     Exceptions::amanzi_throw(message);
@@ -154,9 +154,9 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(shaded_sw_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(shaded_sw_key_);
-  sw_eval_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(
-      S->GetFieldEvaluator(shaded_sw_key_));
+  S->RequireEvaluator(shaded_sw_key_);
+  sw_eval_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(
+      S->GetEvaluator(shaded_sw_key_));
   if (sw_eval_ == Teuchos::null) {
     Errors::Message message("BGC: error, failure to initialize primary variable for shaded shortwave");
     Exceptions::amanzi_throw(message);
@@ -164,9 +164,9 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(total_lai_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(total_lai_key_);
-  lai_eval_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(
-      S->GetFieldEvaluator(total_lai_key_));
+  S->RequireEvaluator(total_lai_key_);
+  lai_eval_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(
+      S->GetEvaluator(total_lai_key_));
   if (lai_eval_ == Teuchos::null) {
     Errors::Message message("BGC: error, failure to initialize primary variable for LAI");
     Exceptions::amanzi_throw(message);
@@ -187,35 +187,35 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
       ->SetComponent("cell", AmanziMesh::CELL, pft_names.size());
 
   // requirement: temp of each cell
-  S->RequireFieldEvaluator("temperature");
+  S->RequireEvaluator("temperature");
   S->Require<CompositeVector,CompositeVectorSpace>("temperature", Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // requirement: pressure
-  S->RequireFieldEvaluator("pressure");
+  S->RequireEvaluator("pressure");
   S->Require<CompositeVector,CompositeVectorSpace>("pressure", Tags::NEXT).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: surface cell volume
   S->Require<CompositeVector,CompositeVectorSpace>("surface-cell_volume", Tags::NEXT).SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator("surface-cell_volume");
+  S->RequireEvaluator("surface-cell_volume");
 
   // requirements: Met data
-  S->RequireFieldEvaluator("surface-incoming_shortwave_radiation");
+  S->RequireEvaluator("surface-incoming_shortwave_radiation");
   S->Require<CompositeVector,CompositeVectorSpace>("surface-incoming_shortwave_radiation", Tags::NEXT).SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-air_temperature");
+  S->RequireEvaluator("surface-air_temperature");
   S->Require<CompositeVector,CompositeVectorSpace>("surface-air_temperature", Tags::NEXT).SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-relative_humidity");
+  S->RequireEvaluator("surface-relative_humidity");
   S->Require<CompositeVector,CompositeVectorSpace>("surface-relative_humidity", Tags::NEXT).SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-wind_speed");
+  S->RequireEvaluator("surface-wind_speed");
   S->Require<CompositeVector,CompositeVectorSpace>("surface-wind_speed", Tags::NEXT).SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-co2_concentration");
+  S->RequireEvaluator("surface-co2_concentration");
   S->Require<CompositeVector,CompositeVectorSpace>("surface-co2_concentration", Tags::NEXT).SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
@@ -298,7 +298,7 @@ void BGCSimple::Initialize(const Teuchos::Ptr<State>& S) {
   Teuchos::RCP<Epetra_SerialDenseVector> col_dz =
       Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
 
-  S->GetFieldEvaluator("temperature")->HasFieldChanged(S, name_);
+  S->GetEvaluator("temperature")->HasFieldChanged(S, name_);
   const Epetra_Vector& temp = *(*S->GetPtr<CompositeVector>("temperature")
 				->ViewComponent("cell",false))(0);
 
@@ -345,8 +345,8 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   Teuchos::OSTab out = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_inter_->time()
-               << " t1 = " << S_next_->time() << " h = " << dt << std::endl
+               << "Advancing: t0 = " << S_->get_time(tag_inter_)
+               << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
   // Copy the PFT from old to new, in case we failed the previous attempt at
@@ -382,31 +382,31 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   Epetra_MultiVector& total_transpiration = *S_next_->GetPtrW<CompositeVector>("surface-veg_total_transpiration", name_)
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("temperature")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("temperature")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& temp = *S_inter_->GetPtr<CompositeVector>("temperature")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("pressure")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("pressure")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& pres = *S_inter_->GetPtr<CompositeVector>("pressure")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-incoming_shortwave_radiation")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("surface-incoming_shortwave_radiation")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& qSWin = *S_next_->GetPtr<CompositeVector>("surface-incoming_shortwave_radiation")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-air_temperature")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("surface-air_temperature")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& air_temp = *S_next_->GetPtr<CompositeVector>("surface-air_temperature")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-relative_humidity")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("surface-relative_humidity")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& rel_hum = *S_next_->GetPtr<CompositeVector>("surface-relative_humidity")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-wind_speed")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("surface-wind_speed")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& wind_speed = *S_next_->GetPtr<CompositeVector>("surface-wind_speed")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-co2_concentration")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator("surface-co2_concentration")->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& co2 = *S_next_->GetPtr<CompositeVector>("surface-co2_concentration")
       ->ViewComponent("cell",false);
 
@@ -414,7 +414,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   // right.  Likely correct for soil carbon calculations and incorrect for
   // surface vegetation calculations (where the subsurface's face area is more
   // correct?)
-  S_inter_->GetFieldEvaluator("surface-cell_volume")->HasFieldChanged(S_inter_.ptr(), name_);
+  S_inter_->GetEvaluator("surface-cell_volume")->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& scv = *S_inter_->GetPtr<CompositeVector>("surface-cell_volume")
       ->ViewComponent("cell", false);
 
@@ -467,7 +467,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
     sw_c = met.qSWin;
 
     // call the model
-    BGCAdvance(S_inter_->time(), dt, scv[0][col], cryoturbation_coef_, met,
+    BGCAdvance(S_->get_time(tag_inter_), dt, scv[0][col], cryoturbation_coef_, met,
                *temp_c, *pres_c, *depth_c, *dz_c,
                pfts_[col], soil_carbon_pools_[col],
                co2_decomp_c, trans_c, sw_c);
@@ -501,9 +501,9 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   } // end loop over columns
 
   // mark primaries as changed
-  trans_eval_->SetFieldAsChanged(S_next_.ptr());
-  sw_eval_->SetFieldAsChanged(S_next_.ptr());
-  lai_eval_->SetFieldAsChanged(S_next_.ptr());
+  trans_eval_->SetChanged(S_next_.ptr());
+  sw_eval_->SetChanged(S_next_.ptr());
+  lai_eval_->SetChanged(S_next_.ptr());
   return false;
 }
 

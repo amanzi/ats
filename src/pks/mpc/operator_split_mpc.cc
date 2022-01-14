@@ -15,7 +15,7 @@ reimplement for general case.
 See additional documentation in the base class src/pks/mpc/MPC.hh
 ------------------------------------------------------------------------- */
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 
 #include "operator_split_mpc.hh"
@@ -79,15 +79,15 @@ bool OperatorSplitMPC::AdvanceStep(double t_old, double t_new, bool reinit) {
   // also copy and mark the subsurface system
   CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(primary_variable_),
                           S_inter_->GetW<CompositeVector>("pressure",S_inter_->GetField("pressure").owner()).ptr());
-  auto eval = S_inter_->GetFieldEvaluator("pressure");
-  auto eval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval);
-  eval_pvfe->SetFieldAsChanged(S_inter_.ptr());
+  auto eval = S_inter_->GetEvaluator("pressure");
+  auto eval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval);
+  eval_pvfe->SetChanged(S_inter_.ptr());
 
   CopySurfaceToSubsurface(*S_next_->GetPtr<CompositeVector>(primary_variable_),
                           S_next_->GetW<CompositeVector>("pressure",S_next_->GetField("pressure").owner()).ptr());
-  auto eval2 = S_next_->GetFieldEvaluator("pressure");
-  auto eval_pvfe2 = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval2);
-  eval_pvfe2->SetFieldAsChanged(S_next_.ptr());
+  auto eval2 = S_next_->GetEvaluator("pressure");
+  auto eval_pvfe2 = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval2);
+  eval_pvfe2->SetChanged(S_next_.ptr());
   // END THE NON-GENERIC PART TO BE REMOVED
 
 
@@ -119,9 +119,9 @@ OperatorSplitMPC::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
     }
   }
 
-  auto eval = S_star->GetFieldEvaluator(primary_variable_star_);
-  auto eval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval);
-  eval_pvfe->SetFieldAsChanged(S_star.ptr());
+  auto eval = S_star->GetEvaluator(primary_variable_star_);
+  auto eval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval);
+  eval_pvfe->SetChanged(S_star.ptr());
 }
 
 // -----------------------------------------------------------------------------
@@ -140,9 +140,9 @@ OperatorSplitMPC::CopyStarToPrimary(const Teuchos::Ptr<const State>& S_star,
     }
   }
 
-  auto eval = S->GetFieldEvaluator(primary_variable_);
-  auto eval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval);
-  eval_pvfe->SetFieldAsChanged(S.ptr());
+  auto eval = S->GetEvaluator(primary_variable_);
+  auto eval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval);
+  eval_pvfe->SetChanged(S.ptr());
 }
 
 

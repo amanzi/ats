@@ -72,7 +72,7 @@ MeshedElevationEvaluator::MeshedElevationEvaluator(Teuchos::ParameterList& plist
 MeshedElevationEvaluator::MeshedElevationEvaluator(const MeshedElevationEvaluator& other) :
     ElevationEvaluator(other) {};
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 MeshedElevationEvaluator::Clone() const {
   return Teuchos::rcp(new MeshedElevationEvaluator(*this));
 }

@@ -31,14 +31,14 @@ include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
 
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
 #include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
@@ -95,9 +95,9 @@ set(amanzi_link_libs
   output
   mesh_mstk
   mesh_logical
-  chemistry_pk
-  mpc_tree
-  transport
+  #chemistry_pk
+  #mpc_tree
+  #transport
   )
   
 set(ats_link_libs
@@ -106,18 +106,19 @@ set(ats_link_libs
   ats_surf_subsurf
   ats_eos
   ats_pks
-  ats_transport
-  ats_sed_transport  
-  ats_energy
-  ats_energy_relations
+  #ats_transport
+  #ats_sed_transport  
+  #ats_energy
+  #ats_energy_relations
   ats_flow
   ats_flow_relations
-  ats_deform
-  ats_bgc
-  ats_surface_balance
-  ats_mpc
-  ats_mpc_relations
+  #ats_deform
+  #ats_bgc
+  #ats_surface_balance
+  #ats_mpc
+  #ats_mpc_relations
   )
+
 
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.

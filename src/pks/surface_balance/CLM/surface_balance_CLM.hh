@@ -59,8 +59,8 @@ public:
   Key domain_ss_;
   Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh_;
 
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_wsource_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_w_sub_source_;
+  Teuchos::RCP<EvaluatorPrimary> pvfe_wsource_;
+  Teuchos::RCP<EvaluatorPrimary> pvfe_w_sub_source_;
 
   double dt_;
   double my_next_time_;

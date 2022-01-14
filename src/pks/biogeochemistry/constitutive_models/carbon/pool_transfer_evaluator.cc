@@ -17,7 +17,7 @@ namespace BGC {
 namespace BGCRelations {
 
 PoolTransferEvaluator::PoolTransferEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // dependencies
   carbon_key_ = plist_.get<std::string>("SOM key", "soil_organic_matter");
@@ -25,9 +25,9 @@ PoolTransferEvaluator::PoolTransferEvaluator(Teuchos::ParameterList& plist) :
   decay_key_ = plist_.get<std::string>("pool decay rate key", "soil_carbon_decay_rate");
   dependencies_.insert(decay_key_);
 
-  my_keys_.push_back(plist_.get<std::string>("soil carbon transfer key",
+  my_keys_.emplace_back((plist_.get<std::string>("soil carbon transfer key",
           "soil_carbon_transfer_rate"));
-  my_keys_.push_back(plist_.get<std::string>("soil co2 production key",
+  my_keys_.emplace_back((plist_.get<std::string>("soil co2 production key",
           "soil_co2_production_rate"));
   }
 
@@ -38,7 +38,7 @@ PoolTransferEvaluator::PoolTransferEvaluator(Teuchos::ParameterList& plist) :
 
 
 PoolTransferEvaluator::PoolTransferEvaluator(const PoolTransferEvaluator& other) :
-    SecondaryVariablesFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     carbon_key_(other.carbon_key_),
     decay_key_(other.decay_key_),
     partition_key_(other.partition_key_),
@@ -47,13 +47,13 @@ PoolTransferEvaluator::PoolTransferEvaluator(const PoolTransferEvaluator& other)
     init_model_(other.init_model_)    
 {}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PoolTransferEvaluator::Clone() const {
   return Teuchos::rcp(new PoolTransferEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariablesFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void PoolTransferEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
   if (!init_model_) InitModel_(S, result->NumVectors("cell"));

@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,DragExponentEvaluator> DragExponentEvaluator::reg_("drag exponent");
+Utils::RegisteredFactory<Evaluator,DragExponentEvaluator> DragExponentEvaluator::reg_("drag exponent");
 
 }
 }

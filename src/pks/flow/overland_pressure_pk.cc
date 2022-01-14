@@ -19,7 +19,7 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
 #include "independent_variable_field_evaluator.hh"
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "PDE_DiffusionFactory.hh"
 
 #include "upwind_potential_difference.hh"
@@ -128,12 +128,12 @@ void OverlandPressureFlow::Setup(const Teuchos::Ptr<State>& S)
   // -- water content
   S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
+  S->RequireEvaluator(conserved_key_);
 
   // this pk uses density
   S->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(molar_dens_key_);
+  S->RequireEvaluator(molar_dens_key_);
 
   SetupOverlandFlow_(S);
   SetupPhysicalEvaluators_(S);
@@ -164,7 +164,7 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
   // -- cell volume and evaluator
   S->Require<CompositeVector,CompositeVectorSpace>(cv_key_, Tags::NEXT).SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S->RequireFieldEvaluator(cv_key_);
+  S->RequireEvaluator(cv_key_);
   S->RequireGravity();
   S->RequireScalar("atmospheric_pressure");
 
@@ -173,7 +173,7 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
   S->Require<CompositeVector,CompositeVectorSpace>(elev_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-  S->RequireFieldEvaluator(elev_key_);
+  S->RequireEvaluator(elev_key_);
 
   // Set up Operators
   // -- boundary conditions
@@ -302,7 +302,7 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
     // -- source term from subsurface, filled in by evaluator,
     //    which picks the fluxes from "mass_flux" field.
     ss_flux_key_ = Keys::readKey(*plist_, domain_, "surface-subsurface flux", "subsurface_flux");
-    S->RequireFieldEvaluator(ss_flux_key_);
+    S->RequireEvaluator(ss_flux_key_);
     S->Require<CompositeVector,CompositeVectorSpace>(ss_flux_key_, Tags::NEXT).SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
   }
 
@@ -320,13 +320,13 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
   S->Require<CompositeVector,CompositeVectorSpace>(potential_key_, Tags::NEXT).Update(matrix_->RangeMap())->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1)
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  S->RequireFieldEvaluator(potential_key_);
+  S->RequireEvaluator(potential_key_);
 
   // flux
   S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
       ->SetComponent("face", AmanziMesh::FACE, 1);
-  auto fm = S->RequireFieldEvaluator(flux_key_);
-  flux_pvfe_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+  auto fm = S->RequireEvaluator(flux_key_);
+  flux_pvfe_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fm);
   AMANZI_ASSERT(flux_pvfe_ != Teuchos::null);
 
   // velocity for diagnostics
@@ -350,7 +350,7 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S
 
     S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(source_key_);
+    S->RequireEvaluator(source_key_);
 
     if (source_in_meters_) {
       // density of incoming water [mol/m^3]
@@ -358,30 +358,30 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S
               "source_molar_density");
       S->Require<CompositeVector,CompositeVectorSpace>(source_molar_dens_key_, Tags::NEXT).SetMesh(mesh_)
           ->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(source_molar_dens_key_);
+      S->RequireEvaluator(source_molar_dens_key_);
     }
   }
 
   // -- water content bar (can be negative)
   S->Require<CompositeVector,CompositeVectorSpace>(wc_bar_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(wc_bar_key_);
+  S->RequireEvaluator(wc_bar_key_);
 
   // -- ponded depth
   S->Require<CompositeVector,CompositeVectorSpace>(pd_key_, Tags::NEXT).Update(matrix_->RangeMap())->SetGhosted();
-  S->RequireFieldEvaluator(pd_key_);
+  S->RequireEvaluator(pd_key_);
 
   // -- ponded depth bar (can be negative)
   S->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(pd_bar_key_);
+  S->RequireEvaluator(pd_bar_key_);
 
   // -- conductivity evaluator
   S->Require<CompositeVector,CompositeVectorSpace>(cond_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1)
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
 
-  S->RequireFieldEvaluator(cond_key_);
+  S->RequireEvaluator(cond_key_);
 }
 
 
@@ -485,19 +485,19 @@ void OverlandPressureFlow::Initialize(const Teuchos::Ptr<State>& S)
   }
 
   // Initialize BC values
-  bc_head_->Compute(S->time());
-  bc_pressure_->Compute(S->time());
-  bc_zero_gradient_->Compute(S->time());
-  bc_flux_->Compute(S->time());
-  bc_level_->Compute(S->time());
-  bc_level_flux_lvl_->Compute(S->time());
-  bc_level_flux_vel_->Compute(S->time());
+  bc_head_->Compute(S->get_time());
+  bc_pressure_->Compute(S->get_time());
+  bc_zero_gradient_->Compute(S->get_time());
+  bc_flux_->Compute(S->get_time());
+  bc_level_->Compute(S->get_time());
+  bc_level_flux_lvl_->Compute(S->get_time());
+  bc_level_flux_vel_->Compute(S->get_time());
 
-  bc_seepage_head_->Compute(S->time());
-  bc_seepage_pressure_->Compute(S->time());
-  bc_critical_depth_->Compute(S->time());
-  bc_dynamic_->Compute(S->time());
-  bc_tidal_->Compute(S->time());
+  bc_seepage_head_->Compute(S->get_time());
+  bc_seepage_pressure_->Compute(S->get_time());
+  bc_critical_depth_->Compute(S->get_time());
+  bc_dynamic_->Compute(S->get_time());
+  bc_tidal_->Compute(S->get_time());
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   S->GetW<CompositeVector>(uw_cond_key_,name_).PutScalar(0.0);
@@ -536,23 +536,23 @@ void OverlandPressureFlow::CommitStep(double t_old, double t_new,
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, S);
 
   // update boundary conditions
-  bc_head_->Compute(S->time());
-  bc_pressure_->Compute(S->time());
-  bc_flux_->Compute(S->time());
-  bc_level_->Compute(S->time());
-  bc_level_flux_lvl_->Compute(S->time());
-  bc_level_flux_vel_->Compute(S->time());
+  bc_head_->Compute(S->get_time());
+  bc_pressure_->Compute(S->get_time());
+  bc_flux_->Compute(S->get_time());
+  bc_level_->Compute(S->get_time());
+  bc_level_flux_lvl_->Compute(S->get_time());
+  bc_level_flux_vel_->Compute(S->get_time());
 
-  bc_seepage_head_->Compute(S->time());
-  bc_seepage_pressure_->Compute(S->time());
-  bc_critical_depth_->Compute(S->time());
-  bc_dynamic_->Compute(S->time());
-  bc_tidal_->Compute(S->time());
+  bc_seepage_head_->Compute(S->get_time());
+  bc_seepage_pressure_->Compute(S->get_time());
+  bc_critical_depth_->Compute(S->get_time());
+  bc_dynamic_->Compute(S->get_time());
+  bc_tidal_->Compute(S->get_time());
   UpdateBoundaryConditions_(S.ptr());
 
   // Update flux if rel perm or h + Z has changed.
   bool update = UpdatePermeabilityData_(S.ptr());
-  update |= S->GetFieldEvaluator(potential_key_)->HasFieldChanged(S.ptr(), name_);
+  update |= S->GetEvaluator(potential_key_)->HasFieldChanged(S.ptr(), name_);
 
   // update the stiffness matrix with the new rel perm
   auto cond = S->GetPtr<CompositeVector>(uw_cond_key_);
@@ -655,15 +655,15 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
 
-  bool update_perm = S->GetFieldEvaluator(pd_key_)->HasFieldChanged(S, name_);
+  bool update_perm = S->GetEvaluator(pd_key_)->HasFieldChanged(S, name_);
 
   // this is an ugly hack to get boundary conditions into conductivities
   Teuchos::RCP<CompositeVector> pd = S->GetPtrW<CompositeVector>(pd_key_, pd_key_);
   Teuchos::RCP<const CompositeVector> elev = S->GetPtr<CompositeVector>(elev_key_);
   ApplyBoundaryConditions_(pd.ptr(), elev.ptr());
 
-  update_perm |= S->GetFieldEvaluator(potential_key_)->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(cond_key_)->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(potential_key_)->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(cond_key_)->HasFieldChanged(S, name_);
   update_perm |= perm_update_required_;
 
   if (update_perm) {
@@ -721,7 +721,7 @@ bool OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<
     *vo_->os() << "  Updating permeability derivatives?";
 
 
-  bool update_perm = S->GetFieldEvaluator(cond_key_)
+  bool update_perm = S->GetEvaluator(cond_key_)
     ->HasFieldDerivativeChanged(S, name_, pd_key_);
   Teuchos::RCP<const CompositeVector> dcond =
     S->GetPtrW<CompositeVector>(Keys::getDerivKey(cond_key_, pd_key_));
@@ -759,7 +759,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
   auto& markers = bc_markers();
   auto& values = bc_values();
 
-  S->GetFieldEvaluator(elev_key_)->HasFieldChanged(S, name_);
+  S->GetEvaluator(elev_key_)->HasFieldChanged(S, name_);
   const Epetra_MultiVector& elevation = *S->GetPtr<CompositeVector>(elev_key_)
       ->ViewComponent("face",false);
 
@@ -781,7 +781,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
   // Pressure BCs require a change in coordinates from pressure to head
   if (bc_pressure_->size() > 0) {
-    S->GetFieldEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
 
     const Epetra_MultiVector& h_cells = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell");
     const Epetra_MultiVector& elevation_cells = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell");
@@ -789,7 +789,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     double gz = -(*S->GetConstantVectorData("gravity"))[2];
     const double& p_atm = *S->GetScalarData("atmospheric_pressure");
 
-    if (S->HasFieldEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+    if (S->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
       // thermal model of height
       const Epetra_MultiVector& eta = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"unfrozen_fraction"))->ViewComponent("cell");
       const Epetra_MultiVector& rho_i = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"mass_density_ice"))->ViewComponent("cell");
@@ -835,7 +835,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
   }
 
   if (bc_dynamic_->size() > 0) {
-    double time = S->time();
+    double time = S->get_time();
     int id = bc_dynamic_->Func_ID(time);
     for (const auto& bc : *bc_dynamic_->GetFunction(id)) {
       int f = bc.first;
@@ -874,7 +874,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
   // Critical depth boundary condition -- v = sqrt(gzh), so q = n_liq * h * sqrt(gzh)
   if (bc_critical_depth_->size() > 0) {
-    S->GetFieldEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
 
     const Epetra_MultiVector& h_c = *S->GetPtr<CompositeVector>(pd_key_)
                                     ->ViewComponent("cell");
@@ -901,7 +901,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
   // ------------------------------------------------
   // Seepage face head boundary condition
   if (bc_seepage_head_->size() > 0) {
-    S->GetFieldEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
     const Epetra_MultiVector& h_c = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell");
     const Epetra_MultiVector& elevation_c = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell");
 
@@ -926,7 +926,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
 
   // Seepage face pressure boundary condition
   if (bc_seepage_pressure_->size() > 0) {
-    S->GetFieldEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(pd_key_)->HasFieldChanged(S.ptr(), name_);
 
     const Epetra_MultiVector& h_cells = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell");
     const Epetra_MultiVector& elevation_cells = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell");
@@ -934,7 +934,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& 
     double gz = -(*S->GetConstantVectorData("gravity"))[2];
     const double& p_atm = *S->GetScalarData("atmospheric_pressure");
 
-    if (S->HasFieldEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+    if (S->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
       // thermal model of height
       const Epetra_MultiVector& eta = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"unfrozen_fraction"))->ViewComponent("cell");
       const Epetra_MultiVector& rho_i = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"mass_density_ice"))->ViewComponent("cell");

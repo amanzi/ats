@@ -46,27 +46,27 @@ matter much. --etc
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class AreaFractionsThreeComponentMicrotopographyEvaluator : public SecondaryVariableFieldEvaluator {
+class AreaFractionsThreeComponentMicrotopographyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   AreaFractionsThreeComponentMicrotopographyEvaluator(Teuchos::ParameterList& plist);
   AreaFractionsThreeComponentMicrotopographyEvaluator(const AreaFractionsThreeComponentMicrotopographyEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const {
     return Teuchos::rcp(new AreaFractionsThreeComponentMicrotopographyEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -84,7 +84,7 @@ class AreaFractionsThreeComponentMicrotopographyEvaluator : public SecondaryVari
   double min_area_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,AreaFractionsThreeComponentMicrotopographyEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,AreaFractionsThreeComponentMicrotopographyEvaluator> reg_;
 
 };
 

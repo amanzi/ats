@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,ThawDepthColumnsEvaluator> ThawDepthColumnsEvaluator::reg_("thaw depth, columns");
+Utils::RegisteredFactory<Evaluator,ThawDepthColumnsEvaluator> ThawDepthColumnsEvaluator::reg_("thaw depth, columns");
 
 }
 }

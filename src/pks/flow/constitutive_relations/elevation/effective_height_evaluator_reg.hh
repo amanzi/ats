@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,EffectiveHeightEvaluator> EffectiveHeightEvaluator::factory_("effective height");
+Utils::RegisteredFactory<Evaluator,EffectiveHeightEvaluator> EffectiveHeightEvaluator::factory_("effective height");
 
 } //namespace
 } //namespace

@@ -37,7 +37,7 @@ The interception fraction is everything here after the precip.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -45,16 +45,16 @@ namespace Relations {
 
 class InterceptionFractionModel;
 
-class InterceptionFractionEvaluator : public SecondaryVariablesFieldEvaluator {
+class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   InterceptionFractionEvaluator(Teuchos::ParameterList& plist);
   InterceptionFractionEvaluator(const InterceptionFractionEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -78,7 +78,7 @@ class InterceptionFractionEvaluator : public SecondaryVariablesFieldEvaluator {
   Teuchos::RCP<InterceptionFractionModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,InterceptionFractionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,InterceptionFractionEvaluator> reg_;
 };
 
 } //namespace

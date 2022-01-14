@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator, ColumnSumEvaluator> ColumnSumEvaluator::factory_("column sum evaluator");
+Utils::RegisteredFactory<Evaluator, ColumnSumEvaluator> ColumnSumEvaluator::factory_("column sum evaluator");
 
 }
 }

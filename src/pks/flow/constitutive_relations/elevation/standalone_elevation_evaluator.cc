@@ -20,7 +20,7 @@ StandaloneElevationEvaluator::StandaloneElevationEvaluator(
         const StandaloneElevationEvaluator& other) :
     ElevationEvaluator(other) {}
 
-Teuchos::RCP<FieldEvaluator> StandaloneElevationEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> StandaloneElevationEvaluator::Clone() const {
   return Teuchos::rcp(new StandaloneElevationEvaluator(*this));
 }
 
@@ -56,9 +56,9 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr
   }
   
   // Evaluate the functions.
-  elevation_function_->Compute(S->time(), elev);
-  slope_function_->Compute(S->time(), slope);
-  if (aspect_function_.get()) aspect_function_->Compute(S->time(), aspect);
+  elevation_function_->Compute(S->get_time(), elev);
+  slope_function_->Compute(S->get_time(), slope);
+  if (aspect_function_.get()) aspect_function_->Compute(S->get_time(), aspect);
 };
 
 

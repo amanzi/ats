@@ -15,7 +15,7 @@ namespace Flow {
 
 
 HeightEvaluator::HeightEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
   bar_ = plist_.get<bool>("allow negative ponded depth", false);
   Key domain = Keys::getDomain(my_key_);
 
@@ -36,7 +36,7 @@ HeightEvaluator::HeightEvaluator(Teuchos::ParameterList& plist) :
 
 
 HeightEvaluator::HeightEvaluator(const HeightEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     dens_key_(other.dens_key_),
     pres_key_(other.pres_key_),
     gravity_key_(other.gravity_key_),
@@ -45,7 +45,7 @@ HeightEvaluator::HeightEvaluator(const HeightEvaluator& other) :
     bar_(other.bar_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 HeightEvaluator::Clone() const {
   return Teuchos::rcp(new HeightEvaluator(*this));
 }
@@ -87,7 +87,7 @@ void HeightEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 
@@ -142,7 +142,7 @@ void HeightEvaluator::UpdateFieldDerivative_(const Teuchos::Ptr<State>& S,
         *vo_->os() << dmy_key << " = " << (*tmp)("cell",0) << std::endl;
       }
 
-    } else if (S->GetFieldEvaluator(*dep)->IsDependency(S, wrt_key)) {
+    } else if (S->GetEvaluator(*dep)->IsDependency(S, wrt_key)) {
       // partial F / partial dep * ddep/dx
       // -- ddep/dx
 

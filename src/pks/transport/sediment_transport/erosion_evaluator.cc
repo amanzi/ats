@@ -13,7 +13,7 @@
 namespace Amanzi {
 
 ErosionRateEvaluator :: ErosionRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+  EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain_name = "surface";
   
@@ -36,7 +36,7 @@ ErosionRateEvaluator :: ErosionRateEvaluator(Teuchos::ParameterList& plist) :
 
   
 ErosionRateEvaluator ::ErosionRateEvaluator (const ErosionRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
   velocity_key_(other.velocity_key_) {
 
   tau_e_ = other.tau_e_;
@@ -48,7 +48,7 @@ ErosionRateEvaluator ::ErosionRateEvaluator (const ErosionRateEvaluator & other)
 } 
 
 
-Teuchos::RCP<FieldEvaluator> ErosionRateEvaluator ::Clone() const {
+Teuchos::RCP<Evaluator> ErosionRateEvaluator ::Clone() const {
   return Teuchos::rcp(new ErosionRateEvaluator (*this));
 }
 

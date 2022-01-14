@@ -25,14 +25,14 @@ class IcyHeightEvaluator : public HeightEvaluator {
   IcyHeightEvaluator(Teuchos::ParameterList& plist);
   IcyHeightEvaluator(const IcyHeightEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
   Teuchos::RCP<IcyHeightModel> get_IcyModel() { return icy_model_; }
 
  protected:
   void InitializeFromPlist_();
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -44,7 +44,7 @@ class IcyHeightEvaluator : public HeightEvaluator {
   Teuchos::RCP<IcyHeightModel> icy_model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,IcyHeightEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,IcyHeightEvaluator> factory_;
 
 };
 

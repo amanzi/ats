@@ -12,15 +12,15 @@ namespace SurfaceBalance {
 namespace Relations {
 
 DrainageEvaluator::DrainageEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
 
   drainage_key_ = Keys::readKey(plist_, domain, "drainage", "drainage");
-  my_keys_.push_back(drainage_key_);
+  my_keys_.emplace_back((drainage_key_);
 
   fracwet_key_ = Keys::readKey(plist_, domain, "fraction wet", "fracwet");
-  my_keys_.push_back(fracwet_key_);
+  my_keys_.emplace_back((fracwet_key_);
 
   // Set up my dependencies.
   // -- the extent of material, LAI for
@@ -44,7 +44,7 @@ DrainageEvaluator::DrainageEvaluator(Teuchos::ParameterList& plist) :
 };
 
 
-Teuchos::RCP<FieldEvaluator> DrainageEvaluator::Clone() const
+Teuchos::RCP<Evaluator> DrainageEvaluator::Clone() const
 {
   return Teuchos::rcp(new DrainageEvaluator(*this));
 }

@@ -10,7 +10,7 @@
 #ifndef AMANZI_FLOW_RELATIONS_EFFECTIVE_HEIGHT_EVALUATOR_
 #define AMANZI_FLOW_RELATIONS_EFFECTIVE_HEIGHT_EVALUATOR_
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
@@ -18,7 +18,7 @@ namespace Flow {
 
 class EffectiveHeightModel;
 
-class EffectiveHeightEvaluator : public SecondaryVariableFieldEvaluator {
+class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -26,13 +26,13 @@ class EffectiveHeightEvaluator : public SecondaryVariableFieldEvaluator {
   EffectiveHeightEvaluator(Teuchos::ParameterList& plist);
   EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
   Teuchos::RCP<EffectiveHeightModel> get_Model() { return model_; }
 
  protected:
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -44,7 +44,7 @@ class EffectiveHeightEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<EffectiveHeightModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EffectiveHeightEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,EffectiveHeightEvaluator> factory_;
 
 };
 

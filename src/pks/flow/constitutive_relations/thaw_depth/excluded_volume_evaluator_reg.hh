@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,ExcludedVolumeEvaluator> ExcludedVolumeEvaluator::reg_("excluded volume");
+Utils::RegisteredFactory<Evaluator,ExcludedVolumeEvaluator> ExcludedVolumeEvaluator::reg_("excluded volume");
 
 }
 }

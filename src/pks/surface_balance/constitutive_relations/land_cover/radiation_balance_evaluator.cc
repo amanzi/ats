@@ -14,7 +14,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 RadiationBalanceEvaluator::RadiationBalanceEvaluator(Teuchos::ParameterList& plist)
-  : SecondaryVariablesFieldEvaluator(plist),
+  : EvaluatorSecondaryMonotypeCV(plist),
     compatible_(false)
 {
   Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
@@ -37,9 +37,9 @@ RadiationBalanceEvaluator::RadiationBalanceEvaluator(Teuchos::ParameterList& pli
   rad_bal_snow_key_ = Keys::readKey(plist_, domain_snow_, "snow radiation balance", "radiation_balance");
   rad_bal_can_key_ = Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", "radiation_balance");
 
-  my_keys_.push_back(rad_bal_surf_key_);
-  my_keys_.push_back(rad_bal_snow_key_);
-  my_keys_.push_back(rad_bal_can_key_);
+  my_keys_.emplace_back((rad_bal_surf_key_);
+  my_keys_.emplace_back((rad_bal_snow_key_);
+  my_keys_.emplace_back((rad_bal_can_key_);
 
   albedo_surf_key_ = Keys::readKey(plist_, domain_surf_, "surface albedos", "albedos");
   dependencies_.insert(albedo_surf_key_);
@@ -93,7 +93,7 @@ RadiationBalanceEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
           ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
       // Recurse into the tree to propagate info to leaves.
-      S->RequireFieldEvaluator(dep)->EnsureCompatibility(S);
+      S->RequireEvaluator(dep)->EnsureCompatibility(S);
     }
     compatible_ = true;
   }

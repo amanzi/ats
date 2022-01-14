@@ -40,7 +40,7 @@ IcyHeightEvaluator::IcyHeightEvaluator(const IcyHeightEvaluator& other) :
     icy_model_(other.icy_model_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 IcyHeightEvaluator::Clone() const {
   return Teuchos::rcp(new IcyHeightEvaluator(*this));
 }

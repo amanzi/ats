@@ -51,13 +51,13 @@ class MeshedElevationEvaluator : public ElevationEvaluator {
 
   MeshedElevationEvaluator(const MeshedElevationEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
   virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,MeshedElevationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,MeshedElevationEvaluator> reg_;
 
 };
 

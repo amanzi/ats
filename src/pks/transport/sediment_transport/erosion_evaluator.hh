@@ -14,18 +14,18 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 
-class ErosionRateEvaluator : public SecondaryVariableFieldEvaluator {
+class ErosionRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   ErosionRateEvaluator(Teuchos::ParameterList& plist);
 
   ErosionRateEvaluator(const ErosionRateEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
   
   // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
   //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
@@ -36,7 +36,7 @@ class ErosionRateEvaluator : public SecondaryVariableFieldEvaluator {
 
 protected:
 
-    // Required methods from SecondaryVariableFieldEvaluator
+    // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -50,7 +50,7 @@ protected:
 
   Key velocity_key_;
 
-  static Utils::RegisteredFactory<FieldEvaluator,ErosionRateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,ErosionRateEvaluator> factory_;
 
 };
 

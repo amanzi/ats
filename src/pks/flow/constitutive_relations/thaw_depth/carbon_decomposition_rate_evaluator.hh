@@ -3,7 +3,7 @@
 /*
   The carbon decompostion rate evaluator gets the subsurface temperature and pressure.
   Computes(integrates) CO2 decomposition rate.
-  This is SecondaryVariablesFieldEvaluator and depends on the subsurface temperature and pressure, 
+  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature and pressure, 
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
@@ -12,21 +12,21 @@
 #define AMANZI_FLOWRELATIONS_CARBONDECOM_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class CarbonDecomposeRateEvaluator : public SecondaryVariableFieldEvaluator {
+class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist);
   CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -43,7 +43,7 @@ protected:
   Key domain_;
   double q10_;
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,CarbonDecomposeRateEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> reg_;
 
 };
   

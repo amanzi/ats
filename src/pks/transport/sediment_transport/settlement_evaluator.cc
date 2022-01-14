@@ -13,7 +13,7 @@
 namespace Amanzi {
 
 SettlementRateEvaluator :: SettlementRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+  EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain_name = "surface";
   
@@ -43,7 +43,7 @@ SettlementRateEvaluator :: SettlementRateEvaluator(Teuchos::ParameterList& plist
 
   
 SettlementRateEvaluator ::SettlementRateEvaluator (const SettlementRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
   velocity_key_(other.velocity_key_), sediment_key_(other.sediment_key_) {
 
   tau_d_ = other.tau_d_;
@@ -54,7 +54,7 @@ SettlementRateEvaluator ::SettlementRateEvaluator (const SettlementRateEvaluator
 } 
 
 
-Teuchos::RCP<FieldEvaluator> SettlementRateEvaluator ::Clone() const {
+Teuchos::RCP<Evaluator> SettlementRateEvaluator ::Clone() const {
   return Teuchos::rcp(new SettlementRateEvaluator (*this));
 }
 

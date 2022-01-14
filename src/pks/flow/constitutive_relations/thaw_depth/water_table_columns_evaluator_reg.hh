@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,WaterTableColumnsEvaluator> WaterTableColumnsEvaluator::reg_("water table, columns");
+Utils::RegisteredFactory<Evaluator,WaterTableColumnsEvaluator> WaterTableColumnsEvaluator::reg_("water table, columns");
 
 }
 }

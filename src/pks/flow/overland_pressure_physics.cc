@@ -33,11 +33,11 @@ void OverlandPressureFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 
   // derive fluxes -- this gets done independently fo update as precon does
   // not calculate fluxes.
-  S->GetFieldEvaluator(potential_key_)->HasFieldChanged(S.ptr(), name_);
+  S->GetEvaluator(potential_key_)->HasFieldChanged(S.ptr(), name_);
   auto pres_elev = S->GetPtr<CompositeVector>(potential_key_);
   auto flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
-  if (S == S_next_.ptr()) flux_pvfe_->SetFieldAsChanged(S);
+  if (S == S_next_.ptr()) flux_pvfe_->SetChanged(S);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres_elev, *g);
@@ -49,12 +49,12 @@ void OverlandPressureFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 // -------------------------------------------------------------
 void OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 {
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
 
   // get these fields
-  S_next_->GetFieldEvaluator(conserved_key_)
+  S_next_->GetEvaluator(conserved_key_)
       ->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(conserved_key_)
+  S_inter_->GetEvaluator(conserved_key_)
       ->HasFieldChanged(S_inter_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> wc1 =
       S_next_->GetPtr<CompositeVector>(conserved_key_);
@@ -88,7 +88,7 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
 
   if (is_source_term_) {
     // Add in external source term.
-    S_next_->GetFieldEvaluator(source_key_)
+    S_next_->GetEvaluator(source_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
     const Epetra_MultiVector& source1 =
         *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
@@ -97,9 +97,9 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
     if (source_in_meters_) {
       // External source term is in [m water / s], not in [mols / s], so a
       // density is required.  This density should be upwinded.
-      S_next_->GetFieldEvaluator(molar_dens_key_)
+      S_next_->GetEvaluator(molar_dens_key_)
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(source_molar_dens_key_)
+      S_next_->GetEvaluator(source_molar_dens_key_)
           ->HasFieldChanged(S_next_.ptr(), name_);
 
       const Epetra_MultiVector& nliq1 = *S_next_->GetPtr<CompositeVector>(molar_dens_key_)
@@ -122,7 +122,7 @@ void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& 
 
   if (coupled_to_subsurface_via_head_) {
     // Add in source term from coupling.
-    S_next_->GetFieldEvaluator(ss_flux_key_)
+    S_next_->GetEvaluator(ss_flux_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
     Teuchos::RCP<const CompositeVector> source1 = S_next_->GetPtr<CompositeVector>(ss_flux_key_);
 

@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,ActiveLayerAverageTempEvaluator> ActiveLayerAverageTempEvaluator::reg_("active layer average temperature");
+Utils::RegisteredFactory<Evaluator,ActiveLayerAverageTempEvaluator> ActiveLayerAverageTempEvaluator::reg_("active layer average temperature");
 
 }
 }

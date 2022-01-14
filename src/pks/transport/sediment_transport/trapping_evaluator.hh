@@ -14,18 +14,18 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 
-class TrappingRateEvaluator : public SecondaryVariableFieldEvaluator {
+class TrappingRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   TrappingRateEvaluator(Teuchos::ParameterList& plist);
 
   TrappingRateEvaluator(const TrappingRateEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
   
   // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
   //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
@@ -36,7 +36,7 @@ class TrappingRateEvaluator : public SecondaryVariableFieldEvaluator {
 
   protected:
   
-    // Required methods from SecondaryVariableFieldEvaluator
+    // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -50,7 +50,7 @@ class TrappingRateEvaluator : public SecondaryVariableFieldEvaluator {
   Key ponded_depth_key_;
   Key biomass_key_;  
   double sediment_density_;
-  static Utils::RegisteredFactory<FieldEvaluator,TrappingRateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,TrappingRateEvaluator> factory_;
 
 };
 

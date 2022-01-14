@@ -34,7 +34,7 @@ void DivGradTest::setup(const Teuchos::Ptr<State>& S) {
                     ->SetComponents(names2, locations2, num_dofs2);
 
   // Get data for non-field quanitites.
-  S->RequireFieldEvaluator("cell_volume");
+  S->RequireEvaluator("cell_volume");
 
   // Create the absolute permeability tensor.
   int c_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);

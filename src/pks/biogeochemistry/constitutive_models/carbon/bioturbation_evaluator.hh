@@ -10,20 +10,20 @@
 #define AMANZI_BGCRELATIONS_BIOTURBATION_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace BGC {
 namespace BGCRelations {
 
-class BioturbationEvaluator : public SecondaryVariableFieldEvaluator {
+class BioturbationEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   BioturbationEvaluator(Teuchos::ParameterList& plist);
   BioturbationEvaluator(const BioturbationEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -34,7 +34,7 @@ protected:
   Key diffusivity_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,BioturbationEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,BioturbationEvaluator> fac_;
 
 
 

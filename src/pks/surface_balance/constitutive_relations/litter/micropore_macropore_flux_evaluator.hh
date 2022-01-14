@@ -46,7 +46,7 @@ changed on the input line.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -54,16 +54,16 @@ namespace Relations {
 
 class MicroporeMacroporeFluxModel;
 
-class MicroporeMacroporeFluxEvaluator : public SecondaryVariableFieldEvaluator {
+class MicroporeMacroporeFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   MicroporeMacroporeFluxEvaluator(Teuchos::ParameterList& plist);
   MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -83,7 +83,7 @@ class MicroporeMacroporeFluxEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<MicroporeMacroporeFluxModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,MicroporeMacroporeFluxEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,MicroporeMacroporeFluxEvaluator> reg_;
 
 };
 

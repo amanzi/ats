@@ -14,7 +14,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   //
   // NOTE: this evaluator simplifies the situation by assuming constant
@@ -167,7 +167,7 @@ AreaFractionsThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<Sta
     }
 
     // Recurse into the tree to propagate info to leaves.
-    S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+    S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
   }
 }
 

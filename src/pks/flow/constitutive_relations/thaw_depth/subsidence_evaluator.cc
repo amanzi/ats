@@ -15,7 +15,7 @@ namespace Flow {
 
 
 SubsidenceEvaluator::SubsidenceEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   Key surf_dset_name = plist.get<std::string>("surface domain set name", "surface_column");
@@ -34,12 +34,12 @@ SubsidenceEvaluator::SubsidenceEvaluator(Teuchos::ParameterList& plist)
   
 
 SubsidenceEvaluator::SubsidenceEvaluator(const SubsidenceEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     bp_key_(other.bp_key_),
     init_elev_key_(other.init_elev_key_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 SubsidenceEvaluator::Clone() const
 {
   return Teuchos::rcp(new SubsidenceEvaluator(*this));
@@ -75,7 +75,7 @@ bool
 SubsidenceEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -103,7 +103,7 @@ SubsidenceEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

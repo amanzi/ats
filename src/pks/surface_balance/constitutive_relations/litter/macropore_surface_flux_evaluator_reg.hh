@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,MacroporeSurfaceFluxEvaluator> MacroporeSurfaceFluxEvaluator::reg_("macropore-surface flux");
+Utils::RegisteredFactory<Evaluator,MacroporeSurfaceFluxEvaluator> MacroporeSurfaceFluxEvaluator::reg_("macropore-surface flux");
 
 } //namespace
 } //namespace

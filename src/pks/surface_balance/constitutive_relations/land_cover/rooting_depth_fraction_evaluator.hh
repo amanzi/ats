@@ -34,7 +34,7 @@ LandCover type.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -43,16 +43,16 @@ namespace Relations {
 
 class RootingDepthFractionModel;
 
-class RootingDepthFractionEvaluator : public SecondaryVariableFieldEvaluator {
+class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   RootingDepthFractionEvaluator(Teuchos::ParameterList& plist);
   RootingDepthFractionEvaluator(const RootingDepthFractionEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -75,7 +75,7 @@ class RootingDepthFractionEvaluator : public SecondaryVariableFieldEvaluator {
   std::map<std::string, Teuchos::RCP<RootingDepthFractionModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RootingDepthFractionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,RootingDepthFractionEvaluator> reg_;
 
 };
 

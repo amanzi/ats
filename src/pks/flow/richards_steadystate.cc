@@ -35,8 +35,8 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
 
   Teuchos::RCP<const CompositeVector> pres = S_next_ -> GetPtr<CompositeVector>(key_);
   // update boundary conditions
-  bc_pressure_->Compute(S_next_->time());
-  bc_flux_->Compute(S_next_->time());
+  bc_pressure_->Compute(S_->get_time(tag_next_));
+  bc_flux_->Compute(S_->get_time(tag_next_));
   UpdateBoundaryConditions_(S_next_.ptr());
 
   preconditioner_->Init();
@@ -48,7 +48,7 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   Teuchos::RCP<const CompositeVector> rel_perm =
       S_next_->GetPtr<CompositeVector>(uw_coef_key_);
 
-  S_next_->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
   preconditioner_diff_->SetDensity(rho);
 
@@ -79,7 +79,7 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   //   Teuchos::RCP<TreeVector> up2 = Teuchos::rcp(new TreeVector(*up));
   //   Teuchos::RCP<TreeVector> f1 = Teuchos::rcp(new TreeVector(*up));
   //   Teuchos::RCP<TreeVector> f2 = Teuchos::rcp(new TreeVector(*up));
-  //   FunctionalResidual(S_->time(), S_next_->time(), Teuchos::null, up_nc, f1);
+  //   FunctionalResidual(S_->time(), S_->get_time(tag_next_), Teuchos::null, up_nc, f1);
 
   //   *up2 = *up;
   //   int f = 500;
@@ -89,7 +89,7 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   //   (*up_nc->Data())("cell",c) =
   //       (*up_nc->Data())("cell",c) + 20;
   //   ChangedSolution();
-  //   FunctionalResidual(S_->time(), S_next_->time(), Teuchos::null, up_nc, f2);
+  //   FunctionalResidual(S_->time(), S_->get_time(tag_next_), Teuchos::null, up_nc, f2);
 
   //   std::cout.precision(16);
   //   std::cout << "DFDP: " << std::endl;
@@ -141,8 +141,8 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
 
   
   double h = t_new - t_old;
-  AMANZI_ASSERT(std::abs(S_inter_->time() - t_old) < 1.e-4*h);
-  AMANZI_ASSERT(std::abs(S_next_->time() - t_new) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_inter_) - t_old) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, S_next_);
@@ -178,7 +178,7 @@ void RichardsSteadyState::FunctionalResidual(double t_old, double t_new, Teuchos
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
 
   // evaulate water content, because otherwise it is never done.
-  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
 
 #if DEBUG_FLAG
   // dump s_old, s_new

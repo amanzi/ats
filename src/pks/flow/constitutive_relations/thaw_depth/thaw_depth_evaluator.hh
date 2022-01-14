@@ -28,18 +28,18 @@ Evaluator name: `"thaw depth`"
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class ThawDepthEvaluator : public SecondaryVariableFieldEvaluator {
+class ThawDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit ThawDepthEvaluator(Teuchos::ParameterList& plist);
   ThawDepthEvaluator(const ThawDepthEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const override {
+  Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new ThawDepthEvaluator(*this));
   }
 
@@ -49,7 +49,7 @@ class ThawDepthEvaluator : public SecondaryVariableFieldEvaluator {
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
   
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -62,7 +62,7 @@ class ThawDepthEvaluator : public SecondaryVariableFieldEvaluator {
   Key temp_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ThawDepthEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ThawDepthEvaluator> reg_;
 
 };
   

@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,MoistureContentEvaluator> MoistureContentEvaluator::reg_("moisture content");
+Utils::RegisteredFactory<Evaluator,MoistureContentEvaluator> MoistureContentEvaluator::reg_("moisture content");
 
 }
 }

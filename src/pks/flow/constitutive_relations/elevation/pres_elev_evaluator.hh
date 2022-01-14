@@ -32,12 +32,12 @@ NOTE: This could easily be replaced by a generic Additive_ Evaluator.
 #ifndef AMANZI_FLOWRELATIONS_PRES_ELEV_EVALUATOR_
 #define AMANZI_FLOWRELATIONS_PRES_ELEV_EVALUATOR_
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class PresElevEvaluator : public SecondaryVariableFieldEvaluator {
+class PresElevEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
@@ -45,9 +45,9 @@ class PresElevEvaluator : public SecondaryVariableFieldEvaluator {
 
   PresElevEvaluator(const PresElevEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,

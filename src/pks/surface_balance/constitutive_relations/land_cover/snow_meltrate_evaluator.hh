@@ -42,27 +42,27 @@ Uses LandCover for snow_ground_transition parameter.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class SnowMeltRateEvaluator : public SecondaryVariableFieldEvaluator {
+class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   SnowMeltRateEvaluator(Teuchos::ParameterList& plist);
   SnowMeltRateEvaluator(const SnowMeltRateEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new SnowMeltRateEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -82,7 +82,7 @@ class SnowMeltRateEvaluator : public SecondaryVariableFieldEvaluator {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SnowMeltRateEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,SnowMeltRateEvaluator> reg_;
 
 };
 

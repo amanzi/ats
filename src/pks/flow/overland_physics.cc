@@ -28,7 +28,7 @@ void OverlandFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
   // update the potential
-  S->GetFieldEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S.ptr(), name_);
+  S->GetEvaluator(Keys::getKey(domain_,"pres_elev"))->HasFieldChanged(S.ptr(), name_);
 
   // Patch up BCs for zero-gradient
   FixBCsForOperator_(S_next_.ptr());
@@ -52,12 +52,12 @@ void OverlandFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 // Accumulation of water, dh/dt
 // -------------------------------------------------------------
 void OverlandFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
 
   // get these fields
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))
+  S_next_->GetEvaluator(Keys::getKey(domain_,"ponded_depth"))
       ->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_,"ponded_depth"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> wc1 =
       S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"));
@@ -87,7 +87,7 @@ void OverlandFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g) {
 
   if (is_source_term_) {
     // Add in external source term.
-    S_next_->GetFieldEvaluator(source_key_)
+    S_next_->GetEvaluator(source_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
     const Epetra_MultiVector& source1 =
         *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);

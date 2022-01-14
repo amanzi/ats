@@ -15,7 +15,7 @@ namespace Flow {
 
 
 InitialElevationEvaluator::InitialElevationEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   
@@ -30,11 +30,11 @@ InitialElevationEvaluator::InitialElevationEvaluator(Teuchos::ParameterList& pli
   
 
 InitialElevationEvaluator::InitialElevationEvaluator(const InitialElevationEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     bp_key_(other.bp_key_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 InitialElevationEvaluator::Clone() const
 {
   return Teuchos::rcp(new InitialElevationEvaluator(*this));
@@ -67,7 +67,7 @@ bool
 InitialElevationEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -95,7 +95,7 @@ InitialElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

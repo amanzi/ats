@@ -17,7 +17,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist)
+  EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("manning coefficient parameters");
   models_ = createManningCoefPartition(sublist);
@@ -27,14 +27,14 @@ ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(Teuchos::Pa
 
 // Copy constructor
 ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
   ld_key_(other.ld_key_),
   pd_key_(other.pd_key_),
   models_(other.models_) {}
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ManningCoefficientLitterEvaluator::Clone() const
 {
   return Teuchos::rcp(new ManningCoefficientLitterEvaluator(*this));

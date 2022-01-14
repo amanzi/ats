@@ -14,18 +14,18 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 
-class OrganicMatterRateEvaluator : public SecondaryVariableFieldEvaluator {
+class OrganicMatterRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   OrganicMatterRateEvaluator(Teuchos::ParameterList& plist);
 
   OrganicMatterRateEvaluator(const OrganicMatterRateEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
   
   // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
   //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
@@ -36,7 +36,7 @@ class OrganicMatterRateEvaluator : public SecondaryVariableFieldEvaluator {
 
 protected:
 
-    // Required methods from SecondaryVariableFieldEvaluator
+    // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -47,7 +47,7 @@ protected:
   double Q_db0_;
   Key biomass_key_;
 
-  static Utils::RegisteredFactory<FieldEvaluator,OrganicMatterRateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,OrganicMatterRateEvaluator> factory_;
 
 };
 

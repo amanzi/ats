@@ -100,8 +100,8 @@ class MPCPermafrost : public MPCSubsurface {
   // Primary variable evaluators for exchange fluxes
   Key mass_exchange_key_;
   Key energy_exchange_key_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> mass_exchange_pvfe_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> energy_exchange_pvfe_;
+  Teuchos::RCP<EvaluatorPrimary> mass_exchange_pvfe_;
+  Teuchos::RCP<EvaluatorPrimary> energy_exchange_pvfe_;
 
   // off-diagonal terms
   // -- d ( dE/dt ) / dp terms

@@ -121,13 +121,13 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
 
     case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "saturation_liquid"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"saturation_liquid"));
+      S->RequireEvaluator(Keys::getKey(domain_,"saturation_liquid"));
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "saturation_ice"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"saturation_ice"));
+      S->RequireEvaluator(Keys::getKey(domain_,"saturation_ice"));
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "saturation_gas"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"saturation_gas"));
+      S->RequireEvaluator(Keys::getKey(domain_,"saturation_gas"));
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "porosity"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"porosity"));
+      S->RequireEvaluator(Keys::getKey(domain_,"porosity"));
       break;
     }
     default: {
@@ -157,7 +157,7 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "cell_volume"))
     ->SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"cell_volume"));
+  S->RequireEvaluator(Keys::getKey(domain_,"cell_volume"));
 
   // Strategy-specific setup
   switch (strategy_) {
@@ -178,10 +178,10 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
     }
     case (DEFORM_STRATEGY_MSTK) : {
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "saturation_ice"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"saturation_ice"));
+      S->RequireEvaluator(Keys::getKey(domain_,"saturation_ice"));
 
       S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "porosity"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Keys::getKey(domain_,"porosity"));
+      S->RequireEvaluator(Keys::getKey(domain_,"porosity"));
       break;
     }
 
@@ -307,15 +307,15 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
     }
 
     case (DEFORM_MODE_SATURATION): {
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"cell_volume"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"cell_volume"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_liquid"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_liquid"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_ice"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_ice"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_gas"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_gas"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"porosity"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"porosity"))
           ->HasFieldChanged(S_next_.ptr(), name_);
 
       const Epetra_MultiVector& cv =
@@ -365,15 +365,15 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
     }
 
     case (DEFORM_MODE_STRUCTURAL): {
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"cell_volume"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"cell_volume"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_liquid"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_liquid"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_ice"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_ice"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"saturation_gas"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"saturation_gas"))
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(Keys::getKey(domain_,"porosity"))
+      S_next_->GetEvaluator(Keys::getKey(domain_,"porosity"))
           ->HasFieldChanged(S_next_.ptr(), name_);
 
       const Epetra_MultiVector& cv =
@@ -516,12 +516,12 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 #endif
 
       mesh_nc_->deform(target_cell_vols, min_cell_vols, *below_node_list, true);
-      solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+      solution_evaluator_->SetChanged(S_next_.ptr());
 
 
 #if DEBUG
       // DEBUG CRUFT BEGIN
-      bool changed = S_next_->GetFieldEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
+      bool changed = S_next_->GetEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
       Teuchos::RCP<const CompositeVector> cv_vec_new = S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
       const Epetra_MultiVector& cv_new = *cv_vec_new->ViewComponent("cell",false);
 
@@ -629,7 +629,7 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 
       // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
 
-      solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+      solution_evaluator_->SetChanged(S_next_.ptr());
 
 #if DEBUG
       // DEBUG CRUFT BEGIN
@@ -637,7 +637,7 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 	AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.);
       }
 
-      bool changed = S_next_->GetFieldEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
+      bool changed = S_next_->GetEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
 
       for (int c=0; c!=cv.MyLength(); ++c) {
         // min vol is rock vol + ice + a bit
@@ -738,7 +738,7 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
   // update cell volumes, base porosity
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(Keys::getKey(domain_,"cell_volume")) -> HasFieldChanged(S_next_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> cv_vec_new = S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
 
   cv_vec->ScatterMasterToGhosted("cell");

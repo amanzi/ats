@@ -222,7 +222,7 @@ MPCCoupledWater::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
 
   // Merge surface cells with subsurface faces
   if (modified) {
-    S_next_->GetFieldEvaluator(Keys::getKey(domain_surf_,"relative_permeability"))->HasFieldChanged(S_next_.ptr(),name_);
+    S_next_->GetEvaluator(Keys::getKey(domain_surf_,"relative_permeability"))->HasFieldChanged(S_next_.ptr(),name_);
     Teuchos::RCP<const CompositeVector> h_prev = S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_surf_,"ponded_depth"));
     MergeSubsurfaceAndSurfacePressure(*h_prev, u->SubVector(0)->Data().ptr(),
             u->SubVector(1)->Data().ptr());
@@ -350,7 +350,7 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
 //   surf_Ph->PutScalar(0.);
 
 //   // old ponded depth
-//   S_next_->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S_next_.ptr(), name_);
+//   S_next_->GetEvaluator("ponded_depth")->HasFieldChanged(S_next_.ptr(), name_);
 //   *surf_Ph->ViewComponent("cell",false) = *S_next_->Get<CompositeVector>("ponded_depth").ViewComponent("cell",false);
 
 //   // new ponded depth
@@ -362,7 +362,7 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
 //   sub_pks_[1]->ChangedSolution();
 
 //   if (sub_pks_[1]->IsAdmissible(tv_p)) {
-//     S_next_->GetFieldEvaluator("ponded_depth")->HasFieldChanged(S_next_.ptr(), name_);
+//     S_next_->GetEvaluator("ponded_depth")->HasFieldChanged(S_next_.ptr(), name_);
 
 //     // put delta ponded depth into surf_Ph_cell
 //     surf_Ph->ViewComponent("cell",false)

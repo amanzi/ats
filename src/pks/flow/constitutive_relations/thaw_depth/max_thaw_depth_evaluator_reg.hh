@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,MaxThawDepthEvaluator> MaxThawDepthEvaluator::reg_("maximum thaw depth");
+Utils::RegisteredFactory<Evaluator,MaxThawDepthEvaluator> MaxThawDepthEvaluator::reg_("maximum thaw depth");
 
 }
 }

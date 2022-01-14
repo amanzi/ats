@@ -42,30 +42,30 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class ColumnSumEvaluator : public SecondaryVariableFieldEvaluator {
+class ColumnSumEvaluator : public EvaluatorSecondaryMonotypeCV {
 
-public:
+ public:
   explicit
   ColumnSumEvaluator(Teuchos::ParameterList& plist);
-  ColumnSumEvaluator(const ColumnSumEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  ColumnSumEvaluator(const ColumnSumEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void EnsureCompatibility(State& S) override;
+  virtual bool Update(State& S, const Key& request) override;
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S,
-                                      Key request);
-protected:
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+                              const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+               const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
+ protected:
   double coef_;
 
   Key dep_key_;
@@ -78,7 +78,7 @@ protected:
 
   bool updated_once_;
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,ColumnSumEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,ColumnSumEvaluator> factory_;
 
 };
 

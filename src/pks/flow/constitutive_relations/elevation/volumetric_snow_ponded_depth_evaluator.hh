@@ -21,14 +21,14 @@
 
 #pragma once
 
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 
-class VolumetricSnowPondedDepthEvaluator : public SecondaryVariablesFieldEvaluator {
+class VolumetricSnowPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -36,7 +36,7 @@ class VolumetricSnowPondedDepthEvaluator : public SecondaryVariablesFieldEvaluat
   VolumetricSnowPondedDepthEvaluator(Teuchos::ParameterList& plist);
   VolumetricSnowPondedDepthEvaluator(const VolumetricSnowPondedDepthEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new VolumetricSnowPondedDepthEvaluator(*this));
   }
 
@@ -61,7 +61,7 @@ class VolumetricSnowPondedDepthEvaluator : public SecondaryVariablesFieldEvaluat
   Key domain_snow_, domain_surf_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,VolumetricSnowPondedDepthEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,VolumetricSnowPondedDepthEvaluator> reg_;
 
 };
 

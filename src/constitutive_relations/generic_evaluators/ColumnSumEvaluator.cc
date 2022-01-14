@@ -13,21 +13,15 @@ namespace Amanzi {
 namespace Relations {
 
 ColumnSumEvaluator::ColumnSumEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
-  surf_domain_ = Keys::getDomain(my_key_);
-  if (surf_domain_ == "surface") {
-    domain_ = "";
-    domain_ = plist_.get<std::string>("column domain name", domain_);
-  } else if (Keys::starts_with(surf_domain_, "surface_")) {
-    domain_ = surf_domain_.substr(8, surf_domain_.size());
-    domain_ = plist_.get<std::string>("column domain name", domain_);
-  } else {
-    domain_ = plist_.get<std::string>("column domain name");
-  }
+  surf_domain_ = Keys::getDomain(my_keys_.front().first);
+  domain_ = Keys::readDomainHint(plist_, surf_domain_, "surface", "subsurface");
 
-  dep_key_ = Keys::readKey(plist_, domain_, "summed", Keys::getKey(domain_, Keys::getVarName(my_key_)));
-  dependencies_.insert(dep_key_);
+  dep_key_ = Keys::readKey(plist_, domain_, "summed",
+                           Keys::getKey(domain_, Keys::getVarName(my_keys_.front().first)));
+  Tag tag = my_keys_.front().second;
+  dependencies_.insert(KeyTag{dep_key_, tag});
 
   Key pname = dep_key_ + " coefficient";
   coef_ = plist_.get<double>(pname, 1.0);
@@ -35,29 +29,20 @@ ColumnSumEvaluator::ColumnSumEvaluator(Teuchos::ParameterList& plist)
   // dependency: cell volume, surface cell volume
   if (plist_.get<bool>("include volume factor", true)) {
     cv_key_ = Keys::readKey(plist_, domain_, "cell volume", "cell_volume");
-    dependencies_.insert(cv_key_);
+    dependencies_.insert(KeyTag{cv_key_, tag});
 
     surf_cv_key_ = Keys::readKey(plist_, surf_domain_, "surface cell volume", "cell_volume");
-    dependencies_.insert(surf_cv_key_);
+    dependencies_.insert(KeyTag{surf_cv_key_, tag});
   }
 
   if (plist_.get<bool>("divide by density", true)) {
     molar_dens_key_ = Keys::readKey(plist_, domain_, "molar density", "molar_density_liquid");
-    dependencies_.insert(molar_dens_key_);
+    dependencies_.insert(KeyTag{molar_dens_key_, tag});
   }
 }
 
 
-ColumnSumEvaluator::ColumnSumEvaluator(const ColumnSumEvaluator& other) :
-  SecondaryVariableFieldEvaluator(other),
-  coef_(other.coef_),
-  dep_key_(other.dep_key_),
-  cv_key_(other.cv_key_),
-  surf_cv_key_(other.surf_cv_key_),
-  molar_dens_key_(other.molar_dens_key_) {}
-
-
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ColumnSumEvaluator::Clone() const
 {
   return Teuchos::rcp(new ColumnSumEvaluator(*this));
@@ -65,20 +50,25 @@ ColumnSumEvaluator::Clone() const
 
 
 void
-ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+ColumnSumEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& dep_c = *S->Get<CompositeVector>(dep_key_).ViewComponent("cell", false);
+  Tag tag = my_keys_.front().second;
+  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell",false);
+  const Epetra_MultiVector& dep_c = *S.Get<CompositeVector>(dep_key_, tag)
+    .ViewComponent("cell", false);
 
   if (cv_key_ != "") {
-    const Epetra_MultiVector& cv = *S->Get<CompositeVector>(cv_key_).ViewComponent("cell", false);
-    const Epetra_MultiVector& surf_cv = *S->Get<CompositeVector>(surf_cv_key_).ViewComponent("cell", false);
+    const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag)
+      .ViewComponent("cell", false);
+    const Epetra_MultiVector& surf_cv = *S.Get<CompositeVector>(surf_cv_key_, tag)
+      .ViewComponent("cell", false);
 
     if (molar_dens_key_ != "") {
-      const Epetra_MultiVector& dens = *S->Get<CompositeVector>(molar_dens_key_).ViewComponent("cell",false);
+      const Epetra_MultiVector& dens = *S.Get<CompositeVector>(molar_dens_key_, tag)
+        .ViewComponent("cell",false);
 
-      Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
+      auto subsurf_mesh = S.GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
         double sum = 0;
         for (auto i : subsurf_mesh->cells_of_column(c)) {
@@ -88,7 +78,7 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       }
     } else {
 
-      Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
+      auto subsurf_mesh = S.GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
         double sum = 0;
         for (auto i : subsurf_mesh->cells_of_column(c)) {
@@ -100,9 +90,10 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   } else {
     if (molar_dens_key_ != "") {
-      const Epetra_MultiVector& dens = *S->Get<CompositeVector>(molar_dens_key_).ViewComponent("cell",false);
+      const Epetra_MultiVector& dens = *S.Get<CompositeVector>(molar_dens_key_, tag)
+        .ViewComponent("cell",false);
 
-      Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
+      auto subsurf_mesh = S.GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
         double sum = 0;
         for (auto i : subsurf_mesh->cells_of_column(c)) {
@@ -112,7 +103,7 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       }
     } else {
 
-      Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh = S->GetMesh(domain_);
+      auto subsurf_mesh = S.GetMesh(domain_);
       for (int c=0; c!=res_c.MyLength(); ++c) {
         double sum = 0;
         for (auto i : subsurf_mesh->cells_of_column(c)) {
@@ -126,8 +117,8 @@ ColumnSumEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-ColumnSumEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+ColumnSumEvaluator::EvaluatePartialDerivative_(const State& S,
+               const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
   AMANZI_ASSERT(false);
 }
@@ -135,13 +126,12 @@ ColumnSumEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S
 
 // Custom EnsureCompatibility forces this to be updated once.
 bool
-ColumnSumEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
-        Key request)
+ColumnSumEvaluator::Update(State& S, const Key& request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::Update(S,request);
 
   if (!updated_once_) {
-    UpdateField_(S);
+    Update_(S);
     updated_once_ = true;
     return true;
   }
@@ -149,23 +139,22 @@ ColumnSumEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
 }
 
 void
-ColumnSumEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+ColumnSumEvaluator::EnsureCompatibility(State& S)
 {
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
+  Tag tag = my_keys_.front().second;
+  Key key = my_keys_.front().first;
 
-  // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+my_key_, false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
+  auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(key, tag, key);
 
-  if (my_fac->Mesh() != Teuchos::null) {
+  if (my_fac.Mesh() != Teuchos::null) {
     // Recurse into the tree to propagate info to leaves.
-    for (KeySet::const_iterator key=dependencies_.begin();
-         key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+    for (const auto& dep : dependencies_) {
+      S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
     }
   }
+
+  // check plist for vis or checkpointing control
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
 }
 
 

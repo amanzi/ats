@@ -263,7 +263,7 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S)
       Teuchos::Array<std::string> deps(2);
       deps[0] = enth_key_; deps[1] = kr_key_;
       hkr_eval_list.set("evaluator dependencies", deps);
-      Teuchos::RCP<FieldEvaluator> hkr_eval =
+      Teuchos::RCP<Evaluator> hkr_eval =
           Teuchos::rcp(new Relations::MultiplicativeEvaluator(hkr_eval_list));
 
       // -- now the field
@@ -271,7 +271,7 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S)
       locations2[1] = AmanziMesh::BOUNDARY_FACE;
       S->Require<CompositeVector,CompositeVectorSpace>(hkr_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
           ->AddComponents(names2, locations2, num_dofs2);
-      S->SetFieldEvaluator(hkr_key_, hkr_eval);
+      S->SetEvaluator(hkr_key_, hkr_eval);
 
       // locations2[1] = AmanziMesh::FACE;
       // names2[1] = "face";
@@ -490,7 +490,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     // -- dkr/dT
     if (ddivq_dT_ != Teuchos::null) {
       // -- update and upwind d kr / dT
-      S_next_->GetFieldEvaluator(kr_key_)
+      S_next_->GetEvaluator(kr_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
       Teuchos::RCP<const CompositeVector> dkrdT;
       if (is_fv_) {
@@ -518,7 +518,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     }
 
     // -- dWC/dT diagonal term
-    S_next_->GetFieldEvaluator(wc_key_)
+    S_next_->GetEvaluator(wc_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
     Teuchos::RCP<const CompositeVector> dWC_dT =
       S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(wc_key_, temp_key_));
@@ -528,7 +528,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     // -- d Kappa / dp
     if (ddivKgT_dp_ != Teuchos::null) {
       // Update and upwind thermal conductivity
-      S_next_->GetFieldEvaluator(tc_key_)
+      S_next_->GetEvaluator(tc_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
 
       Teuchos::RCP<const CompositeVector> dkappa_dp;
@@ -559,11 +559,11 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     if (ddivhq_dp_ != Teuchos::null) {
       // Update and upwind enthalpy * kr * rho/mu
       // -- update values
-      S_next_->GetFieldEvaluator(hkr_key_)
+      S_next_->GetEvaluator(hkr_key_)
           ->HasFieldChanged(S_next_.ptr(), name_);
-      S_next_->GetFieldEvaluator(hkr_key_)
+      S_next_->GetEvaluator(hkr_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
-      S_next_->GetFieldEvaluator(hkr_key_)
+      S_next_->GetEvaluator(hkr_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
 
       Teuchos::RCP<const CompositeVector> denth_kr_dp_uw;
@@ -656,7 +656,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     }
 
     // -- dE/dp diagonal term
-    S_next_->GetFieldEvaluator(e_key_)
+    S_next_->GetEvaluator(e_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
     Teuchos::RCP<const CompositeVector> dE_dp =
       S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(e_key_, pres_key_));

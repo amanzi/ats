@@ -159,7 +159,7 @@ void MPCPredictorCorrector<PK_t>::CommitStep(double t_old, double t_new,
 template<class PK_t>
 bool MPCPredictorCorrector<PK_t>::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
         Teuchos::RCP<TreeVector> u) {
-  predictor_fail_ = predictor_pk_->AdvanceStep(this->S_inter_->time(), this->S_next_->time(), false);
+  predictor_fail_ = predictor_pk_->AdvanceStep(this->S_->get_time(tag_inter_), this->S_->get_time(tag_next_), false);
   
   // copy explicit prediction into BDF
   // NOTE special purpose

@@ -7,7 +7,7 @@ Author: Ethan Coon
 
 ------------------------------------------------------------------------- */
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 
 #include "mpc_permafrost_split_flux_columns_subcycled.hh"
@@ -95,7 +95,7 @@ bool MPCPermafrostSplitFluxColumnsSubcycled::AdvanceStep(double t_old, double t_
     if (fail_inner || !valid_inner) {
       dt_inner = sub_pks_[0]->get_dt();
       S_next_->AssignDomain(*S_inter_, "surface_star");
-      S_next_->set_time(S_inter_->time());
+      S_next_->set_time(S_->get_time(tag_inter_));
       S_next_->set_cycle(S_inter_->cycle());
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -109,7 +109,7 @@ bool MPCPermafrostSplitFluxColumnsSubcycled::AdvanceStep(double t_old, double t_
       }
 
       S_inter_->AssignDomain(*S_next_, "surface_star");
-      S_inter_->set_time(S_next_->time());
+      S_inter_->set_time(S_->get_time(tag_next_));
       S_inter_->set_cycle(S_next_->cycle());
       dt_inner = sub_pks_[0]->get_dt();
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -160,7 +160,7 @@ bool MPCPermafrostSplitFluxColumnsSubcycled::AdvanceStep(double t_old, double t_
         S_next_->AssignDomain(*S_inter_, col_domain);
         S_next_->AssignDomain(*S_inter_, "surface_"+col_domain);
         S_next_->AssignDomain(*S_inter_, "snow_"+col_domain);
-        S_next_->set_time(S_inter_->time());
+        S_next_->set_time(S_->get_time(tag_inter_));
         S_next_->set_cycle(S_inter_->cycle());
 
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -174,7 +174,7 @@ bool MPCPermafrostSplitFluxColumnsSubcycled::AdvanceStep(double t_old, double t_
         S_inter_->AssignDomain(*S_next_, col_domain);
         S_inter_->AssignDomain(*S_next_, "surface_"+col_domain);
         S_inter_->AssignDomain(*S_next_, "snow_"+col_domain);
-        S_inter_->set_time(S_next_->time());
+        S_inter_->set_time(S_->get_time(tag_next_));
         S_inter_->set_cycle(S_next_->cycle());
         dt_inner = sub_pks_[i]->get_dt();
         if (vo_->os_OK(Teuchos::VERB_EXTREME))

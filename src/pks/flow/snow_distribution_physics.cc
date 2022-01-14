@@ -30,7 +30,7 @@ void SnowDistribution::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   matrix_diff_->ApplyBCs(true, true, true);
   
   // update the potential
-  S->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S.ptr(), name_);
+  S->GetEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S.ptr(), name_);
   Teuchos::RCP<const CompositeVector> potential = S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"skin_potential"));
 
   // calculate the residual
@@ -61,7 +61,7 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
       S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
 
   // note 10 is for conversion from precip m SWE to actual m
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
   g->ViewComponent("cell",false)->Multiply(10*dt_factor_/dt,
           *cv1->ViewComponent("cell",false), h1_positive, 1.);
   g->ViewComponent("cell",false)->Multiply(-10*dt_factor_/dt,

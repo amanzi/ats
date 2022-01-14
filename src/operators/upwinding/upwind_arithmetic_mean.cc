@@ -17,26 +17,23 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindArithmeticMean::UpwindArithmeticMean(Key pkname,
-        Key cell_coef,
-        Key face_coef) :
-    pkname_(std::move(pkname)),
-    cell_coef_(std::move(cell_coef)),
-    face_coef_(std::move(face_coef)) {};
+UpwindArithmeticMean::UpwindArithmeticMean(const std::string& pkname, const Tag& tag)
+  : pkname_(pkname),
+    tag_(tag) {}
 
-
-void UpwindArithmeticMean::Update(const Teuchos::Ptr<State>& S,
-                                  const Teuchos::Ptr<Debugger>& db) {
-  const CompositeVector& cell = S->Get<CompositeVector>(cell_coef_);
-  CompositeVector& face = S->GetW<CompositeVector>(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(cell, face);
+void UpwindArithmeticMean::Update(const CompositeVector& cells,
+        CompositeVector& faces,
+        const State& S,
+        const Teuchos::Ptr<Debugger>& db) const
+{
+  CalculateCoefficientsOnFaces(cells, faces);
 };
 
 
 void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        CompositeVector& face_coef) {
-
+        CompositeVector& face_coef) const
+{
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   AmanziMesh::Entity_ID_List faces;
 
@@ -79,13 +76,15 @@ void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
   }
 };
 
+
 void
 UpwindArithmeticMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
                                         Key potential_key,
                                         const CompositeVector& dconductivity,
                                         const std::vector<int>& bc_markers,
                                         const std::vector<double>& bc_values,
-                                        std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const {
+                                        std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const
+{
 
   // Grab derivatives
   dconductivity.ScatterMasterToGhosted("cell");

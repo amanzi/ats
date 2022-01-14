@@ -114,8 +114,8 @@ void Morphology_PK::Setup(const Teuchos::Ptr<State>& S){
     S->Require<CompositeVector,CompositeVectorSpace>(elevation_increase_key_, Tags::NEXT,  "state").SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
     Teuchos::ParameterList deform_plist;
     deform_plist.set("evaluator name", elevation_increase_key_);
-    deform_eval_ = Teuchos::rcp(new PrimaryVariableFieldEvaluator(deform_plist));
-    S->SetFieldEvaluator(elevation_increase_key_, deform_eval_);
+    deform_eval_ = Teuchos::rcp(new EvaluatorPrimary(deform_plist));
+    S->SetEvaluator(elevation_increase_key_, deform_eval_);
   }
 
   int num_veg_species = plist_->get<int>("number of vegitation species", 1);
@@ -134,7 +134,7 @@ void Morphology_PK::Setup(const Teuchos::Ptr<State>& S){
   if (!S->HasField(biomass_key)){
     S->Require<CompositeVector,CompositeVectorSpace>(biomass_key, Tags::NEXT,  biomass_key).SetMesh(mesh_)->SetGhosted()
       ->SetComponents(name, location, num_dofs);
-    S->RequireFieldEvaluator(biomass_key);
+    S->RequireEvaluator(biomass_key);
   }
 
   if (!S->HasField("msl"))
@@ -180,7 +180,7 @@ void Morphology_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<St
   Key elev_key = Keys::readKey(*plist_, domain_, "elevation", "elevation");
   Key slope_key = Keys::readKey(*plist_, domain_, "slope magnitude", "slope_magnitude");
     
-  bool chg = S_ -> GetFieldEvaluator(elev_key)->HasFieldChanged(S_.ptr(), elev_key);
+  bool chg = S_ -> GetEvaluator(elev_key)->HasFieldChanged(S_.ptr(), elev_key);
   if (chg){
     Teuchos::RCP<CompositeVector> elev =  S->GetPtrW<CompositeVector>(elev_key, elev_key);
     Teuchos::RCP<CompositeVector> slope = S->GetPtrW<CompositeVector>(slope_key, slope_key);
@@ -193,7 +193,7 @@ void Morphology_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<St
   }
 
   Key biomass_key = Keys::getKey(domain_, "biomass");
-  chg = S_ -> GetFieldEvaluator(biomass_key) -> HasFieldChanged(S_.ptr(), biomass_key);
+  chg = S_ -> GetEvaluator(biomass_key) -> HasFieldChanged(S_.ptr(), biomass_key);
   // if (chg)
     
   
@@ -300,9 +300,9 @@ bool Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit) {
   Update_MeshVertices_(S_next_.ptr() );
 
   
-  bool chg = S_next_ -> GetFieldEvaluator(elev_key)->HasFieldChanged(S_next_.ptr(), elev_key);
+  bool chg = S_next_ -> GetEvaluator(elev_key)->HasFieldChanged(S_next_.ptr(), elev_key);
   Epetra_MultiVector& elev_cell = *S_next_->GetW<CompositeVector>(elev_key, elev_key).ViewComponent("cell",false);
-  //S_next_ -> GetFieldEvaluator("surface-slope)->HasFieldChanged(S_next_.ptr(), elev_key);
+  //S_next_ -> GetEvaluator("surface-slope)->HasFieldChanged(S_next_.ptr(), elev_key);
 
 
   return fail;
@@ -432,8 +432,8 @@ void Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S){
     }  
   }
 
-  deform_eval_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(S -> GetFieldEvaluator(elevation_increase_key_)); 
-  deform_eval_ -> SetFieldAsChanged(S.ptr());
+  deform_eval_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(S -> GetEvaluator(elevation_increase_key_)); 
+  deform_eval_ -> SetChanged(S.ptr());
 
 
 

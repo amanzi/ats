@@ -35,7 +35,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist),
+    EvaluatorSecondaryMonotypeCV(plist),
     compatible_(false),
     plist_(plist)
 {
@@ -63,41 +63,41 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   // my keys
   // -- sources
   water_source_key_ = Keys::readKey(plist, domain_, "surface water source", "water_source");
-  my_keys_.push_back(water_source_key_);
+  my_keys_.emplace_back((water_source_key_);
   energy_source_key_ = Keys::readKey(plist, domain_, "surface energy source", "total_energy_source");
-  my_keys_.push_back(energy_source_key_);
+  my_keys_.emplace_back((energy_source_key_);
   ss_water_source_key_ = Keys::readKey(plist, domain_ss_, "subsurface water source", "water_source");
-  my_keys_.push_back(ss_water_source_key_);
+  my_keys_.emplace_back((ss_water_source_key_);
   ss_energy_source_key_ = Keys::readKey(plist, domain_ss_, "subsurface energy source", "total_energy_source");
-  my_keys_.push_back(ss_energy_source_key_);
+  my_keys_.emplace_back((ss_energy_source_key_);
   snow_source_key_ = Keys::readKey(plist, domain_snow_, "snow mass source - sink", "source_sink");
-  my_keys_.push_back(snow_source_key_);
+  my_keys_.emplace_back((snow_source_key_);
 
   new_snow_key_ = Keys::readKey(plist, domain_snow_, "new snow source", "source");
-  my_keys_.push_back(new_snow_key_);
+  my_keys_.emplace_back((new_snow_key_);
 
   // diagnostics and debugging
   diagnostics_ = plist.get<bool>("save diagnostic data", false);
   if (diagnostics_) {
     // -- diagnostics
     albedo_key_ = Keys::readKey(plist, domain_, "albedo", "albedo");
-    my_keys_.push_back(albedo_key_);
+    my_keys_.emplace_back((albedo_key_);
     melt_key_ = Keys::readKey(plist, domain_snow_, "snowmelt", "melt");
-    my_keys_.push_back(melt_key_);
+    my_keys_.emplace_back((melt_key_);
     evap_key_ = Keys::readKey(plist, domain_, "evaporation", "evaporative_flux");
-    my_keys_.push_back(evap_key_);
+    my_keys_.emplace_back((evap_key_);
     snow_temp_key_ = Keys::readKey(plist, domain_snow_, "snow temperature", "temperature");
-    my_keys_.push_back(snow_temp_key_);
+    my_keys_.emplace_back((snow_temp_key_);
     qE_sh_key_ = Keys::readKey(plist, domain_, "sensible heat flux", "qE_sensible_heat");
-    my_keys_.push_back(qE_sh_key_);
+    my_keys_.emplace_back((qE_sh_key_);
     qE_lh_key_ = Keys::readKey(plist, domain_, "latent heat of evaporation", "qE_latent_heat");
-    my_keys_.push_back(qE_lh_key_);
+    my_keys_.emplace_back((qE_lh_key_);
     qE_sm_key_ = Keys::readKey(plist, domain_, "latent heat of snowmelt", "qE_snowmelt");
-    my_keys_.push_back(qE_sm_key_);
+    my_keys_.emplace_back((qE_sm_key_);
     qE_lw_out_key_ = Keys::readKey(plist, domain_, "outgoing longwave radiation", "qE_lw_out");
-    my_keys_.push_back(qE_lw_out_key_);
+    my_keys_.emplace_back((qE_lw_out_key_);
     qE_cond_key_ = Keys::readKey(plist, domain_, "conducted energy flux", "qE_conducted");
-    my_keys_.push_back(qE_cond_key_);
+    my_keys_.emplace_back((qE_cond_key_);
   }
 
   // dependencies
@@ -688,7 +688,7 @@ SEBThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
         fac->Update(domain_fac);
       }
 
-      S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+      S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
     }
 
     // additionally MANUALLY require the area frac, because it is not in the

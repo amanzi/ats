@@ -12,7 +12,7 @@
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
 
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "Op.hh"
 #include "richards.hh"
 
@@ -22,26 +22,28 @@ namespace Flow {
 // -------------------------------------------------------------
 // Diffusion term, div K grad (p + rho*g*z)
 // -------------------------------------------------------------
-void Richards::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& g) {
+void Richards::ApplyDiffusion_(const Tag& tag,
+        const Teuchos::Ptr<CompositeVector>& g)
+{
   // update the rel perm according to the scheme of choice
-  bool update = UpdatePermeabilityData_(S.ptr());
+  bool update = UpdatePermeabilityData_(tag);
 
   // update the matrix
   matrix_->Init();
 
-  S->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S, name_);
-  matrix_diff_->SetDensity(S->GetPtr<CompositeVector>(mass_dens_key_));
-  matrix_diff_->SetScalarCoefficient(S->GetPtr<CompositeVector>(uw_coef_key_), Teuchos::null);
+  S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
+  matrix_diff_->SetDensity(S_->GetPtr<CompositeVector>(mass_dens_key_, tag));
+  matrix_diff_->SetScalarCoefficient(S_->GetPtr<CompositeVector>(uw_coef_key_, tag), Teuchos::null);
 
-  Teuchos::RCP<const CompositeVector> pres = S->GetPtrW<CompositeVector>(key_, name_);
+  Teuchos::RCP<const CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
-  Teuchos::RCP<CompositeVector> flux = S->GetPtrW<CompositeVector>(flux_key_, name_);
+  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-  if (S == S_next_.ptr()) flux_pvfe_->SetFieldAsChanged(S);
+  if (tag == tag_next_)
+    ChangedEvaluatorPrimary_(flux_key_, tag_next_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);
@@ -51,16 +53,17 @@ void Richards::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 // -------------------------------------------------------------
 // Accumulation of water term du/dt
 // -------------------------------------------------------------
-void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
-  double dt = S_next_->time() - S_inter_->time();
+void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
+{
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
   // update the water content at both the old and new times.
-  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
 
   // get these fields
-  Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
-  Teuchos::RCP<const CompositeVector> wc0 = S_inter_->GetPtr<CompositeVector>(conserved_key_);
+  Teuchos::RCP<const CompositeVector> wc1 = S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
 
   // Water content only has cells, while the residual has cells and faces.
   g->ViewComponent("cell",false)->Update(1.0/dt, *wc1->ViewComponent("cell",false),
@@ -71,8 +74,9 @@ void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
 // ---------------------------------------------------------------------
 // Add in mass source, in units of mol / m^3 s
 // ---------------------------------------------------------------------
-void Richards::AddSources_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& g) {
+void Richards::AddSources_(const Tag& tag,
+        const Teuchos::Ptr<CompositeVector>& g)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // external sources of energy
@@ -80,12 +84,12 @@ void Richards::AddSources_(const Teuchos::Ptr<State>& S,
     Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
 
     // Update the source term
-    S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
+    S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
-        *S->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell",false);
 
     const Epetra_MultiVector& cv =
-      *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
@@ -93,20 +97,21 @@ void Richards::AddSources_(const Teuchos::Ptr<State>& S,
       g_c[0][c] -= source1[0][c] * cv[0][c];
     }
 
-    db_->WriteVector("  source", S->GetPtr<CompositeVector>(source_key_).ptr(), false);
+    db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
   }
 }
 
 
-void Richards::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
+void Richards::AddSourcesToPrecon_(double h)
+{
   // external sources of energy (temperature dependent source)
   if (is_source_term_ && !explicit_source_ && source_term_is_differentiable_ &&
-      S->GetFieldEvaluator(source_key_)->IsDependency(S, key_)) {
+      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
 
-    S->GetFieldEvaluator(source_key_)->HasFieldDerivativeChanged(S, name_, key_);
-    Key dsource_dp_key = Keys::getDerivKey(source_key_, key_);
-
-    preconditioner_acc_->AddAccumulationTerm(*S->GetPtr<CompositeVector>(dsource_dp_key), -1.0, "cell", true);
+    S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+    preconditioner_acc_->AddAccumulationTerm(
+      S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),
+      -1.0, "cell", true);
   }
 }
 
@@ -114,33 +119,34 @@ void Richards::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
 // -------------------------------------------------------------
 // Convert abs perm vector to tensor.
 // -------------------------------------------------------------
-void Richards::SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S) {
+void Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
+{
   // currently assumes isotropic perm, should be updated
-  S->GetFieldEvaluator(perm_key_)->HasFieldChanged(S.ptr(), name_);
-  const Epetra_MultiVector& perm = *S->GetPtr<CompositeVector>(perm_key_)
-      ->ViewComponent("cell",false);
+  S_->GetEvaluator(perm_key_, tag).Update(*S_, name_);
+  const Epetra_MultiVector& perm = *S_->Get<CompositeVector>(perm_key_, tag)
+      .ViewComponent("cell",false);
   unsigned int ncells = perm.MyLength();
   unsigned int ndofs = perm.NumVectors();
-
+  int space_dim = mesh_->space_dimension();
   if (ndofs == 1) { // isotropic
     for (unsigned int c=0; c!=ncells; ++c) {
       (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
     }
-  } else if (ndofs == 2 && S->GetMesh()->space_dimension() == 3) {
+  } else if (ndofs == 2 && space_dim == 3) {
     // horizontal and vertical perms
     for (unsigned int c=0; c!=ncells; ++c) {
       (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
       (*K_)[c](1, 1) = perm[0][c] * perm_scale_;
       (*K_)[c](2, 2) = perm[1][c] * perm_scale_;
     }
-  } else if (ndofs >= S->GetMesh()->space_dimension()) {
+  } else if (ndofs >= space_dim) {
     // diagonal tensor
-    for (unsigned int dim=0; dim!=S->GetMesh()->space_dimension(); ++dim) {
+    for (unsigned int dim=0; dim!=space_dim; ++dim) {
       for (unsigned int c=0; c!=ncells; ++c) {
         (*K_)[c](dim, dim) = perm[dim][c] * perm_scale_;
       }
     }
-      if (ndofs > S->GetMesh()->space_dimension()) {
+      if (ndofs > space_dim) {
       // full tensor
       if (ndofs == 3) { // 2D
         for (unsigned int c=0; c!=ncells; ++c) {
@@ -162,15 +168,15 @@ void Richards::SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S) {
 
 
 void
-Richards::UpdateVelocity_(const Teuchos::Ptr<State>& S) {
-  const Epetra_MultiVector& flux = *S->GetPtr<CompositeVector>(flux_key_)
-      ->ViewComponent("face", true);
+Richards::UpdateVelocity_(const Tag& tag) {
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag)
+      .ViewComponent("face", true);
 
-  S->GetFieldEvaluator(molar_dens_key_)->HasFieldChanged(S.ptr(), name_);
-  const Epetra_MultiVector& nliq_c = *S->GetPtr<CompositeVector>(molar_dens_key_)
-      ->ViewComponent("cell",false);
-  Epetra_MultiVector& velocity = *S->GetPtrW<CompositeVector>(velocity_key_, name_)
-      ->ViewComponent("cell", true);
+  S_->GetEvaluator(molar_dens_key_, tag).Update(*S_, name_);
+  const Epetra_MultiVector& nliq_c = *S_->Get<CompositeVector>(molar_dens_key_, tag)
+      .ViewComponent("cell",false);
+  Epetra_MultiVector& velocity = *S_->GetW<CompositeVector>(velocity_key_, tag, name_)
+      .ViewComponent("cell", true);
 
   int d(mesh_->space_dimension());
   AmanziGeometry::Point local_velocity(d);
@@ -216,19 +222,19 @@ Richards::UpdateVelocity_(const Teuchos::Ptr<State>& S) {
 // void Richards::AddVaporDiffusionResidual_(const Teuchos::Ptr<State>& S,
 //         const Teuchos::Ptr<CompositeVector>& g) {
 
-//   //res_vapor = Teuchos::rcp(new CompositeVector(*S->GetPtr<CompositeVector>("pressure"))); 
+//   //res_vapor = Teuchos::rcp(new CompositeVector(*S_->GetPtr<CompositeVector>("pressure"))); 
 //   //res_vapor = Teuchos::rcp(new CompositeVector(*g)); 
 //   res_vapor->PutScalar(0.0);
 //   //Teuchos::RCP<CompositeVector> res_en = Teuchos::rcp(new CompositeVector(*g)); 
 //   //res_en->PutScalar(0.);
 
 //   // derive fluxes
-//   Teuchos::RCP<const CompositeVector> pres   = S->GetPtr<CompositeVector>("pressure");
-//   Teuchos::RCP<const CompositeVector> temp   = S->GetPtr<CompositeVector>("temperature");
+//   Teuchos::RCP<const CompositeVector> pres   = S_->GetPtr<CompositeVector>("pressure");
+//   Teuchos::RCP<const CompositeVector> temp   = S_->GetPtr<CompositeVector>("temperature");
 
 
-//   Teuchos::RCP<CompositeVector> vapor_diff_pres = S->GetPtrW<CompositeVector>("vapor_diffusion_pressure", name_);
-//   Teuchos::RCP<CompositeVector> vapor_diff_temp = S->GetPtrW<CompositeVector>("vapor_diffusion_temperature", name_);
+//   Teuchos::RCP<CompositeVector> vapor_diff_pres = S_->GetPtrW<CompositeVector>("vapor_diffusion_pressure", name_);
+//   Teuchos::RCP<CompositeVector> vapor_diff_temp = S_->GetPtrW<CompositeVector>("vapor_diffusion_temperature", name_);
 
 //   ///****** Compute contribution for pressure gradient
 
@@ -249,7 +255,7 @@ Richards::UpdateVelocity_(const Teuchos::Ptr<State>& S) {
 //   res_vapor->PutScalar(0.0);
 
 //   ///****** Compute contribution for temperature gradient
-//   Epetra_MultiVector& coef_tm = *S->GetPtrW<CompositeVector>("vapor_diffusion_temperature", name_)
+//   Epetra_MultiVector& coef_tm = *S_->GetPtrW<CompositeVector>("vapor_diffusion_temperature", name_)
 //                                    ->ViewComponent("cell",false);
 
 //   ComputeVaporDiffusionCoef(S, vapor_diff_temp, "temperature");
@@ -273,28 +279,28 @@ Richards::UpdateVelocity_(const Teuchos::Ptr<State>& S) {
 
 //    Epetra_MultiVector& diff_coef = *vapor_diff->ViewComponent("cell",false);
 
-//    S->GetFieldEvaluator("molar_density_liquid")->HasFieldChanged(S.ptr(), name_);
-//    const Epetra_MultiVector& n_l = *S->Get<CompositeVector>("molar_density_liquid").ViewComponent("cell",false);
+//    S_->GetEvaluator("molar_density_liquid").Update(S.ptr(), name_);
+//    const Epetra_MultiVector& n_l = *S_->Get<CompositeVector>("molar_density_liquid").ViewComponent("cell",false);
 
-//    S->GetFieldEvaluator("molar_density_gas")->HasFieldChanged(S.ptr(), name_);
-//    const Epetra_MultiVector& n_g = *S->Get<CompositeVector>("molar_density_gas").ViewComponent("cell",false);
+//    S_->GetEvaluator("molar_density_gas").Update(S.ptr(), name_);
+//    const Epetra_MultiVector& n_g = *S_->Get<CompositeVector>("molar_density_gas").ViewComponent("cell",false);
 
-//    S->GetFieldEvaluator("porosity")->HasFieldChanged(S.ptr(), name_);
-//    const Epetra_MultiVector& phi = *S->Get<CompositeVector>("porosity").ViewComponent("cell",false);
+//    S_->GetEvaluator("porosity").Update(S.ptr(), name_);
+//    const Epetra_MultiVector& phi = *S_->Get<CompositeVector>("porosity").ViewComponent("cell",false);
 
-//    S->GetFieldEvaluator("saturation_gas")->HasFieldChanged(S.ptr(), name_);
-//    const Epetra_MultiVector& s_g = *S->Get<CompositeVector>("saturation_gas").ViewComponent("cell",false);
+//    S_->GetEvaluator("saturation_gas").Update(S.ptr(), name_);
+//    const Epetra_MultiVector& s_g = *S_->Get<CompositeVector>("saturation_gas").ViewComponent("cell",false);
 
-//    S->GetFieldEvaluator("mol_frac_gas")->HasFieldChanged(S.ptr(), name_);
-//    const Epetra_MultiVector& mlf_g = *S->Get<CompositeVector>("mol_frac_gas").ViewComponent("cell",false);
+//    S_->GetEvaluator("mol_frac_gas").Update(S.ptr(), name_);
+//    const Epetra_MultiVector& mlf_g = *S_->Get<CompositeVector>("mol_frac_gas").ViewComponent("cell",false);
 
 //    std::string key_t = "temperature";
-//    S->GetFieldEvaluator("mol_frac_gas")->HasFieldDerivativeChanged(S.ptr(), name_, key_t);
-//    const Epetra_MultiVector& dmlf_g_dt = *S->Get<CompositeVector>("dmol_frac_gas_dtemperature").ViewComponent("cell",false);
+//    S_->GetEvaluator("mol_frac_gas")->HasFieldDerivativeChanged(S.ptr(), name_, key_t);
+//    const Epetra_MultiVector& dmlf_g_dt = *S_->Get<CompositeVector>("dmol_frac_gas_dtemperature").ViewComponent("cell",false);
 
-//    const Epetra_MultiVector& temp = *S->Get<CompositeVector>("temperature").ViewComponent("cell",false);
-//    const Epetra_MultiVector& pressure = *S->Get<CompositeVector>("pressure").ViewComponent("cell",false);
-//    const double& Patm = *S->GetScalarData("atmospheric_pressure");
+//    const Epetra_MultiVector& temp = *S_->Get<CompositeVector>("temperature").ViewComponent("cell",false);
+//    const Epetra_MultiVector& pressure = *S_->Get<CompositeVector>("pressure").ViewComponent("cell",false);
+//    const double& Patm = *S_->GetScalarData("atmospheric_pressure");
 //    const double R = 8.3144621;
 
 //    unsigned int ncells = diff_coef.MyLength();

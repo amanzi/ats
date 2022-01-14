@@ -64,15 +64,15 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
   // requireiments: things I use
   S->Require<CompositeVector,CompositeVectorSpace>(new_snow_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(new_snow_key_);
+  S->RequireEvaluator(new_snow_key_);
 
   // requirements: other primary variables
-  Teuchos::RCP<FieldEvaluator> fm;
+  Teuchos::RCP<Evaluator> fm;
   S->Require<CompositeVector,CompositeVectorSpace>(snow_dens_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(snow_dens_key_);
-  fm = S->GetFieldEvaluator(snow_dens_key_);
-  pvfe_snow_dens_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+  S->RequireEvaluator(snow_dens_key_);
+  fm = S->GetEvaluator(snow_dens_key_);
+  pvfe_snow_dens_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fm);
   if (pvfe_snow_dens_ == Teuchos::null) {
     Errors::Message message("SurfaceBalanceSEB: error, failure to initialize primary variable");
     Exceptions::amanzi_throw(message);
@@ -80,9 +80,9 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, Tags::NEXT,  name_).SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(snow_death_rate_key_);
-  fm = S->GetFieldEvaluator(snow_death_rate_key_);
-  pvfe_snow_death_rate_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+  S->RequireEvaluator(snow_death_rate_key_);
+  fm = S->GetEvaluator(snow_death_rate_key_);
+  pvfe_snow_death_rate_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fm);
   if (pvfe_snow_death_rate_ == Teuchos::null) {
     Errors::Message message("SurfaceBalanceSEB: error, failure to initialize primary variable");
     Exceptions::amanzi_throw(message);
@@ -99,7 +99,7 @@ ImplicitSubgrid::Setup(const Teuchos::Ptr<State>& S) {
   // comments out the dependency) and us (which manage when we update it to
   // not do it until commit state when we update to the new value.
   // :ISSUE:#8
-  // S->RequireFieldEvaluator(area_frac_key_);
+  // S->RequireEvaluator(area_frac_key_);
 }
 
 // -- Initialize owned (dependent) variables.
@@ -190,12 +190,12 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   // first calculate the "snow death rate", or rate of snow SWE that must melt over this
   // timestep if the snow is to go to zero.
   auto& snow_death_rate = *S_next_->GetW<CompositeVector>(snow_death_rate_key_, name_).ViewComponent("cell",false);
-  S_next_->GetFieldEvaluator(cell_vol_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(cell_vol_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const auto& cell_volume = *S_next_->Get<CompositeVector>(cell_vol_key_).ViewComponent("cell",false);
   snow_death_rate.PutScalar(0.);
 
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const auto& swe_old_v = *S_inter_->Get<CompositeVector>(conserved_key_).ViewComponent("cell", false);
   const auto& swe_new_v = *S_next_->Get<CompositeVector>(conserved_key_).ViewComponent("cell", false);
   for (int c=0; c!=snow_death_rate.MyLength(); ++c) {
@@ -203,7 +203,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
       snow_death_rate[0][c] = swe_old_v[0][c] / (t_new - t_old) / cell_volume[0][c];
     }
   }
-  pvfe_snow_death_rate_->SetFieldAsChanged(S_next_.ptr());
+  pvfe_snow_death_rate_->SetChanged(S_next_.ptr());
 
   // update the residual
   SurfaceBalanceBase::FunctionalResidual(t_old, t_new, u_old, u_new, g);
@@ -217,10 +217,10 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   const auto& snow_dens_old = *S_inter_->Get<CompositeVector>(snow_dens_key_).ViewComponent("cell",false);
   auto& snow_dens_new = *S_next_->GetW<CompositeVector>(snow_dens_key_, name_).ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator(new_snow_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(new_snow_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const auto& new_snow = *S_next_->Get<CompositeVector>(new_snow_key_).ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const auto& source = *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
 
   Relations::ModelParams params;
@@ -252,7 +252,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
       snow_dens_new[0][c] = std::min(snow_dens_new[0][c], params.density_snow_max);
     }
   }
-  pvfe_snow_dens_->SetFieldAsChanged(S_next_.ptr());
+  pvfe_snow_dens_->SetChanged(S_next_.ptr());
 
   // debugging
   std::vector<std::string> vnames;
@@ -269,7 +269,7 @@ void
 ImplicitSubgrid::CommitStep(double t_old, double t_new,  const Teuchos::RCP<State>& S)
 {
   // now update area frac
-  // S->GetFieldEvaluator(area_frac_key_)->HasFieldChanged(S.ptr(), name_);
+  // S->GetEvaluator(area_frac_key_)->HasFieldChanged(S.ptr(), name_);
   SurfaceBalanceBase::CommitStep(t_old, t_new, S);
 }
 

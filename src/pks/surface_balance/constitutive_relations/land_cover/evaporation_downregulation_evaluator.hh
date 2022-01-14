@@ -28,7 +28,7 @@ Hornberger b.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -37,16 +37,16 @@ namespace Relations {
 
 class EvaporationDownregulationModel;
 
-class EvaporationDownregulationEvaluator : public SecondaryVariableFieldEvaluator {
+class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   EvaporationDownregulationEvaluator(Teuchos::ParameterList& plist);
   EvaporationDownregulationEvaluator(const EvaporationDownregulationEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -70,7 +70,7 @@ class EvaporationDownregulationEvaluator : public SecondaryVariableFieldEvaluato
   std::map<std::string, Teuchos::RCP<EvaporationDownregulationModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EvaporationDownregulationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,EvaporationDownregulationEvaluator> reg_;
 
 };
 

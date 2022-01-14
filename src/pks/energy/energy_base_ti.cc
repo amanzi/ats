@@ -12,7 +12,7 @@ Author: Ethan Coon
 
 #include "Debugger.hh"
 #include "BoundaryFunction.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "energy_base.hh"
 #include "Op.hh"
 
@@ -155,15 +155,15 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
 
   // update state with the solution up.
 
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
   Teuchos::RCP<const CompositeVector> temp = S_next_ -> GetPtr<CompositeVector>(key_);
 
   // update boundary conditions
-  bc_temperature_->Compute(S_next_->time());
-  bc_diff_flux_->Compute(S_next_->time());
-  bc_flux_->Compute(S_next_->time());
+  bc_temperature_->Compute(S_->get_time(tag_next_));
+  bc_diff_flux_->Compute(S_->get_time(tag_next_));
+  bc_flux_->Compute(S_->get_time(tag_next_));
   UpdateBoundaryConditions_(S_next_.ptr());
 
   // div K_e grad u
@@ -200,7 +200,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
 
   // update with accumulation terms
   // -- update the accumulation derivatives, de/dT
-  S_next_->GetFieldEvaluator(conserved_key_)
+  S_next_->GetEvaluator(conserved_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   const Epetra_MultiVector& de_dT = *S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(conserved_key_, key_))
       ->ViewComponent("cell",false);
@@ -259,7 +259,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   if (is_advection_term_) {
     if (implicit_advection_ && implicit_advection_in_pc_) {
       Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetPtr<CompositeVector>(flux_key_);
-      S_next_->GetFieldEvaluator(enthalpy_key_)
+      S_next_->GetEvaluator(enthalpy_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
       Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(enthalpy_key_, key_));
       preconditioner_adv_->Setup(*mass_flux);
@@ -283,11 +283,11 @@ double EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // anything from negative to overflow.
   int cycle = S_next_->cycle();
 
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_inter_->GetEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& energy = *S_inter_->GetPtr<CompositeVector>(conserved_key_)
       ->ViewComponent("cell",true);
 
-  S_inter_->GetFieldEvaluator(wc_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_inter_->GetEvaluator(wc_key_)->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& wc = *S_inter_->GetPtr<CompositeVector>(wc_key_)
       ->ViewComponent("cell",true);
 
@@ -300,7 +300,7 @@ double EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u,
     *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
-  double h = S_next_->time() - S_inter_->time();
+  double h = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
 
   Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =

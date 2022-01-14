@@ -66,7 +66,7 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
       ->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // -- cell volume and evaluator
-  S->RequireFieldEvaluator(Keys::getKey(domain_, "cell_volume"));
+  S->RequireEvaluator(Keys::getKey(domain_, "cell_volume"));
   
   // boundary conditions
   int nfaces = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
@@ -141,12 +141,12 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
 void SnowDistribution::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- evaluator for potential field, h + z
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"skin_potential"));
+  S->RequireEvaluator(Keys::getKey(domain_,"skin_potential"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "skin_potential"))->SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- snow_conductivity evaluator
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"conductivity"));
+  S->RequireEvaluator(Keys::getKey(domain_,"conductivity"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "conductivity"))->SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
@@ -178,10 +178,10 @@ void SnowDistribution::Initialize(const Teuchos::Ptr<State>& S) {
 // -----------------------------------------------------------------------------
 bool SnowDistribution::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) {
 
-  bool update_perm = S->GetFieldEvaluator(Keys::getKey(domain_,"conductivity"))
+  bool update_perm = S->GetEvaluator(Keys::getKey(domain_,"conductivity"))
       ->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"precipitation"))->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(Keys::getKey(domain_,"precipitation"))->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S, name_);
 
   if (update_perm) {
     if (upwind_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {

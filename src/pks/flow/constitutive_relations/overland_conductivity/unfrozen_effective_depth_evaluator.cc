@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Flow {
 
 UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain = Keys::getDomain(my_key_);
 
@@ -31,13 +31,13 @@ UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::Parame
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 UnfrozenEffectiveDepthEvaluator::Clone() const {
   return Teuchos::rcp(new UnfrozenEffectiveDepthEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void UnfrozenEffectiveDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 

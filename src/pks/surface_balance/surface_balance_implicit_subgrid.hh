@@ -86,8 +86,8 @@ public:
 
  protected:
   // multiple primary variables
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_snow_dens_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_snow_death_rate_;
+  Teuchos::RCP<EvaluatorPrimary> pvfe_snow_dens_;
+  Teuchos::RCP<EvaluatorPrimary> pvfe_snow_death_rate_;
 
   Key snow_dens_key_;
   Key snow_age_key_;

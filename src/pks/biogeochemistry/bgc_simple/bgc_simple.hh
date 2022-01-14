@@ -158,9 +158,9 @@ class BGCSimple : public PK_Physical_Default {
   std::vector<std::vector<Teuchos::RCP<SoilCarbon> > > soil_carbon_pools_;
 
   // evaluator for transpiration
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> trans_eval_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> sw_eval_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> lai_eval_;
+  Teuchos::RCP<EvaluatorPrimary> trans_eval_;
+  Teuchos::RCP<EvaluatorPrimary> sw_eval_;
+  Teuchos::RCP<EvaluatorPrimary> lai_eval_;
   
   // extras
   double lat_;

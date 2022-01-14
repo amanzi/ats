@@ -27,12 +27,12 @@
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class AdditiveEvaluator : public SecondaryVariableFieldEvaluator {
+class AdditiveEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -40,20 +40,21 @@ class AdditiveEvaluator : public SecondaryVariableFieldEvaluator {
   AdditiveEvaluator(Teuchos::ParameterList& plist);
 
   AdditiveEvaluator(const AdditiveEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  void EvaluateField_(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<CompositeVector>& result);
-  void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  void Evaluate_(const State& S,
+                      const std::vector<CompositeVector*>& result) override;
+  void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::map<Key, double> coefs_;
   double shift_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,AdditiveEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,AdditiveEvaluator> factory_;
 };
 
 } // namespace

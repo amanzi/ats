@@ -17,7 +17,7 @@ Authors: Ethan Coon (ecoon@lanl.gov)
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
 
@@ -35,11 +35,11 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   //       For now, we assume scalar permeability.  This will change.
   S->Require<CompositeVector,CompositeVectorSpace>(perm_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(perm_key_);
+  S->RequireEvaluator(perm_key_);
   
   S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
+  S->RequireEvaluator(conserved_key_);
 
   // -- Water retention evaluators, for saturation and rel perm.
   std::vector<AmanziMesh::Entity_kind> locations2(2);
@@ -62,10 +62,10 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
       Teuchos::rcp(new Flow::WRMPermafrostEvaluator(wrm_plist));
   
 
-  if (!S->HasFieldEvaluator(sat_key_)) {
-    S->SetFieldEvaluator(sat_key_, wrm);
-    S->SetFieldEvaluator(sat_gas_key_, wrm);
-    S->SetFieldEvaluator(sat_ice_key_, wrm);
+  if (!S->HasEvaluator(sat_key_)) {
+    S->SetEvaluator(sat_key_, wrm);
+    S->SetEvaluator(sat_gas_key_, wrm);
+    S->SetEvaluator(sat_ice_key_, wrm);
   }
 
   // -- the rel perm evaluator, also with the same underlying WRM.
@@ -78,22 +78,22 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   
 
 
-  S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  S->SetEvaluator(coef_key_, rel_perm_evaluator);
   
   // -- Liquid density and viscosity for the transmissivity.
 
   S->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(molar_dens_key_);
+  S->RequireEvaluator(molar_dens_key_);
 
   /* S->Require<CompositeVector,CompositeVectorSpace>("viscosity_liquid", Tags::NEXT).SetMesh(S->GetMesh())->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator("viscosity_liquid");
+  S->RequireEvaluator("viscosity_liquid");
   */
   // -- liquid mass density for the gravity fluxes
   S->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(mass_dens_key_); // simply picks up the molar density one.
+  S->RequireEvaluator(mass_dens_key_); // simply picks up the molar density one.
 
 }
 

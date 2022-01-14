@@ -10,7 +10,7 @@
 #define AMANZI_DEFORMRELATIONS_POROSITY_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 
 
@@ -18,15 +18,15 @@ namespace Amanzi {
 namespace Deform {
 namespace DeformRelations {
 
-class PorosityEvaluator : public SecondaryVariableFieldEvaluator {
+class PorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   PorosityEvaluator(Teuchos::ParameterList& cond_plist);
   PorosityEvaluator(const PorosityEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -35,7 +35,7 @@ class PorosityEvaluator : public SecondaryVariableFieldEvaluator {
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,PorosityEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,PorosityEvaluator> factory_;
 
 
 };

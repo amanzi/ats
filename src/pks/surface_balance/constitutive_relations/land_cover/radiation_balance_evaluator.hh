@@ -40,7 +40,7 @@ Requires the use of LandCover types, for canopy albedo and emissivity.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 #include "seb_physics_funcs.hh"
 
@@ -48,20 +48,20 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class RadiationBalanceEvaluator : public SecondaryVariablesFieldEvaluator {
+class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   RadiationBalanceEvaluator(Teuchos::ParameterList& plist);
   RadiationBalanceEvaluator(const RadiationBalanceEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new RadiationBalanceEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
 
@@ -90,7 +90,7 @@ class RadiationBalanceEvaluator : public SecondaryVariablesFieldEvaluator {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RadiationBalanceEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,RadiationBalanceEvaluator> reg_;
 };
 
 }  // namespace Relations

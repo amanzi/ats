@@ -24,7 +24,7 @@ namespace Amanzi {
 namespace Flow {
 
 VolumetricPondedDepthEvaluator::VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist) :
-     SecondaryVariableFieldEvaluator(plist)
+     EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_key_);
 

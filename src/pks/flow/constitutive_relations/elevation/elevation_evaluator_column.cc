@@ -28,7 +28,7 @@ ElevationEvaluatorColumn::ElevationEvaluatorColumn(const ElevationEvaluatorColum
   dset_name_(other.dset_name_)
 {};
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ElevationEvaluatorColumn::Clone() const {
   return Teuchos::rcp(new ElevationEvaluatorColumn(*this));
 }

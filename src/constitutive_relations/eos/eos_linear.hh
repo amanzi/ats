@@ -27,11 +27,30 @@ class EOSLinear : public EOSConstantMolarMass {
 public:
   explicit EOSLinear(Teuchos::ParameterList& eos_plist);
 
-  virtual double MassDensity(std::vector<double>& params) override { return rho_ * (1+beta_*std::max(params[1] - 101325., 0.)); }
-  virtual double DMassDensityDp(std::vector<double>& params) override { return params[1] > 101325. ? rho_ * beta_ : 0.; }
-  virtual double DMassDensityDT(std::vector<double>& params) override { return 0.; }
+  virtual double MassDensity(std::vector<double>& params) override {
+    return rho_ * (1+beta_*std::max(params[0] - 101325., 0.));
+  }
+  virtual double DMassDensityDp(std::vector<double>& params) override {
+    return params[0] > 101325. ? rho_ * beta_ : 0.;
+  }
+  virtual double DMassDensityDT(std::vector<double>& params) override {
+    return 0.;
+  }
+  virtual double DMassDensityDC(std::vector<double>& params) override {
+    return 0.;
+  }
 
-private:
+  virtual bool IsTemperature() override {
+    return false;
+  }
+  virtual bool IsPressure() override {
+    return true;
+  }
+  virtual bool IsConcentration() override {
+    return false;
+  }
+
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList eos_plist_;

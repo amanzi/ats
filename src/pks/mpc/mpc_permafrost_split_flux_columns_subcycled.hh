@@ -41,7 +41,7 @@ kappa grad T |_s = qE_ss
 
 #include "PK.hh"
 #include "mpc.hh"
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "mpc_permafrost_split_flux_columns.hh"
 
 namespace Amanzi {

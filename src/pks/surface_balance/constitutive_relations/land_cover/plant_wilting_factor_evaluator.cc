@@ -17,7 +17,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 PlantWiltingFactorEvaluator::PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
@@ -30,7 +30,7 @@ PlantWiltingFactorEvaluator::PlantWiltingFactorEvaluator(Teuchos::ParameterList&
 }
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PlantWiltingFactorEvaluator::Clone() const
 {
   return Teuchos::rcp(new PlantWiltingFactorEvaluator(*this));

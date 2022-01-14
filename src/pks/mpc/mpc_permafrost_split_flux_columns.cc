@@ -7,7 +7,7 @@ Author: Ethan Coon
 
 ------------------------------------------------------------------------- */
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 
 #include "mpc_permafrost_split_flux_columns.hh"
@@ -114,13 +114,13 @@ void MPCPermafrostSplitFluxColumns::Setup(const Teuchos::Ptr<State>& S)
       S->Require<CompositeVector,CompositeVectorSpace>(pkey, Tags::NEXT,  pkey)
           ->SetMesh(S->GetMesh(col_surf_domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(pkey);
+      S->RequireEvaluator(pkey);
 
       Key Tkey = Keys::getKey(col_surf_domain, T_lateral_flow_source_suffix_);
       S->Require<CompositeVector,CompositeVectorSpace>(Tkey, Tags::NEXT,  Tkey)
           ->SetMesh(S->GetMesh(col_surf_domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(Tkey);
+      S->RequireEvaluator(Tkey);
     }
   }
 }
@@ -228,9 +228,9 @@ MPCPermafrostSplitFluxColumns::CopyPrimaryToStar(const Teuchos::Ptr<const State>
     ++ds_iter;
   }
 
-  auto peval = S_star->GetFieldEvaluator(p_primary_variable_star_);
-  auto peval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(peval);
-  peval_pvfe->SetFieldAsChanged(S_star.ptr());
+  auto peval = S_star->GetEvaluator(p_primary_variable_star_);
+  auto peval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(peval);
+  peval_pvfe->SetChanged(S_star.ptr());
 
   // copy T primary variable
   auto& T_star = *S_star->GetW<CompositeVector>(T_primary_variable_star_, S_star->GetField(T_primary_variable_star_).owner())
@@ -244,9 +244,9 @@ MPCPermafrostSplitFluxColumns::CopyPrimaryToStar(const Teuchos::Ptr<const State>
     ++ds_iter;
   }
 
-  auto Teval = S_star->GetFieldEvaluator(T_primary_variable_star_);
-  auto Teval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(Teval);
-  Teval_pvfe->SetFieldAsChanged(S_star.ptr());
+  auto Teval = S_star->GetEvaluator(T_primary_variable_star_);
+  auto Teval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(Teval);
+  Teval_pvfe->SetChanged(S_star.ptr());
 }
 
 
@@ -278,10 +278,10 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
-      auto eval_p = S_inter_->GetFieldEvaluator(pkey);
-      auto eval_pv = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval_p);
+      auto eval_p = S_inter_->GetEvaluator(pkey);
+      auto eval_pv = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval_p);
       AMANZI_ASSERT(eval_pv.get());
-      eval_pv->SetFieldAsChanged(S_inter_.ptr());
+      eval_pv->SetChanged(S_inter_.ptr());
 
       CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(pkey),
               S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, p_primary_variable_suffix_),
@@ -300,10 +300,10 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryPressure_(double dt)
     AMANZI_ASSERT(T.MyLength() == 1);
     T[0][0] = T_star[0][c];
 
-    auto eval_p = S_inter_->GetFieldEvaluator(Tkey);
-    auto eval_pv = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval_p);
+    auto eval_p = S_inter_->GetEvaluator(Tkey);
+    auto eval_pv = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval_p);
     AMANZI_ASSERT(eval_pv.get());
-    eval_pv->SetFieldAsChanged(S_inter_.ptr());
+    eval_pv->SetChanged(S_inter_.ptr());
 
     CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(Tkey),
                             S_inter_->GetPtrW<CompositeVector>(Keys::getKey(*ds_iter, T_primary_variable_suffix_),
@@ -325,8 +325,8 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
   if (p_eval_pvfes_.size() == 0) {
     for (const auto& col_domain : col_domain_set) {
       Key p_lf_key = Keys::getKey("surface_"+col_domain, p_lateral_flow_source_suffix_);
-      Teuchos::RCP<FieldEvaluator> fe = S_next_->GetFieldEvaluator(p_lf_key);
-      p_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe));
+      Teuchos::RCP<Evaluator> fe = S_next_->GetEvaluator(p_lf_key);
+      p_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fe));
       AMANZI_ASSERT(p_eval_pvfes_.back() != Teuchos::null);
     }
   }
@@ -334,17 +334,17 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
   if (T_eval_pvfes_.size() == 0) {
     for (const auto& col_domain : col_domain_set) {
       Key T_lf_key = Keys::getKey("surface_"+col_domain, T_lateral_flow_source_suffix_);
-      Teuchos::RCP<FieldEvaluator> fe = S_next_->GetFieldEvaluator(T_lf_key);
-      T_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe));
+      Teuchos::RCP<Evaluator> fe = S_next_->GetEvaluator(T_lf_key);
+      T_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fe));
       AMANZI_ASSERT(T_eval_pvfes_.back() != Teuchos::null);
     }
   }
 
   // these updates should do nothing, but you never know
-  S_inter_->GetFieldEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
   Epetra_MultiVector q_div(*S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false));
@@ -388,15 +388,15 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
       T[0][0] = T_star[0][c];
 
       // tag the evaluators as changed
-      auto eval_p = S_inter_->GetFieldEvaluator(pkey);
-      auto eval_pv = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval_p);
+      auto eval_p = S_inter_->GetEvaluator(pkey);
+      auto eval_pv = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval_p);
       AMANZI_ASSERT(eval_pv.get());
-      eval_pv->SetFieldAsChanged(S_inter_.ptr());
+      eval_pv->SetChanged(S_inter_.ptr());
 
-      auto eval_t = S_inter_->GetFieldEvaluator(Tkey);
-      auto eval_tv = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval_t);
+      auto eval_t = S_inter_->GetEvaluator(Tkey);
+      auto eval_tv = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval_t);
       AMANZI_ASSERT(eval_tv.get());
-      eval_tv->SetFieldAsChanged(S_inter_.ptr());
+      eval_tv->SetChanged(S_inter_.ptr());
 
       // copy from surface to subsurface to ensure consistency
       CopySurfaceToSubsurface(*S_inter_->GetPtr<CompositeVector>(pkey),
@@ -409,21 +409,21 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryHybrid_(double dt)
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
       (*S_next_->GetW<CompositeVector>(p_lf_key, p_lf_key).ViewComponent("cell",false))[0][0] = 0.;
-      p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+      p_eval_pvfes_[c]->SetChanged(S_next_.ptr());
 
       Key T_lf_key = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
       (*S_next_->GetW<CompositeVector>(T_lf_key, T_lf_key).ViewComponent("cell",false))[0][0] = 0.;
-      T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+      T_eval_pvfes_[c]->SetChanged(S_next_.ptr());
 
     } else {
       // use flux
       Key p_lf_key = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
       (*S_next_->GetW<CompositeVector>(p_lf_key, p_lf_key).ViewComponent("cell",false))[0][0] = q_div[0][c];
-      p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+      p_eval_pvfes_[c]->SetChanged(S_next_.ptr());
 
       Key T_lf_key = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
       (*S_next_->GetW<CompositeVector>(T_lf_key, T_lf_key).ViewComponent("cell",false))[0][0] = qE_div[0][c];
-      T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+      T_eval_pvfes_[c]->SetChanged(S_next_.ptr());
     }
     ++ds_iter;
   }
@@ -442,8 +442,8 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryFlux_(double dt)
   if (p_eval_pvfes_.size() == 0) {
     for (const auto& col_domain : col_domain_set) {
       Key pkey = Keys::getKey("surface_"+col_domain, p_lateral_flow_source_suffix_);
-      Teuchos::RCP<FieldEvaluator> fe = S_next_->GetFieldEvaluator(pkey);
-      p_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe));
+      Teuchos::RCP<Evaluator> fe = S_next_->GetEvaluator(pkey);
+      p_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fe));
       AMANZI_ASSERT(p_eval_pvfes_.back() != Teuchos::null);
     }
   }
@@ -451,17 +451,17 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryFlux_(double dt)
   if (T_eval_pvfes_.size() == 0) {
     for (const auto& col_domain : col_domain_set) {
       Key pkey = Keys::getKey("surface_"+col_domain, T_lateral_flow_source_suffix_);
-      Teuchos::RCP<FieldEvaluator> fe = S_next_->GetFieldEvaluator(pkey);
-      T_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe));
+      Teuchos::RCP<Evaluator> fe = S_next_->GetEvaluator(pkey);
+      T_eval_pvfes_.push_back(Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fe));
       AMANZI_ASSERT(T_eval_pvfes_.back() != Teuchos::null);
     }
   }
 
   // these updates should do nothing, but you never know
-  S_inter_->GetFieldEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(p_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(T_conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
   Epetra_MultiVector q_div(*S_next_->Get<CompositeVector>(p_conserved_variable_star_).ViewComponent("cell",false));
@@ -478,7 +478,7 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryFlux_(double dt)
   for (int c=0; c!=q_div.MyLength(); ++c) {
     Key pkey = Keys::getKey("surface_"+ (*ds_iter), p_lateral_flow_source_suffix_);
     (*S_next_->GetW<CompositeVector>(pkey, pkey).ViewComponent("cell",false))[0][0] = q_div[0][c];
-    p_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+    p_eval_pvfes_[c]->SetChanged(S_next_.ptr());
     ++ds_iter;
   }
 
@@ -498,7 +498,7 @@ MPCPermafrostSplitFluxColumns::CopyStarToPrimaryFlux_(double dt)
   for (int c=0; c!=qE_div.MyLength(); ++c) {
     Key Tkey = Keys::getKey("surface_"+ (*ds_iter), T_lateral_flow_source_suffix_);
     (*S_next_->GetW<CompositeVector>(Tkey, Tkey).ViewComponent("cell",false))[0][0] = qE_div[0][c];
-    T_eval_pvfes_[c]->SetFieldAsChanged(S_next_.ptr());
+    T_eval_pvfes_[c]->SetChanged(S_next_.ptr());
     ++ds_iter;
   }
 }

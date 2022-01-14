@@ -15,7 +15,7 @@ namespace Flow {
 
 
 ColumnWaterContentEvaluator::ColumnWaterContentEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   
@@ -30,11 +30,11 @@ ColumnWaterContentEvaluator::ColumnWaterContentEvaluator(Teuchos::ParameterList&
   
 
 ColumnWaterContentEvaluator::ColumnWaterContentEvaluator(const ColumnWaterContentEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     wc_key_(other.wc_key_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ColumnWaterContentEvaluator::Clone() const
 {
   return Teuchos::rcp(new ColumnWaterContentEvaluator(*this));
@@ -73,7 +73,7 @@ bool
 ColumnWaterContentEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -101,7 +101,7 @@ ColumnWaterContentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

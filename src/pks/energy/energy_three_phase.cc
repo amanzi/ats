@@ -6,7 +6,7 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 ------------------------------------------------------------------------- */
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "enthalpy_evaluator.hh"
 #include "thermal_conductivity_threephase_evaluator.hh"
 #include "energy_three_phase.hh"
@@ -24,7 +24,7 @@ void ThreePhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
+  S->RequireEvaluator(conserved_key_);
 
   // -- thermal conductivity
   S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
@@ -34,7 +34,7 @@ void ThreePhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   tcm_plist.set("evaluator name", conductivity_key_);
   Teuchos::RCP<Energy::ThermalConductivityThreePhaseEvaluator> tcm =
     Teuchos::rcp(new Energy::ThermalConductivityThreePhaseEvaluator(tcm_plist));
-  S->SetFieldEvaluator(conductivity_key_, tcm);
+  S->SetEvaluator(conductivity_key_, tcm);
 
 }
 

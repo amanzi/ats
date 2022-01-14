@@ -42,7 +42,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
   }
   S->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, Tags::NEXT).SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(cell_vol_key_);
+  S->RequireEvaluator(cell_vol_key_);
   
   // diffusion
   is_diffusion_ = plist_->get<bool>("is cryoturbation", true);
@@ -51,7 +51,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
 
     S->Require<CompositeVector,CompositeVectorSpace>(div_diff_flux_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
-    S->RequireFieldEvaluator(div_diff_flux_key_);
+    S->RequireEvaluator(div_diff_flux_key_);
   }
 
   // source terms
@@ -61,7 +61,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
 
     S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
-    S->RequireFieldEvaluator(source_key_);
+    S->RequireEvaluator(source_key_);
   }
 
   // decomposition terms
@@ -71,7 +71,7 @@ CarbonSimple::Setup(const Teuchos::Ptr<State>& S) {
 
     S->Require<CompositeVector,CompositeVectorSpace>(div_diff_flux_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, npools_);
-    S->RequireFieldEvaluator(div_diff_flux_key_);
+    S->RequireEvaluator(div_diff_flux_key_);
   }
 }
 
@@ -83,7 +83,7 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // eventually we need to ditch this multi-state approach --etc
-  AMANZI_ASSERT(std::abs(S_inter_->time() - t) < 1.e-4*S_next_->time() - S_inter_->time());
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_inter_) - t) < 1.e-4*S_->get_time(tag_next_) - S_->get_time(tag_inter_));
   PK_Physical_Default::Solution_to_State(u, S_inter_);
 
   // debugging
@@ -121,7 +121,7 @@ CarbonSimple::CalculateDiagnostics(const Teuchos::RCP<State>& S) {
   // Call the functional.  This ensures that the vis gets updated values,
   // despite the fact that they have not yet been updated.
   TreeVector dudt(*solution_);
-  FunctionalTimeDerivative(S->time(), *solution_old_, dudt);
+  FunctionalTimeDerivative(S->get_time(), *solution_old_, dudt);
 }
 
 
@@ -130,7 +130,7 @@ void
 CarbonSimple::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& g) {
   if (is_diffusion_) {
-    S->GetFieldEvaluator(div_diff_flux_key_)->HasFieldChanged(S, name_);
+    S->GetEvaluator(div_diff_flux_key_)->HasFieldChanged(S, name_);
     Teuchos::RCP<const CompositeVector> diff = S->GetPtr<CompositeVector>(div_diff_flux_key_);
     g->Update(1., *diff, 0.);
     db_->WriteVector(" turbation rate", diff.ptr(), true);
@@ -144,7 +144,7 @@ void
 CarbonSimple::AddSources_(const Teuchos::Ptr<State>& S,
                           const Teuchos::Ptr<CompositeVector>& g) {
   if (is_source_) {
-    S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
+    S->GetEvaluator(source_key_)->HasFieldChanged(S, name_);
     Teuchos::RCP<const CompositeVector> src = S->GetPtr<CompositeVector>(source_key_);
     g->Update(1., *src, 1.);
     db_->WriteVector(" source", src.ptr(), true);
@@ -156,7 +156,7 @@ void
 CarbonSimple::AddDecomposition_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& g) {
   if (is_decomp_) {
-    S->GetFieldEvaluator(decomp_key_)->HasFieldChanged(S, name_);
+    S->GetEvaluator(decomp_key_)->HasFieldChanged(S, name_);
     Teuchos::RCP<const CompositeVector> src = S->GetPtr<CompositeVector>(decomp_key_);
     g->Update(1., *src, 1.);
     db_->WriteVector(" decomp", src.ptr(), true);

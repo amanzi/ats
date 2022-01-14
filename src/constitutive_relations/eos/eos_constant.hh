@@ -29,13 +29,24 @@ public:
   explicit EOSConstant(Teuchos::ParameterList& eos_plist);
 
   virtual double MassDensity(std::vector<double>& params) override { return rho_; }
-  virtual double DMassDensityDT(std::vector<double>& params) override { return 0.0; }
-  virtual double DMassDensityDp(std::vector<double>& params) override { return 0.0; }
 
-  virtual double DMolarDensityDT(std::vector<double>& params) override { return 0.0; }
-  virtual double DMolarDensityDp(std::vector<double>& params) override { return 0.0; }
+  virtual double DMolarDensityDT(std::vector<double>& params) override {
+    return 0.;
+  }
 
-private:
+  virtual double DMolarDensityDp(std::vector<double>& params) override {
+    return 0.;
+  }
+
+  virtual double DMolarDensityDC(std::vector<double>& params) override {
+    return 0.;
+  }
+
+  virtual bool IsTemperature() override { return false; }
+  virtual bool IsPressure() override { return false; }
+  virtual bool IsConcentration() override { return false; }
+
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList eos_plist_;

@@ -15,7 +15,7 @@ namespace BGC {
 namespace BGCRelations {
 
 BioturbationEvaluator::BioturbationEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   carbon_key_ = plist_.get<std::string>("SOM key", "soil_organic_matter");
   dependencies_.insert(carbon_key_);
@@ -30,17 +30,17 @@ BioturbationEvaluator::BioturbationEvaluator(Teuchos::ParameterList& plist) :
 
 
 BioturbationEvaluator::BioturbationEvaluator(const BioturbationEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     carbon_key_(other.carbon_key_),
     diffusivity_key_(other.diffusivity_key_) {}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 BioturbationEvaluator::Clone() const {
   return Teuchos::rcp(new BioturbationEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void BioturbationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 

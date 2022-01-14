@@ -59,7 +59,7 @@ groundHeatFlux(double temp_ground, double temp_air)
 
 
 PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist),
+  EvaluatorSecondaryMonotypeCV(plist),
   compatible_(false),
   limiter_(false),
   one_minus_limiter_(false)
@@ -108,7 +108,7 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList&
   }
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
 PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
@@ -250,7 +250,7 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
       }
 
       // Recurse into the tree to propagate info to leaves.
-      S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+      S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
     }
   }
   compatible_ = true;

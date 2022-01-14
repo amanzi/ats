@@ -117,12 +117,11 @@ public:
   void visualize(bool force=false);
   void checkpoint(double dt, bool force=false);
   double get_dt(bool after_fail=false);
-  Teuchos::RCP<Amanzi::State> get_next_state() { return S_next_; }
 
   // one stop shopping
   void cycle_driver();
 
-private:
+ private:
   void coordinator_init();
   void read_parameter_list();
 
@@ -131,8 +130,6 @@ private:
 
   // states
   Teuchos::RCP<Amanzi::State> S_;
-  Teuchos::RCP<Amanzi::State> S_inter_;
-  Teuchos::RCP<Amanzi::State> S_next_;
   Teuchos::RCP<Amanzi::TreeVector> soln_;
 
   // time step manager

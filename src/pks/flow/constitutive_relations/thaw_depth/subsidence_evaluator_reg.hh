@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,SubsidenceEvaluator> SubsidenceEvaluator::reg_("column subsidence");
+Utils::RegisteredFactory<Evaluator,SubsidenceEvaluator> SubsidenceEvaluator::reg_("column subsidence");
 
 }
 }

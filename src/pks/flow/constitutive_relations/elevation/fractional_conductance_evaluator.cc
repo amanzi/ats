@@ -8,7 +8,7 @@ namespace Flow {
 namespace FlowRelations {
 
 FractionalConductanceEvaluator::FractionalConductanceEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain = Keys::getDomain(my_key_);
 
@@ -29,7 +29,7 @@ FractionalConductanceEvaluator::FractionalConductanceEvaluator(Teuchos::Paramete
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 FractionalConductanceEvaluator::Clone() const {
   return Teuchos::rcp(new FractionalConductanceEvaluator(*this));
 }

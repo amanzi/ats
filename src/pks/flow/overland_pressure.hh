@@ -291,7 +291,7 @@ protected:
   int jacobian_lag_;
 
   // evaluator for flux, which is needed by other pks
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> flux_pvfe_;
+  Teuchos::RCP<EvaluatorPrimary> flux_pvfe_;
 
   // work data space
   Teuchos::RCP<Operators::Upwinding> upwinding_;

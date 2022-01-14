@@ -13,7 +13,7 @@ namespace Flow {
   
 
 DragExponentEvaluator::DragExponentEvaluator(Teuchos::ParameterList& plist) :
-   SecondaryVariableFieldEvaluator(plist){
+   EvaluatorSecondaryMonotypeCV(plist){
 
   std::string domain_name=Keys::getDomain(my_key_);
   if (my_key_.empty())
@@ -28,13 +28,13 @@ DragExponentEvaluator::DragExponentEvaluator(Teuchos::ParameterList& plist) :
 
   
 DragExponentEvaluator::DragExponentEvaluator(const DragExponentEvaluator& other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
     delta_init_key_(other.delta_init_key_),
   delta_evolve_key_(other.delta_evolve_key_),
   sg_entity_key_(other.sg_entity_key_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 DragExponentEvaluator::Clone() const {
   return Teuchos::rcp(new DragExponentEvaluator(*this));
 }

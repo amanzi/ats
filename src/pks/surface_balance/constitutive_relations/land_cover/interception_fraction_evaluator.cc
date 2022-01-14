@@ -16,7 +16,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 InterceptionFractionEvaluator::InterceptionFractionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("interception fraction parameters");
   model_ = Teuchos::rcp(new InterceptionFractionModel(sublist));
@@ -25,7 +25,7 @@ InterceptionFractionEvaluator::InterceptionFractionEvaluator(Teuchos::ParameterL
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 InterceptionFractionEvaluator::Clone() const
 {
   return Teuchos::rcp(new InterceptionFractionEvaluator(*this));
@@ -43,13 +43,13 @@ InterceptionFractionEvaluator::InitializeFromPlist_()
 
   // my keys
   interception_key_ = Keys::readKey(plist_, domain, "interception", "interception");
-  my_keys_.push_back(interception_key_);
+  my_keys_.emplace_back((interception_key_);
 
   throughfall_rain_key_ = Keys::readKey(plist_, domain, "throughfall and drainage rain", "throughfall_drainage_rain");
-  my_keys_.push_back(throughfall_rain_key_);
+  my_keys_.emplace_back((throughfall_rain_key_);
 
   throughfall_snow_key_ = Keys::readKey(plist_, domain, "throughfall and drainage snow", "throughfall_drainage_snow");
-  my_keys_.push_back(throughfall_snow_key_);
+  my_keys_.emplace_back((throughfall_snow_key_);
 
   // - pull Keys from plist
   // dependency: surface-area_index

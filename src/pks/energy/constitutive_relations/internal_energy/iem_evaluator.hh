@@ -11,38 +11,39 @@
 
 #include "Factory.hh"
 #include "iem.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Energy {
 
-class IEMEvaluator : public SecondaryVariableFieldEvaluator {
+class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   explicit
   IEMEvaluator(Teuchos::ParameterList& plist);
   IEMEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<IEM>& iem);
-  IEMEvaluator(const IEMEvaluator& other);
+  IEMEvaluator(const IEMEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& results);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& results);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<IEM> get_IEM() { return iem_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
+
   void InitializeFromPlist_();
 
   Key temp_key_;
   Teuchos::RCP<IEM> iem_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,IEMEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,IEMEvaluator> factory_;
 
 };
 

@@ -27,7 +27,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("evaporative_flux_relaxation parameters");
   model_ = Teuchos::rcp(new EvaporativeFluxRelaxationModel(sublist));
@@ -37,7 +37,7 @@ EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(Teuchos::
 
 // Copy constructor
 EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     wc_key_(other.wc_key_),
     rho_key_(other.rho_key_),
     L_key_(other.L_key_),    
@@ -45,7 +45,7 @@ EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(const Eva
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 EvaporativeFluxRelaxationEvaluator::Clone() const
 {
   return Teuchos::rcp(new EvaporativeFluxRelaxationEvaluator(*this));

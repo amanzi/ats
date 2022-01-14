@@ -14,7 +14,7 @@ namespace Flow {
   
 
 MaxThawDepthEvaluator::MaxThawDepthEvaluator(Teuchos::ParameterList& plist) :
-   SecondaryVariableFieldEvaluator(plist){
+   EvaluatorSecondaryMonotypeCV(plist){
   threshold_td_ = plist_.get<double>("threshold value", 0.4);
 
   std::string domain_name=Keys::getDomain(my_key_);
@@ -25,11 +25,11 @@ MaxThawDepthEvaluator::MaxThawDepthEvaluator(Teuchos::ParameterList& plist) :
 
   
 MaxThawDepthEvaluator::MaxThawDepthEvaluator(const MaxThawDepthEvaluator& other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
     td_key_(other.td_key_),
     threshold_td_(other.threshold_td_){}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 MaxThawDepthEvaluator::Clone() const {
   return Teuchos::rcp(new MaxThawDepthEvaluator(*this));
 }

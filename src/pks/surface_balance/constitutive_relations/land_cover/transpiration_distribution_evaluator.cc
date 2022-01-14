@@ -17,14 +17,14 @@ namespace Relations {
 
 // Constructor from ParameterList
 TranspirationDistributionEvaluator::TranspirationDistributionEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist)
+  EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
 }
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 TranspirationDistributionEvaluator::Clone() const
 {
   return Teuchos::rcp(new TranspirationDistributionEvaluator(*this));
@@ -102,7 +102,7 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     surf_mesh.get_set_entities(region_lc.first, AmanziMesh::Entity_kind::CELL,
                            AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
-    if (TranspirationPeriod_(S->time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
+    if (TranspirationPeriod_(S->get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
       for (int sc : lc_ids) {
         double column_total = 0.;
         double f_root_total = 0.;
@@ -198,7 +198,7 @@ TranspirationDistributionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
   // Recurse into the tree to propagate info to leaves.
   for (KeySet::const_iterator key=dependencies_.begin();
        key!=dependencies_.end(); ++key) {
-    S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+    S->RequireEvaluator(*key)->EnsureCompatibility(S);
   }
 }
 

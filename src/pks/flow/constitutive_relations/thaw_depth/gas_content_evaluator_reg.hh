@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,GasContentEvaluator> GasContentEvaluator::reg_("gas content");
+Utils::RegisteredFactory<Evaluator,GasContentEvaluator> GasContentEvaluator::reg_("gas content");
 
 }
 }

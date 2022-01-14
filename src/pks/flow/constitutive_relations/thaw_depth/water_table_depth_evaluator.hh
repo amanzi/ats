@@ -31,18 +31,18 @@ Evaluator name: `"water table depth`"
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class WaterTableDepthEvaluator : public SecondaryVariableFieldEvaluator {
+class WaterTableDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit WaterTableDepthEvaluator(Teuchos::ParameterList& plist);
   WaterTableDepthEvaluator(const WaterTableDepthEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const override {
+  Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new WaterTableDepthEvaluator(*this));
   }
   
@@ -53,7 +53,7 @@ class WaterTableDepthEvaluator : public SecondaryVariableFieldEvaluator {
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -65,7 +65,7 @@ class WaterTableDepthEvaluator : public SecondaryVariableFieldEvaluator {
   Key domain_, domain_ss_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,WaterTableDepthEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,WaterTableDepthEvaluator> reg_;
 
 };
   

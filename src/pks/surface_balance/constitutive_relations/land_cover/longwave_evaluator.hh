@@ -25,24 +25,24 @@
 #define AMANZI_SURFACE_BALANCE_LONGWAVE_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class LongwaveEvaluator : public SecondaryVariableFieldEvaluator {
+class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   LongwaveEvaluator(Teuchos::ParameterList& plist);
   LongwaveEvaluator(const LongwaveEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const {
     return Teuchos::rcp(new LongwaveEvaluator(*this));
   }
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -56,7 +56,7 @@ class LongwaveEvaluator : public SecondaryVariableFieldEvaluator {
   double min_rel_hum_, scale_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LongwaveEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,LongwaveEvaluator> reg_;
 
 };
 

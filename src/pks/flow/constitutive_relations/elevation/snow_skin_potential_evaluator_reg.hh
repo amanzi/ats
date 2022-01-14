@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,SnowSkinPotentialEvaluator> SnowSkinPotentialEvaluator::factory_("snow skin potential");
+Utils::RegisteredFactory<Evaluator,SnowSkinPotentialEvaluator> SnowSkinPotentialEvaluator::factory_("snow skin potential");
 
 }
 }

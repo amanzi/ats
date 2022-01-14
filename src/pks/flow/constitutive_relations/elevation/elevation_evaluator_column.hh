@@ -46,7 +46,7 @@ class ElevationEvaluatorColumn : public ElevationEvaluator {
 
   ElevationEvaluatorColumn(const ElevationEvaluatorColumn& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
   virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
@@ -54,7 +54,7 @@ class ElevationEvaluatorColumn : public ElevationEvaluator {
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ElevationEvaluatorColumn> reg_;
+  static Utils::RegisteredFactory<Evaluator,ElevationEvaluatorColumn> reg_;
 
   Key slope_key_, base_por_key_, surface_domain_, dset_name_;
 };

@@ -14,17 +14,18 @@ namespace Relations {
 
 OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvaluator(
         Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("source key", "overland_source_from_subsurface");
-  }
+    EvaluatorSecondaryMonotypeCV(plist)
+{
+  domain_surf_ = Keys::getDomain(my_keys_.front().first);
+  domain_sub_ = Keys::readDomainHint(plist_, domain_surf_, "surface", "subsurface");
+  Tag tag = my_keys_.front().second;
 
-  flux_key_ = plist_.get<std::string>("flux key", "mass_flux");
+  // cannot have flux as a dependency (it has no model), we have to fake it
+  flux_key_ = Keys::readKey(plist_, domain_sub_, "flux", "mass_flux");
 
-  // since we cannot have flux as a dependency (it has no model), we have to
-  // use pressure as a proxy.
-  Key pres_key = plist_.get<std::string>("pressure key", "pressure");
-  dependencies_.insert(pres_key);
+  // use pressure as a proxy for flux instead
+  Key pres_key = Keys::readKey(plist_, domain_sub_, "pressure", "pressure");
+  dependencies_.insert(KeyTag{pres_key, tag});
 
   // this can be used by both OverlandFlow PK, which uses a volume basis to
   // conserve mass, or OverlandHeadPK, which uses the standard molar basis.
@@ -32,41 +33,50 @@ OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvalu
   // be divided by molar density to get m^3 / s.
   volume_basis_ = plist_.get<bool>("volume basis", false);
   if (volume_basis_) {
-    dens_key_ = plist_.get<std::string>("molar density key", "molar_density_liquid");
-    dependencies_.insert(dens_key_);
+    dens_key_ = Keys::readKey(plist_, domain_sub_, "molar density key", "molar_density_liquid");
+    dependencies_.insert(KeyTag{dens_key_, tag});
   }
-
-  surface_mesh_key_ = plist_.get<std::string>("surface mesh key", "surface");
-  subsurface_mesh_key_ = plist_.get<std::string>("subsurface mesh key", "domain");
 }
 
-OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvaluator(
-        const OverlandSourceFromSubsurfaceFluxEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    flux_key_(other.flux_key_),
-    dens_key_(other.dens_key_),
-    surface_mesh_key_(other.surface_mesh_key_),
-    subsurface_mesh_key_(other.subsurface_mesh_key_),
-    face_and_dirs_(other.face_and_dirs_),
-    volume_basis_(other.volume_basis_) {}
 
-Teuchos::RCP<FieldEvaluator> OverlandSourceFromSubsurfaceFluxEvaluator::Clone() const {
+Teuchos::RCP<Evaluator>
+OverlandSourceFromSubsurfaceFluxEvaluator::Clone() const
+{
   return Teuchos::rcp(new OverlandSourceFromSubsurfaceFluxEvaluator(*this));
 }
 
 
-void OverlandSourceFromSubsurfaceFluxEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
-  // for now just passing... might do something later here?
-  S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
-  S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT);
+void OverlandSourceFromSubsurfaceFluxEvaluator::EnsureCompatibility(State& S)
+{
+  Key my_key = my_keys_.front().first;
+  auto domain_name = Keys::getDomain(my_key);
+
+  S.Require<CompositeVector,CompositeVectorSpace>(my_key,
+          my_keys_.front().second, my_key)
+    .SetMesh(S.GetMesh(domain_surf_))
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S.Require<CompositeVector,CompositeVectorSpace>(flux_key_,
+          my_keys_.front().second)
+    .SetMesh(S.GetMesh(domain_sub_))
+    ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+
+  for (const auto& dep : dependencies_) {
+    S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
+      .SetMesh(S.GetMesh(domain_sub_))
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
+  }
+
+  // check plist for vis or checkpointing control
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
 }
 
 
 void OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(
-        const Teuchos::Ptr<State>& S) {
+        const State& S) {
   // grab the meshes
-  Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S->GetMesh(subsurface_mesh_key_);
-  Teuchos::RCP<const AmanziMesh::Mesh> surface = S->GetMesh(surface_mesh_key_);
+  Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S.GetMesh(domain_sub_);
+  Teuchos::RCP<const AmanziMesh::Mesh> surface = S.GetMesh(domain_surf_);
 
   // allocate space for face IDs and directions
   int ncells = surface->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
@@ -95,22 +105,22 @@ void OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(
   }
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
-void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+// Required methods from EvaluatorSecondaryMonotypeCV
+void OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result) {
 
   if (face_and_dirs_ == Teuchos::null) {
     IdentifyFaceAndDirection_(S);
   }
 
-  Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S->GetMesh(subsurface_mesh_key_);
-  const Epetra_MultiVector& flux = *S->Get<CompositeVector>(flux_key_).ViewComponent("face",false);
-  const Epetra_MultiVector& res_v = *result->ViewComponent("cell",false);
+  Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S.GetMesh(domain_sub_);
+  const Epetra_MultiVector& flux = *S.Get<CompositeVector>(flux_key_).ViewComponent("face",false);
+  const Epetra_MultiVector& res_v = *result[0]->ViewComponent("cell",false);
 
   if (volume_basis_) {
-    const Epetra_MultiVector& dens = *S->Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
+    const Epetra_MultiVector& dens = *S.Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
 
-    int ncells = result->size("cell",false);
+    int ncells = result[0]->size("cell",false);
     for (int c=0; c!=ncells; ++c) {
       AmanziMesh::Entity_ID_List cells;
       subsurface->face_get_cells((*face_and_dirs_)[c].first, AmanziMesh::Parallel_type::OWNED, &cells);
@@ -120,7 +130,7 @@ void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluateField_(const Teuchos::Pt
           / dens[0][cells[0]];
     }
   } else {
-    int ncells = result->size("cell",false);
+    int ncells = result[0]->size("cell",false);
     for (int c=0; c!=ncells; ++c) {
       AmanziMesh::Entity_ID_List cells;
       subsurface->face_get_cells((*face_and_dirs_)[c].first, AmanziMesh::Parallel_type::OWNED, &cells);
@@ -131,8 +141,8 @@ void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluateField_(const Teuchos::Pt
   }
 }
 
-void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void OverlandSourceFromSubsurfaceFluxEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) {
   AMANZI_ASSERT(0);
   // this would require differentiating flux wrt pressure, which we
   // don't do for now.

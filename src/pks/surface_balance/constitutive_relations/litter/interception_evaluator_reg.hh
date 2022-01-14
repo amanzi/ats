@@ -12,7 +12,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,InterceptionEvaluator> InterceptionEvaluator::factory_("interception/throughfall");
+Utils::RegisteredFactory<Evaluator,InterceptionEvaluator> InterceptionEvaluator::factory_("interception/throughfall");
 
 } // namespace
 } // namespace

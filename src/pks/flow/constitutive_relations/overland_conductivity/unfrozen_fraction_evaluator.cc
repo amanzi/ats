@@ -13,7 +13,7 @@ namespace Amanzi {
 namespace Flow {
 
 UnfrozenFractionEvaluator::UnfrozenFractionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain = Keys::getDomain(my_key_);
 
@@ -33,18 +33,18 @@ UnfrozenFractionEvaluator::UnfrozenFractionEvaluator(Teuchos::ParameterList& pli
 
 
 UnfrozenFractionEvaluator::UnfrozenFractionEvaluator(const UnfrozenFractionEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     temp_key_(other.temp_key_),
     model_(other.model_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 UnfrozenFractionEvaluator::Clone() const {
   return Teuchos::rcp(new UnfrozenFractionEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void UnfrozenFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
   Teuchos::RCP<const CompositeVector> temp = S->GetPtr<CompositeVector>(temp_key_);

@@ -17,7 +17,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   // determine the domain
   domain_ = Keys::getDomain(Keys::cleanPListName(plist_));
@@ -26,9 +26,9 @@ AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList&
   // my keys
   // -- sources
   albedo_key_ = Keys::readKey(plist, domain_, "albedos", "albedos");
-  my_keys_.push_back(albedo_key_);
+  my_keys_.emplace_back((albedo_key_);
   emissivity_key_ = Keys::readKey(plist, domain_, "emissivities", "emissivities");
-  my_keys_.push_back(emissivity_key_);
+  my_keys_.emplace_back((emissivity_key_);
 
   // dependencies
   // -- snow properties
@@ -50,7 +50,7 @@ AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList&
   e_snow_ = plist_.get<double>("emissivity ground surface [-]", 0.98);
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
 AlbedoTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const std::vector<Teuchos::Ptr<CompositeVector> >& results)
@@ -146,7 +146,7 @@ AlbedoTwoComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     }
 
     // Recurse into the tree to propagate info to leaves.
-    S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
+    S->RequireEvaluator(key)->EnsureCompatibility(S);
   }
 }
 

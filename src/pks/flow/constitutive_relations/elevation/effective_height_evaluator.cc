@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Flow {
 
 EffectiveHeightEvaluator::EffectiveHeightEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
   // my keys are for saturation and rel perm.
   if (my_key_ == "")
     my_key_ = plist_.get<std::string>("effective height key", "effective_height");
@@ -30,12 +30,12 @@ EffectiveHeightEvaluator::EffectiveHeightEvaluator(Teuchos::ParameterList& plist
 
 
 EffectiveHeightEvaluator::EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     height_key_(other.height_key_),
     model_(other.model_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 EffectiveHeightEvaluator::Clone() const {
   return Teuchos::rcp(new EffectiveHeightEvaluator(*this));
 }

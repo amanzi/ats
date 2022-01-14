@@ -10,21 +10,21 @@
 #define AMANZI_FLOWRELATIONS_DEPRESSION_DEPTH_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class DepressionDepthEvaluator : public SecondaryVariableFieldEvaluator {
+class DepressionDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   DepressionDepthEvaluator(Teuchos::ParameterList& plist);
   DepressionDepthEvaluator(const DepressionDepthEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
 
@@ -37,7 +37,7 @@ protected:
 
 private:
 
-  static Utils::RegisteredFactory<FieldEvaluator,DepressionDepthEvaluator> reg_;  
+  static Utils::RegisteredFactory<Evaluator,DepressionDepthEvaluator> reg_;  
 
 };
   

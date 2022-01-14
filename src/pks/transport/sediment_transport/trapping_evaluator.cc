@@ -12,7 +12,7 @@
 namespace Amanzi {
 
 TrappingRateEvaluator :: TrappingRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+  EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain_name = "surface";
   
@@ -43,7 +43,7 @@ TrappingRateEvaluator :: TrappingRateEvaluator(Teuchos::ParameterList& plist) :
 
   
 TrappingRateEvaluator ::TrappingRateEvaluator (const TrappingRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other),
+  EvaluatorSecondaryMonotypeCV(other),
   velocity_key_(other.velocity_key_),
   sediment_key_(other.sediment_key_),
   ponded_depth_key_(other.ponded_depth_key_)
@@ -57,7 +57,7 @@ TrappingRateEvaluator ::TrappingRateEvaluator (const TrappingRateEvaluator & oth
 } 
 
 
-Teuchos::RCP<FieldEvaluator> TrappingRateEvaluator ::Clone() const {
+Teuchos::RCP<Evaluator> TrappingRateEvaluator ::Clone() const {
   return Teuchos::rcp(new TrappingRateEvaluator (*this));
 }
 

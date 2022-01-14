@@ -13,7 +13,7 @@ namespace Amanzi {
 namespace Flow {
 
 SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   Key domain = Keys::getDomain(my_key_);
   Key surf_domain;
@@ -43,7 +43,7 @@ SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(Teuchos::ParameterList& p
 
 
 SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(const SnowSkinPotentialEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     elev_key_(other.elev_key_),
     pd_key_(other.pd_key_),
     sd_key_(other.sd_key_),
@@ -52,7 +52,7 @@ SnowSkinPotentialEvaluator::SnowSkinPotentialEvaluator(const SnowSkinPotentialEv
 {};
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 SnowSkinPotentialEvaluator::Clone() const {
   return Teuchos::rcp(new SnowSkinPotentialEvaluator(*this));
 }
@@ -72,7 +72,7 @@ void SnowSkinPotentialEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   if (factor_ > 0.) {
     result->Update(1.0, *sd, 10*factor_, *precip, 1.0);
   } else {
-    double dt = S->time() - S->last_time();
+    double dt = S->get_time() - S->last_time();
     result->Update(1.0, *sd, 10*dt, *precip, 1.0);
   }
 }

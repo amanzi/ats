@@ -54,7 +54,7 @@ void ReactiveTransport_PK_ATS::Setup(const Teuchos::Ptr<State>& S)
   S->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT,  "state").SetMesh(S->GetMesh(domain_))->SetGhosted();
   S->Require<CompositeVector,CompositeVectorSpace>(mol_den_key_, Tags::NEXT).SetMesh(S->GetMesh(domain_))->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S->RequireFieldEvaluator(mol_den_key_);
+  S->RequireEvaluator(mol_den_key_);
 }
 
 void ReactiveTransport_PK_ATS::cast_sub_pks_()
@@ -80,7 +80,7 @@ void ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
   Teuchos::RCP<Epetra_MultiVector> tcc_copy =
     S_->GetW<CompositeVector>(tcc_key_,"state").ViewComponent("cell", true);
 
-  S->GetFieldEvaluator(mol_den_key_)->HasFieldChanged(S, name_);
+  S->GetEvaluator(mol_den_key_)->HasFieldChanged(S, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_den_key_).ViewComponent("cell", true);
 
@@ -157,7 +157,7 @@ bool ReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool rein
       Teuchos::RCP<Epetra_MultiVector> tcc_copy =
         S_->GetFieldCopyData(tcc_key_,"subcycling","state")->ViewComponent("cell", true);
 
-      S_->GetFieldEvaluator(mol_den_key_)->HasFieldChanged(S_.ptr(), name_);
+      S_->GetEvaluator(mol_den_key_)->HasFieldChanged(S_.ptr(), name_);
       Teuchos::RCP<const Epetra_MultiVector> mol_dens =
         S_->Get<CompositeVector>(mol_den_key_).ViewComponent("cell", true);
 

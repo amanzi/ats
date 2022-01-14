@@ -32,7 +32,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   auto domain = Keys::getDomain(my_key_);
   air_temp_key_ = Keys::readKey(plist, domain, "air temperature", "air_temperature");
@@ -44,7 +44,7 @@ LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
   scale_ = plist.get<double>("scaling factor [-]", 1.0);
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
 LongwaveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)

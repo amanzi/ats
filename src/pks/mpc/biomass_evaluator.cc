@@ -10,14 +10,14 @@
 namespace Amanzi {
 
   BiomassEvaluator::BiomassEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
   {
     last_update_ = -1;
     InitializeFromPlist_();    
   }
 
   BiomassEvaluator::BiomassEvaluator(const BiomassEvaluator& other):
-    SecondaryVariablesFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     nspecies_(other.nspecies_),
     type_(other.type_),
     domain_name_(other.domain_name_),
@@ -62,7 +62,7 @@ namespace Amanzi {
                 
   }
 
-  Teuchos::RCP<FieldEvaluator>
+  Teuchos::RCP<Evaluator>
   BiomassEvaluator::Clone() const {
     return Teuchos::rcp(new BiomassEvaluator(*this));
   }
@@ -118,7 +118,7 @@ namespace Amanzi {
   bool BiomassEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S, Key request){
 
     if ((update_frequency_ > 0) && (last_update_ >=0)) {
-      double time = S->time();
+      double time = S->get_time();
       if (requests_.find(request) == requests_.end()) {
         requests_.insert(request);
         if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
@@ -129,8 +129,8 @@ namespace Amanzi {
       if (time - last_update_ < update_frequency_) return false;
     }
 
-    bool chg = SecondaryVariablesFieldEvaluator::HasFieldChanged(S, request);
-    if (chg) last_update_ = S->time();
+    bool chg = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S, request);
+    if (chg) last_update_ = S->get_time();
 
     return chg;
 

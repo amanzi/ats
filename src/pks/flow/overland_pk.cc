@@ -83,7 +83,7 @@ void OverlandFlow::Setup(const Teuchos::Ptr<State>& S) {
 void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
 
   // Default evaluators
-  S->RequireFieldEvaluator("surface-cell_volume");
+  S->RequireEvaluator("surface-cell_volume");
   S->RequireGravity();
   S->RequireScalar("atmospheric_pressure");
 
@@ -234,8 +234,8 @@ void OverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
     elev_plist.set("evaluator name", Keys::getKey(domain_, "elevation"));
     elev_evaluator = Teuchos::rcp(new Flow::MeshedElevationEvaluator(elev_plist));
   }
-  S->SetFieldEvaluator(Keys::getKey(domain_,"elevation"), elev_evaluator);
-  S->SetFieldEvaluator(Keys::getKey(domain_,"slope_magnitude"), elev_evaluator);
+  S->SetEvaluator(Keys::getKey(domain_,"elevation"), elev_evaluator);
+  S->SetEvaluator(Keys::getKey(domain_,"slope_magnitude"), elev_evaluator);
 
   // -- evaluator for potential field, h + z
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT,  "pres_elev"))->Update(matrix_->RangeMap())->SetGhosted();
@@ -243,7 +243,7 @@ void OverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   pres_elev_plist.set("evaluator name", Keys::getKey(domain_, "pres_elev"));
   Teuchos::RCP<Flow::PresElevEvaluator> pres_elev_eval =
       Teuchos::rcp(new Flow::PresElevEvaluator(pres_elev_plist));
-  S->SetFieldEvaluator(Keys::getKey(domain_, "pres_elev"), pres_elev_eval);
+  S->SetEvaluator(Keys::getKey(domain_, "pres_elev"), pres_elev_eval);
 
   // -- evaluator for source term
   is_source_term_ = plist_->get<bool>("source term");
@@ -252,7 +252,7 @@ void OverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
     S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(source_key_);
+    S->RequireEvaluator(source_key_);
   }
 
   // -- conductivity evaluator
@@ -264,7 +264,7 @@ void OverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   Teuchos::RCP<Flow::OverlandConductivityEvaluator> cond_evaluator =
       Teuchos::rcp(new Flow::OverlandConductivityEvaluator(cond_plist));
-  S->SetFieldEvaluator(Keys::getKey(domain_,"overland_conductivity"), cond_evaluator);
+  S->SetEvaluator(Keys::getKey(domain_,"overland_conductivity"), cond_evaluator);
 }
 
 
@@ -276,11 +276,11 @@ void OverlandFlow::Initialize(const Teuchos::Ptr<State>& S) {
   PK_PhysicalBDF_Default::Initialize(S);
 
   // Initialize BC values
-  bc_head_->Compute(S->time());
-  bc_zero_gradient_->Compute(S->time());
-  bc_flux_->Compute(S->time());
-  bc_seepage_head_->Compute(S->time());
-  bc_critical_depth_->Compute(S->time());
+  bc_head_->Compute(S->get_time());
+  bc_zero_gradient_->Compute(S->get_time());
+  bc_flux_->Compute(S->get_time());
+  bc_seepage_head_->Compute(S->get_time());
+  bc_critical_depth_->Compute(S->get_time());
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   Key uwkey = Keys::getKey(domain_,"upwind_overland_conductivity");
@@ -316,15 +316,15 @@ void OverlandFlow::Initialize(const Teuchos::Ptr<State>& S) {
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, S);
 
   // update boundary conditions
-  bc_head_->Compute(S->time());
-  bc_flux_->Compute(S->time());
-  bc_seepage_head_->Compute(S->time());
-  bc_critical_depth_->Compute(S->time());
+  bc_head_->Compute(S->get_time());
+  bc_flux_->Compute(S->get_time());
+  bc_seepage_head_->Compute(S->get_time());
+  bc_critical_depth_->Compute(S->get_time());
   UpdateBoundaryConditions_(S.ptr());
 
   // Update flux if rel perm or h + Z has changed.
   bool update = UpdatePermeabilityData_(S.ptr());
-  update |= S->GetFieldEvaluator(Keys::getKey(domain_, "pres_elev"))->HasFieldChanged(S.ptr(), name_);
+  update |= S->GetEvaluator(Keys::getKey(domain_, "pres_elev"))->HasFieldChanged(S.ptr(), name_);
 
   // update the stiffness matrix with the new rel perm
   Teuchos::RCP<const CompositeVector> conductivity =
@@ -359,10 +359,10 @@ bool OverlandFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) {
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
 
-  bool update_perm = S->GetFieldEvaluator(Keys::getKey(domain_,"overland_conductivity"))
+  bool update_perm = S->GetEvaluator(Keys::getKey(domain_,"overland_conductivity"))
       ->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S, name_);
-  update_perm |= S->GetFieldEvaluator(Keys::getKey(domain_, "pres_elev"))->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(Keys::getKey(domain_, "pres_elev"))->HasFieldChanged(S, name_);
 
   if (update_perm) {
     // get upwind conductivity data
@@ -415,7 +415,7 @@ bool OverlandFlow::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& 
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability derivatives?";
 
-  bool update_perm = S->GetFieldEvaluator(Keys::getKey(domain_,"overland_conductivity"))
+  bool update_perm = S->GetEvaluator(Keys::getKey(domain_,"overland_conductivity"))
       ->HasFieldDerivativeChanged(S, name_, key_);
   Key dcond_key = Keys::getDerivKey(Keys::getKey(domain_,"overland_conductivity"),key_);
   Teuchos::RCP<const CompositeVector> dcond = S->GetPtr<CompositeVector>(dcond_key);
@@ -481,7 +481,7 @@ void OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S) {
 
   // Seepage face head boundary condition
   if (bc_seepage_head_->size() > 0) {
-    S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
 
     const CompositeVector& pd = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"));
     const Epetra_MultiVector& h_c = *pd.ViewComponent("cell");
@@ -531,7 +531,7 @@ void OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S) {
 
   // Critical depth boundary condition
   if (bc_critical_depth_->size() > 0) {
-    S->GetFieldEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
+    S->GetEvaluator(Keys::getKey(domain_,"ponded_depth"))->HasFieldChanged(S.ptr(), name_);
 
     const Epetra_MultiVector& h_c = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell");
     const Epetra_MultiVector& nliq_c = *S->GetPtr<CompositeVector>("surface-molar_density_liquid")

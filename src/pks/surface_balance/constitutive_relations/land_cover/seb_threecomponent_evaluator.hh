@@ -105,27 +105,27 @@ depressions due to gravity- and wind-driven redistributions, respectively.
 
 #include "Factory.hh"
 #include "Debugger.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class SEBThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
+class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   SEBThreeComponentEvaluator(Teuchos::ParameterList& plist);
   SEBThreeComponentEvaluator(const SEBThreeComponentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const {
     return Teuchos::rcp(new SEBThreeComponentEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
 
@@ -172,7 +172,7 @@ class SEBThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   Teuchos::ParameterList plist_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SEBThreeComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,SEBThreeComponentEvaluator> reg_;
 };
 
 }  // namespace Relations

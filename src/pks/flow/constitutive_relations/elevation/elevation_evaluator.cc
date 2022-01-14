@@ -12,14 +12,14 @@ namespace Amanzi {
 namespace Flow {
 
 ElevationEvaluator::ElevationEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist),
+    EvaluatorSecondaryMonotypeCV(plist),
     updated_once_(false), 
     dynamic_mesh_(false) {
 
   Key domain = Keys::getDomain(plist_.get<std::string>("evaluator name"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "elevation", "elevation"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "slope magnitude", "slope_magnitude"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "aspect", "aspect"));
+  my_keys_.emplace_back((Keys::readKey(plist_, domain, "elevation", "elevation"));
+  my_keys_.emplace_back((Keys::readKey(plist_, domain, "slope magnitude", "slope_magnitude"));
+  my_keys_.emplace_back((Keys::readKey(plist_, domain, "aspect", "aspect"));
 
   // If the mesh changes dynamically (e.g. due to the presence of a deformation
   // pk, then we must make sure that elevation is recomputed every time the 
@@ -66,7 +66,7 @@ void ElevationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
 // Custom EnsureCompatibility forces this to be updated once.
 bool ElevationEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
                                          Key request) {
-  bool changed = SecondaryVariablesFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
   if (!updated_once_) {
     UpdateField_(S);
     updated_once_ = true;

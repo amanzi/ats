@@ -17,14 +17,14 @@ namespace Relations {
 
 // Constructor from ParameterList
 EvaporationDownregulationEvaluator::EvaporationDownregulationEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist),
+  EvaluatorSecondaryMonotypeCV(plist),
   consistent_(false)
 {
   InitializeFromPlist_();
 }
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 EvaporationDownregulationEvaluator::Clone() const
 {
   return Teuchos::rcp(new EvaporationDownregulationEvaluator(*this));
@@ -136,7 +136,7 @@ EvaporationDownregulationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
     // Recurse into the tree to propagate info to leaves.
     // Loop over dependencies, making sure they are the same mesh
     for (auto key : dependencies_) {
-      S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
+      S->RequireEvaluator(key)->EnsureCompatibility(S);
     }
 
     consistent_ = true;

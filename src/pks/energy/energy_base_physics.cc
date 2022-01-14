@@ -12,7 +12,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 ------------------------------------------------------------------------- */
 
 #include "advection.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "energy_base.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"
@@ -24,11 +24,11 @@ namespace Energy {
 // Accumulation of energy term de/dt
 // -------------------------------------------------------------
 void EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
 
   // update the energy at both the old and new times.
-  S_next_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
 
   // get the energy at each time
   Teuchos::RCP<const CompositeVector> e1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
@@ -54,10 +54,10 @@ void EnergyBase::AddAdvection_(const Teuchos::Ptr<State>& S,
   // [flux] =  mol/s
 
   // NOTE: this will be the eventual way to ensure it is up to date,
-  // but there is no FieldEvaluator for darcy flux yet.  When there
+  // but there is no Evaluator for darcy flux yet.  When there
   // is, we can take the evaluation out of Flow::commit_state(),
   // but for now we'll leave it there and assume it has been updated. --etc
-  //  S->GetFieldEvaluator(flux_key_)->HasFieldChanged(S.ptr(), name_);
+  //  S->GetEvaluator(flux_key_)->HasFieldChanged(S.ptr(), name_);
   ApplyDirichletBCsToEnthalpy_(S);
 
   // debugging
@@ -113,7 +113,7 @@ void EnergyBase::AddSources_(const Teuchos::Ptr<State>& S,
     Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
 
     // Update the source term
-    S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
+    S->GetEvaluator(source_key_)->HasFieldChanged(S, name_);
     const Epetra_MultiVector& source1 =
         *S->Get<CompositeVector>(source_key_).ViewComponent("cell",false);
     const Epetra_MultiVector& cv =
@@ -136,24 +136,24 @@ void EnergyBase::AddSources_(const Teuchos::Ptr<State>& S,
 void EnergyBase::AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h) {
   // external sources of energy (temperature dependent source)
   if (is_source_term_ && is_source_term_differentiable_ &&
-      S->GetFieldEvaluator(source_key_)->IsDependency(S, key_)) {
+      S->GetEvaluator(source_key_)->IsDependency(S, key_)) {
 
     Teuchos::RCP<const CompositeVector> dsource_dT;
     if (!is_source_term_finite_differentiable_) {
       // evaluate the derivative through the dag
-      S->GetFieldEvaluator(source_key_)->HasFieldDerivativeChanged(S, name_, key_);
+      S->GetEvaluator(source_key_)->HasFieldDerivativeChanged(S, name_, key_);
       dsource_dT = S->GetPtrW<CompositeVector>(Keys::getDerivKey(source_key_, key_));
     } else {
       // evaluate the derivative through finite differences
       double eps = 1.e-8;
       S->GetW<CompositeVector>(key_, name_).Shift(eps);
       ChangedSolution();
-      S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
+      S->GetEvaluator(source_key_)->HasFieldChanged(S, name_);
       auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S->GetPtr<CompositeVector>(source_key_)));
 
       S->GetW<CompositeVector>(key_, name_).Shift(-eps);
       ChangedSolution();
-      S->GetFieldEvaluator(source_key_)->HasFieldChanged(S, name_);
+      S->GetEvaluator(source_key_)->HasFieldChanged(S, name_);
 
       dsource_dT_nc->Update(-1/eps, *S->GetPtr<CompositeVector>(source_key_), 1/eps);
       dsource_dT = dsource_dT_nc;
@@ -192,7 +192,7 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
   }
 
   // then put the boundary fluxes in faces for Dirichlet BCs.
-  S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
+  S->GetEvaluator(enthalpy_key_)->HasFieldChanged(S, name_);
 
   const Epetra_MultiVector& enth_bf =
     *S->Get<CompositeVector>(enthalpy_key_).ViewComponent("boundary_face",false);

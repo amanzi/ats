@@ -14,49 +14,39 @@
 #define AMANZI_UPWINDING_ARITHMETICMEAN_SCHEME_
 
 #include "Key.hh"
+#include "Tag.hh"
 #include "upwinding.hh"
 
 namespace Amanzi {
-
-class State;
-class CompositeVector;
-
 namespace Operators {
 
 class UpwindArithmeticMean : public Upwinding {
+ public:
+  UpwindArithmeticMean(const std::string& pkname, const Tag& tag);
 
-public:
-
-  UpwindArithmeticMean(Key pkname,
-                     Key cell_coef,
-                     Key face_coef);
-  UpwindArithmeticMean(const UpwindArithmeticMean& other) = delete;
-  UpwindArithmeticMean& operator=(const UpwindArithmeticMean& other) = delete;
-
-  virtual void Update(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null);
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        CompositeVector& face_coef);
+        CompositeVector& face_coef) const;
 
   virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
+  UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     Key potential_key,
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
                     const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
-  
+  CoefficientLocation() const override { return "upwind: face"; }
 
-private:
-  
-  Key pkname_;
-  Key cell_coef_;
-  Key face_coef_;
+ private:
+  std::string pkname_;
+  Tag tag_;
 };
 
 } // namespace

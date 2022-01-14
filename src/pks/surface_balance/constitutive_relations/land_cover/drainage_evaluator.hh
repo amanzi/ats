@@ -46,13 +46,13 @@ Drainage is given by:
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class DrainageEvaluator : public SecondaryVariablesFieldEvaluator {
+class DrainageEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
 
@@ -61,9 +61,9 @@ class DrainageEvaluator : public SecondaryVariablesFieldEvaluator {
   DrainageEvaluator(Teuchos::ParameterList& plist);
 
   DrainageEvaluator(const DrainageEvaluator& other) = default;
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -81,7 +81,7 @@ class DrainageEvaluator : public SecondaryVariablesFieldEvaluator {
   double n_liq_;
 
  private:
-  static Amanzi::Utils::RegisteredFactory<FieldEvaluator,DrainageEvaluator> reg_;
+  static Amanzi::Utils::RegisteredFactory<Evaluator,DrainageEvaluator> reg_;
 
 };
 

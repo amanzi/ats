@@ -41,7 +41,7 @@ kappa grad T |_s = qE_ss
 
 #include "PK.hh"
 #include "mpc.hh"
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 
 namespace Amanzi {
 
@@ -100,8 +100,8 @@ class MPCPermafrostSplitFluxColumns : public MPC<PK> {
   Key T_lateral_flow_source_suffix_;
 
   Key cv_key_;
-  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator> > p_eval_pvfes_;
-  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator> > T_eval_pvfes_;
+  std::vector<Teuchos::RCP<EvaluatorPrimary> > p_eval_pvfes_;
+  std::vector<Teuchos::RCP<EvaluatorPrimary> > T_eval_pvfes_;
   std::string coupling_;
 
   std::string domain_col_;

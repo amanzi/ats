@@ -16,14 +16,14 @@ namespace Relations {
 
 // Constructor from ParameterList
 RootingDepthFractionEvaluator::RootingDepthFractionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
 }
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 RootingDepthFractionEvaluator::Clone() const
 {
   return Teuchos::rcp(new RootingDepthFractionEvaluator(*this));
@@ -142,7 +142,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
   // Recurse into the tree to propagate info to leaves.
   for (KeySet::const_iterator key=dependencies_.begin();
        key!=dependencies_.end(); ++key) {
-    S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+    S->RequireEvaluator(*key)->EnsureCompatibility(S);
   }
 }
 

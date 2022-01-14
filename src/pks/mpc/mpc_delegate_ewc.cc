@@ -8,7 +8,7 @@ Author: Ethan Coon
 Interface for EWC, a helper class that does projections and preconditioners in
 energy/water-content space instead of temperature/pressure space.
 ------------------------------------------------------------------------- */
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "ewc_model.hh"
 #include "mpc_delegate_ewc.hh"
 
@@ -116,7 +116,7 @@ void MPCDelegateEWC::initialize(const Teuchos::Ptr<State>& S) {
     wc_prev2_->PutScalar(0.);
     e_prev2_->PutScalar(0.);
 
-    time_prev2_ = S->time();
+    time_prev2_ = S->get_time();
   }
 
   // initialize the Jacobian
@@ -151,7 +151,7 @@ void MPCDelegateEWC::commit_state(double dt, const Teuchos::RCP<State>& S) {
     // stash water content and energy in S_work.
     *wc_prev2_ = *S_inter_->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
     *e_prev2_ = *S_inter_->Get<CompositeVector>(e_key_).ViewComponent("cell",false);
-    time_prev2_ = S_inter_->time();
+    time_prev2_ = S_->get_time(tag_inter_);
   }
 }
 
@@ -161,7 +161,7 @@ void MPCDelegateEWC::commit_state(double dt, const Teuchos::RCP<State>& S) {
 // -----------------------------------------------------------------------------
 bool MPCDelegateEWC::ModifyPredictor(double h, Teuchos::RCP<TreeVector> up) {
   bool modified = false;
-  double dt_prev = S_inter_->time() - time_prev2_;
+  double dt_prev = S_->get_time(tag_inter_) - time_prev2_;
 
   if (predictor_type_ == PREDICTOR_EWC) {
     if (dt_prev > 0.) {
@@ -204,25 +204,25 @@ int MPCDelegateEWC::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teucho
 
 void MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, double h) {
   Key dedT_key = Keys::getKey(e_key_, temp_key_);
-  S_next_->GetFieldEvaluator(e_key_)
+  S_next_->GetEvaluator(e_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
   const Epetra_MultiVector& dedT = *S_next_->GetPtr<CompositeVector>(dedT_key)
       ->ViewComponent("cell",false);
 
   Key dedp_key = Keys::getKey(e_key_, pres_key_);
-  S_next_->GetFieldEvaluator(e_key_)
+  S_next_->GetEvaluator(e_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
   const Epetra_MultiVector& dedp = *S_next_->GetPtr<CompositeVector>(dedp_key)
       ->ViewComponent("cell",false);
 
   Key dwcdT_key = Keys::getKey(wc_key_, temp_key_);
-  S_next_->GetFieldEvaluator(wc_key_)
+  S_next_->GetEvaluator(wc_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
   const Epetra_MultiVector& dwcdT = *S_next_->GetPtr<CompositeVector>(dwcdT_key)
       ->ViewComponent("cell",false);
 
   Key dwcdp_key = Keys::getKey(wc_key_, pres_key_);
-  S_next_->GetFieldEvaluator(wc_key_)
+  S_next_->GetEvaluator(wc_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
   const Epetra_MultiVector& dwcdp = *S_next_->GetPtr<CompositeVector>(dwcdp_key)
       ->ViewComponent("cell",false);

@@ -21,7 +21,7 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
+void PK_BDF_Default::Setup()
 {
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
@@ -34,7 +34,7 @@ void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
     // -- check if continuation method
     // -- ETC Note this needs fixed if more than one continuation method used
     if (bdf_plist.isSublist("continuation parameters")) {
-      S->RequireScalar("continuation_parameter", name_);
+      S_->Require<double>("continuation_parameter", Tags::DEFAULT, name_);
     }
   }
 };
@@ -43,36 +43,37 @@ void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-void PK_BDF_Default::Initialize(const Teuchos::Ptr<State>& S)
+void PK_BDF_Default::Initialize()
 {
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
     // -- instantiate time stepper
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    bdf_plist.set("initial time", S->time());
+    bdf_plist.set("initial time", S_->get_time());
     if (!bdf_plist.isSublist("verbose object"))
       bdf_plist.set("verbose object", plist_->sublist("verbose object"));
-    time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector,TreeVectorSpace>(*this, bdf_plist, solution_));
+    time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector,TreeVectorSpace>(*this,
+            bdf_plist, solution_));
 
     // initialize continuation parameter if needed.
     if (bdf_plist.isSublist("continuation parameters")) {
-      *S->GetScalarData("continuation_parameter", name_) = 1.;
-      S->GetField("continuation_parameter", name_)->set_initialized();
+      S_->GetW<double>("continuation_parameter", Tags::DEFAULT, name_) = 1.;
+      S_->GetRecordW("continuation_parameter", Tags::DEFAULT, name_).set_initialized();
     }
 
     // -- initialize time derivative
-    Teuchos::RCP<TreeVector> solution_dot = Teuchos::rcp(new TreeVector(*solution_));
+    auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
     solution_dot->PutScalar(0.0);
 
     // -- set initial state
-    time_stepper_->SetInitialState(S->time(), solution_, solution_dot);
+    time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);
   }
 };
 
 void PK_BDF_Default::ResetTimeStepper(double time)
 {
   // -- initialize time derivative
-  Teuchos::RCP<TreeVector> solution_dot = Teuchos::rcp(new TreeVector(*solution_));
+  auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
   solution_dot->PutScalar(0.0);
 
   // -- set initial state
@@ -88,7 +89,7 @@ double PK_BDF_Default::get_dt() { return dt_; }
 void PK_BDF_Default::set_dt(double dt) { dt_ = dt; }
 
 // -- Commit any secondary (dependent) variables.
-void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) \
+void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag) \
 {
   double dt = t_new - t_old;
   if (time_stepper_ != Teuchos::null) {
@@ -98,15 +99,6 @@ void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<S
       time_stepper_->CommitSolution(dt, solution_, true);
     }
   }
-}
-
-void PK_BDF_Default::set_states(const Teuchos::RCP<State>& S,
-        const Teuchos::RCP<State>& S_inter,
-        const Teuchos::RCP<State>& S_next)
-{
-  S_ = S;
-  S_inter_ = S_inter;
-  S_next_ = S_next;
 }
 
 
@@ -120,20 +112,15 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_inter_->time()
-               << " t1 = " << S_next_->time() << " h = " << dt << std::endl
+               << "Advancing: t0 = " << S_->get_time()
+               << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  State_to_Solution(S_next_, *solution_);
+  State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
   double dt_solver;
-  bool fail;
-  if (true) { // this is here simply to create a context for timer,
-              // which stops the clock when it is destroyed at the
-              // closing brace.
-    fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
-  }
+  bool fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
 
   if (!fail) {
     // check step validity
@@ -154,6 +141,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
         *vo_->os() << "successful advance, but not valid" << std::endl;
       time_stepper_->CommitSolution(dt_, solution_, valid);
       dt_ = 0.5*dt_;
+      // when including Valid here, make fail = true refs #110
     }
   } else {
     if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -169,7 +157,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 // update the continuation parameter
 void PK_BDF_Default::UpdateContinuationParameter(double lambda)
 {
-  *S_next_->GetScalarData("continuation_parameter", name_) = lambda;
+  S_->GetW<double>("continuation_parameter", Tags::DEFAULT, name()) = lambda;
   ChangedSolution();
 }
 

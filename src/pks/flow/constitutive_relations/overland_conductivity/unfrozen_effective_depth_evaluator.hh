@@ -10,22 +10,22 @@
 #define AMANZI_FLOWRELATIONS_UNFROZEN_EFFECTIVE_DEPTH_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class UnfrozenEffectiveDepthModel;
 
-class UnfrozenEffectiveDepthEvaluator : public SecondaryVariableFieldEvaluator {
+class UnfrozenEffectiveDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist);
   UnfrozenEffectiveDepthEvaluator(const UnfrozenEffectiveDepthEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -37,7 +37,7 @@ protected:
   double alpha_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,UnfrozenEffectiveDepthEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,UnfrozenEffectiveDepthEvaluator> fac_;
 
 
 };

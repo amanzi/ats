@@ -53,7 +53,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("micropore_macropore_flux parameters");
   model_ = Teuchos::rcp(new MicroporeMacroporeFluxModel(sublist));
@@ -63,7 +63,7 @@ MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(Teuchos::Parame
 
 // Copy constructor
 MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     pm_key_(other.pm_key_),
     pM_key_(other.pM_key_),
     krM_key_(other.krM_key_),
@@ -73,7 +73,7 @@ MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(const Micropore
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 MicroporeMacroporeFluxEvaluator::Clone() const
 {
   return Teuchos::rcp(new MicroporeMacroporeFluxEvaluator(*this));

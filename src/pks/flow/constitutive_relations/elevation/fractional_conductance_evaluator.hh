@@ -23,22 +23,22 @@ from Jan et al WRR 2018.
 #define AMANZI_FLOWRELATIONS_FRACTIONAL_CONDUCTANCE_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace FlowRelations {
 
-class FractionalConductanceEvaluator : public SecondaryVariableFieldEvaluator {
+class FractionalConductanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   FractionalConductanceEvaluator(Teuchos::ParameterList& plist);
   FractionalConductanceEvaluator(const FractionalConductanceEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -49,7 +49,7 @@ class FractionalConductanceEvaluator : public SecondaryVariableFieldEvaluator {
   Key depr_depth_key_, delta_ex_key_, delta_max_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,FractionalConductanceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,FractionalConductanceEvaluator> factory_;
 };
 
 } //namespace

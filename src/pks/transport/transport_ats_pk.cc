@@ -22,7 +22,7 @@
 #include "BCs.hh"
 #include "errors.hh"
 #include "Explicit_TI_RK.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "Mesh.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
@@ -165,7 +165,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
   S->Require<CompositeVector,CompositeVectorSpace>(cv_key_, Tags::NEXT);
-  S->RequireFieldEvaluator(cv_key_);
+  S->RequireEvaluator(cv_key_);
 
   // other things that I own
   S->Require<CompositeVector,CompositeVectorSpace>(prev_saturation_key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted(true)
@@ -193,30 +193,30 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   if (abs_perm) {
     S->Require<CompositeVector,CompositeVectorSpace>(permeability_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, dim);
-    S->RequireFieldEvaluator(permeability_key_);
+    S->RequireEvaluator(permeability_key_);
   }
 
   S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  S->RequireFieldEvaluator(flux_key_);
+  S->RequireEvaluator(flux_key_);
 
   S->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(saturation_key_);
+  S->RequireEvaluator(saturation_key_);
 
   S->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, Tags::NEXT,  porosity_key_).SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(porosity_key_);
+  S->RequireEvaluator(porosity_key_);
 
   S->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::NEXT,  molar_density_key_).SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(molar_density_key_);
+  S->RequireEvaluator(molar_density_key_);
 
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     S->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT,  water_src_key_).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(water_src_key_);
+    S->RequireEvaluator(water_src_key_);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
 
@@ -233,7 +233,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
       std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
       wc_eval.set<Teuchos::Array<std::string> >("evaluator dependencies", dep);
       wc_eval.set<std::string>("reciprocal", dep[1]);
-      S->RequireFieldEvaluator(geochem_src_factor_key_);
+      S->RequireEvaluator(geochem_src_factor_key_);
     }
   }
 
@@ -241,7 +241,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   if (plist_->sublist("source terms").isSublist("component concentration source")) {
     S->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT,  water_src_key_).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(water_src_key_);
+    S->RequireEvaluator(water_src_key_);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
@@ -274,7 +274,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
 {
   // Set initial values for transport variables.
   dt_ = dt_debug_ = t_physics_ = 0.0;
-  double time = S->time();
+  double time = S->get_time();
   if (time >= 0.0) t_physics_ = time;
 
   if (plist_->isSublist("initial condition")) {
@@ -515,8 +515,8 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
       Teuchos::RCP<TransportSourceFunction_Alquimia_Units>
           src = Teuchos::rcp(new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
-      if (S->HasFieldEvaluator(geochem_src_factor_key_)) {
-        S->GetFieldEvaluator(geochem_src_factor_key_)->HasFieldChanged(S.ptr(), name_);
+      if (S->HasEvaluator(geochem_src_factor_key_)) {
+        S->GetEvaluator(geochem_src_factor_key_)->HasFieldChanged(S.ptr(), name_);
       }
 
       auto src_factor = S->Get<CompositeVector>(geochem_src_factor_key_).ViewComponent("cell",false);
@@ -592,7 +592,7 @@ void Transport_ATS::InitializeFieldFromField_(const std::string& field0,
     if (S->GetField(field0)->owner() == name_) {
       if ((!S->GetField(field0, name_)->initialized()) || overwrite) {
         if (call_evaluator)
-            S->GetFieldEvaluator(field1)->HasFieldChanged(S.ptr(), name_);
+            S->GetEvaluator(field1)->HasFieldChanged(S.ptr(), name_);
 
         const CompositeVector& f1 = *S->GetPtr<CompositeVector>(field1);
         CompositeVector& f0 = *S->GetPtrW<CompositeVector>(field0, name_);
@@ -754,18 +754,18 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_inter_->time()
-               << " t1 = " << S_next_->time() << " h = " << dt_MPC << std::endl
+               << "Advancing: t0 = " << S_->get_time(tag_inter_)
+               << " t1 = " << S_->get_time(tag_next_) << " h = " << dt_MPC << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  S_next_->GetFieldEvaluator(flux_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(flux_key_)->HasFieldChanged(S_next_.ptr(), name_);
   flux_ = S_next_->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
   *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
 
-  S_next_->GetFieldEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), name_);
   ws_ = S_next_->Get<CompositeVector>(saturation_key_).ViewComponent("cell", false);
 
-  S_next_->GetFieldEvaluator(molar_density_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(molar_density_key_)->HasFieldChanged(S_next_.ptr(), name_);
   mol_dens_ = S_next_->Get<CompositeVector>(molar_density_key_).ViewComponent("cell", false);
 
   // this is locally created and has no evaluator -- should get a primary
@@ -777,7 +777,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid
-        S_next_->GetFieldEvaluator(geochem_src_factor_key_)->HasFieldChanged(S_next_.ptr(), name_);
+        S_next_->GetEvaluator(geochem_src_factor_key_)->HasFieldChanged(S_next_.ptr(), name_);
         auto src_factor = S_next_->Get<CompositeVector>(geochem_src_factor_key_).ViewComponent("cell",false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);

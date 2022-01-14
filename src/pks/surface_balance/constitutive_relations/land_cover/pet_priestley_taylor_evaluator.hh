@@ -44,7 +44,7 @@ Requires the following dependencies:
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -90,18 +90,18 @@ double latentHeatVaporization_snow(double temp_air);
 } // namespace PriestleyTaylor
 
 
-class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
+class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
   PETPriestleyTaylorEvaluator(const PETPriestleyTaylorEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new PETPriestleyTaylorEvaluator(*this));
   }
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -133,7 +133,7 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PETPriestleyTaylorEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,PETPriestleyTaylorEvaluator> reg_;
 
 };
 

@@ -13,7 +13,7 @@ namespace Deform {
 namespace DeformRelations {
 
 PorosityEvaluator::PorosityEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // add dependency to cell volume
   dependencies_.insert("cell_volume");
@@ -22,16 +22,16 @@ PorosityEvaluator::PorosityEvaluator(Teuchos::ParameterList& plist) :
 
 
 PorosityEvaluator::PorosityEvaluator(const PorosityEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other)
+    EvaluatorSecondaryMonotypeCV(other)
 { }
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PorosityEvaluator::Clone() const {
   return Teuchos::rcp(new PorosityEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void PorosityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
@@ -71,7 +71,7 @@ void PorosityEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
   // special EnsureCompatibility to add in a evaluator for Porosity
   
   // Call the base class's method since we do not need anything special here
-  SecondaryVariableFieldEvaluator::EnsureCompatibility(S);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility(S);
 };
 
 

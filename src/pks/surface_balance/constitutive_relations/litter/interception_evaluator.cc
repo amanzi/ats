@@ -12,7 +12,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 InterceptionEvaluator::InterceptionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   std::string domain = plist_.get<std::string>("layer name");
   
@@ -30,7 +30,7 @@ InterceptionEvaluator::InterceptionEvaluator(Teuchos::ParameterList& plist) :
 
 
 InterceptionEvaluator::InterceptionEvaluator(const InterceptionEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     ai_key_(other.ai_key_),
     source_key_(other.source_key_),
     source_in_meters_(other.source_in_meters_),
@@ -39,7 +39,7 @@ InterceptionEvaluator::InterceptionEvaluator(const InterceptionEvaluator& other)
 {}
 
 
-Teuchos::RCP<FieldEvaluator> InterceptionEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> InterceptionEvaluator::Clone() const {
   return Teuchos::rcp(new InterceptionEvaluator(*this));
 }
 

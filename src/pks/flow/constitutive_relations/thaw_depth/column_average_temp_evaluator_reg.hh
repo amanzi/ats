@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,ColumnAverageTempEvaluator> ColumnAverageTempEvaluator::reg_("column average temperature");
+Utils::RegisteredFactory<Evaluator,ColumnAverageTempEvaluator> ColumnAverageTempEvaluator::reg_("column average temperature");
 
 }
 }

@@ -39,13 +39,13 @@ Example:
 #ifndef AMANZI_FLOWRELATIONS_SNOW_SKIN_POTENTIAL_EVALUATOR_
 #define AMANZI_FLOWRELATIONS_SNOW_SKIN_POTENTIAL_EVALUATOR_
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class SnowSkinPotentialEvaluator : public SecondaryVariableFieldEvaluator {
+class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
@@ -53,9 +53,9 @@ class SnowSkinPotentialEvaluator : public SecondaryVariableFieldEvaluator {
 
   SnowSkinPotentialEvaluator(const SnowSkinPotentialEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -69,7 +69,7 @@ class SnowSkinPotentialEvaluator : public SecondaryVariableFieldEvaluator {
   double factor_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SnowSkinPotentialEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,SnowSkinPotentialEvaluator> factory_;
 
 };
 

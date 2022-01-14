@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Deform {
 namespace DeformRelations {
 
-Utils::RegisteredFactory<FieldEvaluator,PorosityEvaluator> PorosityEvaluator::factory_("deformation porosity");
+Utils::RegisteredFactory<Evaluator,PorosityEvaluator> PorosityEvaluator::factory_("deformation porosity");
 
 } //namespace
 } //namespace

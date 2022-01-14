@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Flow {
 
 OverlandConductivitySubgridEvaluator::OverlandConductivitySubgridEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_key_);
 
@@ -52,13 +52,13 @@ OverlandConductivitySubgridEvaluator::OverlandConductivitySubgridEvaluator(Teuch
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 OverlandConductivitySubgridEvaluator::Clone() const {
   return Teuchos::rcp(new OverlandConductivitySubgridEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void OverlandConductivitySubgridEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
 {
@@ -198,7 +198,7 @@ void OverlandConductivitySubgridEvaluator::EnsureCompatibility(const Teuchos::Pt
 
     // Recurse into the tree to propagate info to leaves.
     for (const auto& key : dependencies_) {
-      S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
+      S->RequireEvaluator(key)->EnsureCompatibility(S);
     }
   }
 }

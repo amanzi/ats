@@ -56,7 +56,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   }
 
   // unnecessary here if not debeugging, but doesn't hurt either
-  S_next_->GetFieldEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // dump u_old, u_new
   db_->WriteCellInfo(true);
@@ -88,16 +88,16 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
-  bc_head_->Compute(S_next_->time());
-  bc_pressure_->Compute(S_next_->time());
-  bc_zero_gradient_->Compute(S_next_->time());
-  bc_flux_->Compute(S_next_->time());
-  bc_level_->Compute(S_next_->time());
-  bc_seepage_head_->Compute(S_next_->time());
-  bc_seepage_pressure_->Compute(S_next_->time());
-  bc_critical_depth_->Compute(S_next_->time());
-  bc_dynamic_->Compute(S_next_->time());
-  bc_tidal_->Compute(S_next_->time());
+  bc_head_->Compute(S_->get_time(tag_next_));
+  bc_pressure_->Compute(S_->get_time(tag_next_));
+  bc_zero_gradient_->Compute(S_->get_time(tag_next_));
+  bc_flux_->Compute(S_->get_time(tag_next_));
+  bc_level_->Compute(S_->get_time(tag_next_));
+  bc_seepage_head_->Compute(S_->get_time(tag_next_));
+  bc_seepage_pressure_->Compute(S_->get_time(tag_next_));
+  bc_critical_depth_->Compute(S_->get_time(tag_next_));
+  bc_dynamic_->Compute(S_->get_time(tag_next_));
+  bc_tidal_->Compute(S_->get_time(tag_next_));
 
   UpdateBoundaryConditions_(S_next_.ptr());
 
@@ -107,7 +107,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
   if (S_next_->HasField(Keys::getKey(domain_,"unfrozen_fraction"))) {
     Key uf_key = Keys::getKey(domain_,"unfrozen_fraction");
-    S_next_->GetFieldEvaluator(uf_key)->HasFieldChanged(S_next_.ptr(), name_);
+    S_next_->GetEvaluator(uf_key)->HasFieldChanged(S_next_.ptr(), name_);
     vnames.resize(2);
     vecs.resize(2);
     vnames[0] = "uf_frac_old";
@@ -204,7 +204,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
     iter_counter_time_ = t;
   }
 
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
   // calculating the operator is done in 3 steps:
@@ -243,7 +243,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
       flux = S_next_->GetPtrW<CompositeVector>(flux_key_, name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     } else {
-      S_next_->GetFieldEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
+      S_next_->GetEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
       pres_elev = S_next_->GetPtr<CompositeVector>(potential_key_);
     }
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), pres_elev.ptr());
@@ -258,12 +258,12 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
   //    to h.
   //
   // -- update dh_bar / dp
-  S_next_->GetFieldEvaluator(pd_bar_key_)
+  S_next_->GetEvaluator(pd_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   auto dh_dp = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(pd_bar_key_, key_));
 
   // -- update the accumulation derivatives
-  S_next_->GetFieldEvaluator(wc_bar_key_)
+  S_next_->GetEvaluator(wc_bar_key_)
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   auto dwc_dp = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(wc_bar_key_, key_));
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
@@ -275,8 +275,8 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
 
   // Why is this turned off? #60 --etc
   // // -- update the source term derivatives
-  // if (S_next_->GetFieldEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
-  //   S_next_->GetFieldEvaluator(source_key_)
+  // if (S_next_->GetEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
+  //   S_next_->GetEvaluator(source_key_)
   //       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   //   Key dkey = Keys::getDerivKey(source_key_,key_);
   //   const Epetra_MultiVector& dq_dp = *S_next_->GetPtr<CompositeVector>(dkey)
@@ -288,9 +288,9 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
   //   if (source_in_meters_) {
   //     // External source term is in [m water / s], not in [mols / s], so a
   //     // density is required.  This density should be upwinded.
-  //     S_next_->GetFieldEvaluator("surface-molar_density_liquid")
+  //     S_next_->GetEvaluator("surface-molar_density_liquid")
   //         ->HasFieldChanged(S_next_.ptr(), name_);
-  //     S_next_->GetFieldEvaluator("surface-source_molar_density")
+  //     S_next_->GetEvaluator("surface-source_molar_density")
   //         ->HasFieldChanged(S_next_.ptr(), name_);
   //     const Epetra_MultiVector& nliq1 =
   //         *S_next_->GetPtr<CompositeVector>("surface-molar_density_liquid")
@@ -325,7 +325,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
     // Scale Spp by dh/dp (h, NOT h_bar), clobbering rows with p < p_atm
     std::string pd_deriv_key = Keys::getDerivKey(pd_key_,key_);
 
-    S_next_->GetFieldEvaluator(pd_key_)
+    S_next_->GetEvaluator(pd_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
     Teuchos::RCP<const CompositeVector> dh0_dp = S_next_->GetPtr<CompositeVector>(pd_deriv_key);
     const Epetra_MultiVector& dh0_dp_c = *dh0_dp->ViewComponent("cell",false);

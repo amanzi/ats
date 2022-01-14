@@ -10,26 +10,26 @@
 #define AMANZI_FLOWRELATIONS_OVERLAND_CONDUCTIVITY_SUBGRID_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class ManningConductivityModel;
 
-class OverlandConductivitySubgridEvaluator : public SecondaryVariableFieldEvaluator {
+class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   OverlandConductivitySubgridEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivitySubgridEvaluator(const OverlandConductivitySubgridEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const override;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<ManningConductivityModel> get_Model() { return model_; }
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -46,7 +46,7 @@ private:
   Key frac_cond_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,OverlandConductivitySubgridEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,OverlandConductivitySubgridEvaluator> factory_;
 };
 
 } //namespace

@@ -29,7 +29,7 @@ lateral fluxes as a fixed source term.
 
 #include "PK.hh"
 #include "mpc.hh"
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 
 namespace Amanzi {
 
@@ -70,7 +70,7 @@ class MPCCoupledWaterSplitFlux : public MPC<PK> {
   Key conserved_variable_star_;
   Key lateral_flow_source_;
   Key cv_key_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> eval_pvfe_;
+  Teuchos::RCP<EvaluatorPrimary> eval_pvfe_;
   
  private:
   // factory registration

@@ -3,7 +3,7 @@
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<FieldEvaluator,ThawDepthEvaluator> ThawDepthEvaluator::reg_("thaw depth");
+Utils::RegisteredFactory<Evaluator,ThawDepthEvaluator> ThawDepthEvaluator::reg_("thaw depth");
 
 }
 }

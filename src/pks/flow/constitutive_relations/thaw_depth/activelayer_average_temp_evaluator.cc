@@ -14,7 +14,7 @@ namespace Flow {
 
 
 ActiveLayerAverageTempEvaluator::ActiveLayerAverageTempEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   
@@ -30,7 +30,7 @@ ActiveLayerAverageTempEvaluator::ActiveLayerAverageTempEvaluator(Teuchos::Parame
 }
   
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ActiveLayerAverageTempEvaluator::Clone() const
 {
   return Teuchos::rcp(new ActiveLayerAverageTempEvaluator(*this));
@@ -74,7 +74,7 @@ bool
 ActiveLayerAverageTempEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -102,7 +102,7 @@ ActiveLayerAverageTempEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& 
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

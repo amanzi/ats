@@ -29,13 +29,13 @@
 #define AMANZI_RELATIONS_INTERCEPTION_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class InterceptionEvaluator : public SecondaryVariableFieldEvaluator {
+class InterceptionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
 
@@ -44,9 +44,9 @@ class InterceptionEvaluator : public SecondaryVariableFieldEvaluator {
   InterceptionEvaluator(Teuchos::ParameterList& plist);
 
   InterceptionEvaluator(const InterceptionEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -61,7 +61,7 @@ class InterceptionEvaluator : public SecondaryVariableFieldEvaluator {
   bool source_in_meters_;
 
  private:
-  static Amanzi::Utils::RegisteredFactory<FieldEvaluator,InterceptionEvaluator> factory_;
+  static Amanzi::Utils::RegisteredFactory<Evaluator,InterceptionEvaluator> factory_;
 
 };
 

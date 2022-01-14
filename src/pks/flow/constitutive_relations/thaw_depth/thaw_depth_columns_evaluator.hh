@@ -3,7 +3,7 @@
 /*
   The thaw depth evaluator gets the subsurface temperature.
   This computes the thaw depth over time.
-  This is SecondaryVariablesFieldEvaluator and depends on the subsurface temperature, 
+  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature, 
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
@@ -12,21 +12,21 @@
 #define AMANZI_FLOWRELATIONS_THAWDEPTH_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class ThawDepthColumnsEvaluator : public SecondaryVariableFieldEvaluator {
+class ThawDepthColumnsEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   ThawDepthColumnsEvaluator(Teuchos::ParameterList& plist);
   ThawDepthColumnsEvaluator(const ThawDepthColumnsEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -43,7 +43,7 @@ protected:
   Key domain_;
   Key temp_key_;
 private:
-  static Utils::RegisteredFactory<FieldEvaluator,ThawDepthColumnsEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ThawDepthColumnsEvaluator> reg_;
 
 };
   

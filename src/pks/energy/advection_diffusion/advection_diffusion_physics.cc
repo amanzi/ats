@@ -22,8 +22,8 @@ namespace Energy {
 
 // dT/dt portion of the residual function
 void AdvectionDiffusion::AddAccumulation_(Teuchos::RCP<CompositeVector> g) {
-  S_next_->GetFieldEvaluator("temperature")->HasFieldChanged(S_next_.ptr(), name_);
-  S_inter_->GetFieldEvaluator("temperature")->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator("temperature")->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator("temperature")->HasFieldChanged(S_inter_.ptr(), name_);
   Teuchos::RCP<const CompositeVector> temp0 =
     S_inter_->GetPtr<CompositeVector>("temperature");
   Teuchos::RCP<const CompositeVector> temp1 =
@@ -34,7 +34,7 @@ void AdvectionDiffusion::AddAccumulation_(Teuchos::RCP<CompositeVector> g) {
   Teuchos::RCP<const CompositeVector> cv1 =
     S_next_->GetPtr<CompositeVector>("cell_volume");
 
-  double dt = S_next_->time() - S_inter_->time();
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
   AMANZI_ASSERT(dt > 0.);
 
   //  --   g <-- g - (cv*h)_t0/dt

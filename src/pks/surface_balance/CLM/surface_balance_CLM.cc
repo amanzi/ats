@@ -75,12 +75,12 @@ SurfaceBalanceCLM::Setup(const Teuchos::Ptr<State>& S) {
       SetComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: other primary variables
-  Teuchos::RCP<FieldEvaluator> fm;
+  Teuchos::RCP<Evaluator> fm;
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "water_source"), name_)->SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"water_source"));
-  fm = S->GetFieldEvaluator(Keys::getKey(domain_,"water_source"));
-  pvfe_wsource_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+  S->RequireEvaluator(Keys::getKey(domain_,"water_source"));
+  fm = S->GetEvaluator(Keys::getKey(domain_,"water_source"));
+  pvfe_wsource_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fm);
   if (pvfe_wsource_ == Teuchos::null) {
     Errors::Message message("SurfaceBalanceCLM: error, failure to initialize primary variable");
     Exceptions::amanzi_throw(message);
@@ -88,9 +88,9 @@ SurfaceBalanceCLM::Setup(const Teuchos::Ptr<State>& S) {
 
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_ss_, Tags::NEXT, "water_source"), name_)->SetMesh(subsurf_mesh_)
     ->SetComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_ss_,"water_source"));
-  fm = S->GetFieldEvaluator(Keys::getKey(domain_ss_,"water_source"));
-  pvfe_w_sub_source_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
+  S->RequireEvaluator(Keys::getKey(domain_ss_,"water_source"));
+  fm = S->GetEvaluator(Keys::getKey(domain_ss_,"water_source"));
+  pvfe_w_sub_source_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fm);
   if (pvfe_w_sub_source_ == Teuchos::null) {
     Errors::Message message("SurfaceBalanceCLM: error, failure to initialize primary variable");
     Exceptions::amanzi_throw(message);
@@ -132,58 +132,58 @@ SurfaceBalanceCLM::Setup(const Teuchos::Ptr<State>& S) {
 
   
   // requirements: independent variables (data from MET)
-  S->RequireFieldEvaluator(Keys::getKey(domain_, "incoming_shortwave_radiation"));
+  S->RequireEvaluator(Keys::getKey(domain_, "incoming_shortwave_radiation"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT,  "incoming_shortwave_radiation"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"incoming_longwave_radiation"));
+  S->RequireEvaluator(Keys::getKey(domain_,"incoming_longwave_radiation"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "incoming_longwave_radiation"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"air_temperature"));
+  S->RequireEvaluator(Keys::getKey(domain_,"air_temperature"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "air_temperature"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"relative_humidity"));
+  S->RequireEvaluator(Keys::getKey(domain_,"relative_humidity"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "relative_humidity"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"wind_speed"));
+  S->RequireEvaluator(Keys::getKey(domain_,"wind_speed"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "wind_speed"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"precipitation_rain"));
+  S->RequireEvaluator(Keys::getKey(domain_,"precipitation_rain"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "precipitation_rain"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"precipitation_snow"));
+  S->RequireEvaluator(Keys::getKey(domain_,"precipitation_snow"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "precipitation_snow"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: soil state
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"pressure"));
+  S->RequireEvaluator(Keys::getKey(domain_,"pressure"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "pressure"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_ss_,"porosity"));
+  S->RequireEvaluator(Keys::getKey(domain_ss_,"porosity"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_ss_, Tags::NEXT, "porosity"))->SetMesh(subsurf_mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_ss_,"saturation_liquid"));
+  S->RequireEvaluator(Keys::getKey(domain_ss_,"saturation_liquid"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_ss_, Tags::NEXT, "saturation_liquid"))->SetMesh(subsurf_mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: soil properties
-  S->RequireFieldEvaluator(Keys::getKey(domain_ss_, "sand_fraction"));
+  S->RequireEvaluator(Keys::getKey(domain_ss_, "sand_fraction"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_ss_, Tags::NEXT, "sand_fraction"))->SetMesh(subsurf_mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_ss_, "clay_fraction"));
+  S->RequireEvaluator(Keys::getKey(domain_ss_, "clay_fraction"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_ss_, Tags::NEXT, "clay_fraction"))->SetMesh(subsurf_mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_, "color_index"));
+  S->RequireEvaluator(Keys::getKey(domain_, "color_index"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "color_index"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(Keys::getKey(domain_, "pft_index"));
+  S->RequireEvaluator(Keys::getKey(domain_, "pft_index"));
   S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "pft_index"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
   
@@ -214,15 +214,15 @@ SurfaceBalanceCLM::Initialize(const Teuchos::Ptr<State>& S) {
     latlon_arr[i][0] = latlon[0];
     latlon_arr[i][1] = latlon[1];
   }
-  S->GetFieldEvaluator(Keys::getKey(domain_ss_, "sand_fraction"))
+  S->GetEvaluator(Keys::getKey(domain_ss_, "sand_fraction"))
       ->HasFieldChanged(S.ptr(), name_);
   auto& sand = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "sand_fraction"))
                ->ViewComponent("cell", false);
-  S->GetFieldEvaluator(Keys::getKey(domain_ss_, "clay_fraction"))
+  S->GetEvaluator(Keys::getKey(domain_ss_, "clay_fraction"))
       ->HasFieldChanged(S.ptr(), name_);
   auto& clay = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "clay_fraction"))
                ->ViewComponent("cell", false);
-  S->GetFieldEvaluator(Keys::getKey(domain_, "color_index"))
+  S->GetEvaluator(Keys::getKey(domain_, "color_index"))
       ->HasFieldChanged(S.ptr(), name_);
   auto& color = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "color_index"))
                ->ViewComponent("cell", false);
@@ -231,7 +231,7 @@ SurfaceBalanceCLM::Initialize(const Teuchos::Ptr<State>& S) {
   for (int i=0; i!=ncols; ++i) color_index[i] = std::round(color[0][i]);
 
   // pft tile
-  S->GetFieldEvaluator(Keys::getKey(domain_, "pft_index"))
+  S->GetEvaluator(Keys::getKey(domain_, "pft_index"))
       ->HasFieldChanged(S.ptr(), name_);
   auto& pft = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "pft_index"))
                ->ViewComponent("cell", false);
@@ -306,15 +306,15 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit) {
 
 
   // Set the state
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_ss_, "pressure"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_ss_, "pressure"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& pressure = *S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "pressure"))
                                        ->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_ss_, "pressure"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_ss_, "pressure"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& porosity = *S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "porosity"))
                                        ->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_ss_, "saturation_liquid"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_ss_, "saturation_liquid"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& sl = *S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "saturation_liquid"))
                                        ->ViewComponent("cell", false);
@@ -325,31 +325,31 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit) {
   ATS::CLM::set_pressure(pressure, patm);
 
   // set the forcing
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "incoming_shortwave_radiation"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "incoming_shortwave_radiation"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& qSW = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "incoming_shortwave_radiation"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "incoming_longwave_radiation"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "incoming_longwave_radiation"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& qLW = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "incoming_longwave_radiation"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "precipitation_snow"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "precipitation_snow"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& pSnow = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "precipitation_snow"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "precipitation_rain"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "precipitation_rain"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& pRain = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "precipitation_rain"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "air_temperature"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "air_temperature"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& air_temp = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "air_temperature"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "relative_humidity"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "relative_humidity"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& rel_hum = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "relative_humidity"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "wind_speed"))
+  S_inter_->GetEvaluator(Keys::getKey(domain_, "wind_speed"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& wind_speed = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "wind_speed"))->ViewComponent("cell", false);
@@ -400,8 +400,8 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit) {
   surf_source_old = surf_source;
   sub_source_old = sub_source;
 
-  pvfe_wsource_->SetFieldAsChanged(S_next_.ptr());
-  pvfe_w_sub_source_->SetFieldAsChanged(S_next_.ptr());
+  pvfe_wsource_->SetChanged(S_next_.ptr());
+  pvfe_w_sub_source_->SetChanged(S_next_.ptr());
   my_next_time_ = t_old + dt_;
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {

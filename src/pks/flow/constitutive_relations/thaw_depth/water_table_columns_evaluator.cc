@@ -13,7 +13,7 @@ namespace Amanzi {
 namespace Flow {
 
 WaterTableColumnsEvaluator::WaterTableColumnsEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key dset_name = plist.get<std::string>("domain set name", "column");
   Key surf_dset_name = plist.get<std::string>("surface domain set name", "surface_column");
@@ -38,13 +38,13 @@ WaterTableColumnsEvaluator::WaterTableColumnsEvaluator(Teuchos::ParameterList& p
   
 
 WaterTableColumnsEvaluator::WaterTableColumnsEvaluator(const WaterTableColumnsEvaluator& other)
-  : SecondaryVariableFieldEvaluator(other),
+  : EvaluatorSecondaryMonotypeCV(other),
     temp_key_(other.temp_key_),
     sat_key_(other.sat_key_),
     pd_key_(other.pd_key_)
 {}
   
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 WaterTableColumnsEvaluator::Clone() const
 {
   return Teuchos::rcp(new WaterTableColumnsEvaluator(*this));
@@ -102,7 +102,7 @@ bool
 WaterTableColumnsEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
         Key request)
 {
-  bool changed = SecondaryVariableFieldEvaluator::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
 
   if (!updated_once_) {
     UpdateField_(S);
@@ -130,7 +130,7 @@ WaterTableColumnsEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
     // Recurse into the tree to propagate info to leaves.
     for (KeySet::const_iterator key=dependencies_.begin();
          key!=dependencies_.end(); ++key) {
-      S->RequireFieldEvaluator(*key)->EnsureCompatibility(S);
+      S->RequireEvaluator(*key)->EnsureCompatibility(S);
     }
   }
 }

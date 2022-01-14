@@ -11,76 +11,7 @@ add_subdirectory(generic_evaluators)
 # eos/
 
 register_evaluator_with_factory(
-  HEADERFILE eos/eos_constant_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_linear_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_evaluator_tp_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_evaluator_ctp_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_ice_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_ideal_gas_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_vapor_in_gas_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_sw_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/eos_water_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/isobaric_eos_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/molar_fraction_gas_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/vapor_pressure_water_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/viscosity_constant_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/viscosity_evaluator_reg.hh
-  LISTNAME   ATS_RELATIONS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE eos/viscosity_water_reg.hh
+  HEADERFILE eos/eos_reg.hh
   LISTNAME   ATS_RELATIONS_REG
   )
 

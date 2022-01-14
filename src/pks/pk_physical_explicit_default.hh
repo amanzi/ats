@@ -57,7 +57,7 @@ public:
   //    integration scheme is changing the value of the solution in
   //    state.
   virtual void ChangedSolution() {
-    solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+    solution_evaluator_->SetChanged(S_next_.ptr());
   }
 
 };

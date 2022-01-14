@@ -10,21 +10,21 @@
 #define AMANZI_FLOWRELATIONS_MICROTOPO_RELIEF_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class MicrotopographicReliefEvaluator : public SecondaryVariableFieldEvaluator {
+class MicrotopographicReliefEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 public:
   explicit
   MicrotopographicReliefEvaluator(Teuchos::ParameterList& plist);
   MicrotopographicReliefEvaluator(const MicrotopographicReliefEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
   
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                               const Teuchos::Ptr<CompositeVector>& result);
 
@@ -35,7 +35,7 @@ protected:
 
 private:
 
-  static Utils::RegisteredFactory<FieldEvaluator,MicrotopographicReliefEvaluator> reg_;  
+  static Utils::RegisteredFactory<Evaluator,MicrotopographicReliefEvaluator> reg_;  
 
 };
   

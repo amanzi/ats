@@ -15,7 +15,7 @@ namespace Relations {
 
 
 SnowMeltRateEvaluator::SnowMeltRateEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist),
+    EvaluatorSecondaryMonotypeCV(plist),
     compatibility_checked_(false)
 {
   melt_rate_ = plist.get<double>("snow melt rate [mm day^-1 C^-1]", 2.74) * 0.001 / 86400.; // convert mm/day to m/s
@@ -37,10 +37,10 @@ SnowMeltRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
   // new state!
   land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
                              {"snow_transition_depth"});
-  SecondaryVariableFieldEvaluator::EnsureCompatibility(S);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility(S);
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
 SnowMeltRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result)
@@ -71,7 +71,7 @@ SnowMeltRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   }
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
 SnowMeltRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)

@@ -7,7 +7,7 @@ Author: Ethan Coon
 
 ------------------------------------------------------------------------- */
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "mpc_surface_subsurface_helpers.hh"
 
 #include "mpc_coupled_water_split_flux.hh"
@@ -55,7 +55,7 @@ void MPCCoupledWaterSplitFlux::Initialize(const Teuchos::Ptr<State>& S)
 void MPCCoupledWaterSplitFlux::Setup(const Teuchos::Ptr<State>& S) {
   MPC<PK>::Setup(S);
 
-  S->RequireFieldEvaluator(lateral_flow_source_);
+  S->RequireEvaluator(lateral_flow_source_);
 }
 
 // -----------------------------------------------------------------------------
@@ -128,9 +128,9 @@ MPCCoupledWaterSplitFlux::CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
     }
   }
 
-  auto eval = S_star->GetFieldEvaluator(primary_variable_star_);
-  auto eval_pvfe = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(eval);
-  eval_pvfe->SetFieldAsChanged(S_star.ptr());
+  auto eval = S_star->GetEvaluator(primary_variable_star_);
+  auto eval_pvfe = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(eval);
+  eval_pvfe->SetChanged(S_star.ptr());
 }
 
 // -----------------------------------------------------------------------------
@@ -140,8 +140,8 @@ void
 MPCCoupledWaterSplitFlux::CopyStarToPrimary(double dt) {
   // make sure we have the evaluator at the new state timestep
   if (eval_pvfe_ == Teuchos::null) {
-    Teuchos::RCP<FieldEvaluator> fe = S_next_->GetFieldEvaluator(lateral_flow_source_);
-    eval_pvfe_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe);
+    Teuchos::RCP<Evaluator> fe = S_next_->GetEvaluator(lateral_flow_source_);
+    eval_pvfe_ = Teuchos::rcp_dynamic_cast<EvaluatorPrimary>(fe);
     AMANZI_ASSERT(eval_pvfe_ != Teuchos::null);
   }
 
@@ -149,8 +149,8 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary(double dt) {
   AMANZI_ASSERT(star_pk.get());
 
   // these updates should do nothing, but you never know
-  S_inter_->GetFieldEvaluator(conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
-  S_next_->GetFieldEvaluator(conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
+  S_inter_->GetEvaluator(conserved_variable_star_)->HasFieldChanged(S_inter_.ptr(), name_);
+  S_next_->GetEvaluator(conserved_variable_star_)->HasFieldChanged(S_next_.ptr(), name_);
 
   // grab the data, difference
   star_pk->debugger()->WriteVector("WC0", S_inter_->GetPtr<CompositeVector>(conserved_variable_star_).ptr());
@@ -168,7 +168,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary(double dt) {
   star_pk->debugger()->WriteVector("qdiv", S_next_->GetPtr<CompositeVector>(lateral_flow_source_).ptr());
 
   // mark the source evaluator as changed to ensure the total source gets updated.
-  eval_pvfe_->SetFieldAsChanged(S_next_.ptr());
+  eval_pvfe_->SetChanged(S_next_.ptr());
 }
 
 } // namespace

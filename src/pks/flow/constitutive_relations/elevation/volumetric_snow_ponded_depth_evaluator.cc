@@ -27,7 +27,7 @@ namespace Flow {
 
 
 VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
   Key dtype = Keys::guessDomainType(domain);
@@ -44,9 +44,9 @@ VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::
 
   // my keys
   vol_pd_key_ = Keys::readKey(plist, domain_surf_, "volumetric ponded depth", "volumetric_ponded_depth");
-  my_keys_.push_back(vol_pd_key_);
+  my_keys_.emplace_back((vol_pd_key_);
   vol_sd_key_ = Keys::readKey(plist, domain_snow_, "volumetric snow depth", "volumetric_depth");
-  my_keys_.push_back(vol_sd_key_);
+  my_keys_.emplace_back((vol_sd_key_);
 
   // dependencies
   pd_key_ = Keys::readKey(plist_, domain_surf_, "ponded depth key", "ponded_depth");
@@ -149,7 +149,7 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
     }
 
     // Recurse into the tree to propagate info to leaves.
-    S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+    S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
   }
 }
 

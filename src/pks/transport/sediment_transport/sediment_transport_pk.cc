@@ -23,7 +23,7 @@
 #include "BCs.hh"
 #include "errors.hh"
 #include "Explicit_TI_RK.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "GMVMesh.hh"
 #include "Mesh.hh"
 #include "OperatorDefs.hh"
@@ -135,12 +135,12 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(flux_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->SetComponent("face", AmanziMesh::FACE, 1);
-    S->RequireFieldEvaluator(flux_key_);
+    S->RequireEvaluator(flux_key_);
   }
  
   S->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(saturation_key_);
+  S->RequireEvaluator(saturation_key_);
 
   // prev_sat does not have an evaluator, this is managed by hand.  not sure why
   S->Require<CompositeVector,CompositeVectorSpace>(prev_saturation_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted(true)
@@ -149,32 +149,32 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
 
   if (!S->HasField(sd_organic_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(sd_organic_key_, Tags::NEXT, sd_organic_key_).SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(sd_organic_key_);
+    S->RequireEvaluator(sd_organic_key_);
   }
   
   if (!S->HasField(sd_trapping_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(sd_trapping_key_, Tags::NEXT, sd_trapping_key_).SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(sd_trapping_key_);
+    S->RequireEvaluator(sd_trapping_key_);
   }
 
   if (!S->HasField(sd_settling_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(sd_settling_key_, Tags::NEXT,  sd_settling_key_).SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(sd_settling_key_);
+    S->RequireEvaluator(sd_settling_key_);
   }
 
   if (!S->HasField(sd_erosion_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(sd_erosion_key_, Tags::NEXT, sd_erosion_key_).SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(sd_erosion_key_);
+    S->RequireEvaluator(sd_erosion_key_);
   }
 
   if (!S->HasField(horiz_mixing_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(horiz_mixing_key_, Tags::NEXT, horiz_mixing_key_).SetMesh(mesh_)->SetGhosted(false)->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(horiz_mixing_key_);
+    S->RequireEvaluator(horiz_mixing_key_);
   }
 
   if (!S->HasField(porosity_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, Tags::NEXT, porosity_key_).SetMesh(mesh_)->SetGhosted(false)->AddComponent("cell", AmanziMesh::CELL, 1);
-    //S->RequireFieldEvaluator(porosity_key_);
+    //S->RequireEvaluator(porosity_key_);
   }
 
 
@@ -192,7 +192,7 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(molar_density_key_)){
     S->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::NEXT,  molar_density_key_).SetMesh(mesh_)->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(molar_density_key_);
+    S->RequireEvaluator(molar_density_key_);
   }
   
   // require state fields when Transport PK is on
@@ -218,7 +218,7 @@ void SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
 {
   // Set initial values for transport variables.
   dt_ = dt_debug_ = t_physics_ = 0.0;
-  double time = S->time();
+  double time = S->get_time();
   if (time >= 0.0) t_physics_ = time;
 
   if (tp_list_->isSublist("initial conditions")) {
@@ -487,8 +487,8 @@ void SedimentTransport_PK::InitializeFields_(const Teuchos::Ptr<State>& S)
         if (!S->GetField(prev_saturation_key_, passwd_)->initialized()) {
           // S->GetW<CompositeVector>(prev_saturation_key_, passwd_).PutScalar(1.0);
           // S->GetField(prev_saturation_key_, passwd_)->set_initialized();
-          // if (S->HasFieldEvaluator(Keys::getKey(domain_,saturation_key_))){
-          //   S->GetFieldEvaluator(Keys::getKey(domain_,saturation_key_))->HasFieldChanged(S.ptr(), "transport");
+          // if (S->HasEvaluator(Keys::getKey(domain_,saturation_key_))){
+          //   S->GetEvaluator(Keys::getKey(domain_,saturation_key_))->HasFieldChanged(S.ptr(), "transport");
           // }
           InitializeFieldFromField_(prev_saturation_key_, saturation_key_, S, true, true);
           S->GetField(prev_saturation_key_, passwd_)->set_initialized();
@@ -518,7 +518,7 @@ void SedimentTransport_PK::InitializeFieldFromField_(const std::string& field0,
     if (S->GetField(field0)->owner() == passwd_) {
       if ((!S->GetField(field0, passwd_)->initialized())||(overwrite)) {
         if (call_evaluator)
-            S->GetFieldEvaluator(field1)->HasFieldChanged(S.ptr(), passwd_);
+            S->GetEvaluator(field1)->HasFieldChanged(S.ptr(), passwd_);
 
         const CompositeVector& f1 = *S->GetPtr<CompositeVector>(field1);
         CompositeVector& f0 = *S->GetPtrW<CompositeVector>(field0, passwd_);
@@ -709,16 +709,16 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   // flux_ = S_next_->Get<CompositeVector>(flux_key_).ViewComponent("face", true);
   // *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_; 
 
-  if (S_next_->HasFieldEvaluator(saturation_key_)){
-    S_next_->GetFieldEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), saturation_key_);
-    S_inter_->GetFieldEvaluator(saturation_key_)->HasFieldChanged(S_inter_.ptr(), saturation_key_);
+  if (S_next_->HasEvaluator(saturation_key_)){
+    S_next_->GetEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), saturation_key_);
+    S_inter_->GetEvaluator(saturation_key_)->HasFieldChanged(S_inter_.ptr(), saturation_key_);
   } 
   ws_ = S_next_->Get<CompositeVector>(saturation_key_).ViewComponent("cell", false);
   ws_prev_ = S_inter_->Get<CompositeVector>(saturation_key_).ViewComponent("cell", false);
 
   
-  if (S_next_->HasFieldEvaluator(molar_density_key_)){
-    S_next_->GetFieldEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), molar_density_key_);
+  if (S_next_->HasEvaluator(molar_density_key_)){
+    S_next_->GetEvaluator(saturation_key_)->HasFieldChanged(S_next_.ptr(), molar_density_key_);
   }
   mol_dens_ = S_next_->Get<CompositeVector>(molar_density_key_).ViewComponent("cell", false);
 
@@ -734,8 +734,8 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   double time = S_->intermediate_time();
   if (time >= 0.0) { 
     t_physics_ = time;
-    dt_shift = time - S_inter_->time();
-    dt_global = S_next_->time() - S_->time();    
+    dt_shift = time - S_->get_time(tag_inter_);
+    dt_global = S_->get_time(tag_next_) - S_->time();    
   }
 
   StableTimeStep();
@@ -902,7 +902,7 @@ void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
   
     // instantiate solver
 
-    S_inter_->GetFieldEvaluator(horiz_mixing_key_)->HasFieldChanged(S_.ptr(),  horiz_mixing_key_);
+    S_inter_->GetEvaluator(horiz_mixing_key_)->HasFieldChanged(S_.ptr(),  horiz_mixing_key_);
 
     CalculateDiffusionTensor_(*km_, *ws_, *mol_dens_);
 
@@ -1369,16 +1369,16 @@ void SedimentTransport_PK::ComputeAddSourceTerms(double tp, double dtp,
   double mass1 = 0., mass2 = 0., add_mass =0., tmp1;
   bool chg;
   
-  chg = S_next_->GetFieldEvaluator(sd_trapping_key_)->HasFieldChanged(S_next_.ptr(), sd_trapping_key_);
+  chg = S_next_->GetEvaluator(sd_trapping_key_)->HasFieldChanged(S_next_.ptr(), sd_trapping_key_);
   const Epetra_MultiVector& Q_dt = *S_next_->Get<CompositeVector>(sd_trapping_key_).ViewComponent("cell", false);
 
-  chg = S_next_->GetFieldEvaluator(sd_settling_key_)->HasFieldChanged(S_next_.ptr(), sd_settling_key_);
+  chg = S_next_->GetEvaluator(sd_settling_key_)->HasFieldChanged(S_next_.ptr(), sd_settling_key_);
   const Epetra_MultiVector& Q_ds = *S_next_->Get<CompositeVector>(sd_settling_key_).ViewComponent("cell", false);
 
-  chg = S_next_->GetFieldEvaluator(sd_erosion_key_)->HasFieldChanged(S_next_.ptr(), sd_erosion_key_);
+  chg = S_next_->GetEvaluator(sd_erosion_key_)->HasFieldChanged(S_next_.ptr(), sd_erosion_key_);
   const Epetra_MultiVector& Q_e = *S_next_->Get<CompositeVector>(sd_erosion_key_).ViewComponent("cell", false);
 
-  chg = S_next_->GetFieldEvaluator(sd_organic_key_)->HasFieldChanged(S_next_.ptr(), sd_organic_key_);
+  chg = S_next_->GetEvaluator(sd_organic_key_)->HasFieldChanged(S_next_.ptr(), sd_organic_key_);
   const Epetra_MultiVector& Q_db = *S_next_->Get<CompositeVector>(sd_organic_key_).ViewComponent("cell", false);
 
   Epetra_MultiVector& dz = *S_next_->GetW<CompositeVector>(elevation_increase_key_, "state").ViewComponent("cell", false);
@@ -1435,7 +1435,7 @@ void SedimentTransport_PK::Sinks2TotalOutFlux(Epetra_MultiVector& tcc,
 
   std::vector<double> sink_add(ncells_wghost, 0.0);
   //Assumption that there is only one sink per component per cell
-  double t0 = S_inter_->time(); 
+  double t0 = S_->get_time(tag_inter_); 
   int num_vectors = tcc.NumVectors();
   int nsrcs = srcs_.size();
 

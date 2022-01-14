@@ -16,7 +16,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 AreaFractionsThreeComponentMicrotopographyEvaluator::AreaFractionsThreeComponentMicrotopographyEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   //
   // NOTE: this evaluator simplifies the situation by assuming constant
@@ -150,7 +150,7 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility(const T
     }
 
     // Recurse into the tree to propagate info to leaves.
-    S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+    S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
   }
 }
 

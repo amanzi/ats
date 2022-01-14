@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Flow {
 
 PresElevEvaluator::PresElevEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
   Key domain = Keys::getDomain(my_key_);
 
   pres_key_ = plist_.get<std::string>("ponded depth key", Keys::getKey(domain,"ponded_depth"));
@@ -23,11 +23,11 @@ PresElevEvaluator::PresElevEvaluator(Teuchos::ParameterList& plist) :
 
 
 PresElevEvaluator::PresElevEvaluator(const PresElevEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     elev_key_(other.elev_key_),
     pres_key_(other.pres_key_) {};
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PresElevEvaluator::Clone() const {
   return Teuchos::rcp(new PresElevEvaluator(*this));
 }

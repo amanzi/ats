@@ -121,8 +121,8 @@ void Coupled_ReactiveTransport_PK_ATS::Initialize(const Teuchos::Ptr<State>& S)
   //
   // Note also then that these fields and evaluators should be required here,
   // but aren't. --fixme
-  S_->GetFieldEvaluator(sub_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
-  S_->GetFieldEvaluator(over_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
+  S_->GetEvaluator(sub_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
+  S_->GetEvaluator(over_mol_den_key)->HasFieldChanged(S_.ptr(), name_);
 
   Teuchos::RCP<Epetra_MultiVector> tcc_sub =
     S_->GetW<CompositeVector>(tcc_sub_key,"state").ViewComponent("cell", true);

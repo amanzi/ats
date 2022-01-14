@@ -13,7 +13,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 LiquidGasWaterContentEvaluator::LiquidGasWaterContentEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("liquid_gas_water_content parameters");
   model_ = Teuchos::rcp(new LiquidGasWaterContentModel(sublist));
@@ -21,21 +21,8 @@ LiquidGasWaterContentEvaluator::LiquidGasWaterContentEvaluator(Teuchos::Paramete
 }
 
 
-// Copy constructor
-LiquidGasWaterContentEvaluator::LiquidGasWaterContentEvaluator(const LiquidGasWaterContentEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    phi_key_(other.phi_key_),
-    sl_key_(other.sl_key_),
-    nl_key_(other.nl_key_),
-    sg_key_(other.sg_key_),
-    ng_key_(other.ng_key_),
-    omega_key_(other.omega_key_),
-    cv_key_(other.cv_key_),
-    model_(other.model_) {}
-
-
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 LiquidGasWaterContentEvaluator::Clone() const
 {
   return Teuchos::rcp(new LiquidGasWaterContentEvaluator(*this));
@@ -48,53 +35,55 @@ LiquidGasWaterContentEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  Key domain_name = Keys::getDomain(my_key_);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // - pull Keys from plist
   // dependency: porosity
   phi_key_ = Keys::readKey(plist_, domain_name, "porosity", "porosity");
-  dependencies_.insert(phi_key_);
+  dependencies_.insert(KeyTag{phi_key_, tag});
 
   // dependency: saturation_liquid
   sl_key_ = Keys::readKey(plist_, domain_name, "saturation liquid", "saturation_liquid");
-  dependencies_.insert(sl_key_);
+  dependencies_.insert(KeyTag{sl_key_, tag});
 
   // dependency: molar_density_liquid
   nl_key_ = Keys::readKey(plist_, domain_name, "molar density liquid", "molar_density_liquid");
-  dependencies_.insert(nl_key_);
+  dependencies_.insert(KeyTag{nl_key_, tag});
 
   // dependency: saturation_gas
   sg_key_ = Keys::readKey(plist_, domain_name, "saturation gas", "saturation_gas");
-  dependencies_.insert(sg_key_);
+  dependencies_.insert(KeyTag{sg_key_, tag});
 
   // dependency: molar_density_gas
   ng_key_ = Keys::readKey(plist_, domain_name, "molar density gas", "molar_density_gas");
-  dependencies_.insert(ng_key_);
+  dependencies_.insert(KeyTag{ng_key_, tag});
 
   // dependency: mol_frac_gas
   omega_key_ = Keys::readKey(plist_, domain_name, "mol frac gas", "mol_frac_gas");
-  dependencies_.insert(omega_key_);
+  dependencies_.insert(KeyTag{omega_key_, tag});
 
   // dependency: cell_volume
   cv_key_ = Keys::readKey(plist_, domain_name, "cell volume", "cell_volume");
-  dependencies_.insert(cv_key_);
+  dependencies_.insert(KeyTag{cv_key_, tag});
 }
 
 
 void
-LiquidGasWaterContentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+LiquidGasWaterContentEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
-Teuchos::RCP<const CompositeVector> sg = S->GetPtr<CompositeVector>(sg_key_);
-Teuchos::RCP<const CompositeVector> ng = S->GetPtr<CompositeVector>(ng_key_);
-Teuchos::RCP<const CompositeVector> omega = S->GetPtr<CompositeVector>(omega_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> phi = S.GetPtr<CompositeVector>(phi_key_, tag);
+  Teuchos::RCP<const CompositeVector> sl = S.GetPtr<CompositeVector>(sl_key_, tag);
+  Teuchos::RCP<const CompositeVector> nl = S.GetPtr<CompositeVector>(nl_key_, tag);
+  Teuchos::RCP<const CompositeVector> sg = S.GetPtr<CompositeVector>(sg_key_, tag);
+  Teuchos::RCP<const CompositeVector> ng = S.GetPtr<CompositeVector>(ng_key_, tag);
+  Teuchos::RCP<const CompositeVector> omega = S.GetPtr<CompositeVector>(omega_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
     const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
     const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -102,9 +91,9 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
     const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
     const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
     const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = model_->WaterContent(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
     }
@@ -113,20 +102,21 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
 
 
 void
-LiquidGasWaterContentEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+LiquidGasWaterContentEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-Teuchos::RCP<const CompositeVector> phi = S->GetPtr<CompositeVector>(phi_key_);
-Teuchos::RCP<const CompositeVector> sl = S->GetPtr<CompositeVector>(sl_key_);
-Teuchos::RCP<const CompositeVector> nl = S->GetPtr<CompositeVector>(nl_key_);
-Teuchos::RCP<const CompositeVector> sg = S->GetPtr<CompositeVector>(sg_key_);
-Teuchos::RCP<const CompositeVector> ng = S->GetPtr<CompositeVector>(ng_key_);
-Teuchos::RCP<const CompositeVector> omega = S->GetPtr<CompositeVector>(omega_key_);
-Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> phi = S.GetPtr<CompositeVector>(phi_key_, tag);
+  Teuchos::RCP<const CompositeVector> sl = S.GetPtr<CompositeVector>(sl_key_, tag);
+  Teuchos::RCP<const CompositeVector> nl = S.GetPtr<CompositeVector>(nl_key_, tag);
+  Teuchos::RCP<const CompositeVector> sg = S.GetPtr<CompositeVector>(sg_key_, tag);
+  Teuchos::RCP<const CompositeVector> ng = S.GetPtr<CompositeVector>(ng_key_, tag);
+  Teuchos::RCP<const CompositeVector> omega = S.GetPtr<CompositeVector>(omega_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   if (wrt_key == phi_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -134,17 +124,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDPorosity(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == sl_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -152,17 +142,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDSaturationLiquid(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == nl_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -170,17 +160,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDMolarDensityLiquid(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == sg_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -188,17 +178,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDSaturationGas(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == ng_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -206,17 +196,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDMolarDensityGas(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == omega_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -224,17 +214,17 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDMolFracGas(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }
     }
 
   } else if (wrt_key == cv_key_) {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
       const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
       const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
@@ -242,9 +232,9 @@ Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>(cv_key_);
       const Epetra_MultiVector& ng_v = *ng->ViewComponent(*comp, false);
       const Epetra_MultiVector& omega_v = *omega->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DWaterContentDCellVolume(phi_v[0][i], sl_v[0][i], nl_v[0][i], sg_v[0][i], ng_v[0][i], omega_v[0][i], cv_v[0][i]);
       }

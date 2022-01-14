@@ -16,7 +16,7 @@ namespace BGC {
 namespace BGCRelations {
 
 PoolDecompositionEvaluator::PoolDecompositionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   carbon_key_ = plist_.get<std::string>("SOM key", "soil_organic_matter");
   dependencies_.insert(carbon_key_);
@@ -30,17 +30,17 @@ PoolDecompositionEvaluator::PoolDecompositionEvaluator(Teuchos::ParameterList& p
 
 
 PoolDecompositionEvaluator::PoolDecompositionEvaluator(const PoolDecompositionEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     carbon_key_(other.carbon_key_),
     decay_key_(other.decay_key_) {}
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PoolDecompositionEvaluator::Clone() const {
   return Teuchos::rcp(new PoolDecompositionEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void PoolDecompositionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         const Teuchos::Ptr<CompositeVector>& result) {
 
