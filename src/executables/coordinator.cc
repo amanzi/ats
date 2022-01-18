@@ -491,15 +491,15 @@ Coordinator::advance(double t_old, double t_new, double& dt_next)
   S_->GetW<int>("cycle", "cycle")++;
 
   if (!fail) {
+    // commit the state, copying NEXT --> CURRENT
+    pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
+    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
+
     // make observations, vis, and checkpoints
     for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
     visualize();
     dt_next = get_dt(fail);
     checkpoint(dt_next); // checkpoint with the new dt
-
-    // commit the state, copying NEXT --> CURRENT
-    pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
-    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
 
   } else {
     // Failed the timestep.

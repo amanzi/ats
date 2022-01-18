@@ -26,7 +26,6 @@ set(ats_eos_src_files
 
 file(GLOB ats_eos_inc_files "*.hh")
 
-
 set(ats_eos_link_libs
   ${Teuchos_LIBRARIES}
   ${Epetra_LIBRARIES}

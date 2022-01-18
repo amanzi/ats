@@ -178,7 +178,8 @@ void Richards::UpdatePreconditioner(double t,
     if (!duw_coef_key_.empty()) {
       dkrdp = S_->GetPtr<CompositeVector>(duw_coef_key_, tag_next_);
     } else {
-      dkrdp = S_->GetPtr<CompositeVector>(dcoef_key_, tag_next_);
+      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_,
+              key_, tag_next_);
     }
   }
 
