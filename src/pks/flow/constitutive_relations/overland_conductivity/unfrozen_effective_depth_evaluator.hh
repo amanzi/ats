@@ -23,13 +23,13 @@ class UnfrozenEffectiveDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
   explicit
   UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist);
   UnfrozenEffectiveDepthEvaluator(const UnfrozenEffectiveDepthEvaluator& other) = default;
-  Teuchos::RCP<Evaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
 protected:
   Key uf_key_;

@@ -7,25 +7,26 @@ namespace Amanzi {
 namespace Flow {
 namespace FlowRelations {
 
-FractionalConductanceEvaluator::FractionalConductanceEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist) {
-
-  Key domain = Keys::getDomain(my_key_);
+FractionalConductanceEvaluator::FractionalConductanceEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   vpd_key_ = Keys::readKey(plist_, domain, "volumetric ponded depth", "volumetric_ponded_depth");
-  dependencies_.insert(vpd_key_);
+  dependencies_.insert(KeyTag{vpd_key_, tag});
 
   mobile_depth_key_ = Keys::readKey(plist_, domain, "mobile depth", "mobile_depth");
-  dependencies_.insert(mobile_depth_key_);
+  dependencies_.insert(KeyTag{mobile_depth_key_, tag});
 
   delta_max_key_ = Keys::readKey(plist_, domain, "microtopographic relief", "microtopographic_relief");
-  dependencies_.insert(delta_max_key_);
+  dependencies_.insert(KeyTag{delta_max_key_, tag});
 
-  delta_ex_key_ = plist_.get<std::string>("excluded volume key", Keys::getKey(domain,"excluded_volume"));
-  dependencies_.insert(delta_ex_key_);
+  delta_ex_key_ = Keys::readKey(plist_, domain, "excluded volume", "excluded_volume");
+  dependencies_.insert(KeyTag{delta_ex_key_, tag});
 
-  depr_depth_key_ = plist_.get<std::string>("depression depth key", Keys::getKey(domain,"depression_depth"));
-  dependencies_.insert(depr_depth_key_);
+  depr_depth_key_ = Keys::readKey(plist_, domain, "depression depth", "depression_depth");
+  dependencies_.insert(KeyTag{depr_depth_key_, tag});
 }
 
 
@@ -35,15 +36,16 @@ FractionalConductanceEvaluator::Clone() const {
 }
 
 
-void FractionalConductanceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+void FractionalConductanceEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  const Epetra_MultiVector& vpd = *S->Get<CompositeVector>(vpd_key_).ViewComponent("cell",false);
-  const Epetra_MultiVector& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& depr_depth = *S->Get<CompositeVector>(depr_depth_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& mobile_depth = *S->Get<CompositeVector>(mobile_depth_key_).ViewComponent("cell",false);
-  Epetra_MultiVector& res = *result->ViewComponent("cell",false);
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& vpd = *S.Get<CompositeVector>(vpd_key_, tag).ViewComponent("cell",false);
+  const Epetra_MultiVector& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& depr_depth = *S.Get<CompositeVector>(depr_depth_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& mobile_depth = *S.Get<CompositeVector>(mobile_depth_key_, tag).ViewComponent("cell",false);
+  Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
 
   int ncells = res.MyLength();
   for (int c=0; c!=ncells; ++c) {
@@ -58,15 +60,16 @@ void FractionalConductanceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S
 
 
 void
-FractionalConductanceEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+FractionalConductanceEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  const Epetra_MultiVector& vpd = *S->Get<CompositeVector>(vpd_key_).ViewComponent("cell",false);
-  const Epetra_MultiVector& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& depr_depth = *S->Get<CompositeVector>(depr_depth_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& mobile_depth = *S->Get<CompositeVector>(mobile_depth_key_).ViewComponent("cell",false);
-  Epetra_MultiVector& res = *result->ViewComponent("cell",false);
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& vpd = *S.Get<CompositeVector>(vpd_key_, tag).ViewComponent("cell",false);
+  const Epetra_MultiVector& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& depr_depth = *S.Get<CompositeVector>(depr_depth_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& mobile_depth = *S.Get<CompositeVector>(mobile_depth_key_, tag).ViewComponent("cell",false);
+  Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
 
   if (wrt_key == mobile_depth_key_) {
     int ncells = res.MyLength();

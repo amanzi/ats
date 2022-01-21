@@ -1,15 +1,11 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-This is the flow component of the Amanzi code.
-License: BSD
-Authors: Neil Carlson (version 1)
-         Konstantin Lipnikov (version 2) (lipnikov@lanl.gov)
-         Ethan Coon (ATS version) (ecoon@lanl.gov)
-------------------------------------------------------------------------- */
-#include "boost/math/special_functions/fpclassify.hpp"
-
-#include "boost/algorithm/string/predicate.hpp"
+  Authors: Ethan Coon (coonet@ornl.gov)
+*/
 
 #include "Epetra_Import.h"
 
@@ -34,9 +30,6 @@ Authors: Neil Carlson (version 1)
 #include "pk_helpers.hh"
 
 #include "richards.hh"
-
-#define DEBUG_RES_FLAG 0
-
 
 namespace Amanzi {
 namespace Flow {
@@ -281,7 +274,7 @@ void Richards::SetupRichardsFlow_()
       upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
               tag_next_, flux_dir_key_, 1.e-8));
     } else {
-      // FV -- no upwinding
+      // FV -- no upwinding of derivative
       duw_coef_key_ = std::string();
     }
   }
@@ -472,7 +465,7 @@ void Richards::SetupPhysicalEvaluators_()
   AMANZI_ASSERT(wrm_eval != nullptr);
   wrms_ = wrm_eval->get_WRMs();
 
-  // -- Liquid density and viscosity for the transmissivity.
+  // -- molar density used to infer liquid Darcy velocity from flux
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -497,21 +490,6 @@ void Richards::Initialize()
 
   // Initialize in the standard ways
   PK_PhysicalBDF_Default::Initialize();
-
-  // debugging cruft
-#if DEBUG_RES_FLAG
-  for (unsigned int i=1; i!=23; ++i) {
-    std::stringstream namestream;
-    namestream << "flow_residual_" << i;
-    S_->GetPtrW<CompositeVector>(namestream.str(), name_)->PutScalar(0.);
-    S_->GetRecordW(namestream.str(), name_).set_initialized();
-
-    std::stringstream solnstream;
-    solnstream << "flow_solution_" << i;
-    S_->GetPtrW<CompositeVector>(solnstream.str(), name_)->PutScalar(0.);
-    S_->GetRecordW(solnstream.str(), name_).set_initialized();
-  }
-#endif
 
   // check whether this is a dynamic mesh problem
   if (S_->IsDeformableMesh(domain_)) dynamic_mesh_ = true;
@@ -678,13 +656,13 @@ void Richards::InitializeHydrostatic_(const Tag& tag)
 // -----------------------------------------------------------------------------
 void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-
-  double dt = t_new - t_old;
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
+
+  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
+  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
+  double dt = t_new - t_old;
 
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);

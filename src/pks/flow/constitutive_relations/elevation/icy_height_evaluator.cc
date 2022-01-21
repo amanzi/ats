@@ -15,29 +15,22 @@ namespace Flow {
 
 
 IcyHeightEvaluator::IcyHeightEvaluator(Teuchos::ParameterList& plist) :
-    HeightEvaluator(plist) {
+    HeightEvaluator(plist)
+{
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
-  Key domain = Keys::getDomain(my_key_);
   // my extra dependencies
-  dens_ice_key_ = plist_.get<std::string>("ice mass density key", Keys::getKey(domain,"mass_density_ice"));  
-  dependencies_.insert(dens_ice_key_);
+  dens_ice_key_ = Keys::readKey(plist_, domain, "ice mass density", "mass_density_ice");
+  dependencies_.insert(KeyTag{dens_ice_key_, tag});
 
-  unfrozen_frac_key_ = plist_.get<std::string>("unfrozen fraction key", Keys::getKey(domain,"unfrozen_fraction"));
-
-  dependencies_.insert(unfrozen_frac_key_);
+  unfrozen_frac_key_ = Keys::readKey(plist_, domain, "unfrozen fraction", "unfrozen_fraction");
+  dependencies_.insert(KeyTag{unfrozen_frac_key_, tag});
 
   // model
   Teuchos::ParameterList model_plist = plist_.sublist("height model parameters");
   icy_model_ = Teuchos::rcp(new IcyHeightModel(model_plist));
-
 }
-
-
-IcyHeightEvaluator::IcyHeightEvaluator(const IcyHeightEvaluator& other) :
-    HeightEvaluator(other),
-    dens_ice_key_(other.dens_ice_key_),
-    unfrozen_frac_key_(other.unfrozen_frac_key_),
-    icy_model_(other.icy_model_) {}
 
 
 Teuchos::RCP<Evaluator>
@@ -46,29 +39,30 @@ IcyHeightEvaluator::Clone() const {
 }
 
 
-void IcyHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-
-  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(pres_key_);
+void IcyHeightEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
 
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
   // -- copy the faces over directly
-  if (result->HasComponent("face"))
-    *result->ViewComponent("face",false) = *pres->ViewComponent("face",false);
+  if (result[0]->HasComponent("face"))
+    *result[0]->ViewComponent("face",false) = *pres->ViewComponent("face",false);
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
+  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell",false);
   const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_l = *S->GetPtr<CompositeVector>(dens_key_)
+  const Epetra_MultiVector& rho_l = *S.GetPtr<CompositeVector>(dens_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_i = *S->GetPtr<CompositeVector>(dens_ice_key_)
+  const Epetra_MultiVector& rho_i = *S.GetPtr<CompositeVector>(dens_ice_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& eta = *S->GetPtr<CompositeVector>(unfrozen_frac_key_)
+  const Epetra_MultiVector& eta = *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)
       ->ViewComponent("cell",false);
 
-  const double& p_atm = *S->GetScalarData(patm_key_);
-  const Epetra_Vector& gravity = *S->GetConstantVectorData(gravity_key_);
+  double p_atm = S.Get<double>("atmospheric_pressure");
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
   double gz = -gravity[2];
 
   int ncells = res_c.MyLength();
@@ -87,27 +81,28 @@ void IcyHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void IcyHeightEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+{
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
   // -- NO FACE DERIVATIVES
-  //  result->ViewComponent("face",false)->PutScalar(1.0);
+  Tag tag = my_keys_.front().second;
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetPtr<CompositeVector>(pres_key_)
+  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell",false);
+  const Epetra_MultiVector& pres_c = *S.GetPtr<CompositeVector>(pres_key_, tag)
       ->ViewComponent("cell",false);
-   const Epetra_MultiVector& rho_l = *S->GetPtr<CompositeVector>(dens_key_)
+   const Epetra_MultiVector& rho_l = *S.GetPtr<CompositeVector>(dens_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& rho_i = *S->GetPtr<CompositeVector>(dens_ice_key_)
+  const Epetra_MultiVector& rho_i = *S.GetPtr<CompositeVector>(dens_ice_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& eta = *S->GetPtr<CompositeVector>(unfrozen_frac_key_)
+  const Epetra_MultiVector& eta = *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)
       ->ViewComponent("cell",false);
 
-  const double& p_atm = *S->GetScalarData(patm_key_);
-  const Epetra_Vector& gravity = *S->GetConstantVectorData(gravity_key_);
-  double gz = -gravity[2];  // check this
+  double p_atm = S.Get<double>("atmospheric_pressure");
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  double gz = -gravity[2];
 
   // For derivatives, the height is always assumed to be non-negative.  If it
   // is negative, the term gets zeroed later.

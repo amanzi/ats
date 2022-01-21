@@ -1,14 +1,11 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-A base two-phase, thermal Richard's equation with water vapor.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
-
-#include "Epetra_FECrsMatrix.h"
-#include "EpetraExt_RowMatrixOut.h"
-#include "boost/math/special_functions/fpclassify.hpp"
 
 #include "Op.hh"
 #include "richards.hh"
@@ -30,27 +27,28 @@ void Richards::FunctionalResidual(double t_old,
   Teuchos::OSTab tab = vo_->getOSTab();
 
   double h = t_new - t_old;
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
 
-  //--  AMANZI_ASSERT(std::abs(S_->get_time(tag_inter_) - t_old) < 1.e-4*h);
-  //-- AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
+  // zero out residual
+  Teuchos::RCP<CompositeVector> res = g->Data();
+  res->PutScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->Data();
-
-  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
                << " t1 = " << t_new << " h = " << h << std::endl;
 
-  // dump u_old, u_new
+  // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames;
-  vnames.push_back("p_old"); vnames.push_back("p_new");
+  std::vector<std::string> vnames{"p_old", "p_new"};
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr()); vecs.push_back(u.ptr());
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
+  vecs.emplace_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
@@ -58,39 +56,34 @@ void Richards::FunctionalResidual(double t_old,
   UpdateBoundaryConditions_(tag_next_);
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
-  // zero out residual
-  Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
-
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
-  // dump s_old, s_new
-  vnames[0] = "sl_old"; vnames[1] = "sl_new";
-  vecs[0] = S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr();
-  vecs[1] = S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr();
+  // more debugging -- write diffusion/flux variables to screen
+  vnames = {"sl_old", "sl_new"};
+  vecs = {S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr(),
+          S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr()};
 
   if (S_->HasRecordSet(sat_ice_key_)) {
-    vnames.push_back("si_old");
-    vnames.push_back("si_new");
-    vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
-    vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
+    vnames.emplace_back("si_old");
+    vnames.emplace_back("si_new");
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
   }
-  vnames.push_back("poro");
-  vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
-  vnames.push_back("perm_K");
-  vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"permeability"), tag_next_).ptr());
-  vnames.push_back("k_rel");
-  vecs.push_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
-  vnames.push_back("wind");
-  vecs.push_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
-  vnames.push_back("uw_k_rel");
-  vecs.push_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
-  vnames.push_back("flux");
-  vecs.push_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
+  vnames.emplace_back("poro");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
+  vnames.emplace_back("perm_K");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"permeability"), tag_next_).ptr());
+  vnames.emplace_back("k_rel");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
+  vnames.emplace_back("wind");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
+  vnames.emplace_back("uw_k_rel");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
+  vnames.emplace_back("flux");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
   db_->WriteVectors(vnames,vecs,true);
-
   db_->WriteVector("res (diff)", res.ptr(), true);
 
   // accumulation term
@@ -118,12 +111,11 @@ int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon application:" << std::endl;
 
-  db_->WriteVector("p_res", u->Data().ptr(), true);
-
   // Apply the preconditioner
+  db_->WriteVector("p_res", u->Data().ptr(), true);
   int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
-
   db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
+
   return (ierr > 0) ? 0 : 1;
 };
 
@@ -161,18 +153,13 @@ void Richards::UpdatePreconditioner(double t,
   ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
-  Teuchos::RCP<const CompositeVector> rel_perm =
-    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
-
-  // Update the preconditioner with darcy and gravity fluxes
-  preconditioner_->Init();
-
-  // gravity fluxes
+  // fill local matrices
+  // -- gravity fluxes
   S_->GetEvaluator(mass_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
   preconditioner_diff_->SetDensity(rho);
 
-  // jacobian term
+  // -- jacobian term
   Teuchos::RCP<const CompositeVector> dkrdp = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
     if (!duw_coef_key_.empty()) {
@@ -183,12 +170,18 @@ void Richards::UpdatePreconditioner(double t,
     }
   }
 
-  // create local matrices
+  // -- primary term
+  Teuchos::RCP<const CompositeVector> rel_perm =
+    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
+
+  // -- local matries, primary term
+  preconditioner_->Init();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
-  if (jacobian_ && iter_ >= jacobian_lag_) {// && preconditioner_->RangeMap().HasComponent("face")) {
+  // -- local matries, Jacobian term
+  if (jacobian_ && iter_ >= jacobian_lag_) {
     Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
     preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
@@ -205,7 +198,7 @@ void Richards::UpdatePreconditioner(double t,
             key_, tag_next_);
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
 
-  // -- update the cell-cell block  CompositeVector du(S_->Get<CompositeVector>(dwc_dp_key, tag_next_).Map());
+  // -- update the cell-cell block
   preconditioner_acc_->AddAccumulationTerm(*dwc_dp, h, "cell", false);
 
   // -- update preconditioner with source term derivatives if needed

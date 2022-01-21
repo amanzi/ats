@@ -23,14 +23,12 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   // constructor format for all derived classes
   explicit
   HeightEvaluator(Teuchos::ParameterList& plist);
-  HeightEvaluator(const HeightEvaluator& other);
+  HeightEvaluator(const HeightEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-
-  // Needs a special ensure and derivative to get around trying to find face
+  // Needs a special EnsureCompatibility to get around trying to find face
   // values and derivatives of face values.
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-  virtual void UpdateFieldDerivative_(const Teuchos::Ptr<State>& S, Key wrt_key);
+  virtual void EnsureCompatibility(State& S) override;
 
   Teuchos::RCP<HeightModel> get_Model() { return model_; }
 
@@ -39,10 +37,11 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key dens_key_;

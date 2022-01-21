@@ -23,32 +23,34 @@
 namespace Amanzi {
 namespace Flow {
 
-VolumetricPondedDepthEvaluator::VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist) :
-     EvaluatorSecondaryMonotypeCV(plist)
+VolumetricPondedDepthEvaluator::VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Key domain = Keys::getDomain(my_key_);
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // dependencies
   pd_key_ = Keys::readKey(plist_, domain, "ponded depth key", "ponded_depth");
-  dependencies_.insert(pd_key_);
+  dependencies_.insert(KeyTag{pd_key_, tag});
 
   delta_max_key_ = Keys::readKey(plist_, domain, "microtopographic relief", "microtopographic_relief");
-  dependencies_.insert(delta_max_key_);
+  dependencies_.insert(KeyTag{delta_max_key_, tag});
 
   delta_ex_key_ = Keys::readKey(plist_, domain, "excluded volume", "excluded_volume");
-  dependencies_.insert(delta_ex_key_);
+  dependencies_.insert(KeyTag{delta_ex_key_, tag});
 }
 
 
 void
-VolumetricPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+VolumetricPondedDepthEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  for (const auto& comp : *result) {
-    auto& res = *result->ViewComponent(comp,false);
-    const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent(comp,false);
-    const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent(comp,false);
-    const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent(comp,false);
+  Tag tag = my_keys_.front().second;
+  for (const auto& comp : *result[0]) {
+    auto& res = *result[0]->ViewComponent(comp,false);
+    const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent(comp,false);
+    const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent(comp,false);
+    const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent(comp,false);
 
     for (int c=0; c!=res.MyLength(); ++c){
       AMANZI_ASSERT(Microtopography::validParameters(del_max[0][c], del_ex[0][c]));
@@ -59,14 +61,15 @@ VolumetricPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-VolumetricPondedDepthEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  for (const auto& comp : *result) {
-    auto& res = *result->ViewComponent(comp,false);
-    const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent(comp,false);
-    const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent(comp,false);
-    const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent(comp,false);
+  Tag tag = my_keys_.front().second;
+  for (const auto& comp : *result[0]) {
+    auto& res = *result[0]->ViewComponent(comp,false);
+    const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent(comp,false);
+    const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent(comp,false);
+    const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent(comp,false);
 
     if (wrt_key == pd_key_) {
       for (int c=0; c!=res.MyLength(); ++c){

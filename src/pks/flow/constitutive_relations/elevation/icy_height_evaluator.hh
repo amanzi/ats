@@ -23,9 +23,8 @@ class IcyHeightEvaluator : public HeightEvaluator {
   // constructor format for all derived classes
   explicit
   IcyHeightEvaluator(Teuchos::ParameterList& plist);
-  IcyHeightEvaluator(const IcyHeightEvaluator& other);
-
-  virtual Teuchos::RCP<Evaluator> Clone() const;
+  IcyHeightEvaluator(const IcyHeightEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<IcyHeightModel> get_IcyModel() { return icy_model_; }
 
@@ -33,10 +32,11 @@ class IcyHeightEvaluator : public HeightEvaluator {
   void InitializeFromPlist_();
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key dens_ice_key_;

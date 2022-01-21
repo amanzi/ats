@@ -25,15 +25,15 @@ class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV
   Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<ManningConductivityModel> get_Model() { return model_; }
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+  virtual void EnsureCompatibility(State& S) override;
 
  protected:
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
 private:
   Teuchos::RCP<ManningConductivityModel> model_;

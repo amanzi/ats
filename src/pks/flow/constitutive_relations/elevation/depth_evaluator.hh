@@ -1,19 +1,22 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Evaluates depth of various mesh entities.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 
 #ifndef AMANZI_FLOW_DEPTH_EVALUATOR_HH_
 #define AMANZI_FLOW_DEPTH_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "independent_variable_field_evaluator.hh"
+#include "EvaluatorIndependent.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class DepthEvaluator : public IndependentVariableEvaluator {
+class DepthEvaluator : public EvaluatorIndependentCV {
 
  public:
   explicit
@@ -24,7 +27,7 @@ class DepthEvaluator : public IndependentVariableEvaluator {
 
  protected:
   // Required methods from IndependentVariableEvaluator
-  virtual void UpdateField_(const Teuchos::Ptr<State>& S) override;
+  virtual void Update_(State& S) override;
 
  private:
   static Utils::RegisteredFactory<Evaluator,DepthEvaluator> reg_;

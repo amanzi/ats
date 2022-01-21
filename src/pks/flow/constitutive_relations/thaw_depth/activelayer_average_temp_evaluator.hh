@@ -3,7 +3,7 @@
 /*
   The Active layer average temperature evaluator gets the subsurface temperature.
   This computes the average active layer temperature.
-  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature, 
+  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature,
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
@@ -23,33 +23,30 @@ public:
   explicit
   ActiveLayerAverageTempEvaluator(Teuchos::ParameterList& plist);
   ActiveLayerAverageTempEvaluator(const ActiveLayerAverageTempEvaluator& other) = default;
-  Teuchos::RCP<Evaluator> Clone() const;
-  
-protected:
+  Teuchos::RCP<Evaluator> Clone() const override;
+
+  virtual bool Update(State& S, const Key& request) override;
+  virtual void EnsureCompatibility(State& S) override;
+
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
-  
-    
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-  
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual void Evaluate_(const State& S,
+                         const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+               const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
-
+ protected:
   bool updated_once_;
   Key temp_key_;
   Key domain_;
   double trans_width_;
 
-  
 private:
   static Utils::RegisteredFactory<Evaluator,ActiveLayerAverageTempEvaluator> reg_;
 
 };
-  
+
 } //namespace
-} //namespace 
+} //namespace
 
 #endif

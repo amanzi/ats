@@ -16,20 +16,16 @@ StandaloneElevationEvaluator::StandaloneElevationEvaluator(
         Teuchos::ParameterList& plist) :
     ElevationEvaluator(plist) {}
 
-StandaloneElevationEvaluator::StandaloneElevationEvaluator(
-        const StandaloneElevationEvaluator& other) :
-    ElevationEvaluator(other) {}
-
 Teuchos::RCP<Evaluator> StandaloneElevationEvaluator::Clone() const {
   return Teuchos::rcp(new StandaloneElevationEvaluator(*this));
 }
 
-void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
-
-  Teuchos::Ptr<CompositeVector> elev = results[0];
-  Teuchos::Ptr<CompositeVector> slope = results[1];
-  Teuchos::Ptr<CompositeVector> aspect = results[2];
+void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
+        const std::vector<CompositeVector*>& results)
+{
+  Teuchos::Ptr<CompositeVector> elev = Teuchos::ptr(results[0]);
+  Teuchos::Ptr<CompositeVector> slope = Teuchos::ptr(results[1]);
+  Teuchos::Ptr<CompositeVector> aspect = Teuchos::ptr(results[2]);
 
   // If necessary, create the functions from paramater lists.
   if (elevation_function_ == Teuchos::null) {
@@ -54,11 +50,11 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const Teuchos::Ptr
       // note, should check that cells exist?
     }
   }
-  
+
   // Evaluate the functions.
-  elevation_function_->Compute(S->get_time(), elev);
-  slope_function_->Compute(S->get_time(), slope);
-  if (aspect_function_.get()) aspect_function_->Compute(S->get_time(), aspect);
+  elevation_function_->Compute(S.get_time(), elev);
+  slope_function_->Compute(S.get_time(), slope);
+  if (aspect_function_.get()) aspect_function_->Compute(S.get_time(), aspect);
 };
 
 

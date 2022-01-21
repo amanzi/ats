@@ -20,12 +20,12 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
 
  public:
   StandaloneElevationEvaluator(Teuchos::ParameterList& elev_plist);
-  StandaloneElevationEvaluator(const StandaloneElevationEvaluator& other);
+  StandaloneElevationEvaluator(const StandaloneElevationEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  Teuchos::RCP<Evaluator> Clone() const;
-
-  virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
+ protected:
+  virtual void EvaluateElevationAndSlope_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Teuchos::RCP<Functions::CompositeVectorFunction> elevation_function_;

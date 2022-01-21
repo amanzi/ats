@@ -22,23 +22,26 @@ namespace Flow {
 class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  ElevationEvaluator(Teuchos::ParameterList& plist);
+  explicit ElevationEvaluator(Teuchos::ParameterList& plist);
+  ElevationEvaluator(const ElevationEvaluator& other) = default;
 
+  virtual bool Update(State& S, const Key& request) override;
+
+  // I don't believe this should need to be implemented. --ETC
+  //  virtual void EnsureCompatibility(State& S) override;
+
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
 
-  virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
+  virtual void EvaluateElevationAndSlope_(const State& S,
+          const std::vector<CompositeVector*>& results) = 0;
 
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-
-protected:
+ protected:
   bool updated_once_;
   bool dynamic_mesh_;
   Key deformation_key_;

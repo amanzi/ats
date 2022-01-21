@@ -1,7 +1,10 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Evaluates depth of various mesh entities.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 
 #include "depth_model.hh"
@@ -12,7 +15,7 @@ namespace Flow {
 
 
 DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist)
-    : IndependentVariableEvaluator(plist)
+    : EvaluatorIndependentCV(plist)
 {}
 
 Teuchos::RCP<Evaluator>
@@ -22,9 +25,9 @@ DepthEvaluator::Clone() const {
 
 // Required methods from IndependentVariableEvaluator
 void
-DepthEvaluator::UpdateField_(const Teuchos::Ptr<State>& S) {
+DepthEvaluator::Update_(State& S) {
   if (temporally_variable_ || !computed_once_) {
-    CompositeVector& result = *S->GetPtrW<CompositeVector>(my_key_, my_key_);
+    CompositeVector& result = S.GetW<CompositeVector>(my_key_, my_tag_, my_key_);
     for (auto& comp : result) {
       if (comp == "cell") {
         // evaluate depths

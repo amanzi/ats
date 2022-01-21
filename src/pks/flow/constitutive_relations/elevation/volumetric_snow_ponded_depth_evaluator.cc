@@ -29,7 +29,9 @@ namespace Flow {
 VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-  Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
+  my_keys_.clear(); // clear to push back in order
   Key dtype = Keys::guessDomainType(domain);
   if (dtype == "surface") {
     domain_surf_ = domain;
@@ -44,34 +46,35 @@ VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::
 
   // my keys
   vol_pd_key_ = Keys::readKey(plist, domain_surf_, "volumetric ponded depth", "volumetric_ponded_depth");
-  my_keys_.emplace_back((vol_pd_key_);
+  my_keys_.emplace_back(KeyTag{vol_pd_key_, tag});
   vol_sd_key_ = Keys::readKey(plist, domain_snow_, "volumetric snow depth", "volumetric_depth");
-  my_keys_.emplace_back((vol_sd_key_);
+  my_keys_.emplace_back(KeyTag{vol_sd_key_, tag});
 
   // dependencies
   pd_key_ = Keys::readKey(plist_, domain_surf_, "ponded depth key", "ponded_depth");
-  dependencies_.insert(pd_key_);
+  dependencies_.insert(KeyTag{pd_key_, tag});
   sd_key_ = Keys::readKey(plist_, domain_snow_, "snow depth key", "depth");
-  dependencies_.insert(sd_key_);
+  dependencies_.insert(KeyTag{sd_key_, tag});
 
   delta_max_key_ = Keys::readKey(plist_, domain_surf_, "microtopographic relief", "microtopographic_relief");
-  dependencies_.insert(delta_max_key_);
+  dependencies_.insert(KeyTag{delta_max_key_, tag});
 
   delta_ex_key_ = Keys::readKey(plist_, domain_surf_, "excluded volume", "excluded_volume");
-  dependencies_.insert(delta_ex_key_);
+  dependencies_.insert(KeyTag{delta_ex_key_, tag});
 }
 
 
 void
-VolumetricSnowPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-                             const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
+                             const std::vector<CompositeVector*>& results)
 {
+  Tag tag = my_keys_.front().second;
   auto& vpd = *results[0]->ViewComponent("cell",false);
   auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell",false);
-  const auto& sd = *S->Get<CompositeVector>(sd_key_).ViewComponent("cell",false);
-  const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell",false);
-  const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell",false);
+  const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell",false);
+  const auto& sd = *S.Get<CompositeVector>(sd_key_, tag).ViewComponent("cell",false);
+  const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell",false);
+  const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell",false);
 
   for (int c=0; c!=vpd.MyLength(); ++c) {
     AMANZI_ASSERT(Microtopography::validParameters(del_max[0][c], del_ex[0][c]));
@@ -85,15 +88,16 @@ VolumetricSnowPondedDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-VolumetricSnowPondedDepthEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& results)
 {
+  Tag tag = my_keys_.front().second;
   auto& vpd = *results[0]->ViewComponent("cell",false);
   auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S->Get<CompositeVector>(pd_key_).ViewComponent("cell",false);
-  const auto& sd = *S->Get<CompositeVector>(sd_key_).ViewComponent("cell",false);
-  const auto& del_max = *S->Get<CompositeVector>(delta_max_key_).ViewComponent("cell",false);
-  const auto& del_ex = *S->Get<CompositeVector>(delta_ex_key_).ViewComponent("cell",false);
+  const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell",false);
+  const auto& sd = *S.Get<CompositeVector>(sd_key_, tag).ViewComponent("cell",false);
+  const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell",false);
+  const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell",false);
 
   if (wrt_key == pd_key_) {
     for (int c=0; c!=vpd.MyLength(); ++c) {
@@ -116,41 +120,29 @@ VolumetricSnowPondedDepthEvaluator::EvaluateFieldPartialDerivative_(const Teucho
 }
 
 void
-VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(State& S)
 {
-  // require my keys
-  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(vol_pd_key_, Tags::NEXT,  vol_pd_key_);
-  my_fac->SetMesh(S->GetMesh(domain_surf_))
-    ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+  EnsureCompatibility_ClaimOwnership_(S);
+  EnsureCompatibility_Flags_(S);
+  EnsureCompatibility_Derivs_(S);
+  EnsureCompatibility_DepEvals_(S);
 
-  auto my_fac_snow = S->Require<CompositeVector,CompositeVectorSpace>(vol_sd_key_, Tags::NEXT,  vol_sd_key_);
-  my_fac_snow->SetOwned(false);
-  my_fac_snow->SetMesh(S->GetMesh(domain_snow_))
-    ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-  // Check plist for vis or checkpointing control.
-  bool io_my_key = plist_.get<bool>("visualize", true);
-  S->GetField(vol_pd_key_, vol_pd_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-  S->GetField(vol_pd_key_, vol_pd_key_)->set_io_checkpoint(checkpoint_my_key);
-
-  for (auto dep_key : dependencies_) {
-    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
-    if (Keys::getDomain(dep_key) == domain_snow_) {
-      fac->SetMesh(S->GetMesh(domain_snow_))
+  // dependencies all match cells on the appropriate domain
+  for (auto& dep : dependencies_) {
+    auto& depfac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
+    if (Keys::getDomain(dep.first) == domain_snow_) {
+      depfac.SetMesh(S.GetMesh(domain_snow_))
         ->SetGhosted()
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     } else {
-      fac->SetMesh(S->GetMesh(domain_surf_))
+      depfac.SetMesh(S.GetMesh(domain_surf_))
         ->SetGhosted()
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     }
-
-    // Recurse into the tree to propagate info to leaves.
-    S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
   }
+
+  EnsureCompatibility_DepDerivs_(S);
+  EnsureCompatibility_DepEnsureCompatibility_(S);
 }
 
 } //namespace

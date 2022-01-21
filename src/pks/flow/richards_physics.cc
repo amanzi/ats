@@ -1,13 +1,11 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-  A base two-phase, thermal Richard's equation with water vapor.
-
-  License: BSD
-  Authors: Neil Carlson (version 1)
-  Konstantin Lipnikov (version 2) (lipnikov@lanl.gov)
-  Ethan Coon (ATS version) (ecoon@lanl.gov)
-------------------------------------------------------------------------- */
+  Authors: Ethan Coon (coonet@ornl.gov)
+*/
 
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
@@ -25,6 +23,9 @@ namespace Flow {
 void Richards::ApplyDiffusion_(const Tag& tag,
         const Teuchos::Ptr<CompositeVector>& g)
 {
+  // force mass matrices to change
+  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
+
   // update the rel perm according to the scheme of choice
   bool update = UpdatePermeabilityData_(tag);
 
@@ -42,8 +43,7 @@ void Richards::ApplyDiffusion_(const Tag& tag,
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-  if (tag == tag_next_)
-    ChangedEvaluatorPrimary_(flux_key_, tag_next_);
+  ChangedEvaluatorPrimary_(flux_key_, tag);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);

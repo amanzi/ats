@@ -25,14 +25,6 @@ ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(Teuchos::Pa
 }
 
 
-// Copy constructor
-ManningCoefficientLitterEvaluator::ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other) :
-  EvaluatorSecondaryMonotypeCV(other),
-  ld_key_(other.ld_key_),
-  pd_key_(other.pd_key_),
-  models_(other.models_) {}
-
-
 // Virtual copy constructor
 Teuchos::RCP<Evaluator>
 ManningCoefficientLitterEvaluator::Clone() const
@@ -47,69 +39,61 @@ ManningCoefficientLitterEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  Key domain_name = Keys::getDomain(my_key_);
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // - pull Keys from plist
   // dependency: litter_thickness
-  Key litter_domain_name;
-  if (domain_name == "surface") {
-    litter_domain_name = "litter";
-    litter_domain_name = plist_.get<std::string>("litter domain name", litter_domain_name);
-  } else if (boost::starts_with(domain_name, "surface")) {
-    litter_domain_name = Key("litter")+domain_name.substr(7,domain_name.size());
-    litter_domain_name = plist_.get<std::string>("litter domain name", litter_domain_name);
-  }
+  Key litter_domain = Keys::readDomainHint(plist_, domain, "surface", "litter");
 
-
-  ld_key_ = plist_.get<std::string>("litter thickness key",
-          Keys::getKey(litter_domain_name, "thickness"));
-  dependencies_.insert(ld_key_);
+  ld_key_ = Keys::readKey(plist_, litter_domain, "litter thickness", "thickness");
+  dependencies_.insert(KeyTag{ld_key_, tag});
 
   // dependency: ponded_depth
-  pd_key_ = plist_.get<std::string>("ponded depth key",
-          Keys::getKey(domain_name,"ponded_depth"));
-  dependencies_.insert(pd_key_);
+  pd_key_ = Keys::readKey(plist_, domain, "ponded depth", "ponded_depth");
+  dependencies_.insert(KeyTag{pd_key_, tag});
 }
 
 
 void
-ManningCoefficientLitterEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+ManningCoefficientLitterEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
   // Initialize the MeshPartition
   if (!models_->first->initialized()) {
-    models_->first->Initialize(result->Mesh(), -1);
+    models_->first->Initialize(result[0]->Mesh(), -1);
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> ld = S->GetPtr<CompositeVector>(ld_key_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(pd_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> ld = S.GetPtr<CompositeVector>(ld_key_, tag);
+  Teuchos::RCP<const CompositeVector> pd = S.GetPtr<CompositeVector>(pd_key_, tag);
 
   // cell values
   {
     const Epetra_MultiVector& ld_v = *ld->ViewComponent("cell", false);
     const Epetra_MultiVector& pd_v = *pd->ViewComponent("cell", false);
-    Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
 
-    int ncomp = result->size("cell", false);
+    int ncomp = result[0]->size("cell", false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = models_->second[(*models_->first)[i]]->ManningCoefficient(ld_v[0][i], pd_v[0][i]);
     }
   }
 
   // potential boundary face values
-  if (result->HasComponent("boundary_face")) {
+  if (result[0]->HasComponent("boundary_face")) {
     const Epetra_MultiVector& ld_v = *ld->ViewComponent("boundary_face", false);
     const Epetra_MultiVector& pd_v = *pd->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& result_v = *result->ViewComponent("boundary_face", false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
     const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
     const Epetra_Map& face_map = mesh->face_map(false);
     AmanziMesh::Entity_ID_List cells;
 
-    int ncomp = result->size("boundary_face", false);
+    int ncomp = result[0]->size("boundary_face", false);
     for (int bf=0; bf!=ncomp; ++bf) {
       // given a boundary face, we need the internal cell to choose the right model
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
@@ -124,25 +108,25 @@ ManningCoefficientLitterEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-ManningCoefficientLitterEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
   // Initialize the MeshPartition
   if (!models_->first->initialized()) {
-    models_->first->Initialize(result->Mesh(), -1);
+    models_->first->Initialize(result[0]->Mesh(), -1);
     models_->first->Verify();
   }
 
-  Teuchos::RCP<const CompositeVector> ld = S->GetPtr<CompositeVector>(ld_key_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetPtr<CompositeVector>(pd_key_);
-
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> ld = S.GetPtr<CompositeVector>(ld_key_, tag);
+  Teuchos::RCP<const CompositeVector> pd = S.GetPtr<CompositeVector>(pd_key_, tag);
   {
     // cell values
     const Epetra_MultiVector& ld_v = *ld->ViewComponent("cell", false);
     const Epetra_MultiVector& pd_v = *pd->ViewComponent("cell", false);
-    Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
 
-    int ncomp = result->size("cell", false);
+    int ncomp = result[0]->size("cell", false);
     if (wrt_key == ld_key_) {
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = models_->second[(*models_->first)[i]]
@@ -160,18 +144,18 @@ ManningCoefficientLitterEvaluator::EvaluateFieldPartialDerivative_(const Teuchos
   }
 
   // potential boundary face values
-  if (result->HasComponent("boundary_face")) {
+  if (result[0]->HasComponent("boundary_face")) {
     const Epetra_MultiVector& ld_v = *ld->ViewComponent("boundary_face", false);
     const Epetra_MultiVector& pd_v = *pd->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& result_v = *result->ViewComponent("boundary_face", false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
     const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
     const Epetra_Map& face_map = mesh->face_map(false);
     AmanziMesh::Entity_ID_List cells;
 
-    int ncomp = result->size("boundary_face", false);
+    int ncomp = result[0]->size("boundary_face", false);
     if (wrt_key == ld_key_) {
       for (int bf=0; bf!=ncomp; ++bf) {
         // given a boundary face, we need the internal cell to choose the right model
@@ -201,11 +185,10 @@ ManningCoefficientLitterEvaluator::EvaluateFieldPartialDerivative_(const Teuchos
 }
 
 
-
 // Non-member factory
 Teuchos::RCP<ManningCoefPartition>
-createManningCoefPartition(Teuchos::ParameterList& plist) {
-
+createManningCoefPartition(Teuchos::ParameterList& plist)
+{
   std::vector<Teuchos::RCP<ManningCoefficientLitterModel> > models;
   std::vector<std::string> region_list;
 

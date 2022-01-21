@@ -3,7 +3,7 @@
 /*
   The carbon decompostion rate evaluator gets the subsurface temperature and pressure.
   Computes(integrates) CO2 decomposition rate.
-  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature and pressure, 
+  This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature and pressure,
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
@@ -22,32 +22,34 @@ class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 public:
   explicit
   CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist);
-  CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other);
-  Teuchos::RCP<Evaluator> Clone() const;
-  
-protected:
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
-  
-    
-  virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-  
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-  double  Func_TempPres(double temp, double pres);
+  CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
+  virtual bool Update(State& S, const Key& request) override;
+  virtual void EnsureCompatibility(State& S) override;
+
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+                         const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
+  double Func_TempPres(double temp, double pres);
+
+ protected:
   bool updated_once_;
   Key temp_key_, pres_key_, sat_key_, por_key_, cv_key_;
   Key domain_;
   double q10_;
-private:
+
+ private:
   static Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> reg_;
 
 };
-  
+
 } //namespace
-} //namespace 
+} //namespace
 
 #endif

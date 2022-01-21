@@ -22,17 +22,17 @@ class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   SurfaceRelPermEvaluator(Teuchos::ParameterList& plist);
-  SurfaceRelPermEvaluator(const SurfaceRelPermEvaluator& other);
-  Teuchos::RCP<Evaluator> Clone() const;
+  SurfaceRelPermEvaluator(const SurfaceRelPermEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<SurfaceRelPermModel> get_Model() { return model_; }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
   Teuchos::RCP<SurfaceRelPermModel> model_;

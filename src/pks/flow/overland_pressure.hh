@@ -165,32 +165,32 @@ public:
 
   // main methods
   // -- Initialize owned (dependent) variables.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Update diagnostics for vis.
-  //virtual void calculate_diagnostics(const Teuchos::RCP<State>& S);
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
+  virtual void CalculateDiagnostics(const Tag& tag) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
   void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+          Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
+          double h) override;
 
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
-
+          Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
@@ -199,38 +199,38 @@ public:
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du);
+                       Teuchos::RCP<TreeVector> du) override;
 
 protected:
   // setup methods
-  virtual void SetupOverlandFlow_(const Teuchos::Ptr<State>& S);
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupOverlandFlow_();
+  virtual void SetupPhysicalEvaluators_();
 
   // boundary condition members
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S);
+  void ComputeBoundaryConditions_(const Tag& tag);
+  virtual void UpdateBoundaryConditions_(const Tag& tag);
   virtual void ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u,
           const Teuchos::Ptr<const CompositeVector>& elev);
 
-  virtual void FixBCsForOperator_(const Teuchos::Ptr<State>& S,
+  virtual void FixBCsForOperator_(const Tag& tag,
           const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
-  //virtual void FixBCsForFluxDirection_(const Teuchos::Ptr<State>& S);
-  virtual void FixBCsForPrecon_(const Teuchos::Ptr<State>& S);
-  // virtual void FixBCsForConsistentFaces_(const Teuchos::Ptr<State>& S);
+  virtual void FixBCsForPrecon_(const Tag& tag);
 
   // computational concerns in managing abs, rel perm
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual bool UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S);
+  virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
+  virtual bool UpdatePermeabilityData_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
-  void ApplyDiffusion_(const Teuchos::Ptr<State>& S,const Teuchos::Ptr<CompositeVector>& g);
+  void ApplyDiffusion_(const Tag& tag,const Teuchos::Ptr<CompositeVector>& g);
   // -- accumulation term
   void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
   // -- source terms
   void AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g);
 
-  void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up,
+          double h);
 
  protected:
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
@@ -290,9 +290,6 @@ protected:
   double iter_counter_time_;
   int jacobian_lag_;
 
-  // evaluator for flux, which is needed by other pks
-  Teuchos::RCP<EvaluatorPrimary> flux_pvfe_;
-
   // work data space
   Teuchos::RCP<Operators::Upwinding> upwinding_;
   Teuchos::RCP<Operators::Upwinding> upwinding_dkdp_;
@@ -322,8 +319,6 @@ protected:
 
   // needed physical models
   Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
-
-  int niter_;
 
   // factory registration
   static RegisteredPKFactory<OverlandPressureFlow> reg_;

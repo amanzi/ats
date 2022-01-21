@@ -11,25 +11,20 @@
 namespace Amanzi {
 namespace Flow {
 
-
-
 ColumnAverageTempEvaluator::ColumnAverageTempEvaluator(Teuchos::ParameterList& plist)
     : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Key dset_name = plist.get<std::string>("domain set name", "column");
-  
-  domain_ = Keys::getDomain(my_key_); //surface_column domain
-  int col_id = Keys::getDomainSetIndex<int>(domain_);
-  
-  Key domain_ss = Keys::getDomainInSet(dset_name, col_id);
-  
+  Tag tag = my_keys_.front().second;
+  domain_ = Keys::getDomain(my_keys_.front().first); //surface_column domain
+  Key domain_ss = Keys::readDomainHint(plist_, domain_, "surface", "subsurface");
+
   temp_key_ = Keys::readKey(plist, domain_ss, "temperature", "temperature");
-  dependencies_.insert(temp_key_);
-  
+  dependencies_.insert(KeyTag{temp_key_, tag});
+
   depth_ = plist_.get<double>("depth from surface [m]", 0); // depth from the surface
-  ncells_depth_ = plist_.get<int>("number of cells [m]", -1); // or number of cells
+  ncells_depth_ = plist_.get<int>("number of cells", -1); // or number of cells
 }
-  
+
 
 Teuchos::RCP<Evaluator>
 ColumnAverageTempEvaluator::Clone() const
@@ -39,28 +34,28 @@ ColumnAverageTempEvaluator::Clone() const
 
 
 void
-ColumnAverageTempEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
-{ 
-  Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
-  
-  // search through the column and find the deepest unfrozen cell
+ColumnAverageTempEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell",false);
+  AMANZI_ASSERT(res_c.MyLength() == 1); // as implemented only valid for columns
 
+  // search through the column and find the deepest unfrozen cell
   std::string domain_ss = Keys::getDomain(temp_key_);
-  const auto& top_z_centroid = S->GetMesh(domain_ss)->face_centroid(0);
+  const auto& top_z_centroid = S.GetMesh(domain_ss)->face_centroid(0);
   AmanziGeometry::Point z_centroid(top_z_centroid);
 
-  const auto& temp_c = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
-  
+  const auto& temp_c = *S.Get<CompositeVector>(temp_key_, tag).ViewComponent("cell", false);
+
   int col_cells = temp_c.MyLength();
   double temp_sum = 0;
   int count = 0 ;
-  
-  AMANZI_ASSERT (ncells_depth_ <= col_cells);
 
+  AMANZI_ASSERT (ncells_depth_ <= col_cells);
   for (int i=0; i!=col_cells; ++i) {
     if (depth_ > 0.0) {
-      z_centroid = S->GetMesh(domain_ss)->face_centroid(i+1);
+      z_centroid = S.GetMesh(domain_ss)->face_centroid(i+1);
       double z_depth = top_z_centroid[2] - z_centroid[2];
       if (z_depth <= depth_) {
         temp_sum += temp_c[0][i];
@@ -69,32 +64,30 @@ ColumnAverageTempEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       else {
         break;
       }
-    }
-    else if (ncells_depth_ > 0 && i <= ncells_depth_) {
+    } else if (ncells_depth_ > 0 && i <= ncells_depth_) {
       temp_sum += temp_c[0][i];
       count += 1;
     }
   }
-  
-  res_c[0][0] = count >0 ? temp_sum/count : 0.0;
 
+  res_c[0][0] = count > 0 ? temp_sum / count : 0.0;
 }
-  
+
 void
-ColumnAverageTempEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-               Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+ColumnAverageTempEvaluator::EvaluatePartialDerivative_(const State& S,
+               const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {}
 
- 
+
 // Custom EnsureCompatibility forces this to be updated once.
 bool
-ColumnAverageTempEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
-        Key request)
+ColumnAverageTempEvaluator::Update(State& S,
+        const Key& request)
 {
-  bool changed = EvaluatorSecondaryMonotypeCV::HasFieldChanged(S,request);
+  bool changed = EvaluatorSecondaryMonotypeCV::Update(S, request);
 
   if (!updated_once_) {
-    UpdateField_(S);
+    Update_(S);
     updated_once_ = true;
     return true;
   }
@@ -102,26 +95,18 @@ ColumnAverageTempEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
 }
 
 void
-ColumnAverageTempEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+ColumnAverageTempEvaluator::EnsureCompatibility(State& S)
 {
+  // note, no derivs are valid here
+  EnsureCompatibility_ClaimOwnership_(S);
+  EnsureCompatibility_Flags_(S);
+  EnsureCompatibility_DepEvals_(S);
 
-  AMANZI_ASSERT(my_key_ != std::string(""));
-   
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
-  
-  // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>(std::string("visualize ")+my_key_, true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+my_key_, false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-  
-  if (my_fac->Mesh() != Teuchos::null) {
-    // Recurse into the tree to propagate info to leaves.
-    for (KeySet::const_iterator key=dependencies_.begin();
-         key!=dependencies_.end(); ++key) {
-      S->RequireEvaluator(*key)->EnsureCompatibility(S);
-    }
-  }
+  CompositeVectorSpace fac;
+  fac.AddComponent("cell", AmanziMesh::CELL, 1);
+  EnsureCompatibility_DepsFromFac_(S, fac, true);
+
+  EnsureCompatibility_DepEnsureCompatibility_(S);
 }
 
 

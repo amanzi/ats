@@ -14,14 +14,14 @@ namespace Amanzi {
 namespace Flow {
 
 EffectiveHeightEvaluator::EffectiveHeightEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist) {
-  // my keys are for saturation and rel perm.
-  if (my_key_ == "")
-    my_key_ = plist_.get<std::string>("effective height key", "effective_height");
+    EvaluatorSecondaryMonotypeCV(plist)
+{
+  auto domain_name = Keys::getDomain(my_keys_.front().first);
+  auto tag = my_keys_.front().second;
 
   // my dependencies
-  height_key_ = plist_.get<std::string>("height key", "ponded_depth");
-  dependencies_.insert(height_key_);
+  height_key_ = Keys::readKey(plist_, domain_name, "height key", "ponded_depth");
+  dependencies_.insert(KeyTag{height_key_, tag});
 
   // model
   Teuchos::ParameterList model_plist = plist_.sublist("effective height model parameters");
@@ -29,29 +29,25 @@ EffectiveHeightEvaluator::EffectiveHeightEvaluator(Teuchos::ParameterList& plist
 }
 
 
-EffectiveHeightEvaluator::EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other) :
-    EvaluatorSecondaryMonotypeCV(other),
-    height_key_(other.height_key_),
-    model_(other.model_) {}
-
-
 Teuchos::RCP<Evaluator>
-EffectiveHeightEvaluator::Clone() const {
+EffectiveHeightEvaluator::Clone() const
+{
   return Teuchos::rcp(new EffectiveHeightEvaluator(*this));
 }
 
-void EffectiveHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-
-  Teuchos::RCP<const CompositeVector> height = S->GetPtr<CompositeVector>(height_key_);
+void EffectiveHeightEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
+{
+  auto tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> height = S.GetPtr<CompositeVector>(height_key_, tag);
 
   // evaluate p_s / p_atm
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& height_v = *(height->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result[0]->size(*comp);
     for (int id=0; id!=count; ++id) {
       result_v[0][id] = model_->EffectiveHeight(height_v[0][id]);
     }
@@ -59,20 +55,22 @@ void EffectiveHeightEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void EffectiveHeightEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void EffectiveHeightEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+{
   AMANZI_ASSERT(wrt_key == height_key_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> height = S->GetPtr<CompositeVector>(height_key_);
+  auto tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> height = S.GetPtr<CompositeVector>(height_key_, tag);
 
   // evaluate d/dT( p_s / p_atm )
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& height_v = *(height->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result->ViewComponent(*comp,false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
 
-    int count = result->size(*comp);
+    int count = result[0]->size(*comp);
     for (int id=0; id!=count; ++id) {
       result_v[0][id] = model_->DEffectiveHeightDHeight(height_v[0][id]);
     }

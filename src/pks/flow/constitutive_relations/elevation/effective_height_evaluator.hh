@@ -24,19 +24,19 @@ class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   // constructor format for all derived classes
   explicit
   EffectiveHeightEvaluator(Teuchos::ParameterList& plist);
-  EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other);
+  EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other) = default;
 
-  virtual Teuchos::RCP<Evaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<EffectiveHeightModel> get_Model() { return model_; }
 
  protected:
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key height_key_;

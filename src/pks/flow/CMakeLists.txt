@@ -24,12 +24,12 @@ set(ats_flow_src_files
   richards_pk.cc
   richards_ti.cc
   richards_physics.cc
-  #richards_steadystate.cc
-  # permafrost_pk.cc
-  # interfrost.cc
-  # overland_pressure_pk.cc
-  # overland_pressure_physics.cc
-  # overland_pressure_ti.cc
+  richards_steadystate.cc
+  permafrost_pk.cc
+  interfrost.cc
+  overland_pressure_pk.cc
+  overland_pressure_physics.cc
+  overland_pressure_ti.cc
   # overland_pk.cc
   # overland_physics.cc
   # overland_ti.cc
@@ -87,30 +87,30 @@ register_evaluator_with_factory(
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE richards_steadystate_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE richards_steadystate_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
 
-# register_evaluator_with_factory(
-#   HEADERFILE permafrost_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE permafrost_pk_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
 
-# register_evaluator_with_factory(
-#   HEADERFILE interfrost_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE interfrost_pk_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
 
 # register_evaluator_with_factory(
 #   HEADERFILE overland_pk_reg.hh
 #   LISTNAME   ATS_FLOW_PKS_REG
 #   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE overland_pressure_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE overland_pressure_pk_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
 
 # register_evaluator_with_factory(
 #   HEADERFILE icy_overland_reg.hh
