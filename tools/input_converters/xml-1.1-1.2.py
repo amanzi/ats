@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ATS input converter from 1.1 to main development branch"""
+"""ATS input converter from 1.1 to release 1.2"""
 
 import sys, os
 try:
@@ -234,7 +234,7 @@ def update(xml, seb_new=False):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 1.1 to the development branch")
+    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 1.1 to release 1.2")
     parser.add_argument("infile", help="input filename")
 
     group = parser.add_mutually_exclusive_group()
