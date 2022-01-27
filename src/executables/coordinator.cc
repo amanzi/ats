@@ -126,6 +126,10 @@ void Coordinator::setup() {
   S_->set_cycle(cycle0_);
   S_->RequireScalar("dt", "coordinator");
 
+  // everyone uses these
+  S_->RequireScalar("atmospheric_pressure", "coordinator");
+  S_->RequireGravity();
+
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->Setup(S_.ptr());

@@ -46,6 +46,12 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S)
   pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
   mass_flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
 
+  // require these in case the PK did not do so already
+  S->RequireField(pd_bar_key_)
+    ->SetMesh(S->GetMesh(domain_))
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S->RequireFieldEvaluator(pd_bar_key_);
+
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
   pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
 

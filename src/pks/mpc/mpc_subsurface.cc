@@ -89,11 +89,10 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S)
   Teuchos::RCP<Operators::Operator> pcA = sub_pks_[0]->preconditioner();
   Teuchos::RCP<Operators::Operator> pcB = sub_pks_[1]->preconditioner();
 
-  Teuchos::ParameterList& diff0_list = pks_list_->sublist(pk_order[0]).sublist("diffusion");
-  Teuchos::ParameterList& diff1_list = pks_list_->sublist(pk_order[1]).sublist("diffusion");
-
-  if ((diff0_list.get<std::string>("discretization primary") == "fv: default") &&
-      (diff1_list.get<std::string>("discretization primary") == "fv: default")){
+  if (pks_list_->sublist(pk_order[0]).isSublist("diffusion") &&
+      pks_list_->sublist(pk_order[0]).sublist("diffusion").get<std::string>("discretization primary") == "fv: default" &&
+      pks_list_->sublist(pk_order[1]).isSublist("diffusion") &&
+      pks_list_->sublist(pk_order[1]).sublist("diffusion").get<std::string>("discretization primary") == "fv: default") {
     is_fv_ = true;
   } else {
     is_fv_ = false;
@@ -371,9 +370,6 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
   if (ewc_ != Teuchos::null) ewc_->initialize(S);
 
   // initialize offdiagonal operators
-  richards_pk_ = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[0]);
-  AMANZI_ASSERT(richards_pk_ != Teuchos::null);
-
   if (precon_type_ != PRECON_NONE && precon_type_ != PRECON_BLOCK_DIAGONAL) {
     Key dWC_dT_key = Keys::getDerivKey(wc_key_, temp_key_);
     if (S->HasField(dWC_dT_key)){
@@ -381,13 +377,19 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
       S->GetField(dWC_dT_key, wc_key_)->set_initialized();
     }
     Key dE_dp_key = Keys::getDerivKey(e_key_, pres_key_);
-    if (S->HasField(dE_dp_key)){
+    if (S->HasField(dE_dp_key)) {
       S->GetFieldData(dE_dp_key, e_key_)->PutScalar(0.0);
       S->GetField(dE_dp_key, e_key_)->set_initialized();
     }
   }
 
+  Teuchos::RCP<Flow::Richards> richards_pk;
   if (ddivq_dT_ != Teuchos::null) {
+    if (richards_pk == Teuchos::null) {
+      richards_pk = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[0]);
+      AMANZI_ASSERT(richards_pk != Teuchos::null);
+    }
+
     if (!is_fv_) {
       Key dkrdT_key = Keys::getDerivKey(uw_kr_key_, temp_key_);
       S->GetFieldData(dkrdT_key,name_)->PutScalar(0.0);
@@ -399,7 +401,7 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
     g[0] = (*gvec)[0]; g[1] = (*gvec)[1]; g[2] = (*gvec)[2];
     ddivq_dT_->SetGravity(g);
     ddivq_dT_->SetBCs(sub_pks_[0]->BCs(), sub_pks_[1]->BCs());
-    ddivq_dT_->SetTensorCoefficient(richards_pk_->K_);
+    ddivq_dT_->SetTensorCoefficient(richards_pk->K_);
   }
 
   if (ddivKgT_dp_ != Teuchos::null) {
@@ -414,6 +416,11 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
   }
 
   if (ddivhq_dp_ != Teuchos::null) {
+    if (richards_pk == Teuchos::null) {
+      richards_pk = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[0]);
+      AMANZI_ASSERT(richards_pk != Teuchos::null);
+    }
+
     S->GetFieldData(uw_hkr_key_, name_)->PutScalar(1.);
     S->GetField(uw_hkr_key_, name_)->set_initialized();
 
@@ -429,11 +436,11 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
     g[0] = (*gvec)[0]; g[1] = (*gvec)[1]; g[2] = (*gvec)[2];
     ddivhq_dp_->SetGravity(g);
     ddivhq_dp_->SetBCs(sub_pks_[1]->BCs(), sub_pks_[0]->BCs());
-    ddivhq_dp_->SetTensorCoefficient(richards_pk_->K_);
+    ddivhq_dp_->SetTensorCoefficient(richards_pk->K_);
 
     ddivhq_dT_->SetGravity(g);
     ddivhq_dT_->SetBCs(sub_pks_[1]->BCs(), sub_pks_[1]->BCs());
-    ddivhq_dT_->SetTensorCoefficient(richards_pk_->K_);
+    ddivhq_dT_->SetTensorCoefficient(richards_pk->K_);
   }
 }
 
