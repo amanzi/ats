@@ -17,12 +17,20 @@ from amanzi_xml.utils import errors as aerrors
 from amanzi_xml.common import parameter
 
 def manning_boundary_face(xml):
-    matches = asearch.findall_path(xml, ["state", "field evaluators", "surface-manning_coefficient", "components"])
+    matches = asearch.findall_path(xml, ["state", "field evaluators", "surface-manning_coefficient", "components"]) \
+        + asearch.findall_path(xml, ["state", "field evaluators", "surface_star-manning_coefficient", "components"])
     for mann in matches:
         mann.setValue(["cell"])
 
+def mobile_depth(xml):
+    matches = asearch.findall_path(xml, ["state", "field evaluators", "surface-overland_conductivity", "depth key"]) \
+        + asearch.findall_path(xml, ["state", "field evaluators", "surface_star-overland_conductivity", "depth key"])
+    for md in matches:
+        md.setName("mobile depth key")
+
 def update(xml, seb_new=False):
     manning_boundary_face(xml)
+    mobile_depth(xml)
     
 
 if __name__ == "__main__":
