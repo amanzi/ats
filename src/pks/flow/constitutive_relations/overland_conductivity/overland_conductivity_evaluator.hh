@@ -17,7 +17,7 @@ coefficient in the diffusion wave equation.  The term is given by:
    k = \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
 
 Optionally, this may include a density factor, typically a molar density, which
-converts the flow law to mass flux rather than volumetric flux.
+converts the flow law to water flux rather than volumetric flux.
 
 Also, this evaluator can be used in snow redistribution, and in that case needs
 some extra factors (timestep size) to ensure the correct flow law in that case.
@@ -26,7 +26,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 .. admonition:: overland-conductivity-evaluator-spec
 
    * `"include density`" ``[bool]`` **true** Include the density prefactor,
-     converting the flux from volumetric flux to mass flux.
+     converting the flux from volumetric flux to water flux.
    * `"dt factor [s]`" ``[double]`` **-1** The artificial timestep size used in calculating
       snow redistribution, only used in that case.
    * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.

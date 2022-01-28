@@ -19,7 +19,7 @@ diffusion wave equation.  The term is given by:
    k = n_l K^\beta \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
 
 This includes a density factor, typically a molar density, which
-converts the flow law to mass flux rather than volumetric flux.
+converts the flow law to water flux rather than volumetric flux.
 
 .. _overland-conductivity-subgrid-evaluator-spec
 .. admonition:: overland-conductivity-subgrid-evaluator-spec

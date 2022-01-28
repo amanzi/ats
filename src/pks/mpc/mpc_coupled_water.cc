@@ -139,7 +139,7 @@ MPCCoupledWater::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
                             u_new->SubVector(1), g->SubVector(1));
 
-  // The residual of the surface flow equation provides the mass flux from
+  // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source = *S_next_->GetFieldData(Keys::getKey(domain_surf_,"surface_subsurface_flux"),
           name_)->ViewComponent("cell",false);

@@ -113,7 +113,7 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Key potential_key_;
   Key pd_bar_key_;
   Key enth_key_;
-  Key mass_flux_key_;
+  Key water_flux_key_;
   Key rho_key_;
 
   // EWC delegate

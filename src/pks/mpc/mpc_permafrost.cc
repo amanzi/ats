@@ -55,7 +55,7 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   surf_kr_uw_key_ = Keys::readKey(*plist_, domain_surf_, "upwind overland conductivity", "upwind_overland_conductivity");
   surf_potential_key_ = Keys::readKey(*plist_, domain_surf_, "surface potential", "pres_elev");
   surf_pd_bar_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth, negative", "ponded_depth_bar");
-  surf_mass_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface mass flux", "mass_flux");
+  surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
 }
 
 
@@ -357,7 +357,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(2),
                             u_new->SubVector(2), g->SubVector(2));
 
-  // The residual of the surface flow equation provides the mass flux from
+  // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source = *S_next_->GetFieldData(mass_exchange_key_, name_)->ViewComponent("cell",false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell",false);
@@ -370,7 +370,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   // All surface to subsurface fluxes have been taken by the subsurface.
   g->SubVector(2)->Data()->ViewComponent("cell",false)->PutScalar(0.);
 
-  // Now that mass fluxes are done, do energy.
+  // Now that water fluxes are done, do energy.
   // Evaluate the surface energy residual
   surf_energy_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(3),
           u_new->SubVector(3), g->SubVector(3));
@@ -483,7 +483,7 @@ MPCPermafrost::UpdatePreconditioner(double t,
     Teuchos::RCP<const CompositeVector> kr_uw =
       S_next_->GetFieldData(surf_kr_uw_key_);
     Teuchos::RCP<const CompositeVector> flux =
-      S_next_->GetFieldData(surf_mass_flux_key_);
+      S_next_->GetFieldData(surf_water_flux_key_);
 
     S_next_->GetFieldEvaluator(surf_potential_key_)
       ->HasFieldChanged(S_next_.ptr(), name_);

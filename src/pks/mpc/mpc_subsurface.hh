@@ -248,8 +248,8 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Key hkr_key_;
   Key uw_hkr_key_;
   Key energy_flux_key_;
-  Key mass_flux_key_;
-  Key mass_flux_dir_key_;
+  Key water_flux_key_;
+  Key water_flux_dir_key_;
   Key rho_key_;
 
   bool is_fv_;

@@ -46,10 +46,10 @@ CoupledTransport_PK::CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_l
   }
 
   subsurface_flux_key_ =  plist_->get<std::string>("flux_key",
-          Keys::getKey(subsurface_name_, "mass_flux"));
+          Keys::getKey(subsurface_name_, "water_flux"));
 
   surface_flux_key_ =  plist_->get<std::string>("flux_key",
-          Keys::getKey(surface_name_, "mass_flux"));
+          Keys::getKey(surface_name_, "water_flux"));
 }
 
 // -----------------------------------------------------------------------------

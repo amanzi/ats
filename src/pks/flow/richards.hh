@@ -190,8 +190,8 @@ Solves Richards equation:
       **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
       coefficient of the permeability.  Note the units of this are strange, but
       this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
-   - `"darcy flux key`" **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-   - `"darcy flux direction key`" **DOMAIN-mass_flux_direction**
+   - `"darcy flux key`" **DOMAIN-water_flux** water flux across a face ``[mol s^-1]``
+   - `"darcy flux direction key`" **DOMAIN-water_flux_direction**
       direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
    - `"darcy velocity key`" **DOMAIN-darcy_velocity** darcy velocity
       vector, interpolated from faces to cells ``[m s^-1]``

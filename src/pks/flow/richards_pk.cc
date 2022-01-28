@@ -79,8 +79,8 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
   coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
   uw_coef_key_ = Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
-  flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "mass_flux");
-  flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "mass_flux_direction");
+  flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
+  flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
@@ -699,7 +699,7 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 //   if (S_next_ != Teuchos::null) {
 //     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetFieldData(conserved_key_);
 //     Teuchos::RCP<const CompositeVector> wc0 = S_->GetFieldData(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> mass_flux = S->GetFieldData(flux_key_, name_);
+//     Teuchos::RCP<const CompositeVector> water_flux = S->GetFieldData(flux_key_, name_);
 //     CompositeVector error(*wc1);
 
 //     for (unsigned int c=0; c!=error.size("cell"); ++c) {
@@ -709,7 +709,7 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 //       std::vector<int> dirs;
 //       mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
 //       for (unsigned int n=0; n!=faces.size(); ++n) {
-//         error("cell",c) += (*mass_flux)("face",faces[n]) * dirs[n] * dt;
+//         error("cell",c) += (*water_flux)("face",faces[n]) * dirs[n] * dt;
 //       }
 //     }
 
@@ -1092,7 +1092,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
     }
   }
 
-  // seepage face -- pressure <= specified value (usually 101325), outward mass flux >= 0
+  // seepage face -- pressure <= specified value (usually 101325), outward water flux >= 0
   S->GetFieldData(flux_key_)->ScatterMasterToGhosted("face");
   const Epetra_MultiVector& flux = *S->GetFieldData(flux_key_)->ViewComponent("face", true);
 
@@ -1128,7 +1128,7 @@ void Richards::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
     }
   }
 
-  // seepage face -- pressure <= p_atm, outward mass flux is specified
+  // seepage face -- pressure <= p_atm, outward water flux is specified
   bc_counts.push_back(bc_seepage_infilt_->size());
   bc_names.push_back("seepage with infiltration");
   {
