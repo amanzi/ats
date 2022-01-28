@@ -36,7 +36,8 @@ void
 SurfaceTopCellsEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-  Teuchos::RCP<const CompositeVector> sub_vector = S.GetPtr<CompositeVector>(dependency_key_);
+  auto tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> sub_vector = S.GetPtr<CompositeVector>(dependency_key_, tag);
   const Epetra_MultiVector& sub_vector_cells = *sub_vector->ViewComponent("cell",false);
   Epetra_MultiVector& result_cells = *result[0]->ViewComponent("cell",false);
 
@@ -58,24 +59,14 @@ SurfaceTopCellsEvaluator::Evaluate_(const State& S,
 
 
 void
-SurfaceTopCellsEvaluator::EnsureCompatibility(State& S)
+SurfaceTopCellsEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  Key my_key = my_keys_.front().first;
+  auto domain_name = Keys::getDomain(my_keys_.front().first);
 
-  // Ensure my field exists.  Requirements should be already set.  Claim ownership.
-  S.Require<CompositeVector,CompositeVectorSpace>(my_key, my_keys_.front().second,  my_key)
-    .SetMesh(S.GetMesh(Keys::getDomain(my_key)))
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
-  for (const auto& dep : dependencies_) {
-    S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
-      .SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
-  }
-
-  // check plist for vis or checkpointing control
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
+  CompositeVectorSpace fac;
+  fac.SetMesh(S.GetMesh(domain_name)->parent())
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
 }
 
 

@@ -119,31 +119,13 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 }
 
-void
-VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(State& S)
-{
-  EnsureCompatibility_ClaimOwnership_(S);
-  EnsureCompatibility_Flags_(S);
-  EnsureCompatibility_Derivs_(S);
-  EnsureCompatibility_DepEvals_(S);
-
-  // dependencies all match cells on the appropriate domain
-  for (auto& dep : dependencies_) {
-    auto& depfac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
-    if (Keys::getDomain(dep.first) == domain_snow_) {
-      depfac.SetMesh(S.GetMesh(domain_snow_))
-        ->SetGhosted()
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-    } else {
-      depfac.SetMesh(S.GetMesh(domain_surf_))
-        ->SetGhosted()
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-    }
-  }
-
-  EnsureCompatibility_DepDerivs_(S);
-  EnsureCompatibility_DepEnsureCompatibility_(S);
-}
+// void
+// VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
+// {
+//   CompositeVectorSpace fac;
+//   fac.SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+//   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac, true);
+// }
 
 } //namespace
 } //namespace

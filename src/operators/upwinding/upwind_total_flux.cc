@@ -179,12 +179,12 @@ UpwindTotalFlux::UpdateDerivatives(const Teuchos::Ptr<State>& S,
   const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell",true);
 
   // Grab potential
-  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key, tag_);
   pres->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
 
   // Grab flux direction
-  const Epetra_MultiVector& flux_v = *S->Get<CompositeVector>(flux_).ViewComponent("face",false);
+  const Epetra_MultiVector& flux_v = *S->Get<CompositeVector>(flux_, tag_).ViewComponent("face",false);
 
   // Grab mesh and allocate space
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = dconductivity.Mesh();

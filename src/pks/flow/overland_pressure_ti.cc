@@ -46,7 +46,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
                << " t1 = " << t_new << " h = " << h << std::endl;
 
   // unnecessary here if not debeugging, but doesn't hurt either
-  S_->GetEvaluator(potential_key_).Update(*S_, name_);
+  S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);
 
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
@@ -58,7 +58,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
   vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
   vecs.emplace_back(u.ptr());
-  vecs.emplace_back(S_->GetPtr<CompositeVector>(elev_key_, tag_current_).ptr());
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(elev_key_, tag_next_).ptr());
   vecs.emplace_back(S_->GetPtr<CompositeVector>(pd_key_, tag_current_).ptr());
   vecs.emplace_back(S_->GetPtr<CompositeVector>(pd_key_, tag_next_).ptr());
   vecs.emplace_back(S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr());
@@ -78,6 +78,7 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   ApplyDiffusion_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
+  vnames.clear(); vecs.clear();
   if (S_->HasRecord(Keys::getKey(domain_,"unfrozen_fraction"), tag_next_) &&
       S_->HasRecord(Keys::getKey(domain_,"unfrozen_fraction"), tag_current_)) {
     Key uf_key = Keys::getKey(domain_,"unfrozen_fraction");
@@ -85,10 +86,10 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
     vecs = {S_->GetPtr<CompositeVector>(uf_key, tag_current_).ptr(),
       S_->GetPtr<CompositeVector>(uf_key, tag_next_).ptr()};
   }
-  vnames.emplace_back("uw_dir"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_).ptr());
-  vnames.emplace_back("k"); vecs.emplace_back(S_->GetPtr<CompositeVector>(cond_key_).ptr());
-  vnames.emplace_back("k_uw"); vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_cond_key_).ptr());
-  vnames.emplace_back("q_surf"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_).ptr());
+  vnames.emplace_back("uw_dir"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
+  vnames.emplace_back("k"); vecs.emplace_back(S_->GetPtr<CompositeVector>(cond_key_, tag_next_).ptr());
+  vnames.emplace_back("k_uw"); vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_).ptr());
+  vnames.emplace_back("q_surf"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
   db_->WriteVectors(vnames, vecs, true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 
@@ -175,12 +176,12 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
     if (!duw_cond_key_.empty()) {
       dcond = S_->GetPtr<CompositeVector>(duw_cond_key_, tag_next_);
     } else {
-      dcond = S_->GetDerivativePtr<CompositeVector>(cond_key_, tag_next_, key_, tag_next_);
+      dcond = S_->GetDerivativePtr<CompositeVector>(cond_key_, tag_next_, pd_key_, tag_next_);
     }
   }
   // -- primary term
   Teuchos::RCP<const CompositeVector> cond =
-    S_->GetPtr<CompositeVector>(cond_key_, tag_next_);
+    S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
   preconditioner_diff_->SetScalarCoefficient(cond, dcond);
 
   // -- local matrices, primary term

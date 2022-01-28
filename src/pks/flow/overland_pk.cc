@@ -85,7 +85,7 @@ void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   // Default evaluators
   S->RequireEvaluator("surface-cell_volume");
   S->RequireGravity();
-  S->RequireScalar("atmospheric_pressure");
+  S->RequireScalar("atmospheric_pressure", Tags::DEFAULT);
 
   // Set up Operators
   // -- boundary conditions
@@ -536,7 +536,7 @@ void OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S) {
     const Epetra_MultiVector& h_c = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"))->ViewComponent("cell");
     const Epetra_MultiVector& nliq_c = *S->GetPtr<CompositeVector>("surface-molar_density_liquid")
     ->ViewComponent("cell");
-    double gz = -(*S->GetConstantVectorData("gravity"))[2];
+    double gz = -(*S->GetConstantVectorData("gravity", Tags::DEFAULT))[2];
 
     for (Functions::BoundaryFunction::Iterator bc = bc_critical_depth_->begin();
          bc != bc_critical_depth_->end(); ++bc) {

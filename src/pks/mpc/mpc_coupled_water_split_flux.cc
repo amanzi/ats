@@ -35,7 +35,7 @@ MPCCoupledWaterSplitFlux::MPCCoupledWaterSplitFlux(Teuchos::ParameterList& FElis
   
   // set up for a primary variable field evaluator for the flux
   auto& sublist = S->FEList().sublist(lateral_flow_source_);
-  sublist.set("field evaluator type", "primary variable");
+  sublist.set("evaluator type", "primary variable");
 
   // init sub-pks
   init_(S);

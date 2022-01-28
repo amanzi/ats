@@ -300,7 +300,7 @@ Richards::UpdateVelocity_(const Tag& tag) {
 
 //    const Epetra_MultiVector& temp = *S_->Get<CompositeVector>("temperature").ViewComponent("cell",false);
 //    const Epetra_MultiVector& pressure = *S_->Get<CompositeVector>("pressure").ViewComponent("cell",false);
-//    const double& Patm = *S_->GetScalarData("atmospheric_pressure");
+//    const double& Patm = *S_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 //    const double R = 8.3144621;
 
 //    unsigned int ncells = diff_coef.MyLength();

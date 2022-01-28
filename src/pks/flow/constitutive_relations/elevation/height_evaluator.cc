@@ -40,30 +40,17 @@ HeightEvaluator::Clone() const {
 }
 
 
-void HeightEvaluator::EnsureCompatibility(State& S)
+void HeightEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  EnsureCompatibility_ClaimOwnership_(S);
-  EnsureCompatibility_Flags_(S);
-  EnsureCompatibility_Derivs_(S);
-  EnsureCompatibility_DepEvals_(S);
-
-  auto akeytag = my_keys_[0];
-  const auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(akeytag.first, akeytag.second);
-  if (my_fac.Mesh() != Teuchos::null) {
-    // Create an unowned factory to check my dependencies.  This is done
-    // manually here because we do NOT want faces, despite having faces in
-    // my_key.  The faces will get updated directly from the mixed field.
+  const auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(
+    my_keys_.front().first, my_keys_.front().second);
+  if (fac.Mesh() != Teuchos::null) {
     CompositeVectorSpace dep_fac;
-    dep_fac.SetOwned(false);
-    dep_fac.SetGhosted(my_fac.Ghosted());
-    dep_fac.SetMesh(my_fac.Mesh());
-    dep_fac.AddComponent("cell", AmanziMesh::CELL, 1);
-
-    EnsureCompatibility_DepsFromFac_(S, dep_fac);
+    dep_fac.SetMesh(fac.Mesh())
+      ->SetGhosted(true)
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
   }
-
-  EnsureCompatibility_DepDerivs_(S);
-  EnsureCompatibility_DepEnsureCompatibility_(S);
 }
 
 
@@ -85,8 +72,8 @@ void HeightEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& rho = *S.GetPtr<CompositeVector>(dens_key_, tag)
       ->ViewComponent("cell",false);
 
-  double p_atm = S.Get<double>("atmospheric_pressure");
-  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
   int ncells = res_c.MyLength();
@@ -116,8 +103,8 @@ void HeightEvaluator::EvaluatePartialDerivative_(const State& S,
   const Epetra_MultiVector& rho = *S.GetPtr<CompositeVector>(dens_key_, tag)
       ->ViewComponent("cell",false);
 
-  double p_atm = S.Get<double>("atmospheric_pressure");
-  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
   if (wrt_key == pres_key_) {

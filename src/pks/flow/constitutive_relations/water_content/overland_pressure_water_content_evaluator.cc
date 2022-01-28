@@ -47,8 +47,8 @@ void OverlandPressureWaterContentEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& cv = *S.GetPtr<CompositeVector>(cv_key_, tag)
       ->ViewComponent("cell",false);
 
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
-  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];  // check this
 
   int ncells = res.MyLength();
@@ -88,8 +88,8 @@ void OverlandPressureWaterContentEvaluator::EvaluatePartialDerivative_(const Sta
   const Epetra_MultiVector& cv = *S.GetPtr<CompositeVector>(cv_key_, tag)
       ->ViewComponent("cell",false);
 
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
-  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];  // check this
 
   int ncells = res.MyLength();

@@ -41,10 +41,13 @@ class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   SubgridAggregateEvaluator(const SubgridAggregateEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  void
-  EnsureCompatibility(State& S) override;
+  // custom EnsureEvaluators required to fill dependencies correctly.
+  void EnsureEvaluators(State& S) override;
 
  protected:
+  // custom EC required to depend on cells of the subgrid mesh
+  void EnsureCompatibility_ToDeps_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   void Evaluate_(const State& S,
                       const std::vector<CompositeVector*>& result) override;

@@ -91,7 +91,7 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   const Epetra_MultiVector& surf_cv = *S->Get<CompositeVector>(surf_cv_key_).ViewComponent("cell", false);
   Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
 
-  double p_atm = *S->GetScalarData("atmospheric_pressure");
+  double p_atm = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   auto& subsurf_mesh = *S->GetMesh(domain_sub_);
   auto& surf_mesh = *S->GetMesh(domain_surf_);

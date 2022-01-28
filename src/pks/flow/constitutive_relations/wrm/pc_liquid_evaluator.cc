@@ -40,7 +40,7 @@ void PCLiquidEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
   // Pull dependencies out of state.
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate pc
   for (CompositeVector::name_iterator comp=result[0]->begin();
@@ -65,7 +65,7 @@ void PCLiquidEvaluator::EvaluatePartialDerivative_(
   // Pull dependencies out of state.
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate d/dT( p_s / p_atm )
   for (CompositeVector::name_iterator comp=result[0]->begin();

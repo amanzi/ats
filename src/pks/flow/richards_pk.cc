@@ -317,7 +317,7 @@ void Richards::SetupRichardsFlow_()
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
               tag_next_, key_, tag_next_);
     }
-    S_->RequireEvaluator(source_key_);
+    S_->RequireEvaluator(source_key_, tag_next_);
   }
 
   // coupling to the surface
@@ -517,7 +517,7 @@ void Richards::Initialize()
   SetAbsolutePermeabilityTensor_(tag_next_);
 
   // operators
-  const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity");
+  const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   matrix_diff_->SetGravity(g);
   matrix_diff_->SetBCs(bc_, bc_);
   matrix_diff_->SetTensorCoefficient(K_);
@@ -548,10 +548,10 @@ void Richards::InitializeHydrostatic_(const Tag& tag)
     double rho = plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
     int ncols = mesh_->num_columns(false);
 
-    const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity");
+    const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     int z_index = mesh_->space_dimension() - 1;
     double g = -gvec[z_index];
-    double p_atm = S_->Get<double>("atmospheric_pressure");
+    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     // set pressure on the column of faces and cells
     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
@@ -625,10 +625,10 @@ void Richards::InitializeHydrostatic_(const Tag& tag)
     double rho = plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
 
     int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity");
+    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     double g = -gravity[z_index];
 
-    double p_atm = S_->Get<double>("atmospheric_pressure");
+    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
     Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
@@ -1019,9 +1019,9 @@ void Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   bc_counts.push_back(bc_head_->size());
   bc_names.push_back("head");
   if (bc_head_->size() > 0) {
-    double p_atm = S_->Get<double>("atmospheric_pressure");
+    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
     int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity");
+    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     double g = -gravity[z_index];
 
     for (const auto& bc : *bc_head_) {
@@ -1050,9 +1050,9 @@ void Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   bc_counts.push_back(bc_head_->size());
   bc_names.push_back("head");
   if (bc_level_->size() > 0) {
-    double p_atm = S_->Get<double>("atmospheric_pressure");
+    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
     int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity");
+    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     double g = -gravity[z_index];
 
     for (const auto& bc : *bc_level_) {
@@ -1113,7 +1113,7 @@ void Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     *S_->Get<CompositeVector>(flux_key_, tag)
       .ViewComponent("face", true);
 
-  const double& p_atm = S_->Get<double>("atmospheric_pressure");
+  const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
   Teuchos::RCP<const CompositeVector> u = S_->GetPtr<CompositeVector>(key_, tag);
   double seepage_tol = 10.;
 
@@ -1320,7 +1320,7 @@ bool Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
   bool changed(false);
   if (modify_predictor_bc_flux_ ||
       (modify_predictor_first_bc_flux_ &&
-       ((S_->Get<int>("cycle") == 0) || (S_->Get<int>("cycle") == 1)))) {
+       ((S_->Get<int>("cycle", Tags::DEFAULT) == 0) || (S_->Get<int>("cycle", Tags::DEFAULT) == 1)))) {
     changed |= ModifyPredictorFluxBCs_(h,u);
   }
 
@@ -1412,7 +1412,7 @@ bool Richards::ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u)
 //   matrix_->CreateMFDstiffnessMatrices(rel_perm.ptr());
 //   matrix_->CreateMFDrhsVectors();
 //   Teuchos::RCP<const CompositeVector> rho = S_next_->GetPtr<CompositeVector>(mass_dens_key_);
-//   Teuchos::RCP<const Epetra_Vector> gvec = S_next_->GetConstantVectorData("gravity");
+//   Teuchos::RCP<const Epetra_Vector> gvec = S_next_->GetConstantVectorData("gravity", Tags::DEFAULT);
 //   AddGravityFluxes_(gvec.ptr(), rel_perm.ptr(), rho.ptr(), matrix_.ptr());
 //   matrix_->ApplyBoundaryConditions(markers, values);
 
@@ -1620,7 +1620,7 @@ Richards::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
   int my_limited = 0;
   int n_limited_spurt = 0;
   if (patm_limit_ > 0.) {
-    double patm = S_->Get<double>("atmospheric_pressure");
+    double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
     for (CompositeVector::name_iterator comp=du->Data()->begin();
          comp!=du->Data()->end(); ++comp) {
       Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp,false);

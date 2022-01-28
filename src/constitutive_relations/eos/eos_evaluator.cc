@@ -30,49 +30,43 @@ void EOSEvaluator::ParsePlistKeys_()
   KeyTag key_tag = my_keys_.front();
   my_keys_.clear();
   Key key = key_tag.first;
+  Tag tag = key_tag.second;
   Key domain = Keys::getDomain(key);
+  Key varname = Keys::getVarName(key);
 
   if (mode_ == EOS_MODE_MOLAR || mode_ == EOS_MODE_BOTH) {
-    std::size_t molar_pos = key_tag.first.find("molar");
+    std::size_t molar_pos = varname.find("molar");
     if (molar_pos != std::string::npos) {
-      Key molar_key = Keys::readKey(plist_, domain, "molar density", key);
-      my_keys_.emplace_back(KeyTag(molar_key, key_tag.second));
+      Key molar_key = Keys::readKey(plist_, domain, "molar density", varname);
+      my_keys_.emplace_back(KeyTag{molar_key, tag});
     } else {
-      std::size_t mass_pos = key.find("mass");
+      std::size_t mass_pos = varname.find("mass");
       if (mass_pos != std::string::npos) {
-        Key molar_key = key.substr(0,mass_pos)+"molar"+key.substr(mass_pos+4, key.size());
+        Key molar_key = varname.substr(0,mass_pos)+"molar"+varname.substr(mass_pos+4, varname.size());
         molar_key = Keys::readKey(plist_, domain, "molar density", molar_key);
-        my_keys_.emplace_back(KeyTag(molar_key, key_tag.second));
+        my_keys_.emplace_back(KeyTag{molar_key, tag});
       } else {
         Key molar_key = Keys::readKey(plist_, domain, "molar density");
-        my_keys_.emplace_back(KeyTag(molar_key, key_tag.second));
+        my_keys_.emplace_back(KeyTag{molar_key, tag});
       }
     }
   }
 
   if (mode_ == EOS_MODE_MASS || mode_ == EOS_MODE_BOTH) {
-    std::size_t mass_pos = key_tag.first.find("mass");
+    std::size_t mass_pos = varname.find("mass");
     if (mass_pos != std::string::npos) {
-      Key mass_key = Keys::readKey(plist_, domain, "mass density", key);
-      my_keys_.emplace_back(KeyTag(mass_key, key_tag.second));
+      Key mass_key = Keys::readKey(plist_, domain, "mass density", varname);
+      my_keys_.emplace_back(KeyTag{mass_key, tag});
     } else {
-      std::size_t molar_pos = key.find("molar");
+      std::size_t molar_pos = varname.find("molar");
       if (molar_pos != std::string::npos) {
-        Key mass_key = key.substr(0,molar_pos)+"mass"+key.substr(molar_pos+4, key.size());
+        Key mass_key = varname.substr(0,molar_pos)+"mass"+varname.substr(molar_pos+5, varname.size());
         mass_key = Keys::readKey(plist_, domain, "mass density", mass_key);
-        my_keys_.emplace_back(KeyTag(mass_key, key_tag.second));
+        my_keys_.emplace_back(KeyTag{mass_key, tag});
       } else {
         Key mass_key = Keys::readKey(plist_, domain, "mass density");
-        my_keys_.emplace_back(KeyTag(mass_key, key_tag.second));
+        my_keys_.emplace_back(KeyTag{mass_key, tag});
       }
-    }
-  }
-
-  // -- logging
-  if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
-    Teuchos::OSTab tab = vo_.getOSTab();
-    for (const auto& dep : dependencies_) {
-      *vo_.os() << " dep: " << dep.first << "@" << dep.second << std::endl;
     }
   }
 }
@@ -110,8 +104,8 @@ void EOSEvaluator::ParsePlistConc_()
 }
 
 
-EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   ParsePlistKeys_();
 
@@ -122,6 +116,14 @@ EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) :
   if (eos_->IsConcentration()) ParsePlistConc_();
   if (eos_->IsTemperature()) ParsePlistTemp_();
   if (eos_->IsPressure()) ParsePlistPres_();
+
+  // -- logging
+  if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
+    Teuchos::OSTab tab = vo_.getOSTab();
+    for (const auto& dep : dependencies_) {
+      *vo_.os() << " dep: " << dep.first << "@" << dep.second << std::endl;
+    }
+  }
 };
 
 
@@ -148,8 +150,8 @@ void EOSEvaluator::Evaluate_(const State& S,
   if (eos_->IsPressure())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_, tag).get());
 
-  CompositeVector* molar_dens;
-  CompositeVector* mass_dens;
+  CompositeVector* molar_dens(nullptr);
+  CompositeVector* mass_dens(nullptr);
   if (mode_ == EOS_MODE_MOLAR) {
     molar_dens = results[0];
   } else if (mode_ == EOS_MODE_MASS) {
@@ -236,8 +238,8 @@ void EOSEvaluator::EvaluatePartialDerivative_(const State& S,
   if (eos_->IsPressure())
     dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_, tag).get());
 
-  CompositeVector* molar_dens;
-  CompositeVector* mass_dens;
+  CompositeVector* molar_dens(nullptr);
+  CompositeVector* mass_dens(nullptr);
   if (mode_ == EOS_MODE_MOLAR) {
     molar_dens = results[0];
   } else if (mode_ == EOS_MODE_MASS) {

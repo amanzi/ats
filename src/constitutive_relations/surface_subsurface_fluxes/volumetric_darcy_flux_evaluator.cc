@@ -17,11 +17,8 @@ Volumetric_FluxEvaluator::Volumetric_FluxEvaluator(Teuchos::ParameterList& plist
   auto domain_name = Keys::getDomain(my_key);
   Tag tag = my_keys_.front().second;
 
-  // cannot have flux as a dependency (it has no model), we have to fake it
   flux_key_ = Keys::readKey(plist_, domain_name, "flux key", "darcy_flux");
-  // use pressure as a proxy for flux instead
-  Key pres_key = Keys::readKey(plist_, domain_name, "pressure", "pressure");
-  dependencies_.insert(KeyTag{pres_key, tag});
+  dependencies_.insert(KeyTag{flux_key_, tag});
 
   dens_key_ = Keys::readKey(plist_, domain_name, "molar density key", "molar_density_liquid");
   dependencies_.insert(KeyTag{dens_key_, tag});
@@ -33,37 +30,28 @@ Teuchos::RCP<Evaluator> Volumetric_FluxEvaluator::Clone() const
 }
 
 
-void Volumetric_FluxEvaluator::EnsureCompatibility(State& S)
+void Volumetric_FluxEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   Key my_key = my_keys_.front().first;
   auto domain_name = Keys::getDomain(my_key);
-  S.Require<CompositeVector,CompositeVectorSpace>(my_key,
-          my_keys_.front().second, my_key)
-    .SetMesh(S.GetMesh(domain_name))
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-  S.Require<CompositeVector,CompositeVectorSpace>(flux_key_,
-          my_keys_.front().second)
+  Tag tag = my_keys_.front().second;
+  S.Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag)
     .SetMesh(S.GetMesh(domain_name))
     ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
-  for (const auto& dep : dependencies_) {
-    S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
-      .SetMesh(S.GetMesh(domain_name))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
-  }
-
-  // check plist for vis or checkpointing control
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
+  S.Require<CompositeVector,CompositeVectorSpace>(dens_key_, tag)
+    .SetMesh(S.GetMesh(domain_name))
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 void Volumetric_FluxEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
+  Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& darcy_flux =
-    *S.Get<CompositeVector>(flux_key_).ViewComponent("face",false);
+    *S.Get<CompositeVector>(flux_key_, tag).ViewComponent("face",false);
   const Epetra_MultiVector& molar_density =
-    *S.Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
+    *S.Get<CompositeVector>(dens_key_, tag).ViewComponent("cell",false);
   Epetra_MultiVector& res_v = *result[0]->ViewComponent("face",false);
 
   const auto& mesh = *result[0]->Mesh();

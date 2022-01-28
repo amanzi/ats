@@ -95,47 +95,26 @@ void RelPermEvaluator::InitializeFromPlist_()
 
 
 // Special purpose EnsureCompatibility required because of surface rel perm.
-void RelPermEvaluator::EnsureCompatibility(State& S)
+void RelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  if (boundary_krel_ != BoundaryRelPerm::SURF_REL_PERM) {
-    EvaluatorSecondaryMonotypeCV::EnsureCompatibility(S);
+  Key my_key = my_keys_.front().first;
+  Tag tag = my_keys_.front().second;
+  const auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(my_key, tag);
 
-  } else {
-    // Ensure my field exists.  Requirements should be already set.
-    Key my_key = my_keys_.front().first;
-    Tag tag = my_keys_.front().second;
-    auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(my_key, tag, my_key);
-
-    // If my requirements have not yet been set, we'll have to hope they
-    // get set by someone later.  For now just defer.
-    if (my_fac.Mesh() != Teuchos::null) {
-      // Create an unowned factory to check my dependencies.
-      auto dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
-      dep_fac->SetOwned(false);
-
-      // Loop over my dependencies, ensuring they meet the requirements.
-      for (const auto& dep : dependencies_) {
-        if (dep.first != surf_rel_perm_key_) {
-          S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second).Update(*dep_fac);
-        }
-      }
-
-      // Recurse into the tree to propagate info to leaves.
-      for (const auto& dep : dependencies_) {
-        S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
-      }
-
-      // Check the dependency for surf rel perm
-      Key domain = Keys::getDomain(surf_rel_perm_key_);
-      S.Require<CompositeVector,CompositeVectorSpace>(surf_rel_perm_key_, tag)
-          .SetMesh(S.GetMesh(domain))
+  // If my requirements have not yet been set, we'll have to hope they
+  // get set by someone later.  For now just defer.
+  if (my_fac.Mesh() != Teuchos::null) {
+    // Loop over my dependencies, ensuring they meet the requirements.
+    for (const auto& dep : dependencies_) {
+      if (dep.first != surf_rel_perm_key_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second).Update(my_fac);
+      } else {
+        CompositeVectorSpace surf_kr_fac;
+        surf_kr_fac.SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
           ->AddComponent("cell",AmanziMesh::CELL,1);
-
-      S.RequireEvaluator(surf_rel_perm_key_, tag).EnsureCompatibility(S);
+        S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second).Update(surf_kr_fac);
+      }
     }
-
-    // check plist for vis or checkpointing control
-    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
   }
 }
 

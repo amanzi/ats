@@ -51,6 +51,7 @@ MultiplicativeEvaluator::Evaluate_(const State& S,
         .ViewComponent(lcv_name, false);
       for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
     }
+
     if (positive_) {
       for (int c=0; c!=res_c.MyLength(); ++c) {
         res_c[0][c] = std::max(res_c[0][c], 0.);

@@ -4,6 +4,7 @@
 add_subdirectory(eos)
 add_subdirectory(surface_subsurface_fluxes)
 add_subdirectory(generic_evaluators)
+add_subdirectory(column_integrators)
 
 #================================================================
 # register evaluators/factories/pks
@@ -13,6 +14,12 @@ add_subdirectory(generic_evaluators)
 register_evaluator_with_factory(
   HEADERFILE eos/eos_reg.hh
   LISTNAME   ATS_RELATIONS_REG
+  )
+
+
+register_evaluator_with_factory(
+  HEADERFILE column_integrators/column_integrators_reg.hh
+  LISTNAME ATS_RELATIONS_REG
   )
 
 # constitutive_relations/surface_subsurface_fluxes/
@@ -59,12 +66,12 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/ColumnSumEvaluator_reg.hh
+  HEADERFILE generic_evaluators/SubgridAggregateEvaluator_reg.hh
   LISTNAME ATS_RELATIONS_REG
   )
 
 register_evaluator_with_factory(
-  HEADERFILE generic_evaluators/SubgridAggregateEvaluator_reg.hh
+  HEADERFILE generic_evaluators/TimeMaxEvaluator_reg.hh
   LISTNAME ATS_RELATIONS_REG
   )
 

@@ -15,7 +15,7 @@
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
 
    ONE OF
-   * `"evaluator dependencies`" ``[Array(string)]`` The fields to multiply.
+   * `"dependencies`" ``[Array(string)]`` The fields to multiply.
    OR
    * `"evaluator dependency suffixes`" ``[Array(string)]``
    END

@@ -20,12 +20,8 @@ OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvalu
   domain_sub_ = Keys::readDomainHint(plist_, domain_surf_, "surface", "subsurface");
   Tag tag = my_keys_.front().second;
 
-  // cannot have flux as a dependency (it has no model), we have to fake it
   flux_key_ = Keys::readKey(plist_, domain_sub_, "flux", "mass_flux");
-
-  // use pressure as a proxy for flux instead
-  Key pres_key = Keys::readKey(plist_, domain_sub_, "pressure", "pressure");
-  dependencies_.insert(KeyTag{pres_key, tag});
+  dependencies_.insert(KeyTag{flux_key_, tag});
 
   // this can be used by both OverlandFlow PK, which uses a volume basis to
   // conserve mass, or OverlandHeadPK, which uses the standard molar basis.
@@ -46,34 +42,29 @@ OverlandSourceFromSubsurfaceFluxEvaluator::Clone() const
 }
 
 
-void OverlandSourceFromSubsurfaceFluxEvaluator::EnsureCompatibility(State& S)
+void OverlandSourceFromSubsurfaceFluxEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   Key my_key = my_keys_.front().first;
-  auto domain_name = Keys::getDomain(my_key);
-
-  S.Require<CompositeVector,CompositeVectorSpace>(my_key,
-          my_keys_.front().second, my_key)
+  Tag tag = my_keys_.front().second;
+  S.Require<CompositeVector,CompositeVectorSpace>(my_key, tag, my_key)
     .SetMesh(S.GetMesh(domain_surf_))
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S.Require<CompositeVector,CompositeVectorSpace>(flux_key_,
-          my_keys_.front().second)
+
+  S.Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag)
     .SetMesh(S.GetMesh(domain_sub_))
     ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
-  for (const auto& dep : dependencies_) {
-    S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
+  if (!dens_key_.empty()) {
+    S.Require<CompositeVector,CompositeVectorSpace>(dens_key_, tag)
       .SetMesh(S.GetMesh(domain_sub_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
   }
-
-  // check plist for vis or checkpointing control
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
 }
 
 
 void OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(
-        const State& S) {
+  const State& S)
+{
   // grab the meshes
   Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S.GetMesh(domain_sub_);
   Teuchos::RCP<const AmanziMesh::Mesh> surface = S.GetMesh(domain_surf_);
@@ -107,18 +98,19 @@ void OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result) {
-
+        const std::vector<CompositeVector*>& result)
+{
   if (face_and_dirs_ == Teuchos::null) {
     IdentifyFaceAndDirection_(S);
   }
+  auto tag = my_keys_.front().second;
 
   Teuchos::RCP<const AmanziMesh::Mesh> subsurface = S.GetMesh(domain_sub_);
-  const Epetra_MultiVector& flux = *S.Get<CompositeVector>(flux_key_).ViewComponent("face",false);
+  const Epetra_MultiVector& flux = *S.Get<CompositeVector>(flux_key_, tag).ViewComponent("face",false);
   const Epetra_MultiVector& res_v = *result[0]->ViewComponent("cell",false);
 
   if (volume_basis_) {
-    const Epetra_MultiVector& dens = *S.Get<CompositeVector>(dens_key_).ViewComponent("cell",false);
+    const Epetra_MultiVector& dens = *S.Get<CompositeVector>(dens_key_, tag).ViewComponent("cell",false);
 
     int ncells = result[0]->size("cell",false);
     for (int c=0; c!=ncells; ++c) {

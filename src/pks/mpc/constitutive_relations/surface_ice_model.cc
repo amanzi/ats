@@ -88,8 +88,8 @@ SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, Teuchos::Paramete
 void
 SurfaceIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   // update scalars
-  p_atm_ = *S->GetScalarData("atmospheric_pressure");
-  gz_ = -((*S->GetConstantVectorData("gravity"))[2]);
+  p_atm_ = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
+  gz_ = -((*S->GetConstantVectorData("gravity", Tags::DEFAULT))[2]);
   AMANZI_ASSERT(IsSetUp_());
 }
 

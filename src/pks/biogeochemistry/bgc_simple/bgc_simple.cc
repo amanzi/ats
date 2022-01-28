@@ -41,19 +41,19 @@ BGCSimple::BGCSimple(Teuchos::ParameterList& pk_tree,
   trans_key_ = Keys::readKey(*plist_, domain_, "transpiration", "transpiration");
   Teuchos::ParameterList& trans_sublist =
       FElist.sublist(trans_key_);
-  trans_sublist.set("field evaluator type", "primary variable");
+  trans_sublist.set("evaluator type", "primary variable");
 
   // -- shortwave incoming shading
   shaded_sw_key_ = Keys::readKey(*plist_, domain_surf_, "shaded shortwave radiation", "shaded_shortwave_radiation");
   Teuchos::ParameterList& sw_sublist =
       FElist.sublist(shaded_sw_key_);
-  sw_sublist.set("field evaluator type", "primary variable");
+  sw_sublist.set("evaluator type", "primary variable");
 
   // -- lai
   total_lai_key_ = Keys::readKey(*plist_, domain_surf_, "total leaf area index", "total_leaf_area_index");
   Teuchos::ParameterList& lai_sublist =
       FElist.sublist(total_lai_key_);
-  lai_sublist.set("field evaluator type", "primary variable");
+  lai_sublist.set("evaluator type", "primary variable");
 }
 
 // is a PK

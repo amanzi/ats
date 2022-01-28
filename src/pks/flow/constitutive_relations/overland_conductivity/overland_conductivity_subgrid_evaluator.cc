@@ -130,7 +130,7 @@ void OverlandConductivitySubgridEvaluator::EvaluatePartialDerivative_(
 
     const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
     const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-    const Epetra_MultiVector& dens_v = *S.Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
+    const Epetra_MultiVector& dens_v = *dens->ViewComponent(comp,false);
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp,false);
 
     int ncomp = result[0]->size(comp, false);
@@ -147,7 +147,7 @@ void OverlandConductivitySubgridEvaluator::EvaluatePartialDerivative_(
 
     const Epetra_MultiVector& frac_cond_v = *frac_cond->ViewComponent(comp,false);
     const Epetra_MultiVector& drag_v = *drag->ViewComponent(comp,false);
-    const Epetra_MultiVector& dens_v = *S.Get<CompositeVector>(dens_key_).ViewComponent(comp,false);
+    const Epetra_MultiVector& dens_v = *dens->ViewComponent(comp,false);
     Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp,false);
 
     int ncomp = result[0]->size(comp, false);
@@ -162,12 +162,8 @@ void OverlandConductivitySubgridEvaluator::EvaluatePartialDerivative_(
 }
 
 
-void OverlandConductivitySubgridEvaluator::EnsureCompatibility(State& S)
+void OverlandConductivitySubgridEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  EnsureCompatibility_ClaimOwnership_(S);
-  EnsureCompatibility_Flags_(S);
-  EnsureCompatibility_Derivs_(S);
-
   auto akeytag = my_keys_[0];
   const auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(akeytag.first, akeytag.second);
   if (my_fac.Mesh() != Teuchos::null) {
@@ -175,12 +171,8 @@ void OverlandConductivitySubgridEvaluator::EnsureCompatibility(State& S)
     dep_fac.SetMesh(my_fac.Mesh())
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-    EnsureCompatibility_DepsFromFac_(S, dep_fac);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
   }
-
-  EnsureCompatibility_DepDerivs_(S);
-  EnsureCompatibility_DepEnsureCompatibility_(S);
 }
 
 } // namespace Flow

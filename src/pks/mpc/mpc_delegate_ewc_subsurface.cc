@@ -34,7 +34,7 @@ bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RC
   Teuchos::RCP<CompositeVector> pres_guess = up->SubVector(0)->Data();
   Epetra_MultiVector& pres_guess_c = *pres_guess->ViewComponent("cell",false);
 
-  const double p_atm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double p_atm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "  Modifying predictor using SmartEWC algorithm" << std::endl;
@@ -319,7 +319,7 @@ void MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u,
 
   // additional data required
   const Epetra_MultiVector& cv = *S_next_->Get<CompositeVector>("cell_volume").ViewComponent("cell",false);
-  const double p_atm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double p_atm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   // old values
   const Epetra_MultiVector& p_old = *S_next_->Get<CompositeVector>(pres_key_).ViewComponent("cell",false);

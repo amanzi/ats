@@ -60,7 +60,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   // set up the primary variable solution, and its evaluator
   Teuchos::ParameterList& pv_sublist = S->GetEvaluatorList(key_);
-  pv_sublist.set("field evaluator type", "primary variable");
+  pv_sublist.set("evaluator type", "primary variable");
 
   if (plist_->isParameter("component names")) {
     component_names_ = plist_->get<Teuchos::Array<std::string> >("component names").toVector();
@@ -229,9 +229,9 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
 
       Teuchos::ParameterList& wc_eval = S->GetEvaluatorList(geochem_src_factor_key_);
-      wc_eval.set<std::string>("field evaluator type", "reciprocal evaluator");
+      wc_eval.set<std::string>("evaluator type", "reciprocal evaluator");
       std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
-      wc_eval.set<Teuchos::Array<std::string> >("evaluator dependencies", dep);
+      wc_eval.set<Teuchos::Array<std::string> >("dependencies", dep);
       wc_eval.set<std::string>("reciprocal", dep[1]);
       S->RequireEvaluator(geochem_src_factor_key_);
     }

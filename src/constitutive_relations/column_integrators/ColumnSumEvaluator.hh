@@ -3,7 +3,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ahmad Jan (jana@ornl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 //! Sums a subsurface field vertically only a surface field.
 
@@ -41,46 +41,45 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 #pragma once
 
+#include <functional>
 #include "Factory.hh"
-#include "EvaluatorSecondaryMonotype.hh"
+#include "EvaluatorColumnIntegrator.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class ColumnSumEvaluator : public EvaluatorSecondaryMonotypeCV {
+namespace Impl {
 
+struct ParserColumnSum {
+  ParserColumnSum(Teuchos::ParameterList& plist, const KeyTag& key_tag);
+  KeyTagSet dependencies;
+};
+
+
+class IntegratorColumnSum {
  public:
-  explicit
-  ColumnSumEvaluator(Teuchos::ParameterList& plist);
-  ColumnSumEvaluator(const ColumnSumEvaluator& other) = default;
-  Teuchos::RCP<Evaluator> Clone() const override;
+  IntegratorColumnSum(Teuchos::ParameterList& plist,
+                std::vector<const Epetra_MultiVector*>& deps,
+                const AmanziMesh::Mesh* mesh);
+  int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
+  double coefficient(AmanziMesh::Entity_ID col);
 
-  virtual void EnsureCompatibility(State& S) override;
-  virtual bool Update(State& S, const Key& request) override;
-
- protected:
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-                              const std::vector<CompositeVector*>& result) override;
-  virtual void EvaluatePartialDerivative_(const State& S,
-               const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
-
- protected:
+ private:
+  bool volume_average_;
+  bool volume_factor_;
+  bool divide_by_density_;
   double coef_;
-
-  Key dep_key_;
-  Key cv_key_;
-  Key molar_dens_key_;
-  Key surf_cv_key_;
-
-  Key domain_;
-  Key surf_domain_;
-
-  bool updated_once_;
-private:
-  static Utils::RegisteredFactory<Evaluator,ColumnSumEvaluator> factory_;
+  const Epetra_MultiVector* integrand_;
+  const Epetra_MultiVector* cv_;
+  const Epetra_MultiVector* surf_cv_;
+  const Epetra_MultiVector* dens_;
 
 };
+
+} // namespace Impl
+
+using ColumnSumEvaluator = EvaluatorColumnIntegrator<Impl::ParserColumnSum,Impl::IntegratorColumnSum>;
+
 
 } //namespace
 } //namespace

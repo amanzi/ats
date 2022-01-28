@@ -27,9 +27,6 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   virtual bool Update(State& S, const Key& request) override;
 
-  // I don't believe this should need to be implemented. --ETC
-  //  virtual void EnsureCompatibility(State& S) override;
-
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
@@ -40,6 +37,16 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   virtual void EvaluateElevationAndSlope_(const State& S,
           const std::vector<CompositeVector*>& results) = 0;
+
+  //
+  // This is required to make sure that elevation, slope, and aspect share a
+  // common structure.  Often, aspect is not used and so it can otherwise be an
+  // empty vector with no structure, which causes seg faults.
+  //
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
 
  protected:
   bool updated_once_;

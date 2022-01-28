@@ -101,7 +101,7 @@ void EnergyBase::SetupEnergy_()
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
-  S_->Require<double>("atmospheric_pressure");
+  S_->Require<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // Set up Operators
   // -- boundary conditions
@@ -245,7 +245,7 @@ void EnergyBase::SetupEnergy_()
   if (plist_->isSublist("enthalpy evaluator")) {
     Teuchos::ParameterList& enth_list = S_->GetEvaluatorList(enthalpy_key_);
     enth_list.setParameters(plist_->sublist("enthalpy evaluator"));
-    enth_list.set<std::string>("field evaluator type", "enthalpy");
+    enth_list.set<std::string>("evaluator type", "enthalpy");
   }
   S_->RequireEvaluator(enthalpy_key_, tag_next_);
 

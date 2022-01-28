@@ -85,13 +85,13 @@ UpwindArithmeticMean::UpdateDerivatives(const Teuchos::Ptr<State>& S,
                                         const std::vector<double>& bc_values,
                                         std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const
 {
-
   // Grab derivatives
   dconductivity.ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell",true);
 
   // Grab potential
-  const CompositeVector& pres = S->Get<CompositeVector>(potential_key);
+  auto keytag = Keys::splitKeyTag(potential_key);
+  const CompositeVector& pres = S->Get<CompositeVector>(keytag.first, keytag.second);
   pres.ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& pres_v = *pres.ViewComponent("cell",true);
 

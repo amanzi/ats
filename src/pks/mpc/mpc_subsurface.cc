@@ -262,7 +262,7 @@ void MPCSubsurface::Setup(const Teuchos::Ptr<State>& S)
       hkr_eval_list.set("evaluator name", hkr_key_);
       Teuchos::Array<std::string> deps(2);
       deps[0] = enth_key_; deps[1] = kr_key_;
-      hkr_eval_list.set("evaluator dependencies", deps);
+      hkr_eval_list.set("dependencies", deps);
       Teuchos::RCP<Evaluator> hkr_eval =
           Teuchos::rcp(new Relations::MultiplicativeEvaluator(hkr_eval_list));
 
@@ -394,7 +394,7 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
       S->GetField(dkrdT_key,name_)->set_initialized();
     }
 
-    Teuchos::RCP<const Epetra_Vector> gvec = S->GetConstantVectorData("gravity");
+    Teuchos::RCP<const Epetra_Vector> gvec = S->GetConstantVectorData("gravity", Tags::DEFAULT);
     AmanziGeometry::Point g(3);
     g[0] = (*gvec)[0]; g[1] = (*gvec)[1]; g[2] = (*gvec)[2];
     ddivq_dT_->SetGravity(g);
@@ -424,7 +424,7 @@ void MPCSubsurface::Initialize(const Teuchos::Ptr<State>& S)
       S->GetField(Keys::getDerivKey(uw_hkr_key_, temp_key_), name_)->set_initialized();
     }
 
-    Teuchos::RCP<const Epetra_Vector> gvec = S->GetConstantVectorData("gravity");
+    Teuchos::RCP<const Epetra_Vector> gvec = S->GetConstantVectorData("gravity", Tags::DEFAULT);
     AmanziGeometry::Point g(3);
     g[0] = (*gvec)[0]; g[1] = (*gvec)[1]; g[2] = (*gvec)[2];
     ddivhq_dp_->SetGravity(g);

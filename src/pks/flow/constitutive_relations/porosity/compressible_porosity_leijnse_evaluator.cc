@@ -48,7 +48,7 @@ void CompressiblePorosityLeijnseEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
   Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_, tag);
-  const double& patm = S.Get<double>("atmospheric_pressure");
+  const double& patm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate the model
   for (CompositeVector::name_iterator comp=result[0]->begin();
@@ -79,7 +79,7 @@ void CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(const Stat
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pres = S.GetPtr<CompositeVector>(pres_key_, tag);
   Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_, tag);
-  const double& patm = S.Get<double>("atmospheric_pressure");
+  const double& patm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   if (wrt_key == pres_key_) {
     // evaluate the model

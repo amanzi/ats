@@ -61,8 +61,8 @@ void IcyHeightEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& eta = *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)
       ->ViewComponent("cell",false);
 
-  double p_atm = S.Get<double>("atmospheric_pressure");
-  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
   int ncells = res_c.MyLength();
@@ -100,8 +100,8 @@ void IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
   const Epetra_MultiVector& eta = *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)
       ->ViewComponent("cell",false);
 
-  double p_atm = S.Get<double>("atmospheric_pressure");
-  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity");
+  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
   // For derivatives, the height is always assumed to be non-negative.  If it

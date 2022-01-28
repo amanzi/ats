@@ -213,7 +213,7 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
 
   }
 
-  S->RequireScalar("atmospheric_pressure");
+  S->RequireScalar("atmospheric_pressure", Tags::DEFAULT);
   
 }
 
@@ -459,7 +459,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
     int   radnum = 2; //number of radiation bands
     double jday; //julian days (1-365)
-    double patm = *S_next_->GetScalarData("atmospheric_pressure");
+    double patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
     QSat qsat;
     
 

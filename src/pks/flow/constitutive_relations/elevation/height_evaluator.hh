@@ -26,15 +26,14 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   HeightEvaluator(const HeightEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Needs a special EnsureCompatibility to get around trying to find face
-  // values and derivatives of face values.
-  virtual void EnsureCompatibility(State& S) override;
-
   Teuchos::RCP<HeightModel> get_Model() { return model_; }
 
   void set_bar(bool bar) { bar_ = bar; }
 
  protected:
+  // Needs a special EnsureCompatibility to get around trying to find face
+  // values and derivatives of face values.
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,

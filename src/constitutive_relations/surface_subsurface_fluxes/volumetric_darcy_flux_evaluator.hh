@@ -22,10 +22,10 @@ class Volumetric_FluxEvaluator :
   Volumetric_FluxEvaluator(const Volumetric_FluxEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  // custom ensure compatibility as all data is not just on the same components
-  virtual void EnsureCompatibility(State& S) override;
-
  protected:
+  // custom ensure compatibility as all data is not just on the same components
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;

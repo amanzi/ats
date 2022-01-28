@@ -23,7 +23,7 @@ void OverlandPressureFlow::ApplyDiffusion_(const Tag& tag,
 
   // update the rel perm according to the scheme of choice.
   UpdatePermeabilityData_(tag);
-  auto cond = S_->GetPtrW<CompositeVector>(uw_cond_key_, name_);
+  auto cond = S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, name_);
 
   // update the stiffness matrix
   matrix_->Init();
@@ -81,6 +81,8 @@ void OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>&
 void OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
 {
   Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
+
+  S_->GetEvaluator(cv_key_, tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& cv1 =
     *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell",false);
 

@@ -15,7 +15,7 @@
 #include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
-namespace Flow {
+namespace Relations {
 
 class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
@@ -25,8 +25,10 @@ public:
   CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool Update(State& S, const Key& request) override;
-  virtual void EnsureCompatibility(State& S) override;
+  bool IsDifferentiableWRT(const State& S, const Key& wrt_key,
+                           const Tag& wrt_tag) const override {
+    return false;
+  }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
@@ -34,14 +36,21 @@ public:
                          const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+          const std::vector<CompositeVector*>& result) override {}
 
-  double Func_TempPres(double temp, double pres);
+  double Func_TempPres(double temp, double pres) const;
+  double Func_Temp(double temp, double q10) const;
+  double Func_Depth(double depth) const;
 
  protected:
-  bool updated_once_;
-  Key temp_key_, pres_key_, sat_key_, por_key_, cv_key_;
-  Key domain_;
+
+  Key temp_key_;
+  Key pres_key_;
+  Key sat_key_;
+  Key por_key_;
+  Key depth_key_;
+  Key cv_key_;
+
   double q10_;
 
  private:

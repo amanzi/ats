@@ -29,7 +29,7 @@ Example:
 .. code-block:: xml
 
   <ParameterList name="snow_skin_potential" type="ParameterList">
-    <Parameter name="field evaluator type" type="string" value="snow skin potential" />
+    <Parameter name="evaluator type" type="string" value="snow skin potential" />
     <Parameter name="dt factor [s]" type="double" value="864000.0" />
   </ParameterList>
 

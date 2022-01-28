@@ -43,8 +43,8 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   // exchange flux keys and evaluators
   mass_exchange_key_ = Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
   energy_exchange_key_ = Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
-  S->FEList().sublist(mass_exchange_key_).set("field evaluator type", "primary variable");
-  S->FEList().sublist(energy_exchange_key_).set("field evaluator type", "primary variable");
+  S->FEList().sublist(mass_exchange_key_).set("evaluator type", "primary variable");
+  S->FEList().sublist(energy_exchange_key_).set("evaluator type", "primary variable");
 
   surf_temp_key_ = Keys::readKey(*plist_, domain_surf_, "surface temperature", "temperature");
   surf_pres_key_ = Keys::readKey(*plist_, domain_surf_, "surface pressure", "pressure");

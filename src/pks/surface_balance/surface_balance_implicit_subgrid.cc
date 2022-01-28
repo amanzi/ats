@@ -45,11 +45,11 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
   // an evaluator in new-state
   // -- snow density
   Teuchos::ParameterList& snow_dens_sublist = S->GetEvaluatorList(snow_dens_key_);
-  snow_dens_sublist.set("field evaluator type", "primary variable");
+  snow_dens_sublist.set("evaluator type", "primary variable");
 
   // -- snow death rate
   Teuchos::ParameterList& snow_death_rate_sublist = S->GetEvaluatorList(snow_death_rate_key_);
-  snow_death_rate_sublist.set("field evaluator type", "primary variable");
+  snow_death_rate_sublist.set("evaluator type", "primary variable");
 
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);

@@ -86,14 +86,15 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
   // -- elevation evaluator
   standalone_mode_ = S->GetMesh() == S->GetMesh(domain_);
   if (!standalone_mode_ && !S->FEList().isSublist(elev_key_)) {
-    S->GetEvaluatorList(elev_key_).set("field evaluator type", "meshed elevation");
+    S->GetEvaluatorList(elev_key_).set("evaluator type", "meshed elevation");
   }
 
   // -- potential evaluator
   auto& potential_list = S->GetEvaluatorList(potential_key_);
-  potential_list.set("field evaluator type", "additive evaluator");
-  potential_list.set<Teuchos::Array<std::string>>("evaluator dependencies",
+  potential_list.set("evaluator type", "additive evaluator");
+  potential_list.set<Teuchos::Array<std::string>>("dependencies",
           std::vector<std::string>{pd_key_, elev_key_});
+  potential_list.set("dependency tags are my tag", true);
 
   // limiters
   p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
@@ -115,9 +116,11 @@ void OverlandPressureFlow::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
-          tag_next_, key_, tag_next_);
   S_->RequireEvaluator(conserved_key_, tag_next_);
+
+  //    and at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
+  RequireEvaluatorPrimary_(conserved_key_, tag_current_);
 
   // this pk uses density to invert for velocity from flux
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
@@ -256,10 +259,10 @@ void OverlandPressureFlow::SetupOverlandFlow_()
 
     // require the derivative drel_perm/dp
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(cond_key_,
-            tag_next_, key_, tag_next_);
+            tag_next_, pd_key_, tag_next_);
     if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
       // MFD -- upwind required, require data
-      duw_cond_key_ = Keys::getDerivKey(uw_cond_key_, key_);
+      duw_cond_key_ = Keys::getDerivKey(uw_cond_key_, pd_key_);
       S_->Require<CompositeVector,CompositeVectorSpace>(duw_cond_key_, tag_next_,  name_)
         .SetMesh(mesh_)->SetGhosted()
         ->SetComponent("face", AmanziMesh::FACE, 1);
@@ -298,7 +301,8 @@ void OverlandPressureFlow::SetupOverlandFlow_()
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   //  NOTE: no need to require evaluator for p here, this was done in pk_physical
 
-  // -- make a copy of pressure at the old time for backup
+  // -- make a copy of pressure at the old time for backup, and of ponded depth
+  // -- at the old time for debugging
   S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_);
   S_->RequireEvaluator(key_, tag_current_);
 
@@ -353,16 +357,25 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
   S_->Require<CompositeVector,CompositeVectorSpace>(wc_bar_key_, tag_next_)
     .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(wc_bar_key_, tag_next_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_bar_key_,
+          tag_next_, key_, tag_next_);
 
   // -- ponded depth
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_next_)
     .Update(matrix_->RangeMap())->SetGhosted();
   S_->RequireEvaluator(pd_key_, tag_next_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_key_,
+          tag_next_, key_, tag_next_);
+  //    ...with a copy at the old time
+  S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_current_, name_);
+  RequireEvaluatorPrimary_(pd_key_, tag_current_);
 
   // -- ponded depth bar (can be negative)
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
     .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(pd_bar_key_, tag_next_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
+          tag_next_, key_, tag_next_);
 
   // -- conductivity evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(cond_key_, tag_next_)
@@ -473,9 +486,9 @@ void OverlandPressureFlow::Initialize()
   }
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name_).PutScalar(0.);
-  S_->GetRecordW(flux_key_, tag_next_, name_).set_initialized();
-  S_->GetW<CompositeVector>(velocity_key_, tag_next_, name_).PutScalar(0.);
   S_->GetRecordW(flux_dir_key_, tag_next_, name_).set_initialized();
+  S_->GetW<CompositeVector>(velocity_key_, tag_next_, name_).PutScalar(0.);
+  S_->GetRecordW(velocity_key_, tag_next_, name_).set_initialized();
 };
 
 
@@ -499,6 +512,12 @@ void OverlandPressureFlow::CommitStep(double t_old, double t_new,
 
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+
+  // also save conserved quantity and ponded depth
+  S_->Copy(conserved_key_, tag_current_, tag_next_);
+  ChangedEvaluatorPrimary_(conserved_key_, tag_current_);
+  S_->Copy(pd_key_, tag_current_, tag_next_);
+  ChangedEvaluatorPrimary_(pd_key_, tag_current_);
 
   // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
   // update boundary conditions
@@ -759,10 +778,10 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     const Epetra_MultiVector& h_cells = *S_->Get<CompositeVector>(pd_key_, tag).ViewComponent("cell");
     const Epetra_MultiVector& elevation_cells = *S_->Get<CompositeVector>(elev_key_, tag).ViewComponent("cell");
     const Epetra_MultiVector& rho_l = *S_->Get<CompositeVector>(mass_dens_key_, tag).ViewComponent("cell");
-    double gz = -(S_->Get<AmanziGeometry::Point>("gravity"))[2];
-    const double& p_atm = S_->Get<double>("atmospheric_pressure");
+    double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
+    const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    if (S_->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+    if (S_->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"), tag_next_)) {
       // thermal model of height
       const Epetra_MultiVector& eta =
         *S_->Get<CompositeVector>(Keys::getKey(domain_,"unfrozen_fraction"), tag)
@@ -857,7 +876,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
                                     ->ViewComponent("cell");
     const Epetra_MultiVector& nliq_c = *S_->GetPtr<CompositeVector>(molar_dens_key_, tag)
                                        ->ViewComponent("cell");
-    double gz = -(S_->Get<AmanziGeometry::Point>("gravity"))[2];
+    double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
 
     for (const auto& bc : *bc_critical_depth_) {
       int f = bc.first;
@@ -908,10 +927,10 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     const Epetra_MultiVector& h_cells = *S_->Get<CompositeVector>(pd_key_, tag).ViewComponent("cell");
     const Epetra_MultiVector& elevation_cells = *S_->Get<CompositeVector>(elev_key_, tag).ViewComponent("cell");
     const Epetra_MultiVector& rho_l = *S_->Get<CompositeVector>(mass_dens_key_, tag).ViewComponent("cell");
-    double gz = -(S_->Get<AmanziGeometry::Point>("gravity"))[2];
-    const double& p_atm = S_->Get<double>("atmospheric_pressure");
+    double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
+    const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    if (S_->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"))) {
+    if (S_->HasEvaluator(Keys::getKey(domain_,"mass_density_ice"), tag_next_)) {
       // thermal model of height
       const Epetra_MultiVector& eta =
         *S_->Get<CompositeVector>(Keys::getKey(domain_,"unfrozen_fraction"), tag)
@@ -1135,7 +1154,7 @@ void OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
   }
 
   if (bc_tidal_->size() > 0) {
-    const double& p_atm = S_->Get<double>("atmospheric_pressure");
+    const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     const Epetra_MultiVector& rho_l = *S_->Get<CompositeVector>(mass_dens_key_, tag).ViewComponent("cell");
     Teuchos::RCP<const CompositeVector> elev = S_->GetPtr<CompositeVector>(elev_key_, tag);
@@ -1143,7 +1162,7 @@ void OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
     const Epetra_MultiVector& elevation_c = *elev->ViewComponent("cell",false);
 
     std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
-    double gz = -(S_->Get<AmanziGeometry::Point>("gravity"))[2];
+    double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
     int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
 
     for (const auto& bc : *bc_tidal_) {
@@ -1235,7 +1254,7 @@ OverlandPressureFlow::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> 
   int my_limited = 0;
   int n_limited_spurt = 0;
   if (patm_limit_ > 0.) {
-    double patm = S_->Get<double>("atmospheric_pressure");
+    double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent("cell",false);
     const Epetra_MultiVector& u_c = *u->Data()->ViewComponent("cell",false);
@@ -1255,7 +1274,7 @@ OverlandPressureFlow::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> 
   }
 
   if (patm_hard_limit_) {
-    double patm = S_->Get<double>("atmospheric_pressure");
+    double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     Epetra_MultiVector& du_c = *du->Data()->ViewComponent("cell",false);
     const Epetra_MultiVector& u_c = *u->Data()->ViewComponent("cell",false);

@@ -44,9 +44,9 @@ MPCPermafrostSplitFlux::MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
   
   // set up for a primary variable field evaluator for the flux
   auto& p_sublist = S->FEList().sublist(p_lateral_flow_source_);
-  p_sublist.set("field evaluator type", "primary variable");
+  p_sublist.set("evaluator type", "primary variable");
   auto& T_sublist = S->FEList().sublist(T_lateral_flow_source_);
-  T_sublist.set("field evaluator type", "primary variable");
+  T_sublist.set("evaluator type", "primary variable");
 
   // init sub-pks
   init_(S);

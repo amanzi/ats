@@ -12,28 +12,48 @@
 /*!
 Evaluator type: `"elevation column`"
 
-Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|``
+Evaluates elevation, slope, and aspect of the "surface_star" mesh of the Arctic
+Intermediate Scale Model (ISM).
 
-* `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
+Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h
+z|`` Note that this is evaluator is different from both the standard elevation
+evaluator, which would take elevation/slope/aspect from the parent 3D mesh, and
+from the standard "single cell" column mesh elevation, which can do the same.
+Instead, it is a mix of:
 
-* `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation
-   variable. [-]
+- elevation is aggregated from the column meshes' top faces
 
-* `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
-   elevation changes in time, and adds the `"deformation`" and
-   `"base_porosity`" dependencies.
+- slope is calculated using a cell-neighbor differencing scheme.  Unlike 3D
+  meshes, in the ISM, we deform columns of cells and so do not have faces.
+  Therefore, we use all neighboring cells to compute an average normal for the
+  cell, and use that to compute slope and aspect.
 
-* `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
-   mesh, which is the 3D version of this domain.  In the columnar meshes the
-   surface elevation and slope are assigned based on the columns and not the
-   base 3D domain.
+- aspect is set to 0.  It could easily be calculated using the same normal as
+  the slope algorithm, but is not done currently.
+
+.. _column-elevation-evaluator-spec:
+.. admonition:: column-elevation-evaluator-spec
+
+   * `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
+
+   * `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation
+      variable. [-]
+
+   * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
+      elevation changes in time, and adds the `"deformation`" and
+      `"base_porosity`" dependencies.
+
+   * `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
+     mesh, which is the 3D version of this domain.  In the columnar meshes the
+     surface elevation and slope are assigned based on the columns and not the
+     base 3D domain.
 
 Example:
 
 .. code-block:: xml
 
   <ParameterList name="surface_star-elevation">
-    <Parameter name="field evaluator type" type="string" value="column elevation"/>
+    <Parameter name="evaluator type" type="string" value="column elevation"/>
   </ParameterList>
 
 */
@@ -47,12 +67,12 @@ Example:
 namespace Amanzi {
 namespace Flow {
 
-class ElevationEvaluatorColumn : public ElevationEvaluator {
+class ColumnElevationEvaluator : public ElevationEvaluator {
 
  public:
   explicit
-  ElevationEvaluatorColumn(Teuchos::ParameterList& plist);
-  ElevationEvaluatorColumn(const ElevationEvaluatorColumn& other) = default;
+  ColumnElevationEvaluator(Teuchos::ParameterList& plist);
+  ColumnElevationEvaluator(const ColumnElevationEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
@@ -60,10 +80,10 @@ class ElevationEvaluatorColumn : public ElevationEvaluator {
           const std::vector<CompositeVector*>& results) override;
 
   // Custom EnsureCompatibility fills dependencies based on domain set.
-  virtual void EnsureCompatibility(State& S) override;
+  virtual void EnsureEvaluators(State& S) override;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ElevationEvaluatorColumn> reg_;
+  static Utils::RegisteredFactory<Evaluator,ColumnElevationEvaluator> reg_;
 
   Key base_poro_suffix_;
   Key surface_domain_;

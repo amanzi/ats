@@ -22,6 +22,7 @@ set(ats_eos_src_files
   molar_fraction_gas_evaluator.cc
   vapor_pressure_relation_factory.cc
   vapor_pressure_water.cc
+  carbon_decomposition_rate_evaluator.cc
  )
 
 file(GLOB ats_eos_inc_files "*.hh")

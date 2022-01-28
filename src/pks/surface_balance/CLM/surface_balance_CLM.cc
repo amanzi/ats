@@ -51,13 +51,13 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
   Teuchos::ParameterList& wsource_sublist =
     S->GetEvaluatorList(Keys::getKey(domain_,"water_source"));
   wsource_sublist.set("evaluator name", Keys::getKey(domain_,"water_source"));
-  wsource_sublist.set("field evaluator type", "primary variable");
+  wsource_sublist.set("evaluator type", "primary variable");
 
   // -- subsurface water source transpiration
   Teuchos::ParameterList& w_v_source_sublist =
     S->GetEvaluatorList(Keys::getKey(domain_ss_,"water_source"));
   w_v_source_sublist.set("evaluator name", Keys::getKey(domain_ss_,"water_source"));
-  w_v_source_sublist.set("field evaluator type", "primary variable");
+  w_v_source_sublist.set("evaluator type", "primary variable");
 
   // CLM timestep
   dt_ = plist_->get<double>("time step size [s]");
@@ -318,7 +318,7 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit) {
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& sl = *S_inter_->GetPtrW<CompositeVector>(Keys::getKey(domain_ss_, "saturation_liquid"))
                                        ->ViewComponent("cell", false);
-  double patm = *S_inter_->GetScalarData("atmospheric_pressure");
+  double patm = *S_inter_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   ATS::CLM::set_wc(porosity, sl);
   ATS::CLM::set_tksat_from_porosity(porosity);

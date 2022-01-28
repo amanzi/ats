@@ -14,6 +14,7 @@
 #include "viscosity_constant.hh"
 #include "viscosity_water.hh"
 
+#include "carbon_decomposition_rate_evaluator.hh"
 
 namespace Amanzi {
 namespace Relations {
@@ -34,6 +35,8 @@ Utils::RegisteredFactory<VaporPressureRelation,VaporPressureWater> VaporPressure
 Utils::RegisteredFactory<Evaluator,ViscosityEvaluator> ViscosityEvaluator::factory_("viscosity");
 Utils::RegisteredFactory<ViscosityRelation,ViscosityConstant> ViscosityConstant::factory_("constant");
 Utils::RegisteredFactory<ViscosityRelation,ViscosityWater> ViscosityWater::factory_("liquid water");
+
+Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
 
 } // namespace
 } // namespace

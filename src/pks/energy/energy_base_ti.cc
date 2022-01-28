@@ -217,7 +217,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     // do not add in de/dT if the height is 0
     const Epetra_MultiVector& pres = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"pressure"))
         ->ViewComponent("cell",false);
-    const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+    const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
     for (unsigned int c=0; c!=ncells; ++c) {
       acc_c[0][c] = pres[0][c] >= patm ? de_dT[0][c] / h : 0.;

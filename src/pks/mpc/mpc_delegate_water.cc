@@ -99,7 +99,7 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h, Teuchos::RCP<const
 double
 MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   std::string face_entity;
   if (Pu->SubVector(i_domain_)->Data()->HasComponent("face")){
@@ -154,7 +154,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const T
 int
 MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh =
       u->SubVector(i_surf_)->Data()->Mesh();
@@ -201,7 +201,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const Tr
 double
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
       u->SubVector(i_domain_)->Data()->Mesh();
@@ -243,7 +243,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<con
 int
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
       u->SubVector(i_domain_)->Data()->Mesh();
@@ -279,7 +279,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<cons
 double
 MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
       u->SubVector(i_domain_)->Data()->Mesh();
@@ -321,7 +321,7 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h, Teuchos::RCP<c
 int
 MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
-  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
   Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
       u->SubVector(i_domain_)->Data()->Mesh();
@@ -369,7 +369,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
 
     const Epetra_MultiVector& surf_u_prev_c =
         *S_inter_->Get<CompositeVector>("surface_pressure").ViewComponent("cell",false);
-    const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+    const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
     int ncells = surf_u_c.MyLength();
     for (int c=0; c!=ncells; ++c) {
       int f = surf_mesh->entity_get_parent(AmanziMesh::CELL, c);
@@ -411,7 +411,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h,
 
   // Approach 2
   if (modify_predictor_spurt_damping_) {
-    const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+    const double& patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
 
     Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh =
         u->SubVector(i_surf_)->Data()->Mesh();

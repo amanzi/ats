@@ -25,9 +25,9 @@ class TopCellsSurfaceEvaluator : public EvaluatorSecondaryMonotypeCV {
   TopCellsSurfaceEvaluator(const TopCellsSurfaceEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual void EnsureCompatibility(State& S) override;
-
  protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
@@ -39,6 +39,7 @@ class TopCellsSurfaceEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   Key dependency_key_;
   bool negate_;
+  Key domain_surf_;
 
  private:
   static Utils::RegisteredFactory<Evaluator,TopCellsSurfaceEvaluator> reg_;

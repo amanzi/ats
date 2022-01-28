@@ -175,9 +175,9 @@ double Coordinator::initialize()
   double dt_restart = -1;
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
-    dt_restart = S_->Get<double>("dt");
+    dt_restart = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
     t0_ = S_->get_time();
-    cycle0_ = S_->Get<int>("cycle");
+    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
 
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
@@ -485,17 +485,17 @@ Coordinator::advance(double t_old, double t_new, double& dt_next)
 {
   double dt = t_new - t_old;
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  fail |= !pk_->ValidStep();
-
-  // advance the iteration count and timestep size
-  S_->GetW<int>("cycle", "cycle")++;
+  if (!fail) fail |= !pk_->ValidStep();
 
   if (!fail) {
+    // advance the iteration count and timestep size
+    S_->GetW<int>("cycle", Amanzi::Tags::DEFAULT, "cycle")++;
+
     // commit the state, copying NEXT --> CURRENT
     pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
     S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
 
-    // make observations, vis, and checkpoints
+     // make observations, vis, and checkpoints
     for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
     visualize();
     dt_next = get_dt(fail);
@@ -506,9 +506,8 @@ Coordinator::advance(double t_old, double t_new, double& dt_next)
     // Potentially write out failed timestep for debugging
     for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
 
-    // // The timestep sizes have been updated, so copy back old soln and try again.
-    // *S_next_ = *S_;
-    // *S_inter_ = *S_;
+    // copy from old time into new time to reset the timestep
+    pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
 
     // check whether meshes are deformable, and if so, recover the old coordinates
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
@@ -537,6 +536,11 @@ Coordinator::advance(double t_old, double t_new, double& dt_next)
         mesh->second.first->deform(node_ids, old_positions, false, &final_positions);
       }
     }
+
+    // reset t_new
+    S_->set_time(Amanzi::Tags::NEXT, t_old);
+
+    // ask PKs for a new time
     dt_next = get_dt(fail);
   }
   return fail;
@@ -548,7 +552,7 @@ void Coordinator::visualize(bool force)
   bool dump = force;
   if (!dump) {
     for (const auto& vis : visualization_) {
-      if (vis->DumpRequested(S_->Get<int>("cycle"),
+      if (vis->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT),
                              S_->get_time(Amanzi::Tags::NEXT))) {
         dump = true;
       }
@@ -560,7 +564,7 @@ void Coordinator::visualize(bool force)
   }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(S_->Get<int>("cycle"), S_->get_time(Amanzi::Tags::NEXT))) {
+    if (force || vis->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT), S_->get_time(Amanzi::Tags::NEXT))) {
       WriteVis(*vis, *S_);
     }
   }
@@ -568,7 +572,7 @@ void Coordinator::visualize(bool force)
 
 void Coordinator::checkpoint(double dt, bool force)
 {
-  if (force || checkpoint_->DumpRequested(S_->Get<int>("cycle"), S_->get_time(Amanzi::Tags::NEXT))) {
+  if (force || checkpoint_->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT), S_->get_time(Amanzi::Tags::NEXT))) {
     WriteCheckpoint(*checkpoint_, comm_, *S_);
   }
 }
@@ -618,7 +622,7 @@ void Coordinator::cycle_driver() {
                   << std::endl;
       }
 
-      S_->GetW<double>("dt", "dt") = dt;
+      S_->GetW<double>("dt", Amanzi::Tags::DEFAULT, "dt") = dt;
       S_->set_time(Amanzi::Tags::NEXT, S_->get_time() + dt);
       fail = advance(S_->get_time(), S_->get_time(Amanzi::Tags::NEXT), dt);
     } // while not finished

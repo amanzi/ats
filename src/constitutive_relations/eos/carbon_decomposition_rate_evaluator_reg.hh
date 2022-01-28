@@ -8,7 +8,7 @@
 #include "carbon_decomposition_rate_evaluator.hh"
 
 namespace Amanzi {
-namespace Flow {
+namespace Relations {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");

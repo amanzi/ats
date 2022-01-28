@@ -40,10 +40,10 @@ AdditiveEvaluator::Evaluate_(const State& S,
 {
   result[0]->PutScalar(shift_);
 
-  for (std::map<Key, double>::const_iterator it=coefs_.begin();
-       it!=coefs_.end(); ++it) {
-    const CompositeVector& dep = S.Get<CompositeVector>(it->first);
-    result[0]->Update(it->second, dep, 1.0);
+  for (const auto& key_tag : dependencies_) {
+    const CompositeVector& dep = S.Get<CompositeVector>(key_tag.first, key_tag.second);
+    double coef = coefs_[Keys::getKey(key_tag.first, key_tag.second)];
+    result[0]->Update(coef, dep, 1.0);
   }
 }
 
@@ -51,7 +51,7 @@ void
 AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(coefs_[wrt_key]);
+  result[0]->PutScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
 }
 
 

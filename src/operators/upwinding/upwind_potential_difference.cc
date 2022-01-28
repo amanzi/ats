@@ -18,30 +18,31 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindPotentialDifference::UpwindPotentialDifference(std::string pkname,
-        std::string cell_coef,
-        std::string face_coef,
-        std::string potential,
-        std::string overlap) :
+
+UpwindPotentialDifference::UpwindPotentialDifference(const std::string& pkname,
+        const Tag& tag,
+        const std::string& potential,
+        const std::string& overlap) :
     pkname_(pkname),
-    cell_coef_(cell_coef),
-    face_coef_(face_coef),
+    tag_(tag),
     potential_(potential),
-    overlap_(overlap) {
+    overlap_(overlap)
+{
   if (overlap_ == std::string("")) {
     overlap_ = potential_;
   }
 };
 
 
-void UpwindPotentialDifference::Update(const Teuchos::Ptr<State>& S,
-                                       const Teuchos::Ptr<Debugger>& db) {
-
-  Teuchos::RCP<const CompositeVector> cell = S->GetPtr<CompositeVector>(cell_coef_);
-  Teuchos::RCP<const CompositeVector> potential = S->GetPtr<CompositeVector>(potential_);
-  Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_);
-  Teuchos::RCP<CompositeVector> face = S->GetPtrW<CompositeVector>(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *potential, *overlap, face.ptr());
+void
+UpwindPotentialDifference::Update(const CompositeVector& data,
+        CompositeVector& uw_data,
+        const State& S,
+        const Teuchos::Ptr<Debugger>& db) const
+{
+  const CompositeVector& potential = S.Get<CompositeVector>(potential_, tag_);
+  const CompositeVector& overlap = S.Get<CompositeVector>(overlap_, tag_);
+  CalculateCoefficientsOnFaces(data, potential, overlap, uw_data);
 };
 
 
@@ -49,16 +50,16 @@ void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const CompositeVector& potential,
         const CompositeVector& overlap,
-        const Teuchos::Ptr<CompositeVector>& face_coef) {
-
+        CompositeVector& face_coef) const
+{
   AMANZI_ASSERT(cell_coef.Ghosted());
-  
+
   // initialize the cell coefficients
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   AmanziMesh::Entity_ID_List cells;
   std::vector<int> dirs;
   double eps = 1.e-16;
@@ -68,14 +69,14 @@ void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
   potential.ScatterMasterToGhosted("cell");
   overlap.ScatterMasterToGhosted("cell");
 
-  Epetra_MultiVector& face_coef_f = *face_coef->ViewComponent("face",false);
+  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent("face",false);
   const Epetra_MultiVector& overlap_c = *overlap.ViewComponent("cell",true);
   const Epetra_MultiVector& potential_c = *potential.ViewComponent("cell",true);
   Teuchos::RCP<const Epetra_MultiVector> potential_f;
   if (potential.HasComponent("face")) potential_f = potential.ViewComponent("face",false);
   const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell",true);
 
-  int nfaces = face_coef->size("face",false);
+  int nfaces = face_coef.size("face",false);
   for (unsigned int f=0; f!=nfaces; ++f) {
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
 
@@ -141,12 +142,12 @@ UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
   
   // Grab potential
   AMANZI_ASSERT(potential_key == potential_);
-  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key);
+  Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key, tag_);
   pres->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
 
   // Grab overlap
-  Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_);
+  Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_, tag_);
   overlap->ScatterMasterToGhosted("cell");
   const Epetra_MultiVector& overlap_c = *overlap->ViewComponent("cell",true);
 

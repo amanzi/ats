@@ -36,10 +36,12 @@ MolarFractionGasEvaluator::Clone() const {
 
 
 void MolarFractionGasEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result) {
+        const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_);
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate p_s / p_atm
   for (CompositeVector::name_iterator comp=result[0]->begin();
@@ -58,12 +60,14 @@ void MolarFractionGasEvaluator::Evaluate_(const State& S,
 
 void MolarFractionGasEvaluator::EvaluatePartialDerivative_(
     const State& S, const Key& wrt_key, const Tag& wrt_tag,
-    const std::vector<CompositeVector*>& result) {
+    const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
   AMANZI_ASSERT(wrt_key == temp_key_);
 
   // Pull dependencies out of state.
-  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_);
-  const double& p_atm = S.Get<double>("atmospheric_pressure");
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate d/dT( p_s / p_atm )
   for (CompositeVector::name_iterator comp=result[0]->begin();

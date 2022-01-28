@@ -58,7 +58,7 @@ SubgridAggregateEvaluator::EvaluatePartialDerivative_(const State& S,
 
 
 void
-SubgridAggregateEvaluator::EnsureCompatibility(State& S)
+SubgridAggregateEvaluator::EnsureEvaluators(State& S)
 {
   if (dependencies_.size() == 0) {
     auto ds = S.GetDomainSet(source_domain_);
@@ -76,24 +76,17 @@ SubgridAggregateEvaluator::EnsureCompatibility(State& S)
     for (const auto& subdomain : *ds) {
       dependencies_.insert(KeyTag{Keys::getKey(subdomain, var_key_), my_keys_.front().second});
     }
-
-    S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first,
-            my_keys_.front().second, my_keys_.front().first)
-      .SetMesh(S.GetMesh(domain_))->SetComponent("cell", AmanziMesh::CELL, 1);
-
-    // Recurse into the tree to propagate info to leaves.
-    Tag tag = my_keys_.front().second;
-    for (const auto& subdomain : *ds) {
-      auto key = Keys::getKey(subdomain, var_key_);
-      S.Require<CompositeVector,CompositeVectorSpace>(key, tag)
-        .SetMesh(S.GetMesh(subdomain))
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-      S.RequireEvaluator(key).EnsureCompatibility(S);
-    }
-
-    // check plist for vis or checkpointing control
-    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
   }
+
+  EvaluatorSecondaryMonotypeCV::EnsureEvaluators(S);
+}
+
+
+// Implements custom EC to use dependencies from subgrid
+void
+SubgridAggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, {"cell",}, {AmanziMesh::CELL,}, {1,});
 }
 
 

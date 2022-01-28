@@ -39,9 +39,9 @@ class VolumetricSnowPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new VolumetricSnowPondedDepthEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(State& S) override;
-
  protected:
+  // virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& results) override;
 

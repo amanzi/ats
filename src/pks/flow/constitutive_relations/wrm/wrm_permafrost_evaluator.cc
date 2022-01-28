@@ -164,9 +164,9 @@ void WRMPermafrostEvaluator::Evaluate_(const State& S,
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.
@@ -249,9 +249,9 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.

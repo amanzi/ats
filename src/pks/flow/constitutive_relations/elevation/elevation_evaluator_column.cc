@@ -5,7 +5,6 @@
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
-#include <boost/algorithm/string/predicate.hpp>
 
 #include "Mesh.hh"
 #include "Point.hh"
@@ -14,7 +13,7 @@
 namespace Amanzi {
 namespace Flow {
 
-ElevationEvaluatorColumn::ElevationEvaluatorColumn(Teuchos::ParameterList& plist) :
+ColumnElevationEvaluator::ColumnElevationEvaluator(Teuchos::ParameterList& plist) :
   ElevationEvaluator(plist)
 {
   dset_name_ = plist.get<std::string>("domain set name", "column");
@@ -24,23 +23,23 @@ ElevationEvaluatorColumn::ElevationEvaluatorColumn(Teuchos::ParameterList& plist
 
 
 Teuchos::RCP<Evaluator>
-ElevationEvaluatorColumn::Clone() const {
-  return Teuchos::rcp(new ElevationEvaluatorColumn(*this));
+ColumnElevationEvaluator::Clone() const {
+  return Teuchos::rcp(new ColumnElevationEvaluator(*this));
 }
 
 
-void ElevationEvaluatorColumn::EnsureCompatibility(State& S)
+void ColumnElevationEvaluator::EnsureEvaluators(State& S)
 {
   auto tag = my_keys_.front().first;
   auto dset = S.GetDomainSet(dset_name_);
   for (const auto& domain : *dset) {
     dependencies_.insert(KeyTag{Keys::getKey(domain, base_poro_suffix_), tag});
   }
-  ElevationEvaluator::EnsureCompatibility(S);
+  ElevationEvaluator::EnsureEvaluators(S);
 }
 
 
-void ElevationEvaluatorColumn::EvaluateElevationAndSlope_(const State& S,
+void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
         const std::vector<CompositeVector*>& results)
 {
   CompositeVector* elev = results[0];
@@ -74,14 +73,13 @@ void ElevationEvaluatorColumn::EvaluateElevationAndSlope_(const State& S,
 
   // get all cell centroids
   for (int c=0; c!=ncells; ++c) {
-    std::stringstream my_name;
     int id = S.GetMesh(surface_domain_)->cell_map(true).GID(c);
     AmanziGeometry::Point P1 = S.GetMesh(surface_domain_)->cell_centroid(c);
     P1.set(P1[0], P1[1], elev_ngb_c[0][c]);
     my_centroid.push_back(P1);
   }
 
-  //get neighboring cell ids
+  // get neighboring cell ids
   for (int c=0; c!= ncells; c++) {
     AmanziMesh::Entity_ID_List nadj_cellids;
     S.GetMesh(surface_domain_)->cell_get_face_adj_cells(c, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
@@ -90,7 +88,7 @@ void ElevationEvaluatorColumn::EvaluateElevationAndSlope_(const State& S,
     int ngb_cells = nadj_cellids.size();
     std::vector<AmanziGeometry::Point> ngb_centroids(ngb_cells);
 
-    //get the neighboring cell's centroids
+    // get the neighboring cell's centroids
     for(unsigned i=0; i<ngb_cells; i++){
       AmanziGeometry::Point P2 = S.GetMesh(surface_domain_)->cell_centroid(nadj_cellids[i]);
       ngb_centroids[i].set(P2[0], P2[1], elev_ngb_c[0][nadj_cellids[i]]);

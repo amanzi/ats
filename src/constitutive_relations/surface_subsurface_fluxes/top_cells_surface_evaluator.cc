@@ -19,8 +19,8 @@ TopCellsSurfaceEvaluator::TopCellsSurfaceEvaluator(Teuchos::ParameterList& plist
   Key my_key = my_keys_.front().first;
   Tag tag = my_keys_.front().second;
   Key domain = Keys::getDomain(my_key);
-  Key surf_domain = Keys::readDomainHint(plist_, domain, "subsurface", "surface");
-  dependency_key_ = Keys::readKey(plist_, surf_domain, "surface", Keys::getVarName(my_key));
+  domain_surf_ = Keys::readDomainHint(plist_, domain, "subsurface", "surface");
+  dependency_key_ = Keys::readKey(plist_, domain_surf_, "surface", Keys::getVarName(my_key));
   dependencies_.insert(KeyTag{dependency_key_, tag});
 
   negate_ = plist_.get<bool>("negate", false);
@@ -36,7 +36,8 @@ void
 TopCellsSurfaceEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-  auto surf_vector = S.GetPtr<CompositeVector>(dependency_key_);
+  auto tag = my_keys_.front().second;
+  auto surf_vector = S.GetPtr<CompositeVector>(dependency_key_, tag);
   const Epetra_MultiVector& surf_vector_cells = *surf_vector->ViewComponent("cell",false);
   Epetra_MultiVector& result_cells = *result[0]->ViewComponent("cell",false);
 
@@ -58,24 +59,12 @@ TopCellsSurfaceEvaluator::Evaluate_(const State& S,
 
 
 void
-TopCellsSurfaceEvaluator::EnsureCompatibility(State& S)
+TopCellsSurfaceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  // Ensure my field exists.  Requirements should be already set.  Claim ownership.
-  Key my_key = my_keys_.front().first;
-  S.Require<CompositeVector,CompositeVectorSpace>(my_key,
-          my_keys_.front().second,  my_key)
-    .SetMesh(S.GetMesh(Keys::getDomain(my_key)))
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
-  for (const auto& dep : dependencies_) {
-    S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
-      .SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.RequireEvaluator(dep.first, dep.second).EnsureCompatibility(S);
-  }
-
-  // check plist for vis or checkpointing control
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Flags_(S);
+  CompositeVectorSpace fac;
+  fac.SetMesh(S.GetMesh(domain_surf_))
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
 }
 
 

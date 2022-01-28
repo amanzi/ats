@@ -32,7 +32,7 @@ UpwindGravityFlux::Update(const CompositeVector& cells,
                           const State& S,
                           const Teuchos::Ptr<Debugger>& db) const
 {
-  const auto& g_vec = S.Get<AmanziGeometry::Point>("gravity");
+  const auto& g_vec = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   CalculateCoefficientsOnFaces(cells, g_vec, faces);
 };
 

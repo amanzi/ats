@@ -10,7 +10,8 @@
 //! SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
 /*!
 
-Note that this evaluator fills exactly one subdomain in a domain set -- there will be N evaluators each filling one subdomain.
+Note that this evaluator fills exactly one subdomain in a domain set -- there
+will be N evaluators each filling one subdomain.
 
 .. _subgrid-disaggregate-evaluator-spec:
 .. admonition:: subgrid-disaggregate-evaluator-spec
@@ -37,16 +38,13 @@ class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
-  explicit
-  SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist);
-
+  explicit SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist);
   SubgridDisaggregateEvaluator(const SubgridDisaggregateEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  void
-  EnsureCompatibility(State& S) override;
-
  protected:
+  // custom EC required to depend on cells of the subgrid mesh
+  void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   void Evaluate_(const State& S,
@@ -58,7 +56,6 @@ class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   Key source_domain_;
   Key domain_;
-  Key var_key_;
   Key source_key_;
 
  private:

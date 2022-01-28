@@ -46,8 +46,8 @@ void PCIceEvaluator::Evaluate_(const State& S,
   // Pull dependencies out of state.
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
-  double lambda = S.HasData<double>("continuation_parameter") ?
-    std::pow(10., -2*(S.Get<double>("continuation_parameter"))) : 1.;
+  double lambda = S.HasData<double>("continuation_parameter", Tags::DEFAULT) ?
+    std::pow(10., -2*(S.Get<double>("continuation_parameter", Tags::DEFAULT))) : 1.;
 
   // evaluate pc
   for (CompositeVector::name_iterator comp=result[0]->begin();
@@ -73,8 +73,8 @@ void PCIceEvaluator::EvaluatePartialDerivative_(
   // Pull dependencies out of state.
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
-  double lambda = S.HasData<double>("continuation_parameter") ?
-    std::pow(10., -2*(S.Get<double>("continuation_parameter"))) : 1.;
+  double lambda = S.HasData<double>("continuation_parameter", Tags::DEFAULT) ?
+    std::pow(10., -2*(S.Get<double>("continuation_parameter", Tags::DEFAULT))) : 1.;
 
   if (wrt_key == temp_key_) {
     // evaluate d/dT( pc )

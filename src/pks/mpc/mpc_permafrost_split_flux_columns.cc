@@ -76,10 +76,10 @@ MPCPermafrostSplitFluxColumns::MPCPermafrostSplitFluxColumns(Teuchos::ParameterL
     // set up for a primary variable field evaluator for the flux
     Key primary_pkey = Keys::getKey("surface_"+domain_col_, "*", p_lateral_flow_source_suffix_);
     auto& p_sublist = S->FEList().sublist(primary_pkey);
-    p_sublist.set("field evaluator type", "primary variable");
+    p_sublist.set("evaluator type", "primary variable");
     Key primary_Tkey = Keys::getKey("surface_"+domain_col_,"*", T_lateral_flow_source_suffix_);
     auto& T_sublist = S->FEList().sublist(primary_Tkey);
-    T_sublist.set("field evaluator type", "primary variable");
+    T_sublist.set("evaluator type", "primary variable");
   }
 
   // init sub-pks
