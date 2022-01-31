@@ -28,7 +28,8 @@ UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::Parame
 
 
 Teuchos::RCP<Evaluator>
-UnfrozenEffectiveDepthEvaluator::Clone() const {
+UnfrozenEffectiveDepthEvaluator::Clone() const
+{
   return Teuchos::rcp(new UnfrozenEffectiveDepthEvaluator(*this));
 }
 
@@ -38,7 +39,6 @@ void UnfrozenEffectiveDepthEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-
   Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(depth_key_, tag);
   Teuchos::RCP<const CompositeVector> uf = S.GetPtr<CompositeVector>(uf_key_, tag);
 
@@ -85,8 +85,6 @@ void UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
   } else {
     AMANZI_ASSERT(0);
   }
-
-
 }
 
 

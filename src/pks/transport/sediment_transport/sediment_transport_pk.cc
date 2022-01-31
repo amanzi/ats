@@ -106,7 +106,7 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
 
   saturation_key_ = Keys::readKey(*tp_list_, domain_name_, "saturation liquid");
   prev_saturation_key_ = Keys::readKey(*tp_list_, domain_name_, "previous saturation liquid");
-  flux_key_ = Keys::readKey(*tp_list_, domain_name_, "mass flux", "mass_flux");
+  flux_key_ = Keys::readKey(*tp_list_, domain_name_, "water flux", "water_flux");
   tcc_key_ = Keys::readKey(*tp_list_, domain_name_, "concentration", "sediment");
   molar_density_key_ = Keys::readKey(*tp_list_, domain_name_, "molar density", "molar_density_liquid");
   solid_residue_mass_key_ =  Keys::readKey(*tp_list_, domain_name_, "solid residue", "solid_residue_mass");
@@ -593,7 +593,7 @@ double SedimentTransport_PK::StableTimeStep()
   // S_->Get<CompositeVector>(flux_key_).ViewComponent("face", true)->NormInf(&flux_norm);
   
   //  if (vo_->getVerbLevel() >= Teuchos::VERB_EXTREME){
-    // if (flux_key_=="surface-mass_flux"){
+    // if (flux_key_=="surface-water_flux"){
     //   *vo_->os()<<"Stable step: "<<flux_key_<<" ||flux_next||="<<flux_next_norm<<" ||flux||="<<flux_norm<<"\n";
     // }
   //}

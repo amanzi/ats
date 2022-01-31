@@ -47,8 +47,6 @@ set(ats_mpc_src_files
   mpc_coupled_water_split_flux.cc
   mpc_coupled_transport.cc
   mpc_permafrost_split_flux.cc
-  mpc_permafrost_split_flux_columns.cc
-  mpc_permafrost_split_flux_columns_subcycled.cc
   mpc_subsurface.cc
   mpc_surface.cc
   mpc_permafrost.cc
@@ -78,8 +76,6 @@ set(ats_mpc_inc_files
   mpc_coupled_transport.hh
   mpc_coupled_water_split_flux.hh
   mpc_permafrost_split_flux.hh
-  mpc_permafrost_split_flux_columns.hh
-  mpc_permafrost_split_flux_columns_subcycled.hh
   mpc_subsurface.hh
   mpc_surface.hh
   mpc_permafrost.hh
@@ -202,20 +198,9 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
-  HEADERFILE mpc_permafrost_split_flux_columns_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE mpc_permafrost_split_flux_columns_subcycled_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
-
-register_evaluator_with_factory(
     HEADERFILE mpc_coupled_transport_reg.hh
     LISTNAME   ATS_MPC_REG
    )
-
 
 register_evaluator_with_factory(
   HEADERFILE mpc_weak_subgrid_reg.hh

@@ -122,7 +122,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
 {
   saturation_key_ = Keys::readKey(*plist_, domain_, "saturation liquid", "saturation_liquid");
   prev_saturation_key_ = Keys::readKey(*plist_, domain_, "previous saturation liquid", "prev_saturation_liquid");
-  flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux"); // FIXME!
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   permeability_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
   tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
   conserve_qty_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");

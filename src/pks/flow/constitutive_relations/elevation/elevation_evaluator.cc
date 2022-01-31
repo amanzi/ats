@@ -86,6 +86,5 @@ bool ElevationEvaluator::Update(State& S, const Key& request)
   return changed;
 }
 
-
 } //namespace
 } //namespace

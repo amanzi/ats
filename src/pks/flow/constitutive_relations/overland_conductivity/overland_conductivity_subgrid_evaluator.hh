@@ -1,13 +1,45 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
+/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
 /*
-  Evaluates the conductivity of surface flow subgrid model.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-  Authors: Ahmad Jan (jana@ornl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Ahmad Jan
 */
+//! Evaluates the conductivity of surface flow in the flow subgrid model.
 
-#ifndef AMANZI_FLOWRELATIONS_OVERLAND_CONDUCTIVITY_SUBGRID_EVALUATOR_
-#define AMANZI_FLOWRELATIONS_OVERLAND_CONDUCTIVITY_SUBGRID_EVALUATOR_
+/*!
+
+This implements the conductivity of overland flow in the subgrid model case
+from Jan et al WRR 2018.  This calculates the nonlinear coefficient in the
+diffusion wave equation.  The term is given by:
+
+.. math:
+   k = n_l K^\beta \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
+
+This includes a density factor, typically a molar density, which
+converts the flow law to water flux rather than volumetric flux.
+
+.. _overland-conductivity-subgrid-evaluator-spec
+.. admonition:: overland-conductivity-subgrid-evaluator-spec
+
+   DEPENDENCIES:
+   - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
+     in the above equation.
+   - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
+     flow; | \nabla z | above.
+   - `"coefficient`" **DOMAIN-manning_coefficient** Surface roughness/shape
+     coefficient; n_{mann} above.
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid** If `"include
+     density`" is true, the density.
+   - `"fractional conductance`" **DOMAIN-fractional_conductance** The leading
+     conductance term, K in the above equation.
+   - `"drag exponent`" **DOMAIN-drag_exponent** Power law for the fractional
+     conductance, \beta above.
+
+*/
+#pragma once
 
 #include "Factory.hh"
 #include "EvaluatorSecondaryMonotype.hh"
@@ -52,6 +84,4 @@ private:
 
 } //namespace
 } //namespace
-
-#endif
 

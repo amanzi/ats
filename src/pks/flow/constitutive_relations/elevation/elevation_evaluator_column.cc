@@ -145,6 +145,5 @@ void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 }
 
 
-
 } //namespace
 } //namespace

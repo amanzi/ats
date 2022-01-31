@@ -119,7 +119,7 @@ class MPCPermafrost : public MPCSubsurface {
   Key surf_potential_key_;
   Key surf_pd_bar_key_;
   Key surf_enth_key_;
-  Key surf_mass_flux_key_;
+  Key surf_water_flux_key_;
   Key surf_rho_key_;
 
   // EWC delegate for the surface

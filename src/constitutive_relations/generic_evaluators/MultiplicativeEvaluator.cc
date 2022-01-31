@@ -21,6 +21,22 @@ MultiplicativeEvaluator::MultiplicativeEvaluator(Teuchos::ParameterList& plist) 
     throw(message);
   }
 
+  // deals with Multiplying e.g. area fractions.  Note that 90% of
+  // multiplicative evaluator usages will NOT provide dof info, and therefore
+  // will be the same structure as my_key.  Not having this info is stronger,
+  // because we can set the stencil.  Prefer not to provide it.
+  any_dof_provided_ = false;
+  for (const auto& dep : dependencies_) {
+    if (plist_.isParameter(dep+" degree of freedom")) {
+      dofs_.push_back(plist_.get<int>(dep+" degree of freedom"));
+      dof_provided_.push_back(true);
+      any_dof_provided_ = true;
+    } else {
+      dofs_.push_back(0);
+      dof_provided_.push_back(false);
+    }
+  }
+
   coef_ = plist_.get<double>("coefficient", 1.0);
   positive_ = plist_.get<bool>("enforce positivity", false);
 }
@@ -39,22 +55,22 @@ MultiplicativeEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
   AMANZI_ASSERT(dependencies_.size() > 1);
-  auto key_tag = dependencies_.begin();
-  *result[0] = S.Get<CompositeVector>(key_tag->first, key_tag->second);
-  result[0]->Scale(coef_);
-  key_tag++;
+  result[0]->PutScalar(coef_);
 
   for (const auto& lcv_name : *result[0]) {
-    auto& res_c = *result[0]->ViewComponent(lcv_name, false);
-    for (; key_tag!=dependencies_.end(); ++key_tag) {
-      const Epetra_MultiVector& dep_c = *S.Get<CompositeVector>(key_tag->first, key_tag->second)
-        .ViewComponent(lcv_name, false);
-      for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
+    // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
+    auto& res_c = *(*result[0]->ViewComponent(lcv_name, false))(0);
+    int i = 0;
+    for (const auto& key_tag : dependencies_) {
+      const auto& dep_v = *(*S->Get<CompositeVector>(key_tag.first, key_tag.second)
+                           .ViewComponent(lcv_name, false))(dofs_[i]);
+      res_c.Multiply(1, res_c, dep_v, 0.);
+      i++;
     }
 
     if (positive_) {
       for (int c=0; c!=res_c.MyLength(); ++c) {
-        res_c[0][c] = std::max(res_c[0][c], 0.);
+        res_c[c] = std::max(res_c[c], 0.);
       }
     }
   }
@@ -65,25 +81,80 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
 {
-  AMANZI_ASSERT(dependencies_.size() > 1);
+  result[0]->PutScalar(coef_);
 
-  auto key_tag = dependencies_.begin();
-  KeyTag wrt(wrt_key, wrt_tag);
-  while (*key_tag == wrt) key_tag++;
-  *result[0] = S.Get<CompositeVector>(key_tag->first, key_tag->second);
-  result[0]->Scale(coef_);
-  key_tag++;
-
-  for (; key_tag!=dependencies_.end(); ++key_tag) {
-    if (*key_tag != wrt) {
-      const CompositeVector& dep = S.Get<CompositeVector>(key_tag->first, key_tag->second);
-      for (const auto& comp : *result[0]) {
-        Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
-        const Epetra_MultiVector& dep_c = *dep.ViewComponent(comp, false);
-        // for (int c=0; c!=res_c.MyLength(); ++c) res_c[0][c] *= dep_c[0][c];
-        res_c.Multiply(1, res_c, dep_c, 0);
+  for (const auto& lcv_name : *result[0]) {
+    // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
+    auto& res_c = *(*result[0]->ViewComponent(lcv_name, false))(0);
+    int i = 0;
+    for (const auto& key_tag : dependencies_) {
+      if (key != wrt_key) {
+        const auto& dep_v = *(*S->Get<CompositeVector>(key_tag.first, key_tag.second)
+                .ViewComponent(lcv_name, false))(dofs_[i]);
+        res_c.Multiply(1, res_c, dep_v, 0.);
+        i++;
       }
     }
+    if (positive_) {
+      for (int c=0; c!=res_c.MyLength(); ++c) {
+        res_c[c] = std::max(res_c[c], 0.);
+      }
+    }
+  }
+}
+
+
+void
+MultiplicativeEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+{
+  if (any_dof_provided_) {
+    // Ensure my field exists.  Requirements should be already set.
+    AMANZI_ASSERT(my_key_ != std::string(""));
+    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
+
+    // check plist for vis or checkpointing control
+    bool io_my_key = plist_.get<bool>("visualize", true);
+    S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
+    bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
+    S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
+
+    // If my requirements have not yet been set, we'll have to hope they
+    // get set by someone later.  For now just defer.
+    if (my_fac->Mesh() != Teuchos::null) {
+      // Create an unowned factory to check my dependencies.
+      Teuchos::RCP<CompositeVectorSpace> dep_fac =
+        Teuchos::rcp(new CompositeVectorSpace(*my_fac));
+      dep_fac->SetOwned(false);
+
+      // Loop over my dependencies, ensuring they meet the requirements.
+      int i = 0;
+      for (const auto& key : dependencies_) {
+        if (key == my_key_) {
+          Errors::Message msg;
+          msg << "Evaluator for key \"" << my_key_ << "\" depends upon itself.";
+          Exceptions::amanzi_throw(msg);
+        }
+        Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
+
+        if (!dof_provided_[i]) {
+          // this must be a 1-dof entry of the same shape as my_key
+          fac->Update(*dep_fac);
+        } else {
+          // may have different shape, just update mesh
+          // just have to hope that # of dofs and stencil is set later
+          fac->SetMesh(dep_fac->Mesh());
+        }
+      }
+
+      // Recurse into the tree to propagate info to leaves.
+      for (const auto& key : dependencies_) {
+        S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
+      }
+    }
+
+  } else {
+    // the standard ensure is better, as it checks components
+    return SecondaryVariableFieldEvaluator::EnsureCompatibility(S);
   }
 }
 

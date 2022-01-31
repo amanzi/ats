@@ -37,10 +37,13 @@ class VolumetricPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
+
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
+  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
   Key pd_key_;

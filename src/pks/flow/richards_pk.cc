@@ -72,8 +72,8 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
   coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
   uw_coef_key_ = Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
-  flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "mass_flux");
-  flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "mass_flux_direction");
+  flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
+  flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
@@ -711,7 +711,7 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
 //   if (S_next_ != Teuchos::null) {
 //     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
 //     Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> mass_flux = S_->GetPtrW<CompositeVector>(flux_key_, name_);
+//     Teuchos::RCP<const CompositeVector> water_flux = S_->GetPtrW<CompositeVector>(flux_key_, name_);
 //     CompositeVector error(*wc1);
 
 //     for (unsigned int c=0; c!=error.size("cell"); ++c) {
@@ -721,7 +721,7 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
 //       std::vector<int> dirs;
 //       mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
 //       for (unsigned int n=0; n!=faces.size(); ++n) {
-//         error("cell",c) += (*mass_flux)("face",faces[n]) * dirs[n] * dt;
+//         error("cell",c) += (*water_flux)("face",faces[n]) * dirs[n] * dt;
 //       }
 //     }
 
@@ -1107,10 +1107,9 @@ void Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     }
   }
 
-  // seepage face -- pressure <= specified value (usually 101325), outward mass flux >= 0
+  // seepage face -- pressure <= specified value (usually 101325), outward water flux >= 0
   S_->Get<CompositeVector>(flux_key_, tag).ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux =
-    *S_->Get<CompositeVector>(flux_key_, tag)
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag)
       .ViewComponent("face", true);
 
   const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
@@ -1145,7 +1144,7 @@ void Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     }
   }
 
-  // seepage face -- pressure <= p_atm, outward mass flux is specified
+  // seepage face -- pressure <= p_atm, outward water flux is specified
   bc_counts.push_back(bc_seepage_infilt_->size());
   bc_names.push_back("seepage with infiltration");
   {
@@ -1541,15 +1540,15 @@ bool Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
     *vo_->os() << "    Admissible p? (min/max): " << minT << ",  " << maxT << std::endl;
   }
 
-
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
-  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  const MPI_Comm& comm = mpi_comm_p->Comm();
-
   if (minT < -1.e9 || maxT > 1.e8) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
       *vo_->os() << " is not admissible, as it is not within bounds of constitutive models:" << std::endl;
+
+      Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
+      Teuchos::RCP<const MpiComm_type> mpi_comm_p =
+        Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
+      const MPI_Comm& comm = mpi_comm_p->Comm();
+
       ENorm_t global_minT_c, local_minT_c;
       ENorm_t global_maxT_c, local_maxT_c;
 
@@ -1577,8 +1576,8 @@ bool Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
         MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
         MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
         *vo_->os() << "   cells (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value;
-        MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPI_COMM_WORLD);
-        MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, MPI_COMM_WORLD);
+        MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
+        MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
         *vo_->os() << "   faces (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value
                    << ", [" << global_maxT_f.gid << "] " << global_maxT_f.value << std::endl;
       }

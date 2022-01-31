@@ -82,24 +82,24 @@ int AdvectionDiffusion::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Te
 
 // updates the preconditioner
 void AdvectionDiffusion::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
   // update boundary conditions
-  bc_temperature_->Compute(S_->get_time(tag_next_));
-  bc_flux_->Compute(S_->get_time(tag_next_));
+  bc_temperature_->Compute(S_next_->time());
+  bc_flux_->Compute(S_next_->time());
   UpdateBoundaryConditions_();
 
   // div K_e grad u
   Teuchos::RCP<const CompositeVector> thermal_conductivity =
-      S_next_->GetPtr<CompositeVector>("thermal_conductivity");
+      S_next_->GetFieldData("thermal_conductivity");
   preconditioner_->Init();
   preconditioner_diff_->SetScalarCoefficient(thermal_conductivity, Teuchos::null);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
   // update with accumulation terms
   Teuchos::RCP<const CompositeVector> cell_volume =
-    S_next_->GetPtr<CompositeVector>("cell_volume");
+    S_next_->GetFieldData("cell_volume");
 
   CompositeVector du(cell_volume->Map());
   du.PutScalar(1.);
@@ -107,10 +107,10 @@ void AdvectionDiffusion::UpdatePreconditioner(double t, Teuchos::RCP<const TreeV
   
   // update with advection terms
   if (implicit_advection_) {
-    Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetPtr<CompositeVector>("mass_flux");
-    preconditioner_adv_->Setup(*mass_flux);
+    Teuchos::RCP<const CompositeVector> water_flux = S_next_->GetFieldData("water_flux");
+    preconditioner_adv_->Setup(*water_flux);
     preconditioner_adv_->SetBCs(bc_,bc_);
-    preconditioner_adv_->UpdateMatrices(mass_flux.ptr());
+    preconditioner_adv_->UpdateMatrices(water_flux.ptr());
     preconditioner_adv_->ApplyBCs(false, true, false);
 
   }

@@ -81,9 +81,9 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   if (diagnostics_) {
     // -- diagnostics
     albedo_key_ = Keys::readKey(plist, domain_, "albedo", "albedo");
-    my_keys_.emplace_back((albedo_key_);
-    melt_key_ = Keys::readKey(plist, domain_snow_, "snowmelt", "melt");
-    my_keys_.emplace_back((melt_key_);
+    my_keys_.push_back(albedo_key_);
+    melt_key_ = Keys::readKey(plist, domain_snow_, "snow melt", "melt");
+    my_keys_.push_back(melt_key_);
     evap_key_ = Keys::readKey(plist, domain_, "evaporation", "evaporative_flux");
     my_keys_.emplace_back((evap_key_);
     snow_temp_key_ = Keys::readKey(plist, domain_snow_, "snow temperature", "temperature");

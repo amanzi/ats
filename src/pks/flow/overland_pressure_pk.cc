@@ -57,8 +57,8 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
   // get keys
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "water_content");
   potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
-  flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
-  flux_dir_key_ = Keys::readKey(*plist_, domain_, "mass flux direction", "mass_flux_direction");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+  flux_dir_key_ = Keys::readKey(*plist_, domain_, "water flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "velocity", "velocity");
   elev_key_ = Keys::readKey(*plist_, domain_, "elevation", "elevation");
   pd_key_ = Keys::readKey(*plist_, domain_, "ponded depth", "ponded_depth");
@@ -168,7 +168,7 @@ void OverlandPressureFlow::SetupOverlandFlow_()
   bc_level_flux_lvl_ = bc_factory.CreateFixedLevelFlux_Level();
   bc_level_flux_vel_ = bc_factory.CreateFixedLevelFlux_Velocity();
 
-  // -- mass flux direction is needed for upwinding
+  // -- water flux direction is needed for upwinding
   //   (no evaluator yet)
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_dir_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetGhosted()
@@ -282,7 +282,7 @@ void OverlandPressureFlow::SetupOverlandFlow_()
 
   if (coupled_to_subsurface_via_head_) {
     // -- source term from subsurface, filled in by evaluator,
-    //    which picks the fluxes from "mass_flux" field.
+    //    which picks the fluxes from "water_flux" field.
     ss_flux_key_ = Keys::readKey(*plist_, domain_, "surface-subsurface flux", "subsurface_flux");
     S_->RequireEvaluator(ss_flux_key_, tag_next_);
     S_->Require<CompositeVector,CompositeVectorSpace>(ss_flux_key_, tag_next_)

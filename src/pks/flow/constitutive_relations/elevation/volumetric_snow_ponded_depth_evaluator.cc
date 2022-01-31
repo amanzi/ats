@@ -19,6 +19,7 @@
 
 */
 
+#include "Mesh_Algorithms.hh"
 #include "volumetric_snow_ponded_depth_evaluator.hh"
 #include "subgrid_microtopography.hh"
 
@@ -68,21 +69,54 @@ void
 VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
                              const std::vector<CompositeVector*>& results)
 {
+  // NOTE, we can only differentiate with respect to quantities that exist on
+  // all entities, not just cell entities.
   Tag tag = my_keys_.front().second;
-  auto& vpd = *results[0]->ViewComponent("cell",false);
-  auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell",false);
-  const auto& sd = *S.Get<CompositeVector>(sd_key_, tag).ViewComponent("cell",false);
-  const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell",false);
-  const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell",false);
+  Teuchos::RCP<const CompositeVector> pd_v = S->GetPtr<CompositeVector>(pd_key_, tag);
+  Teuchos::RCP<const CompositeVector> sd_v = S->GetPtr<CompositeVector>(sd_key_, tag);
+  Teuchos::RCP<const CompositeVector> del_max_v = S->GetPtr<CompositeVector>(delta_max_key_, tag);
+  Teuchos::RCP<const CompositeVector> del_ex_v = S->GetPtr<CompositeVector>(delta_ex_key_, tag);
+  const AmanziMesh::Mesh& mesh = *results[0]->Mesh();
 
-  for (int c=0; c!=vpd.MyLength(); ++c) {
-    AMANZI_ASSERT(Microtopography::validParameters(del_max[0][c], del_ex[0][c]));
-    double sdc = std::max(0., sd[0][c]);
-    double pdc = std::max(0., pd[0][c]);
-    double vol_tot = Microtopography::volumetricDepth(pdc + sdc, del_max[0][c], del_ex[0][c]);
-    vpd[0][c] = Microtopography::volumetricDepth(pdc, del_max[0][c], del_ex[0][c]);
-    vsd[0][c] = vol_tot - vpd[0][c];
+  for (const auto& comp : *results[0]) {
+    AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
+    bool is_internal_comp = comp == "boundary_face";
+    Key internal_comp = is_internal_comp ? "cell" : comp;
+
+    const auto& pd = *pd_v->ViewComponent(comp,false);
+    const auto& del_max = *del_max_v->ViewComponent(internal_comp,false);
+    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp,false);
+    auto& vpd = *results[0]->ViewComponent(comp,false);
+
+    // note, snow depth does not have a boundary face component?
+    if (comp == "boundary_face") {
+      AMANZI_ASSERT(!results[1]->HasComponent(comp));
+
+      int ncomp = vpd.MyLength();
+      for (int i=0; i!=ncomp; ++i) {
+        int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
+        AMANZI_ASSERT(Microtopography::validParameters(del_max[0][ii], del_ex[0][ii]));
+
+        double pdc = std::max(0., pd[0][i]);
+        vpd[0][i] = Microtopography::volumetricDepth(pdc, del_max[0][ii], del_ex[0][ii]);
+      }
+
+    } else if (comp == "cell") {
+      auto& vsd = *results[1]->ViewComponent(comp,false);
+      const auto& sd = *sd_v->ViewComponent(comp,false);
+
+      int ncomp = vpd.MyLength();
+      for (int i=0; i!=ncomp; ++i) {
+        int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
+        AMANZI_ASSERT(Microtopography::validParameters(del_max[0][ii], del_ex[0][ii]));
+
+        double pdc = std::max(0., pd[0][i]);
+        double sdc = std::max(0., sd[0][i]);
+        vpd[0][i] = Microtopography::volumetricDepth(pdc, del_max[0][ii], del_ex[0][ii]);
+        double vol_tot = Microtopography::volumetricDepth(pdc + sdc, del_max[0][ii], del_ex[0][ii]);
+        vsd[0][i] = vol_tot - vpd[0][i];
+      }
+    }
   }
 }
 
@@ -92,12 +126,16 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
+  // NOTE, we can only differentiate with respect to quantities that exist on
+  // all entities, not just cell entities.
+  //
+  // Not differentiating boundary faces... hopefully that is ok.
+  const auto& pd = *S->GetPtr<CompositeVector>(pd_key_, tag)->ViewComponent("cell", false);
+  const auto& sd = *S->GetPtr<CompositeVector>(sd_key_, tag)->ViewComponent("cell", false);
+  const auto& del_max = *S->GetPtr<CompositeVector>(delta_max_key_, tag)->ViewComponent("cell", false);
+  const auto& del_ex = *S->GetPtr<CompositeVector>(delta_ex_key_, tag)->ViewComponent("cell", false);
   auto& vpd = *results[0]->ViewComponent("cell",false);
   auto& vsd = *results[1]->ViewComponent("cell",false);
-  const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell",false);
-  const auto& sd = *S.Get<CompositeVector>(sd_key_, tag).ViewComponent("cell",false);
-  const auto& del_max = *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell",false);
-  const auto& del_ex = *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell",false);
 
   if (wrt_key == pd_key_) {
     for (int c=0; c!=vpd.MyLength(); ++c) {
@@ -119,13 +157,43 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 }
 
-// void
-// VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
-// {
-//   CompositeVectorSpace fac;
-//   fac.SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-//   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac, true);
-// }
+void
+VolumetricSnowPondedDepthEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+{
+  // require my keys
+  auto my_fac = S->RequireField(vol_pd_key_, vol_pd_key_);
+  my_fac->SetMesh(S->GetMesh(domain_surf_))
+    ->SetGhosted();
+  //   ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  auto my_fac_snow = S->RequireField(vol_sd_key_, vol_sd_key_);
+  // my_fac_snow->SetOwned(false); // why was this here?
+  my_fac_snow->SetMesh(S->GetMesh(domain_snow_))
+    ->SetGhosted();
+  //   ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+  // Check plist for vis or checkpointing control.
+  bool io_my_key = plist_.get<bool>("visualize", true);
+  S->GetField(vol_pd_key_, vol_pd_key_)->set_io_vis(io_my_key);
+  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
+  S->GetField(vol_pd_key_, vol_pd_key_)->set_io_checkpoint(checkpoint_my_key);
+
+  for (auto dep_key : dependencies_) {
+    auto fac = S->RequireField(dep_key);
+    if (Keys::getDomain(dep_key) == domain_snow_) {
+      fac->SetMesh(S->GetMesh(domain_snow_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    } else {
+      fac->SetMesh(S->GetMesh(domain_surf_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    }
+
+    // Recurse into the tree to propagate info to leaves.
+    S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
+  }
+}
 
 } //namespace
 } //namespace
