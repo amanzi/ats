@@ -68,7 +68,7 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
 private:
   Teuchos::RCP<ManningConductivityModel> model_;

@@ -48,11 +48,11 @@ class MultiplicativeEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   void Evaluate_(const State& S,
-                      const std::vector<CompositeVector*>& result) override;
+                 const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
-  void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
   double coef_;

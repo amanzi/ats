@@ -31,7 +31,7 @@ OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterL
 
 
   mobile_depth_key_ = Keys::readKey(plist_, domain, "mobile depth", "ponded_depth");
-  dependencies_.insert(KeyTag{depth_key_, tag});
+  dependencies_.insert(KeyTag{mobile_depth_key_, tag});
 
   slope_key_ = Keys::readKey(plist_, domain, "slope", "slope_magnitude");
   dependencies_.insert(KeyTag{slope_key_, tag});
@@ -126,7 +126,8 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
   // NOTE, we can only differentiate with respect to quantities that exist on
-  // all entities, not just cell entities.  Tag tag = my_keys_.front().second;
+  // all entities, not just cell entities.
+  Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
   Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
   Teuchos::RCP<const CompositeVector> coef = S.GetPtr<CompositeVector>(coef_key_, tag);
@@ -204,24 +205,18 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 
-void OverlandConductivityEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+void OverlandConductivityEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // Ensure my field exists.  Requirements should be already set.
-  AMANZI_ASSERT(my_key_ != std::string(""));
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
-
-  // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>("visualize", true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
+  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(
+    my_keys_.front().first, my_keys_.front().second);
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac->Mesh() != Teuchos::null) {
+  if (my_fac.Mesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac =
-        Teuchos::rcp(new CompositeVectorSpace(*my_fac));
+        Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
@@ -235,25 +230,14 @@ void OverlandConductivityEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
     }
 
     // Loop over my dependencies, ensuring they meet the requirements.
-    for (const auto& key : dependencies_) {
-      if (key == my_key_) {
-        Errors::Message msg;
-        msg << "Evaluator for key \"" << my_key_ << "\" depends upon itself.";
-        Exceptions::amanzi_throw(msg);
-      }
-
-      if (key == coef_key_ || key == slope_key_) {
-        Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
-        fac->Update(*no_bf_dep_fac);
+    for (const auto& key_tag : dependencies_) {
+      if (key_tag.first == coef_key_ || key_tag.first == slope_key_) {
+        S.Require<CompositeVector, CompositeVectorSpace>(key_tag.first, key_tag.second)
+          .Update(*no_bf_dep_fac);
       } else {
-        Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
-        fac->Update(*dep_fac);
+        S.Require<CompositeVector, CompositeVectorSpace>(key_tag.first, key_tag.second)
+          .Update(*dep_fac);
       }
-    }
-
-    // Recurse into the tree to propagate info to leaves.
-    for (const auto& key : dependencies_) {
-      S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
     }
   }
 }
