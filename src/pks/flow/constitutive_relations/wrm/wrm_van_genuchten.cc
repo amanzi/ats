@@ -79,7 +79,7 @@ double WRMVanGenuchten::d_k_relative(double s) {
  * Saturation formula (3.5)-(3.6).
  ****************************************************************** */
 double WRMVanGenuchten::saturation(double pc) {
-  if (pc > pc0_) {
+  if (pc >= pc0_) {   //inclusive of pc0_ will avoid SIGABRT when 'fit_s_' setup
     return std::pow(1.0 + std::pow(alpha_*pc, n_), -m_) * (1.0 - sr_) + sr_;
   } else if (pc <= 0.) {
     return 1.0;
@@ -93,7 +93,7 @@ double WRMVanGenuchten::saturation(double pc) {
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
 double WRMVanGenuchten::d_saturation(double pc) {
-  if (pc > pc0_) {
+  if (pc >= pc0_) {    //inclusive of pc0_ will avoid SIGABRT when 'fit_s_' setup
     return -m_*n_ * std::pow(1.0 + std::pow(alpha_*pc, n_), -m_-1.0) * std::pow(alpha_*pc, n_-1) * alpha_ * (1.0 - sr_);
   } else if (pc <= 0.) {
     return 0.0;
