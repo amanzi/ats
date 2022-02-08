@@ -5,47 +5,47 @@ namespace Amanzi {
 
 void
 CopySurfaceToSubsurface(const CompositeVector& surf,
-                        const Teuchos::Ptr<CompositeVector>& sub)
+                        CompositeVector& sub)
 {
   const Epetra_MultiVector& surf_c = *surf.ViewComponent("cell",false);
 
   for (unsigned int sc=0; sc!=surf_c.MyLength(); ++sc) {
     AmanziMesh::Entity_ID f =
         surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
-    SetDomainFaceValue(*sub, f, surf_c[0][sc]);
+    SetDomainFaceValue(sub, f, surf_c[0][sc]);
   }
 }
 
 void
 CopySubsurfaceToSurface(const CompositeVector& sub,
-                        const Teuchos::Ptr<CompositeVector>& surf)
+                        CompositeVector& surf)
 {
   //  const Epetra_MultiVector& sub_f = *sub.ViewComponent("face",false);
-  Epetra_MultiVector& surf_c = *surf->ViewComponent("cell",false);
+  Epetra_MultiVector& surf_c = *surf.ViewComponent("cell",false);
 
   for (unsigned int sc=0; sc!=surf_c.MyLength(); ++sc) {
     AmanziMesh::Entity_ID f =
-        surf->Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+        surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
     surf_c[0][sc] = GetDomainFaceValue(sub, f);
   }
 }
 
 void
 MergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
-				  const Teuchos::Ptr<CompositeVector>& sub_p,
-				  const Teuchos::Ptr<CompositeVector>& surf_p)
+				  CompositeVector& sub_p,
+				  CompositeVector& surf_p)
 {
-  Epetra_MultiVector& surf_p_c = *surf_p->ViewComponent("cell",false);
+  Epetra_MultiVector& surf_p_c = *surf_p.ViewComponent("cell",false);
   const Epetra_MultiVector& h_c = *h_prev.ViewComponent("cell",false);
   double p_atm = 101325.;
 
   for (unsigned int sc=0; sc!=surf_p_c.MyLength(); ++sc) {
     AmanziMesh::Entity_ID f =
-        surf_p->Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+        surf_p.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
     if (h_c[0][sc] > 0. && surf_p_c[0][sc] > p_atm) {
-      SetDomainFaceValue(*sub_p, f,  surf_p_c[0][sc]);
+      SetDomainFaceValue(sub_p, f,  surf_p_c[0][sc]);
     } else {
-      surf_p_c[0][sc] = GetDomainFaceValue(*sub_p, f);
+      surf_p_c[0][sc] = GetDomainFaceValue(sub_p, f);
     }
   }
 }

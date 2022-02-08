@@ -117,7 +117,7 @@ set(ats_link_libs
   #ats_deform
   #ats_bgc
   #ats_surface_balance
-  #ats_mpc
+  ats_mpc
   #ats_mpc_relations
   )
 

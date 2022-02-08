@@ -75,10 +75,6 @@ class PK_Physical_Default : public PK_Physical {
 
  protected: // data
 
-  Teuchos::RCP<EvaluatorPrimaryCV>
-  RequireEvaluatorPrimary_(const Key& key, const Tag& tag);
-  void ChangedEvaluatorPrimary_(const Key& key, const Tag& tag);
-
   // step validity
   double max_valid_change_;
 

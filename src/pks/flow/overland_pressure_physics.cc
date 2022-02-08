@@ -5,6 +5,7 @@ License: BSD
 Authors: Ethan Coon (ecoon@lanl.gov)
 ----------------------------------------------------------------------------- */
 
+#include "pk_helpers.hh"
 #include "overland_pressure.hh"
 
 namespace Amanzi {
@@ -38,7 +39,7 @@ void OverlandPressureFlow::ApplyDiffusion_(const Tag& tag,
   auto pres_elev = S_->GetPtr<CompositeVector>(potential_key_, tag);
   auto flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
-  ChangedEvaluatorPrimary_(flux_key_, tag);
+  ChangedEvaluatorPrimary(flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres_elev, *g);

@@ -51,15 +51,14 @@ class DomainSetMPC : public MPC<PK> {
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& solution);
 
-  virtual ~DomainSetMPC() = default;
-
   // PK methods
   virtual double get_dt() override;
   virtual void set_dt(double dt) override;
+  virtual void set_tags(const Tag& current, const Tag& next) override;
+
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
   virtual bool ValidStep() override;
-  virtual void CommitStep(double t_old, double t_new,
-                          const Teuchos::RCP<State>& S) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
   bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);

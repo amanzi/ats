@@ -12,6 +12,8 @@
 
 #include "Evaluator.hh"
 #include "Op.hh"
+
+#include "pk_helpers.hh"
 #include "richards.hh"
 
 namespace Amanzi {
@@ -43,7 +45,7 @@ void Richards::ApplyDiffusion_(const Tag& tag,
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-  ChangedEvaluatorPrimary_(flux_key_, tag);
+  ChangedEvaluatorPrimary(flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);

@@ -25,6 +25,8 @@
 #include "upwind_total_flux.hh"
 #include "UpwindFluxFactory.hh"
 
+#include "pk_helpers.hh"
+
 #include "overland_pressure.hh"
 
 namespace Amanzi {
@@ -120,7 +122,7 @@ void OverlandPressureFlow::Setup()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  RequireEvaluatorPrimary_(conserved_key_, tag_current_);
+  RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
   // this pk uses density to invert for velocity from flux
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
@@ -317,7 +319,7 @@ void OverlandPressureFlow::SetupOverlandFlow_()
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  RequireEvaluatorPrimary_(flux_key_, tag_next_);
+  RequireEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   // velocity for diagnostics
   S_->Require<CompositeVector,CompositeVectorSpace>(velocity_key_, tag_next_,  name_)
@@ -368,7 +370,7 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
           tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_current_, name_);
-  RequireEvaluatorPrimary_(pd_key_, tag_current_);
+  RequireEvaluatorPrimary(pd_key_, tag_current_, *S_);
 
   // -- ponded depth bar (can be negative)
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
@@ -515,9 +517,9 @@ void OverlandPressureFlow::CommitStep(double t_old, double t_new,
 
   // also save conserved quantity and ponded depth
   S_->Copy(conserved_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary_(conserved_key_, tag_current_);
+  ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
   S_->Copy(pd_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary_(pd_key_, tag_current_);
+  ChangedEvaluatorPrimary(pd_key_, tag_current_, *S_);
 
   // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
   // update boundary conditions

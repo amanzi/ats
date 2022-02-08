@@ -366,7 +366,7 @@ void Richards::SetupRichardsFlow_()
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  RequireEvaluatorPrimary_(flux_key_, tag_next_);
+  RequireEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   // -- also need a velocity, but only for vis/diagnostics
   S_->Require<CompositeVector,CompositeVectorSpace>(velocity_key_, tag_next_,  name_)
@@ -417,7 +417,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  RequireEvaluatorPrimary_(conserved_key_, tag_current_);
+  RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
@@ -444,7 +444,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_current_, name_);
-  RequireEvaluatorPrimary_(sat_key_, tag_current_);
+  RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
 
   // -- rel perm
   std::vector<AmanziMesh::Entity_kind> locations2(2);
@@ -486,7 +486,7 @@ void Richards::SetupPhysicalEvaluators_()
 void Richards::Initialize()
 {
   // Initialize via hydrostatic balance
-  if (!S_->GetRecordW(key_, name_).initialized()) InitializeHydrostatic_(tag_next_);
+  if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) InitializeHydrostatic_(tag_next_);
 
   // Initialize in the standard ways
   PK_PhysicalBDF_Default::Initialize();
@@ -506,7 +506,7 @@ void Richards::Initialize()
 
   S_->GetW<CompositeVector>(flux_key_, tag_next_, name()).PutScalar(0.0);
   S_->GetRecordW(flux_key_, tag_next_, name()).set_initialized();
-  ChangedEvaluatorPrimary_(flux_key_, tag_next_);
+  ChangedEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name()).PutScalar(0.0);
   S_->GetRecordW(flux_dir_key_, tag_next_, name()).set_initialized();
@@ -669,12 +669,12 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
 
   // also save conserved quantity and saturation
   S_->Copy(conserved_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary_(conserved_key_, tag_current_);
+  ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
   S_->Copy(sat_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary_(sat_key_, tag_current_);
+  ChangedEvaluatorPrimary(sat_key_, tag_current_, *S_);
   if (S_->HasRecordSet(sat_ice_key_)) {
     S_->Copy(sat_ice_key_, tag_current_, tag_next_);
-    ChangedEvaluatorPrimary_(sat_ice_key_, tag_current_);
+    ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
   }
 
   // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME

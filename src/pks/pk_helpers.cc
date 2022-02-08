@@ -8,58 +8,10 @@
 */
 
 //! A set of helper functions for doing common things in PKs.
+#include "Mesh_Algorithms.hh"
 #include "pk_helpers.hh"
 
-
 namespace Amanzi {
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the corresponding face ID
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
-{
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return fmap.LID(bfmap.GID(bf));
-}
-
-// -----------------------------------------------------------------------------
-// Given a face ID, get the corresponding boundary face ID (assuming it is a bf)
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryBoundaryFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return bfmap.LID(fmap.GID(f));
-}
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the cell internal to that face.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
-{
-  return getFaceOnBoundaryInternalCell(mesh, getBoundaryFaceFace(mesh, bf));
-}
-
-
-// -----------------------------------------------------------------------------
-// Given a face ID, and assuming it is a boundary face, get the cell internal.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  AmanziMesh::Entity_ID_List cells;
-  mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-  if (cells.size() != 1) {
-    Errors::Message message("getFaceOnBoundaryInternalCell called with non-internal face "+std::to_string(f));
-    Exceptions::amanzi_throw(message);
-  }
-  return cells[0];
-}
-
 
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector.
@@ -123,7 +75,8 @@ getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const 
 // Get the directional int for a face that is on the boundary.
 // -----------------------------------------------------------------------------
 int
-getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f) {
+getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
+{
   AmanziMesh::Entity_ID_List cells;
   mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
   AMANZI_ASSERT(cells.size() == 1);
@@ -133,6 +86,59 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f) {
   return dirs[std::find(faces.begin(), faces.end(), f) - faces.begin()];
 }
 
+
+// -----------------------------------------------------------------------------
+// Get a primary variable evaluator for a key at tag
+// -----------------------------------------------------------------------------
+Teuchos::RCP<EvaluatorPrimaryCV>
+RequireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+{
+  // first check, is there one already
+  if (S.HasEvaluator(key, tag)) {
+    // if so, make sure it is primary
+    Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
+    Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
+      Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+    if (eval_pv == Teuchos::null) {
+      Errors::Message msg;
+      msg << "Expected primary variable evaluator for "
+          << key << " @ " << tag.get();
+      Exceptions::amanzi_throw(msg);
+    }
+    return eval_pv;
+  }
+
+  // if not, create one, only at this tag, not to be shared across tags.  By
+  // this, we mean we don't stick the "type" = "primary" back into the
+  // evaluator list -- this allows "copy evaluators" e.g. "water content at the
+  // old tag" to differ from the standard evalulator, e.g. "water content at
+  // the new tag" which is likely a secondary variable evaluator.
+  Teuchos::ParameterList plist(key);
+  plist.set("evaluator type", "primary variable");
+  plist.set("tag", tag.get());
+  auto eval_pv = Teuchos::rcp(new EvaluatorPrimaryCV(plist));
+  S.SetEvaluator(key, tag, eval_pv);
+  return eval_pv;
+}
+
+
+// -----------------------------------------------------------------------------
+// Marks a primary evaluator as changed.
+// -----------------------------------------------------------------------------
+void
+ChangedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+{
+  Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
+  Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
+    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+  if (eval_pv == Teuchos::null) {
+    Errors::Message msg;
+    msg << "Expected primary variable evaluator for "
+        << key << " @ " << tag.get();
+    Exceptions::amanzi_throw(msg);
+  }
+  eval_pv->SetChanged();
+}
 
 
 } // namespace Amanzi

@@ -53,7 +53,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   // construct the sub-PKs on COMM_SELF
   // FIXME: This should somehow get run on the DomainSet's entries Comms, not
   // on COMM_SELF! --etc
-  MPC<PK>::init_(S, getCommSelf());
+  MPC<PK>::init_(getCommSelf());
 
   // check whether we are subcycling
   subcycled_ = plist_->template get<bool>("subcycle subdomains", false);
@@ -94,6 +94,26 @@ void DomainSetMPC::set_dt(double dt)
     }
   }
 };
+
+
+// -----------------------------------------------------------------------------
+// Set tags for this and for subcycling
+// -----------------------------------------------------------------------------
+void DomainSetMPC::set_tags(const Tag& current, const Tag& next)
+{
+  if (subcycled_) {
+    PK::set_tags(current, next);
+    for (auto& pk : sub_pks_) {
+      // create tags for subcycling
+      Tag tag_subcycle_current(tag_current_.get()+" "+pk->name());
+      Tag tag_subcycle_next(tag_next_.get()+" "+pk->name());
+      pk->set_tags(tag_subcycle_current, tag_subcycle_next);
+    }
+  } else {
+    MPC<PK>::set_tags(current, next);
+  }
+}
+
 
 
 //-------------------------------------------------------------------------------------
@@ -149,50 +169,40 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
 
     bool done = false;
     double t_inner = t_old;
-    S_inter_->set_time(t_old);
+
+    Tag tag_subcycle_current(tag_current_.get()+" "+sub_pks_[i]->name());
+    Tag tag_subcycle_next(tag_next_.get()+" "+sub_pks_[i]->name());
+
+    S_->set_time(tag_subcycle_current, t_old);
     while (!done) {
       double dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
-      *S_next_->GetScalarData("dt", "coordinator") = dt_inner;
-      S_next_->set_time(t_inner + dt_inner);
+      S_->Assign("dt", tag_subcycle_next, "coordinator", dt_inner);
+      S_->set_time(tag_subcycle_next, t_inner + dt_inner);
       bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
       bool valid_inner = sub_pks_[i]->ValidStep();
       if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
         *vo_->os() << "  step valid? " << valid_inner << std::endl;
-
-        // DEBUGGING
-        // std::cout << ds_name_ << " (" << my_pid << ") Step: " << t_inner/86400.0 << " (" << dt_inner/86400.
-        //           << ") failed/!valid = " << fail_inner << "," << !valid_inner << std::endl;
-        // END DEBUGGING
       }
 
       if (fail_inner || !valid_inner) {
-        // FIXME: figure out a way to get child domains, rather than guess at these! --etc
-        S_next_->AssignDomain(*S_inter_, domain);
-        S_next_->AssignDomain(*S_inter_, "surface_"+domain);
-        S_next_->AssignDomain(*S_inter_, "snow_"+domain);
-        S_next_->AssignDomain(*S_inter_, "canopy_"+domain);
+        sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
 
         dt_inner = sub_pks_[i]->get_dt();
-        S_next_->set_time(S_inter_->time());
-        S_next_->set_cycle(S_inter_->cycle());
+        S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
 
       } else {
-        sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, S_next_);
+        sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
         t_inner += dt_inner;
         if (std::abs(t_new - t_inner) < 1.e-10) done = true;
 
-        // FIXME: figure out a way to get child domains, rather than guess at these! --etc
-        S_inter_->AssignDomain(*S_next_, domain);
-        S_inter_->AssignDomain(*S_next_, "surface_"+domain);
-        S_inter_->AssignDomain(*S_next_, "snow_"+domain);
+        S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
+        S_->advance_cycle(tag_subcycle_current);
 
-        S_inter_->set_time(S_next_->time());
-        S_inter_->set_cycle(S_next_->cycle());
         dt_inner = sub_pks_[i]->get_dt();
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
@@ -206,7 +216,7 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
     }
     i++;
   }
-  S_inter_->set_time(t_old);
+
   return false;
 }
 
@@ -225,15 +235,14 @@ DomainSetMPC::ValidStep()
 
 
 void
-DomainSetMPC::CommitStep(double t_old, double t_new,
-                         const Teuchos::RCP<State>& S)
+DomainSetMPC::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   // In the case of subcycling, the sub-PKs would call Commit a second time --
   // it was already called when the inner step was successful and commited.
   // Calling it a second time is bad because it messes up the nonlinear
   // solver's inner solution history.
   if (subcycled_) return;
-  else MPC<PK>::CommitStep(t_old, t_new, S);
+  else MPC<PK>::CommitStep(t_old, t_new, tag);
 }
 
 } // namespace Amanzi

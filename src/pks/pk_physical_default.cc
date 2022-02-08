@@ -11,6 +11,7 @@
 
 #include "EvaluatorPrimary.hh"
 #include "StateDefs.hh"
+#include "pk_helpers.hh"
 #include "pk_physical_default.hh"
 
 namespace Amanzi {
@@ -47,9 +48,9 @@ void PK_Physical_Default::Setup()
 
   // require primary variable evaluators
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_);
-  RequireEvaluatorPrimary_(key_, tag_next_);
+  RequireEvaluatorPrimary(key_, tag_next_, *S_);
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_current_, name_);
-  RequireEvaluatorPrimary_(key_, tag_current_);
+  RequireEvaluatorPrimary(key_, tag_current_, *S_);
 };
 
 
@@ -57,14 +58,14 @@ void PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   S_->GetW<CompositeVector>(key_, tag_current_, name_) =
     S_->Get<CompositeVector>(key_, tag_next_);
-  ChangedEvaluatorPrimary_(key_, tag_current_);
+  ChangedEvaluatorPrimary(key_, tag_current_, *S_);
 }
 
 void PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {
   S_->GetW<CompositeVector>(key_, tag_next_, name_) =
     S_->Get<CompositeVector>(key_, tag_current_);
-  ChangedEvaluatorPrimary_(key_, tag_next_);
+  ChangedEvaluatorPrimary(key_, tag_next_, *S_);
 }
 
 
@@ -100,7 +101,7 @@ bool PK_Physical_Default::ValidStep()
 // -----------------------------------------------------------------------------
 void PK_Physical_Default::ChangedSolutionPK(const Tag& tag)
 {
-  ChangedEvaluatorPrimary_(key_, tag);
+  ChangedEvaluatorPrimary(key_, tag, *S_);
 }
 
 
@@ -110,7 +111,7 @@ void PK_Physical_Default::ChangedSolutionPK(const Tag& tag)
 void PK_Physical_Default::Initialize()
 {
   // Get the record
-  Record& record = S_->GetRecordW(key_, tag_current_, name());
+  Record& record = S_->GetRecordW(key_, tag_next_, name());
 
   // Initialize the data
   if (!record.initialized()) {
@@ -135,54 +136,6 @@ void PK_Physical_Default::Initialize()
   // Push the data into the solution.
   solution_->SetData(record.GetPtrW<CompositeVector>(name()));
 };
-
-Teuchos::RCP<EvaluatorPrimaryCV>
-PK_Physical_Default::RequireEvaluatorPrimary_(const Key& key,
-        const Tag& tag)
-{
-  // first check, is there one already
-  if (S_->HasEvaluator(key, tag)) {
-    // if so, make sure it is primary
-    Teuchos::RCP<Evaluator> eval = S_->GetEvaluatorPtr(key, tag);
-    Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
-      Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
-    if (eval_pv == Teuchos::null) {
-      Errors::Message msg;
-      msg << "PK " << name() << " expected primary variable evaluator for "
-          << key << " @ " << tag.get();
-      Exceptions::amanzi_throw(msg);
-    }
-    return eval_pv;
-  }
-
-  // if not, create one, only at this tag, not to be shared across tags.  By
-  // this, we mean we don't stick the "type" = "primary" back into the
-  // evaluator list -- this allows "copy evaluators" e.g. "water content at the
-  // old tag" to differ from the standard evalulator, e.g. "water content at
-  // the new tag" which is likely a secondary variable evaluator.
-  Teuchos::ParameterList plist(key);
-  plist.set("evaluator type", "primary variable");
-  plist.set("tag", tag.get());
-  auto eval_pv = Teuchos::rcp(new EvaluatorPrimaryCV(plist));
-  S_->SetEvaluator(key, tag, eval_pv);
-  return eval_pv;
-}
-
-void
-PK_Physical_Default::ChangedEvaluatorPrimary_(const Key& key,
-        const Tag& tag)
-{
-  Teuchos::RCP<Evaluator> eval = S_->GetEvaluatorPtr(key, tag);
-  Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
-    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
-  if (eval_pv == Teuchos::null) {
-    Errors::Message msg;
-    msg << "PK " << name() << " expected primary variable evaluator for "
-        << key << " @ " << tag.get();
-    Exceptions::amanzi_throw(msg);
-  }
-  eval_pv->SetChanged();
-}
 
 
 } // namespace

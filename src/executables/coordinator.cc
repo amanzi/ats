@@ -167,8 +167,8 @@ double Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
-  // calling FailStep to copy old to new
-  pk_->FailStep(t0_, t0_, Amanzi::Tags::NEXT);
+  // calling CommitStep to copy new to old
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // Restart from checkpoint part 2:
   // -- load all other data
@@ -608,14 +608,14 @@ void Coordinator::cycle_driver() {
 #endif
     bool fail = false;
     while ((S_->get_time() < t1_) &&
-           ((cycle1_ == -1) || (S_->cycle() <= cycle1_)) &&
+           ((cycle1_ == -1) || (S_->get_cycle() <= cycle1_)) &&
            (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
            dt > 0.) {
       if (vo_->os_OK(Teuchos::VERB_LOW)) {
         Teuchos::OSTab tab = vo_->getOSTab();
         *vo_->os() << "======================================================================"
                   << std::endl << std::endl;
-        *vo_->os() << "Cycle = " << S_->cycle();
+        *vo_->os() << "Cycle = " << S_->get_cycle();
         *vo_->os() << ",  Time [days] = "<< std::setprecision(16) << S_->get_time() / (60*60*24);
         *vo_->os() << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)  << std::endl;
         *vo_->os() << "----------------------------------------------------------------------"
