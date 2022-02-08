@@ -1,0 +1,9 @@
+<ParameterList name="Main">
+  <Parameter name="WRM Type" type="string" value="Clapp Hornberger"/>
+  <Parameter name="Clapp Hornberger smpsat [Pa]" type="double" value="4689.0"/>
+  <Parameter name="Clapp Hornberger bsw [-]" type="double" value="5.39"/>
+  <Parameter name="residual saturation [-]" type="double" value="0.0"/>
+  <!-- inflection point, Si or PSIi, only one needed -->
+  <Parameter name="near-saturation smoothing interval [saturation]" type="double" value=".08" />
+  <Parameter name="near-saturation smoothing interval [Pa]" type="double" value="0.0" />
+</ParameterList>
