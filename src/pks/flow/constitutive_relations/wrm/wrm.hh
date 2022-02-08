@@ -19,7 +19,7 @@ WRMs are available in a collection of types:
 
      - `"van Genuchten`"
      - `"linear system`" saturation a linear function of pressure
-
+     - `"Clapp Hornberg"`
 */
 
 #ifndef AMANZI_FLOWRELATIONS_WRM_
