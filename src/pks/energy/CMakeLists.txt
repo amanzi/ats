@@ -6,7 +6,7 @@
 #
 
 # additional common components
-add_subdirectory(constitutive_relations)
+#add_subdirectory(constitutive_relations)
 
 # ATS include directories
 include_directories(${ATS_SOURCE_DIR}/src/pks)
@@ -24,19 +24,19 @@ set(ats_energy_src_files
   energy_base_pk.cc
   energy_base_physics.cc
   energy_base_ti.cc
-  energy_surface_ice.cc
-  energy_two_phase.cc
-  energy_three_phase.cc
-  energy_interfrost.cc
+  #energy_surface_ice.cc
+  #energy_two_phase.cc
+  #energy_three_phase.cc
+  #energy_interfrost.cc
   )
 
 set(ats_energy_inc_files
   energy_bc_factory.hh
   energy_base.hh
-  energy_surface_ice.hh
-  energy_two_phase.hh
-  energy_three_phase.hh
-  energy_interfrost.hh
+  #energy_surface_ice.hh
+  #energy_two_phase.hh
+  #energy_three_phase.hh
+  #energy_interfrost.hh
   )
 
 
@@ -56,7 +56,7 @@ set(ats_energy_link_libs
   ats_operators
   ats_eos
   ats_pks
-  ats_energy_relations
+  #ats_energy_relations
   )
 
 

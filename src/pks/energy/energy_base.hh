@@ -208,7 +208,7 @@ public:
           Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
-  virtual void CalculateConsistentFaces(const std::vector<CompositeVector*>& u);
+  virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
   ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
@@ -223,10 +223,10 @@ public:
   // -- get enthalpy as a function of Dirichlet boundary data.  Note that this
   //    will get replaced by a better system when we get maps on the boundary
   //    faces.
-  virtual void ApplyDirichletBCsToEnthalpy_();
+  virtual void ApplyDirichletBCsToEnthalpy_(const Tag& tag);
 
   // -- Add any source terms into the residual.
-  virtual void AddSources_(const Tag& tag, const std::vector<CompositeVector*>& f);
+  virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
   virtual void AddSourcesToPrecon_(const Tag& tag, double h);
 
   // Standard methods
@@ -242,15 +242,14 @@ public:
 
   // physical methods
   // -- accumulation of energy
-  virtual void AddAccumulation_(const std::vector<CompositeVector*>& f);
+  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- advection of enthalpy
   virtual void AddAdvection_(const Tag& tag,
-                             const std::vector<CompositeVector*>& f, bool negate);
+        const Teuchos::Ptr<CompositeVector>& g, bool negate);
 
   // -- diffusion of temperature
-  virtual void ApplyDiffusion_(const Tag& tag,
-          const std::vector<CompositeVector*>& f);
+  virtual void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
 
  protected:
   int niter_;
