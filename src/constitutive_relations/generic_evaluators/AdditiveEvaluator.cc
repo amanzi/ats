@@ -21,7 +21,13 @@ AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
 
   for (const auto& dep : dependencies_) {
     Key varname = Keys::getKey(dep.first, dep.second);
-    coefs_[varname] = plist.get<double>(varname+" coefficient", 1.0);
+    if (plist.isParameter(varname+" coefficient")) {
+      coefs_[varname] = plist.get<double>(varname+" coefficient");
+    } else if (plist.isParameter(dep.first+" coefficient")) {
+      coefs_[varname] = plist.get<double>(dep.first+" coefficient");
+    } else {
+      coefs_[varname] = 1.0;
+    }
   }
   shift_ = plist.get<double>("constant shift", 0.);
 }

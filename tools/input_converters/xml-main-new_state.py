@@ -35,6 +35,9 @@ def new_state(xml):
             pass
         else:
             fe_type.setName("evaluator type")
+
+    for eval_deps in asearch.findall_path(state_evals, ["evaluator dependencies"]):
+        eval_deps.setName("dependencies")
             
 def update(xml):
     """generic update calls all needed things""" 

@@ -1,18 +1,14 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-   ATS
+  Authors: Ethan Coon (coonet@ornl.gov)
+*/
 
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon, Adam Atchley, Satish Karra
+#include "pk_helpers.hh"
 
-   DOCUMENT ME
-   Surface Energy Balance for Snow Surface and Ground Surface
-   Calculates Energy flux, rate or water, and water temperature
-   entering through the surface skin.  Snow surface energy balance
-   is calculated at equilibrium with ground/surface water and Air.
-
-   ------------------------------------------------------------------------- */
 #include "surface_balance_base.hh"
 
 namespace Amanzi {
@@ -38,36 +34,62 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
   modify_predictor_positivity_preserving_ = plist_->get<bool>("modify predictor positivity preserving", false);
 
   theta_ = plist_->get<double>("time discretization theta", 1.0);
-  AMANZI_ASSERT(theta_ <= 1.);
-  AMANZI_ASSERT(theta_ >= 0.);
+  if (theta_ > 1 || theta_ < 0) {
+    Errors::Message message("SurfaceBalanceBase: \"time discretization theta\" value must be between 0 and 1.");
+    Exceptions::amanzi_throw(message);
+  }
 
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .01 * 55000.); // h * nl
 }
 
+
 // main methods
 // -- Setup data.
 void
-SurfaceBalanceBase::Setup(const Teuchos::Ptr<State>& S) {
-  PK_PhysicalBDF_Default::Setup(S);
+SurfaceBalanceBase::Setup()
+{
+  PK_PhysicalBDF_Default::Setup();
 
   // requirements: primary variable
-  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(mesh_)->
-      SetComponent("cell", AmanziMesh::CELL, 1);
+  //  NOTE: no need to require evaluator here, either at the old or new
+  //  times, as this was done in pk_physical.  All we have to do is set the
+  //  structure.
+  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_,  name_)
+    .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // requirements: source terms from above
   if (is_source_) {
-    S->Require<CompositeVector,CompositeVectorSpace>(source_key_, Tags::NEXT).SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireEvaluator(source_key_);
+    if (theta_ > 0) {
+      S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_)
+        .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+      S_->RequireEvaluator(source_key_, tag_next_);
+
+      if (is_source_differentiable_) {
+        S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_,
+                key_, tag_next_);
+      }
+    }
+    if (theta_ < 1) {
+      S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_current_)
+        .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+      S_->RequireEvaluator(source_key_, tag_current_);
+    }
   }
 
+  // requirements: conserved quantity at current and new times
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)
+    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireEvaluator(conserved_key_);
+    S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
+            tag_next_, key_, tag_next_);
+    S_->RequireEvaluator(conserved_key_, tag_next_);
+
+    //    and at the current time, where it is a copy evaluator
+    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
+    RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
   }
 
   // operator for inverse
@@ -83,15 +105,35 @@ SurfaceBalanceBase::Setup(const Teuchos::Ptr<State>& S) {
 }
 
 
+void SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag)
+{
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "Commiting state." << std::endl;
+
+  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
+  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
+  double dt = t_new - t_old;
+
+  // saves primary variable
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+
+  // also save conserved quantity and saturation
+  S_->Copy(conserved_key_, tag_current_, tag_next_);
+  ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+}
+
+
 // computes the non-linear functional g = g(t,u,udot)
 void
 SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                            Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) {
+                            Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
   double dt = t_new - t_old;
 
   // pointer-copy temperature into state and update any auxilary data
-  Solution_to_State(*u_new, S_next_);
+  Solution_to_State(*u_new, tag_next_);
 
   bool debug = false;
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) debug = true;
@@ -103,24 +145,24 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
     std::vector<std::string> vnames;
     std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
     vnames.push_back("u_old"); vnames.push_back("u_new");
-    vecs.push_back(S_inter_->GetPtr<CompositeVector>(key_).ptr());
+    vecs.push_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
     vecs.push_back(u_new->Data().ptr());
     db_->WriteVectors(vnames, vecs, true);
   }
 
   if (conserved_quantity_) {
-    S_next_->GetEvaluator(conserved_key_)->HasFieldChanged(S_next_.ptr(), name_);
-    S_inter_->GetEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-    Teuchos::RCP<const CompositeVector> conserved1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
-    Teuchos::RCP<const CompositeVector> conserved0 = S_inter_->GetPtr<CompositeVector>(conserved_key_);
-    g->Data()->Update(1.0/dt, *conserved1, -1.0/dt, *conserved0, 0.0);
+    S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
+    S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
+    auto& conserved1 = S_->Get<CompositeVector>(conserved_key_, tag_next_);
+    auto& conserved0 = S_->Get<CompositeVector>(conserved_key_, tag_current_);
+    g->Data()->Update(1.0/dt, conserved1, -1.0/dt, conserved0, 0.0);
 
     if (vo_->os_OK(Teuchos::VERB_HIGH)) {
       std::vector<std::string> vnames;
       std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
       vnames.push_back("C_old"); vnames.push_back("C_new");
-      vecs.push_back(S_inter_->GetPtr<CompositeVector>(conserved_key_).ptr());
-      vecs.push_back(S_next_->GetPtr<CompositeVector>(conserved_key_).ptr());
+      vecs.push_back(S_->GetPtr<CompositeVector>(conserved_key_, tag_current_).ptr());
+      vecs.push_back(S_->GetPtr<CompositeVector>(conserved_key_, tag_next_).ptr());
       db_->WriteVectors(vnames, vecs, true);
     }
   } else {
@@ -130,22 +172,23 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
   db_->WriteDivider();
   db_->WriteVector("res(acc)", g->Data().ptr());
 
-  S_next_->GetEvaluator(cell_vol_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> cv = S_next_->GetPtr<CompositeVector>(cell_vol_key_);
+  S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
+  auto& cv = S_->Get<CompositeVector>(cell_vol_key_, tag_next_);
 
   if (is_source_) {
     if (theta_ < 1.0) {
-      S_inter_->GetEvaluator(source_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-      g->Data()->Multiply(-(1.0 - theta_), *S_inter_->GetPtr<CompositeVector>(source_key_), *cv, 1.);
+      S_->GetEvaluator(source_key_, tag_current_).Update(*S_, name_);
+      g->Data()->Multiply(-(1.0 - theta_), S_->Get<CompositeVector>(source_key_, tag_current_), cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-        db_->WriteVector("source0", S_inter_->GetPtr<CompositeVector>(source_key_).ptr(), false);
+        db_->WriteVector("source0", S_->GetPtr<CompositeVector>(source_key_, tag_current_).ptr(), false);
       }
     }
+
     if (theta_ > 0.0) {
-      S_next_->GetEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
-      g->Data()->Multiply(-theta_, *S_next_->GetPtr<CompositeVector>(source_key_), *cv, 1.);
+      S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+      g->Data()->Multiply(-theta_, S_->Get<CompositeVector>(source_key_, tag_next_), cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-        db_->WriteVector("source1", S_next_->GetPtr<CompositeVector>(source_key_).ptr(), false);
+        db_->WriteVector("source1", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
       }
     }
     db_->WriteVector("res(source)", g->Data().ptr());
@@ -159,39 +202,38 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
         Teuchos::RCP<const TreeVector> up, double h) {
   // update state with the solution up.
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
-  PK_Physical_Default::Solution_to_State(*up, S_next_);
+  PK_Physical_Default::Solution_to_State(*up, tag_next_);
 
   if (conserved_quantity_) {
     preconditioner_->Init();
 
     // add derivative of conserved quantity wrt primary
-    S_next_->GetEvaluator(conserved_key_)
-        ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-    auto dconserved_dT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(conserved_key_, key_));
+    S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+    auto dconserved_dT = S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_);
     db_->WriteVector("d(cons)/d(prim)", dconserved_dT.ptr());
     preconditioner_acc_->AddAccumulationTerm(*dconserved_dT, h, "cell", false);
 
     // add derivative of source wrt primary
     if (theta_ > 0. && is_source_ && is_source_differentiable_ &&
-        S_next_->GetEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
 
       Teuchos::RCP<const CompositeVector> dsource_dT;
       if (!source_finite_difference_) {
         // evaluate the derivative through chain rule and the DAG
-        S_next_->GetEvaluator(source_key_)->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-        dsource_dT = S_next_->GetPtrW<CompositeVector>(Keys::getDerivKey(source_key_,key_));
+        S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+        dsource_dT = S_->GetDerivativePtr<CompositeVector>(source_key_, tag_next_, key_, tag_next_);
       } else {
         // evaluate the derivative through finite differences
-        S_next_->GetW<CompositeVector>(key_, name_).Shift(eps_);
+        S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps_);
         ChangedSolution();
-        S_next_->GetEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
-        auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S_next_->GetPtr<CompositeVector>(source_key_)));
+        S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+        auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
 
-        S_next_->GetW<CompositeVector>(key_, name_).Shift(-eps_);
+        S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(-eps_);
         ChangedSolution();
-        S_next_->GetEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
+        S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
 
-        dsource_dT_nc->Update(-1/eps_, *S_next_->GetPtr<CompositeVector>(source_key_), 1/eps_);
+        dsource_dT_nc->Update(-1/eps_, S_->Get<CompositeVector>(source_key_, tag_next_), 1/eps_);
         dsource_dT = dsource_dT_nc;
       }
 
@@ -204,7 +246,8 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
 
 // applies preconditioner to u and returns the result in Pu
 int SurfaceBalanceBase::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-        Teuchos::RCP<TreeVector> Pu) {
+        Teuchos::RCP<TreeVector> Pu)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
 
@@ -214,7 +257,7 @@ int SurfaceBalanceBase::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
     db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
   } else {
     *Pu = *u;
-    Pu->Scale(S_->get_time(tag_next_) - S_->get_time(tag_inter_));
+    Pu->Scale(S_->get_time(tag_next_) - S_->get_time(tag_current_));
   }
   return 0;
 }

@@ -349,18 +349,15 @@ void Richards::SetupRichardsFlow_()
 
   // Require fields and evaluators
   // -- pressure, the primary variable
+  //  NOTE: no need to require evaluator for p here, either at the old or new
+  //  times, as this was done in pk_physical.  All we have to do is set the
+  //  structure.
   CompositeVectorSpace matrix_cvs = matrix_->RangeMap();
   compute_boundary_values_ = plist_->get<bool>("compute boundary values", false);
   if (compute_boundary_values_)
     matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_, name_)
     .Update(matrix_cvs)->SetGhosted();
-  //  NOTE: no need to require evaluator for p here, this was done in pk_physical
-
-  // -- make a copy of pressure at the old time for backup
-  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_)
-    .Update(matrix_cvs)->SetGhosted();
-  S_->RequireEvaluator(key_, tag_current_);
 
   // -- flux is managed here as a primary variable
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_, name_)

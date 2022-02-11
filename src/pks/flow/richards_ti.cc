@@ -46,7 +46,7 @@ void Richards::FunctionalResidual(double t_old,
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
   std::vector<std::string> vnames{"p_old", "p_new"};
-  std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
   vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
   vecs.emplace_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
