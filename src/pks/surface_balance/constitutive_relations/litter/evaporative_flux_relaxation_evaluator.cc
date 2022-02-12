@@ -13,8 +13,8 @@
     evalName = evaporative_flux_relaxation
     modelMethodDeclaration =   double EvaporativeFlux(double wc, double rho, double L) const;
     myKeyMethod = EvaporativeFlux
-    myMethodArgs = wc_v[0][i], rho_v[0][i], L_v[0][i]  
-  
+    myMethodArgs = wc_v[0][i], rho_v[0][i], L_v[0][i]
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
@@ -35,15 +35,6 @@ EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(Teuchos::
 }
 
 
-// Copy constructor
-EvaporativeFluxRelaxationEvaluator::EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other) :
-    EvaluatorSecondaryMonotypeCV(other),
-    wc_key_(other.wc_key_),
-    rho_key_(other.rho_key_),
-    L_key_(other.L_key_),    
-    model_(other.model_) {}
-
-
 // Virtual copy constructor
 Teuchos::RCP<Evaluator>
 EvaporativeFluxRelaxationEvaluator::Clone() const
@@ -58,54 +49,47 @@ EvaporativeFluxRelaxationEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  std::size_t end = my_key_.find_first_of("_");
-  std::string domain_name = my_key_.substr(0,end);
-
-  std::string my_key_first("evaporative");
-  if (domain_name == my_key_first) {
-    domain_name = std::string("");
-  } else {
-    domain_name = domain_name+std::string("_");
-  }
+  std::string domain_name = Keys::getDomain(my_keys_.front().first);
+  auto tag = my_keys_.front().second;
 
   // - pull Keys from plist
   // dependency: litter_water_content
-  wc_key_ = plist_.get<std::string>("litter water content key",
-          domain_name+std::string("water_content"));
-  dependencies_.insert(wc_key_);
+  wc_key_ = Keys::readKey(plist_, domain_name, "litter water content", "water_content");
+  dependencies_.insert(KeyTag{wc_key_, tag});
 
   // dependency: surface_molar_density_liquid
-  rho_key_ = plist_.get<std::string>("molar density liquid key",
-          domain_name+std::string("molar_density_liquid"));
-
-  dependencies_.insert(rho_key_);
+  rho_key_ = Keys::readKey(plist_, domain_name, "molar density liquid", "molar_density_liquid");
+  dependencies_.insert(KeyTag{rho_key_, tag});
 
   // dependency: litter_thickness
-  L_key_ = plist_.get<std::string>("litter thickness key",
-          domain_name+std::string("thickness"));
+  thickness_key_ = Keys::readKey(plist_, domain_name, "litter thickness", "thickness");
+  dependencies_.insert(KeyTag{thickness_key_, tag});
 
-  dependencies_.insert(L_key_);
+  // dependency: cell volume
+  cv_key_ = Keys::readKey(plist_, domain_name, "cell volume", "cell_volume");
+  dependencies_.insert(KeyTag{cv_key_, tag});
 }
 
 
 void
-EvaporativeFluxRelaxationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+EvaporativeFluxRelaxationEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  Teuchos::RCP<const CompositeVector> wc = S->GetPtr<CompositeVector>("litter_water_content");
-  Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>("surface_molar_density_liquid");
-  Teuchos::RCP<const CompositeVector> L = S->GetPtr<CompositeVector>("litter_thickness");
-  Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>("surface_cell_volume");
+  auto tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> wc = S.GetPtr<CompositeVector>(wc_key_, tag);
+  Teuchos::RCP<const CompositeVector> rho = S.GetPtr<CompositeVector>(rho_key_, tag);
+  Teuchos::RCP<const CompositeVector> L = S.GetPtr<CompositeVector>(thickness_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
     const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
     const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
     const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = model_->EvaporativeFlux(wc_v[0][i] / cv_v[0][i], rho_v[0][i], L_v[0][i]);
     }
@@ -114,61 +98,59 @@ EvaporativeFluxRelaxationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-EvaporativeFluxRelaxationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  Teuchos::RCP<const CompositeVector> wc = S->GetPtr<CompositeVector>("litter_water_content");
-  Teuchos::RCP<const CompositeVector> rho = S->GetPtr<CompositeVector>("surface_molar_density_liquid");
-  Teuchos::RCP<const CompositeVector> L = S->GetPtr<CompositeVector>("litter_thickness");
-  Teuchos::RCP<const CompositeVector> cv = S->GetPtr<CompositeVector>("surface_cell_volume");
+  auto tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> wc = S.GetPtr<CompositeVector>(wc_key_, tag);
+  Teuchos::RCP<const CompositeVector> rho = S.GetPtr<CompositeVector>(rho_key_, tag);
+  Teuchos::RCP<const CompositeVector> L = S.GetPtr<CompositeVector>(thickness_key_, tag);
+  Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
-  if (wrt_key == "litter_water_content") {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+  if (wrt_key == wc_key_) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
       const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DEvaporativeFluxDLitterWaterContent(wc_v[0][i] / cv_v[0][i], rho_v[0][i], L_v[0][i]) / cv_v[0][i];
       }
     }
 
-  } else if (wrt_key == "surface_molar_density_liquid") {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+  } else if (wrt_key == rho_key_) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
       const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DEvaporativeFluxDSurfaceMolarDensityLiquid(wc_v[0][i] / cv_v[0][i], rho_v[0][i], L_v[0][i]);
       }
     }
 
-  } else if (wrt_key == "litter_thickness") {
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+  } else if (wrt_key == thickness_key_) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
       const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
       const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
       const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         result_v[0][i] = model_->DEvaporativeFluxDLitterThickness(wc_v[0][i] / cv_v[0][i], rho_v[0][i], L_v[0][i]);
       }
     }
-
-  } else {
-    AMANZI_ASSERT(0);
   }
 }
 

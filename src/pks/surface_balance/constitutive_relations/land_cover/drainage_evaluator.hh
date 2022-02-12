@@ -63,11 +63,13 @@ class DrainageEvaluator : public EvaluatorSecondaryMonotypeCV {
   DrainageEvaluator(const DrainageEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) override;
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key drainage_key_;

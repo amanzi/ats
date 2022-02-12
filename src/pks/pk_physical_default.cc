@@ -56,10 +56,18 @@ void PK_Physical_Default::Setup()
 
 void PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  S_->GetW<CompositeVector>(key_, tag_current_, name_) =
-    S_->Get<CompositeVector>(key_, tag_next_);
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "Commiting state." << std::endl;
+
+  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
+  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
+  double dt = t_new - t_old;
+
+  S_->Assign(key_, tag_current_, tag_next_);
   ChangedEvaluatorPrimary(key_, tag_current_, *S_);
 }
+
 
 void PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {

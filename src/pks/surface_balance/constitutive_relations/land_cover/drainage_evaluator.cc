@@ -14,22 +14,27 @@ namespace Relations {
 DrainageEvaluator::DrainageEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-  Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
+  Key akey = my_keys_.front().first;
+  Tag tag = my_keys_.front().second;
+  Key domain = Keys::getDomain(akey);
+  my_keys_.clear();
 
-  drainage_key_ = Keys::readKey(plist_, domain, "drainage", "drainage");
-  my_keys_.emplace_back((drainage_key_);
+  drainage_key_ = Keys::in(akey, "drainage") ? akey : "drainage";
+  drainage_key_ = Keys::readKey(plist_, domain, "drainage", drainage_key_);
+  my_keys_.emplace_back(KeyTag{drainage_key_, tag});
 
-  fracwet_key_ = Keys::readKey(plist_, domain, "fraction wet", "fracwet");
-  my_keys_.emplace_back((fracwet_key_);
+  fracwet_key_ = Keys::in(akey, "fracwet") ? akey : "fracwet";
+  fracwet_key_ = Keys::readKey(plist_, domain, "fraction wet", fracwet_key_);
+  my_keys_.emplace_back(KeyTag{fracwet_key_, tag});
 
   // Set up my dependencies.
   // -- the extent of material, LAI for
   ai_key_ = Keys::readKey(plist_, domain, "area index", "area_index");
-  dependencies_.insert(ai_key_);
+  dependencies_.insert(KeyTag{ai_key_, tag});
 
   // -- water equivalent of the layer drained, in m^3 water per m^2 grid cell area
   wc_key_ = Keys::readKey(plist_, domain, "water equivalent", "water_equivalent");
-  dependencies_.insert(wc_key_);
+  dependencies_.insert(KeyTag{wc_key_, tag});
 
   // parameters for the drainage model
   tau_ = plist_.get<double>("drainage timescale [s]", 864);
@@ -50,14 +55,15 @@ Teuchos::RCP<Evaluator> DrainageEvaluator::Clone() const
 }
 
 
-void DrainageEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+void DrainageEvaluator::Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results)
 {
+  Tag tag = my_keys_.front().second;
   // Pull dependencies out of state.
   const Epetra_MultiVector& wc =
-      *S->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
+      *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell",false);
   const Epetra_MultiVector& ai =
-      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
+      *S.Get<CompositeVector>(ai_key_, tag).ViewComponent("cell",false);
 
   Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell",false);
   Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell",false);
@@ -85,14 +91,17 @@ void DrainageEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-DrainageEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results)
+DrainageEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results)
 {
+  Tag tag = my_keys_.front().second;
+
   // Pull dependencies out of state.
   const Epetra_MultiVector& wc =
-      *S->Get<CompositeVector>(wc_key_).ViewComponent("cell",false);
+      *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell",false);
   const Epetra_MultiVector& ai =
-      *S->Get<CompositeVector>(ai_key_).ViewComponent("cell",false);
+      *S.Get<CompositeVector>(ai_key_, tag).ViewComponent("cell",false);
 
   Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell",false);
   Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell",false);

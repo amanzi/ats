@@ -114,28 +114,27 @@ namespace Relations {
 
 class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  SEBThreeComponentEvaluator(Teuchos::ParameterList& plist);
+  explicit SEBThreeComponentEvaluator(Teuchos::ParameterList& plist);
   SEBThreeComponentEvaluator(const SEBThreeComponentEvaluator& other) = default;
-
-  virtual Teuchos::RCP<Evaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new SEBThreeComponentEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-
  protected:
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
 
   // this is non-standard practice.  Implementing UpdateFieldDerivative_ to
   // override the default chain rule behavior, instead doing a numerical
   // finite difference
-  virtual void UpdateFieldDerivative_(const Teuchos::Ptr<State>& S, Key wrt_key);
+  virtual void UpdateFieldDerivative_(const State& S, const Key& wrt_key, const Tag& wrt_tag);
 
  protected:
   Key water_source_key_, energy_source_key_;

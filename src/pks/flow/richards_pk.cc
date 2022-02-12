@@ -665,12 +665,12 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
 
   // also save conserved quantity and saturation
-  S_->Copy(conserved_key_, tag_current_, tag_next_);
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
   ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  S_->Copy(sat_key_, tag_current_, tag_next_);
+  S_->Assign(sat_key_, tag_current_, tag_next_);
   ChangedEvaluatorPrimary(sat_key_, tag_current_, *S_);
   if (S_->HasRecordSet(sat_ice_key_)) {
-    S_->Copy(sat_ice_key_, tag_current_, tag_next_);
+    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
     ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
   }
 

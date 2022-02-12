@@ -21,35 +21,38 @@ SnowMeltRateEvaluator::SnowMeltRateEvaluator(Teuchos::ParameterList& plist) :
   melt_rate_ = plist.get<double>("snow melt rate [mm day^-1 C^-1]", 2.74) * 0.001 / 86400.; // convert mm/day to m/s
   snow_temp_shift_ = plist.get<double>("air-snow temperature difference [C]", 2.0); // snow is typically a few degrees colder than air at melt time
 
-  domain_ = Keys::getDomain(my_key_);
+  Tag tag = my_keys_.front().second;
+  domain_ = Keys::getDomain(my_keys_.front().first);
   domain_surf_ = Keys::readDomainHint(plist_, domain_, "snow", "surface");
 
   temp_key_ = Keys::readKey(plist, domain_surf_, "air temperature", "air_temperature");
-  dependencies_.insert(temp_key_);
+  dependencies_.insert(KeyTag{temp_key_, tag});
 
   snow_key_ = Keys::readKey(plist, domain_, "snow water equivalent", "water_equivalent");
-  dependencies_.insert(snow_key_);
+  dependencies_.insert(KeyTag{snow_key_, tag});
 }
 
 void
-SnowMeltRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+SnowMeltRateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // new state!
-  land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
+  land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
                              {"snow_transition_depth"});
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility(S);
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
 }
+
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-SnowMeltRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+SnowMeltRateEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  auto mesh = S->GetMesh(domain_);
+  Tag tag = my_keys_.front().second;
+  auto mesh = S.GetMesh(domain_);
 
-  const auto& air_temp = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
-  const auto& swe = *S->Get<CompositeVector>(snow_key_).ViewComponent("cell", false);
-  auto& res = *result->ViewComponent("cell", false);
+  const auto& air_temp = *S.Get<CompositeVector>(temp_key_, tag).ViewComponent("cell", false);
+  const auto& swe = *S.Get<CompositeVector>(snow_key_, tag).ViewComponent("cell", false);
+  auto& res = *result[0]->ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
@@ -73,13 +76,14 @@ SnowMeltRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-SnowMeltRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+SnowMeltRateEvaluator::EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  auto mesh = S->GetMesh(domain_);
-  const auto& air_temp = *S->Get<CompositeVector>(temp_key_).ViewComponent("cell", false);
-  const auto& swe = *S->Get<CompositeVector>(snow_key_).ViewComponent("cell", false);
-  auto& res = *result->ViewComponent("cell", false);
+  Tag tag = my_keys_.front().second;
+  auto mesh = S.GetMesh(domain_);
+  const auto& air_temp = *S.Get<CompositeVector>(temp_key_, tag).ViewComponent("cell", false);
+  const auto& swe = *S.Get<CompositeVector>(snow_key_, tag).ViewComponent("cell", false);
+  auto& res = *result[0]->ViewComponent("cell", false);
 
   if (wrt_key == temp_key_) {
     for (const auto& lc : land_cover_) {

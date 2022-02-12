@@ -34,11 +34,13 @@ namespace Relations {
 LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-  auto domain = Keys::getDomain(my_key_);
+  auto domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
+
   air_temp_key_ = Keys::readKey(plist, domain, "air temperature", "air_temperature");
-  dependencies_.insert(air_temp_key_);
+  dependencies_.insert(KeyTag{air_temp_key_, tag});
   rel_hum_key_ = Keys::readKey(plist, domain, "relative humidity", "relative_humidity");
-  dependencies_.insert(rel_hum_key_);
+  dependencies_.insert(KeyTag{rel_hum_key_, tag});
 
   min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   scale_ = plist.get<double>("scaling factor [-]", 1.0);
@@ -46,12 +48,13 @@ LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-LongwaveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+LongwaveEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  const auto& air_temp = *S->Get<CompositeVector>(air_temp_key_).ViewComponent("cell", false);
-  const auto& rel_hum = *S->Get<CompositeVector>(rel_hum_key_).ViewComponent("cell", false);
-  auto& res = *result->ViewComponent("cell", false);
+  Tag tag = my_keys_.front().second;
+  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
+  const auto& rel_hum = *S.Get<CompositeVector>(rel_hum_key_, tag).ViewComponent("cell", false);
+  auto& res = *result[0]->ViewComponent("cell", false);
 
   for (int c=0; c!=res.MyLength(); ++c) {
     res[0][c] = scale_ * Relations::IncomingLongwaveRadiation(air_temp[0][c], std::max(min_rel_hum_, rel_hum[0][c]));

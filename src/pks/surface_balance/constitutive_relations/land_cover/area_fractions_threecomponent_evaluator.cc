@@ -29,24 +29,26 @@ AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(Teuch
   }
 
   // get domain names
-  domain_ = Keys::getDomain(my_key_); // surface
+  domain_ = Keys::getDomain(my_keys_.front().first); // surface
   domain_snow_ = Keys::readDomainHint(plist_, domain_, "surface", "snow");
+  auto tag = my_keys_.front().second;
 
   snow_depth_key_ = Keys::readKey(plist_, domain_snow_, "snow depth", "depth");
-  dependencies_.insert(snow_depth_key_);
+  dependencies_.insert(KeyTag{snow_depth_key_, tag});
   ponded_depth_key_ = Keys::readKey(plist_, domain_, "ponded depth", "ponded_depth");
-  dependencies_.insert(ponded_depth_key_);
+  dependencies_.insert(KeyTag{ponded_depth_key_, tag});
 }
 
 
 void
-AreaFractionsThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  auto mesh = result->Mesh();
-  auto& res = *result->ViewComponent("cell",false);
-  const auto& sd = *S->Get<CompositeVector>(snow_depth_key_).ViewComponent("cell",false);
-  const auto& pd = *S->Get<CompositeVector>(ponded_depth_key_).ViewComponent("cell",false);
+  auto tag = my_keys_.front().second;
+  auto mesh = result[0]->Mesh();
+  auto& res = *result[0]->ViewComponent("cell",false);
+  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell",false);
+  const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell",false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
@@ -135,39 +137,24 @@ AreaFractionsThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& 
 }
 
 void
-AreaFractionsThreeComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+AreaFractionsThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
             {"snow_transition_depth", "water_transition_depth"});
 
-
-  // see if we can find a master fac
-  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
-  my_fac->SetMesh(S->GetMesh(domain_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 3);
-
-  // Check plist for vis or checkpointing control.
-  bool io_my_key = plist_.get<bool>("visualize", true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-
-  for (auto dep_key : dependencies_) {
-    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(dep_key, Tags::NEXT);
-    if (Keys::getDomain(dep_key) == domain_snow_) {
-      fac->SetMesh(S->GetMesh(domain_snow_))
+  auto tag = my_keys_.front().second;
+  for (auto& dep : dependencies_) {
+    auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
+    if (Keys::getDomain(dep.first) == domain_snow_) {
+      fac.SetMesh(S.GetMesh(domain_snow_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
     } else {
-      fac->SetMesh(S->GetMesh(domain_))
+      fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
     }
-
-    // Recurse into the tree to propagate info to leaves.
-    S->RequireEvaluator(dep_key)->EnsureCompatibility(S);
   }
 }
 

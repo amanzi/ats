@@ -375,20 +375,16 @@ void EnergyBase::Initialize() {
 // -----------------------------------------------------------------------------
 void EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
-
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
-
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+
+  double dt = t_new - t_old;
+
   // also save conserved quantity
-  S_->Copy(conserved_key_, tag_current_, tag_next_);
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
   ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
+  // BEGIN LIKELY UNNECESSARY DEAD CODE --ETC
   bc_temperature_->Compute(S_->get_time(tag));
   bc_diff_flux_->Compute(S_->get_time(tag));
   bc_flux_->Compute(S_->get_time(tag));
@@ -420,6 +416,7 @@ void EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag)
       matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
     }
   }
+  // END LIKELY UNNECESSARY DEAD CODE --ETC
 }
 
 bool EnergyBase::UpdateConductivityData_(const Tag& tag) {

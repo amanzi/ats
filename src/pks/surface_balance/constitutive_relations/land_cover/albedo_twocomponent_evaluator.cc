@@ -20,26 +20,34 @@ AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList&
     EvaluatorSecondaryMonotypeCV(plist)
 {
   // determine the domain
-  domain_ = Keys::getDomain(Keys::cleanPListName(plist_));
+  Key akey = my_keys_.front().first;
+  domain_ = Keys::getDomain(akey);
   domain_snow_ = Keys::readDomainHint(plist_, domain_, "surface", "snow");
+  auto tag = my_keys_.front().second;
 
   // my keys
   // -- sources
-  albedo_key_ = Keys::readKey(plist, domain_, "albedos", "albedos");
-  my_keys_.emplace_back((albedo_key_);
-  emissivity_key_ = Keys::readKey(plist, domain_, "emissivities", "emissivities");
-  my_keys_.emplace_back((emissivity_key_);
+  my_keys_.clear();
+  albedo_key_ = Keys::in(akey, "albedo") ? akey : "albedos";
+  albedo_key_ = Keys::readKey(plist, domain_, "albedos", albedo_key_);
+  my_keys_.emplace_back(KeyTag{albedo_key_, tag});
+
+  emissivity_key_ = Keys::in(akey, "emissivit") ? akey : "emissivities";
+  emissivity_key_ = Keys::readKey(plist, domain_, "emissivities", emissivity_key_);
+  my_keys_.emplace_back(KeyTag{emissivity_key_, tag});
 
   // dependencies
   // -- snow properties
   snow_dens_key_ = Keys::readKey(plist, domain_snow_, "snow density", "density");
-  dependencies_.insert(snow_dens_key_);
+  dependencies_.insert(KeyTag{snow_dens_key_, tag});
+
+  // -- skin properties
+  unfrozen_fraction_key_ = Keys::readKey(plist, domain_, "unfrozen fraction", "unfrozen_fraction");
+  dependencies_.insert(KeyTag{unfrozen_fraction_key_, tag});
 
   // -- skin properties
   ponded_depth_key_ = Keys::readKey(plist, domain_, "ponded depth", "ponded_depth");
-  dependencies_.insert(ponded_depth_key_);
-  unfrozen_fraction_key_ = Keys::readKey(plist, domain_, "unfrozen fraction", "unfrozen_fraction");
-  dependencies_.insert(unfrozen_fraction_key_);
+  dependencies_.insert(KeyTag{ponded_depth_key_, tag});
 
   // parameters
   a_ice_ = plist_.get<double>("albedo ice [-]", 0.44);
@@ -52,15 +60,16 @@ AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList&
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-AlbedoTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+AlbedoTwoComponentEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& results)
 {
-  auto mesh = S->GetMesh(domain_);
+  auto mesh = S.GetMesh(domain_);
+  auto tag = my_keys_.front().second;
 
   // collect dependencies
-  const auto& snow_dens = *S->Get<CompositeVector>(snow_dens_key_).ViewComponent("cell",false);
-  const auto& ponded_depth = *S->Get<CompositeVector>(ponded_depth_key_).ViewComponent("cell",false);
-  const auto& unfrozen_fraction = *S->Get<CompositeVector>(unfrozen_fraction_key_).ViewComponent("cell",false);
+  const auto& snow_dens = *S.Get<CompositeVector>(snow_dens_key_, tag).ViewComponent("cell",false);
+  const auto& ponded_depth = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell",false);
+  const auto& unfrozen_fraction = *S.Get<CompositeVector>(unfrozen_fraction_key_, tag).ViewComponent("cell",false);
 
   // collect output vecs
   auto& albedo = *results[0]->ViewComponent("cell",false);
@@ -96,58 +105,33 @@ AlbedoTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 void
-AlbedoTwoComponentEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) {}
+AlbedoTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results) {}
 
 
 void
-AlbedoTwoComponentEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+AlbedoTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // new state!
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
             {"emissivity_ground", "albedo_ground"});
 
   CompositeVectorSpace domain_fac;
-  domain_fac.SetMesh(S->GetMesh(domain_))
+  domain_fac.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   CompositeVectorSpace domain_fac_snow;
-  domain_fac_snow.SetMesh(S->GetMesh(domain_snow_))
+  domain_fac_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   CompositeVectorSpace domain_fac_owned;
-  domain_fac_owned.SetMesh(S->GetMesh(domain_))
+  domain_fac_owned.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
       ->SetComponent("cell", AmanziMesh::CELL, 2);
-
-  // see if we can find a master fac
-  for (auto my_key : my_keys_) {
-    // Ensure my field exists, and claim ownership.
-    auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key, Tags::NEXT,  my_key);
-    my_fac->Update(domain_fac_owned);
-
-    // Check plist for vis or checkpointing control.
-    bool io_my_key = plist_.get<bool>("visualize", true);
-    S->GetField(my_key, my_key)->set_io_vis(io_my_key);
-    bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-    S->GetField(my_key, my_key)->set_io_checkpoint(checkpoint_my_key);
-  }
-
-  // Loop over dependencies, making sure they are the same mesh
-  for (auto key : dependencies_) {
-    auto fac = S->Require<CompositeVector,CompositeVectorSpace>(key, Tags::NEXT);
-    if (Keys::starts_with(key, domain_snow_)) {
-      fac->Update(domain_fac_snow);
-    } else {
-      fac->Update(domain_fac);
-    }
-
-    // Recurse into the tree to propagate info to leaves.
-    S->RequireEvaluator(key)->EnsureCompatibility(S);
-  }
 }
 
 }  // namespace Relations

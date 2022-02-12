@@ -29,8 +29,7 @@ changed on the input line.
 
    * `"micropore domain`" ``[string]`` **DOMAIN** Defaults to the domain of the flux's
      variable name.
-
-   * `"macropore domain`" ``[string]`` **macropore**
+   * `"macropore domain`" ``[string]`` **MACROPORE_DOMAIN** Guesses based off of DOMAIN
 
    * `"micropore macropore flux model parameters`" ``[micropore-macropore-flux-model-spec]``
 
@@ -57,23 +56,22 @@ class MicroporeMacroporeFluxModel;
 class MicroporeMacroporeFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  MicroporeMacroporeFluxEvaluator(Teuchos::ParameterList& plist);
-  MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other);
-
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  explicit MicroporeMacroporeFluxEvaluator(Teuchos::ParameterList& plist);
+  MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<MicroporeMacroporeFluxModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key pm_key_;
   Key pM_key_;
   Key krM_key_;

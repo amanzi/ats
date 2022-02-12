@@ -51,22 +51,22 @@ class PlantWiltingFactorModel;
 class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist);
+  explicit PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist);
   PlantWiltingFactorEvaluator(const PlantWiltingFactorEvaluator& other) = default;
-
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+ protected:
   Key pc_key_;
-
   Key domain_surf_;
   Key domain_sub_;
 

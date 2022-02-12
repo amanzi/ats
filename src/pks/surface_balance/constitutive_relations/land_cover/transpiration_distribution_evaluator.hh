@@ -92,25 +92,25 @@ namespace Relations {
 class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
+  explicit TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
-
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
-
-  // need a custom EnsureCompatibility as some vectors cross meshes.
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
+  // need a custom EnsureCompatibility as some vectors cross meshes.
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   void InitializeFromPlist_();
   bool TranspirationPeriod_(double time, double leaf_on_doy, double leaf_off_doy);
 
+ protected:
   Key domain_surf_;
   Key domain_sub_;
 
@@ -129,7 +129,6 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  private:
   static Utils::RegisteredFactory<Evaluator,TranspirationDistributionEvaluator> reg_;
-
 };
 
 } //namespace

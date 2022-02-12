@@ -93,26 +93,22 @@ double latentHeatVaporization_snow(double temp_air);
 class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
+  explicit PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
   PETPriestleyTaylorEvaluator(const PETPriestleyTaylorEvaluator& other) = default;
-
   virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new PETPriestleyTaylorEvaluator(*this));
   }
 
+ protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
-
-
- protected:
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
-
   Key domain_;
   Key evap_type_;
   Key air_temp_key_;

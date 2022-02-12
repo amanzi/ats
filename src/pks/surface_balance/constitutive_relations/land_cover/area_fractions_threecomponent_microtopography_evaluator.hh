@@ -55,27 +55,24 @@ namespace Relations {
 class AreaFractionsThreeComponentMicrotopographyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  AreaFractionsThreeComponentMicrotopographyEvaluator(Teuchos::ParameterList& plist);
+  explicit AreaFractionsThreeComponentMicrotopographyEvaluator(Teuchos::ParameterList& plist);
   AreaFractionsThreeComponentMicrotopographyEvaluator(const AreaFractionsThreeComponentMicrotopographyEvaluator& other) = default;
-
-  virtual Teuchos::RCP<Evaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new AreaFractionsThreeComponentMicrotopographyEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
-
  protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
     Exceptions::amanzi_throw("NotImplemented: AreaFractionsThreeComponentMicrotopographyEvaluator currently does not provide derivatives.");
   }
 
  protected:
-
   Key domain_, domain_snow_;
   Key ponded_depth_key_, snow_depth_key_, vol_snow_depth_key_;
   Key delta_max_key_, delta_ex_key_;

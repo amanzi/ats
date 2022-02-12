@@ -65,10 +65,10 @@ public:
 
   // main methods
   // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
 
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
           Teuchos::RCP<TreeVector> u) override;
@@ -82,13 +82,10 @@ public:
                    Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new,  const Teuchos::RCP<State>& S) override;
+  virtual void CommitStep(double t_old, double t_new,  const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new,  const Tag& tag) override;
 
  protected:
-  // multiple primary variables
-  Teuchos::RCP<EvaluatorPrimary> pvfe_snow_dens_;
-  Teuchos::RCP<EvaluatorPrimary> pvfe_snow_death_rate_;
-
   Key snow_dens_key_;
   Key snow_age_key_;
   Key new_snow_key_;

@@ -34,24 +34,22 @@ namespace Relations {
 class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  LongwaveEvaluator(Teuchos::ParameterList& plist);
+  explicit LongwaveEvaluator(Teuchos::ParameterList& plist);
   LongwaveEvaluator(const LongwaveEvaluator& other) = default;
-
-  virtual Teuchos::RCP<Evaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new LongwaveEvaluator(*this));
   }
 
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
     Exceptions::amanzi_throw("NotImplemented: LongwaveEvaluator currently does not provide derivatives.");
   }
 
  protected:
-
   Key air_temp_key_, rel_hum_key_;
   double min_rel_hum_, scale_;
 

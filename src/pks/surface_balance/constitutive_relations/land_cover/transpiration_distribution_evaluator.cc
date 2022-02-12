@@ -37,8 +37,9 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  domain_sub_ = Keys::getDomain(my_key_);
+  domain_sub_ = Keys::getDomain(my_keys_.front().first);
   domain_surf_ = Keys::readDomainHint(plist_, domain_sub_, "domain", "surface");
+  Tag tag = my_keys_.front().second;
 
   limiter_local_ = false;
   if (plist_.isSublist("water limiter function")) {
@@ -51,21 +52,21 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
   // - pull Keys from plist
   // dependency: pressure
   f_wp_key_ = Keys::readKey(plist_, domain_sub_, "plant wilting factor", "plant_wilting_factor");
-  dependencies_.insert(f_wp_key_);
+  dependencies_.insert(KeyTag{f_wp_key_, tag});
 
   // dependency: rooting_depth_fraction
   f_root_key_ = Keys::readKey(plist_, domain_sub_, "rooting depth fraction", "rooting_depth_fraction");
-  dependencies_.insert(f_root_key_);
+  dependencies_.insert(KeyTag{f_root_key_, tag});
 
   // dependency: transpiration
   potential_trans_key_ = Keys::readKey(plist_, domain_surf_, "potential transpiration", "potential_transpiration");
-  dependencies_.insert(potential_trans_key_);
+  dependencies_.insert(KeyTag{potential_trans_key_, tag});
 
   // dependency: cell volume, surface cell volume
   cv_key_ = Keys::readKey(plist_, domain_sub_, "cell volume", "cell_volume");
-  dependencies_.insert(cv_key_);
+  dependencies_.insert(KeyTag{cv_key_, tag});
   surf_cv_key_ = Keys::readKey(plist_, domain_surf_, "surface cell volume", "cell_volume");
-  dependencies_.insert(surf_cv_key_);
+  dependencies_.insert(KeyTag{surf_cv_key_, tag});
 
   year_duration_ = plist_.get<double>("year duration", 1.0);
   std::string year_duration_units = plist_.get<std::string>("year duration units", "noleap");
@@ -78,23 +79,25 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
 
 
 void
-TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+TranspirationDistributionEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
+  Tag tag = my_keys_.front().second;
+
   // on the subsurface
-  const Epetra_MultiVector& f_wp = *S->Get<CompositeVector>(f_wp_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& f_root = *S->Get<CompositeVector>(f_root_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S->Get<CompositeVector>(cv_key_).ViewComponent("cell", false);
+  const Epetra_MultiVector& f_wp = *S.Get<CompositeVector>(f_wp_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& f_root = *S.Get<CompositeVector>(f_root_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
 
   // on the surface
-  const Epetra_MultiVector& potential_trans = *S->Get<CompositeVector>(potential_trans_key_).ViewComponent("cell", false);
-  const Epetra_MultiVector& surf_cv = *S->Get<CompositeVector>(surf_cv_key_).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result->ViewComponent("cell", false);
+  const Epetra_MultiVector& potential_trans = *S.Get<CompositeVector>(potential_trans_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& surf_cv = *S.Get<CompositeVector>(surf_cv_key_, tag).ViewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
 
-  double p_atm = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
+  double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  auto& subsurf_mesh = *S->GetMesh(domain_sub_);
-  auto& surf_mesh = *S->GetMesh(domain_surf_);
+  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
+  auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   result_v.PutScalar(0.);
   for (const auto& region_lc : land_cover_) {
@@ -102,7 +105,7 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     surf_mesh.get_set_entities(region_lc.first, AmanziMesh::Entity_kind::CELL,
                            AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
-    if (TranspirationPeriod_(S->get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
+    if (TranspirationPeriod_(S.get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
       for (int sc : lc_ids) {
         double column_total = 0.;
         double f_root_total = 0.;
@@ -139,68 +142,42 @@ TranspirationDistributionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-TranspirationDistributionEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+TranspirationDistributionEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  result->PutScalar(0.); // this would be a nontrivial calculation, as it is technically nonlocal due to rescaling issues?
+  result[0]->PutScalar(0.); // this would be a nontrivial calculation, as it is technically nonlocal due to rescaling issues?
 }
 
 
 void
-TranspirationDistributionEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
+  Tag tag = my_keys_.front().second;
+
   // new state!
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
             {"leaf_on_doy", "leaf_off_doy"});
 
-  // Ensure my field exists.  Requirements should be already set.
-  AMANZI_ASSERT(!my_key_.empty());
-  auto my_fac = S->Require<CompositeVector,CompositeVectorSpace>(my_key_, Tags::NEXT,  my_key_);
-
-  // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>("visualize", true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-
-  Key domain = Keys::getDomain(my_key_);
-  my_fac->SetMesh(S->GetMesh(domain))
-    ->SetComponent("cell", AmanziMesh::CELL, 1)
-    ->SetGhosted(true);
+  Key domain = Keys::getDomain(my_keys_.front().first);
 
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh
-  CompositeVectorSpace dep_fac(*my_fac);
-  dep_fac.SetOwned(false);
-  S->Require<CompositeVector,CompositeVectorSpace>(f_root_key_, Tags::NEXT).Update(dep_fac);
-
-  CompositeVectorSpace dep_fac_one;
-  dep_fac_one.SetMesh(my_fac->Mesh())
-    ->SetGhosted(true)
+  CompositeVectorSpace dep_fac;
+  dep_fac.SetMesh(S.GetMesh(domain))
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->Require<CompositeVector,CompositeVectorSpace>(f_wp_key_, Tags::NEXT).Update(dep_fac_one);
-  S->Require<CompositeVector,CompositeVectorSpace>(cv_key_, Tags::NEXT).Update(dep_fac_one);
+  S.Require<CompositeVector,CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector,CompositeVectorSpace>(f_wp_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag).Update(dep_fac);
 
   // -- next those on the surface mesh
   CompositeVectorSpace surf_fac;
-  surf_fac.SetMesh(S->GetMesh(Keys::getDomain(surf_cv_key_)))
-    ->SetGhosted(true)
+  surf_fac.SetMesh(S.GetMesh(Keys::getDomain(surf_cv_key_)))
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->Require<CompositeVector,CompositeVectorSpace>(potential_trans_key_, Tags::NEXT).Update(surf_fac);
-
-  CompositeVectorSpace surf_fac_one;
-  surf_fac_one.SetMesh(S->GetMesh(Keys::getDomain(surf_cv_key_)))
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->Require<CompositeVector,CompositeVectorSpace>(surf_cv_key_, Tags::NEXT).Update(surf_fac_one);
-
-  // Recurse into the tree to propagate info to leaves.
-  for (KeySet::const_iterator key=dependencies_.begin();
-       key!=dependencies_.end(); ++key) {
-    S->RequireEvaluator(*key)->EnsureCompatibility(S);
-  }
+  S.Require<CompositeVector,CompositeVectorSpace>(potential_trans_key_, tag).Update(surf_fac);
+  S.Require<CompositeVector,CompositeVectorSpace>(surf_cv_key_, tag).Update(surf_fac);
 }
+
 
 bool
 TranspirationDistributionEvaluator::TranspirationPeriod_(double time, double leaf_on_doy, double leaf_off_doy)

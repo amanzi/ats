@@ -50,23 +50,22 @@ namespace Relations {
 
 class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  RadiationBalanceEvaluator(Teuchos::ParameterList& plist);
+  explicit RadiationBalanceEvaluator(Teuchos::ParameterList& plist);
   RadiationBalanceEvaluator(const RadiationBalanceEvaluator& other) = default;
-
   virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new RadiationBalanceEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
-
  protected:
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) override;
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key domain_surf_;

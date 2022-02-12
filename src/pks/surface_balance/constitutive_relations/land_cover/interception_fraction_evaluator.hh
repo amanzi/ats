@@ -48,23 +48,23 @@ class InterceptionFractionModel;
 class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  InterceptionFractionEvaluator(Teuchos::ParameterList& plist);
+  explicit InterceptionFractionEvaluator(Teuchos::ParameterList& plist);
   InterceptionFractionEvaluator(const InterceptionFractionEvaluator& other) = default;
-
   virtual Teuchos::RCP<Evaluator> Clone() const override;
-
-  // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) override;
 
   Teuchos::RCP<InterceptionFractionModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key ai_key_;
   Key rain_key_;
   Key snow_key_;
