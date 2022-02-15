@@ -157,16 +157,16 @@ VolumetricDeformation::Setup()
     case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
       S_->Require<CompositeVector,CompositeVectorSpace>(sat_liq_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(sat_liq_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(sat_liq_key_, tag_current_);
       S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(sat_ice_key_, tag_current_);
       S_->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(sat_gas_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(sat_gas_key_, tag_current_);
       S_->Require<CompositeVector,CompositeVectorSpace>(poro_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(poro_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(poro_key_, tag_current_);
       break;
     }
     default: {
@@ -188,7 +188,7 @@ VolumetricDeformation::Setup()
 
   // require a copy at the old tag
   S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_current_);
-  // RequireEvaluatorPrimary(cv_key_, tag_current_, *S_);
+  // S_->RequireEvaluator(cv_key_, tag_current_);
 
   // Strategy-specific setup
   switch (strategy_) {
@@ -211,11 +211,11 @@ VolumetricDeformation::Setup()
     case (DEFORM_STRATEGY_MSTK) : {
       S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(sat_ice_key_, tag_current_);
 
       S_->Require<CompositeVector,CompositeVectorSpace>(poro_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // RequireEvaluatorPrimary(poro_key_, tag_current_, *S_);
+      // S_->RequireEvaluator(poro_key_, tag_current_);
       break;
     }
 

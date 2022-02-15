@@ -109,15 +109,11 @@ SurfaceBalanceCLM::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>(surf_water_src_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(surf_water_src_key_, tag_current_,  name_);
-  RequireEvaluatorPrimary(surf_water_src_key_, tag_current_, *S_);
 
   // -- subsurface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
   S_->Require<CompositeVector,CompositeVectorSpace>(ss_water_src_key_, tag_next_,  name_)
     .SetMesh(subsurf_mesh)->SetComponent("cell", AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(ss_water_src_key_, tag_current_,  name_);
-  RequireEvaluatorPrimary(ss_water_src_key_, tag_current_, *S_);
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);

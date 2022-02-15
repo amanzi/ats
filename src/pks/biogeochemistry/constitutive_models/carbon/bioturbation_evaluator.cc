@@ -14,43 +14,39 @@ namespace Amanzi {
 namespace BGC {
 namespace BGCRelations {
 
-BioturbationEvaluator::BioturbationEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist) {
+BioturbationEvaluator::BioturbationEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
+  Tag tag = my_keys_.front().second;
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
 
-  carbon_key_ = plist_.get<std::string>("SOM key", "soil_organic_matter");
-  dependencies_.insert(carbon_key_);
-  diffusivity_key_ = plist_.get<std::string>("cryoturbation diffusivity key", "cryoturbation_diffusivity");
-  dependencies_.insert(diffusivity_key_);
+  carbon_key_ = Keys::readKey(plist_, domain_name, "soil organic matter", "soil_organic_matter");
+  dependencies_.insert(KeyTag{carbon_key_, tag});
 
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("divergence of bioturbation fluxes",
-            "div_bioturbation");
-  }
+  diffusivity_key_ = Keys::readKey(plist_, domain_name, "cryoturbation diffusivity", "cryoturbation_diffusivity");
+  dependencies_.insert(KeyTag{diffusivity_key_, tag});
 }
 
 
-BioturbationEvaluator::BioturbationEvaluator(const BioturbationEvaluator& other) :
-    EvaluatorSecondaryMonotypeCV(other),
-    carbon_key_(other.carbon_key_),
-    diffusivity_key_(other.diffusivity_key_) {}
-
 Teuchos::RCP<Evaluator>
-BioturbationEvaluator::Clone() const {
+BioturbationEvaluator::Clone() const
+{
   return Teuchos::rcp(new BioturbationEvaluator(*this));
 }
 
 
 // Required methods from EvaluatorSecondaryMonotypeCV
-void BioturbationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-
-  Teuchos::RCP<const CompositeVector> carbon_cv = S->GetPtr<CompositeVector>(carbon_key_);
+void BioturbationEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  auto carbon_cv = S.GetPtr<CompositeVector>(carbon_key_, tag);
   const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
-  
+
   const Epetra_MultiVector& carbon = *carbon_cv->ViewComponent("cell",false);
-  const Epetra_MultiVector& diff = *S->GetPtr<CompositeVector>(diffusivity_key_)
+  const Epetra_MultiVector& diff = *S.GetPtr<CompositeVector>(diffusivity_key_, tag)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
+  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell",false);
 
   // iterate over columns of the mesh
   int ncolumns = mesh.num_columns();
@@ -67,7 +63,7 @@ void BioturbationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       double my_z = mesh.cell_centroid(*c)[2];
       double dz_up = 0.;
       double dz_dn = 0.;
-      
+
       if (ci != 0) {
         double my_z = mesh.cell_centroid(*c)[2];
         int c_up = col[ci-1];
@@ -93,14 +89,16 @@ void BioturbationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         res_c[p][*c] = (dC_dn[p] - dC_up[p]) / dz;
       }
     }
-    
+
   }
 }
 
 
-void BioturbationEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S,
-    Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void BioturbationEvaluator::EvaluatePartialDerivative_(
+    const State& S,
+    const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result)
+{
   AMANZI_ASSERT(0);
 }
 

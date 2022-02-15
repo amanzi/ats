@@ -122,7 +122,7 @@ void OverlandPressureFlow::Setup()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  //RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  // S_->RequireEvaluator(conserved_key_, tag_current_);
 
   // this pk uses density to invert for velocity from flux
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
@@ -370,7 +370,7 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
           tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_current_, name_);
-  //RequireEvaluatorPrimary(pd_key_, tag_current_, *S_);
+  // S_->RequireEvaluator(pd_key_, tag_current_);
 
   // -- ponded depth bar (can be negative)
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)

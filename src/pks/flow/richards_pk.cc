@@ -414,7 +414,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  //RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  //S_->RequireEvaluator(conserved_key_, tag_current_);
 
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
@@ -441,7 +441,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_current_, name_);
-  //RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  // S_->RequireEvaluator(sat_key_, tag_current_);
 
   // -- rel perm
   std::vector<AmanziMesh::Entity_kind> locations2(2);

@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
@@ -73,7 +73,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
   - `"surface-relative_humidity`" `[-]`
   - `"surface-wind_speed`" `[m s^-1]`
   - `"surface-co2_concentration`" `[ppm]`
-  
+
 */
 
 #ifndef PKS_BGC_SIMPLE_HH_
@@ -95,7 +95,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
 
 namespace Amanzi {
 namespace BGC {
-  
+
 class BGCSimple : public PK_Physical_Default {
 
  public:
@@ -103,38 +103,34 @@ class BGCSimple : public PK_Physical_Default {
   BGCSimple(Teuchos::ParameterList& pk_tree,
             const Teuchos::RCP<Teuchos::ParameterList>& glist,
             const Teuchos::RCP<State>& S,
-
             const Teuchos::RCP<TreeVector>& solution);
 
   // is a PK
   // -- Setup data
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
   // -- provide a timestep size
-  virtual double get_dt() {
+  virtual double get_dt() override {
     return dt_;
   }
-  virtual void set_dt(double dt) {
+  virtual void set_dt(double dt) override {
     dt_ = dt;
   }
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {}
+  virtual void CalculateDiagnostics(const Tag& tag) override {}
 
   // -- advance the model
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
-
-  virtual std::string name(){return "BGC simple";};
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
   friend class FATES_PK;
 
-  
  protected:
   void FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec,
                      Teuchos::Ptr<Epetra_SerialDenseVector> col_vec,
@@ -145,24 +141,21 @@ class BGCSimple : public PK_Physical_Default {
                    Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                    Teuchos::Ptr<Epetra_SerialDenseVector> dz);
 
-
  protected:
   double dt_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_;
   Key domain_surf_;
-  
+
   // physical structs needed by model
   std::vector<Teuchos::RCP<SoilCarbonParameters> > sc_params_;
   std::vector<std::vector<Teuchos::RCP<PFT> > > pfts_;       // this also contains state data!
   std::vector<std::vector<Teuchos::RCP<PFT> > > pfts_old_;   // need two copies for failed timesteps
   std::vector<std::vector<Teuchos::RCP<SoilCarbon> > > soil_carbon_pools_;
 
-  // evaluator for transpiration
-  Teuchos::RCP<EvaluatorPrimary> trans_eval_;
-  Teuchos::RCP<EvaluatorPrimary> sw_eval_;
-  Teuchos::RCP<EvaluatorPrimary> lai_eval_;
-  
   // extras
+  int num_pools_;
+  int num_pfts_;
+  int num_cols_;
   double lat_;
   double wind_speed_ref_ht_;
   double cryoturbation_coef_;
