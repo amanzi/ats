@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-#include "ReconstructionCell.hh"
+#include "ReconstructionCellGrad.hh"
 #include "OperatorDefs.hh"
 #include "transport_ats.hh"
 
@@ -32,7 +32,7 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
   Teuchos::ParameterList recon_list = plist_->sublist("reconstruction");
   lifting_->Init(recon_list);
-  lifting_->ComputeGradient(component_tmp);
+  lifting_->ComputePoly(component_tmp);
 
   // extract boundary conditions for the current component
   std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
@@ -126,9 +126,9 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
 
   for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity
-    double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
-    if ((*ws_start)[0][c] < 1e-12)
-      vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
+    double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+    if ((*ws_current)[0][c] < 1e-12)
+      vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
 
     if (vol_phi_ws_den > water_tolerance_){
       f_component[c] /= vol_phi_ws_den;
@@ -149,9 +149,9 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
           if (c2 >= 0 && f < nfaces_owned) {
             double u = fabs((*flux_)[0][f]);
-            double vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_start)[0][c2] * (*mol_dens_start)[0][c2];
-            if ((*ws_start)[0][c2] < 1e-12)
-              vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_end)[0][c2] * (*mol_dens_end)[0][c2];
+            double vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_current)[0][c2] * (*mol_dens_current)[0][c2];
+            if ((*ws_current)[0][c2] < 1e-12)
+              vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_next)[0][c2] * (*mol_dens_next)[0][c2];
 
             double tcc_flux = u * values[i];
             if (vol_phi_ws_den > water_tolerance_ ){
