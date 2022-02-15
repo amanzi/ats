@@ -50,7 +50,7 @@ void Permafrost::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  // RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
@@ -81,9 +81,9 @@ void Permafrost::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_current_, name_);
-  RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  // RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_current_, name_);
-  RequireEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+  // RequireEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
 
   // -- the rel perm evaluator, also with the same underlying WRM.
   std::vector<AmanziMesh::Entity_kind> locations2(2);

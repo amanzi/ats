@@ -89,7 +89,7 @@ SurfaceBalanceBase::Setup()
 
     //    and at the current time, where it is a copy evaluator
     S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-    RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+    //RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
   }
 
   // operator for inverse
@@ -112,7 +112,7 @@ void SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag)
 
   // also save conserved quantity and saturation
   S_->Assign(conserved_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  //ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 }
 
 

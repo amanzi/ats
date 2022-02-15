@@ -113,7 +113,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (vo_->os_OK(Teuchos::VERB_LOW))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_->get_time()
+               << "Advancing: t0 = " << S_->get_time(tag_current_)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 

@@ -414,7 +414,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  //RequireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
@@ -441,7 +441,7 @@ void Richards::SetupPhysicalEvaluators_()
 
   //    and at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_current_, name_);
-  RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  //RequireEvaluatorPrimary(sat_key_, tag_current_, *S_);
 
   // -- rel perm
   std::vector<AmanziMesh::Entity_kind> locations2(2);
@@ -665,13 +665,16 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
 
   // also save conserved quantity and saturation
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  S_->Assign(sat_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  if (!S_->HasEvaluator(conserved_key_, tag_current_))
+    S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  if (!S_->HasEvaluator(sat_key_, tag_current_))
+    S_->Assign(sat_key_, tag_current_, tag_next_);
+  // ChangedEvaluatorPrimary(sat_key_, tag_current_, *S_);
   if (S_->HasRecordSet(sat_ice_key_)) {
-    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
-    ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+    if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
+      S_->Assign(sat_ice_key_, tag_current_, tag_next_);
+    // ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
   }
 
   // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME

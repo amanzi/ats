@@ -43,13 +43,13 @@ set(ats_surface_balance_src_files
   surface_balance_implicit_subgrid.cc
 )
 
-# if (ENABLE_CLM)
-#   list(APPEND ats_surface_balance_src_files
-#     CLM/ats_clm.F90
-#     CLM/ats_clm_interface.cc
-#     CLM/surface_balance_CLM.cc
-#     )
-# endif()
+if (ENABLE_CLM)
+  list(APPEND ats_surface_balance_src_files
+    CLM/ats_clm.F90
+    CLM/ats_clm_interface.cc
+    CLM/surface_balance_CLM.cc
+    )
+endif()
 
 set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/seb_physics_defs.hh
@@ -86,14 +86,14 @@ set(ats_surface_balance_inc_files
   surface_balance_implicit_subgrid.hh
 )  
 
-# if (ENABLE_CLM)
-#   list(APPEND ats_surface_balance_inc_files
-#     CLM/ats_clm.F90
-#     CLM/surface_balance_CLM.hh
-#     CLM/ats_clm_interface.hh
-#     CLM/ats_clm_interface_private.hh
-#     )
-# endif()
+if (ENABLE_CLM)
+  list(APPEND ats_surface_balance_inc_files
+    CLM/ats_clm.F90
+    CLM/surface_balance_CLM.hh
+    CLM/ats_clm_interface.hh
+    CLM/ats_clm_interface_private.hh
+    )
+endif()
 
 set(ats_surface_balance_link_libs
   ${Teuchos_LIBRARIES}
@@ -138,12 +138,12 @@ register_evaluator_with_factory(
   LISTNAME ATS_SURFACE_BALANCE_REG
 )
 
-# if (ENABLE_CLM)
-#   register_evaluator_with_factory(
-#     HEADERFILE CLM/surface_balance_CLM_reg.hh
-#     LISTNAME ATS_SURFACE_BALANCE_REG
-#     )
-# endif()
+if (ENABLE_CLM)
+  register_evaluator_with_factory(
+    HEADERFILE CLM/surface_balance_CLM_reg.hh
+    LISTNAME ATS_SURFACE_BALANCE_REG
+    )
+endif()
 
 register_evaluator_with_factory(
   HEADERFILE surface_balance_base_reg.hh

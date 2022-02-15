@@ -4,17 +4,14 @@
 #  ATS
 #    Deformation PK class
 #
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations/porosity)
 include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 
 set(ats_deform_src_files
-  constitutive_relations/porosity/porosity_evaluator.cc
   volumetric_deformation.cc
   )
 
 set(ats_deform_inc_files
-  constitutive_relations/porosity/porosity_evaluator.hh
   volumetric_deformation.hh
   )
 
@@ -48,9 +45,6 @@ register_evaluator_with_factory(
   HEADERFILE volumetric_deformation_reg.hh
   LISTNAME  ATS_DEFORMATION_REG)
 
-register_evaluator_with_factory(
-  HEADERFILE constitutive_relations/porosity/porosity_evaluator_reg.hh
-  LISTNAME  ATS_DEFORMATION_REG)
 generate_evaluators_registration_header(
   HEADERFILE ats_deformation_registration.hh
   LISTNAME   ATS_DEFORMATION_REG
