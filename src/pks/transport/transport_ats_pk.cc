@@ -124,7 +124,6 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   prev_saturation_key_ = Keys::readKey(*plist_, domain_, "previous saturation liquid", "prev_saturation_liquid");
   flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   permeability_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
-  tcc_key_ = Keys::readKey(*plist_, domain_, "concentration", "total_component_concentration");
   conserve_qty_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "total_component_quantity");
   porosity_key_ = Keys::readKey(*plist_, domain_, "porosity", "porosity");
   molar_density_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
@@ -157,10 +156,9 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
     Exceptions::amanzi_throw(msg);
   }
 
-  const auto& tcc_fac = S->RequireField(tcc_key_)->SetMesh(mesh_)->SetGhosted(true);
   name_ = "state"; // note: this is required because the chemistry PK is Amanzi code and uses this.
-  S->RequireField(tcc_key_, name_, subfield_names)
-      ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
+  S->RequireField(tcc_key_, name_, subfield_names)->SetMesh(mesh_)->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
@@ -175,7 +173,8 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   S->RequireField(solid_residue_mass_key_,  name_, subfield_names)
     ->SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, ncomponents);
-
+  
+  
   // This vector stores the conserved amount (in mols) of ncomponent
   // transported components, plus two for water.  The first water component is
   // given by the water content (in mols) at the old time plus dt * all fluxes
@@ -188,6 +187,8 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   S->RequireField(conserve_qty_key_, name_, subfield_names)
     ->SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, ncomponents+2);
+
+
 
   // require state fields
   if (abs_perm) {
