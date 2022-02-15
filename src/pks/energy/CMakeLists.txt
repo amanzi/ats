@@ -69,20 +69,20 @@ add_amanzi_library(ats_energy
 
 #================================================
 # register evaluators/factories/pks
-register_evaluator_with_factory(
-  HEADERFILE energy_surface_ice_reg.hh
-  LISTNAME   ATS_ENERGY_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE energy_surface_ice_reg.hh
+#   LISTNAME   ATS_ENERGY_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE energy_three_phase_reg.hh
-  LISTNAME   ATS_ENERGY_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE energy_three_phase_reg.hh
+#   LISTNAME   ATS_ENERGY_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE energy_two_phase_reg.hh
-  LISTNAME   ATS_ENERGY_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE energy_two_phase_reg.hh
+#   LISTNAME   ATS_ENERGY_PKS_REG
+#   )
 
 generate_evaluators_registration_header(
   HEADERFILE ats_energy_pks_registration.hh

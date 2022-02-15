@@ -37,10 +37,10 @@ include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurf
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
@@ -114,8 +114,8 @@ set(ats_link_libs
   #ats_energy_relations
   ats_flow
   ats_flow_relations
-  #ats_deform
-  #ats_bgc
+  ats_deform
+  ats_bgc
   ats_surface_balance
   ats_mpc
   #ats_mpc_relations
