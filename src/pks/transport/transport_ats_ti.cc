@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-#include "ReconstructionCell.hh"
+#include "ReconstructionCellGrad.hh"
 #include "OperatorDefs.hh"
 #include "transport_ats.hh"
 
@@ -32,7 +32,7 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
   Teuchos::ParameterList recon_list = plist_->sublist("reconstruction");
   lifting_->Init(recon_list);
-  lifting_->ComputeGradient(component_tmp);
+  lifting_->Compute(component_tmp);
 
   // extract boundary conditions for the current component
   std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
@@ -56,8 +56,8 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
   }
 
   limiter_->Init(recon_list, flux_);
-  limiter_->ApplyLimiter(component_tmp, 0, lifting_->gradient(), bc_model, bc_value);
-  limiter_->gradient()->ScatterMasterToGhosted("cell");
+  limiter_->ApplyLimiter(component_tmp, 0, lifting, bc_model, bc_value);
+  lifting_->data()->ScatterMasterToGhosted("cell");
 
   // ADVECTIVE FLUXES
   // We assume that limiters made their job up to round-off errors.

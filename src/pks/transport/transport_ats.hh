@@ -257,7 +257,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "MaterialProperties.hh"
 #include "PK.hh"
 #include "PK_Factory.hh"
-#include "ReconstructionCell.hh"
+#include "ReconstructionCellGrad.hh"
 #include "State.hh"
 #include "Tensor.hh"
 #include "Units.hh"
@@ -499,7 +499,7 @@ protected:
   Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_start, mol_dens_subcycle_end;
 
   int current_component_;  // data for lifting
-  Teuchos::RCP<Operators::ReconstructionCell> lifting_;
+  Teuchos::RCP<Operators::ReconstructionCellGrad> lifting_;
   Teuchos::RCP<Operators::LimiterCell> limiter_;
 
   std::vector<Teuchos::RCP<TransportDomainFunction> > srcs_;  // Source or sink for components
