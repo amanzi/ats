@@ -10,7 +10,7 @@ Process kernel for energy equation for Richard's flow.
 ------------------------------------------------------------------------- */
 
 
-#include "eos_evaluator_tp.hh"
+#include "eos_evaluator.hh"
 #include "iem_evaluator.hh"
 #include "thermal_conductivity_twophase_evaluator.hh"
 #include "enthalpy_evaluator.hh"
@@ -37,22 +37,27 @@ TwoPhase::TwoPhase(Teuchos::ParameterList& FElist,
 // Create the physical evaluators for energy, enthalpy, thermal
 // conductivity, and any sources.
 // -------------------------------------------------------------
-void TwoPhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
+void TwoPhase::SetupPhysicalEvaluators_() {
   // Get data and evaluators needed by the PK
-  // -- energy, the conserved quantity
-  S->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireEvaluator(conserved_key_);
+  // -- energy, energy evaluator, and energy derivative
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
+    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(conserved_key_, tag_next_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_, key_, tag_next_);
+
+  // energy at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
 
   // -- thermal conductivity
-  S->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, Tags::NEXT).SetMesh(mesh_)
+  // move evaluator from PK plist to State
+  if (plist_->isSublist("thermal conductivity evaluator")) {
+    auto& tcm_plist = S_->GetEvaluatorList(conductivity_key_);
+    tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
+    tcm_plist.set("evaluator type", "thermal conductivity");
+  }
+  S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  Teuchos::ParameterList tcm_plist =
-    plist_->sublist("thermal conductivity evaluator");
-  tcm_plist.set("evaluator name", conductivity_key_);
-  Teuchos::RCP<Energy::ThermalConductivityTwoPhaseEvaluator> tcm =
-    Teuchos::rcp(new Energy::ThermalConductivityTwoPhaseEvaluator(tcm_plist));
-  S->SetEvaluator(conductivity_key_, tcm);
+  S_->RequireEvaluator(conductivity_key_, tag_next_);
 
 }
 
