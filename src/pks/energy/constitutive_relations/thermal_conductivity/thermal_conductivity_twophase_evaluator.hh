@@ -36,6 +36,8 @@ class ThermalConductivityTwoPhaseEvaluator :
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
 
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
  protected:
   std::vector<RegionModelPair> tcs_;
 

@@ -70,6 +70,8 @@ class RichardsEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
 
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
   void InitializeFromPlist_();
 
   Key phi_key_;
