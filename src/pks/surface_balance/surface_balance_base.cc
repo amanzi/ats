@@ -144,7 +144,7 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
 
   if (conserved_quantity_) {
     S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
-    S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
+    // S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
     auto& conserved1 = S_->Get<CompositeVector>(conserved_key_, tag_next_);
     auto& conserved0 = S_->Get<CompositeVector>(conserved_key_, tag_current_);
     g->Data()->Update(1.0/dt, conserved1, -1.0/dt, conserved0, 0.0);

@@ -61,7 +61,7 @@ void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 
   // update the water content at both the old and new times.
   S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
-  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
+  // S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_); // for the future...
 
   // get these fields
   Teuchos::RCP<const CompositeVector> wc1 = S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);

@@ -39,6 +39,7 @@ InterceptionFractionEvaluator::InitializeFromPlist_()
   Key akey = my_keys_.front().first;
   Tag tag = my_keys_.front().second;
   Key domain = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   Key domain_surf = Keys::readDomainHint(plist_, domain, "canopy", "surface");
   Key domain_snow = Keys::readDomainHint(plist_, domain, "canopy", "snow");
   my_keys_.clear();

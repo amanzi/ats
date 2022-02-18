@@ -614,26 +614,11 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
               {"roughness_snow", "roughness_ground",
                "water_transition_depth", "dessicated_zone_thickness"});
 
-    // see if we can find a master fac
+    // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;
     domain_fac.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-    CompositeVectorSpace domain_fac_owned;
-    domain_fac_owned.SetMesh(S.GetMesh(domain_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-    CompositeVectorSpace domain_fac_owned_snow;
-    domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-    CompositeVectorSpace domain_fac_owned_ss;
-    domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
 
     CompositeVectorSpace domain_fac_3;
     domain_fac_3.SetMesh(S.GetMesh(domain_))
@@ -650,19 +635,7 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
       ->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-    if (diagnostics_) {
-      S.Require<CompositeVector,CompositeVectorSpace>(albedo_key_, tag, albedo_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(melt_key_, tag, melt_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(evap_key_, tag, evap_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(snow_temp_key_, tag, snow_temp_key_).Update(domain_fac_owned_snow);
-      S.Require<CompositeVector,CompositeVectorSpace>(qE_sh_key_, tag, qE_sh_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(qE_lh_key_, tag, qE_lh_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(qE_sm_key_, tag, qE_sm_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(qE_lw_out_key_, tag, qE_lw_out_key_).Update(domain_fac_owned);
-      S.Require<CompositeVector,CompositeVectorSpace>(qE_cond_key_, tag, qE_cond_key_).Update(domain_fac_owned);
-    }
-
-    for (auto dep : dependencies_) {
+    for (const auto& dep : dependencies_) {
       auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, tag);
       if (Keys::getDomain(dep.first) == domain_ss_) {
         fac.Update(domain_fac_ss);
@@ -676,6 +649,42 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
     }
 
     compatible_ = true;
+  }
+}
+
+
+void
+SEBThreeComponentEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  if (!compatible_) {
+    // use domain name to set the mesh type
+    CompositeVectorSpace domain_fac_owned;
+    domain_fac_owned.SetMesh(S.GetMesh(domain_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    CompositeVectorSpace domain_fac_owned_snow;
+    domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    CompositeVectorSpace domain_fac_owned_ss;
+    domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    for (const auto& key_tag : my_keys_) {
+      if (Keys::getDomain(key_tag.first) == domain_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned);
+      } else if (Keys::getDomain(key_tag.first) == domain_snow_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned_snow);
+      } else if (Keys::getDomain(key_tag.first) == domain_ss_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned_ss);
+      } else {
+        AMANZI_ASSERT(false);
+      }
+    }
+    // don't flag compatible_ here -- it will be flagged later in EC_ToDeps
   }
 }
 

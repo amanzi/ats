@@ -52,7 +52,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   PK(pk_tree, global_plist, S, solution),
   PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution)
 {
-  tcc_key_ = key_;
   passwd_ = "state"; // this is what Amanzi uses
 
   if (plist_->isParameter("component names")) {
@@ -70,7 +69,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  // are we subcycling?
+  // are we subcycling internally?
   subcycling_ = plist_->get<bool>("transport subcycling", false);
   if (subcycling_) {
     tag_subcycle_current_ = Tag{name()+"_subcycling_current"};
@@ -98,12 +97,15 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   geochem_src_factor_key_ = Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
   water_content_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
+  key_ = tcc_key_;
 
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
   dissolution_ = plist_->get<bool>("allow dissolution", false);
   max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
   dim = mesh_->space_dimension();
+
+  db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
 
@@ -147,13 +149,18 @@ void Transport_ATS::Setup()
     Exceptions::amanzi_throw(msg);
   }
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, passwd_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, name_)
     .SetMesh(mesh_)->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordW(tcc_key_, tag_next_, passwd_).set_subfieldnames(component_names_);
+    ->SetComponent("cell", AmanziMesh::CELL, num_components);
+  S_->GetRecordW(tcc_key_, tag_next_, name_).set_subfieldnames(component_names_);
+  RequireEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+
+  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_current_, name_);
   if (subcycling_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_current_);
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_next_);
+    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_current_, name_);
+    // S_->Require<double>("time", tag_subcycle_current_, name_);
+    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_next_, name_);
+    // S_->Require<double>("time", tag_subcycle_next_, name_);
   }
 
   // CellVolume is required here -- it may not be used in this PK, but having
@@ -287,8 +294,8 @@ void Transport_ATS::Initialize()
   InitializeFields_();
 
   // make this go away -- local pointers to data
-  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, name_);
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_next_, name_);
+  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, name_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, name_);
   *tcc_tmp = *tcc;
 
   ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
@@ -733,6 +740,8 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, tag_next_).Update(*S_, name_);
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
 
+  //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
+
   // this is locally created and has no evaluator -- should get a primary
   // variable FE owned by this PK --ETC
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
@@ -769,7 +778,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // calculate stable time step
   double dt_shift = 0.0, dt_global = dt_MPC;
-  double time = S_->get_time(tag_subcycle_current_);
+  double time = t_old;
   if (time >= 0.0) {
     t_physics_ = time;
     dt_shift = time - S_->get_time(tag_current_);
@@ -869,7 +878,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     }
 
     if (!final_cycle) {  // rotate concentrations (we need new memory for tcc)
-      // YUCK, should not be allocating here, we have tons of memory for tcc --ETC
+      // should not be allocating here, we have tons of memory for tcc --ETC
       tcc = Teuchos::RCP<CompositeVector>(new CompositeVector(*tcc_tmp));
     }
 
@@ -891,6 +900,9 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
     VV_PrintSoluteExtrema(tcc_next, dt_MPC);
   }
+
+  S_->Assign(tcc_key_, tag_next_, tag_subcycle_next_);
+  ChangedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   return failed;
 }
 
@@ -1106,14 +1118,11 @@ void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag)
   AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
   double dt = t_new - t_old;
 
-  S_->GetW<CompositeVector>(tcc_key_, tag_current_, name_) = *tcc_tmp;
-  ChangedEvaluatorPrimary(key_, tag_current_, *S_);
-
   S_->Assign(saturation_key_, tag_current_, tag_next_);
+  S_->Assign(molar_density_key_, tag_current_, tag_next_);
 
-  // THIS SHOULD ALMOST CERTAINLY BE HERE -- this is a bug.  Commented out so
-  //that regression tests pass...
-  // S_->Assign(molar_dens_key_, tag_current_, tag_next_);
+  S_->Assign(tcc_key_, tag_current_, tag_next_);
+  // ChangedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
 }
 
 

@@ -118,7 +118,11 @@ class SEBTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
+  // some variables on the surface mesh, others on the subsurface mesh
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+  // some variables on the surface mesh, others on the subsurface mesh
+  virtual void EnsureCompatibility_Structure_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,

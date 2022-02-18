@@ -36,8 +36,8 @@ import configparser
 
 
 
-aliases = {'surface-water_flux':['surface-mass_flux',],
-           'water_flux':['mass_flux',]}
+aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
+           'water_flux':['mass_flux','mass_flux_next']}
 
 
 def get_git_hash(directory):

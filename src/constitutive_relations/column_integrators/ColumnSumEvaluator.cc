@@ -80,6 +80,7 @@ IntegratorColumnSum::IntegratorColumnSum(Teuchos::ParameterList& plist,
   coef_ = plist.get<double>("coefficient", 1.0);
 }
 
+
 int IntegratorColumnSum::scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p)
 {
   double contrib = (*integrand_)[0][c];
@@ -94,6 +95,7 @@ int IntegratorColumnSum::scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c
   if (volume_average_) p[1] += (*cv_)[0][c];
   return false;
 }
+
 
 double IntegratorColumnSum::coefficient(AmanziMesh::Entity_ID col)
 {
