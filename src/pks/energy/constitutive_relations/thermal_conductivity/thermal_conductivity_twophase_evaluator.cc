@@ -59,8 +59,8 @@ void ThermalConductivityTwoPhaseEvaluator::Evaluate_(
   Tag tag = my_keys_.front().second;
 
   // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_);
-  Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_);
+  Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_, tag);
+  Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
 
   for (CompositeVector::name_iterator comp = result[0]->begin();
@@ -101,6 +101,20 @@ void ThermalConductivityTwoPhaseEvaluator::EvaluatePartialDerivative_(
   // not yet implemented in underlying models!
   result[0]->PutScalar(0.);
   // result[0]->Scale(1.e-6); // convert to MJ
+}
+
+
+void ThermalConductivityTwoPhaseEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  const auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(
+    my_keys_.front().first, my_keys_.front().second);
+  if (fac.Mesh() != Teuchos::null) {
+    CompositeVectorSpace dep_fac;
+    dep_fac.SetMesh(fac.Mesh())
+      ->SetGhosted(true)
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
+  }
 }
 
 } //namespace

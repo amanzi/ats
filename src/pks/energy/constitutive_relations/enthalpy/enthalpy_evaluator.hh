@@ -37,6 +37,8 @@ class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
 
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
  protected:
   Key pres_key_;
   Key dens_key_;

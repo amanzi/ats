@@ -48,7 +48,7 @@ void EnthalpyEvaluator::Evaluate_(const State& S,
 {
   Teuchos::OSTab tab = vo_.getOSTab();
   Tag tag = my_keys_.front().second;
-  Teuchos::RCP<const CompositeVector> u_l = S.GetPtr<CompositeVector>(ie_key_);
+  Teuchos::RCP<const CompositeVector> u_l = S.GetPtr<CompositeVector>(ie_key_, tag);
   *result[0] = *u_l;
 
   if (include_work_) {
@@ -115,6 +115,18 @@ void EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 };
 
+void EnthalpyEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  const auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(
+    my_keys_.front().first, my_keys_.front().second);
+  if (fac.Mesh() != Teuchos::null) {
+    CompositeVectorSpace dep_fac;
+    dep_fac.SetMesh(fac.Mesh())
+      ->SetGhosted(true)
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
+  }
+}
 
 } //namespace
 } //namespace
