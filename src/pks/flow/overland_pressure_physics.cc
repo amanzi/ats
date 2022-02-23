@@ -55,7 +55,7 @@ void OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>&
 
   // get these fields
   S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
-  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
+  //  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_); // for the future...
   Teuchos::RCP<const CompositeVector> wc1 =
     S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);
   Teuchos::RCP<const CompositeVector> wc0 =

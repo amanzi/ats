@@ -17,6 +17,7 @@ DrainageEvaluator::DrainageEvaluator(Teuchos::ParameterList& plist) :
   Key akey = my_keys_.front().first;
   Tag tag = my_keys_.front().second;
   Key domain = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   my_keys_.clear();
 
   drainage_key_ = Keys::in(akey, "drainage") ? akey : "drainage";

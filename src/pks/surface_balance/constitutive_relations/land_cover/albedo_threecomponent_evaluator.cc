@@ -22,6 +22,7 @@ AlbedoThreeComponentEvaluator::AlbedoThreeComponentEvaluator(Teuchos::ParameterL
   // determine the domain
   Key akey = my_keys_.front().first;
   domain_ = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   domain_snow_ = Keys::readDomainHint(plist_, domain_, "surface", "snow");
   auto tag = my_keys_.front().second;
 

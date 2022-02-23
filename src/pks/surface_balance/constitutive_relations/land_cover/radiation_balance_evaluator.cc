@@ -20,6 +20,7 @@ RadiationBalanceEvaluator::RadiationBalanceEvaluator(Teuchos::ParameterList& pli
   Key akey = my_keys_.front().first;
   Tag tag = my_keys_.front().second;
   Key domain = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   Key dtype = Keys::guessDomainType(domain);
   if (dtype == "surface") {
     domain_surf_ = domain;

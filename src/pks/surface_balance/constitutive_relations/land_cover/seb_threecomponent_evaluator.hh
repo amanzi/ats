@@ -123,6 +123,9 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
+  // make sure the structure are set up on all diagnostic variables
+  virtual void EnsureCompatibility_Structure_(State& S) override;
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& results) override;

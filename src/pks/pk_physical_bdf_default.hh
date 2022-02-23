@@ -105,14 +105,8 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
   }
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override {
-    PK_BDF_Default::CommitStep(t_old, t_new, tag);
-    PK_Physical_Default::CommitStep(t_old, t_new, tag);
-  }
-
-  virtual void FailStep(double t_old, double t_new, const Tag& tag) override {
-    PK_Physical_Default::FailStep(t_old, t_new, tag);
-  }
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Experimental approach -- calling this indicates that the time
   //    integration scheme is changing the value of the solution in

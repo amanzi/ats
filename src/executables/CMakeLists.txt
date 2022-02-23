@@ -41,7 +41,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
@@ -98,7 +98,7 @@ set(amanzi_link_libs
   mesh_logical
   #chemistry_pk
   #mpc_tree
-  #transport
+  transport
   )
   
 set(ats_link_libs
@@ -108,7 +108,7 @@ set(ats_link_libs
   ats_surf_subsurf
   ats_eos
   ats_pks
-  #ats_transport
+  ats_transport
   #ats_sed_transport  
   #ats_energy
   #ats_energy_relations

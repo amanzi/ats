@@ -32,9 +32,12 @@ void PK_PhysicalBDF_Default::Setup()
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   }
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
-      ->AddComponent("cell",AmanziMesh::CELL,true);
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_)
+    .SetMesh(mesh_)->AddComponent("cell",AmanziMesh::CELL,true);
   S_->RequireEvaluator(conserved_key_, tag_next_);
+  // we also use a copy of the conserved quantity, as this is a better choice in the error norm
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_);
+  // S_->RequireEvaluator(conserved_key_, tag_next_); // for the future...
 
   // cell volume used throughout
   if (cell_vol_key_.empty()) {
@@ -81,7 +84,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // Abs tol based on old conserved quantity -- we know these have been vetted
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
-  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
+  //  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name()); // for the future...
   const Epetra_MultiVector& conserved = *S_->Get<CompositeVector>(conserved_key_, tag_current_)
       .ViewComponent("cell",true);
   const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
@@ -174,6 +177,25 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   AMANZI_ASSERT(!ierr);
   return enorm_val;
 };
+
+
+void
+PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
+{
+  PK_BDF_Default::CommitStep(t_old, t_new, tag);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag);
+
+  // copy over conserved quantity
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // ChangedSolution(tag_current_);
+}
+
+
+void
+PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
+{
+  PK_Physical_Default::FailStep(t_old, t_new, tag);
+}
 
 
 // -----------------------------------------------------------------------------

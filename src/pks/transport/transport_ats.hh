@@ -294,6 +294,7 @@ namespace Transport {
 
 typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
+// ummm -- why does this not use TreeVector? --ETC
 class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
 public:
@@ -310,21 +311,15 @@ public:
   ~Transport_ATS() = default;
 
   // members required by PK interface
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
+  virtual void Initialize() override;
 
-  virtual double get_dt();
-  virtual void set_dt(double dt) {};
+  virtual double get_dt() override;
+  virtual void set_dt(double dt) override {};
 
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit=false);
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
-
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
-
-  virtual std::string name() { return "transport_ats"; }
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit=false) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void CalculateDiagnostics(const Tag& tag) override {};
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
@@ -339,13 +334,13 @@ public:
 #endif
 
   // -- access members
-  inline double cfl() { return cfl_; }
-  Teuchos::RCP<const State> state() { return S_; }
-  Teuchos::RCP<CompositeVector> total_component_concentration() { return tcc_tmp; }
+  inline double get_cfl() { return cfl_; }
+  Teuchos::RCP<const State> get_state() { return S_; }
+  Teuchos::RCP<CompositeVector> get_total_component_concentration() { return tcc_tmp; }
 
   // -- control members
   void CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents);
-  void Policy(Teuchos::Ptr<State> S);
+  void Policy(const Tag& tag);
 
   void VV_CheckGEDproperty(Epetra_MultiVector& tracer) const;
   void VV_CheckTracerBounds(Epetra_MultiVector& tracer, int component,
@@ -378,13 +373,13 @@ public:
                              Teuchos::RCP<CompositeVector>& gradient,
                              Teuchos::RCP<Epetra_Vector>& limiter);
 
-  const std::vector<std::string>  component_names(){return component_names_;};
-  int num_aqueous_component() {return num_aqueous;};
-  int num_gaseous_component() {return num_gaseous;};
+  const std::vector<std::string> get_component_names(){return component_names_;};
+  int get_num_aqueous_component() {return num_aqueous;};
+  int get_num_gaseous_component() {return num_gaseous;};
 
 
 private:
-  void InitializeFields_(const Teuchos::Ptr<State>& S);
+  void InitializeFields_();
 
   // advection members
   void AdvanceDonorUpwind(double dT);
@@ -394,7 +389,7 @@ private:
   void Advance_Dispersion_Diffusion(double t_old, double t_new);
 
   // time integration members
-  void FunctionalTimeDerivative(const double t, const Epetra_Vector& component, Epetra_Vector& f_component);
+  void FunctionalTimeDerivative(const double t, const Epetra_Vector& component, Epetra_Vector& f_component) override;
   //  void FunctionalTimeDerivative(const double t, const Epetra_Vector& component, TreeVector& f_component);
 
   void IdentifyUpwindCells();
@@ -403,8 +398,8 @@ private:
     const Epetra_MultiVector& v0, const Epetra_MultiVector& v1,
     double dT_int, double dT, Epetra_MultiVector& v_int);
 
-  const Teuchos::RCP<Epetra_IntVector>& upwind_cell() { return upwind_cell_; }
-  const Teuchos::RCP<Epetra_IntVector>& downwind_cell() { return downwind_cell_; }
+  const Teuchos::RCP<Epetra_IntVector>& get_upwind_cell() { return upwind_cell_; }
+  const Teuchos::RCP<Epetra_IntVector>& get_downwind_cell() { return downwind_cell_; }
 
   // physical models
   // -- dispersion and diffusion
@@ -430,9 +425,8 @@ private:
 
   // initialization methods
   void InitializeAll_();
-  void InitializeFieldFromField_(const std::string& field0,
-          const std::string& field1,
-          const Teuchos::Ptr<State>& S,
+  void InitializeFieldFromField_(const Key& field0, const Tag& tag0,
+          const Key& field1, const Tag& tag1,
           bool call_evaluator, bool overwrite);
 
   // miscaleneous methods
@@ -441,8 +435,6 @@ private:
   void ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flux,
           Teuchos::RCP<const Epetra_MultiVector> mol_den,
           Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux);
-
-
 
 public:
   int MyPID;  // parallel information: will be moved to private
@@ -454,7 +446,6 @@ public:
 
 protected:
   Key saturation_key_;
-  Key prev_saturation_key_;
   Key flux_key_;
   Key darcy_flux_key_;
   Key permeability_key_;
@@ -477,6 +468,8 @@ protected:
   int saturation_name_;
   bool vol_flux_conversion_;
 
+  Key passwd_;
+
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp;  // next tcc
   Teuchos::RCP<CompositeVector> tcc;  // smart mirrow of tcc
@@ -493,10 +486,10 @@ protected:
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;
   Teuchos::RCP<Epetra_IntVector> downwind_cell_;
 
-  Teuchos::RCP<const Epetra_MultiVector> ws_start, ws_end;  // data for subcycling
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens_start, mol_dens_end;  // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_start, ws_subcycle_end;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_start, mol_dens_subcycle_end;
+  Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;  // data for subcycling
+  Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next;  // data for subcycling
+  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
+  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
 
   int current_component_;  // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellGrad> lifting_;
@@ -525,10 +518,6 @@ protected:
   std::vector<double> kH_;
   std::vector<int> air_water_map_;
 
-  // multiscale models
-  bool multiscale_porosity_;
-  Teuchos::RCP<MultiscaleTransportPorosityPartition> msp_;
-
   double cfl_, dt_, dt_debug_, t_physics_;
 
   std::vector<double> mass_solutes_exact_, mass_solutes_source_;  // mass for all solutes
@@ -542,19 +531,21 @@ protected:
 
   std::vector<std::string> component_names_;  // details of components
   std::vector<double> mol_masses_;
-  int num_aqueous, num_gaseous;
+  int num_aqueous, num_gaseous, num_components;
   double water_tolerance_, max_tcc_;
   bool dissolution_;
 
   // io
   Utils::Units units_;
+  Tag tag_subcycle_;
+  Tag tag_subcycle_current_;
+  Tag tag_subcycle_next_;
+  Tag tag_flux_next_ts_; // what is this? --ETC
 
-  Teuchos::RCP<VerboseObject> vo_;
-  Teuchos::RCP<Debugger> db_;
-
+private:
   // Forbidden.
-  Transport_ATS(const Transport_ATS&);
-  Transport_ATS& operator=(const Transport_ATS&);
+  Transport_ATS(const Transport_ATS&) = delete;
+  Transport_ATS& operator=(const Transport_ATS&) = delete;
 
 private:
   // factory registration

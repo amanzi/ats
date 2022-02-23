@@ -7,7 +7,7 @@
 
 
 # ATS include directories
-add_subdirectory(sediment_transport)
+#add_subdirectory(sediment_transport)
 
 #================================================
 # register evaluators/factories/pks
@@ -16,6 +16,7 @@ include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${AMANZI_SOURCE_DIR}/src/common/alquimia)
 include_directories(${FUNCTIONS_SOURCE_DIR})
 include_directories(${TRANSPORT_SOURCE_DIR})
+include_directories(${ATS_SOURCE_DIR}/src/pks)
 
 set(ats_transport_src_files
   transport_ats_dispersion.cc

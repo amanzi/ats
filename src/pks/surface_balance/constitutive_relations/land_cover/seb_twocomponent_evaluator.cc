@@ -597,6 +597,42 @@ SEBTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 void
+SEBTwoComponentEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  if (!compatible_) {
+    // use domain name to set the mesh type
+    CompositeVectorSpace domain_fac_owned;
+    domain_fac_owned.SetMesh(S.GetMesh(domain_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    CompositeVectorSpace domain_fac_owned_snow;
+    domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    CompositeVectorSpace domain_fac_owned_ss;
+    domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::CELL, 1);
+
+    for (const auto& key_tag : my_keys_) {
+      if (Keys::getDomain(key_tag.first) == domain_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned);
+      } else if (Keys::getDomain(key_tag.first) == domain_snow_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned_snow);
+      } else if (Keys::getDomain(key_tag.first) == domain_ss_) {
+        S.Require<CompositeVector,CompositeVectorSpace>(key_tag.first, key_tag.second, key_tag.first).Update(domain_fac_owned_ss);
+      } else {
+        AMANZI_ASSERT(false);
+      }
+    }
+    // don't flag compatible_ here -- it will be flagged later in EC_ToDeps
+  }
+}
+
+
+void
 SEBTwoComponentEvaluator::UpdateFieldDerivative_(const State& S, const Key& wrt_key, const Tag& wrt_tag)
 {
   Errors::Message message("SEBTwoComponentEvaluator: cannot differentiate with respect to anything.");

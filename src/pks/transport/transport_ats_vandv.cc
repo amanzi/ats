@@ -30,50 +30,51 @@ void Transport_ATS::CreateDefaultState(
     Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents)
 {
   std::string name("state");
-  S_->RequireScalar("fluid_density", name);
+  S_->Require<double>("fluid_density", Tags::DEFAULT, name);
 
-  if (!S_->HasField(saturation_key_)) {
+  if (!S_->HasRecord(saturation_key_, Tags::NEXT)) {
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT,  name).SetMesh(mesh)->SetGhosted(true)
         ->SetComponent("cell", AmanziMesh::CELL, 1);
   }
 
-  if (!S_->HasField(prev_saturation_key_)) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(prev_saturation_key_, Tags::NEXT,  name).SetMesh(mesh_)->SetGhosted(true)
+  if (!S_->HasRecord(saturation_key_, Tags::CURRENT)) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::CURRENT,  name).SetMesh(mesh_)->SetGhosted(true)
         ->SetComponent("cell", AmanziMesh::CELL, 1);
   }
 
-  if (!S_->HasField(flux_key_)) {
+  if (!S_->HasRecord(flux_key_, Tags::NEXT)) {
     S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT,  name).SetMesh(mesh_)->SetGhosted(true)
         ->SetComponent("face", AmanziMesh::FACE, 1);
   }
 
-  if (!S_->HasField(tcc_key_)) {
-    std::vector<std::vector<std::string> > subfield_names(1);
+  if (!S_->HasRecord(tcc_key_, Tags::NEXT)) {
+    std::vector<std::string> subfield_names;
     for (int i = 0; i != ncomponents; ++i) {
-      subfield_names[0].push_back(component_names_[i]);
+      subfield_names.push_back(component_names_[i]);
     }
-    S_->RequireField(tcc_key_, name, subfield_names)->SetMesh(mesh_)
-        ->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, ncomponents);
+    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT, name)
+      .SetMesh(mesh_)->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, ncomponents);
+    S_->GetRecordW(tcc_key_, Tags::NEXT, name).set_subfieldnames(subfield_names);
   }
 
   // initialize fields
   S_->Setup();
 
   // set popular default values
-  *(S_->GetScalarData("fluid_density", name)) = 1000.0;
-  S_->GetField("fluid_density", name)->set_initialized();
+  S_->GetW<double>("fluid_density", Tags::DEFAULT, name) = 1000.0;
+  S_->GetRecordW("fluid_density", Tags::DEFAULT, name).set_initialized();
 
-  S_->GetW<CompositeVector>(saturation_key_, name).PutScalar(1.0);
-  S_->GetField(saturation_key_, name)->set_initialized();
+  S_->GetW<CompositeVector>(saturation_key_, Tags::NEXT, name).PutScalar(1.0);
+  S_->GetRecordW(saturation_key_, Tags::NEXT, name).set_initialized();
 
-  S_->GetW<CompositeVector>(prev_saturation_key_, name).PutScalar(1.0);
-  S_->GetField(prev_saturation_key_, name)->set_initialized();
+  S_->GetW<CompositeVector>(saturation_key_, Tags::CURRENT, name).PutScalar(1.0);
+  S_->GetRecordW(saturation_key_, Tags::CURRENT, name).set_initialized();
 
-  S_->GetW<CompositeVector>(tcc_key_, name).PutScalar(0.0);
-  S_->GetField(tcc_key_, name)->set_initialized();
+  S_->GetW<CompositeVector>(tcc_key_, Tags::NEXT, name).PutScalar(0.0);
+  S_->GetRecordW(tcc_key_, Tags::NEXT, name).set_initialized();
 
-  S_->GetW<CompositeVector>(flux_key_, name).PutScalar(0.0);
-  S_->GetField(flux_key_, name)->set_initialized();
+  S_->GetW<CompositeVector>(flux_key_, Tags::NEXT, name).PutScalar(0.0);
+  S_->GetRecordW(flux_key_, Tags::NEXT, name).set_initialized();
 
   S_->InitializeFields();
 }
@@ -82,10 +83,10 @@ void Transport_ATS::CreateDefaultState(
 /* *******************************************************************
 * Routine verifies that the velocity field is divergence free
 ******************************************************************* */
-void Transport_ATS::Policy(Teuchos::Ptr<State> S)
+void Transport_ATS::Policy(const Tag& tag)
 {
   if (mesh_->get_comm()->NumProc() > 1) {
-    if (!S->Get<CompositeVector>(tcc_key_).Ghosted()) {
+    if (!S_->Get<CompositeVector>(tcc_key_, tag).Ghosted()) {
       Errors::Message msg;
       msg << "Field \"total component concentration\" has no ghost values."
           << " Transport PK is giving up.\n";
@@ -338,7 +339,7 @@ double Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c, int i)
   double mass_solute(0.0);
   for (int c = 0; c < ncells_owned; c++) {
     double vol = mesh_->cell_volume(c);
-    mass_solute += (*ws_end)[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * (*mol_dens_end)[0][c] + (*solid_qty_)[i][c];
+    mass_solute += (*ws_next)[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * (*mol_dens_next)[0][c] + (*solid_qty_)[i][c];
   }
   //mass_solute /= units_.concentration_factor();
 

@@ -134,6 +134,10 @@ void Coordinator::setup()
   S_->Require<Amanzi::AmanziGeometry::Point>("gravity",
           Amanzi::Tags::DEFAULT, "coordinator");
 
+  // needed other times
+  S_->Require<double>("time", Amanzi::Tags::CURRENT, "time");
+  S_->Require<double>("time", Amanzi::Tags::NEXT, "time");
+
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->Setup();
@@ -141,24 +145,22 @@ void Coordinator::setup()
   S_->Setup();
 }
 
-double Coordinator::initialize()
+void Coordinator::initialize()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   int size = comm_->NumProc();
   int rank = comm_->MyPID();
 
-  S_->set_time(t0_);
+  S_->set_time(Amanzi::Tags::CURRENT, t0_);
+  S_->set_time(Amanzi::Tags::NEXT, t0_);
   S_->set_cycle(cycle0_);
-  // if (S_->GetMesh()->space_dimension() == 3) {
-  //   S_->GetW<AmanziGeometry::Point>("gravity", "coordinator").set(0,0,0);
-  // } else {
-  //   S_->GetW<AmanziGeometry::Point>("gravity", "coordinator").set(0,0);
-  // }
 
   // Restart from checkpoint part 1:
   //  - get the time prior to initializing anything else
   if (restart_) {
-    S_->set_time(Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_));
+    double t_restart = Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_);
+    S_->set_time(Amanzi::Tags::CURRENT, t_restart);
+    S_->set_time(Amanzi::Tags::NEXT, t_restart);
   }
 
   // Initialize the state
@@ -167,17 +169,18 @@ double Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
-  // calling CommitStep to copy new to old
+  // calling CommitStep to set up copies as needed
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // Restart from checkpoint part 2:
   // -- load all other data
-  double dt_restart = -1;
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
-    dt_restart = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
-    t0_ = S_->get_time();
+    t0_ = S_->get_time(Amanzi::Tags::DEFAULT);
     cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
+
+    S_->set_time(Amanzi::Tags::CURRENT, t0_);
+    S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
@@ -228,7 +231,6 @@ double Coordinator::initialize()
       vis->set_name(domain_name);
       vis->set_mesh(mesh_p);
       vis->CreateFiles(false);
-
       visualization_.push_back(vis);
 
     } else if (Amanzi::Keys::isDomainSet(domain_name)) {
@@ -267,9 +269,6 @@ double Coordinator::initialize()
   // make observations at time 0
   for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
 
-  S_->set_time(t0_); // in case steady state solve changed this
-  S_->set_cycle(cycle0_);
-
   // set up the TSM
   // -- register visualization times
   for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(tsm_.ptr());
@@ -289,29 +288,8 @@ double Coordinator::initialize()
     Amanzi::IOEvent pause_times(sublist);
     pause_times.RegisterWithTimeStepManager(tsm_.ptr());
   }
-
-  // // Create an intermediate state that will store the updated solution until
-  // // we know it has succeeded.
-  // S_next_ = Teuchos::rcp(new Amanzi::State(*S_));
-  // *S_next_ = *S_;
-  // if (subcycled_ts_) {
-  //   S_inter_ = Teuchos::rcp(new Amanzi::State(*S_));
-  //   *S_inter_ = *S_;
-  // } else {
-  //   S_inter_ = S_;
-  // }
-
-  // set the states in the PKs Passing null for S_ allows for safer subcycling
-  // -- PKs can't use it, so it is guaranteed to be pristinely the old
-  // timestep.  This code is useful for testing that PKs don't use S.
-  // pk_->set_states(Teuchos::null, S_inter_, S_next_);
-
-  // That said, S is required to be valid, since it is valid for all time
-  // (e.g. from construction), whereas S_inter and S_next are only valid after
-  // set_states() is called.  This allows for standard interfaces.
-  // pk_->set_states(S_, S_inter_, S_next_);
-  return dt_restart;
 }
+
 
 void Coordinator::finalize()
 {
@@ -481,25 +459,18 @@ Coordinator::get_dt(bool after_fail)
 
 
 bool
-Coordinator::advance(double t_old, double t_new, double& dt_next)
+Coordinator::advance()
 {
-  double dt = t_new - t_old;
+  double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
+  double t_old = S_->get_time(Amanzi::Tags::CURRENT);
+  double t_new = S_->get_time(Amanzi::Tags::NEXT);
+
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
   if (!fail) fail |= !pk_->ValidStep();
 
   if (!fail) {
-    // advance the iteration count and timestep size
-    S_->GetW<int>("cycle", Amanzi::Tags::DEFAULT, "cycle")++;
-
     // commit the state, copying NEXT --> CURRENT
     pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
-    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-
-     // make observations, vis, and checkpoints
-    for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-    visualize();
-    dt_next = get_dt(fail);
-    checkpoint(dt_next); // checkpoint with the new dt
 
   } else {
     // Failed the timestep.
@@ -536,26 +507,21 @@ Coordinator::advance(double t_old, double t_new, double& dt_next)
         mesh->second.first->deform(node_ids, old_positions, false, &final_positions);
       }
     }
-
-    // reset t_new
-    S_->set_time(Amanzi::Tags::NEXT, t_old);
-
-    // ask PKs for a new time
-    dt_next = get_dt(fail);
   }
   return fail;
 }
+
 
 void Coordinator::visualize(bool force)
 {
   // write visualization if requested
   bool dump = force;
+  int cycle = S_->get_cycle();
+  double time = S_->get_time();
+
   if (!dump) {
     for (const auto& vis : visualization_) {
-      if (vis->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT),
-                             S_->get_time(Amanzi::Tags::NEXT))) {
-        dump = true;
-      }
+      dump |= vis->DumpRequested(cycle, time);
     }
   }
 
@@ -564,15 +530,18 @@ void Coordinator::visualize(bool force)
   }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT), S_->get_time(Amanzi::Tags::NEXT))) {
+    if (force || vis->DumpRequested(cycle, time)) {
       WriteVis(*vis, *S_);
     }
   }
 }
 
-void Coordinator::checkpoint(double dt, bool force)
+
+void Coordinator::checkpoint(bool force)
 {
-  if (force || checkpoint_->DumpRequested(S_->Get<int>("cycle", Amanzi::Tags::DEFAULT), S_->get_time(Amanzi::Tags::NEXT))) {
+  int cycle = S_->get_cycle();
+  double time = S_->get_time();
+  if (force || checkpoint_->DumpRequested(cycle, time)) {
     WriteCheckpoint(*checkpoint_, comm_, *S_);
   }
 }
@@ -586,31 +555,38 @@ void Coordinator::cycle_driver() {
   const double duration(duration_ * 3600);
 
   // start at time t = t0 and initialize the state.
-  double dt_restart = -1;
   {
     Teuchos::TimeMonitor monitor(*setup_timer_);
     setup();
-    dt_restart = initialize();
+    initialize();
   }
 
   // get the intial timestep
-  double dt = dt_restart > 0 ? dt_restart : get_dt(false);
+  if (!restart_) {
+    double dt = get_dt(false);
+    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
+  }
 
   // visualization at IC
   visualize();
-  checkpoint(dt);
+  checkpoint();
 
   // iterate process kernels
+  //
+  // Make sure times are set up correctly
+  AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT)
+                         - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
   {
     Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
+    double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
 #if !DEBUG_MODE
   try {
 #endif
-    bool fail = false;
-    while ((S_->get_time() < t1_) &&
+
+    while (((t1_ < 0) || (S_->get_time() < t1_)) &&
            ((cycle1_ == -1) || (S_->get_cycle() <= cycle1_)) &&
-           (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
-           dt > 0.) {
+           ((duration_ < 0) || (timer_->totalElapsedTime(true) < duration)) &&
+           (dt > 0.)) {
       if (vo_->os_OK(Teuchos::VERB_LOW)) {
         Teuchos::OSTab tab = vo_->getOSTab();
         *vo_->os() << "======================================================================"
@@ -622,9 +598,24 @@ void Coordinator::cycle_driver() {
                   << std::endl;
       }
 
-      S_->GetW<double>("dt", Amanzi::Tags::DEFAULT, "dt") = dt;
-      S_->set_time(Amanzi::Tags::NEXT, S_->get_time() + dt);
-      fail = advance(S_->get_time(), S_->get_time(Amanzi::Tags::NEXT), dt);
+      S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
+      S_->advance_time(Amanzi::Tags::NEXT, dt);
+      bool fail = advance();
+
+      if (fail) {
+        // reset t_new
+        S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
+      } else {
+        S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
+        S_->advance_cycle();
+
+        // make observations, vis, and checkpoints
+        for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
+        visualize();
+        checkpoint(); // checkpoint with the new dt
+      }
+
+      dt = get_dt(fail);
     } // while not finished
 
 #if !DEBUG_MODE

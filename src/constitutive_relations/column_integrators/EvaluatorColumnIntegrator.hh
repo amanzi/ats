@@ -60,7 +60,7 @@ EvaluatorColumnIntegrator<Parser,Integrator>::EvaluatorColumnIntegrator(
   Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Parser parser(plist, my_keys_.front());
+  Parser parser(plist_, my_keys_.front());
   dependencies_ = std::move(parser.dependencies);
 }
 
@@ -86,7 +86,16 @@ EvaluatorColumnIntegrator<Parser,Integrator>::EnsureCompatibility_ToDeps_(State&
     dep_fac.SetMesh(fac.Mesh()->parent())
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
+
+    for (const auto& dep : dependencies_) {
+      if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
+        S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
+          .Update(fac);
+      } else {
+        S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second)
+          .Update(dep_fac);
+      }
+    }
   }
 }
 
