@@ -56,7 +56,7 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
   }
 
   limiter_->Init(recon_list, flux_);
-  limiter_->ApplyLimiter(component_tmp, 0, lifting, bc_model, bc_value);
+  limiter_->ApplyLimiter(component_tmp, 0, lifting_, bc_model, bc_value);
   lifting_->data()->ScatterMasterToGhosted("cell");
 
   // ADVECTIVE FLUXES

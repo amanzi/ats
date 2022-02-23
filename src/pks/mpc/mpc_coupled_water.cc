@@ -38,8 +38,8 @@ MPCCoupledWater::Setup()
   pks_list_->sublist(names[1]).sublist("diffusion preconditioner").set("surface operator", true);
   pks_list_->sublist(names[1]).sublist("accumulation preconditioner").set("surface operator", true);
 
-  domain_ss_ = plist_->get<std::string>("domain name", "domain");
-  domain_surf_ = Keys::readDomainHint(*plist_, domain_ss_, "domain", "surface");
+  domain_ss_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
+  domain_surf_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "surface");
 
   // grab the meshes
   surf_mesh_ = S_->GetMesh(domain_surf_);

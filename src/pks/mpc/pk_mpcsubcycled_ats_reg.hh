@@ -16,6 +16,6 @@ See additional documentation in the base class src/pks/mpc/MPC.hh
 
 namespace Amanzi {
 
-RegisteredPKFactory<PK_MPCSubcycled_ATS> PK_MPCSubcycled_ATS::reg_("pk_mpcsubcycled_ats");
+RegisteredPKFactory<PK_MPCSubcycled_ATS> PK_MPCSubcycled_ATS::reg_("subcycling MPC");
 
 } // namespace
