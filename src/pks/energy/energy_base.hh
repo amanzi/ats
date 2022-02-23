@@ -238,6 +238,7 @@ public:
 
 
   // boundary condition members
+  virtual void ComputeBoundaryConditions_(const Tag& tag);
   virtual void UpdateBoundaryConditions_(const Tag& tag);
 
   // physical methods

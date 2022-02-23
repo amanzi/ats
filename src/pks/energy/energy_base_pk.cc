@@ -385,9 +385,7 @@ void EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag)
   ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 
   // BEGIN LIKELY UNNECESSARY DEAD CODE --ETC
-  bc_temperature_->Compute(S_->get_time(tag));
-  bc_diff_flux_->Compute(S_->get_time(tag));
-  bc_flux_->Compute(S_->get_time(tag));
+  ComputeBoundaryConditions_(tag);
   UpdateBoundaryConditions_(tag);
 
   niter_ = 0;
@@ -455,6 +453,16 @@ bool EnergyBase::UpdateConductivityDerivativeData_(const Tag& tag) {
     }
   }
   return update;
+}
+
+// -----------------------------------------------------------------------------
+// Compute boundary condition functionals at the tag
+// -----------------------------------------------------------------------------
+void EnergyBase::ComputeBoundaryConditions_(const Tag& tag)
+{
+  bc_temperature_->Compute(S_->get_time(tag));
+  bc_diff_flux_->Compute(S_->get_time(tag));
+  bc_flux_->Compute(S_->get_time(tag));
 }
 
 // -----------------------------------------------------------------------------
@@ -692,8 +700,7 @@ bool EnergyBase::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
     *vo_->os() << "Modifying predictor:" << std::endl;
 
   // update boundary conditions
-  bc_temperature_->Compute(S_->get_time(tag_next_));
-  bc_flux_->Compute(S_->get_time(tag_next_));
+  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
   // predictor modification

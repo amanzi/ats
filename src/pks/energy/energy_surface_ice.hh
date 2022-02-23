@@ -56,20 +56,20 @@ class EnergySurfaceIce : public EnergyBase {
                    const Teuchos::RCP<TreeVector>& solution);
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
  protected:
   // -- setup the evaluators
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_() override;
 
   // -- get enthalpy as a function of Dirichlet boundary data.  Note that this
   //    will get replaced by a better system when we get maps on the boundary
   //    faces.
   //  virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
 
-  virtual void AddSources_(const Teuchos::Ptr<State>& S,
-                           const Teuchos::Ptr<CompositeVector>& f);
-  virtual void AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h);
+  virtual void AddSources_(const Tag& tag,
+                           const Teuchos::Ptr<CompositeVector>& f) override;
+  virtual void AddSourcesToPrecon_(const Tag& tag, double h) override;
 
  protected:
   // simple heat condution term, q = K_s2a * (Tair - Tsurf)

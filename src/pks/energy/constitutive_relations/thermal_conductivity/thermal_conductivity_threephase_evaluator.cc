@@ -234,22 +234,6 @@ void ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
   Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell",false);
 }
 
-
-void
-ThermalConductivityThreePhaseEvaluator::EnsureCompatibility_ToDeps_(State& S)
-{
-  const auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(
-    my_keys_.front().first, my_keys_.front().second);
-  if (fac.Mesh() != Teuchos::null) {
-    CompositeVectorSpace dep_fac;
-    dep_fac.SetMesh(fac.Mesh())
-      ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
-  }
-}
-
-
 } //namespace
 } //namespace
 

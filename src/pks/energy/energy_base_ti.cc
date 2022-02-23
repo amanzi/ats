@@ -63,9 +63,7 @@ void EnergyBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 #endif
 
   // update boundary conditions
-  bc_temperature_->Compute(S_->get_time(tag_next_));
-  bc_diff_flux_->Compute(S_->get_time(tag_next_));
-  bc_flux_->Compute(S_->get_time(tag_next_));
+  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
@@ -161,9 +159,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update boundary conditions
-  bc_temperature_->Compute(S_->get_time(tag_next_));
-  bc_diff_flux_->Compute(S_->get_time(tag_next_));
-  bc_flux_->Compute(S_->get_time(tag_next_));
+  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
   // div K_e grad u

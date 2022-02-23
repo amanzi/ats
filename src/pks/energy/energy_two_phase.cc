@@ -34,8 +34,7 @@ TwoPhase::TwoPhase(Teuchos::ParameterList& FElist,
 
 
 // -------------------------------------------------------------
-// Create the physical evaluators for energy, enthalpy, thermal
-// conductivity, and any sources.
+// Create the physical evaluators for energy and thermal conductivity
 // -------------------------------------------------------------
 void TwoPhase::SetupPhysicalEvaluators_() {
   // Get data and evaluators needed by the PK
