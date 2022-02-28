@@ -29,8 +29,18 @@ with freezing.
 
 namespace Amanzi {
 
+MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
+                const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                const Teuchos::RCP<State>& S,
+                const Teuchos::RCP<TreeVector>& soln) :
+      PK(pk_tree_list, global_list, S, soln),
+      StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
+      {
+        dump_ = plist_->get<bool>("dump preconditioner", false);
+      }
+
 // -- Initialize owned (dependent) variables.
-void MPCSurface::Setup(const Teuchos::Ptr<State>& S)
+void MPCSurface::Setup()
 {
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ = plist_->get<std::string>("domain name");
@@ -47,17 +57,17 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S)
   water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
   // require these in case the PK did not do so already
-  S->RequireField(pd_bar_key_)
-    ->SetMesh(S->GetMesh(domain_))
+  S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
+    .SetMesh(S_->GetMesh(domain_))
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S->RequireFieldEvaluator(pd_bar_key_);
+  S_->RequireEvaluator(pd_bar_key_, tag_next_);
 
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
   pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
 
   // set up the sub-pks
-  StrongMPC<PK_PhysicalBDF_Default>::Setup(S);
-  mesh_ = S->GetMesh(domain_);
+  StrongMPC<PK_PhysicalBDF_Default>::Setup();
+  mesh_ = S_->GetMesh(domain_);
 
   // set up debugger
   db_ = sub_pks_[0]->debugger();
@@ -133,18 +143,18 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S)
     Teuchos::RCP<Teuchos::ParameterList> surf_ewc_list = Teuchos::sublist(plist_, "surface ewc delegate");
     surf_ewc_list->set("PK name", name_);
     surf_ewc_list->set("domain name", domain_);
-    ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list));
-
+    ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
+    ewc_->set_tags(tag_current_, tag_next_);
     Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
     ewc_->set_model(model);
-    ewc_->setup(S);
+    ewc_->setup();
   }
 }
 
 
-void MPCSurface::Initialize(const Teuchos::Ptr<State>& S) {
-  StrongMPC<PK_PhysicalBDF_Default>::Initialize(S);
-  if (ewc_ != Teuchos::null) ewc_->initialize(S);
+void MPCSurface::Initialize() {
+  StrongMPC<PK_PhysicalBDF_Default>::Initialize();
+  if (ewc_ != Teuchos::null) ewc_->initialize();
 
   if (ddivq_dT_ != Teuchos::null) {
     ddivq_dT_->SetBCs(sub_pks_[0]->BCs(), sub_pks_[1]->BCs());
@@ -153,21 +163,11 @@ void MPCSurface::Initialize(const Teuchos::Ptr<State>& S) {
 }
 
 
-void MPCSurface::set_states(const Teuchos::RCP<State>& S,
-        const Teuchos::RCP<State>& S_inter,
-        const Teuchos::RCP<State>& S_next)
+void MPCSurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  StrongMPC<PK_PhysicalBDF_Default>::set_states(S,S_inter,S_next);
-  if (ewc_ != Teuchos::null) ewc_->set_states(S,S_inter,S_next);
-}
-
-
-void MPCSurface::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
-{
-  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, S);
+  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
   if (ewc_ != Teuchos::null) {
-    double dt = t_new - t_old;
-    ewc_->commit_state(dt,S);
+    ewc_->commit_state();
   }
 }
 
@@ -204,19 +204,18 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     // -- dkr/dT
     if (ddivq_dT_ != Teuchos::null) {
       // -- update and upwind d kr / dT
-      S_next_->GetFieldEvaluator(kr_key_)
-          ->HasFieldDerivativeChanged(S_next_.ptr(), name_, temp_key_);
+      S_->GetEvaluator(kr_key_, tag_next_)
+        .UpdateDerivative(*S_, name_, temp_key_, tag_next_);
       Teuchos::RCP<const CompositeVector> dkrdT =
-        S_next_->GetFieldData(Keys::getDerivKey(kr_key_, temp_key_));
+        S_->GetDerivativePtr<CompositeVector>(kr_key_, tag_next_, temp_key_, tag_next_);
       Teuchos::RCP<const CompositeVector> kr_uw =
-        S_next_->GetFieldData(kr_uw_key_);
+        S_->GetPtr<CompositeVector>(kr_uw_key_, tag_next_);
       Teuchos::RCP<const CompositeVector> flux =
-        S_next_->GetFieldData(water_flux_key_);
+        S_->GetPtr<CompositeVector>(water_flux_key_, tag_next_);
 
-      S_next_->GetFieldEvaluator(potential_key_)
-        ->HasFieldChanged(S_next_.ptr(), name_);
+      S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);
       Teuchos::RCP<const CompositeVector> pres_elev =
-        S_next_->GetFieldData(potential_key_);
+        S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
 
       // form the operator
       ddivq_dT_->SetScalarCoefficient(kr_uw, dkrdT);
@@ -226,15 +225,15 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     }
 
     // -- dE/dp diagonal term
-    S_next_->GetFieldEvaluator(e_key_)
-        ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
+    S_->GetEvaluator(e_key_, tag_next_)
+      .UpdateDerivative(*S_, name_, pres_key_, tag_next_);
     Teuchos::RCP<const CompositeVector> dE_dp =
-      S_next_->GetFieldData(Keys::getDerivKey(e_key_, pres_key_));
+      S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_);
 
     // -- scale to dE/dh
-    S_next_->GetFieldEvaluator(pd_bar_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), name_, pres_key_);
-    auto dh_dp = S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_, pres_key_));
+    S_->GetEvaluator(pd_bar_key_, tag_next_)
+      .UpdateDerivative(*S_, name_, pres_key_, tag_next_);
+    auto dh_dp = S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_);
 
     // -- add it in
     CompositeVector dE_dh(dE_dp->Map());
@@ -290,7 +289,8 @@ int MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
     // tack on the variable change from h to p
     const Epetra_MultiVector& dh_dp =
-      *S_next_->GetFieldData(Keys::getDerivKey(pd_bar_key_,pres_key_))->ViewComponent("cell",false);
+      *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
+      ->ViewComponent("cell",false);
     Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell",false);
 
     for (unsigned int c=0; c!=Pu_c.MyLength(); ++c) {

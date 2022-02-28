@@ -25,7 +25,8 @@
 namespace Amanzi {
 
 void
-SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, Teuchos::ParameterList& plist)
+SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag,
+                                 Teuchos::ParameterList& plist)
 {
   // NOTE: intentially using liquid instead of ice on the surface!
   Key domain = plist.get<std::string>("domain name", "surface");
@@ -43,42 +44,42 @@ SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, Teuchos::Paramete
 
   // Grab the models.
   // -- liquid EOS
-  Teuchos::RCP<Evaluator> me = S->GetEvaluator(liq_dens_key);
+  Teuchos::RCP<Evaluator> me = S->GetEvaluatorPtr(liq_dens_key, tag);
   Teuchos::RCP<Relations::EOSEvaluator> eos_liquid_me =
       Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
   AMANZI_ASSERT(eos_liquid_me != Teuchos::null);
   liquid_eos_ = eos_liquid_me->get_EOS();
 
   // -- ice EOS
-  me = S->GetEvaluator(ice_dens_key);
+  me = S->GetEvaluatorPtr(ice_dens_key, tag);
   Teuchos::RCP<Relations::EOSEvaluator> eos_ice_me =
       Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
   AMANZI_ASSERT(eos_ice_me != Teuchos::null);
   ice_eos_ = eos_ice_me->get_EOS();
 
   // -- iem for liquid
-  me = S->GetEvaluator(iem_liq_key);
+  me = S->GetEvaluatorPtr(iem_liq_key, tag);
   Teuchos::RCP<Energy::IEMEvaluator> iem_liquid_me =
       Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
   AMANZI_ASSERT(iem_liquid_me != Teuchos::null);
   liquid_iem_ = iem_liquid_me->get_IEM();
 
   // -- iem for ice
-  me = S->GetEvaluator(iem_ice_key);
+  me = S->GetEvaluatorPtr(iem_ice_key, tag);
   Teuchos::RCP<Energy::IEMEvaluator> iem_ice_me =
       Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
   AMANZI_ASSERT(iem_ice_me != Teuchos::null);
   ice_iem_ = iem_ice_me->get_IEM();
 
   // -- ponded depth evaluator
-  me = S->GetEvaluator(pd_key);
+  me = S->GetEvaluatorPtr(pd_key, tag);
   Teuchos::RCP<Flow::IcyHeightEvaluator> icy_h_me =
       Teuchos::rcp_dynamic_cast<Flow::IcyHeightEvaluator>(me);
   AMANZI_ASSERT(icy_h_me != Teuchos::null);
   pd_ = icy_h_me->get_IcyModel();
 
   // -- unfrozen fraction evaluator
-  me = S->GetEvaluator(uf_key);
+  me = S->GetEvaluatorPtr(uf_key, tag);
   Teuchos::RCP<Flow::UnfrozenFractionEvaluator> uf_me =
       Teuchos::rcp_dynamic_cast<Flow::UnfrozenFractionEvaluator>(me);
   AMANZI_ASSERT(uf_me != Teuchos::null);
@@ -88,9 +89,18 @@ SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, Teuchos::Paramete
 void
 SurfaceIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   // update scalars
-  p_atm_ = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
-  gz_ = -((*S->GetConstantVectorData("gravity", Tags::DEFAULT))[2]);
+  p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  gz_ = -(S->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
   AMANZI_ASSERT(IsSetUp_());
+}
+
+bool
+SurfaceIceModel::Freezing(double T, double p) { return T < 273.15; }
+
+int
+SurfaceIceModel::EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) {
+  AMANZI_ASSERT(0);
+  return 1;
 }
 
 bool

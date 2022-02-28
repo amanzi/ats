@@ -110,15 +110,15 @@ set(ats_link_libs
   ats_pks
   ats_transport
   #ats_sed_transport  
-  #ats_energy
-  #ats_energy_relations
+  ats_energy
+  ats_energy_relations
   ats_flow
   ats_flow_relations
   ats_deform
   ats_bgc
   ats_surface_balance
   ats_mpc
-  #ats_mpc_relations
+  ats_mpc_relations
   )
 
 
