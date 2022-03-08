@@ -81,7 +81,6 @@ class EnergySurfaceIce : public EnergyBase {
   bool is_energy_source_term_;
   bool is_water_source_term_;
   bool is_air_conductivity_;
-  bool water_source_only_if_unfrozen_;
 
   // keys
   Key domain_ss_;

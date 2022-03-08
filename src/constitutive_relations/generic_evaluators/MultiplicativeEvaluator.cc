@@ -54,7 +54,7 @@ void
 MultiplicativeEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-  AMANZI_ASSERT(dependencies_.size() > 1);
+  AMANZI_ASSERT(dependencies_.size() >= 1);
   result[0]->PutScalar(coef_);
 
   for (const auto& lcv_name : *result[0]) {

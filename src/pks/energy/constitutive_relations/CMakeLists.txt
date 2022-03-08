@@ -1,8 +1,7 @@
 # -*- mode: cmake -*-
-
 #
 #  ATS
-#    Constitutive relations for flow
+#    Constitutive relations for energy
 #
 
 
@@ -20,7 +19,7 @@ foreach(lcv IN LISTS subdirs)
   file(GLOB subdir_incs "./${lcv}/*.hh")
   set(ats_energy_relations_inc_files ${ats_energy_relations_inc_files} ${subdir_incs})
 
-  file(GLOB_RECURSE registrations "./*_reg.hh" )
+  file(GLOB registrations "./${lcv}/*_reg.hh" )
   foreach(reg_lcv IN LISTS registrations)
     register_abs_evaluator_with_factory(HEADERFILE ${reg_lcv} LISTNAME ATS_ENERGY_RELATIONS_REG)
   endforeach(reg_lcv)

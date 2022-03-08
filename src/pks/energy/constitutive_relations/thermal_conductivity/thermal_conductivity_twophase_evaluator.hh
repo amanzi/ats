@@ -43,6 +43,9 @@ class ThermalConductivityTwoPhaseEvaluator :
   // dependencies
   Key poro_key_;
   Key sat_key_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator,ThermalConductivityTwoPhaseEvaluator> factory_;
 };
 
 } // namespace

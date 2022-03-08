@@ -2,7 +2,7 @@
 
 #
 #  ATS
-#    Flow PK class
+#    Energy PK class
 #
 
 # additional common components

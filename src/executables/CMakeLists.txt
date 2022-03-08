@@ -96,7 +96,7 @@ set(amanzi_link_libs
   output
   mesh_mstk
   mesh_logical
-  #chemistry_pk
+  chemistry_pk
   #mpc_tree
   transport
   )

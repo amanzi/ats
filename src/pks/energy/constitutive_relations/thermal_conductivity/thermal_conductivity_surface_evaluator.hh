@@ -11,6 +11,7 @@
 #define AMANZI_ENERGY_RELATIONS_TC_SURFACE_EVALUATOR_HH_
 
 #include "EvaluatorSecondaryMonotype.hh"
+#include "Factory.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -41,6 +42,9 @@ class ThermalConductivitySurfaceEvaluator :
   double K_liq_;
   double K_ice_;
   double min_K_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator,ThermalConductivitySurfaceEvaluator> factory_;
 };
 
 } // namespace

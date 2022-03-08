@@ -95,7 +95,7 @@ set(ats_mpc_link_libs
   time_integration
   state
   pks
-  #chemistry_pk
+  chemistry_pk
   ats_operators
   ats_eos
   ats_generic_evals

@@ -74,7 +74,7 @@ void EnergyBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   // diffusion term, implicit
   ApplyDiffusion_(tag_next_, res.ptr());
 #if DEBUG_FLAG
-  db_->WriteVector("K",S_->GetPtr<CompositeVector>(key_, tag_next_).ptr(),true);
+  db_->WriteVector("K",S_->GetPtr<CompositeVector>(conductivity_key_, tag_next_).ptr(),true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 #endif
 
@@ -105,20 +105,6 @@ void EnergyBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 #if DEBUG_FLAG
   db_->WriteVector("res (src)", res.ptr());
 #endif
-
-  // Dump residual to state for visual debugging.
-#if MORE_DEBUG_FLAG
-  if (niter_ < 23) {
-    std::stringstream namestream;
-    namestream << domain_prefix_ << "energy_residual_" << niter_;
-    *S_->GetPtrW(namestream.str(), tag_next_, name_) = *res;
-
-    std::stringstream solnstream;
-    solnstream << domain_prefix_ << "energy_solution_" << niter_;
-    *S_->GetPtrW(solnstream.str(), tag_next_, name_) = *u;
-  }
-#endif
-
 
 };
 
@@ -158,65 +144,61 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
-  // update boundary conditions
-  ComputeBoundaryConditions_(tag_next_);
-  UpdateBoundaryConditions_(tag_next_);
-
   // div K_e grad u
   UpdateConductivityData_(tag_next_);
   if (jacobian_) UpdateConductivityDerivativeData_(tag_next_);
 
+  // update boundary conditions
+  ComputeBoundaryConditions_(tag_next_);
+  UpdateBoundaryConditions_(tag_next_);
+
+  // fill local matrices
   // jacobian term
   Teuchos::RCP<const CompositeVector> dKdT = Teuchos::null;
   if (jacobian_) {
     if (!duw_conductivity_key_.empty()) {
       dKdT = S_->GetPtr<CompositeVector>(duw_conductivity_key_, tag_next_);
     } else {
-      dKdT = S_->GetDerivativePtr<CompositeVector>(dconductivity_key_, tag_next_,
+      dKdT = S_->GetDerivativePtr<CompositeVector>(conductivity_key_, tag_next_,
           key_, tag_next_);
     }
   }
 
+  // -- primary term
   Teuchos::RCP<const CompositeVector> conductivity =
       S_->GetPtr<CompositeVector>(uw_conductivity_key_, tag_next_);
   Teuchos::RCP<const CompositeVector> temp = 
       S_->GetPtr<CompositeVector>(key_, tag_next_);
-
-  // create local matrices
-  preconditioner_->Init();
   preconditioner_diff_->SetScalarCoefficient(conductivity, dKdT);
-  preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
-  // maybe this? jjb
-  // preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
+
+  // -- local matrices, primary term
+  preconditioner_->Init();
+  preconditioner_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
+  // -- local matrices, Jacobian term
   if (jacobian_) {
     Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(energy_flux_key_, tag_next_, name_);
     preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
   }
 
-  // update with accumulation terms
   // -- update the accumulation derivatives, de/dT
-  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_,
-      key_, tag_next_);
-  //Teuchos::RCP<const CompositeVector> de_dT =
-  //    S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_,
-  //    key_, tag_next_);
-  const Epetra_MultiVector& de_dT = *S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_,
-      key_, tag_next_)->ViewComponent("cell",false);
-  //unsigned int ncells = de_dT.MyLength();
-  unsigned int ncells = de_dT.MyLength();
-  CompositeVector acc(S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_)->Map());
+  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+  const auto& de_dT = *S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_)
+  ->ViewComponent("cell",false);
+  CompositeVector acc(S_->GetPtr<CompositeVector>(conserved_key_, tag_next_)->Map());
   auto& acc_c = *acc.ViewComponent("cell", false);
 
+
 #if DEBUG_FLAG
-  db_->WriteVector("    de_dT", S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
+  db_->WriteVector("    de_dT", S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_).ptr());
 #endif
 
+  unsigned int ncells = de_dT.MyLength();
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_) {
     // do not add in de/dT if the height is 0
-    const Epetra_MultiVector& pres = *S_->Get<CompositeVector>(Keys::getKey(domain_,"pressure"), tag_next_)
+    const auto& pres = *S_->Get<CompositeVector>(Keys::getKey(domain_,"pressure"), tag_next_)
         .ViewComponent("cell",false);
     const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
@@ -233,7 +215,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
     } else {
 
       if (decoupled_from_subsurface_) {
-        const Epetra_MultiVector& uf_c =
+        const auto& uf_c =
             *S_->Get<CompositeVector>(uf_key_, tag_next_).ViewComponent("cell",false);
         for (unsigned int c=0; c!=ncells; ++c) {
           acc_c[0][c] = std::max(de_dT[0][c] / h , 1.e-1*uf_c[0][c]) + 1.e-6;
@@ -259,11 +241,10 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   // update with advection terms
   if (is_advection_term_) {
     if (implicit_advection_ && implicit_advection_in_pc_) {
-      Teuchos::RCP<const CompositeVector> water_flux = 
-          S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
-      S_->GetEvaluator(enthalpy_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+      Teuchos::RCP<const CompositeVector> water_flux = S_->GetPtr<CompositeVector>(flux_key_, tag_next_);
+        S_->GetEvaluator(enthalpy_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
       Teuchos::RCP<const CompositeVector> dhdT = 
-          S_->GetPtr<CompositeVector>(Keys::getDerivKey(enthalpy_key_, key_), tag_next_);
+        S_->GetDerivativePtr<CompositeVector>(enthalpy_key_, tag_next_, key_, tag_next_);
       preconditioner_adv_->Setup(*water_flux);
       preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
       preconditioner_adv_->UpdateMatrices(water_flux.ptr(), dhdT.ptr());
@@ -284,10 +265,10 @@ double EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
 
-  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
+  //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
   const Epetra_MultiVector& conserved = *S_->Get<CompositeVector>(conserved_key_, tag_current_)
       .ViewComponent("cell",true);
-  S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());
+  //S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());
   const Epetra_MultiVector& wc = *S_->Get<CompositeVector>(wc_key_, tag_current_)
       .ViewComponent("cell",true);
   const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)

@@ -55,12 +55,37 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_() {
 
   standalone_mode_ = S_->GetMesh() == S_->GetMesh(domain_);
 
+  Key molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(molar_dens_key, tag_next_);
+
+  Key mass_dens_key = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(mass_dens_key, tag_next_);
+
+  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "mass density ice", "mass_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+ // S_->RequireEvaluator(mass_dens_ice_key, tag_next_);
+
+  Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(molar_dens_ice_key, tag_next_);
+
   // Get data and evaluators needed by the PK
   // -- energy, energy evaluator, and energy derivative
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(conserved_key_, tag_next_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_, key_, tag_next_);
+
 
   // energy at the current time, where it is a copy evaluator
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
@@ -70,7 +95,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_() {
   if (plist_->isSublist("thermal conductivity evaluator")) {
     auto& tcm_plist = S_->GetEvaluatorList(conductivity_key_);
     tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
-    tcm_plist.set("evaluator type", "thermal conductivity");
+    tcm_plist.set("evaluator type", "surface thermal conductivity");
   }
   S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -131,8 +156,7 @@ void EnergySurfaceIce::Initialize() {
       auto ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
 
       if (subsurf_temp->HasComponent("face")) {
-        const Epetra_MultiVector& temp = *S_->GetPtr<CompositeVector>(key_ss, tag_next_)
-          ->ViewComponent("face",false);
+        const Epetra_MultiVector& temp = *subsurf_temp->ViewComponent("face",false);
         for (unsigned int c=0; c!=ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
           AmanziMesh::Entity_ID f =

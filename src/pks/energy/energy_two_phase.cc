@@ -52,7 +52,7 @@ void TwoPhase::SetupPhysicalEvaluators_() {
   if (plist_->isSublist("thermal conductivity evaluator")) {
     auto& tcm_plist = S_->GetEvaluatorList(conductivity_key_);
     tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
-    tcm_plist.set("evaluator type", "thermal conductivity");
+    tcm_plist.set("evaluator type", "two-phase thermal conductivity");
   }
   S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
