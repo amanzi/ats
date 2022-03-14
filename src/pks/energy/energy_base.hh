@@ -227,7 +227,7 @@ public:
 
   // -- Add any source terms into the residual.
   virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
-  virtual void AddSourcesToPrecon_(const Tag& tag, double h);
+  virtual void AddSourcesToPrecon_(double h);
 
   // Standard methods
   virtual void SetupEnergy_();

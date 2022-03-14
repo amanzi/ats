@@ -107,9 +107,9 @@ void MPCDelegateEWC::initialize() {
   // Create and initialize old stored data for previous steps.
 
   if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
-    const Epetra_MultiVector& wc = *S_->GetPtr<CompositeVector>(wc_key_, tag_current_)
+    const Epetra_MultiVector& wc = *S_->GetPtr<CompositeVector>(wc_key_, tag_next_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& e = *S_->GetPtr<CompositeVector>(e_key_, tag_current_)
+    const Epetra_MultiVector& e = *S_->GetPtr<CompositeVector>(e_key_, tag_next_)
         ->ViewComponent("cell",false);
 
     wc_prev2_ = Teuchos::rcp(new Epetra_MultiVector(wc));
@@ -117,7 +117,7 @@ void MPCDelegateEWC::initialize() {
     wc_prev2_->PutScalar(0.);
     e_prev2_->PutScalar(0.);
 
-    time_prev2_ = S_->get_time(tag_current_);
+    time_prev2_ = S_->get_time(tag_next_);
   }
 
   // initialize the Jacobian
@@ -127,7 +127,7 @@ void MPCDelegateEWC::initialize() {
   }
 
   // initialize the model, which grabs all needed models from state
-  model_->InitializeModel(S_.ptr(), tag_current_, *plist_);
+  model_->InitializeModel(S_.ptr(), tag_next_, *plist_);
 }
 
 
@@ -198,28 +198,29 @@ int MPCDelegateEWC::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teucho
 
 
 void MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, double h) {
-  Key dedT_key = Keys::getKey(e_key_, temp_key_);
+
   S_->GetEvaluator(e_key_, tag_next_)
       .UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
-  const Epetra_MultiVector& dedT = *S_->GetPtr<CompositeVector>(dedT_key, tag_next_)
+  const Epetra_MultiVector& dedT =
+  *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, temp_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dedp_key = Keys::getKey(e_key_, pres_key_);
   S_->GetEvaluator(e_key_, tag_next_)
       .UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
-  const Epetra_MultiVector& dedp = *S_->GetPtr<CompositeVector>(dedp_key, tag_next_)
+  const Epetra_MultiVector& dedp =
+  *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dwcdT_key = Keys::getKey(wc_key_, temp_key_);
   S_->GetEvaluator(wc_key_, tag_next_)
       .UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
-  const Epetra_MultiVector& dwcdT = *S_->GetPtr<CompositeVector>(dwcdT_key, tag_next_)
+  const Epetra_MultiVector& dwcdT =
+  *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dwcdp_key = Keys::getKey(wc_key_, pres_key_);
   S_->GetEvaluator(wc_key_, tag_next_)
       .UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
-  const Epetra_MultiVector& dwcdp = *S_->GetPtr<CompositeVector>(dwcdp_key, tag_next_)
+  const Epetra_MultiVector& dwcdp =
+  *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, pres_key_, tag_next_)
       ->ViewComponent("cell",false);
 
   int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);

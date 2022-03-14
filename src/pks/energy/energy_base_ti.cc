@@ -48,7 +48,7 @@ void EnergyBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 
   // dump u_old, u_new
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames{"t_old", "t_new"};
+  std::vector<std::string> vnames{"T_old", "T_new"};
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
   vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
   vecs.emplace_back(u.ptr());
@@ -144,15 +144,14 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
-  // div K_e grad u
-  UpdateConductivityData_(tag_next_);
-  if (jacobian_) UpdateConductivityDerivativeData_(tag_next_);
-
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
-  // fill local matrices
+  // div K_e grad u
+  UpdateConductivityData_(tag_next_);
+  if (jacobian_) UpdateConductivityDerivativeData_(tag_next_);
+
   // jacobian term
   Teuchos::RCP<const CompositeVector> dKdT = Teuchos::null;
   if (jacobian_) {
@@ -169,10 +168,10 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
       S_->GetPtr<CompositeVector>(uw_conductivity_key_, tag_next_);
   Teuchos::RCP<const CompositeVector> temp = 
       S_->GetPtr<CompositeVector>(key_, tag_next_);
-  preconditioner_diff_->SetScalarCoefficient(conductivity, dKdT);
 
-  // -- local matrices, primary term
+  // create local matrices
   preconditioner_->Init();
+  preconditioner_diff_->SetScalarCoefficient(conductivity, dKdT);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
@@ -236,7 +235,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   preconditioner_acc_->AddAccumulationTerm(acc, "cell");
 
   // -- update preconditioner with source term derivatives if needed
-  AddSourcesToPrecon_(tag_next_, h);
+  AddSourcesToPrecon_(h);
 
   // update with advection terms
   if (is_advection_term_) {
@@ -266,6 +265,7 @@ double EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // anything from negative to overflow.
 
   //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
+  // not used ?? jjb
   const Epetra_MultiVector& conserved = *S_->Get<CompositeVector>(conserved_key_, tag_current_)
       .ViewComponent("cell",true);
   //S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());

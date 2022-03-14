@@ -69,7 +69,7 @@ class EnergySurfaceIce : public EnergyBase {
 
   virtual void AddSources_(const Tag& tag,
                            const Teuchos::Ptr<CompositeVector>& f) override;
-  virtual void AddSourcesToPrecon_(const Tag& tag, double h) override;
+  virtual void AddSourcesToPrecon_(double h) override;
 
  protected:
   // simple heat condution term, q = K_s2a * (Tair - Tsurf)

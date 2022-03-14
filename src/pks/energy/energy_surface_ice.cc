@@ -35,11 +35,7 @@ EnergySurfaceIce::EnergySurfaceIce(Teuchos::ParameterList& FElist,
                                    const Teuchos::RCP<State>& S,
                                    const Teuchos::RCP<TreeVector>& solution) :
     PK(FElist, plist, S,  solution),
-    EnergyBase(FElist, plist, S,  solution),
-    standalone_mode_(false),
-    is_energy_source_term_(false),
-    is_water_source_term_(false),
-    is_air_conductivity_(false)
+    EnergyBase(FElist, plist, S,  solution)
 {
   if(!plist_->isParameter("conserved quantity key suffix"))
     plist_->set("conserved quantity key suffix", "energy");
@@ -52,8 +48,6 @@ EnergySurfaceIce::EnergySurfaceIce(Teuchos::ParameterList& FElist,
 // conductivity, and any sources.
 // -------------------------------------------------------------
 void EnergySurfaceIce::SetupPhysicalEvaluators_() {
-
-  standalone_mode_ = S_->GetMesh() == S_->GetMesh(domain_);
 
   Key molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag_next_)
@@ -286,16 +280,16 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
 }
 
 
-void EnergySurfaceIce::AddSourcesToPrecon_(const Tag& tag, double h) {
+void EnergySurfaceIce::AddSourcesToPrecon_(double h) {
   // Deals with nonlinear source terms that are implemented correctly as an evaluator
-  EnergyBase::AddSourcesToPrecon_(tag, h);
+  EnergyBase::AddSourcesToPrecon_(h);
 
   // Additionally deal with nonlinear source terms that are NOT
   // implemented correctly, as they are part of a PK (surface energy
   // balance!)
   if (is_source_term_ &&
-      S_->HasEvaluator(Keys::getKey(domain_,"conducted_energy_source"), tag) &&
-      !S_->GetEvaluator(Keys::getKey(domain_,"conducted_energy_source"), tag).IsDependency(*S_, key_, tag) &&
+      S_->HasEvaluator(Keys::getKey(domain_,"conducted_energy_source"), tag_next_) &&
+      !S_->GetEvaluator(Keys::getKey(domain_,"conducted_energy_source"), tag_next_).IsDependency(*S_, key_, tag_next_) &&
       S_->HasRecordSet(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")))) {
 
     // This checks if 1, there is a source, and, 2, there is a
@@ -303,12 +297,12 @@ void EnergySurfaceIce::AddSourcesToPrecon_(const Tag& tag, double h) {
     // (i.e. SEB PK) has defined a dsource_dT, but 3, the source
     // evaluator does not think it depends upon T (because it is
     // hacked in by the PK).
-    CompositeVector acc(S_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"conducted_energy_source"), tag, name_)->Map());
+    CompositeVector acc(S_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"conducted_energy_source"), tag_next_, name_)->Map());
     Epetra_MultiVector& acc_c = *acc.ViewComponent("cell", false);
 
     const Epetra_MultiVector& dsource_dT =
-      *S_->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")), tag, name_)->ViewComponent("cell",false);
-    const Epetra_MultiVector& cell_vol = *S_->Get<CompositeVector>(cell_vol_key_, tag).ViewComponent("cell",false);
+      *S_->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")), tag_next_, name_)->ViewComponent("cell",false);
+    const Epetra_MultiVector& cell_vol = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell",false);
     unsigned int ncells = dsource_dT.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
       acc_c[0][c] = -dsource_dT[0][c] * cell_vol[0][c];
@@ -317,7 +311,7 @@ void EnergySurfaceIce::AddSourcesToPrecon_(const Tag& tag, double h) {
 
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
       *vo_->os() << "Adding hacked source to PC:" << std::endl;
-      db_->WriteVector("de_src_dT", S_->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")), tag, name_).ptr(), false);
+      db_->WriteVector("de_src_dT", S_->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")), tag_next_, name_).ptr(), false);
     }
 
   }

@@ -110,7 +110,7 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   }
 
   // -- update preconditioner with source term derivatives if needed
-  AddSourcesToPrecon_(tag_next_, h);
+  AddSourcesToPrecon_(h);
 
   // update with advection terms
   if (implicit_advection_ && implicit_advection_in_pc_) {

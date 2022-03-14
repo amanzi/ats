@@ -72,6 +72,12 @@ void EnergyBase::AddAdvection_(const Tag& tag,
   matrix_adv_->SetBCs(bc_adv_, bc_adv_);
   matrix_adv_->UpdateMatrices(flux.ptr());
   matrix_adv_->ApplyBCs(false, true, false);
+
+  // update the flux
+  Teuchos::RCP<CompositeVector> adv_energy = S_->GetPtrW<CompositeVector>(adv_energy_flux_key_, tag, name_);
+  matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
+  ChangedEvaluatorPrimary(adv_energy_flux_key_, tag, *S_);
+
   matrix_adv_->global_operator()->ComputeNegativeResidual(*enth, *g, false);
 }
 
@@ -81,12 +87,13 @@ void EnergyBase::AddAdvection_(const Tag& tag,
 void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g) {
   // update the thermal conductivity
   UpdateConductivityData_(tag);
+  auto cond = S_->GetPtrW<CompositeVector>(uw_conductivity_key_, tag, name_);
 
   Teuchos::RCP<const CompositeVector> temp = S_->GetPtrW<CompositeVector>(key_, tag, name_);
 
   // update the stiffness matrix
   matrix_diff_->global_operator()->Init();
-  matrix_diff_->SetScalarCoefficient(S_->GetPtr<CompositeVector>(uw_conductivity_key_, tag), Teuchos::null);
+  matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
   matrix_diff_->ApplyBCs(true, true, true);
 
@@ -107,17 +114,19 @@ void EnergyBase::AddSources_(const Tag& tag,
         const Teuchos::Ptr<CompositeVector>& g) {
   Teuchos::OSTab tab = vo_->getOSTab();
 
+  Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
+
+  S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& cv =
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell",false);
+
   // external sources of energy
   if (is_source_term_) {
-    Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
-
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
       *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell",false);
-    const Epetra_MultiVector& cv =
-      *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
-
+  
     // Add into residual
     unsigned int ncells = g_c.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
@@ -128,34 +137,39 @@ void EnergyBase::AddSources_(const Tag& tag,
       *vo_->os() << "Adding external source term" << std::endl;
     db_->WriteVector("  Q_ext", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);
+
   }
 }
 
 
-void EnergyBase::AddSourcesToPrecon_(const Tag& tag, double h) {
+void EnergyBase::AddSourcesToPrecon_(double h) {
   // external sources of energy (temperature dependent source)
-  if (is_source_term_ && is_source_term_differentiable_ &&
-      S_->GetEvaluator(source_key_, tag).IsDependency(*S_, key_, tag)) {
+  if (is_source_term_
+    && (is_source_term_finite_differentiable_ ||
+    S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_))) {
 
-    Teuchos::RCP<const CompositeVector> dsource_dT;
-    if (!is_source_term_finite_differentiable_) {
-      // evaluate the derivative through the dag
-      S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
-      dsource_dT = S_->GetPtrW<CompositeVector>(Keys::getDerivKey(source_key_, key_), tag, name_);
-    } else {
+    Teuchos::RCP<CompositeVector> dsource_dT;
+
+    if (is_source_term_finite_differentiable_) {
+
       // evaluate the derivative through finite differences
       double eps = 1.e-8;
-      S_->GetW<CompositeVector>(key_, tag, name_).Shift(eps);
+      S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps);
       ChangedSolution();
-      S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
-      auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(*S_->GetPtr<CompositeVector>(source_key_, tag)));
+      S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
+      auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
 
-      S_->GetW<CompositeVector>(key_, tag, name_).Shift(-eps);
+      S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(-eps);
       ChangedSolution();
-      S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
+      S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
 
-      dsource_dT_nc->Update(-1/eps, *S_->GetPtr<CompositeVector>(source_key_, tag), 1/eps);
+      dsource_dT_nc->Update(-1/eps, S_->Get<CompositeVector>(source_key_, tag_next_), 1/eps);
       dsource_dT = dsource_dT_nc;
+
+    } else {
+      // evaluate the derivative through the dag
+      S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(source_key_, tag_next_, key_, tag_next_, name_);
     }
     db_->WriteVector("  dQ_ext/dT", dsource_dT.ptr(), false);
     preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0, "cell", true);

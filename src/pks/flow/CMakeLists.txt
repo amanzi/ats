@@ -33,7 +33,7 @@ set(ats_flow_src_files
   # overland_pk.cc
   # overland_physics.cc
   # overland_ti.cc
-  # icy_overland.cc
+    icy_overland.cc
   # snow_distribution_pk.cc
   # snow_distribution_physics.cc
   # snow_distribution_ti.cc
@@ -112,10 +112,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE icy_overland_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+ register_evaluator_with_factory(
+   HEADERFILE icy_overland_reg.hh
+   LISTNAME   ATS_FLOW_PKS_REG
+   )
 
 # register_evaluator_with_factory(
 #   HEADERFILE snow_distribution_reg.hh

@@ -67,6 +67,13 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
            // energy of 1 degree C of water per mass_atol, in MJ/mol water
   }
 
+  // source terms
+  is_source_term_ = plist_->get<bool>("source term", false);
+  if (is_source_term_) {
+    source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
+  }
+  is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
+
   // get keys
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
@@ -103,6 +110,21 @@ void EnergyBase::SetupEnergy_()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
   S_->Require<double>("atmospheric_pressure", Tags::DEFAULT);
+
+  if (is_source_term_) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_).SetMesh(mesh_)
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S_->RequireEvaluator(source_key_, tag_next_);
+
+    if (S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)
+      && !is_source_term_finite_differentiable_) {
+      // require derivative of source
+      S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
+              tag_next_, key_, tag_next_);
+    }
+  }
+  //    and at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_);
 
   // Set up Operators
   // -- boundary conditions
@@ -251,23 +273,8 @@ void EnergyBase::SetupEnergy_()
   S_->RequireEvaluator(enthalpy_key_, tag_next_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(enthalpy_key_,
               tag_next_, key_, tag_next_);
-
-  // source terms
-  is_source_term_ = plist_->get<bool>("source term");
-  is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-  is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
-  if (is_source_term_) {
-    if (source_key_.empty())
-      source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
-    S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_).SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-    if (is_source_term_differentiable_) {
-      // require derivative of source
-      S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
-              tag_next_, key_, tag_next_);
-    }
-    S_->RequireEvaluator(source_key_, tag_next_);
-  }
+  //    and at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(enthalpy_key_, tag_current_, name_);
 
   // coupling terms
   // -- coupled to a surface via a Neumann condition
@@ -298,7 +305,7 @@ void EnergyBase::SetupEnergy_()
     ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "temperature", "temperature");
     S_->Require<CompositeVector,CompositeVectorSpace>(ss_primary_key_, tag_next_)
       .SetMesh(S_->GetMesh(domain_surf))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
   }
 
   decoupled_from_subsurface_ = plist_->get<bool>("decoupled from subsurface", false); //surface-only system
@@ -310,35 +317,37 @@ void EnergyBase::SetupEnergy_()
   }
 
   // Require the primary variable
-  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_,  name_)
-    .Update(matrix_->RangeMap())->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-
-  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_);
- //S_->RequireEvaluator(key_, tag_current_);
+  CompositeVectorSpace matrix_cvs = matrix_->RangeMap();
+  matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_, name_)
+  .Update(matrix_cvs)->SetGhosted();
 
   // require a water flux field
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
       ->AddComponent("face", AmanziMesh::FACE, 1);
   S_->RequireEvaluator(flux_key_, tag_next_);
+  //    and at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_current_, name_);
 
   // require a water content field -- used for computing energy density in the
   // error norm
   S_->Require<CompositeVector,CompositeVectorSpace>(wc_key_, tag_next_).SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(wc_key_, tag_next_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(wc_key_, tag_current_, name_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(wc_key_, tag_current_);
   //S_->RequireEvaluator(wc_key_, tag_current_);
 
   // Require fields for the energy fluxes
   S_->Require<CompositeVector,CompositeVectorSpace>(energy_flux_key_, tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
       ->SetComponent("face", AmanziMesh::FACE, 1);
   RequireEvaluatorPrimary(energy_flux_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(adv_energy_flux_key_, tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
-  //RequireEvaluatorPrimary(adv_energy_flux_key_, tag_next_, *S_);
+
+  if (is_advection_term_) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(adv_energy_flux_key_, tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
+        ->SetComponent("face", AmanziMesh::FACE, 1);
+    RequireEvaluatorPrimary(adv_energy_flux_key_, tag_next_, *S_);
+    }
 
   // Globalization and other timestep control flags
   modify_predictor_for_freezing_ =
@@ -359,8 +368,13 @@ void EnergyBase::Initialize() {
   // initialize energy fluxes
   S_->GetW<CompositeVector>(energy_flux_key_, tag_next_, name()).PutScalar(0.0);
   S_->GetRecordW(energy_flux_key_, tag_next_, name()).set_initialized();
-  S_->GetW<CompositeVector>(adv_energy_flux_key_, tag_next_, name()).PutScalar(0.0);
-  S_->GetRecordW(adv_energy_flux_key_, tag_next_, name()).set_initialized();
+  ChangedEvaluatorPrimary(energy_flux_key_, tag_next_, *S_);
+
+  if (is_advection_term_) {
+    S_->GetW<CompositeVector>(adv_energy_flux_key_, tag_next_, name()).PutScalar(0.0);
+    S_->GetRecordW(adv_energy_flux_key_, tag_next_, name()).set_initialized();
+    ChangedEvaluatorPrimary(adv_energy_flux_key_, tag_next_, *S_);
+  }
 
   // initialize upwind conductivities
   S_->GetW<CompositeVector>(uw_conductivity_key_, tag_next_, name()).PutScalar(0.0);
@@ -392,6 +406,15 @@ void EnergyBase::CommitStep(double t_old, double t_new, const Tag& tag)
   // also save conserved quantity
   if (!S_->HasEvaluator(conserved_key_, tag_current_))
     S_->Assign(conserved_key_, tag_current_, tag_next_);
+
+  if (!S_->HasEvaluator(wc_key_, tag_current_))
+    S_->Assign(wc_key_, tag_current_, tag_next_);
+
+  if (!S_->HasEvaluator(enthalpy_key_, tag_current_))
+    S_->Assign(enthalpy_key_, tag_current_, tag_next_);
+
+  if (!S_->HasEvaluator(flux_key_, tag_current_))
+    S_->Assign(flux_key_, tag_current_, tag_next_);
 
   // BEGIN LIKELY UNNECESSARY DEAD CODE --ETC
   ComputeBoundaryConditions_(tag);

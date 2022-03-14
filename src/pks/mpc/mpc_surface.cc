@@ -42,6 +42,7 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
 // -- Initialize owned (dependent) variables.
 void MPCSurface::Setup()
 {
+
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   domain_ = plist_->get<std::string>("domain name");
 
@@ -56,18 +57,29 @@ void MPCSurface::Setup()
   pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
   water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
-  // require these in case the PK did not do so already
-  S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_))
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(pd_bar_key_, tag_next_);
-
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
   pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
 
   // set up the sub-pks
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
   mesh_ = S_->GetMesh(domain_);
+
+  // require these in case the PK did not do so already
+  S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
+    .SetMesh(S_->GetMesh(domain_))
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S_->RequireEvaluator(pd_bar_key_, tag_next_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
+            tag_next_, pres_key_, tag_next_);
+
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(kr_key_,
+            tag_next_, temp_key_, tag_next_);
+
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
+            tag_next_, pres_key_, tag_next_);
+
+   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
+            tag_next_, temp_key_, tag_next_);
 
   // set up debugger
   db_ = sub_pks_[0]->debugger();
@@ -114,6 +126,7 @@ void MPCSurface::Setup()
     if (precon_type_ != PRECON_NO_FLOW_COUPLING &&
         !plist_->get<bool>("supress Jacobian terms: d div surface q / dT", false)) {
       // set up the operator
+      auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
       Teuchos::ParameterList divq_plist(pks_list_->sublist(pk_order[0]).sublist("diffusion preconditioner"));
       divq_plist.set("include Newton correction", true);
       divq_plist.set("exclude primary terms", true);
@@ -170,10 +183,10 @@ void MPCSurface::set_tags(const Tag& tag_current, const Tag& tag_next)
 
 void MPCSurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
   if (ewc_ != Teuchos::null) {
     ewc_->commit_state();
   }
+  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
 }
 
 

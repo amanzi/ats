@@ -19,9 +19,11 @@ include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
+include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance/constitutive_relations/land_cover)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 
@@ -101,7 +103,9 @@ set(ats_mpc_link_libs
   ats_generic_evals
   ats_pks
   ats_transport
+  ats_energy
   ats_flow
+  ats_surface_balance
   ats_mpc_relations
   )
 
