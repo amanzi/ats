@@ -50,7 +50,8 @@ class FlowReactiveTransport_PK_ATS : public PK_MPCSubcycled_ATS {
 
   Teuchos::RCP<Teuchos::Time> flow_timer_;
   Teuchos::RCP<Teuchos::Time> rt_timer_;
-
+  Key flux_key_;
+  Key domain_;
   
   // factory registration
   static RegisteredPKFactory<FlowReactiveTransport_PK_ATS> reg_;

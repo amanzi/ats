@@ -26,16 +26,15 @@ FlowReactiveTransport_PK_ATS::FlowReactiveTransport_PK_ATS(
     PK(pk_tree, global_list, S, soln),
     PK_MPCSubcycled_ATS(pk_tree, global_list, S, soln) { 
 
-  name_ = Keys::cleanPListName(pk_tree.name());
-  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(global_list, "PKs", true);
-  Teuchos::RCP<Teuchos::ParameterList> pk_list = Teuchos::sublist(pks_list, name_, true);
-
+  name_ = Keys::cleanPListName(pk_tree.name());  
+  domain_ = plist_->get<std::string>("domain name", "domain");
   Teuchos::ParameterList vlist;
-  vlist.sublist("verbose object") = pk_list -> sublist("verbose object");
+  vlist.sublist("verbose object") = plist_ -> sublist("verbose object");
   vo_ =  Teuchos::rcp(new VerboseObject(name_, vlist)); 
 
   flow_timer_ = Teuchos::TimeMonitor::getNewCounter("flow");
   rt_timer_ = Teuchos::TimeMonitor::getNewCounter("reactive tranport");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "mass_flux");
 }
 
 
@@ -94,10 +93,10 @@ bool FlowReactiveTransport_PK_ATS::AdvanceStep(double t_old, double t_new, bool 
   sub_pks_[master_]->CommitStep(t_old, t_new, S_next_);
 
 
-  Teuchos::RCP<const Field> field_tmp = S_->GetFieldCopy("mass_flux", "next_timestep");
+  Teuchos::RCP<const Field> field_tmp = S_->GetFieldCopy(flux_key_, "next_timestep");
   Key copy_owner = field_tmp->owner();
-  Teuchos::RCP<Epetra_MultiVector> flux_copy = S_->GetFieldCopyData("mass_flux", "next_timestep", copy_owner)->ViewComponent("face", true);
-  *flux_copy = *S_next_->GetFieldData("mass_flux")->ViewComponent("face", true);
+  Teuchos::RCP<Epetra_MultiVector> flux_copy = S_->GetFieldCopyData(flux_key_, "next_timestep", copy_owner)->ViewComponent("face", true);
+  *flux_copy = *S_next_->GetFieldData(flux_key_)->ViewComponent("face", true);
  
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os()<<"Master step is successful\n";
 
