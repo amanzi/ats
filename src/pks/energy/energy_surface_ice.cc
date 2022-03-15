@@ -59,19 +59,17 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_() {
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(mass_dens_key, tag_next_);
-
-  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "mass density ice", "mass_density_ice");
-  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
- // S_->RequireEvaluator(mass_dens_ice_key, tag_next_);
 
   Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(molar_dens_ice_key, tag_next_);
+
+  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "mass density ice", "mass_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // Get data and evaluators needed by the PK
   // -- energy, energy evaluator, and energy derivative

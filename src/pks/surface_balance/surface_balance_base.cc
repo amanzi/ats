@@ -27,7 +27,6 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
   if (is_source_) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
   }
-  is_source_differentiable_ = plist_->get<bool>("source term is differentiable", true);
   source_finite_difference_ = plist_->get<bool>("source term finite difference", false);
   eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
 
@@ -59,6 +58,29 @@ SurfaceBalanceBase::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
+
+  Key molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(molar_dens_key, tag_next_);
+
+  Key mass_dens_key = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(molar_dens_ice_key, tag_next_);
+
+  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "mass density ice", "mass_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+
   // requirements: source terms from above
   if (is_source_) {
     if (theta_ > 0) {
@@ -66,7 +88,8 @@ SurfaceBalanceBase::Setup()
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
       S_->RequireEvaluator(source_key_, tag_next_);
 
-      if (is_source_differentiable_) {
+      if (S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)
+      && !source_finite_difference_) {
         S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_,
                 key_, tag_next_);
       }
@@ -206,8 +229,10 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
     preconditioner_acc_->AddAccumulationTerm(*dconserved_dT, h, "cell", false);
 
     // add derivative of source wrt primary
-    if (theta_ > 0. && is_source_ && is_source_differentiable_ &&
-        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (theta_ > 0.0
+    && is_source_
+    && (source_finite_difference_ 
+    || S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_))) {
 
       Teuchos::RCP<const CompositeVector> dsource_dT;
       if (!source_finite_difference_) {

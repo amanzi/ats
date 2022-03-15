@@ -25,6 +25,10 @@ energy/water-content space instead of temperature/pressure space.
 
 namespace Amanzi {
 
+MPCDelegateEWCSubsurface::MPCDelegateEWCSubsurface(Teuchos::ParameterList& plist,
+                        const Teuchos::RCP<State>& S) :
+  MPCDelegateEWC(plist, S) { }
+
 
 bool MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up) {
   Teuchos::OSTab tab = vo_->getOSTab();

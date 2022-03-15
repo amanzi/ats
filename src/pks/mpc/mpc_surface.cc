@@ -36,33 +36,35 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
       PK(pk_tree_list, global_list, S, soln),
       StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
       {
+        auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
+        domain_ = plist_->get<std::string>("domain name");
+
+        temp_key_ = Keys::readKey(*plist_, domain_, "temperature", "temperature");
+        pres_key_ = Keys::readKey(*plist_, domain_, "pressure", "pressure");
+        e_key_ = Keys::readKey(*plist_, domain_, "energy", "energy");
+        wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
+
+        kr_key_ = Keys::readKey(*plist_, domain_, "overland conductivity", "overland_conductivity");
+        kr_uw_key_ = Keys::readKey(*plist_, domain_, "upwind overland conductivity", "upwind_overland_conductivity");
+        potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
+        pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
+        water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+
         dump_ = plist_->get<bool>("dump preconditioner", false);
+
+        // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
+        pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
       }
 
 // -- Initialize owned (dependent) variables.
 void MPCSurface::Setup()
 {
-
-  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  domain_ = plist_->get<std::string>("domain name");
-
-  temp_key_ = Keys::readKey(*plist_, domain_, "temperature", "temperature");
-  pres_key_ = Keys::readKey(*plist_, domain_, "pressure", "pressure");
-  e_key_ = Keys::readKey(*plist_, domain_, "energy", "energy");
-  wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
-
-  kr_key_ = Keys::readKey(*plist_, domain_, "overland conductivity", "overland_conductivity");
-  kr_uw_key_ = Keys::readKey(*plist_, domain_, "upwind overland conductivity", "upwind_overland_conductivity");
-  potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
-  pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
-  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
-
-  // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
-  pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
-
   // set up the sub-pks
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
   mesh_ = S_->GetMesh(domain_);
+
+  // set up debugger
+  db_ = sub_pks_[0]->debugger();
 
   // require these in case the PK did not do so already
   S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
@@ -78,11 +80,8 @@ void MPCSurface::Setup()
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
             tag_next_, pres_key_, tag_next_);
 
-   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
             tag_next_, temp_key_, tag_next_);
-
-  // set up debugger
-  db_ = sub_pks_[0]->debugger();
 
   // Get the sub-blocks from the sub-PK's preconditioners.
   Teuchos::RCP<Operators::Operator> pcA = sub_pks_[0]->preconditioner();
