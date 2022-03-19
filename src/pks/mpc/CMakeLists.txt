@@ -41,14 +41,14 @@ set(ats_mpc_src_files
   mpc_delegate_ewc.cc
   # mpc_reactivetransport_pk.cc
   # mpc_coupled_reactive_transport_pk.cc
-  # mpc_delegate_ewc_subsurface.cc
+  mpc_delegate_ewc_subsurface.cc
   mpc_delegate_ewc_surface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
   # mpc_coupled_water_split_flux.cc
   mpc_coupled_transport.cc
   # mpc_permafrost_split_flux.cc
-  # mpc_subsurface.cc
+  mpc_subsurface.cc
   mpc_surface.cc
   # mpc_permafrost.cc
   # mpc_morphology_pk.cc
@@ -69,7 +69,7 @@ set(ats_mpc_inc_files
   mpc_delegate_ewc.hh
   # mpc_reactivetransport_pk.hh
   # mpc_coupled_reactive_transport_pk.hh
-  # mpc_delegate_ewc_subsurface.hh
+  mpc_delegate_ewc_subsurface.hh
   mpc_delegate_ewc_surface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
@@ -77,7 +77,7 @@ set(ats_mpc_inc_files
   mpc_coupled_transport.hh
   # mpc_coupled_water_split_flux.hh
   # mpc_permafrost_split_flux.hh
-  # mpc_subsurface.hh
+  mpc_subsurface.hh
   mpc_surface.hh
   # mpc_permafrost.hh
   # biomass_evaluator.hh
@@ -160,10 +160,10 @@ register_evaluator_with_factory(
 #    LISTNAME   ATS_MPC_REG
 #    )
     
-# register_evaluator_with_factory(
-#   HEADERFILE mpc_subsurface_reg.hh
-#   LISTNAME   ATS_MPC_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE mpc_subsurface_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 register_evaluator_with_factory(
   HEADERFILE mpc_surface_reg.hh

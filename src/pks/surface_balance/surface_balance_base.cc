@@ -59,24 +59,24 @@ SurfaceBalanceBase::Setup()
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
 
-  Key molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  Key molar_dens_key = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(molar_dens_key, tag_next_);
 
-  Key mass_dens_key = Keys::readKey(*plist_, domain_, "mass density liquid", "mass_density_liquid");
+  Key mass_dens_key = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
+  Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "ice molar density", "molar_density_ice");
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(molar_dens_ice_key, tag_next_);
 
-  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "mass density ice", "mass_density_ice");
+  Key mass_dens_ice_key = Keys::readKey(*plist_, domain_, "ice mass density", "mass_density_ice");
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);

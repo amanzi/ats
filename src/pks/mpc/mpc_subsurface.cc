@@ -40,8 +40,6 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
 {
   // set up keys
   dump_ = plist_->get<bool>("dump preconditioner", false);
-  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  global_list->sublist("PKs").sublist(pk_order[0]).set("scale preconditioner to pressure", false);
   domain_name_ = plist_->get<std::string>("domain name", "domain");
 
   temp_key_ = Keys::readKey(*plist_, domain_name_, "temperature", "temperature");
@@ -64,6 +62,9 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
 // -- Initialize owned (dependent) variables.
 void MPCSubsurface::Setup()
 {
+  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  global_list_->sublist("PKs").sublist(pk_order[0]).set("scale preconditioner to pressure", false);
+
   // supress energy's vision of advective terms as we can do better
   if (!plist_->get<bool>("supress Jacobian terms: d div hq / dp,T", false)) {
     if (pks_list_->sublist(pk_order[1]).isParameter("supress advective terms in preconditioner")
@@ -80,6 +81,12 @@ void MPCSubsurface::Setup()
 
   // set up debugger
   db_ = sub_pks_[0]->debugger();
+
+
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
+      tag_next_, pres_key_, tag_next_, e_key_);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
+      tag_next_, temp_key_, tag_next_, wc_key_);
 
   // Get the sub-blocks from the sub-PK's preconditioners.
   Teuchos::RCP<Operators::Operator> pcA = sub_pks_[0]->preconditioner();
@@ -143,10 +150,10 @@ void MPCSubsurface::Setup()
         tag_next_, temp_key_, tag_next_);
       
       if (!is_fv_) {
-        dkrdT_key_ = Keys::getDerivKey(uw_kr_key_, temp_key_);
-        S_->Require<CompositeVector,CompositeVectorSpace>(dkrdT_key_, tag_next_, name_)
+        duw_krdT_key_ = Keys::getDerivKey(uw_kr_key_, temp_key_);
+        S_->Require<CompositeVector,CompositeVectorSpace>(duw_krdT_key_, tag_next_, name_)
           .SetMesh(mesh_)->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-        S_->GetRecordW(dkrdT_key_, tag_next_, name_)->set_io_vis(false);
+        S_->GetRecordW(duw_krdT_key_, tag_next_, name_).set_io_vis(false);
 
         upwinding_dkrdT_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_, 
                                             tag_next_, water_flux_dir_key_, 1.e-8));
@@ -174,12 +181,6 @@ void MPCSubsurface::Setup()
       dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dWC_dT_block_));
     }
 
-    S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
-      tag_next_, temp_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S_->GetRecordW(Keys::getDerivKey(wc_key_, temp_key_),
-      tag_next_, wc_key_)->set_io_vis(false);
-
     // Create the block for derivatives of energy conservation with respect to pressure
     // -- derivatives of thermal conductivity with respect to pressure
     if (precon_type_ != PRECON_NO_FLOW_COUPLING &&
@@ -188,12 +189,13 @@ void MPCSubsurface::Setup()
       // require the derivative dkappa/dp
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(tc_key_,
             tag_next_, pres_key_, tag_next_);
+
       // need to upwind dkappa/dp
       if (!is_fv_) {
-        dkappa_dp_key_ = Keys::getDerivKey(uw_tc_key_, pres_key_);
-        S_->Require<CompositeVector,CompositeVectorSpace>(dkappa_dp_key_, tag_next_, name_)
+        duw_tcdp_key_ = Keys::getDerivKey(uw_tc_key_, pres_key_);
+        S_->Require<CompositeVector,CompositeVectorSpace>(duw_tcdp_key_, tag_next_, name_)
           .SetMesh(mesh_)->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-        S_->GetRecordW(dkappa_dp_key_, tag_next_, name_)->set_io_vis(false);
+        S_->GetRecordW(duw_tcdp_key_, tag_next_, name_).set_io_vis(false);
 
         upwinding_dkappa_dp_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_, 
                                             tag_next_, energy_flux_key_, 1.e-8));
@@ -247,12 +249,11 @@ void MPCSubsurface::Setup()
       // need a field, evaluator, and upwinding for h * kr * rho/mu
       // -- first the evaluator
       auto& hkr_eval_list = S_->GetEvaluatorList(hkr_key_);
-      hkr_eval_list.set("evaluator type", "multiplicative");
+      hkr_eval_list.set("evaluator name", hkr_key_);
       Teuchos::Array<std::string> deps(2);
       deps[0] = enth_key_; deps[1] = kr_key_;
-      hkr_eval_list.set("evaluator dependencies", deps);
-      //Teuchos::RCP<Evaluator> hkr_eval =
-      //    Teuchos::rcp(new Relations::MultiplicativeEvaluator(hkr_eval_list));
+      hkr_eval_list.set("dependencies", deps);
+      hkr_eval_list.set("evaluator type", "multiplicative evaluator");
 
       // -- now the field
       names2[1] = "boundary_face";
@@ -261,9 +262,9 @@ void MPCSubsurface::Setup()
         ->SetGhosted()->AddComponents(names2, locations2, num_dofs2);
       S_->RequireEvaluator(hkr_key_, tag_next_);
 
-      S_->Require<CompositeVector,CompositeVectorSpace>(uw_hkr_key_, tag_next_).SetMesh(mesh_)
+      S_->Require<CompositeVector,CompositeVectorSpace>(uw_hkr_key_, tag_next_, name_).SetMesh(mesh_)
         ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-      S_->GetRecordW(uw_hkr_key_, tag_next_, name_)->set_io_vis(false);
+      S_->GetRecordW(uw_hkr_key_, tag_next_, name_).set_io_vis(false);
 
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(hkr_key_,
         tag_next_, temp_key_, tag_next_);
@@ -283,17 +284,16 @@ void MPCSubsurface::Setup()
 
       if (!is_fv_) {
         // -- and the upwinded field
-
         locations2[1] = AmanziMesh::FACE;
         names2[1] = "face";
 
         S_->Require<CompositeVector,CompositeVectorSpace>(Keys::getDerivKey(uw_hkr_key_, pres_key_),
          tag_next_, name_).SetMesh(mesh_)->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-        S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_)->set_io_vis(false);
+        S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_).set_io_vis(false);
 
         S_->Require<CompositeVector,CompositeVectorSpace>(Keys::getDerivKey(uw_hkr_key_, temp_key_),
          tag_next_, name_).SetMesh(mesh_)->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-        S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_)->set_io_vis(false);
+        S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_).set_io_vis(false);
 
         // -- and the upwinding
         upwinding_dhkr_dp_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
@@ -312,18 +312,6 @@ void MPCSubsurface::Setup()
     } else {
       dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
     }
-
-
-    // Key dE_dp_key = Keys::getDerivKey(e_key_, pres_key_);
-    // S->RequireField( dE_dp_key, e_key_)
-    //    ->SetMesh(mesh_)->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
-    // S->GetField(dE_dp_key, e_key_)->set_io_vis(true);
-
-    S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
-      tag_next_, pres_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S_->GetRecordW(Keys::getDerivKey(e_key_, pres_key_),
-      tag_next_, e_key_)->set_io_vis(false);
 
     AMANZI_ASSERT(dWC_dT_block_ != Teuchos::null);
     AMANZI_ASSERT(dE_dp_block_ != Teuchos::null);
@@ -362,19 +350,13 @@ void MPCSubsurface::Initialize()
 
   // initialize offdiagonal operators
   if (precon_type_ != PRECON_NONE && precon_type_ != PRECON_BLOCK_DIAGONAL) {
-    if (S_->HasDerivative(wc_key_, tag_next_, temp_key_, tag_next_)) {
+    if (S_->HasDerivative(wc_key_, tag_next_, temp_key_, tag_next_))
       S_->GetDerivativeW<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_, wc_key_)
         .PutScalar(0.0);
-      S_->GetRecordW(Keys::getDerivKey(wc_key_, temp_key_), tag_next_, wc_key_)
-        .set_initialized();
-    }
 
-    if (S_->HasDerivative(e_key_, tag_next_, pres_key_, tag_next_)) {
+    if (S_->HasDerivative(e_key_, tag_next_, pres_key_, tag_next_))
       S_->GetDerivativeW<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_, e_key_)
         .PutScalar(0.0);
-      S_->GetRecordW(Keys::getDerivKey(e_key_, pres_key_), tag_next_, e_key_)
-        .set_initialized();
-    }
   }
 
   Teuchos::RCP<Flow::Richards> richards_pk;
@@ -385,8 +367,8 @@ void MPCSubsurface::Initialize()
     }
 
     if (!is_fv_) {
-      S_->GetW<CompositeVector>(dkrdT_key_, tag_next_, name_).PutScalar(0.0);
-      S_->GetRecordW(dkrdT_key_, tag_next_, name_).set_initialized();
+      S_->GetW<CompositeVector>(duw_krdT_key_, tag_next_, name_).PutScalar(0.0);
+      S_->GetRecordW(duw_krdT_key_, tag_next_, name_).set_initialized();
     }
 
     const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -397,8 +379,8 @@ void MPCSubsurface::Initialize()
 
   if (ddivKgT_dp_ != Teuchos::null) {
     if (!is_fv_) {
-      S_->GetW<CompositeVector>(dkappa_dp_key_, tag_next_, name_).PutScalar(0.0);
-      S_->GetRecordW(dkappa_dp_key_, tag_next_, name_).set_initialized();
+      S_->GetW<CompositeVector>(duw_tcdp_key_, tag_next_, name_).PutScalar(0.0);
+      S_->GetRecordW(duw_tcdp_key_, tag_next_, name_).set_initialized();
     }
 
     ddivKgT_dp_->SetTensorCoefficient(Teuchos::null);
@@ -414,15 +396,10 @@ void MPCSubsurface::Initialize()
     S_->GetRecordW(uw_hkr_key_, tag_next_, name_).set_initialized();
 
     if (!is_fv_) {
-      S_->GetDerivativeW<CompositeVector>(uw_hkr_key_, tag_next_, pres_key_, tag_next_, name_)
-        .PutScalar(0.0);
-      S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_)
-        .set_initialized();
-
-      S_->GetDerivativeW<CompositeVector>(uw_hkr_key_, tag_next_, temp_key_, tag_next_, name_)
-        .PutScalar(0.0);
-      S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_)
-        .set_initialized();
+      S_->GetW<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_).PutScalar(0.0);
+      S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_).set_initialized();     
+      S_->GetW<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_).PutScalar(0.0);
+      S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_).set_initialized();
     }
 
     const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -446,11 +423,11 @@ void MPCSubsurface::set_tags(const Tag& tag_current, const Tag& tag_next)
 void MPCSubsurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   if (ewc_ != Teuchos::null) {
-    double dt = t_new - t_old;
     ewc_->commit_state();
   }
-  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
+
   update_pcs_ = 0;
+  StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -485,19 +462,17 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
 
     // dWC / dT block
     // -- dkr/dT
+    // -- update and upwind d kr / dT 
     if (ddivq_dT_ != Teuchos::null) {
-      // -- update and upwind d kr / dT
-
-      bool update_perm = S_->GetEvaluator(kr_key_, tag_next_).UpdateDerivative(*S_, name_, temp_key_, tag_next_);
-      Teuchos::RCP<const CompositeVector> dkrdT;
-      if (is_fv_) {
-        dkrdT = S_->GetDerivativePtr<CompositeVector>(kr_key_, tag_next_, temp_key_, tag_next_);
-      } else {
+      S_->GetEvaluator(kr_key_, tag_next_).UpdateDerivative(*S_, name_, temp_key_, tag_next_);
+      Teuchos::RCP<const CompositeVector> dkrdT =
+        S_->GetDerivativePtr<CompositeVector>(kr_key_, tag_next_, temp_key_, tag_next_);
+      if (!is_fv_) {
         Teuchos::RCP<CompositeVector> duw_kr =
-          S_->GetPtrW<CompositeVector>(dkrdT_key_, tag_next_, name_);
+          S_->GetPtrW<CompositeVector>(duw_krdT_key_, tag_next_, name_);
         duw_kr->PutScalar(0.0);
         upwinding_dkrdT_->Update(*dkrdT, *duw_kr, *S_);
-        dkrdT = S_->GetPtr<CompositeVector>(dkrdT_key_, tag_next_);
+        dkrdT = S_->GetPtr<CompositeVector>(duw_krdT_key_, tag_next_);
       }
 
       // form the operator
@@ -524,18 +499,17 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
 
     // dE / dp block
     // -- d Kappa / dp
+    // Update and upwind thermal conductivity
     if (ddivKgT_dp_ != Teuchos::null) {
-      // Update and upwind thermal conductivity
-      bool update_kappa = S_->GetEvaluator(tc_key_, tag_next_).UpdateDerivative(*S_, name_, pres_key_, tag_next_);
-      Teuchos::RCP<const CompositeVector> dkappa_dp;
-      if (is_fv_) {
-        dkappa_dp = S_->GetDerivativePtr<CompositeVector>(tc_key_, tag_next_, pres_key_, tag_next_);
-      } else {
-        Teuchos::RCP<CompositeVector> duw_kappa =
-          S_->GetPtrW<CompositeVector>(dkappa_dp_key_, tag_next_, name_);
-        duw_kappa->PutScalar(0.0);
-        upwinding_dkappa_dp_->Update(*dkappa_dp, *duw_kappa, *S_);
-        dkappa_dp = S_->GetPtr<CompositeVector>(dkappa_dp_key_, tag_next_);
+      S_->GetEvaluator(tc_key_, tag_next_).UpdateDerivative(*S_, name_, pres_key_, tag_next_);
+      Teuchos::RCP<const CompositeVector> dkappa_dp =
+        S_->GetDerivativePtr<CompositeVector>(tc_key_, tag_next_, pres_key_, tag_next_);
+      if (!is_fv_) {
+        Teuchos::RCP<CompositeVector> duw_kappa_dp =
+          S_->GetPtrW<CompositeVector>(duw_tcdp_key_, tag_next_, name_);
+        duw_kappa_dp->PutScalar(0.0);
+        upwinding_dkappa_dp_->Update(*dkappa_dp, *duw_kappa_dp, *S_);
+        dkappa_dp = S_->GetPtr<CompositeVector>(duw_tcdp_key_, tag_next_);
       }
 
       // form the operator
@@ -553,8 +527,8 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     }
 
     // -- d adv / dp   This one is a bit more complicated...
+    // Update and upwind enthalpy * kr * rho/mu
     if (ddivhq_dp_ != Teuchos::null) {
-      // Update and upwind enthalpy * kr * rho/mu
       // -- update values
       S_->GetEvaluator(hkr_key_, tag_next_).Update(*S_, name_);
       S_->GetEvaluator(hkr_key_, tag_next_)
@@ -569,7 +543,7 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
         S_->GetPtr<CompositeVector>(hkr_key_, tag_next_);
       Teuchos::RCP<CompositeVector> enth_kr_uw =
         S_->GetPtrW<CompositeVector>(uw_hkr_key_, tag_next_, name_);
-      enth_kr_uw->PutScalar(0.);
+      enth_kr_uw->PutScalar(0.0);
 
       enth_kr_uw->ViewComponent("face",false)
           ->Export(*enth_kr->ViewComponent("boundary_face",false),
@@ -621,13 +595,13 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
                 mesh_->exterior_face_importer(), Insert);
 
         denth_kr_dp_uw =
-            S_->GetPtr<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next);
+            S_->GetPtr<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_);
         denth_kr_dT_uw =
-            S_->GetPtr<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next);
+            S_->GetPtr<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_);
       }
 
-      Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(water_flux_key_, tag_next);
-      Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(rho_key_, tag_next);
+      Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(water_flux_key_, tag_next_);
+      Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(rho_key_, tag_next_);
 
       // form the operator: pressure component
       ddivhq_dp_->SetDensity(rho);

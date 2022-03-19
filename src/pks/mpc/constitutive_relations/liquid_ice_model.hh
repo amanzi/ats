@@ -35,13 +35,14 @@ class LiquidIceModel : public EWCModelBase {
 
  public:
   LiquidIceModel() {}
+  virtual ~LiquidIceModel() {};
 
-  virtual void InitializeModel(const Teuchos::Ptr<State>& S,
-                               Teuchos::ParameterList& plist);
-  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c);
-  virtual bool Freezing(double T, double p);
-  virtual int EvaluateSaturations(double T, double p,
-                                  double& s_gas, double& s_liq, double& s_ice);
+  virtual void InitializeModel(
+    const Teuchos::Ptr<State>& S, const Tag& tag, Teuchos::ParameterList& plist) override;
+  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
+  virtual bool Freezing(double T, double p) override;
+  virtual int EvaluateSaturations(
+    double T, double p, double& s_gas,double& s_liq, double& s_ice) override;
   
  protected:
   bool IsSetUp_();

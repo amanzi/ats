@@ -20,6 +20,8 @@
 #include "EvaluatorPrimary.hh"
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
+#include "wrm_evaluator.hh"
+#include "richards_water_content_evaluator.hh"
 #include "pk_helpers.hh"
 
 #include "permafrost.hh"
@@ -70,12 +72,32 @@ void Permafrost::SetupPhysicalEvaluators_()
 
   // -- saturation
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1)
+      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::CELL, 1) 
+      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-  auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
+      ->AddComponent("cell", AmanziMesh::CELL, 1)
+      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+
+  // -- capillary pressure
+  Key capillary_pressure_gas_liq_key_ = Keys::readKey(*plist_, domain_, 
+      "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
+  Key capillary_pressure_liq_ice_key_ = Keys::readKey(*plist_, domain_, 
+      "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(capillary_pressure_gas_liq_key_, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1)
+      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+  S_->Require<CompositeVector,CompositeVectorSpace>(capillary_pressure_liq_ice_key_, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1)
+      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+  S_->RequireEvaluator(capillary_pressure_gas_liq_key_, tag_next_);
+  S_->RequireEvaluator(capillary_pressure_liq_ice_key_, tag_next_);
+
+   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
   S_->RequireEvaluator(sat_gas_key_, tag_next_);
   S_->RequireEvaluator(sat_ice_key_, tag_next_);
 

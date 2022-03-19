@@ -734,7 +734,9 @@ bool EnergyBase::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
     *vo_->os() << "Modifying predictor:" << std::endl;
 
   // update boundary conditions
-  ComputeBoundaryConditions_(tag_next_);
+  //ComputeBoundaryConditions_(tag_next_);
+  bc_temperature_->Compute(S_->get_time(tag_next_));
+  bc_flux_->Compute(S_->get_time(tag_next_));
   UpdateBoundaryConditions_(tag_next_);
 
   // predictor modification
@@ -786,7 +788,7 @@ bool EnergyBase::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
 // -----------------------------------------------------------------------------
 void EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u) {
 
-  if (!u->HasComponent("face")) return; // not need
+  if (!u->HasComponent("face")) return;
 
   // average cells to faces to give a reasonable initial guess
   u->ScatterMasterToGhosted("cell");

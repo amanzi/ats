@@ -46,6 +46,9 @@ class ThermalConductivityThreePhaseEvaluator :
   Key sat_key_;
   Key sat2_key_;
   Key temp_key_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator,ThermalConductivityThreePhaseEvaluator> factory_;
 };
 
 } // namespace
