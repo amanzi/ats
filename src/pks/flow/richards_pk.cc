@@ -78,6 +78,10 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
   sat_ice_key_ = Keys::readKey(*plist_, domain_, "saturation ice", "saturation_ice");
+  capillary_pressure_gas_liq_key_ = Keys::readKey(*plist_, domain_, 
+      "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
+  capillary_pressure_liq_ice_key_ = Keys::readKey(*plist_, domain_, 
+      "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
 }
 
 // -------------------------------------------------------------

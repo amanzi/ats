@@ -20,8 +20,6 @@
 #include "EvaluatorPrimary.hh"
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
-#include "wrm_evaluator.hh"
-#include "richards_water_content_evaluator.hh"
 #include "pk_helpers.hh"
 
 #include "permafrost.hh"
