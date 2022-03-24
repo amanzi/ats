@@ -166,8 +166,10 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   // initialization methods
   void InitializeAll_();
-  void InitializeFieldFromField_(const std::string& field0, 
-                                 const std::string& field1, 
+  void InitializeFieldFromField_(const std::string& field0,
+                                 const Tag& tag0,
+                                 const std::string& field1,
+                                 const Tag& tag1,
                                  const Teuchos::Ptr<State>& S,
                                  bool call_evaluator, bool overwrite);
 
@@ -212,7 +214,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, mol_dens_;//, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
   Teuchos::RCP<const Epetra_MultiVector> km_;  
     
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;
@@ -268,6 +269,10 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   // io
     Utils::Units units_;
     Teuchos::RCP<VerboseObject> vo_;
+    Tag tag_subcycle_;
+    Tag tag_subcycle_current_;
+    Tag tag_subcycle_next_;
+
 
   // Forbidden.
   SedimentTransport_PK(const SedimentTransport_PK&);
