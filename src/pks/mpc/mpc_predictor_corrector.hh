@@ -36,12 +36,9 @@ public:
   // Virtual destructor
   virtual ~MPCPredictorCorrector() {}
 
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<State>& S_inter,
-                  const Teuchos::RCP<State>& S_next);
+  virtual void Setup() override;
+  virtual void Initialize() override;
+  virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
 
   virtual double get_dt() {
     return std::min(StrongMPC<PK_t>::get_dt(), predictor_pk_->get_dt());
@@ -53,7 +50,7 @@ public:
   
   
   virtual void CommitStep(double t_old, double t_new,
-                          const Teuchos::RCP<State>& S);
+                          const Tag& tag);
   
   // -- Modify the predictor.
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
@@ -112,9 +109,9 @@ MPCPredictorCorrector<PK_t>::MPCPredictorCorrector(Teuchos::ParameterList& pk_tr
 // Setup
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void MPCPredictorCorrector<PK_t>::Setup(const Teuchos::Ptr<State>& S) {
-  StrongMPC<PK_t>::Setup(S);
-  predictor_pk_->Setup(S);
+void MPCPredictorCorrector<PK_t>::Setup() {
+  StrongMPC<PK_t>::Setup();
+  predictor_pk_->Setup();
 };
 
 
@@ -123,33 +120,32 @@ void MPCPredictorCorrector<PK_t>::Setup(const Teuchos::Ptr<State>& S) {
 // initialize() methods.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void MPCPredictorCorrector<PK_t>::Initialize(const Teuchos::Ptr<State>& S) {
-  StrongMPC<PK_t>::Initialize(S);
-  predictor_pk_->Initialize(S);
+void MPCPredictorCorrector<PK_t>::Initialize() {
+  StrongMPC<PK_t>::Initialize();
+  predictor_pk_->Initialize();
 };
 
 template<class PK_t>
-void MPCPredictorCorrector<PK_t>::set_states(const Teuchos::RCP<State>& S,
-                                 const Teuchos::RCP<State>& S_inter,
-                                 const Teuchos::RCP<State>& S_next){
-  StrongMPC<PK_t>::set_states(S, S_inter, S_next);
-  predictor_pk_->set_states(S, S_inter, S_next);
-} 
+void MPCPredictorCorrector<PK_t>::set_tags(const Tag& tag_current, const Tag& tag_next)
+{
+  StrongMPC<PK_t>::set_tags(tag_current, tag_next);
+  if (predictor_pk_ != Teuchos::null) predictor_pk_->set_tags(tag_current, tag_next);
+}
 
 template<class PK_t>
 void MPCPredictorCorrector<PK_t>::CommitStep(double t_old, double t_new,
-        const Teuchos::RCP<State>& S) {
+        const Tag& tag) {
   // commit the BDF step
-  StrongMPC<PK_t>::CommitStep(t_old, t_new, S);
+  StrongMPC<PK_t>::CommitStep(t_old, t_new, tag);
 
   // copy the BDF solution to the explicit solution
   // NOTE special purpose
   *predictor_soln_->SubVector(1)->SubVector(1) = *this->solution_->SubVector(0)->SubVector(1);
   *predictor_soln_->SubVector(1)->SubVector(0) = *this->solution_->SubVector(0)->SubVector(0);
-  predictor_pk_->ChangedSolutionPK(S.ptr());
+  predictor_pk_->ChangedSolutionPK(S_.ptr());
 
   // now commit the predictor, storing this solution
-  predictor_pk_->CommitStep(t_old, t_new, S);
+  predictor_pk_->CommitStep(t_old, t_new, tag);
 }
 
 
@@ -159,7 +155,7 @@ void MPCPredictorCorrector<PK_t>::CommitStep(double t_old, double t_new,
 template<class PK_t>
 bool MPCPredictorCorrector<PK_t>::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
         Teuchos::RCP<TreeVector> u) {
-  predictor_fail_ = predictor_pk_->AdvanceStep(this->S_->get_time(tag_inter_), this->S_->get_time(tag_next_), false);
+  predictor_fail_ = predictor_pk_->AdvanceStep(this->S_->get_time(tag_current_), this->S_->get_time(tag_next_), false);
   
   // copy explicit prediction into BDF
   // NOTE special purpose

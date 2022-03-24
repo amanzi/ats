@@ -165,8 +165,10 @@ void Transport_ATS::Setup()
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
-  S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_next_);
-  S_->RequireEvaluator(cv_key_, Tags::NEXT);
+  S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_next_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(cv_key_, tag_next_);
 
   // Raw data, no evaluator?
   S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)

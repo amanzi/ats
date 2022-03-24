@@ -121,7 +121,7 @@ void WRMPermafrostEvaluator::InitializeFromPlist_() {
           "capillary_pressure_gas_liq");
   dependencies_.insert(KeyTag{pc_liq_key_, tag});
 
-  // liquid-gas capillary pressure
+  // liquid-ice capillary pressure
   pc_ice_key_ = Keys::readKey(plist_, domain_name, "liquid-ice capillary pressure",
           "capillary_pressure_liq_ice");
   dependencies_.insert(KeyTag{pc_ice_key_, tag});

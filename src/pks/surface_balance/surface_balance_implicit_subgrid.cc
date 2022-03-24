@@ -43,12 +43,12 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
   // set up additional primary variables -- this is very hacky, and can become
   // an evaluator in new-state
   // -- snow density
-  Teuchos::ParameterList& snow_dens_sublist = S->GetEvaluatorList(snow_dens_key_);
-  snow_dens_sublist.set("evaluator type", "primary variable");
+  //Teuchos::ParameterList& snow_dens_sublist = S->GetEvaluatorList(snow_dens_key_);
+  //snow_dens_sublist.set("evaluator type", "primary variable");
 
   // -- snow death rate
-  Teuchos::ParameterList& snow_death_rate_sublist = S->GetEvaluatorList(snow_death_rate_key_);
-  snow_death_rate_sublist.set("evaluator type", "primary variable");
+  //Teuchos::ParameterList& snow_death_rate_sublist = S->GetEvaluatorList(snow_death_rate_key_);
+  //snow_death_rate_sublist.set("evaluator type", "primary variable");
 
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);
@@ -71,19 +71,19 @@ ImplicitSubgrid::Setup()
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
   S_->Require<CompositeVector,CompositeVectorSpace>(snow_dens_key_, tag_current_,  name_);
-  RequireEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  //RequireEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
   S_->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, tag_current_,  name_);
-  RequireEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+ // RequireEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(snow_age_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
   S_->Require<CompositeVector,CompositeVectorSpace>(snow_age_key_, tag_current_,  name_);
-  RequireEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+  //RequireEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 }
 
 // -- Initialize owned (dependent) variables.

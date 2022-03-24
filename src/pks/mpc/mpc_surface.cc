@@ -71,6 +71,29 @@ void MPCSurface::Setup()
     .SetMesh(S_->GetMesh(domain_))
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(pd_bar_key_, tag_next_);
+
+  Key tmp_key = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(tmp_key, tag_next_);
+
+  tmp_key = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
+  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  
+  tmp_key = Keys::readKey(*plist_, domain_, "ice molar density", "molar_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(tmp_key, tag_next_);
+  
+  tmp_key = Keys::readKey(*plist_, domain_, "ice mass density", "mass_density_ice");
+  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
             tag_next_, pres_key_, tag_next_);
 
