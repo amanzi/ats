@@ -44,45 +44,39 @@ SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag,
 
   // Grab the models.
   // -- liquid EOS
-  Teuchos::RCP<Evaluator> me = S->GetEvaluatorPtr(liq_dens_key, tag);
-  Teuchos::RCP<Relations::EOSEvaluator> eos_liquid_me =
-      Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
-  AMANZI_ASSERT(eos_liquid_me != Teuchos::null);
+  auto& liq_eval = S->RequireEvaluator(liq_dens_key, tag);
+  auto eos_liquid_me = dynamic_cast<Relations::EOSEvaluator*>(&liq_eval);
+  AMANZI_ASSERT(eos_liquid_me != nullptr);
   liquid_eos_ = eos_liquid_me->get_EOS();
 
   // -- ice EOS
-  me = S->GetEvaluatorPtr(ice_dens_key, tag);
-  Teuchos::RCP<Relations::EOSEvaluator> eos_ice_me =
-      Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
-  AMANZI_ASSERT(eos_ice_me != Teuchos::null);
+  auto& ice_eval = S->RequireEvaluator(ice_dens_key, tag);
+  auto eos_ice_me = dynamic_cast<Relations::EOSEvaluator*>(&ice_eval);
+  AMANZI_ASSERT(eos_ice_me != nullptr);
   ice_eos_ = eos_ice_me->get_EOS();
 
   // -- iem for liquid
-  me = S->GetEvaluatorPtr(iem_liq_key, tag);
-  Teuchos::RCP<Energy::IEMEvaluator> iem_liquid_me =
-      Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
-  AMANZI_ASSERT(iem_liquid_me != Teuchos::null);
+  auto& iem_liq_eval = S->RequireEvaluator(iem_liq_key, tag);
+  auto iem_liquid_me = dynamic_cast<Energy::IEMEvaluator*>(&iem_liq_eval);
+  AMANZI_ASSERT(iem_liquid_me != nullptr);
   liquid_iem_ = iem_liquid_me->get_IEM();
 
   // -- iem for ice
-  me = S->GetEvaluatorPtr(iem_ice_key, tag);
-  Teuchos::RCP<Energy::IEMEvaluator> iem_ice_me =
-      Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
-  AMANZI_ASSERT(iem_ice_me != Teuchos::null);
+  auto& iem_ice_eval = S->RequireEvaluator(iem_ice_key, tag);
+  auto iem_ice_me = dynamic_cast<Energy::IEMEvaluator*>(&iem_ice_eval);
+  AMANZI_ASSERT(iem_ice_me != nullptr);
   ice_iem_ = iem_ice_me->get_IEM();
 
   // -- ponded depth evaluator
-  me = S->GetEvaluatorPtr(pd_key, tag);
-  Teuchos::RCP<Flow::IcyHeightEvaluator> icy_h_me =
-      Teuchos::rcp_dynamic_cast<Flow::IcyHeightEvaluator>(me);
-  AMANZI_ASSERT(icy_h_me != Teuchos::null);
+  auto& icy_h_eval = S->RequireEvaluator(pd_key, tag);
+  auto icy_h_me = dynamic_cast<Flow::IcyHeightEvaluator*>(&icy_h_eval);
+  AMANZI_ASSERT(icy_h_me != nullptr);
   pd_ = icy_h_me->get_IcyModel();
 
   // -- unfrozen fraction evaluator
-  me = S->GetEvaluatorPtr(uf_key, tag);
-  Teuchos::RCP<Flow::UnfrozenFractionEvaluator> uf_me =
-      Teuchos::rcp_dynamic_cast<Flow::UnfrozenFractionEvaluator>(me);
-  AMANZI_ASSERT(uf_me != Teuchos::null);
+  auto& uf_eval = S->RequireEvaluator(uf_key, tag);
+  auto uf_me = dynamic_cast<Flow::UnfrozenFractionEvaluator*>(&uf_eval);
+  AMANZI_ASSERT(uf_me != nullptr);
   uf_ = uf_me->get_Model();
 }
 

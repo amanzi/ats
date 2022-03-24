@@ -422,6 +422,8 @@ protected:
   Key sat_key_;
   Key sat_gas_key_;
   Key sat_ice_key_;
+  Key capillary_pressure_gas_liq_key_;
+  Key capillary_pressure_liq_ice_key_;
 
 private:
   // factory registration

@@ -15,16 +15,16 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overla
 
 set(ats_mpc_relations_src_files
   ewc_model_base.cc
-  #liquid_ice_model.cc
-  #permafrost_model.cc
+  liquid_ice_model.cc
+  permafrost_model.cc
   surface_ice_model.cc
  )
 
 set(ats_mpc_relations_inc_files
   ewc_model.hh
   ewc_model_base.hh
-  #liquid_ice_model.hh
-  #permafrost_model.hh
+  liquid_ice_model.hh
+  permafrost_model.hh
   surface_ice_model.hh
   #thermal_richards_model.hh
   )
