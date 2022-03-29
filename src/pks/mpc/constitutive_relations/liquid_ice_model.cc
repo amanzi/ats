@@ -42,7 +42,7 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   // these are not yet initialized
   rho_rock_ = -1.;
   p_atm_ = -1.e12;
-  domain = plist.get<std::string>("domain key", "");
+  domain = plist.get<std::string>("domain name", "");
   if (!domain.empty()) {
     mesh_ = S->GetMesh(domain);
   } else {

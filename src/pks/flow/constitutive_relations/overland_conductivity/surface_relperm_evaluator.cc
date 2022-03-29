@@ -16,7 +16,11 @@ SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   Tag tag = my_keys_.front().second;
-  Key domain = my_keys_.front().first;
+  Key domain = Keys::getDomain(my_keys_.front().first);
+
+  // create the model
+  SurfaceRelPermModelFactory fac;
+  model_ = fac.createModel(plist_.sublist("surface rel perm model"));
 
   // set up the height dependency
   h_key_ = Keys::readKey(plist_, domain, "pressure key", "pressure");
@@ -28,10 +32,6 @@ SurfaceRelPermEvaluator::SurfaceRelPermEvaluator(Teuchos::ParameterList& plist)
     uf_key_ = Keys::readKey(plist_, domain, "unfrozen fraction", "unfrozen_fraction");
     dependencies_.insert(KeyTag{uf_key_, tag});
   }
-
-  // create the model
-  SurfaceRelPermModelFactory fac;
-  model_ = fac.createModel(plist_.sublist("surface rel perm model"));
 }
 
 

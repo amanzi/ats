@@ -58,7 +58,7 @@ class MPCPermafrost : public MPCSubsurface {
 
   virtual void Setup() override;
   virtual void Initialize() override;
-  virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
+  //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
 
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
@@ -114,7 +114,7 @@ class MPCPermafrost : public MPCSubsurface {
   Key surf_kr_key_;
   Key surf_kr_uw_key_;
   Key surf_potential_key_;
-  Key surf_pd_bar_key_;
+  Key surf_pd_bar_key_, surf_pd_key_;
   Key surf_enth_key_;
   Key surf_water_flux_key_;
   Key surf_rho_key_;

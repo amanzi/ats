@@ -59,6 +59,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_() {
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(mass_dens_key, tag_next_);
 
   Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
   S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
@@ -70,6 +71,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_() {
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(mass_dens_ice_key, tag_next_);
 
   // Get data and evaluators needed by the PK
   // -- energy, energy evaluator, and energy derivative
@@ -231,10 +233,11 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
     const Epetra_MultiVector& enth_surf =
       *S_->Get<CompositeVector>(enthalpy_key_, tag).ViewComponent("cell",false);
     const Epetra_MultiVector& enth_subsurf =
-      *S_->GetPtrW<CompositeVector>(Keys::getKey(domain_ss,"enthalpy"), tag, name_)->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(Keys::getKey(domain_ss,"enthalpy"), tag).ViewComponent("cell",false);
 
+    // not needed?
     const Epetra_MultiVector& pd =
-      *S_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"ponded_depth"), tag, name_)->ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(Keys::getKey(domain_,"ponded_depth"), tag).ViewComponent("cell",false);
 
     AmanziMesh::Entity_ID_List cells;
     unsigned int ncells = g_c.MyLength();
@@ -298,7 +301,7 @@ void EnergySurfaceIce::AddSourcesToPrecon_(double h) {
     CompositeVector acc(S_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"conducted_energy_source"), tag_next_, name_)->Map());
     Epetra_MultiVector& acc_c = *acc.ViewComponent("cell", false);
 
-    const Epetra_MultiVector& dsource_dT =
+    Epetra_MultiVector& dsource_dT =
       *S_->GetPtrW<CompositeVector>(Keys::getDerivKey(Keys::getKey(domain_,"conducted_energy_source"), Keys::getKey(domain_,"temperature")), tag_next_, name_)->ViewComponent("cell",false);
     const Epetra_MultiVector& cell_vol = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell",false);
     unsigned int ncells = dsource_dT.MyLength();

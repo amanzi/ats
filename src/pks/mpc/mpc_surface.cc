@@ -197,11 +197,11 @@ void MPCSurface::Initialize() {
   }
 }
 
-void MPCSurface::set_tags(const Tag& tag_current, const Tag& tag_next)
-{
-  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
-  if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
-}
+//void MPCSurface::set_tags(const Tag& tag_current, const Tag& tag_next)
+//{
+//  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
+//  if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
+//}
 
 void MPCSurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {

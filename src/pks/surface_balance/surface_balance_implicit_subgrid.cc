@@ -61,7 +61,7 @@ ImplicitSubgrid::Setup()
 {
   SurfaceBalanceBase::Setup();
 
-  // requireiments: things I use
+  // requirements: things I use
   S_->Require<CompositeVector,CompositeVectorSpace>(new_snow_key_, tag_next_)
     .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(new_snow_key_, tag_next_);
@@ -178,7 +178,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   const auto& cell_volume = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell",false);
   snow_death_rate.PutScalar(0.);
 
-  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
+  //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
   S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
   const auto& swe_old_v = *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", false);
   const auto& swe_new_v = *S_->Get<CompositeVector>(conserved_key_, tag_next_).ViewComponent("cell", false);
@@ -254,14 +254,17 @@ ImplicitSubgrid::CommitStep(double t_old, double t_new,  const Tag& tag)
 {
   SurfaceBalanceBase::CommitStep(t_old, t_new, tag);
 
-  S_->Assign(snow_age_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(snow_age_key_, tag_current_, *S_);
-
-  S_->Assign(snow_dens_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(snow_dens_key_, tag_current_, *S_);
-
-  S_->Assign(snow_death_rate_key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(snow_death_rate_key_, tag_current_, *S_);
+  if (!S_->HasEvaluator(snow_age_key_, tag_current_))
+    S_->Assign(snow_age_key_, tag_current_, tag_next_);
+  //ChangedEvaluatorPrimary(snow_age_key_, tag_current_, *S_);
+  
+  if (!S_->HasEvaluator(snow_dens_key_, tag_current_))
+    S_->Assign(snow_dens_key_, tag_current_, tag_next_);
+  //ChangedEvaluatorPrimary(snow_dens_key_, tag_current_, *S_);
+  
+  if (!S_->HasEvaluator(snow_death_rate_key_, tag_current_))
+    S_->Assign(snow_death_rate_key_, tag_current_, tag_next_);
+  //ChangedEvaluatorPrimary(snow_death_rate_key_, tag_current_, *S_);
 }
 
 

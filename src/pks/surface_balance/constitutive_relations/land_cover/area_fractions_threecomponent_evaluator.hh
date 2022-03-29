@@ -69,8 +69,10 @@ class AreaFractionsThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
-    Errors::Message msg("NotImplemented: AreaFractionsThreeComponentEvaluator currently does not provide derivatives.");
-    Exceptions::amanzi_throw(msg);
+    
+    result[0]->PutScalar(0.);
+    //Errors::Message msg("NotImplemented: AreaFractionsThreeComponentEvaluator currently does not provide derivatives.");
+    //Exceptions::amanzi_throw(msg);
   }
 
  protected:

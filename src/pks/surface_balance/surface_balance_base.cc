@@ -80,7 +80,7 @@ SurfaceBalanceBase::Setup()
   //S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_ice_key, tag_next_)
   //  .SetMesh(mesh_)->SetGhosted()
   //  ->AddComponent("cell", AmanziMesh::CELL, 1);
-
+\
   // requirements: source terms from above
   if (is_source_) {
     if (theta_ > 0) {
@@ -97,14 +97,14 @@ SurfaceBalanceBase::Setup()
     if (theta_ < 1) {
       S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_current_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S_->RequireEvaluator(source_key_, tag_current_);
+      //S_->RequireEvaluator(source_key_, tag_current_);
     }
   }
 
   // requirements: conserved quantity at current and new times
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, Tags::NEXT).SetMesh(mesh_)
+    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
             tag_next_, key_, tag_next_);
@@ -133,8 +133,11 @@ void SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag)
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
 
-  // also save conserved quantity and saturation
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // also save conserved quantity
+  if (!S_->HasEvaluator(conserved_key_, tag_current_))
+    S_->Assign(conserved_key_, tag_current_, tag_next_);
+  if (theta_ < 1.0 && !S_->HasEvaluator(source_key_, tag_current_))
+    S_->Assign(source_key_, tag_current_, tag_next_);
   //ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
 }
 
@@ -192,7 +195,7 @@ SurfaceBalanceBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<
 
   if (is_source_) {
     if (theta_ < 1.0) {
-      S_->GetEvaluator(source_key_, tag_current_).Update(*S_, name_);
+      //S_->GetEvaluator(source_key_, tag_current_).Update(*S_, name_);
       g->Data()->Multiply(-(1.0 - theta_), S_->Get<CompositeVector>(source_key_, tag_current_), cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
         db_->WriteVector("source0", S_->GetPtr<CompositeVector>(source_key_, tag_current_).ptr(), false);

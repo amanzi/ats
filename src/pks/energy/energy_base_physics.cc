@@ -144,9 +144,8 @@ void EnergyBase::AddSources_(const Tag& tag,
 
 void EnergyBase::AddSourcesToPrecon_(double h) {
   // external sources of energy (temperature dependent source)
-  if (is_source_term_
-    && (is_source_term_finite_differentiable_ ||
-    S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_))) {
+  if (is_source_term_ && is_source_term_differentiable_ &&
+    S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
 
     Teuchos::RCP<CompositeVector> dsource_dT;
 
@@ -169,7 +168,7 @@ void EnergyBase::AddSourcesToPrecon_(double h) {
     } else {
       // evaluate the derivative through the dag
       S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(source_key_, tag_next_, key_, tag_next_, name_);
+      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(source_key_, tag_next_, key_, tag_next_, source_key_);
     }
     db_->WriteVector("  dQ_ext/dT", dsource_dT.ptr(), false);
     preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0, "cell", true);

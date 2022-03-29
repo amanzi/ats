@@ -169,7 +169,7 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   // -- Initialize owned (dependent) variables.
   virtual void Setup() override;
   virtual void Initialize() override;
-  virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
+  //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
