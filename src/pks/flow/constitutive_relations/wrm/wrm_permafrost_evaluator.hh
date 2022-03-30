@@ -42,6 +42,10 @@ class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& results) override;
 
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
   void InitializeFromPlist_();
 
  protected:

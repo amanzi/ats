@@ -48,7 +48,7 @@ class LiquidIceModel : public EWCModelBase {
   bool IsSetUp_();
 
   int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result);
+          AmanziGeometry::Point& result) override;
 
  protected:
   Teuchos::RCP<Flow::WRMPermafrostModelPartition> wrms_;

@@ -64,6 +64,10 @@ class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& results) override;
 
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
  protected:
   Teuchos::RCP<WRMPartition> wrms_;
   bool calc_other_sat_;
