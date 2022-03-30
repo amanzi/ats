@@ -30,31 +30,31 @@ with freezing.
 namespace Amanzi {
 
 MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
-                const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                const Teuchos::RCP<State>& S,
-                const Teuchos::RCP<TreeVector>& soln) :
-      PK(pk_tree_list, global_list, S, soln),
-      StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
-      {
-        auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-        domain_ = plist_->get<std::string>("domain name");
+                       const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                       const Teuchos::RCP<State>& S,
+                       const Teuchos::RCP<TreeVector>& soln) :
+  PK(pk_tree_list, global_list, S, soln),
+  StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
+{
+  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  domain_ = plist_->get<std::string>("domain name");
 
-        temp_key_ = Keys::readKey(*plist_, domain_, "temperature", "temperature");
-        pres_key_ = Keys::readKey(*plist_, domain_, "pressure", "pressure");
-        e_key_ = Keys::readKey(*plist_, domain_, "energy", "energy");
-        wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
+  temp_key_ = Keys::readKey(*plist_, domain_, "temperature", "temperature");
+  pres_key_ = Keys::readKey(*plist_, domain_, "pressure", "pressure");
+  e_key_ = Keys::readKey(*plist_, domain_, "energy", "energy");
+  wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
 
-        kr_key_ = Keys::readKey(*plist_, domain_, "overland conductivity", "overland_conductivity");
-        kr_uw_key_ = Keys::readKey(*plist_, domain_, "upwind overland conductivity", "upwind_overland_conductivity");
-        potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
-        pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
-        water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+  kr_key_ = Keys::readKey(*plist_, domain_, "overland conductivity", "overland_conductivity");
+  kr_uw_key_ = Keys::readKey(*plist_, domain_, "upwind overland conductivity", "upwind_overland_conductivity");
+  potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
+  pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
+  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 
-        dump_ = plist_->get<bool>("dump preconditioner", false);
+  dump_ = plist_->get<bool>("dump preconditioner", false);
 
-        // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
-        pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
-      }
+  // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
+  pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
+}
 
 // -- Initialize owned (dependent) variables.
 void MPCSurface::Setup()
@@ -96,9 +96,6 @@ void MPCSurface::Setup()
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
             tag_next_, pres_key_, tag_next_);
-
-  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(kr_key_,
-            tag_next_, temp_key_, tag_next_);
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
             tag_next_, pres_key_, tag_next_);
@@ -155,6 +152,10 @@ void MPCSurface::Setup()
       Operators::PDE_DiffusionFactory opfactory;
       ddivq_dT_ = opfactory.Create(divq_plist, mesh_);
       dWC_dT_block_ = ddivq_dT_->global_operator();
+
+      // require the derivative
+      S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(kr_key_,
+              tag_next_, temp_key_, tag_next_);
     }
 
     // -- derivatives of water content with respect to temperature are zero on

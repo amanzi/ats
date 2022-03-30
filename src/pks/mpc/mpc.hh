@@ -62,18 +62,7 @@ public:
         global_list_(global_list),
         pk_tree_(pk_tree),
         pks_list_(Teuchos::sublist(global_list, "PKs"))
-  {
-    // set the verbose object list if need be
-    if (plist_->isSublist(name_ + " verbose object")) {
-      plist_->set("verbose object", plist_->sublist(name_ + " verbose object"));
-    }
-
-    // verbose object
-    vo_ = Teuchos::rcp(new VerboseObject(solution->Comm(), name_, *plist_));
-  }
-
-  // Virtual destructor
-  virtual ~MPC() = default;
+  {}
 
   // PK methods
   // -- setup

@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -39,18 +39,13 @@ public:
              const Teuchos::RCP<State>& S,
              const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~ThreePhase() override {}
+  virtual void Initialize() override;
 
-  virtual void Initialize();
-  
-protected:
+ protected:
   virtual void SetupPhysicalEvaluators_() override;
 
-private:
+ private:
   static RegisteredPKFactory<ThreePhase> reg_;
-
-  friend  class MPCCoupledFlowEnergy;
 };
 
 } // namespace Energy

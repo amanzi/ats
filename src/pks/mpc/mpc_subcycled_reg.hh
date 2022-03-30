@@ -12,10 +12,10 @@ sub-PKs, calling their advance() methods and returning failure if any fail.
 See additional documentation in the base class src/pks/mpc/MPC.hh
 ------------------------------------------------------------------------- */
 
-#include "pk_mpcsubcycled_ats.hh"
+#include "mpc_subcycled.hh"
 
 namespace Amanzi {
 
-RegisteredPKFactory<PK_MPCSubcycled_ATS> PK_MPCSubcycled_ATS::reg_("subcycling MPC");
+RegisteredPKFactory<MPCSubcycled> MPCSubcycled::reg_("subcycling MPC");
 
 } // namespace
