@@ -82,6 +82,27 @@ void MPCSubsurface::Setup()
   // set up debugger
   db_ = sub_pks_[0]->debugger();
 
+  if (S_->HasEvaluatorList(rho_key_)) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(rho_key_, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S_->RequireEvaluator(rho_key_, tag_next_);
+  }
+
+  auto molar_dens_key = Keys::readKey(*plist_, domain_name_, "molar density liquid", "molar_density_liquid");
+  if (S_->HasEvaluatorList(molar_dens_key)) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S_->RequireEvaluator(molar_dens_key, tag_next_);
+  }
+
+  //if (!S_->FEList().isSublist(rho_key_) && S_->FEList().isSublist(molar_dens_key) ) {
+  //  if (S_->FEList().sublist(molar_dens_key).get<std::string>("EOS basis") == "both") {
+  //    auto& mass_dens_list = S_->GetEvaluatorList(rho_key_);
+  //    mass_dens_list.setParameters(S_->GetEvaluatorList(molar_dens_key));
+  //  }
+  //}
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);
