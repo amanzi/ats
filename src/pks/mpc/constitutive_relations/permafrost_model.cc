@@ -70,7 +70,7 @@ void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
   auto wrm_me = dynamic_cast<Flow::WRMPermafrostEvaluator*>(&sat_gas_eval);
   AMANZI_ASSERT(wrm_me != nullptr);
   wrms_ = wrm_me->get_WRMPermafrostModels();
-  
+
   // -- liquid EOS
   auto& liq_eval = S->RequireEvaluator(liq_dens_key, tag);
   auto eos_liquid_me = dynamic_cast<Relations::EOSEvaluator*>(&liq_eval);
@@ -106,7 +106,7 @@ void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
   auto pc_liq_me = dynamic_cast<Flow::PCLiquidEvaluator*>(&pc_gas_eval);
   AMANZI_ASSERT(pc_liq_me != nullptr);
   pc_l_ = pc_liq_me->get_PCLiqAtm();
-  
+
   // -- iem for liquid
   auto& iem_liq_eval = S->RequireEvaluator(iem_liq_key, tag);
   auto iem_liquid_me = dynamic_cast<Energy::IEMEvaluator*>(&iem_liq_eval);
@@ -159,7 +159,7 @@ void PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
   else
     poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
-    
+
   AMANZI_ASSERT(IsSetUp_());
 }
 
@@ -187,7 +187,7 @@ bool PermafrostModel::IsSetUp_() {
 }
 
 
-bool 
+bool
 PermafrostModel::Freezing(double T, double p) {
   double eff_p = std::max(p_atm_, p);
   std::vector<double> eos_param(2);
@@ -196,12 +196,12 @@ PermafrostModel::Freezing(double T, double p) {
   double pc_i;
   if (pc_i_->IsMolarBasis()) {
     eos_param[0] = T;
-    eos_param[1] = eff_p;    
+    eos_param[1] = eff_p;
     double rho_l = liquid_eos_->MolarDensity(eos_param);
     pc_i = pc_i_->CapillaryPressure(T, rho_l);
   } else {
     eos_param[0] = T;
-    eos_param[1] = eff_p;        
+    eos_param[1] = eff_p;
     double mass_rho_l = liquid_eos_->MassDensity(eos_param);
     pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
   }
@@ -220,12 +220,12 @@ int PermafrostModel::EvaluateSaturations(double T, double p, double& s_gas, doub
     double pc_i;
     if (pc_i_->IsMolarBasis()) {
       eos_param[0] = T;
-      eos_param[1] = eff_p;          
+      eos_param[1] = eff_p;
       double rho_l = liquid_eos_->MolarDensity(eos_param);
       pc_i = pc_i_->CapillaryPressure(T, rho_l);
     } else {
       eos_param[0] = T;
-      eos_param[1] = eff_p;          
+      eos_param[1] = eff_p;
       double mass_rho_l = liquid_eos_->MassDensity(eos_param);
       pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
     }
@@ -251,23 +251,23 @@ int PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGe
   }
   int ierr = 0;
   std::vector<double> eos_param(2);
-  
+
   try {
     double poro;
     if (!poro_leij_)
       poro = poro_model_->Porosity(poro_, p, p_atm_);
     else
       poro = poro_leij_model_->Porosity(poro_, p, p_atm_);
-    
+
     double eff_p = std::max(p_atm_, p);
 
     eos_param[0] = T;
-    eos_param[1] = eff_p;        
-    
-    double rho_l = liquid_eos_-> MolarDensity(eos_param);
-    double rho_i = ice_eos_   -> MolarDensity(eos_param);
-    double rho_g = gas_eos_   -> MolarDensity(eos_param);
-    
+    eos_param[1] = eff_p;
+
+    double rho_l = liquid_eos_->MolarDensity(eos_param);
+    double rho_i = ice_eos_->MolarDensity(eos_param);
+    double rho_g = gas_eos_->MolarDensity(eos_param);
+
     double omega = vpr_->SaturatedVaporPressure(T)/p_atm_;
 
     double pc_i;

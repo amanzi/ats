@@ -174,17 +174,18 @@ void MPCSurface::Setup()
     preconditioner_->set_inverse_parameters(plist_->sublist("inverse"));
   }
 
+  // This is currently broken, just don't use it now... See #122
   // create the EWC delegate
-  if (plist_->isSublist("surface ewc delegate")) {
-    Teuchos::RCP<Teuchos::ParameterList> surf_ewc_list = Teuchos::sublist(plist_, "surface ewc delegate");
-    surf_ewc_list->set("PK name", name_);
-    surf_ewc_list->set("domain name", domain_);
-    ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
-    ewc_->set_tags(tag_current_, tag_next_);
-    Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
-    ewc_->set_model(model);
-    ewc_->setup();
-  }
+  // if (plist_->isSublist("surface ewc delegate")) {
+  //   Teuchos::RCP<Teuchos::ParameterList> surf_ewc_list = Teuchos::sublist(plist_, "surface ewc delegate");
+  //   surf_ewc_list->set("PK name", name_);
+  //   surf_ewc_list->set("domain name", domain_);
+  //   ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
+  //   ewc_->set_tags(tag_current_, tag_next_);
+  //   Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
+  //   ewc_->set_model(model);
+  //   ewc_->setup();
+  // }
 }
 
 

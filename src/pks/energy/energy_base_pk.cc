@@ -72,12 +72,8 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
   if (is_source_term_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "total_energy_source");
   }
+  is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", true);
   is_source_term_finite_differentiable_ = plist_->get<bool>("source term finite difference", false);
-  if (is_source_term_finite_differentiable_) {
-    is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", false);
-  } else {
-    is_source_term_differentiable_ = plist_->get<bool>("source term is differentiable", true);
-  }
 
   // get keys
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
@@ -103,6 +99,25 @@ void EnergyBase::Setup()
 };
 
 
+void EnergyBase::SetupPhysicalEvaluators_()
+{
+  // Get data and evaluators needed by the PK
+  // -- energy, energy evaluator, and energy derivative
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
+    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_, key_, tag_next_);
+  S_->RequireEvaluator(conserved_key_, tag_next_);
+
+  // energy at the current time, where it is a copy evaluator
+  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
+  //S_->RequireEvaluator(conserved_key_, tag_current_);
+
+  // -- conductivity
+  S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
+    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(conductivity_key_, tag_next_);
+}
+
 // -------------------------------------------------------------
 // Pieces of the construction process that are common to all
 // Energy-like PKs.
@@ -116,26 +131,19 @@ void EnergyBase::SetupEnergy_()
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
   S_->Require<double>("atmospheric_pressure", Tags::DEFAULT);
 
-
-  //if (is_source_term_finite_differentiable_ && is_source_term_differentiable_) {
-  //  Errors::Message message("Energy PK source term declared both differentiable and differentiable via finite difference -- choose one.");
-  //  Exceptions::amanzi_throw(message);
-  //}
-
+  // require data for source terms
   if (is_source_term_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_).SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S_->RequireEvaluator(source_key_, tag_next_);
 
-    if (is_source_term_differentiable_ &&
-      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    if (is_source_term_differentiable_ && (!is_source_term_finite_differentiable_) &&
+        S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       // require derivative of source
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
               tag_next_, key_, tag_next_);
     }
   }
-  //    and at the current time, where it is a copy evaluator
-  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_);
 
   // Set up Operators
   // -- boundary conditions
@@ -331,7 +339,7 @@ void EnergyBase::SetupEnergy_()
   CompositeVectorSpace matrix_cvs = matrix_->RangeMap();
   matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_next_, name_)
-  .Update(matrix_cvs)->SetGhosted();
+    .Update(matrix_cvs)->SetGhosted();
 
   // require a water flux field
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_).SetMesh(mesh_)->SetGhosted()

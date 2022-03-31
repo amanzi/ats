@@ -135,31 +135,6 @@ MPCPermafrost::Setup() {
     .SetMesh(surf_mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(surf_pd_key_, tag_next_);
 
-  Key tmp_key = Keys::readKey(*plist_, domain_surf_, "molar density", "molar_density_liquid");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(surf_mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(tmp_key, tag_next_);
-
-  tmp_key = Keys::readKey(*plist_, domain_surf_, "mass density", "mass_density_liquid");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(surf_mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(tmp_key, tag_next_);
-  
-  tmp_key = Keys::readKey(*plist_, domain_surf_, "ice molar density", "molar_density_ice");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(surf_mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(tmp_key, tag_next_);
-  
-  tmp_key = Keys::readKey(*plist_, domain_surf_, "ice mass density", "mass_density_ice");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(surf_mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(tmp_key, tag_next_);
-
-
   // require surface derivatives
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_pd_bar_key_,
             tag_next_, surf_pres_key_, tag_next_);
@@ -353,7 +328,6 @@ MPCPermafrost::Initialize()
   // Initialize all sub PKs.
   MPCSubsurface::Initialize();
 
-
   // ensure continuity of ICs... surface takes precedence if it was initialized
   if (S_->GetRecord(surf_pres_key_, tag_next_).initialized()) {
 
@@ -382,13 +356,13 @@ MPCPermafrost::Initialize()
 }
 
 
-//void
-//MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
-//{
-//  MPCSubsurface::set_tags(tag_current, tag_next);
-//  if (water_.get()) water_->set_tags(tag_current, tag_next);
-//  if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
-//}
+void
+MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
+{
+  MPCSubsurface::set_tags(tag_current, tag_next);
+  if (water_.get()) water_->set_tags(tag_current, tag_next);
+  if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
+}
 
 
 void MPCPermafrost::CommitStep(double t_old, double t_new, const Tag& tag)
@@ -399,15 +373,6 @@ void MPCPermafrost::CommitStep(double t_old, double t_new, const Tag& tag)
   }
 
   MPCSubsurface::CommitStep(t_old, t_new, tag);
-
-  //if (S_->HasRecordSet(mass_exchange_key_)) {
-  //  if (!S_->HasEvaluator(mass_exchange_key_, tag_current_))
-  //    S_->Assign(mass_exchange_key_, tag_current_, tag_next_);
-  //}
-  //if (S_->HasRecordSet(energy_exchange_key_)) {
-  //  if (!S_->HasEvaluator(energy_exchange_key_, tag_current_))
-  //    S_->Assign(energy_exchange_key_, tag_current_, tag_next_);
-  //}
 }
 
 

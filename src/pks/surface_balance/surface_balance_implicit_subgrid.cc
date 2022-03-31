@@ -40,16 +40,6 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
   new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
   snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
 
-  // set up additional primary variables -- this is very hacky, and can become
-  // an evaluator in new-state
-  // -- snow density
-  //Teuchos::ParameterList& snow_dens_sublist = S->GetEvaluatorList(snow_dens_key_);
-  //snow_dens_sublist.set("evaluator type", "primary variable");
-
-  // -- snow death rate
-  //Teuchos::ParameterList& snow_death_rate_sublist = S->GetEvaluatorList(snow_death_rate_key_);
-  //snow_death_rate_sublist.set("evaluator type", "primary variable");
-
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);
 }
@@ -187,7 +177,10 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
       snow_death_rate[0][c] = swe_old_v[0][c] / (t_new - t_old) / cell_volume[0][c];
     }
   }
-  ChangedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  // This line of code is commented out to ensure consistent code with master.
+  // Uncommenting removes the bug described in ats#123, but does not fix it,
+  // because it results in the cycle.
+  // ChangedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
 
   // update the residual
   SurfaceBalanceBase::FunctionalResidual(t_old, t_new, u_old, u_new, g);
@@ -234,8 +227,12 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
       snow_dens_new[0][c] = std::min(snow_dens_new[0][c], params.density_snow_max);
     }
   }
-  ChangedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
-  ChangedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+
+  // This line of code is commented out to ensure consistent code with master.
+  // Uncommenting removes the bug described in ats#123, but does not fix it,
+  // because it results in the cycle.
+  // ChangedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  // ChangedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 
   // debugging
   std::vector<std::string> vnames;

@@ -27,14 +27,8 @@ ThreePhase::ThreePhase(Teuchos::ParameterList& FElist,
 // -------------------------------------------------------------
 // Create the physical evaluators for energy and thermal conductivity
 // -------------------------------------------------------------
-void ThreePhase::SetupPhysicalEvaluators_() {
-
-  Key molar_dens_ice_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_ice_key, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(molar_dens_ice_key, tag_next_);
-
+void ThreePhase::SetupPhysicalEvaluators_()
+{
   // -- thermal conductivity
   // move evaluator from PK plist to State
   if (plist_->isSublist("thermal conductivity evaluator")) {
@@ -42,11 +36,7 @@ void ThreePhase::SetupPhysicalEvaluators_() {
     tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
     tcm_plist.set("evaluator type", "three-phase thermal conductivity");
   }
-  S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
-    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(conductivity_key_, tag_next_);
-
-  TwoPhase::SetupPhysicalEvaluators_();
+  EnergyBase::SetupPhysicalEvaluators_();
 }
 
 void
@@ -76,7 +66,7 @@ ThreePhase::Initialize() {
     S_->GetRecordW(key_, tag_next_, name_).Initialize(plist_->sublist("initial condition"));
   }
 
-  TwoPhase::Initialize();
+  EnergyBase::Initialize();
 }
 
 

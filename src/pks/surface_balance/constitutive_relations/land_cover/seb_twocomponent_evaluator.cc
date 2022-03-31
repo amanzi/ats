@@ -50,6 +50,7 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
     domain_ = plist.get<std::string>("surface domain name", domain_);
     domain_ss_ = plist.get<std::string>("subsurface domain name", domain_ss_);
   }
+  my_keys_.clear();
 
   // my keys
   // -- sources
