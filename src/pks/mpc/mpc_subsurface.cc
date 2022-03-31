@@ -82,6 +82,11 @@ void MPCSubsurface::Setup()
   // set up debugger
   db_ = sub_pks_[0]->debugger();
 
+  S_->Require<CompositeVector,CompositeVectorSpace>(rho_key_, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator(rho_key_, tag_next_);
+
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,

@@ -72,16 +72,38 @@ void MPCSurface::Setup()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(pd_bar_key_, tag_next_);
 
-  Key tmp_key = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(tmp_key, tag_next_);
+  auto tmp_key = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
+  if (S_->HasEvaluatorList(tmp_key)) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S_->RequireEvaluator(tmp_key, tag_next_);
+  }
 
-  tmp_key = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
-  S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  tmp_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  if (S_->HasEvaluatorList(tmp_key)) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
+      .SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S_->RequireEvaluator(tmp_key, tag_next_);
+  }
+
+  //auto mass_dens_key = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
+  //auto molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
+  //if (!S_->FEList().isSublist(mass_dens_key) && S_->FEList().isSublist(molar_dens_key) ) {
+  //  if (S_->FEList().sublist(molar_dens_key).get<std::string>("EOS basis") == "both") {
+  //    auto& mass_dens_list = S_->GetEvaluatorList(mass_dens_key);
+  //    mass_dens_list.setParameters(S_->GetEvaluatorList(molar_dens_key));
+  //  }
+  //}
+
+  //if (!S_->FEList().isSublist(molar_dens_key) && S_->FEList().isSublist(mass_dens_key) ) {
+  //  if (S_->FEList().sublist(mass_dens_key).get<std::string>("EOS basis") == "both") {
+  //    auto& molar_dens_list = S_->GetEvaluatorList(molar_dens_key);
+  //    molar_dens_list.setParameters(S_->GetEvaluatorList(mass_dens_key));
+  //  }
+  //}
+
   
   tmp_key = Keys::readKey(*plist_, domain_, "ice molar density", "molar_density_ice");
   S_->Require<CompositeVector,CompositeVectorSpace>(tmp_key, tag_next_)
