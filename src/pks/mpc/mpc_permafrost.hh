@@ -116,10 +116,9 @@ class MPCPermafrost : public MPCSubsurface {
   Key surf_kr_key_;
   Key surf_kr_uw_key_;
   Key surf_potential_key_;
-  Key surf_pd_bar_key_, surf_pd_key_;
+  Key surf_pd_key_;
   Key surf_enth_key_;
   Key surf_water_flux_key_;
-  Key surf_rho_key_;
 
   // EWC delegate for the surface
   Teuchos::RCP<MPCDelegateEWC> surf_ewc_;

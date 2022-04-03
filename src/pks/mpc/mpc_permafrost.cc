@@ -52,7 +52,6 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   surf_kr_key_ = Keys::readKey(*plist_, domain_surf_, "overland conductivity", "overland_conductivity");
   surf_kr_uw_key_ = Keys::readKey(*plist_, domain_surf_, "upwind overland conductivity", "upwind_overland_conductivity");
   surf_potential_key_ = Keys::readKey(*plist_, domain_surf_, "surface potential", "pres_elev");
-  surf_pd_bar_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth, negative", "ponded_depth_bar");
   surf_pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
   surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
 }
@@ -127,21 +126,11 @@ MPCPermafrost::Setup() {
   RequireEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // require in case the PK did not do so already
-  S_->Require<CompositeVector,CompositeVectorSpace>(surf_pd_bar_key_, tag_next_)
-    .SetMesh(surf_mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(surf_pd_bar_key_, tag_next_);
-
   S_->Require<CompositeVector,CompositeVectorSpace>(surf_pd_key_, tag_next_)
     .SetMesh(surf_mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(surf_pd_key_, tag_next_);
 
   // require surface derivatives
-  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_pd_bar_key_,
-            tag_next_, surf_pres_key_, tag_next_);
-
-  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_kr_key_,
-            tag_next_, surf_temp_key_, tag_next_);
-
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_e_key_,
             tag_next_, surf_pres_key_, tag_next_);
 
@@ -200,6 +189,10 @@ MPCPermafrost::Setup() {
         Operators::PDE_DiffusionFactory opfactory;
         ddivq_dT_ = opfactory.Create(divq_plist, surf_mesh_);
         dWC_dT_block_->OpPushBack(ddivq_dT_->jacobian_op());
+
+        // require surface krdT
+        S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_kr_key_,
+            tag_next_, surf_temp_key_, tag_next_);
       }
 
       // -- ALWAYS ZERO!

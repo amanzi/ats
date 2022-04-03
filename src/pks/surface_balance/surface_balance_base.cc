@@ -23,12 +23,13 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
     PK_PhysicalBDF_Default(pk_tree, global_list,  S, solution)
 {
   // source terms
-  is_source_ = plist_->get<bool>("source term", true);
-  if (is_source_) {
+  eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
+  is_source_ = plist_->get<bool>("source term", false);
+  if (is_source_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
   }
   source_finite_difference_ = plist_->get<bool>("source term finite difference", false);
-  eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
+  is_source_differentiable_ = plist_->get<bool>("source term is differentiable", true);
 
   modify_predictor_positivity_preserving_ = plist_->get<bool>("modify predictor positivity preserving", false);
 
@@ -65,8 +66,8 @@ SurfaceBalanceBase::Setup()
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
       S_->RequireEvaluator(source_key_, tag_next_);
 
-      if (S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)
-      && !source_finite_difference_) {
+      if (is_source_differentiable_ && !source_finite_difference_ &&
+      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
         S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_,
                 key_, tag_next_);
       }
@@ -209,10 +210,8 @@ SurfaceBalanceBase::UpdatePreconditioner(double t,
     preconditioner_acc_->AddAccumulationTerm(*dconserved_dT, h, "cell", false);
 
     // add derivative of source wrt primary
-    if (theta_ > 0.0
-    && is_source_
-    && (source_finite_difference_ 
-    || S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_))) {
+    if (theta_ > 0.0 && is_source_ && is_source_differentiable_ &&
+      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
 
       Teuchos::RCP<const CompositeVector> dsource_dT;
       if (!source_finite_difference_) {
