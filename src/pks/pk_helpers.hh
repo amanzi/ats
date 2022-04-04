@@ -20,6 +20,13 @@
 
 namespace Amanzi {
 
+// -----------------------------------------------------------------------------
+// Propagates density metadata to State when EOS basis is 'both' and the
+// alternate density is undefined. Require density and evaluator if needed.
+// -----------------------------------------------------------------------------
+void
+setDensities(const Key& molar_dens_key, const Tag& tag, State& S);
+
 bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
 

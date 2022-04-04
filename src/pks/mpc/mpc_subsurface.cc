@@ -24,6 +24,7 @@ with freezing.
 #include "liquid_ice_model.hh"
 #include "richards.hh"
 #include "mpc_delegate_ewc_subsurface.hh"
+#include "pk_helpers.hh"
 #include "mpc_subsurface.hh"
 
 #define DEBUG_FLAG 1
@@ -82,10 +83,10 @@ void MPCSubsurface::Setup()
   // set up debugger
   db_ = sub_pks_[0]->debugger();
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(rho_key_, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(rho_key_, tag_next_);
+  auto molar_dens_key = Keys::readKey(*plist_, domain_name_, "molar density liquid", "molar_density_liquid");
+  setDensities(molar_dens_key, tag_next_, *S_);
+  molar_dens_key = Keys::readKey(*plist_, domain_name_, "molar density ice", "molar_density_ice");
+  setDensities(molar_dens_key, tag_next_, *S_);
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);

@@ -28,11 +28,8 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   // tweak the sub-PK parameter lists
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string> >("PKs order");
 
-  //domain_subsurf_ = domain_name_;
-  //domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
-
-  domain_subsurf_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
-  domain_surf_ = pks_list_->sublist(names[2]).get<std::string>("domain name", "surface");
+  domain_subsurf_ = domain_name_;
+  domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
 
   // propagate domain information down to delegates
   if (plist_->isSublist("surface ewc delegate"))
@@ -115,6 +112,11 @@ MPCPermafrost::Setup() {
   // call the subsurface setup, which calls the sub-pk's setups and sets up
   // the subsurface block operator
   MPCSubsurface::Setup();
+
+  auto molar_dens_key = Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
+  setDensities(molar_dens_key, tag_next_, *S_);
+  molar_dens_key = Keys::readKey(*plist_, domain_surf_, "surface molar density ice", "molar_density_ice");
+  setDensities(molar_dens_key, tag_next_, *S_);
 
   // require the coupling fields, claim ownership
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_exchange_key_, tag_next_, mass_exchange_key_)

@@ -26,6 +26,54 @@ aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
 
 
 // -----------------------------------------------------------------------------
+// Propagates density metadata to State when EOS basis is 'both' and the
+// alternate density is undefined. Require density and evaluator if needed.
+// -----------------------------------------------------------------------------
+void
+setDensities(const Key& molar_dens_key, const Tag& tag, State& S)
+{
+  Key mass_dens_key;
+  auto molar_pos = molar_dens_key.find("molar");
+  if (molar_pos != std::string::npos) {
+    mass_dens_key = molar_dens_key.substr(0,molar_pos)+"mass"+molar_dens_key.substr(molar_pos+5, molar_dens_key.size());
+  } else {
+    Errors::Message msg(
+      "setDensities: string 'molar' not found in molar_density_key: "+molar_dens_key.substr(0,molar_dens_key.size()));
+    Exceptions::amanzi_throw(msg);
+  }
+
+  auto need_metadata = [&S] (const Key& key1, const Key& key2) {
+    return (!S.FEList().isSublist(key2) && S.FEList().isSublist(key1) &&
+    S.FEList().sublist(key1).get<std::string>("EOS basis") == "both");
+  };
+
+  if (need_metadata(molar_dens_key, mass_dens_key)) {
+    auto& mass_dens_list = S.GetEvaluatorList(mass_dens_key);
+    mass_dens_list.setParameters(S.GetEvaluatorList(molar_dens_key));
+  } else if (need_metadata(mass_dens_key, molar_dens_key)) {
+    auto& molar_dens_list = S.GetEvaluatorList(molar_dens_key);
+    molar_dens_list.setParameters(S.GetEvaluatorList(mass_dens_key));
+  }
+
+  auto domain_name = Keys::getDomain(molar_dens_key);
+  const auto& mesh = S.GetMesh(domain_name);
+  if (S.HasEvaluatorList(molar_dens_key) && !S.HasEvaluator(molar_dens_key, tag)) {
+    S.Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag)
+      .SetMesh(mesh)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S.RequireEvaluator(molar_dens_key, tag);
+  }
+
+  if (S.HasEvaluatorList(mass_dens_key) && !S.HasEvaluator(mass_dens_key, tag)) {
+    S.Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag)
+      .SetMesh(mesh)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    S.RequireEvaluator(mass_dens_key, tag);
+  }
+}
+
+
+// -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector.
 // -----------------------------------------------------------------------------
 void
