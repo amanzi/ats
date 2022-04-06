@@ -18,21 +18,30 @@ namespace Amanzi {
 // alternate density is undefined. Require density and evaluator if needed.
 // -----------------------------------------------------------------------------
 void
-setDensities(const Key& molar_dens_key, const Tag& tag, State& S)
+requireDensityEvaluator(const Key& dens_key, const Tag& tag, const Key& dens_type,
+                 Teuchos::ParameterList& plist, State& S)
 {
-  Key mass_dens_key;
-  auto molar_pos = molar_dens_key.find("molar");
+  Key mass_dens_key, molar_dens_key;
+  Key domain = Keys::getDomain(dens_key);
+
+  auto molar_pos = dens_key.find("molar");
+  auto mass_pos = varname.find("mass");
   if (molar_pos != std::string::npos) {
-    mass_dens_key = molar_dens_key.substr(0,molar_pos)+"mass"+molar_dens_key.substr(molar_pos+5, molar_dens_key.size());
+    molar_dens_key = dens_key;
+    mass_dens_key = dens_key.substr(0,molar_pos)+"mass"+varname.substr(molar_pos+5, dens_key.size());
+    mass_dens_key = Keys::readKey(plist_, domain, "mass density "+dens_type, mass_dens_key);
+  } else if (mass_pos != std::string::npos) {
+    mass_dens_key = dens_key;
+    molar_dens_key = dens_key.substr(0,mass_pos)+"molar"+dens_key.substr(mass_pos+4, dens_key.size());
+    molar_dens_key = Keys::readKey(plist_, domain, "molar density "+dens_type, molar_dens_key);
   } else {
-    Errors::Message msg(
-      "setDensities: string 'molar' not found in molar_density_key: "+molar_dens_key.substr(0,molar_dens_key.size()));
+    Errors::Message msg("requireDensityEvaluator: string 'molar' or 'mass' not found in density key.");
     Exceptions::amanzi_throw(msg);
   }
 
   auto need_metadata = [&S] (const Key& key1, const Key& key2) {
-    return (!S.FEList().isSublist(key2) && S.FEList().isSublist(key1) &&
-    S.FEList().sublist(key1).get<std::string>("EOS basis") == "both");
+    return (!S.HasEvaluatorList(key2) && S.HasEvaluatorList(key1) &&
+            S.GetEvaluatorList(key1).get<std::string>("EOS basis") == "both");
   };
 
   if (need_metadata(molar_dens_key, mass_dens_key)) {
@@ -43,21 +52,8 @@ setDensities(const Key& molar_dens_key, const Tag& tag, State& S)
     molar_dens_list.setParameters(S.GetEvaluatorList(mass_dens_key));
   }
 
-  auto domain_name = Keys::getDomain(molar_dens_key);
-  const auto& mesh = S.GetMesh(domain_name);
-  if (S.HasEvaluatorList(molar_dens_key) && !S.HasEvaluator(molar_dens_key, tag)) {
-    S.Require<CompositeVector,CompositeVectorSpace>(molar_dens_key, tag)
-      .SetMesh(mesh)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S.RequireEvaluator(molar_dens_key, tag);
-  }
-
-  if (S.HasEvaluatorList(mass_dens_key) && !S.HasEvaluator(mass_dens_key, tag)) {
-    S.Require<CompositeVector,CompositeVectorSpace>(mass_dens_key, tag)
-      .SetMesh(mesh)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S.RequireEvaluator(mass_dens_key, tag);
-  }
+  if (S.HasEvaluatorList(molar_dens_key)) S.RequireEvaluator(molar_dens_key, tag);
+  if (S.HasEvaluatorList(mass_dens_key)) S.RequireEvaluator(mass_dens_key, tag);
 }
 
 
