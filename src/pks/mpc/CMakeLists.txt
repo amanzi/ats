@@ -33,7 +33,7 @@ set(ats_mpc_src_files
   weak_mpc.cc
   DomainSetMPC.cc
   # operator_split_mpc.cc
-  # mpc_coupled_cells.cc
+  mpc_coupled_cells.cc
   mpc_surface_subsurface_helpers.cc
   # mpc_weak_subgrid.cc
   # mpc_weak_domain_decomposition.cc
@@ -45,7 +45,7 @@ set(ats_mpc_src_files
   # mpc_coupled_water_split_flux.cc
   # mpc_reactivetransport.cc
   # mpc_coupled_reactivetransport.cc
-  # mpc_coupled_transport.cc
+  mpc_coupled_transport.cc
   # mpc_permafrost_split_flux.cc
   mpc_subsurface.cc
   mpc_surface.cc
@@ -60,7 +60,7 @@ set(ats_mpc_inc_files
   strong_mpc.hh
   DomainSetMPC.hh
   # operator_split_mpc.hh
-  # mpc_coupled_cells.hh
+  mpc_coupled_cells.hh
   mpc_surface_subsurface_helpers.hh
   # mpc_weak_subgrid.hh
   # mpc_weak_domain_decomposition.hh
@@ -72,7 +72,7 @@ set(ats_mpc_inc_files
   mpc_delegate_water.hh
   mpc_coupled_water.hh
   # mpc_predictor_corrector.hh
-  # mpc_coupled_transport.hh
+  mpc_coupled_transport.hh
   # mpc_coupled_water_split_flux.hh
   # mpc_permafrost_split_flux.hh
   mpc_subsurface.hh
@@ -163,10 +163,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE mpc_coupled_cells_reg.hh
-#   LISTNAME   ATS_MPC_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE mpc_coupled_cells_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 register_evaluator_with_factory(
   HEADERFILE mpc_permafrost_reg.hh
@@ -188,10 +188,10 @@ register_evaluator_with_factory(
 #   LISTNAME   ATS_MPC_REG
 #   )
 
-# register_evaluator_with_factory(
-#     HEADERFILE mpc_coupled_transport_reg.hh
-#     LISTNAME   ATS_MPC_REG
-#    )
+register_evaluator_with_factory(
+    HEADERFILE mpc_coupled_transport_reg.hh
+    LISTNAME   ATS_MPC_REG
+   )
 
 # register_evaluator_with_factory(
 #   HEADERFILE mpc_weak_subgrid_reg.hh

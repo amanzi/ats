@@ -10,45 +10,47 @@
 
 #include "mpc_coupled_transport.hh"
 
-
 namespace Amanzi {
 
-CoupledTransport_PK::CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
+MPCCoupledTransport::MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
         const Teuchos::RCP<Teuchos::ParameterList>& global_list,
         const Teuchos::RCP<State>& S,
         const Teuchos::RCP<TreeVector>& soln) :
-  PK(pk_tree_or_fe_list, global_list, S, soln),
-  WeakMPC(pk_tree_or_fe_list, global_list, S, soln)
+  PK(pk_tree, global_list, S, soln),
+  WeakMPC(pk_tree, global_list, S, soln)
 {}
 
 
-void CoupledTransport_PK::Setup()
+void MPCCoupledTransport::Setup()
 {
   name_ss_ = sub_pks_[0]->name();
   name_surf_ = sub_pks_[1]->name();
 
   pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);
-  AMANZI_ASSERT(pk_ss_ != Teuchos::null);
   pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
-  AMANZI_ASSERT(pk_surf_ != Teuchos::null);
+
+  if (pk_ss_ == Teuchos::null || pk_surf_ == Teuchos::null) {
+    Errors::Message msg("MPCCoupledTransport expects to only couple PKs of type \"transport ATS\"");
+    Exceptions::amanzi_throw(msg);
+  }
 
   SetupCouplingConditions_();
   WeakMPC::Setup();
 }
 
 
-int CoupledTransport_PK::get_num_aqueous_component()
+int MPCCoupledTransport::get_num_aqueous_component()
 {
   int num_aq_comp = pk_ss_->get_num_aqueous_component();
   if (num_aq_comp != pk_surf_->get_num_aqueous_component()){
-    Errors::Message message("CoupledTransport_PK:: numbers aqueous component does not match.");
-    Exceptions::amanzi_throw(message);
+    Errors::Message msg("MPCCoupledTransport:: numbers aqueous component does not match.");
+    Exceptions::amanzi_throw(msg);
   }
   return num_aq_comp;
 }
 
 
-void CoupledTransport_PK::SetupCouplingConditions_()
+void MPCCoupledTransport::SetupCouplingConditions_()
 {
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
