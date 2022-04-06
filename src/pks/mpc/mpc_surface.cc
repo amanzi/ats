@@ -72,17 +72,11 @@ void MPCSurface::Setup()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(pd_bar_key_, tag_next_);
 
-  auto molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  
+  // derivatives usesd in all cases  
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
             tag_next_, pres_key_, tag_next_);
-
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
             tag_next_, pres_key_, tag_next_);
-
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
             tag_next_, temp_key_, tag_next_);
 
