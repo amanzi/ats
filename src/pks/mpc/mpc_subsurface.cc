@@ -83,10 +83,8 @@ void MPCSubsurface::Setup()
   // set up debugger
   db_ = sub_pks_[0]->debugger();
 
-  auto molar_dens_key = Keys::readKey(*plist_, domain_name_, "molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_name_, "molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
+  // density required in gravity term
+  requireDensities(rho_key_, tag_next_, *S_);
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);
