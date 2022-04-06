@@ -27,6 +27,12 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<EOS> get_EOS() { return eos_; }
 
  protected:
+  // ensures a given structure of all of my_keys
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
+
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& results) override;
