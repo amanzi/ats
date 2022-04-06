@@ -124,10 +124,8 @@ void OverlandPressureFlow::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
   // S_->RequireEvaluator(conserved_key_, tag_current_);
 
-  auto molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
+  // densities required to convert molar flux to velocity
+  requireDensities(molar_dens_key_, tag_next_, *S_);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();
