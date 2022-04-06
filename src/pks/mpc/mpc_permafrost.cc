@@ -113,11 +113,6 @@ MPCPermafrost::Setup() {
   // the subsurface block operator
   MPCSubsurface::Setup();
 
-  auto molar_dens_key = Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_surf_, "surface molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
-
   // require the coupling fields, claim ownership
   S_->Require<CompositeVector,CompositeVectorSpace>(mass_exchange_key_, tag_next_, mass_exchange_key_)
     .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
