@@ -84,7 +84,10 @@ void MPCSubsurface::Setup()
   db_ = sub_pks_[0]->debugger();
 
   // density required in gravity term
-  requireDensities(rho_key_, tag_next_, *S_);
+  requireDensityEvaluator(rho_key_, tag_next_, *plist_, *S_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(rho_key_, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);

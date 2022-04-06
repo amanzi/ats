@@ -125,7 +125,10 @@ void OverlandPressureFlow::Setup()
   // S_->RequireEvaluator(conserved_key_, tag_current_);
 
   // densities required to convert molar flux to velocity
-  requireDensities(molar_dens_key_, tag_next_, *S_);
+  requireDensityEvaluator(molar_dens_key_, tag_next_, *plist_, *S_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();
