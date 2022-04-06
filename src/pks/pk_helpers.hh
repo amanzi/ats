@@ -27,7 +27,6 @@ namespace Amanzi {
 void
 requireDensityEvaluator(const Key& dens_key, const Tag& tag, State& S, Key other_dens_key=Key());
 
-
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector's boundary_face
 // component.
