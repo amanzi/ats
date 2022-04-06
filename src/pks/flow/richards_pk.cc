@@ -466,10 +466,17 @@ void Richards::SetupPhysicalEvaluators_()
   AMANZI_ASSERT(wrm_eval != nullptr);
   wrms_ = wrm_eval->get_WRMs();
 
-  // require molar density for converting flux to velocity
-  requireDensities(molar_dens_key_, tag_next_, *S_);
-  // require mass density for gravity term
-  requireDensities(mass_dens_key_, tag_next_, *S_);
+
+  requireDensityEvaluator(molar_dens_key_, tag_next_, *plist_, *S_);
+  // -- molar density used to infer liquid Darcy velocity from flux
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  // -- liquid mass density for the gravity fluxes
+  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key_, tag_next_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+
 }
 
 

@@ -25,7 +25,8 @@ namespace Amanzi {
 // alternate density is undefined. Require density and evaluator if needed.
 // -----------------------------------------------------------------------------
 void
-setDensities(const Key& molar_dens_key, const Tag& tag, State& S);
+requireDensityEvaluator(const Key& dens_key, const Tag& tag,
+                 Teuchos::ParameterList& plist, State& S);
 
 
 // -----------------------------------------------------------------------------

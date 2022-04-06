@@ -18,22 +18,25 @@ namespace Amanzi {
 // alternate density is undefined. Require density and evaluator if needed.
 // -----------------------------------------------------------------------------
 void
-requireDensityEvaluator(const Key& dens_key, const Tag& tag, const Key& dens_type,
+requireDensityEvaluator(const Key& dens_key, const Tag& tag,
                  Teuchos::ParameterList& plist, State& S)
 {
   Key mass_dens_key, molar_dens_key;
   Key domain = Keys::getDomain(dens_key);
 
+  auto type_pos = dens_key.find("_density_");
+  auto dens_type = dens_key.substr(type_pos+9, dens_key.size());
+
   auto molar_pos = dens_key.find("molar");
-  auto mass_pos = varname.find("mass");
+  auto mass_pos = dens_key.find("mass");
   if (molar_pos != std::string::npos) {
     molar_dens_key = dens_key;
-    mass_dens_key = dens_key.substr(0,molar_pos)+"mass"+varname.substr(molar_pos+5, dens_key.size());
-    mass_dens_key = Keys::readKey(plist_, domain, "mass density "+dens_type, mass_dens_key);
+    mass_dens_key = dens_key.substr(0,molar_pos)+"mass"+dens_key.substr(molar_pos+5, dens_key.size());
+    mass_dens_key = Keys::readKey(plist, domain, "mass density "+dens_type, mass_dens_key);
   } else if (mass_pos != std::string::npos) {
     mass_dens_key = dens_key;
     molar_dens_key = dens_key.substr(0,mass_pos)+"molar"+dens_key.substr(mass_pos+4, dens_key.size());
-    molar_dens_key = Keys::readKey(plist_, domain, "molar density "+dens_type, molar_dens_key);
+    molar_dens_key = Keys::readKey(plist, domain, "molar density "+dens_type, molar_dens_key);
   } else {
     Errors::Message msg("requireDensityEvaluator: string 'molar' or 'mass' not found in density key.");
     Exceptions::amanzi_throw(msg);
