@@ -116,12 +116,6 @@ void EnergyBase::SetupPhysicalEvaluators_()
   S_->Require<CompositeVector,CompositeVectorSpace>(conductivity_key_, tag_next_).SetMesh(mesh_)
     ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(conductivity_key_, tag_next_);
-
-  // density
-  auto molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
 }
 
 // -------------------------------------------------------------
