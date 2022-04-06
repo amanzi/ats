@@ -125,7 +125,7 @@ void OverlandPressureFlow::Setup()
   // S_->RequireEvaluator(conserved_key_, tag_current_);
 
   // densities required to convert molar flux to velocity
-  requireDensities(molar_dens_key_, tag_next_, *S_);
+  requireDensityEvaluator(molar_dens_key_, tag_next_, *S_);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();

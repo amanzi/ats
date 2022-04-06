@@ -10,6 +10,8 @@ list(APPEND subdirs energy enthalpy internal_energy source_terms thermal_conduct
 set(ats_energy_relations_src_files "")
 set(ats_energy_relations_inc_files "")
 
+include_directories(${ATS_SOURCE_DIR}/src/pks/)
+
 foreach(lcv IN LISTS subdirs)
   include_directories(${ATS_SOURCE_DIR}/src/pks/energy/constitutive_relations/${lcv})
   
@@ -36,6 +38,7 @@ set(ats_energy_relations_link_libs
   whetstone
   solvers
   state
+  ats_pks
   )
 
 # make the library

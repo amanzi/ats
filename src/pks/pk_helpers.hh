@@ -22,10 +22,10 @@ namespace Amanzi {
 
 // -----------------------------------------------------------------------------
 // Propagates density metadata to State when EOS basis is 'both' and the
-// alternate density is undefined. Require density and evaluator if needed.
+// alternate density is undefined. Require density (on cells only) and evaluator.
 // -----------------------------------------------------------------------------
 void
-setDensities(const Key& molar_dens_key, const Tag& tag, State& S);
+requireDensityEvaluator(const Key& dens_key, const Tag& tag, State& S, Key other_dens_key=Key());
 
 
 // -----------------------------------------------------------------------------

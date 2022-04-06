@@ -466,10 +466,9 @@ void Richards::SetupPhysicalEvaluators_()
   AMANZI_ASSERT(wrm_eval != nullptr);
   wrms_ = wrm_eval->get_WRMs();
 
-  // require molar density for converting flux to velocity
-  requireDensities(molar_dens_key_, tag_next_, *S_);
-  // require mass density for gravity term
-  requireDensities(mass_dens_key_, tag_next_, *S_);
+  // require molar density for converting flux to velocity, and mass density
+  // for the gravity term.  Note one call does both.
+  requireDensityEvaluator(molar_dens_key_, tag_next_, *S_, mass_dens_key_);
 }
 
 

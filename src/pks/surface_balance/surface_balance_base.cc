@@ -24,7 +24,7 @@ SurfaceBalanceBase::SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
 {
   // source terms
   eps_ = plist_->get<double>("source term finite difference epsilon", 1.e-8);
-  is_source_ = plist_->get<bool>("source term", false);
+  is_source_ = plist_->get<bool>("source term", true);
   if (is_source_ && source_key_.empty()) {
     source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
   }

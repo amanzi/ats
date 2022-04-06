@@ -63,6 +63,8 @@ class LiquidGasEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   Teuchos::RCP<LiquidGasEnergyModel> get_model() { return model_; }
 
+  void EnsureEvaluators(State& S) override;
+
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,

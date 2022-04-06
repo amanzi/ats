@@ -6,6 +6,7 @@ Energy evaulator for ice+liquid surface water.
 
 #include "surface_ice_energy_evaluator.hh"
 #include "surface_ice_energy_model.hh"
+#include "pk_helpers.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -65,6 +66,16 @@ SurfaceIceEnergyEvaluator::InitializeFromPlist_()
   // dependency: cell_volume
   cv_key_ = Keys::readKey(plist_, domain_name, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{cv_key_, tag});
+}
+
+
+void
+SurfaceIceEnergyEvaluator::EnsureEvaluators(State& S)
+{
+  Tag tag = my_keys_.front().second;
+  requireDensityEvaluator(nl_key_, tag, S);
+  requireDensityEvaluator(ni_key_, tag, S);
+  EvaluatorSecondaryMonotypeCV::EnsureEvaluators(S);
 }
 
 

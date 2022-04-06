@@ -6,6 +6,7 @@ Energy for a two-phase, liquid+water vapor evaluator.
 
 #include "liquid_gas_energy_evaluator.hh"
 #include "liquid_gas_energy_model.hh"
+#include "pk_helpers.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -84,6 +85,15 @@ LiquidGasEnergyEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{cv_key_, tag});
 }
 
+
+void
+LiquidGasEnergyEvaluator::EnsureEvaluators(State& S)
+{
+  Tag tag = my_keys_.front().second;
+  requireDensityEvaluator(nl_key_, tag, S);
+  requireDensityEvaluator(ng_key_, tag, S);
+  EvaluatorSecondaryMonotypeCV::EnsureEvaluators(S);
+}
 
 void
 LiquidGasEnergyEvaluator::Evaluate_(const State& S,

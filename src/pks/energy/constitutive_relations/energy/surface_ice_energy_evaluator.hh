@@ -52,6 +52,8 @@ class SurfaceIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   Teuchos::RCP<SurfaceIceEnergyModel> get_model() { return model_; }
 
+  void EnsureEvaluators(State& S) override;
+
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,

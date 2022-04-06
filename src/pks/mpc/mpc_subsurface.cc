@@ -84,7 +84,7 @@ void MPCSubsurface::Setup()
   db_ = sub_pks_[0]->debugger();
 
   // density required in gravity term
-  requireDensities(rho_key_, tag_next_, *S_);
+  requireDensityEvaluator(rho_key_, tag_next_, *S_);
 
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
       tag_next_, pres_key_, tag_next_, e_key_);
