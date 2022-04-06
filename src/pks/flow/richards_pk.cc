@@ -466,11 +466,10 @@ void Richards::SetupPhysicalEvaluators_()
   AMANZI_ASSERT(wrm_eval != nullptr);
   wrms_ = wrm_eval->get_WRMs();
 
-  auto molar_dens_key = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-  setDensities(molar_dens_key, tag_next_, *S_);
-  molar_dens_key = Keys::readKey(*plist_, domain_, "molar density ice", "molar_density_ice");
-  setDensities(molar_dens_key, tag_next_, *S_);
-
+  // require molar density for converting flux to velocity
+  requireDensities(molar_dens_key_, tag_next_, *S_);
+  // require mass density for gravity term
+  requireDensities(mass_dens_key_, tag_next_, *S_);
 }
 
 
