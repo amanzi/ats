@@ -9,11 +9,11 @@ A DomainSet coupler, couples a bunch of domains of the same structure.
 
 ------------------------------------------------------------------------- */
 
-#include "DomainSetMPC.hh"
+#include "mpc_domain_set.hh"
 
 namespace Amanzi {
 
-DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
+MPCDomainSet::MPCDomainSet(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& solution)
@@ -26,7 +26,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   auto subpks = this->plist_->template get<Teuchos::Array<std::string> >("PKs order");
   if (subpks.size() != 1) {
     Errors::Message msg;
-    msg << "DomainSetMPC: \"" << name()
+    msg << "MPCDomainSet: \"" << name()
         << "\" expected exactly one entry in PKs order and it must be a domain set.";
     Exceptions::amanzi_throw(msg);
   }
@@ -39,7 +39,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
   ds_name_ = std::get<0>(triple);
   if (!is_ds || !S->HasDomainSet(ds_name_)) {
     Errors::Message msg;
-    msg << "DomainSetMPC: \"" << ds_name_ << "\" should be a domain-set of the form DOMAIN_*-PK_NAME";
+    msg << "MPCDomainSet: \"" << ds_name_ << "\" should be a domain-set of the form DOMAIN_*-PK_NAME";
     Exceptions::amanzi_throw(msg);
   }
 
@@ -65,7 +65,7 @@ DomainSetMPC::DomainSetMPC(Teuchos::ParameterList& pk_tree,
 
 
 // must communicate dts since columns are serial
-double DomainSetMPC::get_dt()
+double MPCDomainSet::get_dt()
 {
   double dt = 1.0e99;
   if (subcycled_) {
@@ -84,7 +84,7 @@ double DomainSetMPC::get_dt()
 // -----------------------------------------------------------------------------
 // Set timestep for sub PKs
 // -----------------------------------------------------------------------------
-void DomainSetMPC::set_dt(double dt)
+void MPCDomainSet::set_dt(double dt)
 {
   if (subcycled_) {
     cycle_dt_ = dt;
@@ -99,7 +99,7 @@ void DomainSetMPC::set_dt(double dt)
 // -----------------------------------------------------------------------------
 // Set tags for this and for subcycling
 // -----------------------------------------------------------------------------
-void DomainSetMPC::set_tags(const Tag& current, const Tag& next)
+void MPCDomainSet::set_tags(const Tag& current, const Tag& next)
 {
   if (subcycled_) {
     PK::set_tags(current, next);
@@ -120,7 +120,7 @@ void DomainSetMPC::set_tags(const Tag& current, const Tag& next)
 // Advance the timestep
 //-------------------------------------------------------------------------------------
 bool
-DomainSetMPC::AdvanceStep(double t_old, double t_new, bool reinit)
+MPCDomainSet::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   if (subcycled_) return AdvanceStep_Subcycled_(t_old, t_new, reinit);
   else return AdvanceStep_Standard_(t_old, t_new, reinit);
@@ -131,7 +131,7 @@ DomainSetMPC::AdvanceStep(double t_old, double t_new, bool reinit)
 // Advance the timestep in the standard MPC way, but make sure to communicate failure
 //-------------------------------------------------------------------------------------
 bool
-DomainSetMPC::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
+MPCDomainSet::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
 {
   int nfailed = 0;
   for (const auto& pk : sub_pks_) {
@@ -152,7 +152,7 @@ DomainSetMPC::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
 // Advance the timestep through subcyling
 //-------------------------------------------------------------------------------------
 bool
-DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
+MPCDomainSet::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   bool fail = false;
@@ -222,7 +222,7 @@ DomainSetMPC::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
 
 
 bool
-DomainSetMPC::ValidStep()
+MPCDomainSet::ValidStep()
 {
   if (subcycled_) return true; // this was already checked in advance
   else {
@@ -235,7 +235,7 @@ DomainSetMPC::ValidStep()
 
 
 void
-DomainSetMPC::CommitStep(double t_old, double t_new, const Tag& tag)
+MPCDomainSet::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   // In the case of subcycling, the sub-PKs would call Commit a second time --
   // it was already called when the inner step was successful and commited.

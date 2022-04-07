@@ -135,11 +135,12 @@ void Coordinator::setup()
           Amanzi::Tags::DEFAULT, "coordinator");
 
   // needed other times
-  S_->Require<double>("time", Amanzi::Tags::CURRENT, "time");
-  S_->Require<double>("time", Amanzi::Tags::NEXT, "time");
+  S_->require_time(Amanzi::Tags::CURRENT);
+  S_->require_time(Amanzi::Tags::NEXT);
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
+  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
@@ -621,7 +622,7 @@ void Coordinator::cycle_driver() {
 #if !DEBUG_MODE
   } catch (Amanzi::Exceptions::Amanzi_exception &e) {
     // write one more vis for help debugging
-    S_->GetW<int>("cycle", "cycle")++;
+    S_->advance_cycle(Amanzi::Tags::NEXT);
     visualize(true); // force vis
 
     // flush observations to make sure they are saved

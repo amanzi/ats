@@ -13,6 +13,18 @@
 
 namespace Amanzi {
 
+bool
+aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
+{
+  if (S.HasEvaluator(key, target) && !S.HasEvaluator(key, alias)) {
+    S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
+    S.GetRecordSetW(key).AliasRecord(target, alias);
+    return true;
+  }
+  return false;
+}
+
+
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector.
 // -----------------------------------------------------------------------------

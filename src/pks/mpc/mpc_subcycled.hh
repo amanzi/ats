@@ -8,15 +8,15 @@
 */
 
 /*
-  MPC for subcycling one PK relative to another.
+  Weakly coupled N PKs, potentially subcycling any of them.
 
-  * `"subcycling`" ``[bool]`` **True** Whether to subcycle or not.
-  * `"subcycled PK index`" ``[int]`` **1** Index, in the PK list, of the
-    subcyled PK.
+  * `"subcycle`" ``[Array(bool)]`` Array of the same length as sub_pks.
   * `"minimum subcycled relative dt`" ``[double]`` **1.e-5** Sets the minimum
-    time step size of the subcycled PK, as a multiple of the standard PK's
-    timestep size.
-    
+    time step size of the subcycled PKs, as a multiple of the minimum of the
+    non-subcycled PKs' timestep sizes.
+
+  INCLUDES:
+  - ``[mpc-spec]``
 
 */
 
@@ -38,22 +38,22 @@ public:
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt();
-  virtual void set_dt(double dt);
+  virtual double get_dt() override;
+  virtual void set_dt(double dt) override;
+  virtual void set_tags(const Tag& current, const Tag& next) override;
+
+  virtual void Setup() override;
+  virtual void Initialize() override;
 
   // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
+  // virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-  int standard_;
-  int subcycled_;
-  double standard_dt_;
-  double subcycled_dt_;
-  double min_dt_;
-  bool subcycling_;
-
-  // states
-  Teuchos::RCP<State> S_;
+  Teuchos::Array<int> subcycling_;
+  double dt_, min_dt_;
+  std::vector<double> dts_;
+  std::vector<std::pair<Tag,Tag>> tags_;
 
  private:
   // factory registration

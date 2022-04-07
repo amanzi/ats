@@ -5,13 +5,13 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 
-DomainSetMPC registrations.
+MPCDomainSet registrations.
 ------------------------------------------------------------------------- */
 
-#include "DomainSetMPC.hh"
+#include "mpc_domain_set.hh"
 
 namespace Amanzi {
 
-RegisteredPKFactory<DomainSetMPC> DomainSetMPC::reg_("domain set weak MPC");
+RegisteredPKFactory<MPCDomainSet> MPCDomainSet::reg_("domain set weak MPC");
 
 } // namespace

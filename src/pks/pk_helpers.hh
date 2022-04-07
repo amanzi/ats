@@ -20,6 +20,8 @@
 
 namespace Amanzi {
 
+bool
+aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
 
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector's boundary_face

@@ -31,25 +31,28 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations)
 
 set(ats_mpc_src_files
   weak_mpc.cc
-  DomainSetMPC.cc
+  mpc_domain_set.cc
+  mpc_subcycled.cc
   # operator_split_mpc.cc
-  mpc_coupled_cells.cc
   mpc_surface_subsurface_helpers.cc
-  # mpc_weak_subgrid.cc
-  # mpc_weak_domain_decomposition.cc
+  mpc_coupled_cells.cc
   mpc_delegate_ewc.cc
   mpc_delegate_ewc_subsurface.cc
+  mpc_subsurface.cc
   mpc_delegate_ewc_surface.cc
+  mpc_surface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
+  mpc_permafrost.cc
+
+  mpc_coupled_transport.cc
+
+  # mpc_weak_subgrid.cc
+  # mpc_weak_domain_decomposition.cc
   # mpc_coupled_water_split_flux.cc
   # mpc_reactivetransport.cc
   # mpc_coupled_reactivetransport.cc
-  mpc_coupled_transport.cc
   # mpc_permafrost_split_flux.cc
-  mpc_subsurface.cc
-  mpc_surface.cc
-  mpc_permafrost.cc
   # mpc_morphology_pk.cc
   # biomass_evaluator.cc
   )
@@ -58,26 +61,29 @@ set(ats_mpc_inc_files
   mpc.hh
   weak_mpc.hh
   strong_mpc.hh
-  DomainSetMPC.hh
+  mpc_domain_set.hh
+  mpc_subcycled.hh
   # operator_split_mpc.hh
-  mpc_coupled_cells.hh
   mpc_surface_subsurface_helpers.hh
-  # mpc_weak_subgrid.hh
-  # mpc_weak_domain_decomposition.hh
+  mpc_coupled_cells.hh
   mpc_delegate_ewc.hh
-  # mpc_reactivetransport_pk.hh
-  # mpc_coupled_reactive_transport_pk.hh
   mpc_delegate_ewc_subsurface.hh
+  mpc_subsurface.hh
   mpc_delegate_ewc_surface.hh
+  mpc_surface.hh
   mpc_delegate_water.hh
   mpc_coupled_water.hh
-  # mpc_predictor_corrector.hh
+  mpc_permafrost.hh
+
   mpc_coupled_transport.hh
+
+  # mpc_weak_subgrid.hh
+  # mpc_weak_domain_decomposition.hh
+  # mpc_reactivetransport_pk.hh
+  # mpc_coupled_reactive_transport_pk.hh
+  # mpc_predictor_corrector.hh
   # mpc_coupled_water_split_flux.hh
   # mpc_permafrost_split_flux.hh
-  mpc_subsurface.hh
-  mpc_surface.hh
-  mpc_permafrost.hh
   # biomass_evaluator.hh
   # mpc_weak_domain_decomposition.hh
   )
@@ -124,7 +130,12 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
-  HEADERFILE DomainSetMPC_reg.hh
+  HEADERFILE mpc_domain_set_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
+
+register_evaluator_with_factory(
+  HEADERFILE mpc_subcycled_reg.hh
   LISTNAME   ATS_MPC_REG
   )
 
@@ -189,9 +200,9 @@ register_evaluator_with_factory(
 #   )
 
 register_evaluator_with_factory(
-    HEADERFILE mpc_coupled_transport_reg.hh
-    LISTNAME   ATS_MPC_REG
-   )
+  HEADERFILE mpc_coupled_transport_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 # register_evaluator_with_factory(
 #   HEADERFILE mpc_weak_subgrid_reg.hh

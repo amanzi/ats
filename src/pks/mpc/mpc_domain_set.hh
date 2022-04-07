@@ -44,9 +44,9 @@ one fails, all take a smaller timestep) and subcycled timestepping.
 
 namespace Amanzi {
 
-class DomainSetMPC : public MPC<PK> {
+class MPCDomainSet : public MPC<PK> {
  public:
-  DomainSetMPC(Teuchos::ParameterList& pk_tree,
+  MPCDomainSet(Teuchos::ParameterList& pk_tree,
                const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& solution);
@@ -74,7 +74,7 @@ class DomainSetMPC : public MPC<PK> {
 
  private:
   // factory registration
-  static RegisteredPKFactory<DomainSetMPC> reg_;
+  static RegisteredPKFactory<MPCDomainSet> reg_;
 };
 
 } // namspace

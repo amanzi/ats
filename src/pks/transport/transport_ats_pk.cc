@@ -71,13 +71,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   // are we subcycling internally?
   subcycling_ = plist_->get<bool>("transport subcycling", false);
-  if (subcycling_) {
-    tag_subcycle_current_ = Tag{name()+"_subcycling_current"};
-    tag_subcycle_next_ = Tag{name()+"_subcycling_next"};
-  } else {
-    tag_subcycle_current_ = tag_current_;
-    tag_subcycle_next_ = tag_next_;
-  }
   tag_flux_next_ts_ = Tag{name()+"_flux_next_ts"}; // what is this for? --ETC
 
   // initialize io
@@ -106,6 +99,18 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   dim = mesh_->space_dimension();
 
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
+}
+
+void Transport_ATS::set_tags(const Tag& current, const Tag& next)
+{
+  PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
+  if (subcycling_) {
+    tag_subcycle_current_ = Tag{name()+"_inner_subcycling_current"};
+    tag_subcycle_next_ = Tag{name()+"_inner_subcycling_next"};
+  } else {
+    tag_subcycle_current_ = tag_current_;
+    tag_subcycle_next_ = tag_next_;
+  }
 }
 
 
@@ -199,18 +204,30 @@ void Transport_ATS::Setup()
     S_->RequireEvaluator(permeability_key_, tag_next_);
   }
 
+  // HACK ALERT -- FIXME --ETC
+  //
+  // This PK is liberally sprinkled with hard-coded Tags::NEXT and
+  // Tags::CURRENT, forcing all things provided by FLOW to be provided at that
+  // tag and not at tag_current and tag_next as it should be.  This is because
+  // we don't have a good way of aliasing everything we need yet.  In
+  // particular, aliases needed to be introduced between Setup() on flow and
+  // Setup() on transport, and this was not possible when the quantity of
+  // interest (porosity)'s evaluator was not required directly (only
+  // indirectly) in flow PK.
+  //
+  // This will need to be fixed in amanzi/amanzi#646 somehow....? --ETC
   // -- water flux
-  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT)
     .SetMesh(mesh_)->SetGhosted(true)->SetComponent("face", AmanziMesh::FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
-  S_->RequireEvaluator(flux_key_, tag_next_);
+  S_->RequireEvaluator(flux_key_, Tags::NEXT);
 
   // -- water saturation
-  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_next_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(saturation_key_, tag_next_);
+  S_->RequireEvaluator(saturation_key_, Tags::NEXT);
   // Require a copy of saturation at the old time tag
-  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_current_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::CURRENT);
   // S_->RequireEvaluator(saturation_key_, tag_current_); // for the future...
   if (subcycling_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_subcycle_current_, name_);
@@ -219,15 +236,15 @@ void Transport_ATS::Setup()
     // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
   }
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, tag_next_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, Tags::NEXT)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(porosity_key_, tag_next_);
+  S_->RequireEvaluator(porosity_key_, Tags::NEXT);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, tag_next_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::NEXT)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(molar_density_key_, tag_next_);
+  S_->RequireEvaluator(molar_density_key_, Tags::NEXT);
   // Require a copy of molar_density at the old time tag
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, tag_current_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::CURRENT);
   // S_->RequireEvaluator(molar_density_key_, tag_current_); // for the future...
   if (subcycling_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, tag_subcycle_current_, name_);
@@ -239,9 +256,9 @@ void Transport_ATS::Setup()
 
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, tag_next_)
+    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT)
       .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(water_src_key_, tag_next_);
+    S_->RequireEvaluator(water_src_key_, Tags::NEXT);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
 
@@ -270,6 +287,13 @@ void Transport_ATS::Setup()
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
 
+  // alias to next for subcycled cases -- revisit this in state subcycling revision --ETC
+  if (tag_next_ != Tags::NEXT) {
+    aliasVector(*S_, tcc_key_, tag_next_, Tags::NEXT);
+    aliasVector(*S_, conserve_qty_key_, tag_next_, Tags::NEXT);
+    aliasVector(*S_, tcc_matrix_key_, tag_next_, Tags::NEXT);
+    aliasVector(*S_, solid_residue_mass_key_, tag_next_, Tags::NEXT);
+  }
 }
 
 
@@ -300,26 +324,30 @@ void Transport_ATS::Initialize()
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, name_);
   *tcc_tmp = *tcc;
 
-  ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, tag_current_).ViewComponent("cell", false);
-  ws_subcycle_current = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_current_, name_)
-    .ViewComponent("cell");
-  ws_subcycle_next = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_next_, name_)
-    .ViewComponent("cell");
+  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
+  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
 
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
-  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, tag_current_).ViewComponent("cell", false);
-  mol_dens_subcycle_current = S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_current_, name_)
-    .ViewComponent("cell");
-  mol_dens_subcycle_next = S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_next_, name_)
-    .ViewComponent("cell");
+  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
+  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
-  flux_ = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  if (subcycling_) {
+    ws_subcycle_current = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_current_, name_)
+      .ViewComponent("cell");
+    ws_subcycle_next = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_next_, name_)
+      .ViewComponent("cell");
+
+    mol_dens_subcycle_current = S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_current_, name_)
+      .ViewComponent("cell");
+    mol_dens_subcycle_next = S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_next_, name_)
+      .ViewComponent("cell");
+  }
+
+  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
   flux_copy_ = S_->GetW<CompositeVector>(flux_key_, tag_flux_next_ts_, name_)
     .ViewComponent("face", true);
   flux_copy_->PutScalar(0.);
 
-  phi_ = S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
+  phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
   conserve_qty_ = S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
 
@@ -607,8 +635,8 @@ void Transport_ATS::InitializeFieldFromField_(
 * ***************************************************************** */
 double Transport_ATS::StableTimeStep()
 {
-  S_->Get<CompositeVector>(flux_key_, tag_next_).ScatterMasterToGhosted("face");
-  flux_ = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
+  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
 
   Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->cell_map(false)));
   IdentifyUpwindCells();
@@ -729,18 +757,18 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt_MPC << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  S_->GetEvaluator(flux_key_, tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
 
   // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
-  flux_ = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
   // why are we copying this?  This should result in constant flux, no need to copy? --ETC
   *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
 
-  S_->GetEvaluator(saturation_key_, tag_next_).Update(*S_, name_);
-  ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
+  S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
+  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
 
-  S_->GetEvaluator(molar_density_key_, tag_next_).Update(*S_, name_);
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
+  S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
+  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
 
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
@@ -815,7 +843,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     mol_dens_next = mol_dens_;
   }
 
-  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, tag_current_).ptr());
+  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, Tags::CURRENT).ptr());
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
@@ -1116,15 +1144,17 @@ void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
 
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
+  if (tag == Tags::NEXT) {
+    S_->Assign(saturation_key_, Tags::CURRENT, Tags::NEXT);
+    S_->Assign(molar_density_key_, Tags::CURRENT, Tags::NEXT);
+  }
 
-  S_->Assign(saturation_key_, tag_current_, tag_next_);
-  S_->Assign(molar_density_key_, tag_current_, tag_next_);
-
-  S_->Assign(tcc_key_, tag_current_, tag_next_);
-  // ChangedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
+  if (tag == tag_next_) {
+    AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
+    AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
+    S_->Assign(tcc_key_, tag_current_, tag_next_);
+    // ChangedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
+  }
 }
 
 

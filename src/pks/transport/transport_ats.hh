@@ -316,6 +316,7 @@ public:
 
   virtual double get_dt() override;
   virtual void set_dt(double dt) override {};
+  virtual void set_tags(const Tag& current, const Tag& next) override;
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit=false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;

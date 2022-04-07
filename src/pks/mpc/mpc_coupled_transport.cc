@@ -73,8 +73,10 @@ void MPCCoupledTransport::SetupCouplingConditions_()
     regs[0] = "surface";
     bc_coupling.set<Teuchos::Array<std::string> >("regions", regs);
     Teuchos::ParameterList& tmp = bc_coupling.sublist("fields");
-    tmp.set<std::string>("conserved_quantity_key", surf_tcq_key);
-    tmp.set<std::string>("field_out_key", surf_tcc_key);
+    tmp.set<std::string>("conserved quantity key", surf_tcq_key);
+    tmp.set<std::string>("conserved quantity copy key", tag_next_.get());
+    tmp.set<std::string>("external field key", surf_tcc_key);
+    tmp.set<std::string>("external field copy key", tag_next_.get());
   }
 
   if (!src_list.isSublist("surface coupling")){
@@ -85,12 +87,13 @@ void MPCCoupledTransport::SetupCouplingConditions_()
     //regs[0] = surface_name_;
     src_coupling.set<Teuchos::Array<std::string> >("regions", regs);
     Teuchos::ParameterList& tmp = src_coupling.sublist("fields");
-    tmp.set<std::string>("flux_key", ss_flux_key);
-    tmp.set<std::string>("copy_flux_key", "next_timestep");
-    tmp.set<std::string>("field_in_key", surf_tcc_key);
-    tmp.set<std::string>("field_out_key", ss_tcc_key);
-    tmp.set<std::string>("copy_field_out_key", tag_next_.get());
-    tmp.set<std::string>("copy_field_in_key", tag_next_.get());
+    tmp.set<std::string>("flux key", ss_flux_key);
+    // NOTE: FIXME --ETC amanzi/amanzi#646
+    tmp.set<std::string>("flux copy key", Tags::NEXT.get());
+    tmp.set<std::string>("conserved quantity key", surf_tcc_key);
+    tmp.set<std::string>("conserved quantity copy key", tag_next_.get());
+    tmp.set<std::string>("external field key", ss_tcc_key);
+    tmp.set<std::string>("external field copy key", tag_next_.get());
   }
 }
 
