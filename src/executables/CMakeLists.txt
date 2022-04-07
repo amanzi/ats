@@ -177,3 +177,29 @@ add_amanzi_executable(ats
   OUTPUT_NAME ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
+
+
+
+## Temporary build method for ELM->ATS coupling
+set(ELM_ats_src_file
+  ELM_ATS_driver.cc
+  )
+
+set(ELM_ats_inc_file
+  ELM_ATS_driver.hh
+  )
+
+add_amanzi_library(ELM_ats_executable
+  SOURCE ${ats_src_files} ${ELM_ats_src_file}
+  HEADERS ${ats_inc_files} ${ELM_ats_inc_file}
+  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
+if (APPLE AND BUILD_SHARED_LIBS)
+  set_target_properties(ELM_ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+endif()
+
+add_amanzi_executable(ELM_ats
+  SOURCE main.cc
+  LINK_LIBS ELM_ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
+  OUTPUT_NAME ELM_ats
+  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
+
