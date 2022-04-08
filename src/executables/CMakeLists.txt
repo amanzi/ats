@@ -138,68 +138,72 @@ set(tpl_link_libs
   ${CLM_LIBRARIES}
   )
 
-add_amanzi_library(ats_executable
-  SOURCE ${ats_src_files}
-  HEADERS ${ats_inc_files}
-  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
-if (APPLE AND BUILD_SHARED_LIBS)
-  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
-endif()			  
-
-if (BUILD_TESTS)
-  # Add UnitTest includes
-  include_directories(${UnitTest_INCLUDE_DIRS})
-  include_directories(${EXECUTABLE_SOURCE_DIR})
-
-  # Copy test subdirectory for out of source builds
-  if (NOT ("${EXECUTABLE_SOURCE_DIR}" STREQUAL "${EXECUTABLE_BINARY_DIR}"))
-    file(GLOB DataFiles "${EXECUTABLE_SOURCE_DIR}/test/*.xml"
-      "${EXECUTABLE_SOURCE_DIR}/test/*.exo"
-      "${EXECUTABLE_SOURCE_DIR}/test/*.h5"
-      "${EXECUTABLE_SOURCE_DIR}/test/*.bin")
-    file(COPY ${DataFiles} DESTINATION ${EXECUTABLE_BINARY_DIR}/test/)
-  endif()
-
-  add_amanzi_test(executable_mesh_factory executable_mesh_factory
-           KIND int
-           SOURCE test/Main.cc test/executable_mesh_factory.cc
-           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
-
-  add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
-  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
-
-
-endif()
-
-add_amanzi_executable(ats
-  SOURCE main.cc
-  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs} 
-  OUTPUT_NAME ats
-  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
-
-
+#add_amanzi_library(ats_executable
+#  SOURCE ${ats_src_files}
+#  HEADERS ${ats_inc_files}
+#  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
+#if (APPLE AND BUILD_SHARED_LIBS)
+#  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+#endif()
+#
+#if (BUILD_TESTS)
+#  # Add UnitTest includes
+#  include_directories(${UnitTest_INCLUDE_DIRS})
+#  include_directories(${EXECUTABLE_SOURCE_DIR})
+#
+#  # Copy test subdirectory for out of source builds
+#  if (NOT ("${EXECUTABLE_SOURCE_DIR}" STREQUAL "${EXECUTABLE_BINARY_DIR}"))
+#    file(GLOB DataFiles "${EXECUTABLE_SOURCE_DIR}/test/*.xml"
+#      "${EXECUTABLE_SOURCE_DIR}/test/*.exo"
+#      "${EXECUTABLE_SOURCE_DIR}/test/*.h5"
+#      "${EXECUTABLE_SOURCE_DIR}/test/*.bin")
+#    file(COPY ${DataFiles} DESTINATION ${EXECUTABLE_BINARY_DIR}/test/)
+#  endif()
+#
+#  add_amanzi_test(executable_mesh_factory executable_mesh_factory
+#           KIND int
+#           SOURCE test/Main.cc test/executable_mesh_factory.cc
+#           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+#
+#  add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
+#  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
+#
+#
+#endif()
+#
+#add_amanzi_executable(ats
+#  SOURCE main.cc
+#  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
+#  OUTPUT_NAME ats
+#  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
 
 ## Temporary build method for ELM->ATS coupling
-set(ELM_ats_src_file
-  ELM_ATS_driver.cc
+set(elm_ats_src_files
+  coordinator.cc
+  ats_mesh_factory.cc
+  elm_ats_coordinator.cc
+  elm_ats_driver.cc
   )
 
-set(ELM_ats_inc_file
-  ELM_ATS_driver.hh
+set(elm_ats_inc_files
+  coordinator.hh
+  ats_mesh_factory.hh
+  elm_ats_coordinator.hh
+  elm_ats_driver.hh
   )
 
-add_amanzi_library(ELM_ats_executable
-  SOURCE ${ats_src_files} ${ELM_ats_src_file}
-  HEADERS ${ats_inc_files} ${ELM_ats_inc_file}
-  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
+add_amanzi_library(elm_ats_executable
+  SOURCE ${elm_ats_src_files}
+  HEADERS ${elm_ats_inc_files}
+  LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
 if (APPLE AND BUILD_SHARED_LIBS)
-  set_target_properties(ELM_ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  set_target_properties(elm_ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 endif()
 
-add_amanzi_executable(ELM_ats
-  SOURCE main.cc
-  LINK_LIBS ELM_ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
-  OUTPUT_NAME ELM_ats
+add_amanzi_executable(elm_ats
+  SOURCE elm_ats_main.cc
+  LINK_LIBS elm_ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
+  OUTPUT_NAME elm_ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
