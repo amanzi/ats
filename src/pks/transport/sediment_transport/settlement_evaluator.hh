@@ -23,7 +23,6 @@ class SettlementRateEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   SettlementRateEvaluator(Teuchos::ParameterList& plist);
-
   SettlementRateEvaluator(const SettlementRateEvaluator& other);
   virtual Teuchos::RCP<Evaluator> Clone() const;
   
@@ -37,11 +36,10 @@ class SettlementRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 protected:
 
     // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-                                               Key wrt_key,
-                                               const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
   double tau_d_;
   double ws_;

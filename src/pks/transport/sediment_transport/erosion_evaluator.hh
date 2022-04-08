@@ -21,27 +21,25 @@ namespace Amanzi {
 class ErosionRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  ErosionRateEvaluator(Teuchos::ParameterList& plist);
-
+  explicit ErosionRateEvaluator(Teuchos::ParameterList& plist);
   ErosionRateEvaluator(const ErosionRateEvaluator& other);
-  virtual Teuchos::RCP<Evaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
   
   // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
   //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
-
   // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-
-  //virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S){};
+  // virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S){};
 
 protected:
 
     // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-                              const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-                                               Key wrt_key,
-                                               const Teuchos::Ptr<CompositeVector>& result);
+
+  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
   double tau_e_;
   double Qe_0_;

@@ -15,7 +15,8 @@ namespace Amanzi {
 OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList& plist) :
   EvaluatorSecondaryMonotypeCV(plist) {
 
-  Key domain_name = "surface";
+  Tag tag = my_keys_.front().second;
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
   
   biomass_key_ = plist_.get<std::string>("biomass key", Keys::getKey(domain_name,"biomass"));
 
@@ -23,7 +24,7 @@ OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList&
   Q_db0_ = plist_.get<double>("empirical coefficient");
  
    
-  dependencies_.insert(biomass_key_);
+  dependencies_.insert(KeyTag{biomass_key_, tag});
     
 }
 
@@ -43,11 +44,13 @@ Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator ::Clone() const {
 }
 
 
-void OrganicMatterRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+void OrganicMatterRateEvaluator::Evaluate_(const State& S,
+                                           const std::vector<CompositeVector*>& result){
 
-  const Epetra_MultiVector& bio = *S->Get<CompositeVector>(biomass_key_).ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result->ViewComponent("cell");
+  Tag tag = my_keys_.front().second;
+  
+  const Epetra_MultiVector& bio = *S.GetPtr<CompositeVector>(biomass_key_, tag)->ViewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
 
   result_c.PutScalar(0.);
   
@@ -61,9 +64,10 @@ void OrganicMatterRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 }
 
-void OrganicMatterRateEvaluator::EvaluateFieldPartialDerivative_ (const Teuchos::Ptr<State>& S,
-                                                            Key wrt_key,
-                                                            const Teuchos::Ptr<CompositeVector>& result) {
+void OrganicMatterRateEvaluator::EvaluatePartialDerivative_(const State& S,
+                                                            const Key& wrt_key, const Tag& wrt_tag,
+                                                            const std::vector<CompositeVector*>& result){
+                                 
    AMANZI_ASSERT(0); 
 }
   

@@ -44,7 +44,7 @@ class CompressiblePorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   Teuchos::RCP<CompressiblePorosityModelPartition> get_Models() { return models_; }
 
- protected:
+protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;

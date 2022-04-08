@@ -685,7 +685,7 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
   
   if (S_->HasEvaluator(molar_density_key_, tag_next_)){
-    S_->GetEvaluator(molar_density_key_, tag_next_)->Update(*S_, molar_density_key_);
+    S_->GetEvaluator(molar_density_key_, tag_next_).Update(*S_, molar_density_key_);
   }
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
 
@@ -698,11 +698,12 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // calculate stable time step    
   double dt_shift = 0.0, dt_global = dt_MPC;
-  double time = S_->get_time(tag_inter_);
+  double time = t_old;
   if (time >= 0.0) { 
     t_physics_ = time;
-    dt_shift = time - S_->get_time(tag_inter_);
-    dt_global = S_->get_time(tag_next_) - S_->time();    
+    dt_shift = time - S_->get_time(tag_current_);
+    dt_global = S_->get_time(tag_next_) - S_->get_time(tag_current_);
+    AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
   StableTimeStep();
@@ -710,11 +711,9 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   
   int interpolate_ws = 0;  // (dt_ < dt_global) ? 1 : 0;
 
-  //if ((dt_shift >1e-12) || (dt_stable < dt_global)) interpolate_ws = 1;
-
   interpolate_ws = (dt_ < dt_global) ? 1 : 0;
 
-    // start subcycling
+  // start subcycling
   double dt_sum = 0.0;
   double dt_cycle;
   if (interpolate_ws) {        
