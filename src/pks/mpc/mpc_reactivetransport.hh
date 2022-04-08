@@ -12,8 +12,7 @@
 */
 
 
-#ifndef AMANZI_REACTIVETRANSPORT_PK_ATS_HH_
-#define AMANZI_REACTIVETRANSPORT_PK_ATS_HH_
+#pragma once
 
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_TimeMonitor.hpp"
@@ -21,7 +20,7 @@
 #include "PK.hh"
 #include "transport_ats.hh"
 #include "Chemistry_PK.hh"
-#include "PK_MPCAdditive.hh"
+#include "weak_mpc.hh"
 
 namespace Amanzi {
 
@@ -35,13 +34,11 @@ class MPCReactiveTransport : public WeakMPC {
   // PK methods
   // -- dt is the minimum of the sub pks
   virtual double get_dt() override;
-  virtual void set_dt(double dt) override;
 
   // -- standard PK functions
   virtual void Setup() override;
   virtual void Initialize() override;
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
-  virtual void CommitStep(double t_old, double t_new, ) override;
 
   void ConvertConcentrationToAmanzi(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
                                     const Epetra_MultiVector& mol_den,
@@ -58,32 +55,20 @@ class MPCReactiveTransport : public WeakMPC {
                         Teuchos::RCP<Epetra_MultiVector> tcc_copy,
                         double t_old, double t_new, bool reinit = false);
 
-
-  std::string name() { return "reactive transport"; }
-
-
-
-protected:
+ protected:
   virtual void cast_sub_pks_();
 
-protected:
+ protected:
   int transport_pk_index_, chemistry_pk_index_;
-  Teuchos::RCP<Teuchos::ParameterList> rt_pk_list_;
   bool chem_step_succeeded_;
-  bool transport_subcycling_;
-  double dTtran_, dTchem_;
 
   Key domain_;
   Key tcc_key_;
   Key mol_den_key_;
 
-  Teuchos::RCP<Teuchos::Time> chem_timer_;
   Teuchos::RCP<Teuchos::Time> alquimia_timer_;
 
-private:
-
   // storage for the component concentration intermediate values
-  Teuchos::RCP<Epetra_MultiVector> total_component_concentration_stor_;
   Teuchos::RCP<Transport::Transport_ATS> tranport_pk_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_;
 
@@ -92,4 +77,4 @@ private:
 };
 
 }  // namespace Amanzi
-#endif
+

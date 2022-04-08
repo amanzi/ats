@@ -154,17 +154,17 @@ void Transport_ATS::Setup()
     Exceptions::amanzi_throw(msg);
   }
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, name_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordW(tcc_key_, tag_next_, name_).set_subfieldnames(component_names_);
+  S_->GetRecordW(tcc_key_, tag_next_, passwd_).set_subfieldnames(component_names_);
   RequireEvaluatorPrimary(tcc_key_, tag_next_, *S_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_current_, name_);
+  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_current_, passwd_);
   if (subcycling_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_current_, name_);
+    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_current_, passwd_);
     // S_->Require<double>("time", tag_subcycle_current_, name_);
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_next_, name_);
+    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_next_, passwd_);
     // S_->Require<double>("time", tag_subcycle_next_, name_);
   }
 
@@ -320,8 +320,8 @@ void Transport_ATS::Initialize()
   InitializeFields_();
 
   // make this go away -- local pointers to data
-  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, name_);
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, name_);
+  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
   *tcc_tmp = *tcc;
 
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
@@ -529,11 +529,11 @@ void Transport_ATS::Initialize()
       Teuchos::RCP<TransportSourceFunction_Alquimia_Units>
           src = Teuchos::rcp(new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
-      if (S_->HasEvaluator(geochem_src_factor_key_)) {
-        S_->GetEvaluator(geochem_src_factor_key_)->HasFieldChanged(S.ptr(), name_);
+      if (S_->HasEvaluator(geochem_src_factor_key_, tag_next_)) {
+        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
       }
 
-      auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_).ViewComponent("cell",false);
+      auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell",false);
       src->set_conversion(-1000., src_factor, false);
 
       for (const auto& n : src->tcc_names()) {
@@ -641,7 +641,7 @@ double Transport_ATS::StableTimeStep()
   Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->cell_map(false)));
   IdentifyUpwindCells();
 
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, name_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
   // loop over faces and accumulate upwinding fluxes
@@ -781,7 +781,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid
-        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(S_, name_);
+        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
         auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell",false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
@@ -802,7 +802,7 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 #endif
 
   // We use original tcc and make a copy of it later if needed.
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, name_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
