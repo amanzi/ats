@@ -43,6 +43,9 @@ public:
   virtual void initialize();
   virtual bool advance(double dt);
 
+  // for testing
+  double get_end_time() {return t1_;}
+
 private:
 Amanzi::Key domain_sub_;
 Amanzi::Key domain_srf_;

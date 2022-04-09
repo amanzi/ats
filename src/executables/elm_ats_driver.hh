@@ -20,7 +20,9 @@ int setup(char *input_filename);
 void initialize();
 void advance(double *dt);
 
-std::unique_ptr<ELM_ATSCoordinator> elm_coordinator;
+void advance_test();
+
+std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
 Teuchos::RCP<Amanzi::State> S_;
 
 };

@@ -55,7 +55,6 @@ namespace ATS {
       
     };
 
-  // PK methods
 void ELM_ATSCoordinator::setup() {
 
   Teuchos::TimeMonitor monitor(*setup_timer_);
@@ -93,12 +92,7 @@ void ELM_ATSCoordinator::setup() {
 
 void ELM_ATSCoordinator::initialize() {
 
-  // this is probably wrong
-  // I think I may need to initialize the evaluators around the same time the pks call Initialize()
-  // after State->InitializeFields() and before State does its final checks,  maybe
-  // which means fully replacing Coordinator::initialize()
-  // but I'm not sure, so I'll try it first 
-  Coordinator::initialize(); //?
+  Coordinator::initialize();
 
   S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_).PutScalar(0.);
   S_->GetRecordW(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_).set_initialized();
@@ -109,11 +103,10 @@ void ELM_ATSCoordinator::initialize() {
   if (!restart_) {
     double dt = get_dt(false);
     S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-    std::cout << "dt init:: " << dt << std::endl;
   }
 
-
   // visualization at IC
+  // for testing
   visualize();
   checkpoint();
 
@@ -122,14 +115,7 @@ void ELM_ATSCoordinator::initialize() {
                          - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
 }
 
-bool ELM_ATSCoordinator::advance(double dt_dummy) {
-
-  // use dt from ATS for now
-  double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
-  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  S_->advance_time(Amanzi::Tags::NEXT, dt);
-
-  std::cout << "dt advance:: " << dt << std::endl;
+bool ELM_ATSCoordinator::advance(double dt) {
 
   // !!need to get from ELM unless TAGS are controlled by ELM, but use this for now!!
   double t_old = S_->get_time(Amanzi::Tags::CURRENT);
@@ -140,35 +126,37 @@ bool ELM_ATSCoordinator::advance(double dt_dummy) {
     .ViewComponent("cell", false);
   Epetra_MultiVector& sub_water_src = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
     .ViewComponent("cell", false);
-  // getELMSources() - !!need to create!!
   ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
 
-  // get other ELM outputs: - there will be more
-  //S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, name_);
-  //Epetra_MultiVector& pres = *S_->GetW<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-  //S_->GetEvaluator(poro_key_, Amanzi::Tags::NEXT).Update(*S_, name_);
-  //const Epetra_MultiVector& poro = *S_->Get<Amanzi::CompositeVector>(poro_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-  //S_->GetEvaluator(sl_key_, Amanzi::Tags::NEXT).Update(*S_, name_);
-  //const Epetra_MultiVector& sl = *S_->Get<Amanzi::CompositeVector>(sl_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
+  {
+    // run model for single timestep
+    // order is important
+    // assign dt and advance NEXT
+    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
+    S_->advance_time(Amanzi::Tags::NEXT, dt);
 
+    // advance pks
+    auto fail = Coordinator::advance();
 
-  auto fail = Coordinator::advance(); // advance pks
+    if (fail) {
+      Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");
+      Exceptions::amanzi_throw(msg);
+    }
 
-  if (fail) {
-    Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");
-    Exceptions::amanzi_throw(msg);
+    // set CURRENT = NEXT
+    // state advance_cycle - necessary??
+    S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
+    S_->advance_cycle();
   }
 
-  S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-  S_->advance_cycle();
-
   // make observations, vis, and checkpoints
+  // leave in for testing
   for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
   visualize();
   checkpoint(); // checkpoint with the new dt
 
-  // update ATS->ELM data
+  // update ATS->ELM data if necessary
   S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
   const Epetra_MultiVector& pres = *S_->Get<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(por_key_, Amanzi::Tags::NEXT).Update(*S_, por_key_);
@@ -176,11 +164,8 @@ bool ELM_ATSCoordinator::advance(double dt_dummy) {
   S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT).Update(*S_, satl_key_);
   const Epetra_MultiVector& satl = *S_->Get<Amanzi::CompositeVector>(satl_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
 
-  // // getATSData() - !!need to create!!
+  return false;
 
-  return fail;
-
-  }
-
+}
 
 } // namespace ATS
