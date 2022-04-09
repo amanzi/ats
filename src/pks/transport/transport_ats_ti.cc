@@ -70,14 +70,14 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
     double u1, u2, umin, umax;
     if (c1 >= 0 && c2 >= 0) {
-      u1 = component[c1];
-      u2 = component[c2];
+      u1 = (*component_tmp)[c1];
+      u2 = (*component_tmp)[c2];
       umin = std::min(u1, u2);
       umax = std::max(u1, u2);
     } else if (c1 >= 0) {
-      u1 = u2 = umin = umax = component[c1];
+      u1 = u2 = umin = umax = (*component_tmp)[c1];
     } else if (c2 >= 0) {
-      u1 = u2 = umin = umax = component[c2];
+      u1 = u2 = umin = umax = (*component_tmp)[c2];
     }
 
     double u = fabs((*flux_)[0][f]);
