@@ -835,95 +835,95 @@ bool SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
 void SedimentTransport_PK :: Advance_Diffusion(double t_old, double t_new) {
 
-  // double dt_MPC = t_new - t_old;
-  // // We define tracer as the species #0 as calculate some statistics.
-  // Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
-  // Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
-  // int num_components = tcc_prev.NumVectors();
+  double dt_MPC = t_new - t_old;
+  // We define tracer as the species #0 as calculate some statistics.
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
+  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
+  int num_components = tcc_prev.NumVectors();
 
-  // bool flag_diffusion(true);
+  bool flag_diffusion(true);
 
-  // if (flag_diffusion) {
-  //   Teuchos::ParameterList& op_list = 
-  //       tp_list_->sublist("operators").sublist("diffusion operator").sublist("matrix");
+  if (flag_diffusion) {
+    Teuchos::ParameterList& op_list = 
+        tp_list_->sublist("operators").sublist("diffusion operator").sublist("matrix");
 
-  //   Teuchos::RCP<Operators::BCs> bc_dummy = 
-  //       Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE,  WhetStone::DOF_Type::SCALAR));
+    Teuchos::RCP<Operators::BCs> bc_dummy = 
+        Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE,  WhetStone::DOF_Type::SCALAR));
     
-  //   // default boundary conditions (none inside domain and Neumann on its boundary)
-  //   auto& bc_model = bc_dummy->bc_model();
-  //   auto& bc_value = bc_dummy->bc_value();
-  //   PopulateBoundaryData(bc_model, bc_value, -1);
+    // default boundary conditions (none inside domain and Neumann on its boundary)
+    auto& bc_model = bc_dummy->bc_model();
+    auto& bc_value = bc_dummy->bc_value();
+    PopulateBoundaryData(bc_model, bc_value, -1);
 
-  //   Operators::PDE_DiffusionFactory opfactory;
-  //   Teuchos::RCP<Operators::PDE_Diffusion> op1 = opfactory.Create(op_list, mesh_, bc_dummy);
-  //   op1->SetBCs(bc_dummy, bc_dummy);
-  //   Teuchos::RCP<Operators::Operator> op = op1->global_operator();
-  //   Teuchos::RCP<Operators::PDE_Accumulation> op2 =
-  //       Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, op));
+    Operators::PDE_DiffusionFactory opfactory;
+    Teuchos::RCP<Operators::PDE_Diffusion> op1 = opfactory.Create(op_list, mesh_, bc_dummy);
+    op1->SetBCs(bc_dummy, bc_dummy);
+    Teuchos::RCP<Operators::Operator> op = op1->global_operator();
+    Teuchos::RCP<Operators::PDE_Accumulation> op2 =
+        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, op));
 
-  //   const CompositeVectorSpace& cvs = op->DomainMap();
-  //   CompositeVector sol(cvs), factor(cvs), factor0(cvs), source(cvs), zero(cvs);
-  //   zero.PutScalar(0.0);
+    const CompositeVectorSpace& cvs = op->DomainMap();
+    CompositeVector sol(cvs), factor(cvs), factor0(cvs), source(cvs), zero(cvs);
+    zero.PutScalar(0.0);
   
-  //   // instantiate solver
+    // instantiate solver
 
-  //   S_inter_->GetEvaluator(horiz_mixing_key_)->HasFieldChanged(S_.ptr(),  horiz_mixing_key_);
+    S_->GetEvaluator(horiz_mixing_key_, tag_current_).Update(*S_, horiz_mixing_key_);
 
-  //   CalculateDiffusionTensor_(*km_, *ws_, *mol_dens_);
+    CalculateDiffusionTensor_(*km_, *ws_, *mol_dens_);
 
-  //   int phase, num_itrs(0);
-  //   bool flag_op1(true);
-  //   double md_change, md_old(0.0), md_new, residual(0.0);
+    int phase, num_itrs(0);
+    bool flag_op1(true);
+    double md_change, md_old(0.0), md_new, residual(0.0);
 
-  //   // Disperse and diffuse aqueous components
-  //   for (int i = 0; i < num_aqueous; i++) {
-  //     // set initial guess
-  //     Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
-  //     for (int c = 0; c < ncells_owned; c++) {
-  //       sol_cell[0][c] = tcc_next[i][c];
-  //     }
-  //     if (sol.HasComponent("face")) {
-  //       sol.ViewComponent("face")->PutScalar(0.0);
-  //     }
+    // Disperse and diffuse aqueous components
+    for (int i = 0; i < num_aqueous; i++) {
+      // set initial guess
+      Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
+      for (int c = 0; c < ncells_owned; c++) {
+        sol_cell[0][c] = tcc_next[i][c];
+      }
+      if (sol.HasComponent("face")) {
+        sol.ViewComponent("face")->PutScalar(0.0);
+      }
 
-  //     op->Init();
-  //     Teuchos::RCP<std::vector<WhetStone::Tensor> > Dptr = Teuchos::rcpFromRef(D_);
-  //     op1->Setup(Dptr, Teuchos::null, Teuchos::null);
-  //     op1->UpdateMatrices(Teuchos::null, Teuchos::null);
+      op->Init();
+      Teuchos::RCP<std::vector<WhetStone::Tensor> > Dptr = Teuchos::rcpFromRef(D_);
+      op1->Setup(Dptr, Teuchos::null, Teuchos::null);
+      op1->UpdateMatrices(Teuchos::null, Teuchos::null);
 
-  //     // add accumulation term
-  //     Epetra_MultiVector& fac = *factor.ViewComponent("cell");
-  //     for (int c = 0; c < ncells_owned; c++) {
-  //       fac[0][c] =  (*ws_)[0][c] * (*mol_dens_)[0][c];
-  //     }
-  //     op2->AddAccumulationDelta(sol, factor, factor, dt_MPC, "cell");
+      // add accumulation term
+      Epetra_MultiVector& fac = *factor.ViewComponent("cell");
+      for (int c = 0; c < ncells_owned; c++) {
+        fac[0][c] =  (*ws_)[0][c] * (*mol_dens_)[0][c];
+      }
+      op2->AddAccumulationDelta(sol, factor, factor, dt_MPC, "cell");
  
-  //     op1->ApplyBCs(true, true, true);
+      op1->ApplyBCs(true, true, true);
   
-  //     CompositeVector& rhs = *op->rhs();
-  //     int ierr = op->ApplyInverse(rhs, sol);
+      CompositeVector& rhs = *op->rhs();
+      int ierr = op->ApplyInverse(rhs, sol);
 
-  //     if (ierr < 0) {
-  //       Errors::Message msg("SedimentTransport_PK solver failed with message: \"");
-  //       msg << op->returned_code_string() << "\"";
-  //       Exceptions::amanzi_throw(msg);
-  //     }
+      if (ierr < 0) {
+        Errors::Message msg("SedimentTransport_PK solver failed with message: \"");
+        msg << op->returned_code_string() << "\"";
+        Exceptions::amanzi_throw(msg);
+      }
 
-  //     residual += op->residual();
-  //     num_itrs += op->num_itrs();
+      residual += op->residual();
+      num_itrs += op->num_itrs();
 
-  //     for (int c = 0; c < ncells_owned; c++) {
-  //       tcc_next[i][c] = sol_cell[0][c];
-  //     }
-  //   }
+      for (int c = 0; c < ncells_owned; c++) {
+        tcc_next[i][c] = sol_cell[0][c];
+      }
+    }
 
-  //   if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
-  //     Teuchos::OSTab tab = vo_->getOSTab();
-  //     *vo_->os() << "sediment transport solver: ||r||=" << residual / num_components
-  //                << " itrs=" << num_itrs / num_components << std::endl;
-  //   }
-  // }
+    if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
+      Teuchos::OSTab tab = vo_->getOSTab();
+      *vo_->os() << "sediment transport solver: ||r||=" << residual / num_components
+                 << " itrs=" << num_itrs / num_components << std::endl;
+    }
+  }
 
 }
 
@@ -957,164 +957,164 @@ void SedimentTransport_PK::CommitStep(double t_old, double t_new, const Teuchos:
  ****************************************************************** */
 void SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 {
-  // dt_ = dt_cycle;  // overwrite the maximum stable transport step
-  // mass_sediment_source_ = 0 ;
-  // mass_sediment_bc_ = 0; 
+  dt_ = dt_cycle;  // overwrite the maximum stable transport step
+  mass_sediment_source_ = 0 ;
+  mass_sediment_bc_ = 0; 
 
-  // // populating next state of concentrations
-  // tcc->ScatterMasterToGhosted("cell");
-  // Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
-  // Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
+  // populating next state of concentrations
+  tcc->ScatterMasterToGhosted("cell");
+  Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
 
-  // // prepare conservative state in master and slave cells
-  // double vol_ws_den, tcc_flux;
-  // double mass_start = 0., tmp1, mass;
+  // prepare conservative state in master and slave cells
+  double vol_ws_den, tcc_flux;
+  double mass_start = 0., tmp1, mass;
 
-  // // We advect only aqueous components.
-  // int num_advect = num_aqueous;
+  // We advect only aqueous components.
+  int num_advect = num_aqueous;
 
-  // for (int c = 0; c < ncells_owned; c++) {
-  //   vol_ws_den = mesh_->cell_volume(c) * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
-  //   for (int i = 0; i < num_advect; i++){
-  //     (*conserve_qty_)[i][c] = tcc_prev[i][c] * vol_ws_den;
-  //     // if ((vol_ws_den > water_tolerance_) && ((*solid_qty_)[i][c] > 0 )){   // Desolve solid residual into liquid
-  //     //   double add_mass = std::min((*solid_qty_)[i][c], max_tcc_* vol_ws_den - (*conserve_qty_)[i][c]);
-  //     //   (*solid_qty_)[i][c] -= add_mass;
-  //     //   (*conserve_qty_)[i][c] += add_mass;
-  //     // }
-  //     mass_start += (*conserve_qty_)[i][c];
-  //   }
-  // }
+  for (int c = 0; c < ncells_owned; c++) {
+    vol_ws_den = mesh_->cell_volume(c) * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
+    for (int i = 0; i < num_advect; i++){
+      (*conserve_qty_)[i][c] = tcc_prev[i][c] * vol_ws_den;
+      // if ((vol_ws_den > water_tolerance_) && ((*solid_qty_)[i][c] > 0 )){   // Desolve solid residual into liquid
+      //   double add_mass = std::min((*solid_qty_)[i][c], max_tcc_* vol_ws_den - (*conserve_qty_)[i][c]);
+      //   (*solid_qty_)[i][c] -= add_mass;
+      //   (*conserve_qty_)[i][c] += add_mass;
+      // }
+      mass_start += (*conserve_qty_)[i][c];
+    }
+  }
 
-  // tmp1 = mass_start;
-  // mesh_->get_comm()->SumAll(&tmp1, &mass_start, 1);
+  tmp1 = mass_start;
+  mesh_->get_comm()->SumAll(&tmp1, &mass_start, 1);
 
-  // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
-  //   if (domain_name_ == "surface")  *vo_->os()<<std::setprecision(10)<<"Surface mass start "<<mass_start<<"\n";
-  //   else  *vo_->os()<<std::setprecision(10)<<"Subsurface mass start "<<mass_start<<"\n";
-  // }
+  if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
+    if (domain_name_ == "surface")  *vo_->os()<<std::setprecision(10)<<"Surface mass start "<<mass_start<<"\n";
+    else  *vo_->os()<<std::setprecision(10)<<"Subsurface mass start "<<mass_start<<"\n";
+  }
 
   
-  // // advance all components at once
-  // for (int f = 0; f < nfaces_wghost; f++) {  // loop over master and slave faces
-  //   int c1 = (*upwind_cell_)[f];
-  //   int c2 = (*downwind_cell_)[f];
+  // advance all components at once
+  for (int f = 0; f < nfaces_wghost; f++) {  // loop over master and slave faces
+    int c1 = (*upwind_cell_)[f];
+    int c2 = (*downwind_cell_)[f];
 
-  //   double u = fabs((*flux_)[0][f]);
+    double u = fabs((*flux_)[0][f]);
 
-  //   if (c1 >=0 && c1 < ncells_owned && c2 >= 0 && c2 < ncells_owned) {
-  //     for (int i = 0; i < num_advect; i++) {
-  //       tcc_flux = dt_ * u * tcc_prev[i][c1];
-  //       (*conserve_qty_)[i][c1] -= tcc_flux;
-  //       (*conserve_qty_)[i][c2] += tcc_flux;
-  //     }
+    if (c1 >=0 && c1 < ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+      for (int i = 0; i < num_advect; i++) {
+        tcc_flux = dt_ * u * tcc_prev[i][c1];
+        (*conserve_qty_)[i][c1] -= tcc_flux;
+        (*conserve_qty_)[i][c2] += tcc_flux;
+      }
 
-  //   }
-  //   else if (c1 >=0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
-  //     for (int i = 0; i < num_advect; i++) {
-  //       tcc_flux = dt_ * u * tcc_prev[i][c1];
-  //       (*conserve_qty_)[i][c1] -= tcc_flux;
-  //       if (c2 < 0) mass_sediment_bc_ -= tcc_flux;
-  //     }
+    }
+    else if (c1 >=0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
+      for (int i = 0; i < num_advect; i++) {
+        tcc_flux = dt_ * u * tcc_prev[i][c1];
+        (*conserve_qty_)[i][c1] -= tcc_flux;
+        if (c2 < 0) mass_sediment_bc_ -= tcc_flux;
+      }
 
-  //   } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
-  //     for (int i = 0; i < num_advect; i++) {
-  //       tcc_flux = dt_ * u * tcc_prev[i][c1];
-  //       (*conserve_qty_)[i][c2] += tcc_flux;
-  //     }
-  //   }
-  // }
+    } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+      for (int i = 0; i < num_advect; i++) {
+        tcc_flux = dt_ * u * tcc_prev[i][c1];
+        (*conserve_qty_)[i][c2] += tcc_flux;
+      }
+    }
+  }
 
  
-  // // loop over exterior boundary sets
-  // for (int m = 0; m < bcs_.size(); m++) {
-  //   std::vector<int>& tcc_index = bcs_[m]->tcc_index();
-  //   int ncomp = tcc_index.size();
+  // loop over exterior boundary sets
+  for (int m = 0; m < bcs_.size(); m++) {
+    std::vector<int>& tcc_index = bcs_[m]->tcc_index();
+    int ncomp = tcc_index.size();
 
-  //   for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
-  //     int f = it->first;
-  //     std::vector<double>& values = it->second;
-  //     int c2 = (*downwind_cell_)[f];
-  //     if (c2 >= 0) {
-  //       double u = fabs((*flux_)[0][f]);
-  //       for (int i = 0; i < ncomp; i++) {
-  //         int k = tcc_index[i];
-  //         if (k < num_advect) {
-  //           tcc_flux = dt_ * u * values[i];
-  //           (*conserve_qty_)[k][c2] += tcc_flux;
-  //           mass_sediment_bc_ += tcc_flux;
-  //         }
-  //       }
-  //     } 
-  //   }
-  // }
+    for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
+      int f = it->first;
+      std::vector<double>& values = it->second;
+      int c2 = (*downwind_cell_)[f];
+      if (c2 >= 0) {
+        double u = fabs((*flux_)[0][f]);
+        for (int i = 0; i < ncomp; i++) {
+          int k = tcc_index[i];
+          if (k < num_advect) {
+            tcc_flux = dt_ * u * values[i];
+            (*conserve_qty_)[k][c2] += tcc_flux;
+            mass_sediment_bc_ += tcc_flux;
+          }
+        }
+      } 
+    }
+  }
 
 
-  // // process external sources
-  // //if (srcs_.size() != 0) {
-  // double time = t_physics_;
-  // ComputeAddSourceTerms(time, dt_, *conserve_qty_, 0, num_advect - 1);
-  // //}
+  // process external sources
+  //if (srcs_.size() != 0) {
+  double time = t_physics_;
+  ComputeAddSourceTerms(time, dt_, *conserve_qty_, 0, num_advect - 1);
+  //}
 
-  // // recover concentration from new conservative state
-  // for (int c = 0; c < ncells_owned; c++) {
-  //   vol_ws_den = mesh_->cell_volume(c) * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
-  //   for (int i = 0; i < num_advect; i++) {
-  //     if ((*ws_end)[0][c] > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
+  // recover concentration from new conservative state
+  for (int c = 0; c < ncells_owned; c++) {
+    vol_ws_den = mesh_->cell_volume(c) * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
+    for (int i = 0; i < num_advect; i++) {
+      if ((*ws_end)[0][c] > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         
-  //       tcc_next[i][c] = (*conserve_qty_)[i][c] / vol_ws_den;
+        tcc_next[i][c] = (*conserve_qty_)[i][c] / vol_ws_den;
         
-  //     }
-  //     else  {
-  //       (*solid_qty_)[i][c] += std::max((*conserve_qty_)[i][c], 0.);
-  //       tcc_next[i][c] = 0.;
-  //     }
-  //   }
-  // }
+      }
+      else  {
+        (*solid_qty_)[i][c] += std::max((*conserve_qty_)[i][c], 0.);
+        tcc_next[i][c] = 0.;
+      }
+    }
+  }
 
-  // double mass_final = 0;
-  // for (int c = 0; c < ncells_owned; c++) {
-  //   for (int i = 0; i < num_advect; i++){        
-  //     mass_final += (*conserve_qty_)[i][c];
-  //   }
-  // }
+  double mass_final = 0;
+  for (int c = 0; c < ncells_owned; c++) {
+    for (int i = 0; i < num_advect; i++){        
+      mass_final += (*conserve_qty_)[i][c];
+    }
+  }
 
-  // tmp1 = mass_final;
-  // mesh_->get_comm()->SumAll(&tmp1, &mass_final, 1);
+  tmp1 = mass_final;
+  mesh_->get_comm()->SumAll(&tmp1, &mass_final, 1);
 
 
-  // // update mass balance
+  // update mass balance
 
-  // mass_sediment_exact_ += mass_sediment_source_ * dt_;
-  // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
+  mass_sediment_exact_ += mass_sediment_source_ * dt_;
+  if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
 
-  //   tmp1 = mass_sediment_bc_;
-  //   mesh_->get_comm()->SumAll(&tmp1, &mass_sediment_bc_, 1);
-  //   // *vo_->os() << "*****************\n";
-  //   // if (domain_name_ == "surface") *vo_->os()<<"Surface mass BC "<<mass_sediment_bc_<<"\n";
-  //   // else *vo_->os() <<"Subsurface mass BC "<<mass_sediment_bc_<<"\n";
+    tmp1 = mass_sediment_bc_;
+    mesh_->get_comm()->SumAll(&tmp1, &mass_sediment_bc_, 1);
+    // *vo_->os() << "*****************\n";
+    // if (domain_name_ == "surface") *vo_->os()<<"Surface mass BC "<<mass_sediment_bc_<<"\n";
+    // else *vo_->os() <<"Subsurface mass BC "<<mass_sediment_bc_<<"\n";
       
-  //   // tmp1 = mass_sediment_source_;
-  //   // mesh_->get_comm()->SumAll(&tmp1, &mass_sediment_source_, 1);
-  //   // if (domain_name_ == "surface") *vo_->os()<<"Surface mass_sediment source "<<mass_sediment_source_ * dt_<<"\n";
-  //   // else *vo_->os() << "Subsurface mass_sediment source "<<mass_sediment_source_ * dt_<<"\n";
-  //   // *vo_->os() << "*****************\n";
+    // tmp1 = mass_sediment_source_;
+    // mesh_->get_comm()->SumAll(&tmp1, &mass_sediment_source_, 1);
+    // if (domain_name_ == "surface") *vo_->os()<<"Surface mass_sediment source "<<mass_sediment_source_ * dt_<<"\n";
+    // else *vo_->os() << "Subsurface mass_sediment source "<<mass_sediment_source_ * dt_<<"\n";
+    // *vo_->os() << "*****************\n";
+  }
+
+
+  // if (internal_tests) {
+  //   VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
   // }
 
-
-  // // if (internal_tests) {
-  // //   VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
-  // // }
-
-  // // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
-  // //   if (domain_name_ == "surface")  *vo_->os()<<"Surface mass final "<<mass_final<<"\n";
-  // //   else  *vo_->os()<<"Subsurface mass final "<<mass_final<<"\n";
-  // // }
+  // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
+  //   if (domain_name_ == "surface")  *vo_->os()<<"Surface mass final "<<mass_final<<"\n";
+  //   else  *vo_->os()<<"Subsurface mass final "<<mass_final<<"\n";
+  // }
   
-  // // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
-  // //   *vo_->os()<<"mass error "<<abs(mass_final - (mass_start + mass_sediment_bc_ + mass_sediment_source_*dt_) )<<"\n";
+  // if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
+  //   *vo_->os()<<"mass error "<<abs(mass_final - (mass_start + mass_sediment_bc_ + mass_sediment_source_*dt_) )<<"\n";
 
-  // //if (abs(mass_final - (mass_start + mass_sediment_bc_[0] + mass_sediment_source_[0]*dt_) )/mass_final > 1e-6) exit(-1);
+  //if (abs(mass_final - (mass_start + mass_sediment_bc_[0] + mass_sediment_source_[0]*dt_) )/mass_final > 1e-6) exit(-1);
   
 }
 
@@ -1333,69 +1333,69 @@ void SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 void SedimentTransport_PK::ComputeAddSourceTerms(double tp, double dtp, 
                                          Epetra_MultiVector& tcc, int n0, int n1)
 {
-  // int num_vectors = tcc.NumVectors();
-  // int nsrcs = srcs_.size();
+  int num_vectors = tcc.NumVectors();
+  int nsrcs = srcs_.size();
 
-  // double mass1 = 0., mass2 = 0., add_mass =0., tmp1;
-  // bool chg;
+  double mass1 = 0., mass2 = 0., add_mass =0., tmp1;
+  bool chg;
   
-  // chg = S_next_->GetEvaluator(sd_trapping_key_)->HasFieldChanged(S_next_.ptr(), sd_trapping_key_);
-  // const Epetra_MultiVector& Q_dt = *S_next_->Get<CompositeVector>(sd_trapping_key_).ViewComponent("cell", false);
+  chg = S_->GetEvaluator(sd_trapping_key_, tag_next_).Update(*S_, sd_trapping_key_);
+  const Epetra_MultiVector& Q_dt = *S_->GetPtr<CompositeVector>(sd_trapping_key_, tag_next_)->ViewComponent("cell", false);
 
-  // chg = S_next_->GetEvaluator(sd_settling_key_)->HasFieldChanged(S_next_.ptr(), sd_settling_key_);
-  // const Epetra_MultiVector& Q_ds = *S_next_->Get<CompositeVector>(sd_settling_key_).ViewComponent("cell", false);
+  chg = S_->GetEvaluator(sd_settling_key_, tag_next_).Update(*S_, sd_settling_key_);
+  const Epetra_MultiVector& Q_ds = *S_->GetPtr<CompositeVector>(sd_settling_key_, tag_next_)->ViewComponent("cell", false);
 
-  // chg = S_next_->GetEvaluator(sd_erosion_key_)->HasFieldChanged(S_next_.ptr(), sd_erosion_key_);
-  // const Epetra_MultiVector& Q_e = *S_next_->Get<CompositeVector>(sd_erosion_key_).ViewComponent("cell", false);
+  chg = S_->GetEvaluator(sd_erosion_key_, tag_next_).Update(*S_, sd_erosion_key_);
+  const Epetra_MultiVector& Q_e = *S_->GetPtr<CompositeVector>(sd_erosion_key_, tag_next_)->ViewComponent("cell", false);
 
-  // chg = S_next_->GetEvaluator(sd_organic_key_)->HasFieldChanged(S_next_.ptr(), sd_organic_key_);
-  // const Epetra_MultiVector& Q_db = *S_next_->Get<CompositeVector>(sd_organic_key_).ViewComponent("cell", false);
+  chg = S_->GetEvaluator(sd_organic_key_, tag_next_).Update(*S_, sd_organic_key_);
+  const Epetra_MultiVector& Q_db = *S_->GetPtr<CompositeVector>(sd_organic_key_, tag_next_)->ViewComponent("cell", false);
 
-  // Epetra_MultiVector& dz = *S_next_->GetW<CompositeVector>(elevation_increase_key_, "state").ViewComponent("cell", false);
+  Epetra_MultiVector& dz = *S_->GetW<CompositeVector>(elevation_increase_key_, tag_next_, "state").ViewComponent("cell", false);
   
-  // const Epetra_MultiVector& poro =  *S_next_->Get<CompositeVector>(porosity_key_).ViewComponent("cell", false);
-
-  
-  // for (int c=0; c<ncells_owned; c++) {
-  //   double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
-  //   tcc[0][c] += value * dtp;
-  //   mass_sediment_source_ += value;
-  //   dz[0][c] +=(1./sediment_density_)*((Q_dt[0][c] + Q_ds[0][c])  + Q_db[0][c] - Q_e[0][c]) * dtp/ (1 - poro[0][c]);
-  // }
+  const Epetra_MultiVector& poro =  *S_->Get<CompositeVector>(porosity_key_, tag_next_).ViewComponent("cell", false);
 
   
-  // for (int m = 0; m < nsrcs; m++) {
-  //   double t0 = tp - dtp;
-  //   srcs_[m]->Compute(t0, tp); 
+  for (int c=0; c<ncells_owned; c++) {
+    double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
+    tcc[0][c] += value * dtp;
+    mass_sediment_source_ += value;
+    dz[0][c] +=(1./sediment_density_)*((Q_dt[0][c] + Q_ds[0][c])  + Q_db[0][c] - Q_e[0][c]) * dtp/ (1 - poro[0][c]);
+  }
 
-  //   std::vector<int> tcc_index = srcs_[m]->tcc_index();
-  //   for (auto it = srcs_[m]->begin(); it != srcs_[m]->end(); ++it) {
-  //     int c = it->first;
-  //     std::vector<double>& values = it->second;
+  
+  for (int m = 0; m < nsrcs; m++) {
+    double t0 = tp - dtp;
+    srcs_[m]->Compute(t0, tp); 
 
-  //     if (c >= ncells_owned) continue;
+    std::vector<int> tcc_index = srcs_[m]->tcc_index();
+    for (auto it = srcs_[m]->begin(); it != srcs_[m]->end(); ++it) {
+      int c = it->first;
+      std::vector<double>& values = it->second;
 
-  //     for (int k = 0; k < tcc_index.size(); ++k) {
-  //       int i = tcc_index[k];
-  //       if (i < n0 || i > n1) continue;
+      if (c >= ncells_owned) continue;
 
-  //       int imap = i;
-  //       if (num_vectors == 1) imap = 0;
+      for (int k = 0; k < tcc_index.size(); ++k) {
+        int i = tcc_index[k];
+        if (i < n0 || i > n1) continue;
 
-  //       double value;   
-  //       if (srcs_[m]->name() == "domain coupling") {
-  //         value = values[k];
-  //       } else {
-  //         value =  mesh_->cell_volume(c) * values[k];
-  //       }
+        int imap = i;
+        if (num_vectors == 1) imap = 0;
 
-  //       //add_mass += dtp * value; 
-  //       tcc[imap][c] += dtp * value;
-  //       mass_sediment_source_ += value;
+        double value;   
+        if (srcs_[m]->name() == "domain coupling") {
+          value = values[k];
+        } else {
+          value =  mesh_->cell_volume(c) * values[k];
+        }
+
+        //add_mass += dtp * value; 
+        tcc[imap][c] += dtp * value;
+        mass_sediment_source_ += value;
         
-  //     }
-  //   }
-  // }
+      }
+    }
+  }
 
   
 }
