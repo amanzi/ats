@@ -112,22 +112,33 @@ ELM_ATSDriver::setup(char *infile)
   ATS::Mesh::createMeshes(*plist, comm, gm, *S_);
 
   // create ELM coordinator object
-  elm_coordinator = std::make_unique<ELM_ATSCoordinator>(*plist, S_, comm);
+  elm_coordinator_ = std::make_unique<ELM_ATSCoordinator>(*plist, S_, comm);
   // call coordinator setup
-  elm_coordinator->setup();
+  elm_coordinator_->setup();
 
   return 0;
 }
 
 void ELM_ATSDriver::initialize()
 {
-  elm_coordinator->initialize();
+  elm_coordinator_->initialize();
 }
 
 
 void ELM_ATSDriver::advance(double *dt)
 {
-  elm_coordinator->advance(*dt);
+  elm_coordinator_->advance(*dt);
+}
+
+void ELM_ATSDriver::advance_test()
+{
+  // use dt from ATS for now
+  double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
+
+  while (S_->get_time() < elm_coordinator_->get_end_time()) {
+    auto fail = elm_coordinator_->advance(dt);
+    dt = elm_coordinator_->get_dt(fail);
+  };
 }
 
 

@@ -104,14 +104,16 @@ int main(int argc, char *argv[])
 
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
 
-  ATS::ELM_ATSDriver driver;
+  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
   
-  driver.setup(&input_filename[0]);
+  driver->setup(&input_filename[0]);
   
-  driver.initialize();
+  driver->initialize();
   
-  double dt = 1800.0;
-  driver.advance(&dt);
+  //double dt = 1800.0;
+  //driver->advance(&dt);
+
+  driver->advance_test();
   
   std::cout << "DONE WITH ELM-ATS DRIVER" << std::endl;
 

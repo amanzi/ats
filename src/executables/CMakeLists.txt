@@ -138,44 +138,44 @@ set(tpl_link_libs
   ${CLM_LIBRARIES}
   )
 
-#add_amanzi_library(ats_executable
-#  SOURCE ${ats_src_files}
-#  HEADERS ${ats_inc_files}
-#  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
-#if (APPLE AND BUILD_SHARED_LIBS)
-#  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
-#endif()
-#
-#if (BUILD_TESTS)
-#  # Add UnitTest includes
-#  include_directories(${UnitTest_INCLUDE_DIRS})
-#  include_directories(${EXECUTABLE_SOURCE_DIR})
-#
-#  # Copy test subdirectory for out of source builds
-#  if (NOT ("${EXECUTABLE_SOURCE_DIR}" STREQUAL "${EXECUTABLE_BINARY_DIR}"))
-#    file(GLOB DataFiles "${EXECUTABLE_SOURCE_DIR}/test/*.xml"
-#      "${EXECUTABLE_SOURCE_DIR}/test/*.exo"
-#      "${EXECUTABLE_SOURCE_DIR}/test/*.h5"
-#      "${EXECUTABLE_SOURCE_DIR}/test/*.bin")
-#    file(COPY ${DataFiles} DESTINATION ${EXECUTABLE_BINARY_DIR}/test/)
-#  endif()
-#
-#  add_amanzi_test(executable_mesh_factory executable_mesh_factory
-#           KIND int
-#           SOURCE test/Main.cc test/executable_mesh_factory.cc
-#           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
-#
-#  add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
-#  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
-#
-#
-#endif()
-#
-#add_amanzi_executable(ats
-#  SOURCE main.cc
-#  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
-#  OUTPUT_NAME ats
-#  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
+add_amanzi_library(ats_executable
+  SOURCE ${ats_src_files}
+  HEADERS ${ats_inc_files}
+  LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
+if (APPLE AND BUILD_SHARED_LIBS)
+  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+endif()
+
+if (BUILD_TESTS)
+  # Add UnitTest includes
+  include_directories(${UnitTest_INCLUDE_DIRS})
+  include_directories(${EXECUTABLE_SOURCE_DIR})
+
+  # Copy test subdirectory for out of source builds
+  if (NOT ("${EXECUTABLE_SOURCE_DIR}" STREQUAL "${EXECUTABLE_BINARY_DIR}"))
+    file(GLOB DataFiles "${EXECUTABLE_SOURCE_DIR}/test/*.xml"
+      "${EXECUTABLE_SOURCE_DIR}/test/*.exo"
+      "${EXECUTABLE_SOURCE_DIR}/test/*.h5"
+      "${EXECUTABLE_SOURCE_DIR}/test/*.bin")
+    file(COPY ${DataFiles} DESTINATION ${EXECUTABLE_BINARY_DIR}/test/)
+  endif()
+
+  add_amanzi_test(executable_mesh_factory executable_mesh_factory
+           KIND int
+           SOURCE test/Main.cc test/executable_mesh_factory.cc
+           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+
+  add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
+  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
+
+
+endif()
+
+add_amanzi_executable(ats
+  SOURCE main.cc
+  LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
+  OUTPUT_NAME ats
+  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
 
 ## Temporary build method for ELM->ATS coupling
