@@ -184,6 +184,7 @@ set(elm_ats_src_files
   ats_mesh_factory.cc
   elm_ats_coordinator.cc
   elm_ats_driver.cc
+  elm_ats_api.cc
   )
 
 set(elm_ats_inc_files
@@ -191,6 +192,7 @@ set(elm_ats_inc_files
   ats_mesh_factory.hh
   elm_ats_coordinator.hh
   elm_ats_driver.hh
+  elm_ats_api.h
   )
 
 add_amanzi_library(elm_ats_executable
