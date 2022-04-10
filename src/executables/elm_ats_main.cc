@@ -58,6 +58,7 @@
 #include "boost/filesystem.hpp"
 
 #include "elm_ats_driver.hh"
+#include "elm_ats_api.h"
 
 int main(int argc, char *argv[])
 {
@@ -104,16 +105,20 @@ int main(int argc, char *argv[])
 
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
 
-  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
-  
-  driver->setup(&input_filename[0]);
-  
-  driver->initialize();
-  
-  //double dt = 1800.0;
-  //driver->advance(&dt);
+  //auto driver = std::make_unique<ATS::ELM_ATSDriver>();
+  //driver->setup(&input_filename[0]);
+  //driver->initialize();
+  //driver->advance_test();
+      //double dt = 1800.0;
+      //driver->advance(&dt);
 
-  driver->advance_test();
+
+  // test api from here
+  auto driver = ats_create();
+  ats_setup(driver, &input_filename[0]);
+  ats_initialize(driver);
+  ats_advance_test(driver);
+  ats_delete(driver);
   
   std::cout << "DONE WITH ELM-ATS DRIVER" << std::endl;
 
