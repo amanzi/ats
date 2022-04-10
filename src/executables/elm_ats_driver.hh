@@ -13,19 +13,39 @@ Provides an interface to ATS functionality for ELM
 
 namespace ATS {
 
-struct ELM_ATSDriver {
+class ELM_ATSDriver {
 
-// PK methods
-int setup(char *input_filename);
-void initialize();
-void advance(double *dt);
+public:
+  // default constructor and destructor
+  ELM_ATSDriver() {};
+  ~ELM_ATSDriver() = default;
 
-void advance_test();
+  // methods
+  int setup(char *input_filename);
+  void initialize();
+  void advance(double *dt);
+  void advance_test();
 
-std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
-Teuchos::RCP<Amanzi::State> S_;
-
+private:
+  std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
+  Teuchos::RCP<Amanzi::State> S_;
 };
+
+
+
+//extern "C" {
+//  ELM_ATSDriver *ELM_ATSDriver__new () {
+//    return new ELM_ATSDriver();
+//  }
+//  int ELM_ATSDriver__area (ELM_ATSDriver *This) {
+//    return This->area();
+//  }
+//  void ELM_ATSDriver__delete (ELM_ATSDriver *This) {
+//    delete This;
+//  }
+//}
+
+
 
 } // namespace
 

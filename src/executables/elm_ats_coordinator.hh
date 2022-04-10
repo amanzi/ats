@@ -35,10 +35,9 @@ public:
   ELM_ATSCoordinator(Teuchos::ParameterList& parameter_list,
               Teuchos::RCP<Amanzi::State>& S,
               Amanzi::Comm_ptr_type comm);
-
   ~ELM_ATSCoordinator() = default;
 
-  // PK methods
+  // methods
   virtual void setup();
   virtual void initialize();
   virtual bool advance(double dt);
@@ -47,13 +46,13 @@ public:
   double get_end_time() {return t1_;}
 
 private:
-Amanzi::Key domain_sub_;
-Amanzi::Key domain_srf_;
-Amanzi::Key sub_src_key_;
-Amanzi::Key srf_src_key_;
-Amanzi::Key pres_key_;
-Amanzi::Key satl_key_;
-Amanzi::Key por_key_;
+  Amanzi::Key domain_sub_;
+  Amanzi::Key domain_srf_;
+  Amanzi::Key sub_src_key_;
+  Amanzi::Key srf_src_key_;
+  Amanzi::Key pres_key_;
+  Amanzi::Key satl_key_;
+  Amanzi::Key por_key_;
 
 };
 
