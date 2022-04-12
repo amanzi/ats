@@ -21,7 +21,7 @@ public:
   ~ELM_ATSDriver() = default;
 
   // methods
-  int setup(char *input_filename);
+  int setup(MPI_Fint *f_comm, char *input_filename);
   void initialize();
   void advance(double *dt);
   void advance_test();
@@ -32,20 +32,44 @@ private:
 };
 
 
+// include here temporarily during development
+// maybe place into AmanziComm.hh
+// or leave as local function
+#include "AmanziTypes.hh"
+#ifdef TRILINOS_TPETRA_STACK
 
-//extern "C" {
-//  ELM_ATSDriver *ELM_ATSDriver__new () {
-//    return new ELM_ATSDriver();
-//  }
-//  int ELM_ATSDriver__area (ELM_ATSDriver *This) {
-//    return This->area();
-//  }
-//  void ELM_ATSDriver__delete (ELM_ATSDriver *This) {
-//    delete This;
-//  }
-//}
+#ifdef HAVE_MPI
+#include "Teuchos_MpiComm.hpp"
+#else
+#include "Teuchos_SerialComm.hpp"
+#endif
 
+#else // Epetra stack
 
+#ifdef HAVE_MPI
+#include "Epetra_MpiComm.h"
+#else
+#include "Epetra_SerialComm.h"
+#endif
+
+#endif // trilinos stack
+
+inline
+Amanzi::Comm_ptr_type setComm(MPI_Comm comm) {
+#ifdef TRILINOS_TPETRA_STACK
+#ifdef HAVE_MPI
+  return Teuchos::rcp(new Teuchos::MpiComm<int>(comm));
+#else
+  return Teuchos::rcp(new Teuchos::SerialComm<int>());
+#endif
+#else
+#ifdef HAVE_MPI
+  return Teuchos::rcp(new Epetra_MpiComm(comm));
+#else
+  return Teuchos::rcp(new Epetra_SerialComm());
+#endif
+#endif
+}
 
 } // namespace
 
