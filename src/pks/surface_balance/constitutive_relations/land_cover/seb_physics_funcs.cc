@@ -424,11 +424,11 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
 
   // mass to surface is precip and melting first
   // partition all fluxes?
-  // double mass_flux = met.Pr + mb.Mm + mb.Me;
+  // double water_flux = met.Pr + mb.Mm + mb.Me;
   // flux.M_surf = 0.;
 
   // or just partition evaporation?
-  double mass_flux = mb.Me;
+  double water_flux = mb.Me;
   flux.M_surf = met.Pr + mb.Mm;
 
   // Energy to surface.
@@ -441,7 +441,7 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
   flux.M_subsurf = 0.;
   flux.E_subsurf = 0.;
 
-  // allocate mass_flux to surface or subsurface
+  // allocate water_flux to surface or subsurface
   double evap_to_subsurface_fraction;
   if (model_1p1) {
     // NOTE: this old model allows indepedent values of evap_transition_width
@@ -466,8 +466,8 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
   }
   AMANZI_ASSERT(evap_to_subsurface_fraction >= 0. && evap_to_subsurface_fraction <= 1.);
 
-  flux.M_surf += (1 - evap_to_subsurface_fraction) * mass_flux;
-  flux.M_subsurf += evap_to_subsurface_fraction * mass_flux;
+  flux.M_surf += (1 - evap_to_subsurface_fraction) * water_flux;
+  flux.M_subsurf += evap_to_subsurface_fraction * water_flux;
 
   // enthalpy of evap/condensation always goes entirely to surface
   //

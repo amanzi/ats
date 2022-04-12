@@ -102,10 +102,7 @@ void Coordinator::coordinator_init() {
        mesh!=S_->mesh_end(); ++mesh) {
 
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
-      std::string node_key;
-      if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
-      else node_key = std::string("vertex_coordinate");
-
+      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
       S_->RequireField(node_key)->SetMesh(mesh->second.first)->SetGhosted()
           ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
@@ -129,6 +126,10 @@ void Coordinator::setup() {
   S_->set_cycle(cycle0_);
   S_->RequireScalar("dt", "coordinator");
 
+  // everyone uses these
+  S_->RequireScalar("atmospheric_pressure", "coordinator");
+  S_->RequireGravity();
+
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->Setup(S_.ptr());
@@ -151,6 +152,32 @@ double Coordinator::initialize() {
   *S_->GetScalarData("dt", "coordinator") = 0.;
   S_->GetField("dt","coordinator")->set_initialized();
   S_->InitializeFields();
+
+  // save vertex coordinates.  Note that, if this vector isn't used by any
+  // other PKs/evaluators, the nodal coordinates won't change.
+  for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
+       mesh!=S_->mesh_end(); ++mesh) {
+    if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
+      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
+      // this could either be State or a later owning PK
+      auto owner = S_->GetField(node_key)->owner();
+      // collect the old coordinates
+      Epetra_MultiVector& vc = *S_->GetFieldData(node_key, owner)
+        ->ViewComponent("node", true);
+
+      std::vector<int> node_ids(vc.MyLength());
+      Amanzi::AmanziGeometry::Point_List old_positions(vc.MyLength());
+      for (int n=0; n!=vc.MyLength(); ++n) {
+        Amanzi::AmanziGeometry::Point node_coord;
+        mesh->second.first->node_get_coordinates(n, &node_coord);
+        vc[0][n] = node_coord[0];
+        vc[1][n] = node_coord[1];
+        if (mesh->second.first->space_dimension() == 3)
+          vc[2][n] = node_coord[2];
+      }
+      S_->GetField(node_key, owner)->set_initialized();
+    }
+  }
 
   // Initialize the process kernels
   pk_->Initialize(S_.ptr());
@@ -325,6 +352,7 @@ double rss_usage() { // return ru_maxrss in MBytes
 void Coordinator::report_memory() {
   // report the memory high water mark (using ru_maxrss)
   // this should be called at the very end of a simulation
+  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     double global_ncells(0.0);
     double local_ncells(0.0);
@@ -353,20 +381,19 @@ void Coordinator::report_memory() {
     comm_->MinAll(&mem,&min_mem,1);
     comm_->MaxAll(&mem,&max_mem,1);
 
-    Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "======================================================================" << std::endl;
-    *vo_->os() << "All meshes combined have " << global_ncells << " cells." << std::endl;
-    *vo_->os() << "Memory usage (high water mark):" << std::endl;
-    *vo_->os() << std::fixed << std::setprecision(1);
-    *vo_->os() << "  Maximum per core:   " << std::setw(7) << max_mem
-          << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
-          << " Bytes" << std::endl;
-    *vo_->os() << "  Minimum per core:   " << std::setw(7) << min_mem
-          << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
-         << " Bytes" << std::endl;
-    *vo_->os() << "  Total:              " << std::setw(7) << total_mem
-          << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
-          << " Bytes" << std::endl;
+    *vo_->os() << "======================================================================" << std::endl
+               << "All meshes combined have " << global_ncells << " cells." << std::endl
+               << "Memory usage (high water mark):" << std::endl
+               << std::fixed << std::setprecision(1)
+               << "  Maximum per core:   " << std::setw(7) << max_mem
+               << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
+               << " Bytes" << std::endl
+               << "  Minimum per core:   " << std::setw(7) << min_mem
+               << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
+               << " Bytes" << std::endl
+               << "  Total:              " << std::setw(7) << total_mem
+               << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
+               << " Bytes" << std::endl;
   }
 
 
@@ -381,13 +408,12 @@ void Coordinator::report_memory() {
   comm_->MinAll(&doubles_count,&min_doubles_count,1);
   comm_->MaxAll(&doubles_count,&max_doubles_count,1);
 
-  Teuchos::OSTab tab = vo_->getOSTab();
-  *vo_->os() << "Doubles allocated in state fields " << std::endl;
-  *vo_->os() << "  Maximum per core:   " << std::setw(7)
-             << max_doubles_count*8/1024/1024 << " MBytes" << std::endl;
-  *vo_->os() << "  Minimum per core:   " << std::setw(7)
-             << min_doubles_count*8/1024/1024 << " MBytes" << std::endl;
-  *vo_->os() << "  Total:              " << std::setw(7)
+  *vo_->os() << "Doubles allocated in state fields " << std::endl
+             << "  Maximum per core:   " << std::setw(7)
+             << max_doubles_count*8/1024/1024 << " MBytes" << std::endl
+             << "  Minimum per core:   " << std::setw(7)
+             << min_doubles_count*8/1024/1024 << " MBytes" << std::endl
+             << "  Total:              " << std::setw(7)
              << global_doubles_count*8/1024/1024 << " MBytes" << std::endl;
 }
 
@@ -479,6 +505,9 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
     *S_ = *S_next_;
     *S_inter_ = *S_next_;
 
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("good") << "successful cycle" << vo_->reset() << std::endl;
+
   } else {
     // Failed the timestep.
     // Potentially write out failed timestep for debugging
@@ -493,10 +522,7 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         // collect the old coordinates
-        std::string node_key;
-        if (mesh->first != "domain") node_key= mesh->first+std::string("-vertex_coordinate");
-        else node_key = std::string("vertex_coordinate");
-
+        auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
         Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetFieldData(node_key);
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
@@ -518,6 +544,9 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
       }
     }
     dt_next = get_dt(fail);
+
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("bad") << "failed cycle" << vo_->reset() << std::endl;
   }
   return fail;
 }
@@ -585,14 +614,14 @@ void Coordinator::cycle_driver() {
            (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
            dt > 0.) {
       if (vo_->os_OK(Teuchos::VERB_LOW)) {
-        Teuchos::OSTab tab = vo_->getOSTab();
         *vo_->os() << "======================================================================"
-                  << std::endl << std::endl;
-        *vo_->os() << "Cycle = " << S_->cycle();
-        *vo_->os() << ",  Time [days] = "<< std::setprecision(16) << S_->time() / (60*60*24);
-        *vo_->os() << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)  << std::endl;
-        *vo_->os() << "----------------------------------------------------------------------"
-                  << std::endl;
+                   << std::endl << std::endl
+                   << vo_->color("good") << "Cycle = " << S_->cycle()
+                   << ",  Time [days] = "<< std::setprecision(16) << S_->time() / (60*60*24)
+                   << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)
+                   << vo_->reset() << std::endl
+                   << "----------------------------------------------------------------------"
+                   << std::endl;
       }
 
       *S_->GetScalarData("dt", "coordinator") = dt;

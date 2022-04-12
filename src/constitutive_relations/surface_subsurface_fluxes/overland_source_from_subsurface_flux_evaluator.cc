@@ -19,7 +19,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::OverlandSourceFromSubsurfaceFluxEvalu
     my_key_ = plist_.get<std::string>("source key", "overland_source_from_subsurface");
   }
 
-  flux_key_ = plist_.get<std::string>("flux key", "mass_flux");
+  flux_key_ = plist_.get<std::string>("flux key", "water_flux");
 
   // since we cannot have flux as a dependency (it has no model), we have to
   // use pressure as a proxy.

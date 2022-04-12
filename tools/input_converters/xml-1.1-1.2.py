@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ATS input converter from 1.1 to main development branch"""
+"""ATS input converter from 1.1 to release 1.2"""
 
 import sys, os
 try:
@@ -77,7 +77,7 @@ def seb_twocomponent(xml, eval_name):
             albedo.setName(dname+'-albedos')
             albedo_type = asearch.child_by_name(albedo, "field evaluator type")
             if albedo_type.getValue() == "albedo":
-                albedo_type.setValue("two-component subgrid albedos")
+                albedo_type.setValue("subgrid albedos, two components")
 
 
 
@@ -124,7 +124,7 @@ def seb_threecomponent(xml, eval_name):
             albedo.setName(dname+'-albedos')
             albedo_type = asearch.child_by_name(albedo, "field evaluator type")
             if albedo_type.getValue() == "albedo":
-                albedo_type.setValue("three-component subgrid albedos")
+                albedo_type.setValue("subgrid albedos, three components")
 
 def create_landcover(xml, eval_name='water_source', water_transition_depth=0.02):
     """Adds a default land-cover section that will be the same as the Arctic defaults."""
@@ -234,7 +234,7 @@ def update(xml, seb_new=False):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 1.1 to the development branch")
+    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 1.1 to release 1.2")
     parser.add_argument("infile", help="input filename")
 
     group = parser.add_mutually_exclusive_group()

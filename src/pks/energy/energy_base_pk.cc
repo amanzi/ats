@@ -70,7 +70,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
-  flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   energy_flux_key_ = Keys::readKey(*plist_, domain_, "diffusive energy flux", "diffusive_energy_flux");
   adv_energy_flux_key_ = Keys::readKey(*plist_, domain_, "advected energy flux", "advected_energy_flux");
   conductivity_key_ = Keys::readKey(*plist_, domain_, "thermal conductivity", "thermal_conductivity");
@@ -309,6 +309,13 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S)
   // require a flux field
   S->RequireField(flux_key_)->SetMesh(mesh_)->SetGhosted()
       ->AddComponent("face", AmanziMesh::FACE, 1);
+  S->RequireFieldEvaluator(flux_key_);
+
+  // require a water content field -- used for computing energy density in the
+  // error norm
+  S->RequireField(wc_key_)->SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S->RequireFieldEvaluator(wc_key_);
 
   // Require a field for the energy fluxes for diagnostics
   S->RequireField(energy_flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
@@ -487,7 +494,7 @@ void EnergyBase::UpdateBoundaryConditions_(
     markers[f] = Operators::OPERATOR_BC_NEUMANN;
     values[f] = bc->second;
     adv_markers[f] = Operators::OPERATOR_BC_NEUMANN;
-    // push all onto diffusion, assuming that the incoming enthalpy is 0 (likely mass flux is 0)
+    // push all onto diffusion, assuming that the incoming enthalpy is 0 (likely water flux is 0)
   }
 
   // Neumann diffusive flux, not Neumann TOTAL flux.  Potentially advective flux.

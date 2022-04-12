@@ -102,7 +102,7 @@ BCFactory::CreateDynamicFunction(const std::string& list_name) const{
           if (list.isParameter( bc_types[i] )) {
             if (list.isSublist( bc_types[i] )) {
               if ((bc_types[i]=="pressure")||
-                  (bc_types[i]=="mass flux")||
+                  (bc_types[i]=="water flux")||
                   (bc_types[i]=="seepage face pressure")||
                   (bc_types[i]=="seepage face head")||
                   (bc_types[i]=="head")||

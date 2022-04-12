@@ -4,6 +4,8 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+           Markus Berndt
+           Daniil Svyatskiy
 */
 //! Subsidence through bulk ice loss and cell volumetric change.
 
@@ -45,22 +47,22 @@ node coordinate changes.  Three options are available:
   advantage of being simple, it has issues when thaw gradients in the
   horizontal are not zero, as it may result in the loss of volume in a fully
   frozen cell, blowing up the pressure and breaking the code.  This is great
-  when it works, but it almost never works in real problems.
-
-- "global optimization" attempts to directly form and solve the minimization
-  problem to find the nodal changes that result in the target volumetric
-  changes.  Note this has issues with overfitting, so penalty methods are used
-  to smooth the solution of the problem.  This is not particularly robust.
+  when it works, but it almost never works in real problems, except in
+  column-based models, where it is perfect.
 
 - "mstk implementation" MSTK implements an iterated, local optimization method
   that, one-at-a-time, moves nodes to try and match the volumes.  This has
   fewer issues with overfitting, but doesn't always do sane things, and can be
   expensive if iterations don't work well.  This is not particularly robust
-  either, but it seems to be the preferred method for now.
+  either, but it seems to be the preferred method for 2D/3D problems.
 
-.. todo:: Check that "global optimization" even works? --etc
-    
-  
+- "global optimization" attempts to directly form and solve the minimization
+  problem to find the nodal changes that result in the target volumetric
+  changes.  Note this has issues with overfitting, so penalty methods are used
+  to smooth the solution of the problem.  This is currently disabled.
+
+NOTE: all deformation options are treated EXPLICITLY, and depend only upon
+values from the old time.
 
 .. _volumetric-deformation-pk-spec:
 .. admonition:: volumetric-deformation-pk-spec
@@ -82,20 +84,18 @@ node coordinate changes.  Three options are available:
       "deformation mode" == "prescribed"
 
     EVALUATORS:
-    - `"saturation_ice`"
-    - `"saturation_liquid`"
-    - `"saturation_gas`"
-    - `"base_porosity`"
-    - `"porosity`"
-    - `"cell volume`"
-      
+    - `"saturation_ice`" **DOMAIN-saturation_ice**
+    - `"saturation_liquid`" **DOMAIN-saturation_liquid**
+    - `"saturation_gas`" **DOMAIN-saturation_gas**
+    - `"porosity`" **DOMAIN-porosity**
+    - `"cell volume`" **DOMAIN-cell_volume**
+
     INCLUDES:
 
     - ``[pk-physical-default-spec]``
 
 */
 
-  
 #ifndef PKS_VOLUMETRIC_DEFORMATION_HH_
 #define PKS_VOLUMETRIC_DEFORMATION_HH_
 
@@ -121,29 +121,30 @@ class VolumetricDeformation : public PK_Physical_Default {
                         const Teuchos::RCP<TreeVector>& solution);
 
   // Virtual destructor
-  virtual ~VolumetricDeformation() {}
+  virtual ~VolumetricDeformation() = default;
 
   // ConstantTemperature is a PK
   // -- Setup data
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup(const Teuchos::Ptr<State>& S) override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {}
+  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
+    override {}
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {}
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override {}
 
   // -- advance via one of a few methods
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  virtual double get_dt() {
+  virtual double get_dt() override {
     return dt_max_;
   }
 
-  virtual void set_dt(double dt) {
+  virtual void set_dt(double dt) override {
     dt_ = dt;
   }
 
@@ -171,7 +172,7 @@ class VolumetricDeformation : public PK_Physical_Default {
   Teuchos::RCP<Functions::CompositeVectorFunction> deform_func_;
 
   // DEFORM_MODE_SATURATION
-  double min_vol_frac_, min_S_liq_;
+  double min_S_liq_;
 
   // DEFORM_MODE_STRUCTURAL
   double time_scale_, structural_vol_frac_;
@@ -179,17 +180,19 @@ class VolumetricDeformation : public PK_Physical_Default {
   double dt_, dt_max_;
 
   // meshes
-  Key domain_surf_;
+  Key domain_surf_, domain_surf_3d_;
   Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh_;
   Teuchos::RCP<const AmanziMesh::Mesh> surf3d_mesh_;
   Teuchos::RCP<AmanziMesh::Mesh> mesh_nc_;
   Teuchos::RCP<AmanziMesh::Mesh> surf_mesh_nc_;
   Teuchos::RCP<AmanziMesh::Mesh> surf3d_mesh_nc_;
 
-  // operator
-  //  bool global_solve_;
-  //  Teuchos::RCP<CompositeMatrix> operator_;
-  //  Teuchos::RCP<Operators::MatrixVolumetricDeformation> def_matrix_;
+  // keys
+  Key sat_liq_key_, sat_gas_key_, sat_ice_key_;
+  Key cv_key_, del_cv_key_;
+  Key poro_key_;
+  Key vertex_loc_key_, vertex_loc_surf_key_, vertex_loc_surf3d_key_;
+  Key nodal_dz_key_, face_above_dz_key_;
 
   // factory registration
   static RegisteredPKFactory<VolumetricDeformation> reg_;

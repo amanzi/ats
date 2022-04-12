@@ -13,7 +13,7 @@ namespace Flow {
 
 ElevationEvaluator::ElevationEvaluator(Teuchos::ParameterList& plist) :
     SecondaryVariablesFieldEvaluator(plist),
-    updated_once_(false), 
+    updated_once_(false),
     dynamic_mesh_(false) {
 
   Key domain = Keys::getDomain(plist_.get<std::string>("evaluator name"));
@@ -22,8 +22,8 @@ ElevationEvaluator::ElevationEvaluator(Teuchos::ParameterList& plist) :
   my_keys_.push_back(Keys::readKey(plist_, domain, "aspect", "aspect"));
 
   // If the mesh changes dynamically (e.g. due to the presence of a deformation
-  // pk, then we must make sure that elevation is recomputed every time the 
-  // mesh has been deformed. The indicator for the mesh deformation event is the 
+  // pk, then we must make sure that elevation is recomputed every time the
+  // mesh has been deformed. The indicator for the mesh deformation event is the
   // the deformation field.
   dynamic_mesh_ = plist_.get<bool>("dynamic mesh",false);
   deformation_key_ = Keys::getKey(domain, "deformation");
@@ -76,7 +76,8 @@ bool ElevationEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
 }
 
 
-void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
+void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+{
   Teuchos::RCP<CompositeVectorSpace> master_fac;
   for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
        my_key!=my_keys_.end(); ++my_key) {
@@ -95,18 +96,13 @@ void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
     }
   }
 
-  if (master_fac == Teuchos::null) {
-    // No requirements have been set, so we'll have to hope they get set by an
-    // evaluator that depends upon this evaluator.
-  } else {
-    for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
-         my_key!=my_keys_.end(); ++my_key) {
-      Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(*my_key, *my_key);
-
+  if (master_fac != Teuchos::null) {
+    for (const auto& my_key : my_keys_) {
       // Cannot just Update() the factory, since the locations may differ, but
       // at least we can ensure the mesh exists.
-      my_fac->SetMesh(master_fac->Mesh());
-      my_fac->AddComponent("cell", AmanziMesh::CELL, 1);
+      Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key, my_key);
+      my_fac->SetMesh(master_fac->Mesh())
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
     }
   }
 };

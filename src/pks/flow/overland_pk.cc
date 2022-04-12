@@ -104,7 +104,7 @@ void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   upwinding_ = upwfactory.Create(cond_plist, S, name_,
           Keys::getKey(domain_,"overland_conductivity"),
           Keys::getKey(domain_,"upwind_overland_conductivity"),
-          "surface-mass_flux_direction");
+          "surface-water_flux_direction");
 
   // -- require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
@@ -139,7 +139,7 @@ void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
   face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
-  S->RequireField("surface-mass_flux_direction", name_)->SetMesh(mesh_)->SetGhosted()
+  S->RequireField("surface-water_flux_direction", name_)->SetMesh(mesh_)->SetGhosted()
       ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // -- create the operators for the preconditioner
@@ -182,7 +182,7 @@ void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
 
       Key dkey = Keys::getDerivKey(Keys::getKey(domain_, "overland_conductivity"),key_);
       upwinding_dkdp_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-              dkey, duwkey, "surface-mass_flux_direction", 1.e-8));
+              dkey, duwkey, "surface-water_flux_direction", 1.e-8));
     }
   }
 
@@ -197,7 +197,7 @@ void OverlandFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S) {
   S->RequireField(Keys::getKey(domain_,"ponded_depth"), name_)->Update(matrix_->RangeMap())->SetGhosted();
 
   // fluxes
-  S->RequireField("surface-mass_flux", name_)->SetMesh(mesh_)->SetGhosted()
+  S->RequireField("surface-water_flux", name_)->SetMesh(mesh_)->SetGhosted()
       ->SetComponent("face", AmanziMesh::FACE, 1);
 
 };
@@ -291,9 +291,9 @@ void OverlandFlow::Initialize(const Teuchos::Ptr<State>& S) {
     S->GetFieldData(dkey,name_)->PutScalar(1.0);
     S->GetField(dkey,name_)->set_initialized();
   }
-  S->GetField("surface-mass_flux", name_)->set_initialized();
-  S->GetFieldData("surface-mass_flux_direction", name_)->PutScalar(0.);
-  S->GetField("surface-mass_flux_direction", name_)->set_initialized();
+  S->GetField("surface-water_flux", name_)->set_initialized();
+  S->GetFieldData("surface-water_flux_direction", name_)->PutScalar(0.);
+  S->GetField("surface-water_flux_direction", name_)->set_initialized();
   //  S->GetField("surface-velocity", name_)->set_initialized();
 };
 
@@ -338,7 +338,7 @@ void OverlandFlow::Initialize(const Teuchos::Ptr<State>& S) {
 
   // derive the fluxes
   Teuchos::RCP<const CompositeVector> potential = S->GetFieldData(Keys::getKey(domain_, "pres_elev"));
-  Teuchos::RCP<CompositeVector> flux = S->GetFieldData("surface-mass_flux", name_);
+  Teuchos::RCP<CompositeVector> flux = S->GetFieldData("surface-water_flux", name_);
   matrix_diff_->UpdateFlux(potential.ptr(), flux.ptr());
 };
 
@@ -371,7 +371,7 @@ bool OverlandFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) {
 
     // update the direction of the flux -- note this is NOT the flux
     Teuchos::RCP<CompositeVector> flux_dir =
-        S->GetFieldData("surface-mass_flux_direction", name_);
+        S->GetFieldData("surface-water_flux_direction", name_);
     Teuchos::RCP<const CompositeVector> pres_elev = S->GetFieldData(Keys::getKey(domain_, "pres_elev"));
     face_matrix_diff_->UpdateFlux(pres_elev.ptr(), flux_dir.ptr());
 

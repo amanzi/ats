@@ -132,7 +132,7 @@ namespace Impl {
       The angle, in radians
     */
 double DeclinationAngle(double doy) {
-  return 23.45 * M_PI / 180.0 * std::cos(M_2_PI / 365 * (172 - doy));
+  return 23.45 * M_PI / 180.0 * std::cos(2 * M_PI / 365 * (172 - doy));
 }
 
     /*Angle of the sun as a function of the time of day

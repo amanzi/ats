@@ -44,7 +44,13 @@ void MPCSurface::Setup(const Teuchos::Ptr<State>& S)
   kr_uw_key_ = Keys::readKey(*plist_, domain_, "upwind overland conductivity", "upwind_overland_conductivity");
   potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
   pd_bar_key_ = Keys::readKey(*plist_, domain_, "ponded depth, negative", "ponded_depth_bar");
-  mass_flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
+  water_flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
+
+  // require these in case the PK did not do so already
+  S->RequireField(pd_bar_key_)
+    ->SetMesh(S->GetMesh(domain_))
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S->RequireFieldEvaluator(pd_bar_key_);
 
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
   pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
@@ -205,7 +211,7 @@ void MPCSurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
       Teuchos::RCP<const CompositeVector> kr_uw =
         S_next_->GetFieldData(kr_uw_key_);
       Teuchos::RCP<const CompositeVector> flux =
-        S_next_->GetFieldData(mass_flux_key_);
+        S_next_->GetFieldData(water_flux_key_);
 
       S_next_->GetFieldEvaluator(potential_key_)
         ->HasFieldChanged(S_next_.ptr(), name_);
