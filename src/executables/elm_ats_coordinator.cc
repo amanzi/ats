@@ -69,8 +69,15 @@ void ELM_ATSCoordinator::setup() {
   S_->require_time(Amanzi::Tags::CURRENT);
   S_->require_time(Amanzi::Tags::NEXT);
 
+  // assume for now that mesh info has been communicated
   const auto& mesh_subsurf = S_->GetMesh(domain_sub_);
   const auto& mesh_surf = S_->GetMesh(domain_srf_);
+
+  // build columns to allow indexing by column
+  mesh_subsurf->build_columns();
+
+  // number of surface cells is the number of columns
+  ncolumns_ = mesh_surf->num_entities(Amanzi::AmanziMesh::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED);
 
   // require primary variables
   // -- subsurface water source
@@ -81,6 +88,10 @@ void ELM_ATSCoordinator::setup() {
   S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(srf_src_key_, Amanzi::Tags::NEXT,  srf_src_key_)
     .SetMesh(mesh_surf)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
+  // -- porosity
+  S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(por_key_, Amanzi::Tags::NEXT,  por_key_)
+    .SetMesh(mesh_subsurf)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
+  RequireEvaluatorPrimary(por_key_, Amanzi::Tags::NEXT, *S_);
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
@@ -98,6 +109,8 @@ void ELM_ATSCoordinator::initialize() {
   S_->GetRecordW(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_).set_initialized();
   S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).PutScalar(0.);
   S_->GetRecordW(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).set_initialized();
+  S_->GetW<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT, por_key_).PutScalar(0.);
+  S_->GetRecordW(por_key_, Amanzi::Tags::NEXT, por_key_).set_initialized();
 
   // get the intial timestep
   if (!restart_) {
@@ -121,13 +134,19 @@ bool ELM_ATSCoordinator::advance(double dt) {
   double t_old = S_->get_time(Amanzi::Tags::CURRENT);
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
+  // check that dt and time tags align
+  AMANZI_ASSERT(std::abs((t_new - t_old) - dt) < 1.e-4);
+
   // Get incoming state from ELM
   Epetra_MultiVector& srf_water_src = *S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_)
     .ViewComponent("cell", false);
   Epetra_MultiVector& sub_water_src = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
     .ViewComponent("cell", false);
+  Epetra_MultiVector& porosity = *S_->GetW<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT, por_key_)
+    .ViewComponent("cell", false);
   ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
+  ChangedEvaluatorPrimary(por_key_, Amanzi::Tags::NEXT, *S_);
 
   {
     // run model for single timestep
@@ -137,7 +156,23 @@ bool ELM_ATSCoordinator::advance(double dt) {
     S_->advance_time(Amanzi::Tags::NEXT, dt);
 
     // advance pks
-    auto fail = Coordinator::advance();
+    //auto fail = Coordinator::advance();
+    auto fail = pk_->AdvanceStep(t_old, t_new, false);
+    if (!fail) fail |= !pk_->ValidStep();
+
+    if (!fail) {
+      // commit the state, copying NEXT --> CURRENT
+      pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
+
+    } else {
+      // Failed the timestep.
+      // Potentially write out failed timestep for debugging
+      for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
+
+      // copy from old time into new time to reset the timestep
+      pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
+      S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
+    }
 
     if (fail) {
       Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");

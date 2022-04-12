@@ -37,9 +37,10 @@ contains
         call ats_delete_c(this%ptr)
     end subroutine
 
-    integer function ats_setup(this, infile)
+    integer function ats_setup(this, comm, infile)
         implicit none
         class(ats) :: this
+        integer, intent(in) :: comm
         character(len=*), intent(in) :: infile
         character(len=1, kind=C_CHAR) :: c_str_infile(len_trim(infile) + 1)
         integer :: n_char, i
@@ -50,7 +51,7 @@ contains
         end do
         c_str_infile(n_char + 1) = C_NULL_CHAR
 
-        ats_setup = ats_setup_c(this%ptr, c_str_infile)
+        ats_setup = ats_setup_c(this%ptr, comm, c_str_infile)
     end function
 
     subroutine ats_initialize(this)

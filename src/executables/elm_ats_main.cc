@@ -115,7 +115,9 @@ int main(int argc, char *argv[])
 
   // test api from here
   auto driver = ats_create();
-  ats_setup(driver, &input_filename[0]);
+  // dummy fortran comm
+  MPI_Fint comm = 0;
+  ats_setup(driver, &comm, &input_filename[0]);
   ats_initialize(driver);
   ats_advance_test(driver);
   ats_delete(driver);
