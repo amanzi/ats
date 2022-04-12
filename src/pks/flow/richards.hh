@@ -152,6 +152,12 @@ Solves Richards equation:
    * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
       surface boundary conditions from the surface pressure (Dirichlet).
 
+*/
+
+
+/*
+  Debugging including these..
+
    INCLUDES:
    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
 
@@ -170,28 +176,28 @@ Solves Richards equation:
 
    KEYS:
 
-   * `"conserved quantity`" **DOMAIN-water_content** Typically
+   - `"conserved quantity`" **DOMAIN-water_content** Typically
       not set, as the default is good. ``[mol]``
-   * `"mass density`" **DOMAIN-mass_density_liquid** liquid water
+   - `"mass density`" **DOMAIN-mass_density_liquid** liquid water
       density ``[kg m^-3]``
-   * `"molar density`" **DOMAIN-molar_density_liquid** liquid
+   - `"molar density`" **DOMAIN-molar_density_liquid** liquid
       water density ``[mol m^-3]``
-    * `"permeability key`" **DOMAIN-permeability** permeability of the
+   - `"permeability key`" **DOMAIN-permeability** permeability of the
       soil medium ``[m^2]``
-    * `"conductivity key`" **DOMAIN-relative_permeability** scalar
+   - `"conductivity key`" **DOMAIN-relative_permeability** scalar
       coefficient of the permeability ``[-]``
-    * `"upwind conductivity key`" ``[string]``
+   - `"upwind conductivity key`" ``[string]``
       **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
       coefficient of the permeability.  Note the units of this are strange, but
       this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
-    * `"darcy flux key`" **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-    * `"darcy flux direction key`" **DOMAIN-mass_flux_direction**
+   - `"darcy flux key`" **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
+   - `"darcy flux direction key`" **DOMAIN-mass_flux_direction**
       direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
-    * `"darcy velocity key`" **DOMAIN-darcy_velocity** darcy velocity
+   - `"darcy velocity key`" **DOMAIN-darcy_velocity** darcy velocity
       vector, interpolated from faces to cells ``[m s^-1]``
-    * `"saturation key`" **DOMAIN-saturation_liquid** volume
+   - `"saturation key`" **DOMAIN-saturation_liquid** volume
       fraction of the liquid phase ``[-]``
-    * `"saturation gas key`" **DOMAIN-saturation_gas** volume
+   - `"saturation gas key`" **DOMAIN-saturation_gas** volume
       fraction of the gas phase ``[-]``
 
 */

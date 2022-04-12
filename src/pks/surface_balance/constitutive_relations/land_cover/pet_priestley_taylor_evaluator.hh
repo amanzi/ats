@@ -105,9 +105,8 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override {
-    Exceptions::amanzi_throw("NotImplemented: PETPriestleyTaylorEvaluator currently does not provide derivatives.");
-  }
+          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
+
 
  protected:
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;

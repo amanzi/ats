@@ -21,6 +21,8 @@ Teuchos::RCP<WRM> WRMFactory::createWRM(Teuchos::ParameterList& plist) {
     wrm_typename = plist.get<std::string>("wrm type");
   else if (plist.isParameter("WRM Type"))
     wrm_typename = plist.get<std::string>("WRM Type");
+  else if (plist.isParameter("WRM type"))
+    wrm_typename = plist.get<std::string>("WRM type");
   else
     wrm_typename = plist.get<std::string>("wrm type");
   return Teuchos::rcp(CreateInstance(wrm_typename, plist));

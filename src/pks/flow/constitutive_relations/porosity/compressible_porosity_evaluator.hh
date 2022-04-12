@@ -10,6 +10,21 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+Compressible grains are both physically realistic (based on bulk modulus) and a
+simple way to provide a non-elliptic, diagonal term for helping solvers to
+converge.
+
+* `"compressible porosity model parameters`" ``[compressible-porosity-model-spec-list]``
+
+KEYS:
+- `"pressure`" **DOMAIN-pressure**
+- `"base porosity`" **DOMAIN-base_porosity**
+
+*/
+
+
 #ifndef AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_EVALUATOR_HH_
 #define AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_EVALUATOR_HH_
 

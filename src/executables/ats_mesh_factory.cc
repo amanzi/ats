@@ -389,7 +389,7 @@ createMeshColumn(const std::string& mesh_name,
 
   AmanziMesh::Entity_ID lid = mesh_column_plist.get<AmanziMesh::Entity_ID>("entity LID");
   auto parent = S.GetMesh(mesh_column_plist.get<std::string>("parent domain", "domain"));
-  auto mesh = Teuchos::rcp(new AmanziMesh::MeshColumn(parent, lid));
+  auto mesh = AmanziMesh::createColumnMesh(parent, lid);
   bool deformable = mesh_plist.get<bool>("deformable mesh",false);
 
   checkVerifyMesh(mesh_plist, mesh);

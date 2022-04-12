@@ -16,7 +16,7 @@ commonly used in practice is the van Genuchten model, but others are available.
 .. _wrm-evaluator-spec
 .. admonition:: wrm-evaluator-spec
 
-   * `"WRM parameters`" ``[wrm-partition-typedinline-spec-list]``
+   * `"WRM parameters`" ``[WRM-typedinline-spec-list]``
 
    KEYS:
    - `"saturation`" **determined from evaluator name** The name

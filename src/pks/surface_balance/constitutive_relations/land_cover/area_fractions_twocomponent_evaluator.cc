@@ -88,8 +88,9 @@ void
 AreaFractionsTwoComponentEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
 {
-  Errors::Message msg("NotImplemented: AreaFractionsTwoComponentEvaluator currently does not provide derivatives.");
-  Exceptions::amanzi_throw(msg);
+  result->PutScalar(0.);
+  // Errors::Message msg("NotImplemented: AreaFractionsTwoComponentEvaluator currently does not provide derivatives.");
+  // Exceptions::amanzi_throw(msg);
 }
 
 

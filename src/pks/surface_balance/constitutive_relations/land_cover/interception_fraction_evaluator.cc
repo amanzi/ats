@@ -126,14 +126,13 @@ InterceptionFractionEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
       Epetra_MultiVector& tfs_v = *results[2]->ViewComponent(*comp,false);
 
       for (int i=0; i!=inter_v.MyLength(); ++i) {
-        double coef = model_->InterceptionFraction(ai_v[0][i]);
-        double total_precip = rain_v[0][i] + snow_v[0][i];
         inter_v[0][i] = 0.;
 
+        double total_precip = rain_v[0][i] + snow_v[0][i];
         double frac_r = total_precip > 0 ? rain_v[0][i] / total_precip :
           (air_temp_v[0][i] > 273.15 ? 1 : 0);
-        tfr_v[0][i] = (1-coef) * rain_v[0][i] + frac_r;
-        tfs_v[0][i] = (1-coef) * snow_v[0][i] + (1-frac_r);
+        tfr_v[0][i] = frac_r;
+        tfs_v[0][i] = 1 - frac_r;
       }
     }
   }

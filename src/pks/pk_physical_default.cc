@@ -120,7 +120,8 @@ void PK_Physical_Default::Initialize(const Teuchos::Ptr<State>& S) {
     field->Initialize(ic_plist);
 
     // communicate just to make sure values are initialized for valgrind's sake
-    field->GetFieldData()->ScatterMasterToGhosted();
+    if (field->GetFieldData()->Ghosted())
+      field->GetFieldData()->ScatterMasterToGhosted();
     solution_evaluator_->SetFieldAsChanged(S);
   }
 

@@ -27,7 +27,7 @@ DrainageEvaluator::DrainageEvaluator(Teuchos::ParameterList& plist) :
   ai_key_ = Keys::readKey(plist_, domain, "area index", "area_index");
   dependencies_.insert(ai_key_);
 
-  // -- water content of the layer drained
+  // -- water equivalent of the layer drained, in m^3 water per m^2 grid cell area
   wc_key_ = Keys::readKey(plist_, domain, "water equivalent", "water_equivalent");
   dependencies_.insert(wc_key_);
 
@@ -64,16 +64,19 @@ void DrainageEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // evaluate the model
   for (int c=0; c!=res_drainage_c.MyLength(); ++c) {
-    double wcc = std::max(wc[0][c], 0.);
+    double wc_cell = std::max(wc[0][c], 0.);
     AMANZI_ASSERT(ai[0][c] >= 0); // idiot check!
-    double wc_sat = ai[0][c] * wc_sat_;
-    AMANZI_ASSERT(wc_sat >= 0); // idiot check!
-    res_fracwet_c[0][c] = wc_sat > 0. ? wcc / wc_sat : 0.;
-    // must be in [0,1]
+    double wc_cell_sat = wc_sat_ * ai[0][c]; // convert from m^3 H20/ m^2 leaf area to m^3 H20 / m^2 cell area
+    AMANZI_ASSERT(wc_cell_sat >= 0); // idiot check!
+    res_fracwet_c[0][c] = wc_cell_sat > 0. ? wc_cell / wc_cell_sat : 0.;
+    // must be in [0,1] -- note that wc_cell can be > wc_cell_sat
     res_fracwet_c[0][c] = std::max(std::min(res_fracwet_c[0][c], 1.0), 0.0);
-    if (wcc > wc_sat) {
+    if (wc_cell > wc_cell_sat) {
       //  is oversaturated and draining
-      res_drainage_c[0][c] = (wcc - wc_sat) / tau_;
+      // NOTE: should this actually be:
+      // res_drainage_c[0][c] = (wc_cell - wc_cell_sat) / ai[0][c] / tau_;
+      // to make it proportional in units of m^3 H20 per m^2 leaf area
+      res_drainage_c[0][c] = (wc_cell - wc_cell_sat) / tau_;
     } else {
       res_drainage_c[0][c] = 0.;
     }
@@ -96,9 +99,10 @@ DrainageEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
 
   if (wrt_key == wc_key_) {
     for (int c=0; c!=res_drainage_c.MyLength(); ++c) {
-      double wc_sat = ai[0][c] * wc_sat_;
-      res_fracwet_c[0][c] = wc_sat > 0. ? 1/wc_sat : 0;
-      if (wc[0][c] > wc_sat) {
+      double wc_cell = std::max(wc[0][c], 0.);
+      double wc_cell_sat = wc_sat_ * ai[0][c];
+      res_fracwet_c[0][c] = wc_cell_sat > 0. ? 1/wc_cell_sat : 0;
+      if (wc_cell > wc_cell_sat) {
         //  is oversaturated and draining
         res_drainage_c[0][c] = 1.0 / tau_;
       } else {

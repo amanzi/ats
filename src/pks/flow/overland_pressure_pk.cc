@@ -194,10 +194,14 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
   bc_level_flux_lvl_ = bc_factory.CreateFixedLevelFlux_Level();
   bc_level_flux_vel_ = bc_factory.CreateFixedLevelFlux_Velocity();
 
+  // -- mass flux direction is needed for upwinding
+  S->RequireField(flux_dir_key_, name_)->SetMesh(mesh_)->SetGhosted()
+      ->SetComponent("face", AmanziMesh::FACE, 1);
+
   // -- nonlinear coefficients and upwinding
   Teuchos::ParameterList upwind_plist = plist_->sublist("upwinding");
   Operators::UpwindFluxFactory upwfactory;
-  upwinding_ = upwfactory.Create(upwind_plist, name_, cond_key_, uw_cond_key_, flux_dir_key_);
+  upwinding_ = upwfactory.Create(upwind_plist, S, name_, cond_key_, uw_cond_key_, flux_dir_key_);
 
   // -- require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
@@ -232,10 +236,6 @@ void OverlandPressureFlow::SetupOverlandFlow_(const Teuchos::Ptr<State>& S)
   face_matrix_diff_->SetTensorCoefficient(Teuchos::null);
   face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
   face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-
-  // -- mass flux direction is needed for upwinding
-  S->RequireField(flux_dir_key_, name_)->SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // -- create the operators for the preconditioner
   //    diffusion

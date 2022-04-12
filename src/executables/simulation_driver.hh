@@ -24,7 +24,7 @@ ATS's top-level main accepts an XML list including a few required elements.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
     * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.
-    * `"PKs`" ``[pk-typed-spec-list]`` A list of PK_ objects.
+    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of PK_ objects.
     * `"state`" ``[state-spec]`` See State_.
 
  */

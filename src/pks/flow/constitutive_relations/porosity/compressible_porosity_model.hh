@@ -3,8 +3,8 @@
 //! A simple model for allowing porosity to vary with pressure.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
 
@@ -22,18 +22,16 @@ where $H$ is the heaviside function and $\alpha$ is the provided
 compressibility.  If the inflection point is set to zero, the above function
 is exact.  However, then the porosity function is not smooth (has
 discontinuous derivatives).
-  
-* `"pore compressibility [Pa^-1]`" ``[double]``
 
-  $\alpha$ as described above
-  
+* `"pore compressibility [Pa^-1]`" ``[double]``  $\alpha$ as described above
 * `"pore compressibility inflection point [Pa]`" ``[double]`` **1000**
+* `"region`" ``[string]`` Region on which this is applied.
 
   The inflection point above which the function is linear.
 
 Example:
 
-.. code-block::xml  
+.. code-block::xml
 
   <ParameterList name="soil" type="ParameterList">
     <Parameter name="region" type="string" value="soil" />

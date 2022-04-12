@@ -279,8 +279,11 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
   // modify correction using water approaches
   int n_modified = 0;
   n_modified += water_->ModifyCorrection_WaterFaceLimiter(h, res, u, du);
-  double damping = water_->ModifyCorrection_WaterSpurtDamp(h, res, u, du);
+  double damping1 = water_->ModifyCorrection_WaterSpurtDamp(h, res, u, du);
+  double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp(h, res, u, du);
+  double damping = std::min(damping1, damping2);
   n_modified += water_->ModifyCorrection_WaterSpurtCap(h, res, u, du, damping);
+  n_modified += water_->ModifyCorrection_DesaturatedSpurtCap(h, res, u, du, damping);
 
   // -- accumulate globally
   int n_modified_l = n_modified;

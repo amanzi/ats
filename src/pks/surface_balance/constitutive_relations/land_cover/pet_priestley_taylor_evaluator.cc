@@ -60,7 +60,9 @@ groundHeatFlux(double temp_ground, double temp_air)
 
 PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist) :
   SecondaryVariableFieldEvaluator(plist),
-  compatible_(false)
+  compatible_(false),
+  limiter_(false),
+  one_minus_limiter_(false)
 {
   domain_ = Keys::getDomain(my_key_);
 
@@ -184,6 +186,34 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     AMANZI_ASSERT(limiter_min >= -1e-10);
 #endif
     res.Multiply(-1, limiter, res, 1);
+  }
+}
+
+
+void
+PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
+        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+{
+  if (limiter_ && wrt_key == limiter_key_) {
+    const auto& limiter = *S->GetFieldData(limiter_key_)->ViewComponent("cell", false);
+    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
+    auto& res_c = *(*result->ViewComponent("cell", false))(0);
+    res_c.ReciprocalMultiply(1, *limiter(limiter_dof_), *evap_val(0), 0);
+    for (int c=0; c!=res_c.MyLength(); ++c) {
+      if (limiter[limiter_dof_][c] < 1.e-5) {
+        res_c[c] = 0.;
+      }
+    }
+  } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
+    const auto& limiter = *S->GetFieldData(one_minus_limiter_key_)->ViewComponent("cell", false);
+    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
+    auto& res_c = *result->ViewComponent("cell", false);
+    res_c.ReciprocalMultiply(-1, limiter, evap_val, 0);
+    for (int c=0; c!=res_c.MyLength(); ++c) {
+      if (limiter[0][c] < 1.e-5) {
+        res_c[0][c] = 0.;
+      }
+    }
   }
 }
 

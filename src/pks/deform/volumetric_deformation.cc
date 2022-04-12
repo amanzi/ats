@@ -102,7 +102,8 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
   }
 
   // create storage for primary variable, rock volume
-  S->RequireField(key_, name_)->SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireField(key_, name_)->SetMesh(mesh_)->SetGhosted()
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // Create storage and a function for cell volume change
   Teuchos::RCP<CompositeVectorSpace> cv_fac =  S->RequireField(Keys::getKey(domain_,"cell_volume_change"), name_);
@@ -154,7 +155,8 @@ void VolumetricDeformation::Setup(const Teuchos::Ptr<State>& S) {
         ->SetComponent("node", AmanziMesh::NODE, dim-1);
   }
 
-  S->RequireField(Keys::getKey(domain_,"cell_volume"))->SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireField(Keys::getKey(domain_,"cell_volume"))
+    ->SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   S->RequireFieldEvaluator(Keys::getKey(domain_,"cell_volume"));
 
   // Strategy-specific setup

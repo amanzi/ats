@@ -9,6 +9,7 @@
 
 #include "Teuchos_ParameterList.hpp"
 #include "dbc.hh"
+#include "errors.hh"
 #include "interception_fraction_model.hh"
 
 namespace Amanzi {
@@ -27,6 +28,12 @@ void
 InterceptionFractionModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 {
   alpha_ = plist.get<double>("leaf area interception fraction [-]", 0.25);
+  if (alpha_ < 0 && alpha_ > 1) {
+    Errors::Message msg;
+    msg << "InterceptionFraction: invalid \"leaf area interception fraction [-]\", must be in [0,1] (provided: "
+        << alpha_ << ")";
+    Exceptions::amanzi_throw(alpha_);
+  }
 }
 
 

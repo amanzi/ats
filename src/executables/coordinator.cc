@@ -90,7 +90,7 @@ void Coordinator::coordinator_init() {
   for (auto& sublist : observation_plist) {
     if (observation_plist.isSublist(sublist.first)) {
       observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
-                observation_plist.sublist(sublist.first), S_.ptr())));
+                observation_plist.sublist(sublist.first))));
     } else {
       Errors::Message msg("\"observations\" list must only include sublists.");
       Exceptions::amanzi_throw(msg);
@@ -129,7 +129,10 @@ void Coordinator::setup() {
   S_->set_cycle(cycle0_);
   S_->RequireScalar("dt", "coordinator");
 
+  // order matters here -- PKs set the leaves, then observations can use those
+  // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->Setup(S_.ptr());
+  for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
 }
 
@@ -581,7 +584,7 @@ void Coordinator::cycle_driver() {
            ((cycle1_ == -1) || (S_->cycle() <= cycle1_)) &&
            (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
            dt > 0.) {
-      if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
+      if (vo_->os_OK(Teuchos::VERB_LOW)) {
         Teuchos::OSTab tab = vo_->getOSTab();
         *vo_->os() << "======================================================================"
                   << std::endl << std::endl;

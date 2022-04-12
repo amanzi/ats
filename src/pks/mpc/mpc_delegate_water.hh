@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -38,7 +38,7 @@ These methods work to alter the predictor around this nonlinearity.
     * `"modify predictor damp and cap the water spurt`" ``[bool]`` **false** The
       second both limits (caps) and damps all surface cells to ensure that all
       nearby cells are also not overshooting.  This is the preferred method.
-    
+
     These methods work to alter the preconditioned correction for the same
     reasons described above.
 
@@ -55,7 +55,7 @@ These methods work to alter the predictor around this nonlinearity.
       one) is calculated to multiply the correction such that the largest
       correction takes a cell to just above atmospheric.  All faces (globally)
       are affected.
-  
+
     * `"damp and cap the water spurt`" ``[bool]`` **false** None of the above
       should really be used.  Capping, when the cap is particularly severe,
       results in faces whose values are very out of equilibrium with their
@@ -71,7 +71,7 @@ These methods work to alter the predictor around this nonlinearity.
 
     * `"cap over atmospheric`" ``[double]`` **100** This sets the max size over
       atmospheric to which things are capped or damped. `[Pa]`
-  
+
  */
 
 
@@ -84,7 +84,7 @@ class MPCDelegateWater {
   MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist, std::string domain=" ");
 
   void set_db(const Teuchos::RCP<Debugger>& db) { db_ = db; }
-  
+
   void
   set_states(const Teuchos::RCP<State>& S,
              const Teuchos::RCP<State>& S_inter,
@@ -131,6 +131,14 @@ class MPCDelegateWater {
                                     Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
 
   double
+  ModifyCorrection_DesaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
+          Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
+
+  int
+  ModifyCorrection_DesaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
+                                    Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
+
+  double
   ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
           Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
 
@@ -138,11 +146,11 @@ class MPCDelegateWater {
   ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
                                     Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
 
- protected:
+protected:
   Teuchos::RCP<Teuchos::ParameterList> plist_;
   Teuchos::RCP<VerboseObject> vo_;
   Teuchos::RCP<Debugger> db_;
-  
+
   // states
   Teuchos::RCP<State> S_next_;
   Teuchos::RCP<State> S_inter_;
@@ -152,13 +160,15 @@ class MPCDelegateWater {
   bool modify_predictor_heuristic_;
   bool modify_predictor_spurt_damping_;
   bool modify_predictor_tempfromsource_;
-  
+
   // Preconditioned correction alteration
   // -- control
   bool cap_the_spurt_;
   bool damp_the_spurt_;
   bool cap_the_sat_spurt_;
   bool damp_the_sat_spurt_;
+  bool cap_the_desat_spurt_;
+  bool damp_the_desat_spurt_;
 
   // -- parameters
   double cap_size_;
@@ -178,4 +188,4 @@ class MPCDelegateWater {
 
 
 
-#endif 
+#endif

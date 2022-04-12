@@ -152,7 +152,8 @@ void
 RadiationBalanceEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
         Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results)
 {
-  AMANZI_ASSERT(false);
+  for (const auto& res : results) res->PutScalar(0.);
+//  AMANZI_ASSERT(false);
 }
 
 

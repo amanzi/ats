@@ -327,7 +327,7 @@ class RegressionTest(object):
                                         stderr=run_stdout)
 
             while proc.poll() is None:
-                time.sleep(0.1)
+                time.sleep(1)
                 if time.time() - start > self._timeout:
                     proc.kill()
                     time.sleep(0.1)
@@ -1123,6 +1123,10 @@ class RegressionTestManager(object):
     def run_status(self):
         return self._file_status
 
+    def display_selected_tests(self):
+        for test in self._tests:
+            print("{0} {1}".format(os.path.split(os.getcwd())[-1], test.name()))
+    
     def display_available_tests(self):
         for test in sorted(self._available_tests.keys()):
             print("{0} {1}".format(os.path.split(os.getcwd())[-1], test))
@@ -1278,17 +1282,12 @@ class RegressionTestManager(object):
                 all_tests.append(test)
 
         for test in all_tests:
-            #try:
             new_test = RegressionTest(self._executable, self._mpiexec, self._version, self._suffix)
             criteria = self._default_test_criteria.copy()
             new_test.setup(criteria,
                            self._available_tests[test], timeout,
                            check_performance, testlog)
             self._tests.append(new_test)
-            #except Exception as error:
-            #    raise RuntimeError("ERROR : could not create test '{0}' from "
-            #                       "config file '{1}'. {2}".format(
-            #                           test, self._config_filename, str(error)))
 
 
 def config_list_includes_search(options):
@@ -1329,7 +1328,7 @@ def generate_config_file_list(options):
         raise RuntimeError("ERROR: no config files were found. Please specify a "
                            "config file or search directory containing config files.")
 
-    return config_file_list
+    return sorted(config_file_list)
 
 
 def search_for_config_files(base_dir, config_file_list):

@@ -309,7 +309,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
 
   S->RequireFieldCopy(flux_key_, "next_timestep", name_);
   flux_copy_ = S->GetFieldCopyData(flux_key_,  "next_timestep", name_)->ViewComponent("face", true);
-  flux_copy_ -> PutScalar(0.);
+  flux_copy_->PutScalar(0.);
 
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   Policy(S.ptr());
@@ -373,7 +373,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
   // create boundary conditions
   if (plist_->isSublist("boundary conditions")) {
     // -- try tracer-type conditions
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_);
+    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_bcs_list = plist_->sublist("boundary conditions").sublist("concentration");
 
     for (const auto& it : conc_bcs_list) {
@@ -466,7 +466,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
 
   // source term initialization: so far only "concentration" is available.
   if (plist_->isSublist("source terms")) {
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_);
+    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
 
     for (const auto& it : conc_sources_list) {
@@ -590,7 +590,7 @@ void Transport_ATS::InitializeFieldFromField_(const std::string& field0,
 {
   if (S->HasField(field0)) {
     if (S->GetField(field0)->owner() == name_) {
-      if ((!S->GetField(field0, name_)->initialized())||(overwrite)) {
+      if ((!S->GetField(field0, name_)->initialized()) || overwrite) {
         if (call_evaluator)
             S->GetFieldEvaluator(field1)->HasFieldChanged(S.ptr(), name_);
 
@@ -658,22 +658,23 @@ double Transport_ATS::StableTimeStep()
   // }
 
   // loop over cells and calculate minimal time step
-  double vol, outflux, dt_cell;
-  double ws_min_dt, outflux_min_dt;
-  vol=0;
-  dt_ = dt_cell = TRANSPORT_LARGE_TIME_STEP;
+  double vol = 0.;
+  double ws_min_dt = 0.;
+  double outflux_min_dt = 0.;
+  dt_ = TRANSPORT_LARGE_TIME_STEP;
+  double dt_cell = TRANSPORT_LARGE_TIME_STEP;
   int cmin_dt = 0;
   for (int c = 0; c < ncells_owned; c++) {
-    outflux = total_outflux[c];
+    double outflux = total_outflux[c];
 
-    if ((outflux > 0) && ((*ws_prev_)[0][c]>0) && ((*ws_)[0][c]>0) && ((*phi_)[0][c] > 0 )) {
+    if ((outflux > 0) && ((*ws_prev_)[0][c] > 0) && ((*ws_)[0][c] > 0) && ((*phi_)[0][c] > 0 )) {
       vol = mesh_->cell_volume(c);
-      dt_cell = vol * (*mol_dens_)[0][c] * (*phi_)[0][c] * std::min( (*ws_prev_)[0][c], (*ws_)[0][c] ) / outflux;
+      dt_cell = vol * (*mol_dens_)[0][c] * (*phi_)[0][c] * std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
     }
     if (dt_cell < dt_) {
       dt_ = dt_cell;
       cmin_dt = c;
-      ws_min_dt = std::min( (*ws_prev_)[0][c], (*ws_)[0][c] );
+      ws_min_dt = std::min((*ws_prev_)[0][c], (*ws_)[0][c]);
       outflux_min_dt = total_outflux[c];
     }
   }
@@ -691,18 +692,16 @@ double Transport_ATS::StableTimeStep()
 
   // print optional diagnostics using maximum cell id as the filter
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    int cmin_dt_unique = (fabs(dt_tmp * cfl_ - dt_) < 1e-6 * dt_) ? cell_map->GID(cmin_dt) : -2;
+    int cmin_dt_unique = (std::abs(dt_tmp * cfl_ - dt_) < 1e-6 * dt_) ? cell_map->GID(cmin_dt) : -2;
 
     int cmin_dt_tmp = cmin_dt_unique;
     comm.MaxAll(&cmin_dt_tmp, &cmin_dt_unique, 1);
     int min_pid=-1;
 
     double tmp_package[6];
-
     if (cell_map->GID(cmin_dt) == cmin_dt_unique) {
       const AmanziGeometry::Point& p = mesh_->cell_centroid(cmin_dt);
 
-      Teuchos::OSTab tab = vo_->getOSTab();
       min_pid = comm.MyPID();
       tmp_package[0] = ws_min_dt;
       tmp_package[1] = outflux_min_dt;
@@ -715,16 +714,14 @@ double Transport_ATS::StableTimeStep()
 
     int min_pid_tmp = min_pid;
     comm.MaxAll(&min_pid_tmp, &min_pid, 1);
-
     comm.Broadcast(tmp_package, 6, min_pid);
 
     Teuchos::OSTab tab = vo_->getOSTab();
-    *vo_->os() << "Stable time step "<<dt_<< " is computed at ("<< tmp_package[2]<<", " <<tmp_package[3];
-    if (fabs(3 - tmp_package[5]) <1e-10) *vo_->os()<<", "<<tmp_package[4];
-    *vo_->os() <<")"<<std::endl;
-
-    *vo_->os() << "Stable time step "<<dt_<< " is limited by saturation/ponded_depth "<<tmp_package[0]<<" and "
-	       << "output flux "<<tmp_package[1]<<std::endl;
+    *vo_->os() << "Stable time step " << dt_ << " is computed at (" << tmp_package[2] << ", " << tmp_package[3];
+    if (fabs(3 - tmp_package[5]) <1e-10) *vo_->os() << ", " << tmp_package[4];
+    *vo_->os() << ")" << std::endl;
+    *vo_->os() << "Stable time step " << dt_ << " is limited by saturation/ponded_depth " << tmp_package[0] << " and "
+	       << "output flux " << tmp_package[1] << std::endl;
   }
   return dt_;
 }

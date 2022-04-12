@@ -230,7 +230,9 @@ if __name__ == "__main__":
             print("s = {}".format(s))
             assert(2 <= len(s) <= 3)
 
-            pc_open, pc_closed = map(float, s[0:2])
+
+            p_open, p_closed = map(float, s[0:2])
+
 
             if len(s) > 2:
                 label = s[2]
@@ -238,8 +240,8 @@ if __name__ == "__main__":
                 label = None
 
             print("Wilting Point limiter:")
-            print(f"  pc_open = {pc_open}")
-            print(f"  pc_closed = {pc_closed}")
+            print(f"  p_open = {p_open}")
+            print(f"  p_closed = {p_closed}")
             print(f"  label = {label}")
             
         except:
@@ -254,6 +256,11 @@ if __name__ == "__main__":
     parser.add_argument('--kr', action='store_true', help='Plot relative permeability curve')
 
     args = parser.parse_args()
+    if args.wrm is None:
+        args.wrm = []
+    if args.wp is None:
+        args.wp = []
+        
     color_list = colors.enumerated_colors(len(args.wrm)+len(args.wp))
 
     fig = plt.figure()
@@ -265,7 +272,8 @@ if __name__ == "__main__":
     else:
         for (label,wrm), color in zip(args.wrm, color_list):
             plot(wrm, ax, color, y_units=args.y_units, label=label)
-        for (label,wp), color in zip(args.wp, color_list[len(args.wrm):]):
+
+        for (label,wp), color in zip(args.wrm, color_list[len(args.wrm):]):
             plot(wp, ax, color, y_units=args.y_units, label=label)
     ax.legend()
     plt.show()

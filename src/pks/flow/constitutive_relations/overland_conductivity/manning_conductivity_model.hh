@@ -26,6 +26,7 @@ public:
 protected:
   double slope_regularization_;
   double manning_exp_;
+  double depth_max_;
 };
 
 } // namespace
