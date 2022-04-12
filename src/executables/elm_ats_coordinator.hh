@@ -53,6 +53,7 @@ private:
   Amanzi::Key pres_key_;
   Amanzi::Key satl_key_;
   Amanzi::Key por_key_;
+  int ncolumns_;
 
 };
 

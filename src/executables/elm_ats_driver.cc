@@ -70,10 +70,12 @@
 namespace ATS {
 
 int
-ELM_ATSDriver::setup(char *infile)
+ELM_ATSDriver::setup(MPI_Fint *f_comm, char *infile)
 {
   // -- create communicator & get process rank
-  auto comm = Amanzi::getDefaultComm();
+  //auto comm = Amanzi::getDefaultComm();
+  auto c_comm = MPI_Comm_f2c(*f_comm);
+  auto comm = setComm(c_comm);
   auto rank = comm->MyPID();
 
   // convert input file to std::string for easier handling

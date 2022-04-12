@@ -16,7 +16,7 @@ program elm_test
     ats_driver = ats()
 
     ! call ATS methods
-    dummy_return = ats_driver%setup(infile_name)
+    dummy_return = ats_driver%setup(MPI_COMM_WORLD, infile_name)
     call ats_driver%initialize()
     call ats_driver%advance_test()
 
