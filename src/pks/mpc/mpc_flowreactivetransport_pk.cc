@@ -34,7 +34,7 @@ FlowReactiveTransport_PK_ATS::FlowReactiveTransport_PK_ATS(
 
   flow_timer_ = Teuchos::TimeMonitor::getNewCounter("flow");
   rt_timer_ = Teuchos::TimeMonitor::getNewCounter("reactive tranport");
-  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "mass_flux");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
 }
 
 
