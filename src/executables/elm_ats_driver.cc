@@ -153,6 +153,12 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(srf_src_key_, Amanzi::Tags::NEXT,  srf_src_key_)
     .SetMesh(mesh_surf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
+  S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>("dz", Amanzi::Tags::NEXT,  "dz")
+    .SetMesh(mesh_subsurf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
+  RequireEvaluatorPrimary("dz", Amanzi::Tags::NEXT, *S_);
+  S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>("depth", Amanzi::Tags::NEXT,  "depth")
+    .SetMesh(mesh_subsurf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
+  RequireEvaluatorPrimary("depth", Amanzi::Tags::NEXT, *S_);
   // -- porosity
   //S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(por_key_, Amanzi::Tags::NEXT,  por_key_)
   //  .SetMesh(mesh_subsurf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
@@ -172,6 +178,10 @@ void ELM_ATSDriver::initialize()
   S_->GetRecordW(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_).set_initialized();
   S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).PutScalar(0.);
   S_->GetRecordW(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).set_initialized();
+  S_->GetW<Amanzi::CompositeVector>("dz", Amanzi::Tags::NEXT, "dz").PutScalar(0.);
+  S_->GetRecordW("dz", Amanzi::Tags::NEXT, "dz").set_initialized();
+  S_->GetW<Amanzi::CompositeVector>("depth", Amanzi::Tags::NEXT, "depth").PutScalar(0.);
+  S_->GetRecordW("depth", Amanzi::Tags::NEXT, "depth").set_initialized();
   //S_->GetW<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT, por_key_).PutScalar(0.);
   //S_->GetRecordW(por_key_, Amanzi::Tags::NEXT, por_key_).set_initialized();
 
@@ -303,6 +313,86 @@ ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, d
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       soil_pressure[col*ncol_cells_+i] = pres[0][col_iter[i]];
       saturation[col*ncol_cells_+i] = sat[0][col_iter[i]];
+    }
+  }
+
+}
+
+void ELM_ATSDriver::get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col,
+    double *dz, double *depth, double *surf_area_m2, double *lat, double *lon)
+{
+  *ncols_local = static_cast<int>(mesh_surf_->num_entities(Amanzi::AmanziMesh::Entity_kind::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED));
+  *ncols_global = static_cast<int>(mesh_surf_->num_entities(Amanzi::AmanziMesh::Entity_kind::CELL, Amanzi::AmanziMesh::Parallel_type::ALL));
+  *ncells_per_col = static_cast<int>(ncol_cells_);
+
+  col_depth(dz, depth);
+  ChangedEvaluatorPrimary("dz", Amanzi::Tags::NEXT, *S_);
+  ChangedEvaluatorPrimary("depth", Amanzi::Tags::NEXT, *S_);
+
+  // dummy lat lon for now
+  *lat = 0.5;
+  *lon = 0.5;
+
+  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+    // -- get the surface cell's equivalent subsurface face
+    Amanzi::AmanziMesh::Entity_ID f = mesh_surf_->entity_get_parent(Amanzi::AmanziMesh::CELL, col);
+    surf_area_m2[col] = mesh_subsurf_->face_area(f);
+  }
+}
+
+
+// helper function for collecting column dz and depth
+void ELM_ATSDriver::col_depth(double *dz, double *depth) {
+
+  // get dz and depth
+  Epetra_MultiVector& dz_ats = *S_->GetW<Amanzi::CompositeVector>("dz", Amanzi::Tags::NEXT, "dz")
+      .ViewComponent("cell", false);
+  Epetra_MultiVector& depth_ats = *S_->GetW<Amanzi::CompositeVector>("depth", Amanzi::Tags::NEXT, "depth")
+      .ViewComponent("cell", false);
+  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+
+    Amanzi::AmanziMesh::Entity_ID f_above = mesh_surf_->entity_get_parent(Amanzi::AmanziMesh::CELL, col);
+
+    auto& col_iter = mesh_subsurf_->cells_of_column(col);
+
+    // assumed constant, so not using now
+    auto ncells_per_col = col_iter.size();
+
+    Amanzi::AmanziGeometry::Point surf_centroid = mesh_subsurf_->face_centroid(f_above);
+    Amanzi::AmanziGeometry::Point neg_z(3);
+    neg_z.set(0.,0.,-1);
+
+    for (std::size_t i=0; i!=col_iter.size(); ++i) {
+      // depth centroid
+      //(*depth)[i] = surf_centroid[2] - mesh_subsurf_->cell_centroid(col_iter[i])[2];
+      depth[col*ncol_cells_+i] = surf_centroid[2] - mesh_subsurf_->cell_centroid(col_iter[i])[2];
+
+      // dz
+      // -- find face_below
+      Amanzi::AmanziMesh::Entity_ID_List faces;
+      std::vector<int> dirs;
+      mesh_subsurf_->cell_get_faces_and_dirs(col_iter[i], &faces, &dirs);
+
+      // -- mimics implementation of build_columns() in Mesh
+      double mindp = 999.0;
+      Amanzi::AmanziMesh::Entity_ID f_below = -1;
+      for (std::size_t j=0; j!=faces.size(); ++j) {
+        Amanzi::AmanziGeometry::Point normal = mesh_subsurf_->face_normal(faces[j]);
+        if (dirs[j] == -1) normal *= -1;
+        normal /= Amanzi::AmanziGeometry::norm(normal);
+
+        double dp = -normal * neg_z;
+        if (dp < mindp) {
+          mindp = dp;
+          f_below = faces[j];
+        }
+      }
+
+      // -- fill the val
+      //(*dz)[i] = mesh_subsurf_->face_centroid(f_above)[2] - mesh_subsurf_->face_centroid(f_below)[2];
+      dz[col*ncol_cells_+i] = mesh_subsurf_->face_centroid(f_above)[2] - mesh_subsurf_->face_centroid(f_below)[2];
+      AMANZI_ASSERT( dz[col*ncol_cells_+i] > 0. );
+      f_above = f_below;
     }
   }
 

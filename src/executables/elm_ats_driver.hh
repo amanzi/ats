@@ -26,10 +26,16 @@ public:
   void advance(double *dt);
   void advance_test();
 
-  void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration, int *ncols, int *ncells);
-  void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation, int *ncols, int *ncells);
+  void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
+    int *ncols, int *ncells);
+  void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation,
+    int *ncols, int *ncells);
+  void get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col, double *dz,
+    double *depth, double *surf_area_m2, double *lat, double *lon);
 
 private:
+
+  void col_depth(double *dz, double *depth);
 
   std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
   Teuchos::RCP<Amanzi::State> S_;
