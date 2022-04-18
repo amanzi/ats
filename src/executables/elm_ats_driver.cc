@@ -120,12 +120,10 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   pd_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "ponded depth", "ponded_depth");
   satl_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "saturation_liquid", "saturation_liquid");
   por_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "porosity", "porosity");
-
+  elev_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "elevation", "elevation");
 
   srf_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface molar density", "molar_density_liquid");
   srf_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface mass density", "mass_density_liquid");
-
-
   sub_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "molar density", "molar_density_liquid");
   sub_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "mass density", "mass_density_liquid");
 
@@ -319,7 +317,7 @@ ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, d
 }
 
 void ELM_ATSDriver::get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col,
-    double *dz, double *depth, double *surf_area_m2, double *lat, double *lon)
+    double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon)
 {
   *ncols_local = static_cast<int>(mesh_surf_->num_entities(Amanzi::AmanziMesh::Entity_kind::CELL, Amanzi::AmanziMesh::Parallel_type::OWNED));
   *ncols_global = static_cast<int>(mesh_surf_->num_entities(Amanzi::AmanziMesh::Entity_kind::CELL, Amanzi::AmanziMesh::Parallel_type::ALL));
@@ -329,15 +327,20 @@ void ELM_ATSDriver::get_mesh_info(int *ncols_local, int *ncols_global, int *ncel
   ChangedEvaluatorPrimary("dz", Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary("depth", Amanzi::Tags::NEXT, *S_);
 
-  // dummy lat lon for now
-  *lat = 0.5;
-  *lon = 0.5;
+  S_->GetEvaluator(elev_key_, Amanzi::Tags::NEXT).Update(*S_, elev_key_);
+  const Epetra_MultiVector& elev_ats = *S_->Get<Amanzi::CompositeVector>(elev_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("face",false);
 
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     // -- get the surface cell's equivalent subsurface face
     Amanzi::AmanziMesh::Entity_ID f = mesh_surf_->entity_get_parent(Amanzi::AmanziMesh::CELL, col);
     surf_area_m2[col] = mesh_subsurf_->face_area(f);
+    elev[col] = elev_ats[0][col];
   }
+
+  // dummy lat lon for now
+  *lat = 0.5;
+  *lon = 0.5;
 }
 
 
