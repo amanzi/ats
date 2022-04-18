@@ -17,6 +17,7 @@ module libats
         procedure :: advance => ats_advance
         procedure :: advance_test => ats_advance_test
         procedure :: set_sources => ats_set_sources
+        procedure :: get_waterstate => ats_get_waterstate
     end type
 
     ! wow fortran constructor wow
@@ -83,6 +84,17 @@ contains
         integer, intent(in) :: ncols
         integer, intent(in) :: ncells
         call ats_set_sources_c(this%ptr, soil_infil, soil_evap, root_trans, ncols, ncells)
+    end subroutine
+
+    subroutine ats_get_waterstate(this, surf_pres, soil_pres, satur, ncols, ncells)
+        implicit none
+        class(ats) :: this
+        double precision, dimension(*), intent(in) :: surf_pres
+        double precision, dimension(*), intent(in) :: soil_pres
+        double precision, dimension(*), intent(in) :: satur
+        integer, intent(in) :: ncols
+        integer, intent(in) :: ncells
+        call ats_get_waterstate_c(this%ptr, surf_pres, soil_pres, satur, ncols, ncells)
     end subroutine
 
 end module

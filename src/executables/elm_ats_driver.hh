@@ -27,9 +27,9 @@ public:
   void advance_test();
 
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration, int *ncols, int *ncells);
+  void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation, int *ncols, int *ncells);
 
 private:
-  void push_to_columns(Epetra_MultiVector& ats_vec, double* elm_data);
 
   std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
   Teuchos::RCP<Amanzi::State> S_;
@@ -41,6 +41,7 @@ private:
   Amanzi::Key sub_src_key_;
   Amanzi::Key srf_src_key_;
   Amanzi::Key pres_key_;
+  Amanzi::Key pd_key_;
   Amanzi::Key satl_key_;
   Amanzi::Key por_key_;
 

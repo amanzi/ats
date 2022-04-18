@@ -117,6 +117,7 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   sub_src_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "subsurface source", "source_sink");
   srf_src_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface source", "source_sink");
   pres_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "pressure", "pressure");
+  pd_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "ponded depth", "ponded_depth");
   satl_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "saturation_liquid", "saturation_liquid");
   por_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "porosity", "porosity");
 
@@ -222,17 +223,24 @@ for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col)
   {  Epetra_MultiVector[0][col_iter[i]] = elm_data[col*ncol_cells_+i]; }
 }
 
+assume evaporation and infiltration have same sign
 */
 
-void ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration, int *ncols, int *ncells)
+void
+ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
+  double *root_transpiration, int *ncols, int *ncells)
 {
   // get densities to scale source fluxes
+  S_->GetEvaluator(srf_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, srf_mol_dens_key_);
   const Epetra_MultiVector& srf_mol_dens = *S_->Get<Amanzi::CompositeVector>(srf_mol_dens_key_, Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
+  S_->GetEvaluator(srf_mass_dens_key_, Amanzi::Tags::NEXT).Update(*S_, srf_mass_dens_key_);
   const Epetra_MultiVector& srf_mass_dens = *S_->Get<Amanzi::CompositeVector>(srf_mass_dens_key_, Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
+  S_->GetEvaluator(sub_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, sub_mol_dens_key_);
   const Epetra_MultiVector& sub_mol_dens = *S_->Get<Amanzi::CompositeVector>(sub_mol_dens_key_, Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
+  S_->GetEvaluator(sub_mass_dens_key_, Amanzi::Tags::NEXT).Update(*S_, sub_mass_dens_key_);
   const Epetra_MultiVector& sub_mass_dens = *S_->Get<Amanzi::CompositeVector>(sub_mass_dens_key_, Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
 
@@ -243,7 +251,8 @@ void ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporat
       .ViewComponent("cell", false);
   
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
-  AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_ == subsurf_ss.MyLength());
+  AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
+  AMANZI_ASSERT(*ncells == subsurf_ss.MyLength());
 
   // scale evaporation and infiltration and add to surface source
   // assume evaporation and infiltration have same sign?
@@ -266,6 +275,37 @@ void ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporat
   // mark sources as changed
   ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
+}
+
+
+void
+ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation, int *ncols, int *ncells)
+{
+
+  S_->GetEvaluator(pd_key_, Amanzi::Tags::NEXT).Update(*S_, pd_key_);
+  const Epetra_MultiVector& pd = *S_->Get<Amanzi::CompositeVector>(pd_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
+  const Epetra_MultiVector& pres = *S_->Get<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT).Update(*S_, satl_key_);
+  const Epetra_MultiVector& sat = *S_->Get<Amanzi::CompositeVector>(satl_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+  AMANZI_ASSERT(*ncols == ncolumns_ == pd.MyLength());
+  AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
+  AMANZI_ASSERT(*ncells == pres.MyLength());
+
+  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+    surface_pressure[col] = pd[0][col];
+
+    auto& col_iter = mesh_subsurf_->cells_of_column(col);
+    for (std::size_t i=0; i!=col_iter.size(); ++i) {
+      soil_pressure[col*ncol_cells_+i] = pres[0][col_iter[i]];
+      saturation[col*ncol_cells_+i] = sat[0][col_iter[i]];
+    }
+  }
+
 }
 
 
