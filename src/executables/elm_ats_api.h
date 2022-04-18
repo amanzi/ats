@@ -12,7 +12,7 @@ ELM_ATS_DRIVER* ats_create();
 // reinterpret as elm_ats_driver and delete (calls destructor)
 void ats_delete(ELM_ATS_DRIVER *ats);
 // call driver setup()
-int ats_setup(ELM_ATS_DRIVER *ats, MPI_Fint *f_comm, char *input_filename);
+int ats_setup(ELM_ATS_DRIVER *ats, MPI_Fint *f_comm, const char *input_filename);
 // call driver initialize()
 void ats_initialize(ELM_ATS_DRIVER *ats);
 // call driver advance(dt)
