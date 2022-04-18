@@ -98,18 +98,19 @@ contains
         call ats_get_waterstate_c(this%ptr, surf_pres, soil_pres, satur, ncols, ncells)
     end subroutine
 
-    subroutine ats_get_mesh_info(this, ncols_local, ncols_global, ncells_per_col, dz, depth, surf_area_m2, lat, lon)
+    subroutine ats_get_mesh_info(this, ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
         implicit none
         class(ats) :: this
         double precision, dimension(*), intent(in) :: dz
         double precision, dimension(*), intent(in) :: depth
+        double precision, dimension(*), intent(in) :: elev
         double precision, dimension(*), intent(in) :: surf_area_m2
         double precision, dimension(*), intent(in) :: lat
         double precision, dimension(*), intent(in) :: lon
         integer, intent(in) :: ncols_local
         integer, intent(in) :: ncols_global
         integer, intent(in) :: ncells_per_col
-        call ats_get_mesh_info_c(this%ptr, ncols_local, ncols_global, ncells_per_col, dz, depth, surf_area_m2, lat, lon)
+        call ats_get_mesh_info_c(this%ptr, ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
     end subroutine
 
 end module

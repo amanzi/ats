@@ -27,7 +27,7 @@ void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *s
   double *saturation, int *ncols, int *ncells);
 // call driver get_mesh_info()
 void ats_get_mesh_info(ELM_ATS_DRIVER *ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
-  double *dz, double *depth, double *surf_area_m2, double *lat, double *lon);
+  double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon);
 #ifdef __cplusplus
 }
 #endif

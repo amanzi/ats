@@ -31,7 +31,7 @@ public:
   void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation,
     int *ncols, int *ncells);
   void get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col, double *dz,
-    double *depth, double *surf_area_m2, double *lat, double *lon);
+    double *depth, double *elev, double *surf_area_m2, double *lat, double *lon);
 
 private:
 
@@ -50,6 +50,7 @@ private:
   Amanzi::Key pd_key_;
   Amanzi::Key satl_key_;
   Amanzi::Key por_key_;
+  Amanzi::Key elev_key_;
 
   Amanzi::Key srf_mol_dens_key_;
   Amanzi::Key srf_mass_dens_key_;

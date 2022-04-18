@@ -42,10 +42,11 @@ void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *s
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
   ->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
 }
+// call driver get_mesh_info()
 void ats_get_mesh_info(ELM_ATS_DRIVER *ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
-  double *dz, double *depth, double *surf_area_m2, double *lat, double *lon) {
+  double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->get_mesh_info(ncols_local, ncols_global,ncells_per_col, dz, depth, surf_area_m2, lat, lon);
+  ->get_mesh_info(ncols_local, ncols_global,ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon);
 }
 #ifdef __cplusplus
 }
