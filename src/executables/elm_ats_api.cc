@@ -15,7 +15,7 @@ void ats_delete(ELM_ATS_DRIVER *ats) {
   delete reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
 }
 // call driver setup()
-int ats_setup(ELM_ATS_DRIVER *ats, MPI_Fint *f_comm, const char *input_filename) {
+void ats_setup(ELM_ATS_DRIVER *ats, MPI_Fint *f_comm, const char *input_filename) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setup(f_comm, input_filename);
 }
 // call driver initialize()

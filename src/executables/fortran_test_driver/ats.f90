@@ -14,14 +14,13 @@ interface
         type(c_ptr) :: ats
     end subroutine
     
-    function ats_setup_c(ats, comm, infile) bind(c, name="ats_setup")
+    subroutine ats_setup_c(ats, comm, infile) bind(c, name="ats_setup")
         use iso_c_binding
         implicit none
-        integer(c_int) :: ats_setup_c
-        integer, intent(in) :: comm
         type(c_ptr), value :: ats
+        integer, intent(in) :: comm
         character(len=1, kind=C_CHAR), intent(in) :: infile(*)
-    end function
+    end subroutine
     
     subroutine ats_initialize_c(ats) bind(c, name="ats_initialize")
         use iso_c_binding

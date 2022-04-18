@@ -71,7 +71,7 @@
 
 namespace ATS {
 
-int
+void
 ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
 {
   // -- create communicator & get process rank
@@ -86,15 +86,11 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
 
   // parse the input file and check validity
   if (input_filename.empty()) {
-    if (rank == 0) {
+    if (rank == 0)
       std::cerr << "ERROR: no input file provided" << std::endl;
-    }
-    return 1;
   } else if (!boost::filesystem::exists(input_filename)) {
-    if (rank == 0) {
+    if (rank == 0)
       std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
-    }
-    return 1;
   }
 
   // -- parse input file
@@ -157,8 +153,6 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   elm_coordinator_ = std::make_unique<ELM_ATSCoordinator>(*plist, S_, comm);
   // call coordinator setup
   elm_coordinator_->setup();
-
-  return 0;
 }
 
 void ELM_ATSDriver::initialize()
