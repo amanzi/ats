@@ -25,7 +25,9 @@ void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soi
 // call driver get_waterstate()
 void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *soil_pressure,
   double *saturation, int *ncols, int *ncells);
-
+// call driver get_mesh_info()
+void ats_get_mesh_info(ELM_ATS_DRIVER *ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
+  double *dz, double *depth, double *surf_area_m2, double *lat, double *lon);
 #ifdef __cplusplus
 }
 #endif

@@ -63,4 +63,19 @@ interface
         integer(c_int), intent(in) :: ncells
     end subroutine
 
+    subroutine ats_get_mesh_info_c(ats, ncols_local, ncols_global, ncells_per_col, dz, depth, surf_area_m2, lat, lon) &
+    bind(c, name="ats_get_mesh_info")
+        use iso_c_binding
+        implicit none
+        type(c_ptr), value :: ats
+        real(c_double), dimension(*), intent(in) :: dz
+        real(c_double), dimension(*), intent(in) :: depth
+        real(c_double), dimension(*), intent(in) :: surf_area_m2
+        real(c_double), dimension(*), intent(in) :: lat
+        real(c_double), dimension(*), intent(in) :: lon
+        integer(c_int), intent(in) :: ncols_local
+        integer(c_int), intent(in) :: ncols_global
+        integer(c_int), intent(in) :: ncells_per_col
+    end subroutine
+
 end interface
