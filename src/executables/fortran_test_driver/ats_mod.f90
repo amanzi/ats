@@ -16,6 +16,7 @@ module libats
         procedure :: initialize => ats_initialize
         procedure :: advance => ats_advance
         procedure :: advance_test => ats_advance_test
+        procedure :: set_sources => ats_set_sources
     end type
 
     ! wow fortran constructor wow
@@ -71,6 +72,15 @@ contains
         implicit none
         class(ats) :: this
         call ats_advance_test_c(this%ptr)
+    end subroutine
+
+    subroutine ats_set_sources(this, soil_infil, soil_evap, ncols)
+        implicit none
+        class(ats) :: this
+        double precision, dimension(*), intent(in) :: soil_infil
+        double precision, dimension(*), intent(in) :: soil_evap
+        integer, intent(in) :: ncols
+        call ats_set_sources_c(this%ptr, soil_infil, soil_evap, ncols)
     end subroutine
 
 end module

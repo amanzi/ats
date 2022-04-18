@@ -105,22 +105,31 @@ int main(int argc, char *argv[])
 
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
 
-  //auto driver = std::make_unique<ATS::ELM_ATSDriver>();
-  //driver->setup(&input_filename[0]);
-  //driver->initialize();
-  //driver->advance_test();
+  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
+  MPI_Fint comm = 0;
+  driver->setup(&comm, input_filename.data());
+  driver->initialize();
+
+  int n = 1;
+  std::vector<double> soil_infil(n, 10.0);
+  std::vector<double> soil_evap(n,3.0);
+  
+  driver->set_sources(soil_infil.data(), soil_evap.data(), &n);
+
+
+  driver->advance_test();
       //double dt = 1800.0;
       //driver->advance(&dt);
 
 
   // test api from here
-  auto driver = ats_create();
-  // dummy fortran comm
-  MPI_Fint comm = 0;
-  ats_setup(driver, &comm, input_filename.data());
-  ats_initialize(driver);
-  ats_advance_test(driver);
-  ats_delete(driver);
+  //auto driver = ats_create();
+  //// dummy fortran comm
+  //MPI_Fint comm = 0;
+  //ats_setup(driver, &comm, input_filename.data());
+  //ats_initialize(driver);
+  //ats_advance_test(driver);
+  //ats_delete(driver);
   
   std::cout << "DONE WITH ELM-ATS DRIVER" << std::endl;
 
