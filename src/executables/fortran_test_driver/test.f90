@@ -5,7 +5,6 @@ program elm_test
     include 'mpif.h'
     type(ats) :: ats_driver
     Character(len = 200) :: infile_name
-    integer :: dummy_return
     integer :: ierror
 
     call get_command_argument(1, infile_name)
@@ -16,7 +15,7 @@ program elm_test
     ats_driver = ats()
 
     ! call ATS methods
-    dummy_return = ats_driver%setup(MPI_COMM_WORLD, infile_name)
+    call ats_driver%setup(MPI_COMM_WORLD, infile_name)
     call ats_driver%initialize()
     call ats_driver%advance_test()
 

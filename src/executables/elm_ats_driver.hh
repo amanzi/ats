@@ -21,7 +21,7 @@ public:
   ~ELM_ATSDriver() = default;
 
   // methods
-  int setup(MPI_Fint *f_comm, const char *input_filename);
+  void setup(MPI_Fint *f_comm, const char *input_filename);
   void initialize();
   void advance(double *dt);
   void advance_test();
