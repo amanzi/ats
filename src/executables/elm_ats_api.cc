@@ -33,12 +33,19 @@ void ats_advance_test(ELM_ATS_DRIVER *ats) {
 // call driver set_sources()
 void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soil_evaporation,
   double *root_transpiration, int *ncols, int *ncells) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
 }
 // call driver get_waterstate()
 void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *soil_pressure,
   double *saturation, int *ncols, int *ncells) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
+}
+void ats_get_mesh_info(ELM_ATS_DRIVER *ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
+  double *dz, double *depth, double *surf_area_m2, double *lat, double *lon) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->get_mesh_info(ncols_local, ncols_global,ncells_per_col, dz, depth, surf_area_m2, lat, lon);
 }
 #ifdef __cplusplus
 }
