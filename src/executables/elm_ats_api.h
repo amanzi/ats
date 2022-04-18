@@ -19,6 +19,8 @@ void ats_initialize(ELM_ATS_DRIVER *ats);
 void ats_advance(ELM_ATS_DRIVER *ats, double *dt);
 // call driver advance_test()
 void ats_advance_test(ELM_ATS_DRIVER *ats);
+// call driver set_sources()
+void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soil_evaporation, int *ncols);
 
 #ifdef __cplusplus
 }

@@ -30,6 +30,10 @@ void ats_advance(ELM_ATS_DRIVER *ats, double *dt) {
 void ats_advance_test(ELM_ATS_DRIVER *ats) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
 }
+// call driver set_sources()
+void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soil_evaporation, int *ncols) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->set_sources(soil_infiltration, soil_evaporation, ncols);
+}
 #ifdef __cplusplus
 }
 #endif
