@@ -52,4 +52,15 @@ interface
         integer(c_int), intent(in) :: ncells
     end subroutine
 
+    subroutine ats_get_waterstate_c(ats, surf_pres, soil_pres, satur, ncols, ncells) bind(c, name="ats_get_waterstate")
+        use iso_c_binding
+        implicit none
+        type(c_ptr), value :: ats
+        real(c_double), dimension(*), intent(in) :: surf_pres
+        real(c_double), dimension(*), intent(in) :: soil_pres
+        real(c_double), dimension(*), intent(in) :: satur
+        integer(c_int), intent(in) :: ncols
+        integer(c_int), intent(in) :: ncells
+    end subroutine
+
 end interface

@@ -105,36 +105,37 @@ int main(int argc, char *argv[])
 
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
 
-  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
-  MPI_Fint comm = 0;
-  driver->setup(&comm, input_filename.data());
-  driver->initialize();
-
+  // dummy data
+  // 1 col, 100 cells
   int n = 1;
   int m = 100;
   std::vector<double> soil_infil(n, 10.0);
   std::vector<double> soil_evap(n,3.0);
-
   std::vector<double> root_tran(m,0.5);
-  
+  std::vector<double> surf_pres(n,3.0);
+  std::vector<double> soil_pres(m, 10.0);
+  std::vector<double> satl(m,0.5);
+
+  // test driver directly
+  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
+  // dummy fortran comm
+  MPI_Fint comm = 0;
+  driver->setup(&comm, input_filename.data());
+  driver->initialize();
   driver->set_sources(soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
-
-
   driver->advance_test();
-      //double dt = 1800.0;
-      //driver->advance(&dt);
+  driver->get_waterstate(surf_pres.data(), soil_pres.data(), satl.data(), &n, &m);
 
-
-  // test api from here
-  //auto driver = ats_create();
-  //// dummy fortran comm
-  //MPI_Fint comm = 0;
-  //ats_setup(driver, &comm, input_filename.data());
-  //ats_initialize(driver);
-  //ats_advance_test(driver);
-  //ats_delete(driver);
+  // test api
+  auto driver_api = ats_create();
+  ats_setup(driver_api, &comm, input_filename.data());
+  ats_initialize(driver_api);
+  ats_set_sources(driver_api, soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
+  ats_advance_test(driver_api);
+  ats_get_waterstate(driver_api, surf_pres.data(), soil_pres.data(), satl.data(), &n, &m);
+  ats_delete(driver_api);
   
-  std::cout << "DONE WITH ELM-ATS DRIVER" << std::endl;
+  std::cout << "DONE WITH ELM-ATS C++ TEST" << std::endl;
 
   return 0;
 }

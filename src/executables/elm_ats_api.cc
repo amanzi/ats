@@ -22,7 +22,7 @@ void ats_setup(ELM_ATS_DRIVER *ats, MPI_Fint *f_comm, const char *input_filename
 void ats_initialize(ELM_ATS_DRIVER *ats){
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize();
 }
-// call driver advance(dt)
+// call driver advance()
 void ats_advance(ELM_ATS_DRIVER *ats, double *dt) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt);
 }
@@ -34,6 +34,11 @@ void ats_advance_test(ELM_ATS_DRIVER *ats) {
 void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soil_evaporation,
   double *root_transpiration, int *ncols, int *ncells) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
+}
+// call driver get_waterstate()
+void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *soil_pressure,
+  double *saturation, int *ncols, int *ncells) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
 }
 #ifdef __cplusplus
 }

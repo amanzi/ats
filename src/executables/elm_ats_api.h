@@ -21,7 +21,10 @@ void ats_advance(ELM_ATS_DRIVER *ats, double *dt);
 void ats_advance_test(ELM_ATS_DRIVER *ats);
 // call driver set_sources()
 void ats_set_sources(ELM_ATS_DRIVER *ats, double *soil_infiltration, double *soil_evaporation,
-    double *root_transpiration, int *ncols, int *ncells);
+  double *root_transpiration, int *ncols, int *ncells);
+// call driver get_waterstate()
+void ats_get_waterstate(ELM_ATS_DRIVER *ats, double *surface_pressure, double *soil_pressure,
+  double *saturation, int *ncols, int *ncells);
 
 #ifdef __cplusplus
 }
