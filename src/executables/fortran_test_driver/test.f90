@@ -21,6 +21,7 @@ program elm_test
 
 double precision, dimension(100) :: dz
 double precision, dimension(100) :: depth
+double precision, dimension(1) :: elev
 double precision, dimension(1) :: surf_area_m2
 double precision, dimension(1) :: lat
 double precision, dimension(1) :: lon
@@ -41,7 +42,7 @@ double precision, dimension(1) :: lon
 
     ! call ATS methods
     call ats_driver%setup(MPI_COMM_WORLD, infile_name)
-    call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, surf_area_m2, lat, lon)
+    call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
     call ats_driver%initialize()
     call ats_driver%set_sources(infil, evap, tran, 1, 100)
     call ats_driver%advance_test()
