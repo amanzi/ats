@@ -45,16 +45,6 @@ public:
   // for testing
   double get_end_time() {return t1_;}
 
-private:
-  Amanzi::Key domain_sub_;
-  Amanzi::Key domain_srf_;
-  Amanzi::Key sub_src_key_;
-  Amanzi::Key srf_src_key_;
-  Amanzi::Key pres_key_;
-  Amanzi::Key satl_key_;
-  Amanzi::Key por_key_;
-  int ncolumns_;
-
 };
 
 } // namespace ATS

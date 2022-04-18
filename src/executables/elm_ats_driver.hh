@@ -21,7 +21,7 @@ public:
   ~ELM_ATSDriver() = default;
 
   // methods
-  int setup(MPI_Fint *f_comm, char *input_filename);
+  int setup(MPI_Fint *f_comm, const char *input_filename);
   void initialize();
   void advance(double *dt);
   void advance_test();
@@ -29,6 +29,18 @@ public:
 private:
   std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
   Teuchos::RCP<Amanzi::State> S_;
+
+  Amanzi::Key domain_sub_;
+  Amanzi::Key domain_srf_;
+  Amanzi::Key sub_src_key_;
+  Amanzi::Key srf_src_key_;
+  Amanzi::Key pres_key_;
+  Amanzi::Key satl_key_;
+  Amanzi::Key por_key_;
+
+  int ncolumns_;
+
+
 };
 
 
