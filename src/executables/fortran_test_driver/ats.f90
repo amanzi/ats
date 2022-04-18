@@ -41,13 +41,15 @@ interface
         real(c_double), intent(in) :: dt
     end subroutine
 
-    subroutine ats_set_sources_c(ats, soil_infil, soil_evap, ncols) bind(c, name="ats_set_sources")
+    subroutine ats_set_sources_c(ats, soil_infil, soil_evap, root_trans, ncols, ncells) bind(c, name="ats_set_sources")
         use iso_c_binding
         implicit none
         type(c_ptr), value :: ats
         real(c_double), dimension(*), intent(in) :: soil_infil
         real(c_double), dimension(*), intent(in) :: soil_evap
+        real(c_double), dimension(*), intent(in) :: root_trans
         integer(c_int), intent(in) :: ncols
+        integer(c_int), intent(in) :: ncells
     end subroutine
 
 end interface

@@ -121,12 +121,12 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   por_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "porosity", "porosity");
 
 
-  srf_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "molar density", "molar_density_liquid");
-  srf_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "mass density", "mass_density_liquid");
+  srf_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface molar density", "molar_density_liquid");
+  srf_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface mass density", "mass_density_liquid");
 
 
-  //sub_mol_dens_key_
-  //sub_mass_dens_key_
+  sub_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "molar density", "molar_density_liquid");
+  sub_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "mass density", "mass_density_liquid");
 
   // assume for now that mesh info has been communicated
   mesh_subsurf_ = S_->GetMesh(domain_sub_);
@@ -141,7 +141,7 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
 
   // get num cells per column - include consistency check later
   auto& col_zero = mesh_subsurf_->cells_of_column(0);
-  std::size_t ncol_cells_ = col_zero.size();
+  ncol_cells_ = col_zero.size();
 
   // require primary variables
   // -- subsurface water source
@@ -179,36 +179,6 @@ void ELM_ATSDriver::initialize()
 
 void ELM_ATSDriver::advance(double *dt)
 {
-  // Get incoming state from ELM
-  Epetra_MultiVector& srf_water_src = *S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_)
-    .ViewComponent("cell", false);
-  Epetra_MultiVector& sub_water_src = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
-    .ViewComponent("cell", false);
-  //Epetra_MultiVector& porosity = *S_->GetW<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT, por_key_)
-  //  .ViewComponent("cell", false);
-  ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
-  ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
-  //ChangedEvaluatorPrimary(por_key_, Amanzi::Tags::NEXT, *S_);
-
-
-
-
-  const Epetra_MultiVector& testmolar = *S_->Get<Amanzi::CompositeVector>("molar_density_liquid", Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-  const Epetra_MultiVector& testmass = *S_->Get<Amanzi::CompositeVector>("mass_density_liquid", Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-//
-for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
-  auto& col_iter = mesh_subsurf_->cells_of_column(col);
-  for (std::size_t i=0; i!=col_iter.size(); ++i) {
-    std::cout << "DENSITIES:::  " << testmolar[0][col_iter[i]] << "   " << testmass[0][col_iter[i]] << std::endl;
-
-  }
-}
-
-
-
-
 
   elm_coordinator_->advance(*dt);
 
@@ -233,63 +203,70 @@ void ELM_ATSDriver::advance_test()
   };
 }
 
-/* assume that incoming data is in form
-soil_infiltration(ncolumns)
-soil_evaporation(ncolumns)
+/*
+assume that incoming data is in form
+soil_infiltration(ncols)
+soil_evaporation(ncols)
 root_transpiration(ncells)
+with ncells = ncells_per_column * ncols
 
+assume surface can be indexed:
+for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col)
+{  Epetra_MultiVector[0][col] = elm_data[col]; }
 
+assume subsurface can be indexed:
+for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col)
+{  
+  auto& col_iter = mesh_subsurf_->cells_of_column(col);
+  for (std::size_t i=0; i!=col_iter.size(); ++i) 
+  {  Epetra_MultiVector[0][col_iter[i]] = elm_data[col*ncol_cells_+i]; }
+}
 
 */
 
-void ELM_ATSDriver::set_sources(double* soil_infiltration, double* soil_evaporation, int *ncols)
+void ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration, int *ncols, int *ncells)
 {
+  // get densities to scale source fluxes
+  const Epetra_MultiVector& srf_mol_dens = *S_->Get<Amanzi::CompositeVector>(srf_mol_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  const Epetra_MultiVector& srf_mass_dens = *S_->Get<Amanzi::CompositeVector>(srf_mass_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  const Epetra_MultiVector& sub_mol_dens = *S_->Get<Amanzi::CompositeVector>(sub_mol_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  const Epetra_MultiVector& sub_mass_dens = *S_->Get<Amanzi::CompositeVector>(sub_mass_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+  // get sources
   Epetra_MultiVector& surf_ss = *S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_)
       .ViewComponent("cell", false);
-  const Epetra_MultiVector& mol_dens = *S_->Get<Amanzi::CompositeVector>(srf_mol_dens_key_, Amanzi::Tags::NEXT)
-      .ViewComponent("cell", false);
-  const Epetra_MultiVector& mass_dens = *S_->Get<Amanzi::CompositeVector>(srf_mass_dens_key_, Amanzi::Tags::NEXT)
+  Epetra_MultiVector& subsurf_ss = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
       .ViewComponent("cell", false);
   
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
-  //AMANZI_ASSERT(*ncells == subsurf_ss.MyLength());
+  AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_ == subsurf_ss.MyLength());
 
+  // scale evaporation and infiltration and add to surface source
+  // assume evaporation and infiltration have same sign?
+  // negative out of subsurface and positive into subsurface?
+  // or positive evap is out and positive infil is in?
+  // for now, assume same sign
+
+  // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
-    double mol_h20_kg = mol_dens[0][col] / mass_dens[0][col];
-    surf_ss[0][col] = soil_evaporation[col] * mol_h20_kg;
-    std::cout << "surf_ss1::   " << surf_ss[0][col] << "  " soil_evaporation[col] << "  " <<  mol_h20_kg << std::endl;
-    surf_ss[0][col] += (soil_infiltration[col] * mol_h20_kg);
-    std::cout << "surf_ss2::   " << surf_ss[0][col] << "  " soil_infiltration[col] << "  " <<  mol_h20_kg << std::endl;
+    double srf_mol_h20_kg = srf_mol_dens[0][col] / srf_mass_dens[0][col];
+    surf_ss[0][col] = soil_evaporation[col] * srf_mol_h20_kg;
+    surf_ss[0][col] += (soil_infiltration[col] * srf_mol_h20_kg);
 
+    auto& col_iter = mesh_subsurf_->cells_of_column(col);
+    for (std::size_t i=0; i!=col_iter.size(); ++i) {
+      double sub_mol_h20_kg = sub_mol_dens[0][col_iter[i]] / sub_mass_dens[0][col_iter[i]];
+      subsurf_ss[0][col_iter[i]] = root_transpiration[col*ncol_cells_+i] * sub_mol_h20_kg;
+    }
   }
-
+  // mark sources as changed
+  ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
+  ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
 }
-
-
-// helper function for pushing ELM data to ats columns
-// assumes incoming fortran array was in form arr(ncells, ncolumns)
-// where ncells dimension varies fastest 
-//void ELM_ATSDriver::push_to_columns(Epetra_Vector& ats_vec, double* elm_data)
-//{
-//  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
-//    auto& col_iter = mesh_subsurf_->cells_of_column(col);
-//    for (std::size_t i=0; i!=col_iter.size(); ++i) {
-//      ats_vec[col_iter[i]] = elm_data[col*ncol_cells_+i];
-//    }
-//  }
-//}
-
-// helper function for pushing field to column
-// taken from fates_pk
-//void ELM_ATSDriver::push_to_column(Amanzi::AmanziMesh::Entity_ID col, const Epetra_Vector& vec,
-//                               double* col_vec, int ncol) {
-//
-//  auto& col_iter = mesh_subsurf_->cells_of_column(col);
-//  for (std::size_t i=0; i!=col_iter.size(); ++i) {
-//    col_vec[i] = vec[col_iter[i]];
-//  }
-//}
-
 
 
 } // namespace ATS

@@ -111,10 +111,13 @@ int main(int argc, char *argv[])
   driver->initialize();
 
   int n = 1;
+  int m = 100;
   std::vector<double> soil_infil(n, 10.0);
   std::vector<double> soil_evap(n,3.0);
+
+  std::vector<double> root_tran(m,0.5);
   
-  driver->set_sources(soil_infil.data(), soil_evap.data(), &n);
+  driver->set_sources(soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
 
 
   driver->advance_test();
