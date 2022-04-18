@@ -26,9 +26,11 @@ public:
   void advance(double *dt);
   void advance_test();
 
-  void set_sources(double* soil_infiltration, double* soil_evaporation, int *ncols);
+  void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration, int *ncols, int *ncells);
 
 private:
+  void push_to_columns(Epetra_MultiVector& ats_vec, double* elm_data);
+
   std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
   Teuchos::RCP<Amanzi::State> S_;
   Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh_subsurf_;
@@ -44,8 +46,11 @@ private:
 
   Amanzi::Key srf_mol_dens_key_;
   Amanzi::Key srf_mass_dens_key_;
+  Amanzi::Key sub_mol_dens_key_;
+  Amanzi::Key sub_mass_dens_key_;
 
   int ncolumns_;
+  int ncol_cells_;
 
 
 };

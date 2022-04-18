@@ -74,13 +74,15 @@ contains
         call ats_advance_test_c(this%ptr)
     end subroutine
 
-    subroutine ats_set_sources(this, soil_infil, soil_evap, ncols)
+    subroutine ats_set_sources(this, soil_infil, soil_evap, root_trans, ncols, ncells)
         implicit none
         class(ats) :: this
         double precision, dimension(*), intent(in) :: soil_infil
         double precision, dimension(*), intent(in) :: soil_evap
+        double precision, dimension(*), intent(in) :: root_trans
         integer, intent(in) :: ncols
-        call ats_set_sources_c(this%ptr, soil_infil, soil_evap, ncols)
+        integer, intent(in) :: ncells
+        call ats_set_sources_c(this%ptr, soil_infil, soil_evap, root_trans, ncols, ncells)
     end subroutine
 
 end module
