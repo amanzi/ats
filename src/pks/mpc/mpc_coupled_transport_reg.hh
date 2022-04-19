@@ -2,6 +2,6 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<CoupledTransport_PK> CoupledTransport_PK::reg_("surface subsurface transport");
+RegisteredPKFactory<CoupledTransport_PK> CoupledTransport_PK::reg_("coupled transport");
 
 }

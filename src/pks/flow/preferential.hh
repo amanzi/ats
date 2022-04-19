@@ -90,7 +90,7 @@ protected:
 
   // // boundary condition members
   // void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);
-  // virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr=true);
+  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr=true) override;
 
   // // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
   // virtual void SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S);

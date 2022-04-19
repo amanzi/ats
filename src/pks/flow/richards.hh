@@ -241,39 +241,42 @@ public:
   // virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {CalculateDiagnostics(S);};
 
   // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup(const Teuchos::Ptr<State>& S) override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) override;
 
   // -- limit changes in a valid time step
-  virtual bool ValidStep();
+  virtual bool ValidStep() override;
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
   virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
+          Teuchos::RCP<TreeVector> u) override;
 
   // problems with pressures -- setting a range of admissible pressures
-  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up);
+  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
+
+  // recompute flux field
+  virtual void UpdateFlux(const Teuchos::RCP<State>& S);
 
 protected:
   // Create of physical evaluators.
@@ -325,10 +328,15 @@ protected:
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du);
+                       Teuchos::RCP<TreeVector> du) override;
 
   void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
+  // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override {return matrix_;}
+
+  
 protected:
   // control switches
   Operators::UpwindMethod Krel_method_;

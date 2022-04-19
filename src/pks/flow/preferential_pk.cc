@@ -52,7 +52,6 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
 {
     coef_grav_key_ = Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
     // set up an additional primary variable evaluator for flux
-    std::cout<<"flux_key_"<<flux_key_<<" domain "<<domain_<<"\n";
     Teuchos::ParameterList& pv_sublist = S->GetEvaluatorList(flux_key_);
     pv_sublist.set("field evaluator type", "primary variable");
 }
@@ -325,14 +324,12 @@ void Preferential::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
     Teuchos::ParameterList& kr_plist = S->GetEvaluatorList(coef_key_);
     kr_plist.setParameters(plist_->sublist("water retention evaluator"));
     kr_plist.set("field evaluator type", "WRM rel perm");
-    //std::cout<<kr_plist<<"\n";
   }
   
   if (!S->HasFieldEvaluator(coef_grav_key_) && (S->GetEvaluatorList(coef_grav_key_).numParams() == 0)) {
     Teuchos::ParameterList& kr_plist = S->GetEvaluatorList(coef_grav_key_);
     kr_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
     kr_plist.set("field evaluator type", "WRM rel perm");
-    // std::cout<<kr_plist<<"\n";
   }
   
   // -- saturation
@@ -750,15 +747,17 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& 
 // }
 
 
-// // -----------------------------------------------------------------------------
-// // Push boundary conditions into the global array.
-// // -----------------------------------------------------------------------------
-// void Preferential::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
-// {
-//   Teuchos::OSTab tab = vo_->getOSTab();
-//   if (vo_->os_OK(Teuchos::VERB_EXTREME))
-//     *vo_->os() << "  Updating BCs." << std::endl;
+// -----------------------------------------------------------------------------
+// Push boundary conditions into the global array.
+// -----------------------------------------------------------------------------
+void Preferential::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr)
+{
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "  Updating BCs." << std::endl;
 
+  Richards::UpdateBoundaryConditions_(S,kr);
+  
 //   auto& markers = bc_markers();
 //   auto& values = bc_values();
 
@@ -1134,7 +1133,7 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& 
 //                       // consistent faces will then get the updated boundary
 //                       // conditions
 //   return true;
-// }
+}
 
 // bool Preferential::ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u)
 // {

@@ -89,7 +89,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   // set up an additional primary variable evaluator for flux
   Teuchos::ParameterList& pv_sublist = S->GetEvaluatorList(flux_key_);
   pv_sublist.set("field evaluator type", "primary variable");
-}
+} 
 
 // -------------------------------------------------------------
 // Setup data
@@ -341,6 +341,7 @@ void Richards::SetupDiscretization_(const Teuchos::Ptr<State>& S){
     S->RequireField(source_key_)->SetMesh(mesh_)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     S->RequireFieldEvaluator(source_key_);
+    // S->GetField(source_key_, source_key_)->set_io_vis(true);
   }
 
   // coupling to the surface
@@ -661,7 +662,45 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, S);
 
-  // update BCs, rel perm
+  UpdateFlux(S);
+  
+  // As a diagnostic, calculate the mass balance error
+// #if DEBUG_FLAG
+//   if (S_next_ != Teuchos::null) {
+//     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetFieldData(conserved_key_);
+//     Teuchos::RCP<const CompositeVector> wc0 = S_->GetFieldData(conserved_key_);
+//     Teuchos::RCP<const CompositeVector> mass_flux = S->GetFieldData(flux_key_, name_);
+//     CompositeVector error(*wc1);
+
+//     for (unsigned int c=0; c!=error.size("cell"); ++c) {
+//       error("cell",c) = (*wc1)("cell",c) - (*wc0)("cell",c);
+
+//       AmanziMesh::Entity_ID_List faces;
+//       std::vector<int> dirs;
+//       mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+//       for (unsigned int n=0; n!=faces.size(); ++n) {
+//         error("cell",c) += (*mass_flux)("face",faces[n]) * dirs[n] * dt;
+//       }
+//     }
+
+//     double einf(0.0);
+//     error.NormInf(&einf);
+
+//     // VerboseObject stuff.
+//     Teuchos::OSTab tab = vo_->getOSTab();
+//     *vo_->os() << "Final Mass Balance Error: " << einf << std::endl;
+//   }
+// #endif
+};
+
+
+// -----------------------------------------------------------------------------
+// Recompute flux field if necessary.
+//
+// -----------------------------------------------------------------------------
+void Richards::UpdateFlux(const Teuchos::RCP<State>& S)
+{
+    // update BCs, rel perm
   UpdateBoundaryConditions_(S.ptr());
   bool update = UpdatePermeabilityData_(S.ptr());
   update |= S->GetFieldEvaluator(key_)->HasFieldChanged(S.ptr(), name_);
@@ -716,6 +755,8 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
 //   }
 // #endif
 };
+
+
 
 
 // -----------------------------------------------------------------------------

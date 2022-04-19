@@ -99,6 +99,7 @@ void Richards::AddSources_(const Teuchos::Ptr<State>& S,
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
       *vo_->os() << "Adding external source term" << std::endl;
       db_->WriteVector("  Q_ext", S->GetFieldData(source_key_).ptr(), false);
+      db_->WriteVector("  cv", S->GetFieldData(Keys::getKey(domain_,"cell_volume")).ptr(), false);
     }  
     db_->WriteVector("res (src)", g, false);
   }

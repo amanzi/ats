@@ -45,10 +45,10 @@ CoupledTransport_PK::CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_l
     }
   }
 
-  subsurface_flux_key_ =  plist_->get<std::string>("flux_key",
+  subsurface_flux_key_ =  plist_->get<std::string>("domain1 flux_key",
           Keys::getKey(subsurface_name_, "mass_flux"));
 
-  surface_flux_key_ =  plist_->get<std::string>("flux_key",
+  surface_flux_key_ =  plist_->get<std::string>("domain2 flux_key",
           Keys::getKey(surface_name_, "mass_flux"));
 }
 
@@ -62,8 +62,8 @@ double CoupledTransport_PK::get_dt()
 
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH){
-    *vo_->os() << "surface transport dt = " << surf_dt << std::endl
-               << "sub surface transport dt = " << subsurf_dt << std::endl;
+    *vo_->os() << surface_name_<<"  transport dt = " << surf_dt << std::endl
+               << subsurface_name_<< " transport dt = " << subsurf_dt << std::endl;
   }
   double dt = std::min(surf_dt, subsurf_dt);
   set_dt(dt);
@@ -80,7 +80,7 @@ void CoupledTransport_PK::Setup(const Teuchos::Ptr<State>& S)
   surf_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[surf_id_]);
   AMANZI_ASSERT(surf_pk_ != Teuchos::null);
 
-  SetupCouplingConditions();
+  //SetupCouplingConditions();
 }
 
 int CoupledTransport_PK::num_aqueous_component()
@@ -110,8 +110,8 @@ bool CoupledTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   surf_pk_->AdvanceStep(t_old, t_new, reinit);
   subsurf_pk_->AdvanceStep(t_old, t_new, reinit);
 
-  const Epetra_MultiVector& surf_tcc = *S_inter_->GetFieldCopyData("surface-total_component_concentration", "subcycling")->ViewComponent("cell",false);
-  const Epetra_MultiVector& tcc = *S_inter_->GetFieldCopyData("total_component_concentration", "subcycling")->ViewComponent("cell",false);
+  const Epetra_MultiVector& surf_tcc = *S_inter_->GetFieldCopyData(surface_tcc_key_, "subcycling")->ViewComponent("cell",false);
+  const Epetra_MultiVector& tcc = *S_inter_->GetFieldCopyData(subsurface_tcc_key_, "subcycling")->ViewComponent("cell",false);
 
   const std::vector<std::string>&  component_names_sub = subsurf_pk_->component_names();
   int num_components =  subsurf_pk_->num_aqueous_component();
@@ -126,8 +126,8 @@ bool CoupledTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
       mass_surface[i] = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[surf_id_])
         ->ComputeSolute(surf_tcc, i);
       Teuchos::OSTab tab = vo_->getOSTab();
-      *vo_->os() <<" subsurface =" << mass_subsurface[i] << " mol";
-      *vo_->os() <<", surface =" << mass_surface[i]<< " mol";
+      *vo_->os() <<subsurface_name_<<" = " << mass_subsurface[i] << " mol";
+      *vo_->os() <<", "<<surface_name_<<" = " << mass_surface[i]<< " mol";
       *vo_->os() <<", ToTaL =" << mass_surface[i]+mass_subsurface[i]<< " mol" <<std::endl;
     }
   }

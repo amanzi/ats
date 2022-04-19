@@ -12,14 +12,14 @@
 Evaluates the following exchange flux model:
 
 .. math::
-   q_{exchange} = k_r K \frac{\Gamma}{\delta} (p_M - p_m)
+   q_{exchange} = n_l k_r K \frac{\Gamma}{\delta} (p_M - p_m)
 
 where :math:`p` is the pressure of the Macro and micro porespaces,
 respectively, K is some measure of an absolute permeability, :math:`\Gamma [-]`
 is the exchange coefficient, :math:`\delta [m]` is a unit of distance
 characterizing the typical distance between pore, and :math:`k_r` is the
 relative permeability, which is upwinded based on the larger of the two
-pressures.
+pressures, 'n_l' is molar density liquid
 
 Note that the expected domain for this is the micropore domain, but may be
 changed on the input line.
@@ -41,6 +41,7 @@ changed on the input line.
    * `"micropore relative permeability`" **relative_permeability**
    * `"macropore relative permeability`" **MACROPORE_DOMAIN-relative_permeability**
    * `"permeability`" **permeability**
+   * `"micropore molar density liquid`" **molar_density_liquid**
 
 */
 
@@ -80,6 +81,7 @@ class MicroporeMacroporeFluxEvaluator : public SecondaryVariableFieldEvaluator {
   Key krM_key_;
   Key krm_key_;
   Key K_key_;
+  Key den_key_;
 
   Teuchos::RCP<MicroporeMacroporeFluxModel> model_;
 
