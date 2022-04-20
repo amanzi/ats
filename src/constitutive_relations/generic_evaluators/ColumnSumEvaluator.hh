@@ -16,7 +16,7 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
 
 
 .. _column-sum-evaluator-spec:
-.. admonition:: column-sum-evaluator
+.. admonition:: column-sum-evaluator-spec
 
     * `"include volume factor`" ``[bool]`` **true** In summing, multiply the
       summand subsurface cell volume, then divide the sum by the surface cell
@@ -26,18 +26,16 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
       Useful for converting molar fluxes to volumetric fluxes
       (e.g. transpiration).
 
-    * `"column domain name`" ``[string]`` **"domain"** The domain of the
+    * `"column domain name`" ``[string]`` **domain** The domain of the
       subsurface mesh.  Note this defaults to a sane thing based on the
       variable's domain (typically "surface" or "surface_column:*") and is
       rarely set by the user.
 
     KEYS:
-
-    * `"summed`" The summand, defaults to the root suffix of the calculated
-      variable.
-    * `"cell volume`" Defaults to domain's cell volume.
-    * `"surface cell volume`" Defaults to surface domain's cell volume.
-    * `"molar density`" Defaults to domain's molar_density_liquid.
+    - `"summed`" The summand, defaults to the root suffix of the calculated variable.
+    - `"cell volume`" Defaults to domain's cell volume.
+    - `"surface cell volume`" Defaults to surface domain's cell volume.
+    - `"molar density`" Defaults to domain's molar_density_liquid.
 
 */
 

@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -64,7 +64,7 @@ public:
       : PK(pk_tree, global_list, S, solution),
         global_list_(global_list),
         pk_tree_(pk_tree),
-        pks_list_(Teuchos::sublist(global_list, "PKs"))        
+        pks_list_(Teuchos::sublist(global_list, "PKs"))
   {
     // name the PK
     name_ = Keys::cleanPListName(pk_tree.name());
@@ -75,11 +75,7 @@ public:
     // set the verbose object list if need be
     if (plist_->isSublist(name_ + " verbose object")) {
       plist_->set("verbose object", plist_->sublist(name_ + " verbose object"));
-      std::cout << "Overwriting VO with name = " << name_ << std::endl;
-    } else {
-      std::cout << "Default VO with name = " << name_ << std::endl;
     }
-
 
     // verbose object
     vo_ = Teuchos::rcp(new VerboseObject(solution->Comm(), name_, *plist_));
@@ -108,7 +104,7 @@ public:
   virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
   virtual bool ValidStep();
   virtual void ChangedSolutionPK(const Teuchos::Ptr<State>& S);
-  
+
   // set States
   virtual void set_states(const Teuchos::RCP<State>& S,
                           const Teuchos::RCP<State>& S_inter,
@@ -121,7 +117,7 @@ public:
   void init_(const Teuchos::RCP<State>& S, Comm_ptr_type comm=Teuchos::null);
 
  protected:
-  
+
   typedef std::vector<Teuchos::RCP<PK_t> > SubPKList;
   Teuchos::RCP<Teuchos::ParameterList> global_list_;
   Teuchos::ParameterList pk_tree_;
@@ -302,7 +298,7 @@ void MPC<PK_t>::init_(const Teuchos::RCP<State>& S,
   PKFactory pk_factory;
   Teuchos::Array<std::string> pk_order = plist_->get< Teuchos::Array<std::string> >("PKs order");
   if (comm == Teuchos::null) comm = solution_->Comm();
-  
+
   int npks = pk_order.size();
   for (int i=0; i!=npks; ++i) {
     // create the solution vector
@@ -312,7 +308,7 @@ void MPC<PK_t>::init_(const Teuchos::RCP<State>& S,
     // create the PK
     std::string name_i = pk_order[i];
     Teuchos::RCP<PK> pk_notype = pk_factory.CreatePK(name_i, pk_tree_, global_list_, S, pk_soln);
-    Teuchos::RCP<PK_t> pk = Teuchos::rcp_dynamic_cast<PK_t>(pk_notype, true); 
+    Teuchos::RCP<PK_t> pk = Teuchos::rcp_dynamic_cast<PK_t>(pk_notype, true);
     sub_pks_.push_back(pk);
   }
 };

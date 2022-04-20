@@ -31,12 +31,9 @@ set(ats_mpc_src_files
   weak_mpc.cc
   DomainSetMPC.cc
   operator_split_mpc.cc
-  weak_mpc_semi_coupled.cc
-  weak_mpc_semi_coupled_deform.cc
   mpc_coupled_cells.cc
   pk_mpcsubcycled_ats.cc
   mpc_surface_subsurface_helpers.cc
-  weak_mpc_semi_coupled_helper.cc
   mpc_weak_subgrid.cc
   mpc_weak_domain_decomposition.cc
   mpc_delegate_ewc.cc
@@ -51,8 +48,6 @@ set(ats_mpc_src_files
   mpc_coupled_water_split_flux.cc
   mpc_coupled_transport.cc
   mpc_permafrost_split_flux.cc
-  mpc_permafrost_split_flux_columns.cc
-  mpc_permafrost_split_flux_columns_subcycled.cc
   mpc_subsurface.cc
   mpc_surface.cc
   mpc_permafrost.cc
@@ -66,12 +61,9 @@ set(ats_mpc_inc_files
   strong_mpc.hh
   DomainSetMPC.hh
   operator_split_mpc.hh
-  weak_mpc_semi_coupled.hh
-  weak_mpc_semi_coupled_deform.hh
   mpc_coupled_cells.hh
   pk_mpcsubcycled_ats.hh
   mpc_surface_subsurface_helpers.hh
-  weak_mpc_semi_coupled_helper.hh
   mpc_weak_subgrid.hh
   mpc_weak_domain_decomposition.hh
   mpc_delegate_ewc.hh
@@ -86,8 +78,6 @@ set(ats_mpc_inc_files
   mpc_coupled_transport.hh
   mpc_coupled_water_split_flux.hh
   mpc_permafrost_split_flux.hh
-  mpc_permafrost_split_flux_columns.hh
-  mpc_permafrost_split_flux_columns_subcycled.hh
   mpc_subsurface.hh
   mpc_surface.hh
   mpc_permafrost.hh
@@ -216,25 +206,9 @@ register_evaluator_with_factory(
   )
 
 register_evaluator_with_factory(
-  HEADERFILE mpc_permafrost_split_flux_columns_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE mpc_permafrost_split_flux_columns_subcycled_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
-
-register_evaluator_with_factory(
     HEADERFILE mpc_coupled_transport_reg.hh
     LISTNAME   ATS_MPC_REG
    )
-
-
-register_evaluator_with_factory(
-  HEADERFILE weak_mpc_semi_coupled_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
 
 register_evaluator_with_factory(
   HEADERFILE mpc_weak_subgrid_reg.hh
@@ -243,11 +217,6 @@ register_evaluator_with_factory(
 
 register_evaluator_with_factory(
   HEADERFILE mpc_weak_domain_decomposition_reg.hh
-  LISTNAME   ATS_MPC_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE weak_mpc_semi_coupled_deform_reg.hh
   LISTNAME   ATS_MPC_REG
   )
 

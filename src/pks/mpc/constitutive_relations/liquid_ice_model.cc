@@ -73,11 +73,13 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   ice_eos_ = eos_ice_me->get_EOS();
 
   // -- capillary pressure for ice/water
-  me = S->GetFieldEvaluator(Keys::getKey(domain, "capillary_pressure_liq_ice"));
-  Teuchos::RCP<Flow::PCIceEvaluator> pc_ice_me =
-    Teuchos::rcp_dynamic_cast<Flow::PCIceEvaluator>(me);
-  AMANZI_ASSERT(pc_ice_me != Teuchos::null);
-  pc_i_ = pc_ice_me->get_PCIceWater();
+  use_pc_ice_ = plist.get<bool>("use pc_ice to determine sfc", true);
+  if (use_pc_ice_) {
+    me = S->GetFieldEvaluator(Keys::getKey(domain, "capillary_pressure_liq_ice"));
+    Teuchos::RCP<Flow::PCIceEvaluator> pc_ice_me = Teuchos::rcp_dynamic_cast<Flow::PCIceEvaluator>(me);
+    AMANZI_ASSERT(pc_ice_me != Teuchos::null);
+    pc_i_ = pc_ice_me->get_PCIceWater();
+  }
 
   // -- capillary pressure for liq/gas
   me = S->GetFieldEvaluator(Keys::getKey(domain, "capillary_pressure_gas_liq"));
@@ -152,13 +154,15 @@ bool LiquidIceModel::IsSetUp_() {
   }
   if (liquid_eos_ == Teuchos::null) return false;
   if (ice_eos_ == Teuchos::null) return false;
-  if (pc_i_ == Teuchos::null) return false;
   if (pc_l_ == Teuchos::null) return false;
   if (liquid_iem_ == Teuchos::null) return false;
   if (ice_iem_ == Teuchos::null) return false;
   if (rock_iem_ == Teuchos::null) return false;
   if (rho_rock_ < 0.) return false;
   if (p_atm_ < -1.e10) return false;
+  if (use_pc_ice_) {
+    if (pc_i_ == Teuchos::null) return false;
+  }
   return true;
 }
 
@@ -172,12 +176,14 @@ LiquidIceModel::Freezing(double T, double p) {
   
   double pc_l = pc_l_->CapillaryPressure(p,p_atm_);
   double pc_i;
-  if (pc_i_->IsMolarBasis()) {
-    double rho_l = liquid_eos_->MolarDensity(eos_param);
-    pc_i = pc_i_->CapillaryPressure(T, rho_l);
-  } else {
-    double mass_rho_l = liquid_eos_->MassDensity(eos_param);
-    pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+  if (use_pc_ice_) {
+    if (pc_i_->IsMolarBasis()) {
+      double rho_l = liquid_eos_->MolarDensity(eos_param);
+      pc_i = pc_i_->CapillaryPressure(T, rho_l);
+    } else {
+      double mass_rho_l = liquid_eos_->MassDensity(eos_param);
+      pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+    }
   }
 
   return wrm_->freezing(T,pc_l,pc_i);
@@ -195,16 +201,22 @@ int LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, doubl
     
     double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
     double pc_i;
-    if (pc_i_->IsMolarBasis()) {
-      double rho_l = liquid_eos_->MolarDensity(eos_param);
-      pc_i = pc_i_->CapillaryPressure(T, rho_l);
-    } else {
-      double mass_rho_l = liquid_eos_->MassDensity(eos_param);
-      pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+    if (use_pc_ice_) {
+      if (pc_i_->IsMolarBasis()) {
+        double rho_l = liquid_eos_->MolarDensity(eos_param);
+        pc_i = pc_i_->CapillaryPressure(T, rho_l);
+      } else {
+        double mass_rho_l = liquid_eos_->MassDensity(eos_param);
+        pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+      }
     }
 
     double sats[3];
-    wrm_->saturations(pc_l, pc_i, sats);
+    if (use_pc_ice_) {
+      wrm_->saturations(pc_l, pc_i, sats);
+    } else {
+      wrm_->saturations(pc_l, T, sats);
+    }
     s_gas = sats[0];
     s_liq = sats[1];
     s_ice = sats[2];
@@ -240,17 +252,23 @@ int LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeo
     double rho_i = ice_eos_->MolarDensity(eos_param);
 
     double pc_i;
-    if (pc_i_->IsMolarBasis()) {
-      pc_i = pc_i_->CapillaryPressure(T, rho_l);
-    } else {
-      double mass_rho_l = liquid_eos_->MassDensity(eos_param);
-      pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+    if (use_pc_ice_) {
+      if (pc_i_->IsMolarBasis()) {
+        pc_i = pc_i_->CapillaryPressure(T, rho_l);
+      } else {
+        double mass_rho_l = liquid_eos_->MassDensity(eos_param);
+        pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
+      }
     }
 
     double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
 
     double sats[3];
-    wrm_->saturations(pc_l, pc_i, sats);
+    if (use_pc_ice_) {
+      wrm_->saturations(pc_l, pc_i, sats);
+    } else {
+      wrm_->saturations(pc_l, T, sats);
+    }
     double s_g = sats[0];
     double s_l = sats[1];
     double s_i = sats[2];

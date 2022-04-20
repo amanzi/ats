@@ -4,6 +4,6 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCPermafrostSplitFlux> MPCPermafrostSplitFlux::reg_("permafrost operator splitting, flux");
+RegisteredPKFactory<MPCPermafrostSplitFlux> MPCPermafrostSplitFlux::reg_("operator split permafrost");
 
 } // namespace

@@ -48,10 +48,10 @@ Example:
        </ParameterList>
      </ParameterList>
    </ParameterList>
-   <ParameterList name="mass flux">
+   <ParameterList name="water flux">
      <ParameterList name="BC north">
        <Parameter name="regions" type="Array(string)" value="{north}"/>
-       <ParameterList name="outward mass flux">
+       <ParameterList name="outward water flux">
          <ParameterList name="function-constant">
            <Parameter name="value" type="double" value="0."/>
          </ParameterList>

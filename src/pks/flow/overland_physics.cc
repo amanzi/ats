@@ -37,7 +37,7 @@ void OverlandFlow::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   // not calculate fluxes.
   Teuchos::RCP<const CompositeVector> pres_elev = S->GetFieldData(Keys::getKey(domain_,"pres_elev"));
   Teuchos::RCP<CompositeVector> flux =
-      S->GetFieldData("surface-mass_flux", name_);
+      S->GetFieldData("surface-water_flux", name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
 
   // assemble the stiffness matrix

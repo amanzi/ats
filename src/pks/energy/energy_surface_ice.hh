@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -20,14 +20,14 @@ hard-coded evaluators.
 
     * `"coupled to subsurface via temperature`" ``[bool]`` **false** A coupling
       scheme, provided by MPC.
-      
+
     * `"coupled to subsurface via flux`" ``[bool]`` **false** A coupling
       scheme, provided by MPC.
-      
+
     * `"subsurface domain name`" ``[string]`` **optional** If one of the above
       coupling schemes is turned on, we need to know the subsurface mesh.
       Provided by MPC.
-      
+
     INCLUDES:
 
     - ``[energy-pk-spec]``  See `Energy Base PK`_
@@ -45,16 +45,11 @@ namespace Amanzi {
 
 // forward declarations
 class Function;
-namespace Relations { class EOS; }
 
 namespace Energy {
 
-class IEM; 
-
 class EnergySurfaceIce : public EnergyBase {
-
-public:
-
+ public:
   EnergySurfaceIce(Teuchos::ParameterList& FElist,
                    const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
@@ -63,7 +58,7 @@ public:
   // -- Initialize owned (dependent) variables.
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-protected:
+ protected:
   // -- setup the evaluators
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
 
@@ -77,10 +72,6 @@ protected:
   virtual void AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h);
 
  protected:
-  // models for evaluating enthalpy manually... remove me once boundary faces get in
-  Teuchos::RCP<Amanzi::Relations::EOS> eos_liquid_;
-  Teuchos::RCP<Energy::IEM> iem_liquid_;
-
   // simple heat condution term, q = K_s2a * (Tair - Tsurf)
   // air temperature function of time (not space)
   double K_surface_to_air_;
@@ -94,8 +85,8 @@ protected:
 
   // keys
   Key domain_ss_;
-  
-private:
+
+ private:
   // factory registration
   static RegisteredPKFactory<EnergySurfaceIce> reg_;
 

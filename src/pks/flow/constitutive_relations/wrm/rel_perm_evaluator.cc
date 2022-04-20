@@ -1,10 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  Rel perm( pc ( sat ) ).
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! RelPermEvaluator: evaluates relative permeability using water retention models.
 
 #include "rel_perm_evaluator.hh"
 
@@ -45,18 +46,15 @@ void RelPermEvaluator::InitializeFromPlist_() {
   Key domain_name = Keys::getDomain(my_key_);
 
   // -- saturation liquid
-  sat_key_ = plist_.get<std::string>("saturation key",
-          Keys::getKey(domain_name, "saturation_liquid"));
+  sat_key_ = Keys::readKey(plist_, domain_name, "saturation", "saturation_liquid");
   dependencies_.insert(sat_key_);
 
   is_dens_visc_ = plist_.get<bool>("use density on viscosity in rel perm", true);
   if (is_dens_visc_) {
-    dens_key_ = plist_.get<std::string>("density key",
-            Keys::getKey(domain_name, "molar_density_liquid"));
+    dens_key_ = Keys::readKey(plist_, domain_name, "density", "molar_density_liquid");
     dependencies_.insert(dens_key_);
 
-    visc_key_ = plist_.get<std::string>("viscosity key",
-            Keys::getKey(domain_name, "viscosity_liquid"));
+    visc_key_ = Keys::readKey(plist_, domain_name, "viscosity", "viscosity_liquid");
     dependencies_.insert(visc_key_);
   }
 
@@ -68,7 +66,7 @@ void RelPermEvaluator::InitializeFromPlist_() {
              plist_.get<bool>("use surface rel perm")) {
     boundary_krel = "surface rel perm";
   }
-  
+
   if (boundary_krel == "boundary pressure") {
     boundary_krel_ = BoundaryRelPerm::BOUNDARY_PRESSURE;
   } else if (boundary_krel == "interior pressure") {
@@ -85,15 +83,10 @@ void RelPermEvaluator::InitializeFromPlist_() {
     Errors::Message msg("RelPermEvaluator: parameter \"boundary rel perm strategy\" not valid: valid are \"boundary pressure\", \"interior pressure\", \"harmonic mean\", \"arithmetic mean\", \"one\", and \"surface rel perm\"");
     throw(msg);
   }
-  
+
   // surface alterations
   if (boundary_krel_ == BoundaryRelPerm::SURF_REL_PERM) {
-    if (domain_name.empty()) {
-      surf_domain_ = Key("surface");
-    } else {
-      surf_domain_ = Key("surface_")+domain_name;
-    }
-    surf_domain_ = plist_.get<std::string>("surface domain", surf_domain_);
+    surf_domain_ = Keys::readDomainHint(plist_, domain_name, "domain", "surface");
     surf_rel_perm_key_ = Keys::readKey(plist_, surf_domain_, "surface relative permeability", Keys::getVarName(my_key_));
     dependencies_.insert(surf_rel_perm_key_);
   }
@@ -151,7 +144,7 @@ void RelPermEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
           ->AddComponent("cell",AmanziMesh::CELL,1);
 
       S->RequireFieldEvaluator(surf_rel_perm_key_)->EnsureCompatibility(S);
-      
+
     }
   }
 }
@@ -189,7 +182,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
     const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
     const Epetra_Map& face_map = mesh->face_map(false);
-      
+
     // Evaluate the model to calculate krel.
     AmanziMesh::Entity_ID_List cells;
     int nbfaces = res_bf.MyLength();
@@ -198,7 +191,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
       mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
       AMANZI_ASSERT(cells.size() == 1);
-        
+
       int index = (*wrms_->first)[cells[0]];
       double krel;
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
@@ -230,7 +223,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
     const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
     const Epetra_Map& face_map = mesh->face_map(false);
-    
+
     unsigned int nsurf_cells = surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
     for (unsigned int sc=0; sc!=nsurf_cells; ++sc) {
       // need to map from surface quantity on cells to subsurface boundary_face quantity
@@ -252,7 +245,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     for (unsigned int c=0; c!=ncells; ++c) {
       res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
     }
-        
+
     // Potentially scale boundary faces.
     if (result->HasComponent("boundary_face")) {
       const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
@@ -285,7 +278,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
   if (wrt_key == sat_key_) {
     // dkr / dsl = rho/mu * dkr/dpc * dpc/dsl
-    
+
     // Evaluate k_rel.
     // -- Evaluate the model to calculate krel on cells.
     const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
@@ -310,7 +303,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
       // Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
       // const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
       // const Epetra_Map& face_map = mesh->face_map(false);
-  
+
       // // Evaluate the model to calculate krel.
       // AmanziMesh::Entity_ID_List cells;
       // int nbfaces = res_bf.MyLength();
@@ -319,9 +312,9 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
       //   AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
       //   mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
       //   AMANZI_ASSERT(cells.size() == 1);
-        
+
       //   int index = (*wrms_->first)[cells[0]];
-        
+
       //   double krel;
       //   if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
       //     krelb = std::max(wrms_->second[index]->d_k_relative(sat_bf[0][bf]),min_val_);
@@ -356,7 +349,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
       Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
       const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
       const Epetra_Map& face_map = mesh->face_map(false);
-    
+
       unsigned int nsurf_cells = surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
       for (unsigned int sc=0; sc!=nsurf_cells; ++sc) {
         // need to map from surface quantity on cells to subsurface boundary_face quantity
@@ -379,7 +372,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
       for (unsigned int c=0; c!=ncells; ++c) {
         res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
       }
-        
+
       // Potentially scale boundary faces.
       if (result->HasComponent("boundary_face")) {
         const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
@@ -398,7 +391,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // rescale as neeeded
     result->Scale(1./perm_scale_);
-    
+
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);
@@ -429,7 +422,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
       }
     }
 
-    
+
   } else if (wrt_key == visc_key_) {
     AMANZI_ASSERT(is_dens_visc_);
     // note density > 0
@@ -463,7 +456,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
   } else {
     AMANZI_ASSERT(0);
   }
-  
+
 }
 
 

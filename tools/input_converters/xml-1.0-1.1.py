@@ -347,7 +347,7 @@ def update(xml):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 0.88 to master")
+    parser = argparse.ArgumentParser(description="Fix a number of changes from ATS input spec 1.0 to 1.1")
     parser.add_argument("infile", help="input filename")
 
     group = parser.add_mutually_exclusive_group()

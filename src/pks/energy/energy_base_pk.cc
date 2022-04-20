@@ -47,8 +47,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
     coupled_to_surface_via_flux_(false),
     decoupled_from_subsurface_(false),
     niter_(0),
-    flux_exists_(true),
-    implicit_advection_(true)
+    flux_exists_(true)
 {
   // set a default error tolerance
   if (domain_.find("surface") != std::string::npos) {
@@ -71,7 +70,7 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity", "energy");
   wc_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   enthalpy_key_ = Keys::readKey(*plist_, domain_, "enthalpy", "enthalpy");
-  flux_key_ = Keys::readKey(*plist_, domain_, "mass flux", "mass_flux");
+  flux_key_ = Keys::readKey(*plist_, domain_, "water flux", "water_flux");
   energy_flux_key_ = Keys::readKey(*plist_, domain_, "diffusive energy flux", "diffusive_energy_flux");
   adv_energy_flux_key_ = Keys::readKey(*plist_, domain_, "advected energy flux", "advected_energy_flux");
   conductivity_key_ = Keys::readKey(*plist_, domain_, "thermal conductivity", "thermal_conductivity");
@@ -151,11 +150,6 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S)
   matrix_diff_->SetTensorCoefficient(Teuchos::null);
   matrix_ = matrix_diff_->global_operator();
 
-  // -- create the forward operator for the advection term
-  Teuchos::ParameterList advect_plist = plist_->sublist("advection");
-  matrix_adv_ = Teuchos::rcp(new Operators::PDE_AdvectionUpwind(advect_plist, mesh_));
-  matrix_adv_->SetBCs(bc_adv_, bc_adv_);
-
   // -- create the operators for the preconditioner
   //    diffusion
   // NOTE: Can this be a clone of the primary operator? --etc
@@ -223,16 +217,25 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S)
   preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
   //  -- advection terms
-  implicit_advection_ = !plist_->get<bool>("explicit advection", false);
-  if (implicit_advection_) {
-    implicit_advection_in_pc_ = !plist_->get<bool>("supress advective terms in preconditioner", false);
+  is_advection_term_ = plist_->get<bool>("include thermal advection", true);
+  if (is_advection_term_) {
 
-    if (implicit_advection_in_pc_) {
-      Teuchos::ParameterList advect_plist_pc = plist_->sublist("advection preconditioner");
-      preconditioner_adv_ = Teuchos::rcp(new Operators::PDE_AdvectionUpwind(advect_plist_pc, preconditioner_));
-      preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
-    }
-  }
+    // -- create the forward operator for the advection term
+    Teuchos::ParameterList advect_plist = plist_->sublist("advection");
+    matrix_adv_ = Teuchos::rcp(new Operators::PDE_AdvectionUpwind(advect_plist, mesh_));
+    matrix_adv_->SetBCs(bc_adv_, bc_adv_);
+
+    implicit_advection_ = !plist_->get<bool>("explicit advection",false);
+    if (implicit_advection_) {
+      implicit_advection_in_pc_ = !plist_->get<bool>("supress advective terms in preconditioner", false);
+
+      if (implicit_advection_in_pc_) {
+        Teuchos::ParameterList advect_plist_pc = plist_->sublist("advection preconditioner");
+        preconditioner_adv_ = Teuchos::rcp(new Operators::PDE_AdvectionUpwind(advect_plist_pc, preconditioner_));
+        preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
+      }
+    }  
+  } 
 
   // -- advection of enthalpy
   S->RequireField(enthalpy_key_)->SetMesh(mesh_)
@@ -306,6 +309,13 @@ void EnergyBase::SetupEnergy_(const Teuchos::Ptr<State>& S)
   // require a flux field
   S->RequireField(flux_key_)->SetMesh(mesh_)->SetGhosted()
       ->AddComponent("face", AmanziMesh::FACE, 1);
+  S->RequireFieldEvaluator(flux_key_);
+
+  // require a water content field -- used for computing energy density in the
+  // error norm
+  S->RequireField(wc_key_)->SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  S->RequireFieldEvaluator(wc_key_);
 
   // Require a field for the energy fluxes for diagnostics
   S->RequireField(energy_flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
@@ -393,17 +403,18 @@ void EnergyBase::CommitStep(double t_old, double t_new, const Teuchos::RCP<State
     matrix_diff_->UpdateFlux(temp.ptr(), eflux.ptr());
 
     // calculate the advected energy as a diagnostic
-    Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
-    matrix_adv_->Setup(*flux);
-    S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
-    Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);;
-    ApplyDirichletBCsToEnthalpy_(S.ptr());
+    if (is_advection_term_) {
+      Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_key_);
+      matrix_adv_->Setup(*flux);
+      S->GetFieldEvaluator(enthalpy_key_)->HasFieldChanged(S.ptr(), name_);
+      Teuchos::RCP<const CompositeVector> enth = S->GetFieldData(enthalpy_key_);;
+      ApplyDirichletBCsToEnthalpy_(S.ptr());
 
-    Teuchos::RCP<CompositeVector> adv_energy = S->GetFieldData(adv_energy_flux_key_, name_);
-    matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
+      Teuchos::RCP<CompositeVector> adv_energy = S->GetFieldData(adv_energy_flux_key_, name_);
+      matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
+    }
   }
-};
-
+}
 
 bool EnergyBase::UpdateConductivityData_(const Teuchos::Ptr<State>& S) {
   bool update = S->GetFieldEvaluator(conductivity_key_)->HasFieldChanged(S, name_);
@@ -483,7 +494,7 @@ void EnergyBase::UpdateBoundaryConditions_(
     markers[f] = Operators::OPERATOR_BC_NEUMANN;
     values[f] = bc->second;
     adv_markers[f] = Operators::OPERATOR_BC_NEUMANN;
-    // push all onto diffusion, assuming that the incoming enthalpy is 0 (likely mass flux is 0)
+    // push all onto diffusion, assuming that the incoming enthalpy is 0 (likely water flux is 0)
   }
 
   // Neumann diffusive flux, not Neumann TOTAL flux.  Potentially advective flux.
@@ -626,8 +637,6 @@ bool EnergyBase::IsAdmissible(Teuchos::RCP<const TreeVector> up) {
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();
-
-
 
   if (minT < 200.0 || maxT > 330.0) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {

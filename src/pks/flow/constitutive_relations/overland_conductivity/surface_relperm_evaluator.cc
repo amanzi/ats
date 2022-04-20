@@ -77,7 +77,7 @@ void SurfaceRelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   } else {
     Teuchos::RCP<const CompositeVector> h = S->GetFieldData(h_key_);
-    
+
     for (CompositeVector::name_iterator comp=result->begin();
          comp!=result->end(); ++comp) {
       const Epetra_MultiVector& h_v = *h->ViewComponent(*comp,false);
@@ -88,7 +88,7 @@ void SurfaceRelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         result_v[0][i] = model_->SurfaceRelPerm(0., h_v[0][i]);
       }
     }
-  }    
+  }
 }
 
 

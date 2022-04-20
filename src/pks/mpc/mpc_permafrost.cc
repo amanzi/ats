@@ -4,7 +4,6 @@
 
 #include "OperatorDefs.hh"
 #include "Operator_FaceCell.hh"
-#include "Operator_CellBndFace.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "mpc_delegate_ewc_surface.hh"
 #include "mpc_delegate_ewc_subsurface.hh"
@@ -36,8 +35,10 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   }
 
   // propagate domain information down to delegates
-  plist_->sublist("surface ewc delegate").set("domain name", domain_surf_);
-  plist_->sublist("ewc delegate").set("domain name", domain_subsurf_);
+  if (plist_->isSublist("surface ewc delegate"))
+    plist_->sublist("surface ewc delegate").set("domain name", domain_surf_);
+  if (plist_->isSublist("ewc delegate"))
+    plist_->sublist("ewc delegate").set("domain name", domain_subsurf_);
 
   // exchange flux keys and evaluators
   mass_exchange_key_ = Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
@@ -54,7 +55,7 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   surf_kr_uw_key_ = Keys::readKey(*plist_, domain_surf_, "upwind overland conductivity", "upwind_overland_conductivity");
   surf_potential_key_ = Keys::readKey(*plist_, domain_surf_, "surface potential", "pres_elev");
   surf_pd_bar_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth, negative", "ponded_depth_bar");
-  surf_mass_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface mass flux", "mass_flux");
+  surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
 }
 
 
@@ -220,6 +221,54 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
     water_->set_db(surf_db_);
   }
 
+  // With this MPC, thanks to the form of the error/solver, it is often easier
+  // to figure out what subsurface face or cell to debug, and it is hard to
+  // figure out what the corresponding cell of the surface system is.
+  // Therefore, for all debug cells of the subsurface, if that cell is in the
+  // top layer of cells, we add the corresponding face's surface cell.
+  {
+    AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
+    int ncells_surf = surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL,
+            AmanziMesh::Parallel_type::OWNED);
+    if (debug_cells.size() > 0) {
+      const auto& domain_cell_map = domain_mesh_->cell_map(false);
+      const auto& surf_cell_map = surf_mesh_->cell_map(false);
+      AmanziMesh::Entity_ID_List surf_debug_cells;
+      for (int sc=0; sc!=ncells_surf; ++sc) {
+        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
+        AmanziMesh::Entity_ID_List fcells;
+        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        AMANZI_ASSERT(fcells.size() == 1);
+        auto gid = domain_cell_map.GID(fcells[0]);
+        if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
+          surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+      }
+      if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
+    }
+  }
+  // do the same for energy
+  {
+    AmanziMesh::Entity_ID_List debug_cells =
+      domain_energy_pk_->debugger()->get_cells();
+    int ncells_surf = surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL,
+            AmanziMesh::Parallel_type::OWNED);
+    if (debug_cells.size() > 0) {
+      const auto& domain_cell_map = domain_mesh_->cell_map(false);
+      const auto& surf_cell_map = surf_mesh_->cell_map(false);
+      AmanziMesh::Entity_ID_List surf_debug_cells;
+      for (int sc=0; sc!=ncells_surf; ++sc) {
+        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
+        AmanziMesh::Entity_ID_List fcells;
+        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        AMANZI_ASSERT(fcells.size() == 1);
+        auto gid = domain_cell_map.GID(fcells[0]);
+        if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
+          surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+      }
+      if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
+    }
+  }
+
   // create the surf EWC delegate
   //
   // WORK IN PROGRESS
@@ -255,6 +304,7 @@ MPCPermafrost::Initialize(const Teuchos::Ptr<State>& S)
   } else {
     CopySubsurfaceToSurface(*S->GetFieldData(pres_key_, domain_flow_pk_->name()),
                             S->GetFieldData(surf_pres_key_, surf_flow_pk_->name()).ptr());
+    S->GetField(surf_pres_key_, surf_flow_pk_->name())->set_initialized();
   }
   if (S->GetField(surf_temp_key_)->initialized()) {
     CopySurfaceToSubsurface(*S->GetFieldData(surf_temp_key_, surf_energy_pk_->name()),
@@ -262,6 +312,7 @@ MPCPermafrost::Initialize(const Teuchos::Ptr<State>& S)
   } else {
     CopySubsurfaceToSurface(*S->GetFieldData(temp_key_, domain_energy_pk_->name()),
                             S->GetFieldData(surf_temp_key_, surf_energy_pk_->name()).ptr());
+    S->GetField(surf_temp_key_, surf_energy_pk_->name())->set_initialized();
   }
 
   if (surf_ewc_ != Teuchos::null) surf_ewc_->initialize(S);
@@ -306,7 +357,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(2),
                             u_new->SubVector(2), g->SubVector(2));
 
-  // The residual of the surface flow equation provides the mass flux from
+  // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   Epetra_MultiVector& source = *S_next_->GetFieldData(mass_exchange_key_, name_)->ViewComponent("cell",false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell",false);
@@ -319,7 +370,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   // All surface to subsurface fluxes have been taken by the subsurface.
   g->SubVector(2)->Data()->ViewComponent("cell",false)->PutScalar(0.);
 
-  // Now that mass fluxes are done, do energy.
+  // Now that water fluxes are done, do energy.
   // Evaluate the surface energy residual
   surf_energy_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(3),
           u_new->SubVector(3), g->SubVector(3));
@@ -432,7 +483,7 @@ MPCPermafrost::UpdatePreconditioner(double t,
     Teuchos::RCP<const CompositeVector> kr_uw =
       S_next_->GetFieldData(surf_kr_uw_key_);
     Teuchos::RCP<const CompositeVector> flux =
-      S_next_->GetFieldData(surf_mass_flux_key_);
+      S_next_->GetFieldData(surf_water_flux_key_);
 
     S_next_->GetFieldEvaluator(surf_potential_key_)
       ->HasFieldChanged(S_next_.ptr(), name_);
@@ -529,7 +580,8 @@ MPCPermafrost::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
   sub_u->PushBack(u->SubVector(1));
 
   // Subsurface EWC, modifies cells
-  modified |= ewc_->ModifyPredictor(h,sub_u);
+  if (ewc_ != Teuchos::null)
+    modified |= ewc_->ModifyPredictor(h,sub_u);
 
   // write predictor
   if (modified && vo_->os_OK(Teuchos::VERB_HIGH)) {

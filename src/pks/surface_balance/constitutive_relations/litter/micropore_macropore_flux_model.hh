@@ -12,8 +12,8 @@
 .. _micropore-macropore-flux-model-spec
 .. admonition:: micropore-macropore-flux-model-spec
 
-   * `"gamma [-]`" The exchange coefficient.
-   * `"delta [m]`" Typical length scale between pores.
+   * `"gamma [-]`" ``[double]`` The exchange coefficient.
+   * `"delta [m]`" ``[double]`` Typical length scale between pores.
 
 */
 

@@ -12,8 +12,8 @@
 A WRM partition is a list of (region, WRM) pairs, where the regions partition
 the mesh.
 
-.. _wrm-partition-spec
-.. admonition:: wrm-partition-spec
+.. _wrm-partition-typedinline-spec
+.. admonition:: wrm-partition-typedinline-spec
 
    * `"region`" ``[string]`` Region on which the WRM is valid.
    * `"WRM type`" ``[string]`` Name of the WRM type.

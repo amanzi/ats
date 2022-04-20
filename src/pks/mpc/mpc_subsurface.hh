@@ -233,7 +233,7 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Teuchos::RCP<Operators::UpwindTotalFlux> upwinding_dhkr_dT_;
 
   // friend sub-pk Richards (need K_, some flags from private data)
-  Teuchos::RCP<Flow::Richards> richards_pk_;
+  //Teuchos::RCP<Flow::Richards> richards_pk_;
 
   Key domain_name_;
   Key temp_key_;
@@ -248,8 +248,8 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Key hkr_key_;
   Key uw_hkr_key_;
   Key energy_flux_key_;
-  Key mass_flux_key_;
-  Key mass_flux_dir_key_;
+  Key water_flux_key_;
+  Key water_flux_dir_key_;
   Key rho_key_;
 
   bool is_fv_;

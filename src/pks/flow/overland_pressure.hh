@@ -29,9 +29,9 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
       must be provided by the user.
 
-    * `"boundary conditions`" ``[surface-flow-bc-spec]`` Defaults to Neuman, 0 normal flux.
+    * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal flux.
 
-    * `"overland conductivity evaluator`" ``[overland-conductivity-eval-spec]``
+    * `"overland conductivity evaluator`" ``[list]``
       See `Overland Conductivity Evaluator`_.
 
     IF
@@ -67,8 +67,8 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       this limits an iterate's max pressure change to this value.  Not usually
       helpful.
 
-    * `"limit correction to pressure change when crossing atmospheric [Pa]`"
-      ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]``
+      **-1** If > 0, this limits an iterate's max pressure change
       to this value when they cross atmospheric pressure.  Not usually helpful.
 
     * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all

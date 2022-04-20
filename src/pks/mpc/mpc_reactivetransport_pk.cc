@@ -26,10 +26,7 @@ ReactiveTransport_PK_ATS::ReactiveTransport_PK_ATS(Teuchos::ParameterList& pk_tr
 {
   chem_step_succeeded_ = true;
 
-  std::string pk_name = pk_tree.name();
-
-  boost::iterator_range<std::string::iterator> res = boost::algorithm::find_last(pk_name,"->");
-  if (res.end() - pk_name.end() != 0) boost::algorithm::erase_head(pk_name,  res.end() - pk_name.begin());
+  std::string pk_name = Keys::cleanPListName(pk_tree.name());
 
   // Create miscaleneous lists.
   Teuchos::RCP<Teuchos::ParameterList> pk_list = Teuchos::sublist(global_list, "PKs", true);

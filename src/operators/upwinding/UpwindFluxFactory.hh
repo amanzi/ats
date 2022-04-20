@@ -24,13 +24,14 @@ class UpwindFluxFactory {
  public:
   UpwindFluxFactory() {};
   ~UpwindFluxFactory() {};
-  
+
   Teuchos::RCP<Upwinding> Create(Teuchos::ParameterList& oplist,
-                                 std::string pkname,
-                                 std::string cell_coef,
-                                 std::string face_coef,
-                                 std::string flux);
-  
+          const Teuchos::Ptr<State>& S,
+          std::string pkname,
+          std::string cell_coef,
+          std::string face_coef,
+          std::string flux);
+
 };
 
 }  // namespace Operators

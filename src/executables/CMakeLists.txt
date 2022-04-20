@@ -22,7 +22,8 @@ project(EXECUTABLE)
 include_directories(${GEOCHEM_SOURCE_DIR})
 include_directories(${MESH_FACTORY_SOURCE_DIR})
 include_directories(${MESH_LOGICAL_SOURCE_DIR})
-include_directories(${MSTK_SOURCE_DIR})
+include_directories(${MESH_EXTRACTED_SOURCE_DIR})
+include_directories(${MESH_MSTK_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
 include_directories(${DBG_SOURCE_DIR})
@@ -92,7 +93,7 @@ set(amanzi_link_libs
   geometry
   mesh_factory
   output
-  mstk_mesh
+  mesh_mstk
   mesh_logical
   chemistry_pk
   mpc_tree

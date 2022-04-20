@@ -36,7 +36,7 @@ class ThermalConductivityThreePhaseEvaluator :
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
  protected:
-  
+
   std::vector<RegionModelPair> tcs_;
 
   // Keys for fields

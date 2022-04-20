@@ -33,16 +33,11 @@ namespace Amanzi {
 // forward declarations
 class MPCDiagonalFlowEnergy;
 class MPCCoupledFlowEnergy;
-namespace Relations { class EOS; }
 
 namespace Energy {
 
-class IEM;
-
-
 class TwoPhase : public EnergyBase {
-
-public:
+ public:
 
   TwoPhase(Teuchos::ParameterList& FElist,
            const Teuchos::RCP<Teuchos::ParameterList>& plist,
@@ -52,25 +47,11 @@ public:
   // Virtual destructor
   virtual ~TwoPhase() {}
 
-  // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-
-protected:
+ protected:
   // -- setup the evaluators
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
 
-  // -- get enthalpy as a function of Dirichlet boundary data.  Note that this
-  //    will get replaced by a better system when we get maps on the boundary
-  //    faces.
-  //  virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
-
-
- protected:
-  // models for evaluating enthalpy
-  Teuchos::RCP<Amanzi::Relations::EOS> eos_liquid_;
-  Teuchos::RCP<Energy::IEM> iem_liquid_;
-
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<TwoPhase> reg_;
 

@@ -37,20 +37,25 @@ through providing a "verify mesh" option.
 .. admonition:: mesh-typed-spec
 
     * `"mesh type`" ``[string]`` One of:
-    
+
       - `"generate mesh`" See `Generated Mesh`_.
       - `"read mesh file`" See `Read Mesh File`_.
       - `"logical`" See `Logical Mesh`_.
       - `"surface`" See `Surface Mesh`_.
       - `"subgrid`" See `Subgrid Meshes`_.
       - `"column`" See `Column Meshes`_.
+
     * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
       associated with the type.
     * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
     * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+
+    * `"build columns from set`" ``[string]`` **optional** If provided, build
+       columnar structures from the provided set.
+
     * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
       mesh.  Note this only makes sense on the domain mesh.  One of:
-      
+
       - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
       - `"metis`" uses the METIS graph partitioner
       - `"zoltan`" uses the default Zoltan graph-based partitioner.
@@ -107,10 +112,6 @@ Specified by `"mesh type`" of `"read mesh file`".
 .. admonition:: mesh-read-mesh-file-spec
 
     * `"file`" ``[string]`` filename of a pre-generated mesh file
-    * `"format`" ``[string]`` format of pre-generated mesh file. One of:
-    
-      - `"MSTK`"
-      - `"Exodus II`"
 
 Example:
 
@@ -121,8 +122,7 @@ Example:
        <Parameter name="mesh type" type="string" value="read mesh file"/>
        <ParameterList name="read mesh file parameters">
          <Parameter name="file" type="string" value="mesh_filename.exo"/>
-         <Parameter name="format" type="string" value="Exodus II"/>
-       </ParameterList>   
+       </ParameterList>
        <Parameter name="verify mesh" type="bool" value="true" />
      </ParameterList>
    </ParameterList>
@@ -205,6 +205,23 @@ Example:
     </ParameterList>
 
 
+Aliased Mesh
+============
+
+Aliased domains are simply domains that share a mesh with another domain.  For
+instance, one might find it useful to define both a "surface water" and a
+"snow" domain that share a common "surface" mesh.  In that case, typically the
+"surface" domain would point to the "surface" mesh, and the "snow" domain would
+be an "aliased" domain whose target is the "surface" mesh.
+
+Specified by `"mesh type`" of `"aliased`".
+
+.. _mesh-aliased-spec:
+.. admonition:: mesh-aliased-spec
+
+    * `"target`" ``[string]`` Mesh that this alias points to.
+
+
 Subgrid Meshes
 ==============
 
@@ -231,7 +248,7 @@ Specified by `"mesh type`" of `"subgrid`".
 .. todo::
    WIP: Add examples (intermediate scale model, transport subgrid model)
 
-  
+
 Column Meshes
 =============
 

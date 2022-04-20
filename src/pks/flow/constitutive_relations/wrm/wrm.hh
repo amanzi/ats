@@ -7,6 +7,21 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+WRMs are available in a collection of types:
+
+.. _wrm-typedinline-spec:
+.. admonition:: wrm-typedinline-spec
+
+   * `"region`" ``[string]`` Region to which this applies
+   * `"wrm type`" ``[string]`` Type of the WRM.  One of:
+
+     - `"van Genuchten`"
+     - `"linear system`" saturation a linear function of pressure
+
+*/
+
 #ifndef AMANZI_FLOWRELATIONS_WRM_
 #define AMANZI_FLOWRELATIONS_WRM_
 

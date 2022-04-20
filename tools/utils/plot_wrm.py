@@ -103,49 +103,85 @@ class VanGenuchten(object):
 
     def short_label( self ):
         return "VG: a=%1.2e [1/Pa], n=%1.2g, sr=%1.2g"%(self._alpha, self._n, self._sr)
-        
-    
-    def plot(self, ax=None, color='b', format='-', label=None, y_units='Pa'):
-        pc = np.linspace(0,7, 1000)
-        pc = 10**pc
 
-        if label is None:
-            label = self.short_label()
 
-        if ax is None:
-            fig,ax = plt.subplots(1,1,squeeze=True)
+class WiltingPointLimiter(object):
+    def __init__( self, pc_open, pc_closed ):
+        self._pc_open = pc_open
+        self._pc_closed = pc_closed
+        assert(pc_open < pc_closed)
 
-        s = np.array([self.saturation(apc) for apc in pc])
-            
-        if y_units == 'hPa':
-            pc = pc / 100.
-        elif y_units == 'm':
-            pc = pc / 1000 / 9.81
-        elif y_units == 'cm':
-            pc = pc / 1000 / 9.81 * 100
-        elif y_units == 'Pa':
-            pass
+    def saturation( self, pc ):
+        """This is the wilting point coefficient."""
+        if pc > self._pc_closed:
+            return 0.
+        elif pc < self._pc_open:
+            return 1.
         else:
-            raise ValueError("Invalid units for yaxis, must be one of [Pa, m, cm, hPa]")
+            return (self._pc_closed - pc) / (self._pc_closed - self._pc_open)
+
+    def label( self ):
+        return "WP: pc_open=%1.2e [Pa], pc_closed=%1.2e"%(self._pc_open, self._pc_closed)
+
+    def short_label( self ):
+        return self.label()
     
-        ax.semilogy(s, pc, color=color, label=label)
-        ax.set_xlabel("saturation [-]")
-        ax.set_ylabel("capillary pressure [{}]".format(y_units))
-        return ax
+    
+def plot(wrm, ax=None, color='b', format='-', label=None, y_units='Pa'):
+    pc = np.linspace(0,7, 1000)
+    pc = 10**pc
 
-    def plot_kr(self, ax=None, color='b', format='-', label=None):
-        if ax is None: 
-            fig,ax = plt.subplots(1,1,squeeze=True)
+    if label is None:
+        label = wrm.short_label()
 
-        if label is None:
-            label = self.short_label()
+    if ax is None:
+        fig,ax = plt.subplots(1,1,squeeze=True)
+    else:
+        try:
+            ax1 = ax[1]
+        except TypeError:
+            ax1 = None
+        else:
+            ax = ax[0]
 
-        pc = np.linspace(0,7, 1000)
-        pc = 10**pc
+    s = np.array([wrm.saturation(apc) for apc in pc])
+    if y_units == 'hPa':
+        pc = pc / 100.
+    elif y_units == 'm':
+        pc = pc / 1000 / 9.81
+    elif y_units == 'cm':
+        pc = pc / 1000 / 9.81 * 100
+    elif y_units == 'Pa':
+        pass
+    else:
+        raise ValueError("Invalid units for yaxis, must be one of [Pa, m, cm, hPa]")
 
-        sat = np.array([self.saturation(apc) for apc in pc])
-        kr = np.array([self.k_relative(s) for s in sat])
-        ax.plot(sat, kr, color=color, label=label)
+    ax.semilogy(s, pc, format, color=color, label=label)
+    ax.set_xlabel("saturation [-]")
+    ax.set_ylabel("capillary pressure [{}]".format(y_units))
+
+    if ax1 is not None:
+        ax1.plot(s, pc/1000/9.8, format, color=color)
+        ax1.set_xlabel('saturation [-]')
+        ax1.set_ylabel('elevation above water table [m]')
+        ax1.set_ylim([0,5])
+        ax = [ax, ax1]
+
+    return ax
+
+def plot_kr(wrm, ax=None, color='b', format='-', label=None):
+    if ax is None: 
+        fig,ax = plt.subplots(1,1,squeeze=True)
+
+    if label is None:
+        label = wrm.short_label()
+
+    pc = np.linspace(0,7, 1000)
+    pc = 10**pc
+
+    sat = np.array([wrm.saturation(apc) for apc in pc])
+    kr = np.array([wrm.k_relative(s) for s in sat])
+    ax.plot(sat, kr, color=color, label=label)
 
        
 if __name__ == "__main__":
@@ -186,23 +222,56 @@ if __name__ == "__main__":
             raise argparse.ArgumentTypeError("WRM must be van Genucten parameters (alpha, n, sr, label, smoothing_interval_sat)")
         else:
             return label, VanGenuchten(alpha=alpha, n=n, sr=sr, smoothing_interval_sat=smooth_int_sat)
+
+    def option_to_wp(s):
+        print("got: {}".format(s))
+        try:
+            s = shlex.split(s)
+            print("s = {}".format(s))
+            assert(2 <= len(s) <= 3)
+
+            p_open, p_closed = map(float, s[0:2])
+
+            if len(s) > 2:
+                label = s[2]
+            else:
+                label = None
+
+            print("Wilting Point limiter:")
+            print(f"  p_open = {p_open}")
+            print(f"  p_closed = {p_closed}")
+            print(f"  label = {label}")
             
+        except:
+            raise argparse.ArgumentTypeError("Wilting point limiter must be parameters  (pc_open, pc_closed, label)")
+        else:
+            return label, WiltingPointLimiter(pc_open, pc_closed)
+
+        
     parser.add_argument('--wrm', type=option_to_wrm, action='append', help='WRM parameters, "alpha n sr [label [smoothing_interval_sat]]"')
+    parser.add_argument('--wp', type=option_to_wp, action='append', help='wilting point capillary pressure parameters, "stomata_pc_open stomata_pc_closed [label]"')
     parser.add_argument('--y-units', type=str, choices=['Pa','m','hPa','cm'], default='Pa', help='units of the y-axis, in log space')
     parser.add_argument('--kr', action='store_true', help='Plot relative permeability curve')
 
     args = parser.parse_args()
-    color_list = colors.enumerated_colors(len(args.wrm))
+    if args.wrm is None:
+        args.wrm = []
+    if args.wp is None:
+        args.wp = []
+    
+    color_list = colors.enumerated_colors(len(args.wrm)+len(args.wp))
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
     if args.kr:
         for (label,wrm), color in zip(args.wrm, color_list):
-            wrm.plot_kr(ax, color, label=label)
+            plot_kr(wrm, ax, color, label=label)
     else:
         for (label,wrm), color in zip(args.wrm, color_list):
-            wrm.plot(ax, color, y_units=args.y_units, label=label)
+            plot(wrm, ax, color, y_units=args.y_units, label=label)
+        for (label,wp), color in zip(args.wrm, color_list[len(args.wrm):]):
+            plot(wp, ax, color, y_units=args.y_units, label=label)
     ax.legend()
     plt.show()
     sys.exit(0)

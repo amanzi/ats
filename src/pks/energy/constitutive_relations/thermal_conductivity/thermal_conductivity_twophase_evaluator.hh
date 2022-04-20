@@ -21,6 +21,9 @@ class ThermalConductivityTwoPhaseEvaluator :
     public SecondaryVariableFieldEvaluator {
 
  public:
+
+  typedef std::pair<std::string,Teuchos::RCP<ThermalConductivityTwoPhase> > RegionModelPair;
+
   // constructor format for all derived classes
   ThermalConductivityTwoPhaseEvaluator(Teuchos::ParameterList& plist);
   ThermalConductivityTwoPhaseEvaluator(const ThermalConductivityTwoPhaseEvaluator& other);
@@ -34,7 +37,7 @@ class ThermalConductivityTwoPhaseEvaluator :
           Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
  protected:
-  Teuchos::RCP<ThermalConductivityTwoPhase> tc_;
+  std::vector<RegionModelPair> tcs_;
 
   // Keys for fields
   // dependencies

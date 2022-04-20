@@ -55,77 +55,63 @@ ThreePhaseEnergyEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  Key domain_name = Keys::getDomainPrefix(my_key_);
+  Key domain_name = Keys::getDomain(my_key_);
 
   // - pull Keys from plist
   // dependency: porosity
-  phi_key_ = plist_.get<std::string>("porosity key",
-          domain_name+"porosity");
+  phi_key_ = Keys::readKey(plist_, domain_name, "porosity", "porosity");
   dependencies_.insert(phi_key_);
 
   // dependency: base_porosity
-  phi0_key_ = plist_.get<std::string>("base porosity key",
-          domain_name+"base_porosity");
+  phi0_key_ = Keys::readKey(plist_, domain_name, "base porosity", "base_porosity");
   dependencies_.insert(phi0_key_);
 
   // dependency: saturation_liquid
-  sl_key_ = plist_.get<std::string>("saturation liquid key",
-          domain_name+"saturation_liquid");
+  sl_key_ = Keys::readKey(plist_, domain_name, "saturation liquid", "saturation_liquid");
   dependencies_.insert(sl_key_);
 
   // dependency: molar_density_liquid
-  nl_key_ = plist_.get<std::string>("molar density liquid key",
-          domain_name+"molar_density_liquid");
+  nl_key_ = Keys::readKey(plist_, domain_name, "molar density liquid", "molar_density_liquid");
   dependencies_.insert(nl_key_);
 
   // dependency: internal_energy_liquid
-  ul_key_ = plist_.get<std::string>("internal energy liquid key",
-          domain_name+"internal_energy_liquid");
+  ul_key_ = Keys::readKey(plist_, domain_name, "internal energy liquid", "internal_energy_liquid");
   dependencies_.insert(ul_key_);
 
   // dependency: saturation_ice
-  si_key_ = plist_.get<std::string>("saturation ice key",
-          domain_name+"saturation_ice");
+  si_key_ = Keys::readKey(plist_, domain_name, "saturation ice", "saturation_ice");
   dependencies_.insert(si_key_);
 
   // dependency: molar_density_ice
-  ni_key_ = plist_.get<std::string>("molar density ice key",
-          domain_name+"molar_density_ice");
+  ni_key_ = Keys::readKey(plist_, domain_name, "molar density ice", "molar_density_ice");
   dependencies_.insert(ni_key_);
 
   // dependency: internal_energy_ice
-  ui_key_ = plist_.get<std::string>("internal energy ice key",
-          domain_name+"internal_energy_ice");
+  ui_key_ = Keys::readKey(plist_, domain_name, "internal energy ice", "internal_energy_ice");
   dependencies_.insert(ui_key_);
 
   // dependency: saturation_gas
-  sg_key_ = plist_.get<std::string>("saturation gas key",
-          domain_name+"saturation_gas");
+  sg_key_ = Keys::readKey(plist_, domain_name, "saturation gas", "saturation_gas");
   dependencies_.insert(sg_key_);
 
   // dependency: molar_density_gas
-  ng_key_ = plist_.get<std::string>("molar density gas key",
-          domain_name+"molar_density_gas");
+  ng_key_ = Keys::readKey(plist_, domain_name, "molar density gas", "molar_density_gas");
   dependencies_.insert(ng_key_);
 
   // dependency: internal_energy_gas
-  ug_key_ = plist_.get<std::string>("internal energy gas key",
-          domain_name+"internal_energy_gas");
+  ug_key_ = Keys::readKey(plist_, domain_name, "internal energy gas", "internal_energy_gas");
   dependencies_.insert(ug_key_);
 
   // dependency: density_rock
-  rho_r_key_ = plist_.get<std::string>("density rock key",
-          domain_name+"density_rock");
+  rho_r_key_ = Keys::readKey(plist_, domain_name, "density rock", "density_rock");
   dependencies_.insert(rho_r_key_);
 
   // dependency: internal_energy_rock
-  ur_key_ = plist_.get<std::string>("internal energy rock key",
-          domain_name+"internal_energy_rock");
+  ur_key_ = Keys::readKey(plist_, domain_name, "internal energy rock", "internal_energy_rock");
   dependencies_.insert(ur_key_);
 
   // dependency: cell_volume
-  cv_key_ = plist_.get<std::string>("cell volume key",
-          domain_name+"cell_volume");
+  cv_key_ = Keys::readKey(plist_, domain_name, "cell volume", "cell_volume");
   dependencies_.insert(cv_key_);
 }
 

@@ -105,6 +105,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
       for (unsigned int c=0; c!=ncells; ++c) {
         double enorm_c = std::abs(h * dvec_v[0][c])
             / (atol_*cv[0][c] + rtol_*std::abs(conserved[0][c]));
+        AMANZI_ASSERT((atol_*cv[0][c] + rtol_*std::abs(conserved[0][c])) > 0.);
 
         if (enorm_c > enorm_comp) {
           enorm_comp = enorm_c;
@@ -126,6 +127,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 
         double enorm_f = fluxtol_ * h * std::abs(dvec_v[0][f])
             / (atol_*cv_min + rtol_*std::abs(conserved_min));
+        AMANZI_ASSERT((atol_*cv_min + rtol_*std::abs(conserved_min)) > 0.);
         if (enorm_f > enorm_comp) {
           enorm_comp = enorm_f;
           enorm_loc = f;

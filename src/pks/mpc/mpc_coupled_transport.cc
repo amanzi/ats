@@ -45,11 +45,12 @@ CoupledTransport_PK::CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_l
     }
   }
 
-  subsurface_flux_key_ =  plist_->get<std::string>("domain1 flux_key",
-          Keys::getKey(subsurface_name_, "mass_flux"));
+  subsurface_flux_key_ =  plist_->get<std::string>("flux_key",
+          Keys::getKey(subsurface_name_, "water_flux"));
 
-  surface_flux_key_ =  plist_->get<std::string>("domain2 flux_key",
-          Keys::getKey(surface_name_, "mass_flux"));
+  surface_flux_key_ =  plist_->get<std::string>("flux_key",
+          Keys::getKey(surface_name_, "water_flux"));
+
 }
 
 // -----------------------------------------------------------------------------
@@ -153,7 +154,7 @@ void CoupledTransport_PK::SetupCouplingConditions()
 {
   Teuchos::ParameterList& bc_list = subsurface_transport_list_->sublist("boundary conditions").sublist("concentration");
   Teuchos::ParameterList& src_list = surface_transport_list_->sublist("source terms").sublist("component mass source");
-    
+
   if (!bc_list.isSublist("BC coupling")){
     Teuchos::ParameterList& bc_coupling = bc_list.sublist("BC coupling");
     bc_coupling.set<std::string>("spatial distribution method", "domain coupling");
@@ -170,8 +171,8 @@ void CoupledTransport_PK::SetupCouplingConditions()
     Teuchos::ParameterList& src_coupling = src_list.sublist("surface coupling");
     src_coupling.set<std::string>("spatial distribution method", "domain coupling");
     src_coupling.set<std::string>("submodel", "rate");
-    std::vector<std::string> regs(1);
-    regs[0] = surface_name_;
+    std::vector<std::string> regs = {"surface domain"};
+    //regs[0] = surface_name_;
     src_coupling.set<Teuchos::Array<std::string> >("regions", regs);
     Teuchos::ParameterList& tmp = src_coupling.sublist("fields");
     tmp.set<std::string>("flux_key", subsurface_flux_key_);
@@ -182,5 +183,5 @@ void CoupledTransport_PK::SetupCouplingConditions()
     tmp.set<std::string>("copy_field_in_key", "default");
   }
 }
- 
+
 }  // namespace Amanzi

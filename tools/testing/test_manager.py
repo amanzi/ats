@@ -32,8 +32,12 @@ import traceback
 import distutils.spawn
 import numpy
 import collections
+import configparser
 
-aliases = dict()
+
+
+aliases = {'surface-water_flux':['surface-mass_flux',],
+           'water_flux':['mass_flux',]}
 
 
 def get_git_hash(directory):
@@ -67,12 +71,6 @@ def version(executable):
 class NoCatchException(Exception):
     def __init__(self,*args,**kwargs):
         Exception.__init__(self,*args,**kwargs)
-
-if sys.version_info[0] == 2:
-    from ConfigParser import SafeConfigParser as config_parser
-else:
-    from configparser import ConfigParser as config_parser
-
 
 class TestStatus(object):
     """
@@ -232,11 +230,21 @@ class RegressionTest(object):
         return self.name() + suffix        
 
     def filenames(self, dirname):
+        # filenames in the standard form, e.g. 0X_suite/test.regression/checkpoint00000.h5
         fname_list = sorted(glob.glob(os.path.join(dirname, self._file_prefix+"*"+self._file_suffix)))
         final_name = os.path.join(dirname, 'checkpoint_final.h5')
         if final_name in fname_list:
             fname_list.remove(final_name)
-        return fname_list
+
+        # filenames in the new-style directory based form, e.g.
+        #   0X_suite/test.regression/checkpoint00000/domain.h5
+        fname_list2_tmp = sorted(glob.glob(os.path.join(dirname, self._file_prefix+"*", "*"+self._file_suffix)))
+        fname_list2 = [f for f in fname_list2_tmp if 'checkpoint_final' not in f]
+
+        all_fnames = fname_list + fname_list2
+        #print(f'Files in {dirname}: {len(all_fnames)}')
+        #print(all_fnames)
+        return all_fnames
 
     def run(self, dry_run, status, testlog):
         """
@@ -320,7 +328,7 @@ class RegressionTest(object):
                                         stderr=run_stdout)
 
             while proc.poll() is None:
-                time.sleep(0.1)
+                time.sleep(1)
                 if time.time() - start > self._timeout:
                     proc.kill()
                     time.sleep(0.1)
@@ -518,7 +526,12 @@ class RegressionTest(object):
 
                 # -- checkpoint by list of cycles
                 filenames = self.filenames(gold_dir)
-                chp_cycles = [int(os.path.split(f)[-1][10:-3]) for f in filenames]
+                chp_cycles = set()
+                for f in filenames:
+                    chp_loc = f.find('checkpoint')
+                    digits = f[chp_loc+len('checkpoint'):chp_loc+len('checkpoint')+5]
+                    chp_cycles.add(int(digits))
+                chp_cycles = list(sorted(chp_cycles))
                 try:
                     chp = asearch.child_by_name(xml, "checkpoint")
                 except aerrors.MissingXMLError:
@@ -635,7 +648,7 @@ class RegressionTest(object):
         """Check that output hdf5 file has not changed from the baseline.
         """
         for key, tolerance in self._criteria.items():
-            if key == self._TIME:
+            if key == self._TIME and 'time' in h5_gold.attrs:
                 self._check_tolerance(h5_current.attrs['time'], h5_gold.attrs['time'],
                                       self._TIME, tolerance, status, testlog)
 
@@ -669,8 +682,9 @@ class RegressionTest(object):
                             pass
                         else:
                             for alias in my_aliases:
-                                if '.'.join([alias,]+key_split[1:]) in h5_gold.keys():
-                                    gold_matches.append(key)
+                                potential_alias = '.'.join([alias,]+key_split[1:])
+                                if potential_alias in h5_gold.keys():
+                                    gold_matches.append(potential_alias)
                                     found_match = True
                                     break
                         if not found_match:
@@ -1111,6 +1125,10 @@ class RegressionTestManager(object):
     def run_status(self):
         return self._file_status
 
+    def display_selected_tests(self):
+        for test in self._tests:
+            print("{0} {1}".format(os.path.split(os.getcwd())[-1], test.name()))
+    
     def display_available_tests(self):
         for test in sorted(self._available_tests.keys()):
             print("{0} {1}".format(os.path.split(os.getcwd())[-1], test))
@@ -1133,7 +1151,7 @@ class RegressionTestManager(object):
         if config_file is None:
             raise RuntimeError("Error, must provide a config filename")
         self._config_filename = config_file
-        config = config_parser()
+        config = configparser.ConfigParser(delimiters=['=',])
         config.read(self._config_filename)
 
         if config.has_section("default-test-criteria"):
@@ -1266,17 +1284,12 @@ class RegressionTestManager(object):
                 all_tests.append(test)
 
         for test in all_tests:
-            #try:
             new_test = RegressionTest(self._executable, self._mpiexec, self._version, self._suffix)
             criteria = self._default_test_criteria.copy()
             new_test.setup(criteria,
                            self._available_tests[test], timeout,
                            check_performance, testlog)
             self._tests.append(new_test)
-            #except Exception as error:
-            #    raise RuntimeError("ERROR : could not create test '{0}' from "
-            #                       "config file '{1}'. {2}".format(
-            #                           test, self._config_filename, str(error)))
 
 
 def config_list_includes_search(options):
@@ -1317,7 +1330,7 @@ def generate_config_file_list(options):
         raise RuntimeError("ERROR: no config files were found. Please specify a "
                            "config file or search directory containing config files.")
 
-    return config_file_list
+    return sorted(config_file_list)
 
 
 def search_for_config_files(base_dir, config_file_list):

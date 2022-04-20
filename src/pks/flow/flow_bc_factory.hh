@@ -104,19 +104,19 @@ Example:
  </ParameterList>
 
 
-Neumann (mass flux) boundary conditions
+Neumann (water flux) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for both surface and subsurface flows, this provides mass flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.
+Used for both surface and subsurface flows, this provides water flux data (in [mol m^-2 s^-1], for the subsurface, or [mol m^-1 s^-1] for the surface, in the outward normal direction) on boundaries.
 
 Example:
 
 .. code-block:: xml
 
  <ParameterList name="boundary conditions">
-   <ParameterList name="mass flux">
+   <ParameterList name="water flux">
      <ParameterList name="BC west">
        <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="outward mass flux">
+       <ParameterList name="outward water flux">
          <ParameterList name="function-constant">
            <Parameter name="value" type="double" value="-1.e-3"/>
          </ParameterList>
@@ -225,7 +225,7 @@ Example: seepage with infiltration
      <ParameterList name="BC west">
        <Parameter name="explicit time index" type="bool" value="true"/>
        <Parameter name="regions" type="Array(string)" value="{west}"/>
-       <ParameterList name="outward mass flux">
+       <ParameterList name="outward water flux">
          <ParameterList name="function-constant">
            <Parameter name="value" type="double" value="-1.e-5"/>
          </ParameterList>
@@ -308,13 +308,13 @@ The type of boundary conditions maybe changed in time depending on the switch fu
      </ParameterList>
           
      <ParameterList name="bcs">
-       <Parameter name="bc types" type="Array(string)" value="{head, mass flux}"/>
-       <Parameter name="bc functions" type="Array(string)" value="{boundary head, outward mass flux}"/>
+       <Parameter name="bc types" type="Array(string)" value="{head, water flux}"/>
+       <Parameter name="bc functions" type="Array(string)" value="{boundary head, outward water flux}"/>
 
-       <ParameterList name="mass flux">
+       <ParameterList name="water flux">
          <ParameterList name="BC west">
            <Parameter name="regions" type="Array(string)" value="{surface west}"/>
-           <ParameterList name="outward mass flux">
+           <ParameterList name="outward water flux">
              <ParameterList name="function-tabular">
                <Parameter name="file" type="string" value="../data/floodplain2.h5" />
                <Parameter name="x header" type="string" value="Time" />
@@ -365,7 +365,7 @@ public:
   }
 
   Teuchos::RCP<Functions::BoundaryFunction> CreateMassFlux() const {
-    return CreateWithFunction("mass flux", "outward mass flux");
+    return CreateWithFunction("water flux", "outward water flux");
   }
 
   Teuchos::RCP<Functions::BoundaryFunction> CreateZeroGradient() const {
@@ -387,7 +387,7 @@ public:
   std::pair<bool, Teuchos::RCP<Functions::BoundaryFunction>>
   CreateSeepageFacePressureWithInfiltration() {
     bool is_explicit = CheckExplicitFlag("seepage face with infiltration");
-    auto bfunc = CreateWithFunction("seepage face with infiltration", "outward mass flux");
+    auto bfunc = CreateWithFunction("seepage face with infiltration", "outward water flux");
     return std::make_pair(is_explicit, bfunc);
   }
 

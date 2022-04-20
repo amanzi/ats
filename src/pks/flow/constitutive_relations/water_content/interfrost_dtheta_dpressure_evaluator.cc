@@ -44,22 +44,19 @@ InterfrostDthetaDpressureEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
   // - defaults to prefixed via domain
-  Key domain_name = Keys::getDomainPrefix(my_key_);
+  Key domain_name = Keys::getDomain(my_key_);
 
   // - pull Keys from plist
   // dependency: molar_density_liquid
-  nl_key_ = plist_.get<std::string>("molar density liquid key",
-          domain_name+"molar_density_liquid");
+  nl_key_ = Keys::readKey(plist_, domain_name, "molar density liquid", "molar_density_liquid");
   dependencies_.insert(nl_key_);
 
   // dependency: saturation_liquid
-  sl_key_ = plist_.get<std::string>("saturation liquid key",
-          domain_name+"saturation_liquid");
+  sl_key_ = Keys::readKey(plist_, domain_name, "saturation liquid", "saturation_liquid");
   dependencies_.insert(sl_key_);
 
   // dependency: porosity
-  phi_key_ = plist_.get<std::string>("porosity key",
-          domain_name+"porosity");
+  phi_key_ = Keys::readKey(plist_, domain_name, "porosity", "porosity");
   dependencies_.insert(phi_key_);
 }
 

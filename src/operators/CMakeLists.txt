@@ -17,6 +17,7 @@ set(ats_operators_src_files
   upwinding/upwind_flux_split_denominator.cc  
   upwinding/upwind_flux_fo_cont.cc 
   upwinding/upwind_flux_harmonic_mean.cc
+  upwinding/upwind_elevation_stabilized.cc
   upwinding/upwind_total_flux.cc
   upwinding/upwind_potential_difference.cc
   upwinding/upwind_gravity_flux.cc
@@ -37,6 +38,7 @@ set(ats_operators_inc_files
   upwinding/upwind_flux_split_denominator.hh
   upwinding/upwind_gravity_flux.hh
   upwinding/upwind_potential_difference.hh
+  upwinding/upwind_elevation_stabilized.hh
   upwinding/upwind_total_flux.hh
 #  deformation/MatrixVolumetricDeformation.hh
 #  deformation/Matrix_PreconditionerDelegate.hh

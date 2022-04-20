@@ -13,9 +13,10 @@
 
 van Genuchten's water retention curve.
 
-.. _wrm-van-genuchten-spec
-.. admonition:: wrm-van-genuchten-spec
+.. _WRM-van-Genuchten-spec
+.. admonition:: WRM-van-Genuchten-spec
 
+    * `"region`" ``[string]`` Region to which this applies
     * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
     ONE OF:
@@ -35,7 +36,7 @@ Example:
 
     <ParameterList name="moss" type="ParameterList">
       <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM Type" type="string" value="van Genuchten" />
+      <Parameter name="WRM type" type="string" value="van Genuchten" />
       <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
       <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
       <Parameter name="residual saturation [-]" type="double" value="0.0" />

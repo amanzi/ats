@@ -11,8 +11,6 @@ Process kernel for energy equation for overland flow.
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
 #include "Debugger.hh"
-#include "eos_evaluator.hh"
-#include "iem_evaluator.hh"
 #include "thermal_conductivity_surface_evaluator.hh"
 #include "enthalpy_evaluator.hh"
 #include "energy_bc_factory.hh"
@@ -82,16 +80,6 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_ ) {
     // -- ensure mass source from subsurface exists
-
-    /*
-    Key domain_ss;
-    if (boost::starts_with(domain_, "surface") && domain_.find("column") != std::string::npos) {
-      domain_ss = plist_->get<std::string>("subsurface domain name",
-              domain_.substr(8,domain_.size()));
-    } else {
-      domain_ss = plist_->get<std::string>("subsurface domain name", "domain");
-      } */
-
     Key key_ss = Keys::getKey(domain_,"surface_subsurface_flux");
 
     S->RequireField(key_ss)
@@ -131,13 +119,8 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
       Epetra_MultiVector& surf_temp = *surf_temp_cv->ViewComponent("cell",false);
 
 
-      Key key_ss;
-      if (boost::starts_with(domain_, "surface") && domain_.find("column") != std::string::npos) {
-        key_ss = ic_plist.get<std::string>("subsurface temperature key",
-                Keys::getKey(domain_.substr(8,domain_.size()), "temperature"));
-      } else {
-        key_ss = ic_plist.get<std::string>("subsurface temperature key", "temperature");
-      }
+      Key domain_ss = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
+      Key key_ss = Keys::readKey(*plist_, domain_ss, "subsurface temperature", "temperature");
 
       Teuchos::RCP<const CompositeVector> subsurf_temp = S->GetFieldData(key_ss);
       unsigned int ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
@@ -187,64 +170,7 @@ void EnergySurfaceIce::Initialize(const Teuchos::Ptr<State>& S) {
     }
   }
 
-  // For the boundary conditions, we currently hack in the enthalpy to
-  // the boundary faces to correctly advect in a Dirichlet temperature
-  // BC.  This requires density and internal energy, which in turn
-  // require a model based on p,T.
-  // This will be removed once boundary faces are implemented.
-  Teuchos::RCP<FieldEvaluator> eos_fe =
-    S->GetFieldEvaluator(Keys::getKey(domain_,"molar_density_liquid"));
-
-  Teuchos::RCP<Relations::EOSEvaluator> eos_eval =
-    Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(eos_fe);
-  AMANZI_ASSERT(eos_eval != Teuchos::null);
-  eos_liquid_ = eos_eval->get_EOS();
-
-  Teuchos::RCP<FieldEvaluator> iem_fe =
-    S->GetFieldEvaluator(Keys::getKey(domain_,"internal_energy_liquid"));
-
-  Teuchos::RCP<Energy::IEMEvaluator> iem_eval =
-    Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(iem_fe);
-
-  AMANZI_ASSERT(iem_eval != Teuchos::null);
-  iem_liquid_ = iem_eval->get_IEM();
 }
-
-
-// // -------------------------------------------------------------
-// // Plug enthalpy into the boundary faces manually.
-// // This will be removed once boundary faces exist.
-// // -------------------------------------------------------------
-// void EnergySurfaceIce::ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S) {
-
-//   // Since we don't have a surface pressure on faces, this gets a bit uglier.
-//   // Simply grab the internal cell for now.
-//   const Epetra_MultiVector& flux = *S->GetFieldData(flux_key_)
-//       ->ViewComponent("face",false);
-//   const Epetra_MultiVector& pres_c = *S->GetFieldData("surface-pressure")
-//       ->ViewComponent("cell",false);
-
-//   //  Teuchos::writeParameterListToXmlOStream(*plist_, std::cout);
-//   Teuchos::ParameterList& enth_plist = plist_->sublist("enthalpy evaluator", true);
-//   bool include_work = enth_plist.get<bool>("include work term", true);
-
-//   AmanziMesh::Entity_ID_List cells;
-//   unsigned int nfaces = pres_c.MyLength();
-//   for (unsigned int f=0; f!=nfaces; ++f) {
-//     mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-//     if (bc_markers_adv_[f] == Operators::OPERATOR_BC_DIRICHLET) {
-//       AMANZI_ASSERT(bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET); // Dirichlet data -- does not yet handle split fluxes here
-//       double T = bc_values_[f];
-//       double p = pres_c[0][cells[0]];
-//       double dens = eos_liquid_->MolarDensity(T,p);
-//       double int_energy = iem_liquid_->InternalEnergy(T);
-//       double enthalpy = include_work ? int_energy + p/dens : int_energy;
-
-//       bc_values_adv_[f] = enthalpy;
-//     }
-//   }
-
-// }
 
 
 // -------------------------------------------------------------
@@ -264,8 +190,9 @@ void EnergySurfaceIce::AddSources_(const Teuchos::Ptr<State>& S,
   // -- advection source
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_) {
 
+    // FIXME -- remove this in favor of adding Keys::readDomainHint calls!
     Key domain_ss;
-    if (boost::starts_with(domain_, "surface")  && domain_.find("column") != std::string::npos) {
+    if (Keys::starts_with(domain_, "surface")  && domain_.find("column") != std::string::npos) {
       domain_ss = plist_->get<std::string>("subsurface domain name",
               domain_.substr(8,domain_.size()));
     } else {

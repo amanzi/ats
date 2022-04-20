@@ -41,6 +41,14 @@ MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& p
     cap_the_sat_spurt_ = true;
   }
 
+  cap_the_desat_spurt_ = plist_->get<bool>("cap the desaturated spurt", false);
+  damp_the_desat_spurt_ = plist_->get<bool>("damp the desaturated spurt", false);
+  bool damp_and_cap_the_desat_spurt = plist_->get<bool>("damp and cap the desaturated spurt", false);
+  if (damp_and_cap_the_desat_spurt) {
+    damp_the_desat_spurt_ = true;
+    cap_the_desat_spurt_ = true;
+  }
+
   // set the size of the caps
   if (cap_the_spurt_ || damp_the_spurt_ ||
       cap_the_sat_spurt_ || damp_the_sat_spurt_ ||
@@ -60,15 +68,14 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h, Teuchos::RCP<const
   if (face_limiter_ > 0.) {
 
     std::string face_entity;
-    if (Pu->SubVector(i_domain_)->Data()->HasComponent("face")){
+    if (Pu->SubVector(i_domain_)->Data()->HasComponent("face")) {
       face_entity = "face";
-    }else if (Pu->SubVector(i_domain_)->Data()->HasComponent("boundary_face")){
+    } else if (Pu->SubVector(i_domain_)->Data()->HasComponent("boundary_face")) {
       face_entity = "boundary_face";
-    }else{
+    } else {
       Errors::Message message("Subsurface vector does not have face component.");
       Exceptions::amanzi_throw(message);
     }
-
 
     Epetra_MultiVector& domain_Pu_f = *Pu->SubVector(i_domain_)->Data()
         ->ViewComponent(face_entity,false);
@@ -89,8 +96,6 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h, Teuchos::RCP<const
 
 // Approach 2: damping of the spurt -- limit the max oversaturated pressure
 //  using a global damping term.
-// Approach 3: capping of the spurt -- limit the max oversaturated pressure
-//  if coming from undersaturated.
 double
 MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
@@ -99,9 +104,9 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const T
   std::string face_entity;
   if (Pu->SubVector(i_domain_)->Data()->HasComponent("face")){
     face_entity = "face";
-  }else if (Pu->SubVector(i_domain_)->Data()->HasComponent("boundary_face")){
+  } else if (Pu->SubVector(i_domain_)->Data()->HasComponent("boundary_face")) {
     face_entity = "boundary_face";
-  }else{
+  } else {
     Errors::Message message("Subsurface vector does not have face component.");
     Exceptions::amanzi_throw(message);
   }
@@ -144,6 +149,8 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const T
 }
 
 
+// Approach 3: capping of the spurt -- limit the max oversaturated pressure
+//  if coming from undersaturated.
 int
 MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
@@ -176,6 +183,8 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const Tr
                     << ", p_new = " << p_new << ", p_capped = " << p_old - p_corrected << std::endl;
       } else if ((p_new < patm) && (p_old > patm)) {
         // strange attempt to kick NKA when it goes back under?
+        // double p_corrected = p_old - (patm - cap_size_);
+        // SetDomainFaceValue(*domain_Pu, f, p_corrected);
         n_modified++;
         if (vo_->os_OK(Teuchos::VERB_HIGH))
           std::cout << "  INVERSE SPURT (sc=" << surf_mesh->cell_map(false).GID(cs) << "): p_old = " << p_old
@@ -183,15 +192,12 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const Tr
       }
     }
   }
-
   return n_modified;
 }
 
 
 // Approach 2: damping of the spurt -- limit the max oversaturated pressure
 //  using a global damping term.
-// Approach 3: capping of the spurt -- limit the max oversaturated pressure
-//  if coming from undersaturated.
 double
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
@@ -232,6 +238,8 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<con
 }
 
 
+// Approach 3: capping of the spurt -- limit the max oversaturated pressure
+//  if coming from undersaturated.
 int
 MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
@@ -265,6 +273,84 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<cons
 
   return n_modified;
 }
+
+// Approach 2: damping of the spurt -- limit the max oversaturated pressure
+//  using a global damping term.
+double
+MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
+        Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
+      u->SubVector(i_domain_)->Data()->Mesh();
+  int ncells_domain = domain_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+
+  const Epetra_MultiVector& domain_p_c = *u->SubVector(i_domain_)->Data()
+      ->ViewComponent("cell",false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
+  Epetra_MultiVector& domain_Pu_c = *domain_Pu->ViewComponent("cell",false);
+
+  // Approach 2
+  double damp = 1.;
+  if (damp_the_desat_spurt_) {
+    for (int c=0; c!=ncells_domain; ++c) {
+      double p_old = domain_p_c[0][c];
+      double p_new = p_old - domain_Pu_c[0][c];
+      if ((p_new < patm - cap_size_) && (p_old >= patm)) {
+        double my_damp = ((patm - cap_size_) - p_old) / (p_new - p_old);
+        damp = std::min(damp, my_damp);
+        if (vo_->os_OK(Teuchos::VERB_EXTREME))
+          std::cout << "   DAMPING THE DESATURATED SPURT (c=" << domain_mesh->cell_map(false).GID(c) << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp << std::endl;
+      }
+    }
+
+    double proc_damp = damp;
+    domain_Pu_c.Comm().MinAll(&proc_damp, &damp, 1);
+    if (damp < 1.0) {
+      if (vo_->os_OK(Teuchos::VERB_HIGH))
+        *vo_->os() << "  DAMPING THE DESATURATED SPURT!, coef = " << damp << std::endl;
+      domain_Pu->Scale(damp);
+    }
+  }
+  return damp;
+}
+
+
+// Approach 3: capping of the spurt -- limit the max oversaturated pressure
+//  if coming from undersaturated.
+int
+MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
+        Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu, double damp) {
+  const double& patm = *S_next_->GetScalarData("atmospheric_pressure");
+
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh =
+      u->SubVector(i_domain_)->Data()->Mesh();
+  int ncells_domain = domain_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+
+  const Epetra_MultiVector& domain_p_c = *u->SubVector(i_domain_)->Data()
+      ->ViewComponent("cell",false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
+  Epetra_MultiVector& domain_Pu_c = *domain_Pu->ViewComponent("cell",false);
+
+  // Approach 3
+  int n_modified = 0;
+  if (cap_the_desat_spurt_) {
+    for (int c=0; c!=ncells_domain; ++c) {
+      double p_old = domain_p_c[0][c];
+      double p_new = p_old - domain_Pu_c[0][c] / damp;
+      if ((p_new < patm - cap_size_) && (p_old >= patm)) {
+        domain_Pu_c[0][c] = p_old - (patm - cap_size_);
+        n_modified++;
+        if (vo_->os_OK(Teuchos::VERB_HIGH))
+          std::cout << "  CAPPING THE DESATURATED SPURT (c=" << domain_mesh->cell_map(false).GID(c)
+                    << "): p_old = " << p_old
+                    << ", p_new = " << p_new << ", p_capped = " << p_old - domain_Pu_c[0][c] << std::endl;
+      }
+    }
+  }
+  return n_modified;
+}
+
 
 // modify predictor via heuristic stops spurting in the surface flow
 bool

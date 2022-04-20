@@ -6,20 +6,33 @@
 #
 
 import sys,os
-import numpy as np
+import pandas as pd
 
 
 def loadFile(filename, directory):
-    return np.loadtxt(os.path.join(directory, filename))
+    ff = os.path.join(directory, filename)
+    print(f'Loading {ff}')
+    return pd.read_csv(ff, comment='#')
 
-def combine(filename, directory_list):
+def combine(filename, directory_list, eps=1.e-5):
     dat = [loadFile(filename, directory) for directory in directory_list]
+    dat_merged = []
+    time_col = dat[0].columns[0]
     for i in range(len(dat)-1):
-        first_included = np.where(dat[i][:,0] >= dat[i+1][0,0])[0]
-        if len(first_included) > 0:
-            dat[i] = dat[i][0:first_included[0],:]
+        new_time_start = dat[i+1][time_col][0]
+        print(f'Truncating: {directory_list[i]}')
+        print(f'  new time start = {new_time_start}')
+        dat_new = dat[i][dat[i][time_col] < new_time_start-eps]
+        print(f'  old extent = {dat[i][time_col][0]}, {dat[i][time_col][len(dat[i])-1]}')
+        print(f'  new extent = {dat_new[time_col][0]}, {dat_new[time_col][len(dat_new)-1]}')
+        dat_merged.append(dat_new)
+        
+    print(f'Not Truncating: {directory_list[-1]}')
+    print(f'  extent = {dat[-1][time_col][0]}, {dat[-1][time_col][len(dat[-1])-1]}')
+    dat_merged.append(dat[-1])
 
-    return np.concatenate(dat)
+    merged = pd.concat(dat_merged, ignore_index=True)
+    return merged
 
 if __name__ == "__main__":
     import argparse
@@ -29,6 +42,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--filename", "-f", type=str,
                         help="File name to be combined")
+    parser.add_argument("--output-directory", "-o", type=str, default='.',
+                        help="Directory in which to place the merged file.")
 
     args = parser.parse_args()
     if len(args.DIRECTORIES) < 1:
@@ -45,9 +60,20 @@ if __name__ == "__main__":
         while line.strip().startswith("#"):
             header.append(line)
             line = fid.readline()
-    headerlines = "\n".join(header)
+    headerlines = ''.join(header)
+
+    # pandas seems to be failing on writes to file, write by line
+    column_name_header = ','.join([f'"{n}"' for n in list(data.columns)])
 
     # write the file
-    np.savetxt(args.filename, data, header=headerlines)
+    outfile = os.path.join(args.output_directory, args.filename)
+    with open(outfile, 'w') as fid:
+        fid.write(headerlines)
+        fid.write(column_name_header+'\n')
+
+    data.to_csv(outfile, index=False, header=None, mode='a', float_format='%1.8e', chunksize=1000, line_terminator='\n')
+
+
+
 
 

@@ -44,7 +44,7 @@ PK_MPCSubcycled_ATS::PK_MPCSubcycled_ATS(Teuchos::ParameterList& pk_tree,
   }
 
   // min dt allowed in subcycling
-  min_dt_ = plist_->get<double>("mininum subcycled relative dt", 1.e-5);
+  min_dt_ = plist_->get<double>("minimum subcycled relative dt", 1.e-5);
   subcycling = plist_->get<bool>("subcycling", true);
 }
   

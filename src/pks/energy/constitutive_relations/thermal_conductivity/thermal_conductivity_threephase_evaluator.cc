@@ -18,22 +18,18 @@ namespace Energy {
 ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
     Teuchos::ParameterList& plist) :
     SecondaryVariableFieldEvaluator(plist) {
-  
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("thermal conductivity key", "thermal_conductivity");
-  }
-  std::string domain_name = Keys::getDomain(my_key_);
-  
-  poro_key_ = plist_.get<std::string>("porosity key", Keys::getKey(domain_name, "porosity"));
+  Key domain = Keys::getDomain(my_key_);
+
+  poro_key_ = Keys::readKey(plist_, domain, "porosity", "porosity");
   dependencies_.insert(poro_key_);
 
-  temp_key_ = plist_.get<std::string>("temperature key",  Keys::getKey(domain_name, "temperature"));
+  temp_key_ = Keys::readKey(plist_, domain, "temperature", "temperature");
   dependencies_.insert(temp_key_);
 
-  sat_key_ = plist_.get<std::string>("saturation key", Keys::getKey(domain_name, "saturation_liquid"));
+  sat_key_ = Keys::readKey(plist_, domain, "saturation liquid", "saturation_liquid");
   dependencies_.insert(sat_key_);
 
-  sat2_key_ = plist_.get<std::string>("second saturation key", Keys::getKey(domain_name, "saturation_ice"));
+  sat2_key_ = Keys::readKey(plist_, domain, "second saturation key", "saturation_ice");
   dependencies_.insert(sat2_key_);
 
   AMANZI_ASSERT(plist_.isSublist("thermal conductivity parameters"));

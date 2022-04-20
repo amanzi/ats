@@ -43,32 +43,19 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
   PK_Physical_Default(pk_tree, global_list,  S, solution),
   my_next_time_(0.)
 {
-  Teuchos::ParameterList& FElist = S->FEList();
-
-  if (domain_ == "surface") {
-    domain_ss_ = plist_->get<std::string>("subsurface domain name", "");
-  } else if (boost::starts_with(domain_, "surface_")) {
-    domain_ss_ = plist_->get<std::string>("subsurface domain name", domain_.substr(8,domain_.size()));
-  } else if (boost::ends_with(domain_, "_surface")) {
-    domain_ss_ = plist_->get<std::string>("subsurface domain name", domain_.substr(0,domain_.size()-8));
-  } else if (domain_.empty() || domain_ == "domain") {
-    Errors::Message message("SurfaceBalanceCLM: domain should not be the subsurface -- please set the \"domain name\" parameter in this PK\"");
-    Exceptions::amanzi_throw(message);
-  } else {
-    plist_->get<std::string>("subsurface domain name");
-  }
+  domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
 
   // set up primary variables for surface/subsurface sources.  CLM keeps its
   // own internal state, violating most ATS principles, but for now we'll hack it in.
   // -- surface water sources
   Teuchos::ParameterList& wsource_sublist =
-    FElist.sublist(Keys::getKey(domain_,"water_source"));
+    S->GetEvaluatorList(Keys::getKey(domain_,"water_source"));
   wsource_sublist.set("evaluator name", Keys::getKey(domain_,"water_source"));
   wsource_sublist.set("field evaluator type", "primary variable");
 
   // -- subsurface water source transpiration
   Teuchos::ParameterList& w_v_source_sublist =
-    FElist.sublist(Keys::getKey(domain_ss_,"water_source"));
+    S->GetEvaluatorList(Keys::getKey(domain_ss_,"water_source"));
   w_v_source_sublist.set("evaluator name", Keys::getKey(domain_ss_,"water_source"));
   w_v_source_sublist.set("field evaluator type", "primary variable");
 

@@ -44,10 +44,16 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   Teuchos::RCP<CompositeVector> res = g->Data();
   res->PutScalar(0.0);
 
-  if (vo_->os_OK(Teuchos::VERB_HIGH))
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
                << " t1 = " << t_new << " h = " << h << std::endl;
+
+    // double minv, maxv;
+    // u->MinValue(&minv);
+    // u->MaxValue(&maxv);
+    // *vo_->os() << "  min,max_u = " << minv << ", " << maxv << std::endl;
+  }
 
   // unnecessary here if not debeugging, but doesn't hurt either
   S_next_->GetFieldEvaluator(potential_key_)->HasFieldChanged(S_next_.ptr(), name_);
@@ -125,20 +131,28 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   db_->WriteVector("res (src)", res.ptr(), true);
 
 #if DEBUG_RES_FLAG
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+    double minv, maxv;
+    res->MinValue(&minv);
+    res->MaxValue(&maxv);
+    *vo_->os() << "  min,max_res = " << minv << ", " << maxv << std::endl;
+  }
+
   if (niter_ < 23) {
-
-    Teuchos::RCP<const CompositeVector> depth= S_next_->GetFieldData(pd_key_);
-
-
     std::stringstream namestream;
-    namestream << "flow_residual_" << niter_;
+    namestream << "surface-flow_residual_" << niter_;
     *S_next_->GetFieldData(namestream.str(),name_) = *res;
 
+    std::cout << "WRITING FILE: " << namestream.str() << std::endl;
+    Teuchos::RCP<const CompositeVector> depth= S_next_->GetFieldData(pd_key_);
+
     std::stringstream solnstream;
-    solnstream << "flow_solution_" << niter_;
+    solnstream << "surface-flow_solution_" << niter_;
+    std::cout << "WRITING FILE: " << solnstream.str() << std::endl;
     *S_next_->GetFieldData(solnstream.str(),name_) = *depth;
   }
 #endif
+
 };
 
 

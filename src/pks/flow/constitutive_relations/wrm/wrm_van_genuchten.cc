@@ -56,6 +56,7 @@ double WRMVanGenuchten::d_k_relative(double s) {
 
     double x = pow(se, 1.0 / m_);
     if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
+    if (fabs(x) < FLOW_WRM_TOLERANCE) return 0.0;
 
     double y = pow(1.0 - x, m_);
     double dkdse;

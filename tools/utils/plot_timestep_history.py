@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 """Loads and plots timestep history for a given run."""
-from __future__ import print_function
-from __future__ import division
-
 import numpy as np
+from matplotlib import pyplot as plt
 
 def print_headers():
     print("cycle, time, dt, iteration count, wallclock avg (s)")
@@ -30,6 +28,10 @@ def parse_logfile(fid, wallclock=False):
                 faildata.append(data.pop())
             data.append([cyc,time,dt])
 
+    ngood = len(data)
+    nbad = len(faildata)
+    print(f"  total timesteps = {ngood+nbad}")
+    print(f"  bad timesteps = {nbad}")
     return np.array(data), np.array(faildata)
 
 
@@ -37,20 +39,29 @@ def get_axs():
     """Gets a figure and list of axes for plotting."""
     return plt.subplots(1,2)
 
-def decorate_axs(axs):
+def decorate_axs(axs, units='d'):
     """Adds legends, labels, limits."""
-    axs[0].set_xlabel("time [days]")
+    
+    axs[0].set_xlabel(f"time [{units}]")
     axs[0].set_ylabel("dt [days]")
     axs[0].legend(loc='lower left')
     axs[1].set_xlabel("cycles [-]")
-    axs[1].set_ylabel("dt [days]")
+    axs[1].set_ylabel(f"dt [days]")
     return
 
-def plot(data, axs, color, label, symbol='x'):
+def plot(data, axs, color, label, symbol='x', units='s'):
     """Plot the data."""
-    axs[0].semilogy(data[0][:,1], data[0][:,2], '-'+symbol, color=color, label=label)
+    if units == 's':
+        factor = 86400
+    elif units == 'd':
+        factor = 1
+    elif units == 'y':
+        factor = 1.0 / 365
+    
+    axs[0].semilogy(data[0][:,1]*factor, data[0][:,2], '-'+symbol, color=color, label=label)
     if data[1].shape != (0,):
-        axs[0].semilogy(data[1][:,1], data[1][:,2], symbol, color=color)
+        axs[0].semilogy(data[1][:,1]*factor, data[1][:,2], symbol, color=color)
+
     axs[1].semilogy(data[0][:,0], data[0][:,2], '-'+symbol, color=color)
     if data[1].shape != (0,):
         axs[1].semilogy(data[1][:,0], data[1][:,2], symbol, color=color)
@@ -63,12 +74,15 @@ def write_to_file(data, fnamebase):
 def read_from_file(fname):
     """Reads a .npz file"""
     read = np.load(fname)
+    ngood = len(read['good_timesteps'])
+    nbad = len(read['bad_timesteps'])
+    print(f"File: {filename}")
+    print(f"  total timesteps = {ngood+nbad}")
+    print(f"  bad timesteps = {nbad}")
     return [read["good_timesteps"], read["bad_timesteps"]]
             
 if __name__ == "__main__":
     import sys,os
-    from matplotlib import pyplot as plt
-
     import argparse
     import colors
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -82,6 +96,8 @@ if __name__ == "__main__":
                         help="Colormap used to pick a color.")
     parser.add_argument("--overwrite", "-o", action="store_true",
                         help="Do not use any existing .npz file -- instead reload from the logfile and overwrite the .npz file.")
+    parser.add_argument("--units", type=str, default='d', choices=['y', 'd', 's'],
+                        help="Set the units of the x axis -- one of 'y', 'd', 's'")
     args = parser.parse_args()
 
     if args.colors is not None:
@@ -98,13 +114,14 @@ if __name__ == "__main__":
         elif os.path.isfile(fname+".npz") and not args.overwrite:
             data = read_from_file(fname+".npz")
         else:
+            print(f"File: {fname}")
             with open(fname,'r') as fid:
                 data = parse_logfile(fid)
             write_to_file(data, fname)
                 
-        plot(data, axs, color, fname)
+        plot(data, axs, color, fname, units=args.units)
 
-    decorate_axs(axs)
+    decorate_axs(axs, args.units)
     plt.show()
     sys.exit(0)
 

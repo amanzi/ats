@@ -15,8 +15,8 @@ converge.
 * `"compressible porosity model parameters`" ``[compressible-porosity-leijnse-model-spec]``
 
 KEYS:
-* `"pressure`" **DOMAIN-pressure**
-* `"base porosity`" **DOMAIN-base_porosity**
+- `"pressure`" **DOMAIN-pressure**
+- `"base porosity`" **DOMAIN-base_porosity**
 
 */
 

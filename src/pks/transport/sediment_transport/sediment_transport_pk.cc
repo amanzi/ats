@@ -106,7 +106,7 @@ void SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
 
   saturation_key_ = Keys::readKey(*tp_list_, domain_name_, "saturation liquid");
   prev_saturation_key_ = Keys::readKey(*tp_list_, domain_name_, "previous saturation liquid");
-  flux_key_ = Keys::readKey(*tp_list_, domain_name_, "mass flux", "mass_flux");
+  flux_key_ = Keys::readKey(*tp_list_, domain_name_, "water flux", "water_flux");
   tcc_key_ = Keys::readKey(*tp_list_, domain_name_, "concentration", "sediment");
   molar_density_key_ = Keys::readKey(*tp_list_, domain_name_, "molar density", "molar_density_liquid");
   solid_residue_mass_key_ =  Keys::readKey(*tp_list_, domain_name_, "solid residue", "solid_residue_mass");
@@ -328,7 +328,7 @@ void SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   // create boundary conditions
   if (tp_list_->isSublist("boundary conditions")) {
     // -- try tracer-type conditions
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_);
+    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& clist = tp_list_->sublist("boundary conditions").sublist("concentration");
 
     for (Teuchos::ParameterList::ConstIterator it = clist.begin(); it != clist.end(); ++it) {
@@ -407,7 +407,7 @@ void SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
 
   // source term initialization: so far only "concentration" is available.
   if (tp_list_->isSublist("source terms")) {
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_);
+    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     //if (domain_name_ == "domain")  PKUtils_CalculatePermeabilityFactorInWell(S_.ptr(), Kxy);
 
     Teuchos::ParameterList& clist = tp_list_->sublist("source terms").sublist("concentration");
@@ -593,7 +593,7 @@ double SedimentTransport_PK::StableTimeStep()
   // S_->GetFieldData(flux_key_)->ViewComponent("face", true)->NormInf(&flux_norm);
   
   //  if (vo_->getVerbLevel() >= Teuchos::VERB_EXTREME){
-    // if (flux_key_=="surface-mass_flux"){
+    // if (flux_key_=="surface-water_flux"){
     //   *vo_->os()<<"Stable step: "<<flux_key_<<" ||flux_next||="<<flux_next_norm<<" ||flux||="<<flux_norm<<"\n";
     // }
   //}

@@ -12,15 +12,15 @@
 
 /*!
 
- * `"source domain name`" ``[string]`` Domain name of the source mesh.
+.. _subgrid-aggregate-evaluator-spec:
+.. admonition:: subgrid-aggregate-evaluator-spec
 
-ONE OF:
-* `"field key suffix`" ``[string]`` **FIELD_SUFFIX from this** Set the suffix of the variable
-OR
-* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
+   * `"source domain name`" ``[string]`` Domain name of the source mesh.
 
-  
- */
+   KEYS:
+   - `"field`" **SOURCE_DOMAIN-KEY**  Default set from this evaluator's name.
+
+*/
 
 
 #ifndef AMANZI_RELATIONS_SUBGRID_AGGREGATOR_EVALUATOR_HH_

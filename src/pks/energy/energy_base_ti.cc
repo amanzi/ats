@@ -88,14 +88,16 @@ void EnergyBase::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 #endif
 
   // advection term
-  if (implicit_advection_) {
-    AddAdvection_(S_next_.ptr(), res.ptr(), true);
-  } else {
-    AddAdvection_(S_inter_.ptr(), res.ptr(), true);
-  }
+  if (is_advection_term_) {
+    if (implicit_advection_) {
+      AddAdvection_(S_next_.ptr(), res.ptr(), true);
+    } else {
+      AddAdvection_(S_inter_.ptr(), res.ptr(), true);
+    }
 #if DEBUG_FLAG
   db_->WriteVector("res (adv)", res.ptr(), true);
 #endif
+  }
 
   // source terms
   AddSources_(S_next_.ptr(), res.ptr());
@@ -254,16 +256,17 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   AddSourcesToPrecon_(S_next_.ptr(), h);
 
   // update with advection terms
-  if (implicit_advection_ && implicit_advection_in_pc_) {
-    Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetFieldData(flux_key_);
-    S_next_->GetFieldEvaluator(enthalpy_key_)
-        ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-    Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetFieldData(Keys::getDerivKey(enthalpy_key_, key_));
-    preconditioner_adv_->Setup(*mass_flux);
-    preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
-    preconditioner_adv_->UpdateMatrices(mass_flux.ptr(), dhdT.ptr());
-    preconditioner_adv_->ApplyBCs(false, true, false);
-
+  if (is_advection_term_) {
+    if (implicit_advection_ && implicit_advection_in_pc_) {
+      Teuchos::RCP<const CompositeVector> water_flux = S_next_->GetFieldData(flux_key_);
+      S_next_->GetFieldEvaluator(enthalpy_key_)
+          ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
+      Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetFieldData(Keys::getDerivKey(enthalpy_key_, key_));
+      preconditioner_adv_->Setup(*water_flux);
+      preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
+      preconditioner_adv_->UpdateMatrices(water_flux.ptr(), dhdT.ptr());
+      preconditioner_adv_->ApplyBCs(false, true, false);
+    }
   }
 
   // Apply boundary conditions.

@@ -25,11 +25,11 @@ Solves an advection-diffusion equation for energy:
       this PK, typically `"DOMAIN-temperature`" Note there is no default -- this
       must be provided by the user.
 
-    * `"boundary conditions`" ``[energy-bc-spec]`` Defaults to 0 diffusive flux
+    * `"boundary conditions`" ``[list]`` Defaults to 0 diffusive flux
       boundary condition.  See `Energy-specific Boundary Conditions`_
 
-    * `"thermal conductivity evaluator`"
-      ``[thermal-conductivity-evaluator-spec]`` The thermal conductivity.  This
+    * `"thermal conductivity evaluator`" ``[list]``
+      The thermal conductivity.  This
       needs to go away, and should get moved to State.
 
     * `"absolute error tolerance`" ``[double]`` **76.e-6** A small amount of
@@ -53,7 +53,7 @@ Solves an advection-diffusion equation for energy:
       theem in the preconditioner, making an easier linear solve and often not
       negatively impacting the nonlinear solve.
 
-    * `"advection preconditioner`" ``[pde-advection-spec]`` **optional**
+    * `"advection preconditioner`" ``[list]`` **optional**
       Typically defaults are correct.
 
     END
@@ -81,10 +81,6 @@ Solves an advection-diffusion equation for energy:
       this derivative anyway.  This is useful for difficult-to-differentiate
       terms like a surface energy balance, which includes many terms.
 
-    EVALUATORS:
-
-    - `"source term`"
-
     END
 
     Globalization:
@@ -102,50 +98,45 @@ Solves an advection-diffusion equation for energy:
 
     The following are rarely set by the user, as the defaults are typically right.
 
-    Variable names:
-
-    * `"conserved quantity key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E` `[MJ]`
-    * `"energy key`" ``[string]`` **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
-    * `"water content key`" ``[string]`` **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
-    * `"enthalpy key`" ``[string]`` **DOMAIN-enthalpy** The specific enthalpy :math`e` `[MJ mol^-1]`
-    * `"flux key`" ``[string]`` **DOMAIN-mass_flux** The mass flux :math:`\mathbf{q}` used in advection. `[mol s^-1]`
-    * `"diffusive energy flux`" ``[string]`` **DOMAIN-diffusive_energy_flux** :math:`\mathbf{q_e}` `[MJ s^-1]`
-    * `"advected energy flux`" ``[string]`` **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
-    * `"thermal conductivity`" ``[string]`` **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
-    * `"upwinded thermal conductivity`" ``[string]`` **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
-
-    * `"advection`" ``[pde-advection-spec]`` **optional** The PDE_Advection_ spec.  Only one current implementation, so defaults are typically fine.
+    * `"advection`" ``[list]`` **optional** The PDE_Advection_ spec.  Only one
+      current implementation, so defaults are typically fine.
 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
       Typically not provided by users, as defaults are correct.
 
     IF
-
     * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
-
     THEN
-
     * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
-
     END
 
     * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
       surface boundary conditions from the surface temperature (Dirichlet).
 
+    KEYS:
+    - `"conserved quantity`" **DOMAIN-energy** The total energy :math:`E` `[MJ]`
+    - `"energy`" **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
+    - `"water content`" **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
+    - `"enthalpy`" **DOMAIN-enthalpy** The specific enthalpy :math`e` `[MJ mol^-1]`
+    - `"flux`" **DOMAIN-water_flux** The water flux :math:`\mathbf{q}` used in advection. `[mol s^-1]`
+    - `"diffusive energy`" **DOMAIN-diffusive_energy_flux** :math:`\mathbf{q_e}` `[MJ s^-1]`
+    - `"advected energy`" **DOMAIN-advected_energy_flux** :math:`\mathbf{q_e^{adv}} = q e` `[MJ s^-1]`
+    - `"thermal conductivity`" **DOMAIN-thermal_conductivity** Thermal conductivity on cells `[W m^-1 K^-1]`
+    - `"upwinded thermal conductivity`" **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
 
     EVALUATORS:
-
+    - `"source term`" **optional** If source key is provided.
     - `"enthalpy`"
     - `"cell volume`"
     - `"thermal conductivity`"
     - `"conserved quantity`"
     - `"energy`"
 
- */
+*/
 
 
 #ifndef PKS_ENERGY_BASE_HH_
@@ -292,7 +283,8 @@ public:
   bool is_source_term_;
   bool is_source_term_differentiable_;
   bool is_source_term_finite_differentiable_;
-  bool is_water_source_term_;
+  bool is_mass_source_term_;
+  bool is_advection_term_;
   bool implicit_advection_;
   bool implicit_advection_in_pc_;
   bool precon_used_;

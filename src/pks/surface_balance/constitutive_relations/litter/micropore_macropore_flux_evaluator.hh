@@ -4,6 +4,7 @@
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+           Daniil Svyatsky (dasvyat@lanl.gov)
 */
 //! Exchange flux between multiple continua.
 
@@ -25,9 +26,9 @@ Note that the expected domain for this is the micropore domain, but may be
 changed on the input line.
 
 .. _micropore-macropore-flux-evaluator-spec:
-.. admonition:: micropore-micropore-flux-evaluator
+.. admonition:: micropore-macropore-flux-evaluator-spec
 
-   * `"micropore domain`" ``[string]`` **""** Defaults to the domain of the flux's
+   * `"micropore domain`" ``[string]`` **DOMAIN** Defaults to the domain of the flux's
      variable name.
 
    * `"macropore domain`" ``[string]`` **macropore**

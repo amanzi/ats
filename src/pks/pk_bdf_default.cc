@@ -25,6 +25,7 @@ void PK_BDF_Default::Setup(const Teuchos::Ptr<State>& S)
 {
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
+  dt_ = plist_->get<double>("initial time step [s]", dt_);
 
   // preconditioner assembly
   assemble_preconditioner_ = plist_->get<bool>("assemble preconditioner", true);
@@ -71,13 +72,13 @@ void PK_BDF_Default::Initialize(const Teuchos::Ptr<State>& S)
 
 void PK_BDF_Default::ResetTimeStepper(double time)
 {
-    // -- initialize time derivative
-    Teuchos::RCP<TreeVector> solution_dot = Teuchos::rcp(new TreeVector(*solution_));
-    solution_dot->PutScalar(0.0);
+  // -- initialize time derivative
+  Teuchos::RCP<TreeVector> solution_dot = Teuchos::rcp(new TreeVector(*solution_));
+  solution_dot->PutScalar(0.0);
 
-    // -- set initial state
-    time_stepper_->SetInitialState(time, solution_, solution_dot);
-    return;
+  // -- set initial state
+  time_stepper_->SetInitialState(time, solution_, solution_dot);
+  return;
 }
 
 // -----------------------------------------------------------------------------
@@ -85,14 +86,19 @@ void PK_BDF_Default::ResetTimeStepper(double time)
 // -----------------------------------------------------------------------------
 double PK_BDF_Default::get_dt() { return dt_; }
 
-void PK_BDF_Default::set_dt(double dt) {dt_ = dt;}
+void PK_BDF_Default::set_dt(double dt) { dt_ = dt; }
 
 // -- Commit any secondary (dependent) variables.
 void PK_BDF_Default::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) \
 {
-  double dt = t_new -t_old;
-  if (dt > 0. && time_stepper_ != Teuchos::null)
-    time_stepper_->CommitSolution(dt, solution_, true);
+  double dt = t_new - t_old;
+  if (time_stepper_ != Teuchos::null) {
+    if (dt <= 0) {
+      ResetTimeStepper(t_old);
+    } else {
+      time_stepper_->CommitSolution(dt, solution_, true);
+    }
+  }
 }
 
 void PK_BDF_Default::set_states(const Teuchos::RCP<State>& S,
@@ -135,7 +141,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
     bool valid = ValidStep();
     if (valid) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "successful timestep" << std::endl;
+        *vo_->os() << "successful advance" << std::endl;
       // update the timestep size
       if (dt_solver < dt_ && dt_solver >= dt) {
         // We took a smaller step than we recommended, and it worked fine (not
@@ -152,7 +158,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
     }
   } else {
     if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << "unsuccessful timestep" << std::endl;
+      *vo_->os() << "unsuccessful advance" << std::endl;
     // take the decreased timestep size
     dt_ = dt_solver;
   }

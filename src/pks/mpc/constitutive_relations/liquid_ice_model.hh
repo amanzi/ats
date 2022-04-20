@@ -72,6 +72,9 @@ class LiquidIceModel : public EWCModelBase {
   bool poro_leij_;
   Key domain;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
+
+  bool use_pc_ice_;
+
 };
 
 }
