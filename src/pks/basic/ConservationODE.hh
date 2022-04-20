@@ -14,7 +14,7 @@ time derivative of a conserved quantity is determined by a bunch of sources and
 sinks.
 
 .. math::
-    \frac{\partial \Phi(u) }{\partial t} = Q(u,x,t)
+    \frac{\partial \Psi(u) }{\partial t} = Q(u,x,t)
 
 Where the conserved quantity :math:`\Phi` is a function of the primary variable
 :math:`u`, and a source term :math:`Q` is provided.
@@ -27,7 +27,7 @@ Where the conserved quantity :math:`\Phi` is a function of the primary variable
     * `"primary variable key`" ``[string]`` The primary variable, :math:`u`.
       Note there is no default -- this must be provided by the user.
 
-    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Phi`
+    * `"conserved quantity key`" ``[string]`` The conserved quantity :math:`\Psi`
 
     * `"source key`" ``[string]`` **DOMAIN-source_sink** Units are in conserved
       quantity per second, :math:`Q`.

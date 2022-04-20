@@ -20,7 +20,7 @@ include_directories(${PKS_SOURCE_DIR})
 # # operators -- layer between discretization and PK
 # add_subdirectory(operators)
 
-add_subdirectory(constitutive_relations)
+# add_subdirectory(constitutive_relations)
 
 # Process Kernels
 add_subdirectory(pks)

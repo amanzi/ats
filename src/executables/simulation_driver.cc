@@ -9,12 +9,13 @@ Author: Ethan Coon (ecoon@lanl.gov)
 
 #include <iostream>
 
+#include <Epetra_MpiComm.h>
+
 #include "Teuchos_ParameterList.hpp"
-#include "Teuchos_XMLParameterListCoreHelpers.hpp"
+#include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 
-#include "GlobalVerbosity.hh"
 #include "VerboseObject.hh"
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
@@ -29,49 +30,46 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include "ats_mesh_factory.hh"
 #include "simulation_driver.hh"
 
+namespace ATS {
 
-int SimulationDriver::Run(
-    const Amanzi::Comm_ptr_type& comm,
-    const Teuchos::RCP<Teuchos::ParameterList>& plist) {
-
-  // verbosity settings
-  setDefaultVerbLevel(Amanzi::VerbosityLevel::level_);
-  Teuchos::EVerbosityLevel verbLevel = getVerbLevel();
-  Teuchos::RCP<Teuchos::FancyOStream> out = getOStream();
-  Teuchos::OSTab tab = getOSTab(); // This sets the line prefix and adds one tab
-
-  // size, rank
-  int rank = comm->getRank();
-  int size = comm->getSize();
+int
+SimulationDriver::Run(const Teuchos::RCP<const Amanzi::Comm_type>& comm,
+                      Teuchos::ParameterList& plist)
+{
+  Amanzi::VerboseObject vo("Simulation Driver", plist);
+  Teuchos::OSTab tab = vo.getOSTab();
 
   // print header material
-  if(out.get() && includesVerbLevel(verbLevel,Teuchos::VERB_LOW,true)) {
+  if (vo.os_OK(Teuchos::VERB_LOW)) {
     // print parameter list
-    *out << "======================> dumping parameter list <======================" <<
+    *vo.os() << "======================> dumping parameter list <======================" <<
       std::endl;
-    Teuchos::writeParameterListToXmlOStream(*plist, *out);
-    *out << "======================> done dumping parameter list. <================" <<
+    Teuchos::writeParameterListToXmlOStream(plist, *vo.os());
+    *vo.os() << "======================> done dumping parameter list. <================" <<
       std::endl;
   }
 
   // create the geometric model and regions
-  auto reg_params = Teuchos::sublist(plist, "regions");
+  Teuchos::ParameterList reg_params = plist.sublist("regions");
   Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
-    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, *reg_params, *comm) );
+    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_params, *comm) );
 
   // Create the state.
-  auto state_plist = Teuchos::sublist(plist, "state");
-  auto S = Teuchos::rcp(new Amanzi::State(state_plist));
+  Teuchos::ParameterList state_plist = plist.sublist("state");
+  Teuchos::RCP<Amanzi::State> S = Teuchos::rcp(new Amanzi::State(state_plist));
 
   // create and register meshes
-  ATS::createMeshes(*plist, comm, gm, *S);
- 
+  //ATS::createMeshes(plist.sublist("mesh"), comm, gm, *S);
+  ATS::createMeshes(plist, comm, gm, *S);
+
   // create the top level Coordinator
-  ATS::Coordinator coordinator(plist, S, comm);
-  
+  Teuchos::RCP<Teuchos::ParameterList> plist_ptr =
+    Teuchos::rcpFromRef<Teuchos::ParameterList>(plist);
+  ATS::Coordinator coordinator(plist_ptr, S, comm);
+
   // run the simulation
   coordinator.CycleDriver();
   return 0;
 }
 
-
+} // namespace
