@@ -78,10 +78,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
   virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
-
   virtual std::string name() { return "sediment transport"; }
   Key get_domain_name() {return domain_name_;}
 
