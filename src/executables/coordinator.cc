@@ -162,6 +162,7 @@ void Coordinator::initialize()
     double t_restart = Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_);
     S_->set_time(Amanzi::Tags::CURRENT, t_restart);
     S_->set_time(Amanzi::Tags::NEXT, t_restart);
+    t0_ = t_restart;
   }
 
   // Initialize the state
@@ -173,13 +174,14 @@ void Coordinator::initialize()
   // calling CommitStep to set up copies as needed
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
+
   // Restart from checkpoint part 2:
   // -- load all other data
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
     t0_ = S_->get_time(Amanzi::Tags::DEFAULT);
-    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
 
+    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
     S_->set_time(Amanzi::Tags::CURRENT, t0_);
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 

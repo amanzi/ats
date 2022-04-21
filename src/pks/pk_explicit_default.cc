@@ -13,7 +13,6 @@ Explicit.
 #include "Teuchos_TimeMonitor.hpp"
 #include "PK.hh"
 #include "State.hh"
-#include "boost/algorithm/string.hpp"
 #include "pk_explicit_default.hh"
 
 namespace Amanzi {

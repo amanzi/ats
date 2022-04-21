@@ -523,7 +523,7 @@ protected:
 
   std::vector<double> mass_solutes_exact_, mass_solutes_source_;  // mass for all solutes
   std::vector<double> mass_solutes_bc_, mass_solutes_stepstart_;
-  std::vector<std::string> runtime_solutes_;  // names of trached solutes
+  std::vector<std::string> runtime_solutes_;  // solutes tracked for diagnostics
   std::vector<std::string> runtime_regions_;
 
   int ncells_owned, ncells_wghost;
@@ -532,7 +532,7 @@ protected:
 
   std::vector<std::string> component_names_;  // details of components
   std::vector<double> mol_masses_;
-  int num_aqueous, num_gaseous, num_components;
+  int num_aqueous, num_gaseous, num_components, num_primary, num_advect;
   double water_tolerance_, max_tcc_;
   bool dissolution_;
 

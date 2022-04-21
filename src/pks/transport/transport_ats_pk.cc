@@ -56,11 +56,9 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   if (plist_->isParameter("component names")) {
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
-  } else {
-    Errors::Message msg("Transport PK: parameter \"component names\" is missing.");
-    Exceptions::amanzi_throw(msg);
+    num_components = component_names_.size();
+    // otherwise we hopefully get them from chemistry
   }
-  num_components = component_names_.size();
 
   if (plist_->isParameter("component molar masses")) {
     mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
@@ -130,11 +128,15 @@ void Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> che
     std::vector<std::string> component_names;
     chem_engine_->GetPrimarySpeciesNames(component_names);
     component_names_ = component_names;
-    for (int i = 0; i < chem_engine_->NumAqueousComplexes(); ++i) {
-      char secondary_name[128];
-      snprintf(secondary_name, 127, "secondary_%d", i);
-      component_names_.push_back(secondary_name);
-    }
+    //
+    // DOES TCC include secondaries?
+    //
+    // for (int i = 0; i < chem_engine_->NumAqueousComplexes(); ++i) {
+    //   char secondary_name[128];
+    //   snprintf(secondary_name, 127, "secondary_%d", i);
+    //   component_names_.push_back(secondary_name);
+    // }
+    num_components = component_names_.size();
   }
 }
 #endif
@@ -176,10 +178,12 @@ void Transport_ATS::Setup()
   S_->RequireEvaluator(cv_key_, tag_next_);
 
   // Raw data, no evaluator?
+  //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
+  auto primary_names = component_names_;
   S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordW(solid_residue_mass_key_, tag_next_, name_).set_subfieldnames(component_names_);
+  S_->GetRecordW(solid_residue_mass_key_, tag_next_, name_).set_subfieldnames(primary_names);
 
   // This vector stores the conserved amount (in mols) of ncomponent
   // transported components, plus two for water.  The first water component is
@@ -188,12 +192,13 @@ void Transport_ATS::Setup()
   // content at the new time plus dt * all fluxes treated implicitly (notably
   // just DomainCoupling fluxes, which must be able to take all the transported
   // quantity.)
-  std::vector<std::string> subfield_names(component_names_);
-  subfield_names.emplace_back("H2O_old");
-  subfield_names.emplace_back("H2O_new");
+  //
+  // Note that component_names includes secondaries, but we only need primaries
+  primary_names.emplace_back("H2O_old");
+  primary_names.emplace_back("H2O_new");
   S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
     .SetMesh(mesh_)->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, num_components+2);
-  S_->GetRecordW(conserve_qty_key_, tag_next_, name_).set_subfieldnames(subfield_names);
+  S_->GetRecordW(conserve_qty_key_, tag_next_, name_).set_subfieldnames(primary_names);
 
   // dependencies:
   // -- permeability
@@ -266,7 +271,7 @@ void Transport_ATS::Setup()
       geochem_src_factor_key_ = water_src_key_;
     } else {
       // set the coefficient as water source / water density
-      S_->Require<CompositeVector,CompositeVectorSpace>(geochem_src_factor_key_, tag_next_)
+      S_->Require<CompositeVector,CompositeVectorSpace>(geochem_src_factor_key_, Tags::NEXT)
         .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
 
       Teuchos::ParameterList& wc_eval = S_->GetEvaluatorList(geochem_src_factor_key_);
@@ -274,15 +279,15 @@ void Transport_ATS::Setup()
       std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
       wc_eval.set<Teuchos::Array<std::string> >("dependencies", dep);
       wc_eval.set<std::string>("reciprocal", dep[1]);
-      S_->RequireEvaluator(geochem_src_factor_key_, tag_next_);
+      S_->RequireEvaluator(geochem_src_factor_key_, Tags::NEXT);
     }
   }
 
   // this is the not-yet-existing source, and is dead code currently! (What does this mean? --ETC)
   if (plist_->sublist("source terms").isSublist("component concentration source")) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, tag_next_)
+    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT)
       .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(water_src_key_, tag_next_);
+    S_->RequireEvaluator(water_src_key_, Tags::NEXT);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
@@ -322,7 +327,7 @@ void Transport_ATS::Initialize()
   // make this go away -- local pointers to data
   tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
-  *tcc_tmp = *tcc;
+  *tcc = *tcc_tmp;
 
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
@@ -529,11 +534,11 @@ void Transport_ATS::Initialize()
       Teuchos::RCP<TransportSourceFunction_Alquimia_Units>
           src = Teuchos::rcp(new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
-      if (S_->HasEvaluator(geochem_src_factor_key_, tag_next_)) {
-        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
+      if (S_->HasEvaluator(geochem_src_factor_key_, Tags::NEXT)) {
+        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
       }
 
-      auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell",false);
+      auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell",false);
       src->set_conversion(-1000., src_factor, false);
 
       for (const auto& n : src->tcc_names()) {
@@ -554,6 +559,9 @@ void Transport_ATS::Initialize()
     *vo_->os() << vo_->color("green") << "Initalization of PK is complete."
                << vo_->reset() << std::endl << std::endl;
   }
+
+  // ETC BEGIN HACKING
+  StableTimeStep();
 }
 
 
@@ -734,7 +742,7 @@ double Transport_ATS::get_dt()
   if (subcycling_) {
     return std::numeric_limits<double>::max();
   } else {
-    StableTimeStep();
+    //StableTimeStep();
     return dt_;
   }
 }
@@ -781,8 +789,8 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid
-        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
-        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_).ViewComponent("cell",false);
+        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
+        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell",false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
         src_alq->set_conversion(-1000, src_factor, false);
@@ -933,6 +941,10 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   S_->Assign(tcc_key_, tag_next_, tag_subcycle_next_);
   ChangedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+
+  // ETC BEGIN HACKING
+  StableTimeStep();
+
   return failed;
 }
 
@@ -1163,6 +1175,7 @@ void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag)
  ****************************************************************** */
 void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 {
+  IdentifyUpwindCells();
   dt_ = dt_cycle;  // overwrite the maximum stable transport step
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
   mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
@@ -1174,9 +1187,6 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   // prepare conservative state in master and slave cells
   double mass_current = 0., tmp1, mass;
-
-  // We advect only aqueous components.
-  int num_advect = num_aqueous;
 
   int num_components = tcc_next.NumVectors();
   conserve_qty_->PutScalar(0.);
@@ -1272,7 +1282,7 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // process external sources
   if (srcs_.size() != 0) {
     double time = t_physics_;
-    ComputeAddSourceTerms(time, dt_, *conserve_qty_, 0, num_advect - 1);
+    ComputeAddSourceTerms(time, dt_, *conserve_qty_, 0, num_aqueous - 1);
   }
   db_->WriteCellVector("cons (src)", *conserve_qty_);
 
@@ -1310,6 +1320,8 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     }
   }
   db_->WriteCellVector("tcc_new", tcc_next);
+  // tcc_next.Print(std::cout);
+  VV_PrintSoluteExtrema(tcc_next, dt_);
 
   double mass_final = 0;
   for (int c = 0; c < ncells_owned; c++) {
@@ -1368,7 +1380,6 @@ void Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   // }
 
   // We advect only aqueous components.
-  int num_advect = num_aqueous;
   int num_components = tcc_next.NumVectors();
   conserve_qty_->PutScalar(0.);
 
@@ -1456,9 +1467,6 @@ void Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
     }
     else  ws_ratio[c]=0.;
   }
-
-  // We advect only aqueous components.
-  int num_advect = num_aqueous;
 
   // predictor step
   for (int i = 0; i < num_advect; i++) {
@@ -1579,7 +1587,7 @@ void Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
         if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {
           if (srcs_[m]->name() == "domain coupling") {
             const Epetra_MultiVector& flux_interface_ =
-              *S_->Get<CompositeVector>(coupled_flux_key, tag_next_).ViewComponent("cell", false);
+              *S_->Get<CompositeVector>(coupled_flux_key, Tags::NEXT).ViewComponent("cell", false);
             val = std::max(val, fabs(flux_interface_[0][c]));
           }
         }

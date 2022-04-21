@@ -44,7 +44,6 @@ class PK_Explicit_Default: public PK_Explicit<TreeVector> {
 
   // -- Choose a time step compatible with physics.
   virtual double get_dt() override { return dt_; }
-
   virtual void set_dt(double dt) override { dt_ = dt; }
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.

@@ -12,7 +12,7 @@ add_subdirectory(constitutive_relations)
 
 include_directories(${GEOCHEM_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
-include_directories(${MPC_TREE_SOURCE_DIR})
+#include_directories(${MPC_TREE_SOURCE_DIR})
 include_directories(${TRANSPORT_SOURCE_DIR})
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
@@ -47,11 +47,11 @@ set(ats_mpc_src_files
 
   mpc_coupled_transport.cc
   mpc_reactivetransport.cc
+  mpc_coupled_reactivetransport.cc
 
   # mpc_weak_subgrid.cc
   # mpc_weak_domain_decomposition.cc
   # mpc_coupled_water_split_flux.cc
-  # mpc_coupled_reactivetransport.cc
   # mpc_permafrost_split_flux.cc
   # mpc_morphology_pk.cc
   # biomass_evaluator.cc
@@ -77,10 +77,10 @@ set(ats_mpc_inc_files
 
   mpc_coupled_transport.hh
   mpc_reactivetransport.hh
+  mpc_coupled_reactivetransport.hh
 
   # mpc_weak_subgrid.hh
   # mpc_weak_domain_decomposition.hh
-  # mpc_coupled_reactive_transport_pk.hh
   # mpc_predictor_corrector.hh
   # mpc_coupled_water_split_flux.hh
   # mpc_permafrost_split_flux.hh
@@ -154,10 +154,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
  
-# register_evaluator_with_factory(
-#   HEADERFILE mpc_coupled_reactive_transport_pk_reg.hh
-#   LISTNAME   ATS_MPC_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE mpc_coupled_reactivetransport_reg.hh
+  LISTNAME   ATS_MPC_REG
+  )
 
 # register_evaluator_with_factory(
 #    HEADERFILE mpc_morphology_reg.hh

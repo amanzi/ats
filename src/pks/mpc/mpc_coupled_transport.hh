@@ -33,6 +33,11 @@ class MPCCoupledTransport: public WeakMPC {
   virtual void Setup() override;
   int get_num_aqueous_component();
 
+  // bug, see amanzi/ats#125
+  // Once that is fixed, remove this advance in favor of the default implementation.
+  bool AdvanceStep(double t_old, double t_new, bool reinit) override;
+
+
  protected:
   void SetupCouplingConditions_();
 

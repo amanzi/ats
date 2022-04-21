@@ -26,6 +26,7 @@ void MPCCoupledTransport::Setup()
   name_ss_ = sub_pks_[0]->name();
   name_surf_ = sub_pks_[1]->name();
 
+  // see bug amanzi/ats#125 this is probably backwards
   pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);
   pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[1]);
 
@@ -37,6 +38,16 @@ void MPCCoupledTransport::Setup()
   SetupCouplingConditions_();
   WeakMPC::Setup();
 }
+
+// bug, see amanzi/ats#125
+bool MPCCoupledTransport::AdvanceStep(double t_old, double t_new, bool reinit)
+{
+  bool fail = pk_surf_->AdvanceStep(t_old, t_new, reinit);
+  if (fail) return fail;
+  fail = pk_ss_->AdvanceStep(t_old, t_new, reinit);
+  return fail;
+}
+
 
 
 int MPCCoupledTransport::get_num_aqueous_component()
