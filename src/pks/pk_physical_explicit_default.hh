@@ -22,7 +22,7 @@ domains/meshes of PKPhysicalBase and Explicit methods of PKExplicitBase.
 namespace Amanzi {
 
 
-class  PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
+class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
 
 public:
   PK_Physical_Explicit_Default(Teuchos::ParameterList& pk_tree,
@@ -50,6 +50,10 @@ public:
     PK_Explicit_Default::AdvanceStep(t_old, t_new, reinit);
     ChangedSolutionPK(tag_next_);
     return false;
+  }
+
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override {
+    PK_Physical_Default::FailStep(t_old, t_new, tag);
   }
 };
 

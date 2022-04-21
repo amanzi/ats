@@ -62,7 +62,7 @@ class PK_Physical_Default : public PK_Physical {
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;
 
-  virtual bool ValidStep()override;
+  virtual bool ValidStep() override;
 
   // Tag the primary variable as changed in the DAG
   virtual void ChangedSolutionPK(const Tag& tag) override;

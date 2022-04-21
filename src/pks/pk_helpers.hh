@@ -11,12 +11,15 @@
 
 #pragma once
 
+#include "Teuchos_TimeMonitor.hpp"
+
 #include "Mesh.hh"
 #include "CompositeVector.hh"
 #include "BCs.hh"
 
 #include "EvaluatorPrimary.hh"
 #include "State.hh"
+#include "Chemistry_PK.hh"
 
 namespace Amanzi {
 
@@ -65,7 +68,26 @@ void
 ChangedEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
 
 
+// -----------------------------------------------------------------------------
+// Helper functions for working with Amanzi's Chemistry PK
+// -----------------------------------------------------------------------------
+void
+ConvertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
+                             int num_aqueous,
+                             const Epetra_MultiVector& tcc_ats,
+                             Epetra_MultiVector& tcc_amanzi);
 
+void
+ConvertConcentrationToATS(const Epetra_MultiVector& mol_den,
+                          int num_aqueous,
+                          const Epetra_MultiVector& tcc_ats,
+                          Epetra_MultiVector& tcc_amanzi);
 
+bool
+AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+                 double t_old, double t_new, bool reinit,
+                 const Epetra_MultiVector& mol_dens,
+                 Teuchos::RCP<Epetra_MultiVector> tcc,
+                 Teuchos::Time& timer);
 
 } // namespace Amanzi

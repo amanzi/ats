@@ -18,15 +18,16 @@
 #include "Teuchos_TimeMonitor.hpp"
 
 #include "PK.hh"
+#include "mpc_coupled_transport.hh"
 #include "transport_ats.hh"
 #include "Chemistry_PK.hh"
 #include "weak_mpc.hh"
 
 namespace Amanzi {
 
-class MPCReactiveTransport : public WeakMPC {
+class MPCCoupledReactiveTransport : public WeakMPC {
  public:
-  MPCReactiveTransport(Teuchos::ParameterList& pk_tree,
+  MPCCoupledReactiveTransport(Teuchos::ParameterList& pk_tree,
                const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& soln);
@@ -43,18 +44,23 @@ class MPCReactiveTransport : public WeakMPC {
  protected:
   bool chem_step_succeeded_;
 
-  Key domain_;
-  Key tcc_key_;
-  Key mol_dens_key_;
+  Key domain_, domain_surf_;
+  Key tcc_key_, tcc_surf_key_;
+  Key mol_dens_key_, mol_dens_surf_key_;
 
-  Teuchos::RCP<Teuchos::Time> alquimia_timer_;
+  Teuchos::RCP<Teuchos::Time> alquimia_timer_, alquimia_surf_timer_;
 
   // storage for the component concentration intermediate values
-  Teuchos::RCP<Transport::Transport_ATS> tranport_pk_;
+  Teuchos::RCP<MPCCoupledTransport> coupled_transport_pk_;
+  Teuchos::RCP<WeakMPC> coupled_chemistry_pk_;
+
+  Teuchos::RCP<Transport::Transport_ATS> transport_pk_;
   Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_;
+  Teuchos::RCP<Transport::Transport_ATS> transport_pk_surf_;
+  Teuchos::RCP<AmanziChemistry::Chemistry_PK> chemistry_pk_surf_;
 
   // factory registration
-  static RegisteredPKFactory<MPCReactiveTransport> reg_;
+  static RegisteredPKFactory<MPCCoupledReactiveTransport> reg_;
 };
 
 }  // namespace Amanzi
