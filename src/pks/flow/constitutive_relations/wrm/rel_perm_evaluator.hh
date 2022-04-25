@@ -102,6 +102,7 @@ class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
 
   Teuchos::RCP<WRMPartition> wrms_;
   Key sat_key_;
+  Key sat_gas_key_;
   Key dens_key_;
   Key visc_key_;
   Key surf_rel_perm_key_;
@@ -112,6 +113,7 @@ class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
 
   double perm_scale_;
   double min_val_;
+  double beta_;
 
  private:
   static Utils::RegisteredFactory<FieldEvaluator,RelPermEvaluator> factory_;
