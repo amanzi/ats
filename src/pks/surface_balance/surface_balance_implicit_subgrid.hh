@@ -95,6 +95,9 @@ public:
   Key snow_source_key_;
   Key snow_death_rate_key_;
   Key area_frac_key_;
+  
+  double density_snow_max_;
+  
 
  private:
   // factory registration
