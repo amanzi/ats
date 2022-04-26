@@ -45,9 +45,12 @@ void RelPermEvaluator::InitializeFromPlist_() {
   // dependencies
   Key domain_name = Keys::getDomain(my_key_);
 
-  // -- saturation liquid
+  // -- saturation liquid, gas
   sat_key_ = Keys::readKey(plist_, domain_name, "saturation", "saturation_liquid");
   dependencies_.insert(sat_key_);
+
+  sat_gas_key_ = Keys::readKey(plist_, domain_name, "saturation", "saturation_gas");
+  dependencies_.insert(sat_gas_key_);
 
   is_dens_visc_ = plist_.get<bool>("use density on viscosity in rel perm", true);
   if (is_dens_visc_) {
@@ -57,7 +60,7 @@ void RelPermEvaluator::InitializeFromPlist_() {
     visc_key_ = Keys::readKey(plist_, domain_name, "viscosity", "viscosity_liquid");
     dependencies_.insert(visc_key_);
   }
-
+  
   // boundary rel perm settings -- deals with deprecated option
   std::string boundary_krel = "boundary pressure";
   if (plist_.isParameter("boundary rel perm strategy")) {
@@ -94,6 +97,7 @@ void RelPermEvaluator::InitializeFromPlist_() {
   // cutoff above 0?
   min_val_ = plist_.get<double>("minimum rel perm cutoff", 0.);
   perm_scale_ = plist_.get<double>("permeability rescaling");
+  beta_ = plist_.get<double>("correction coefficient for ice", 1.);
 }
 
 
@@ -165,18 +169,22 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // -- Evaluate the model to calculate krel on cells.
   const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
       ->ViewComponent("cell",false);
+  const Epetra_MultiVector& sat_gas_c = *S->GetFieldData(sat_gas_key_)
+      ->ViewComponent("cell",false);
   Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
   int ncells = res_c.MyLength();
   for (unsigned int c=0; c!=ncells; ++c) {
     int index = (*wrms_->first)[c];
-    res_c[0][c] = std::max(wrms_->second[index]->k_relative(sat_c[0][c]), min_val_);
+    res_c[0][c] = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c]), min_val_), 1.);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
   if (result->HasComponent("boundary_face")) {
     const Epetra_MultiVector& sat_bf = *S->GetFieldData(sat_key_)
                                        ->ViewComponent("boundary_face",false);
+    const Epetra_MultiVector& sat_gas_bf = *S->GetFieldData(sat_gas_key_)
+                                           ->ViewComponent("boundary_face",false);
     Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
 
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
@@ -195,19 +203,19 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       int index = (*wrms_->first)[cells[0]];
       double krel;
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
-        double krelb = std::max(wrms_->second[index]->k_relative(sat_bf[0][bf]),min_val_);
-        double kreli = std::max(wrms_->second[index]->k_relative(sat_c[0][cells[0]]), min_val_);
+        double krelb = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_),1.);
+        double kreli = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_),1.);
         krel = 1.0 / (1.0/krelb + 1.0/kreli);
       } else if (boundary_krel_ == BoundaryRelPerm::ARITHMETIC_MEAN) {
-        double krelb = std::max(wrms_->second[index]->k_relative(sat_bf[0][bf]),min_val_);
-        double kreli = std::max(wrms_->second[index]->k_relative(sat_c[0][cells[0]]), min_val_);
+        double krelb = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_),1.);
+        double kreli = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_),1.);
         krel = (krelb + kreli)/2.0;
       } else if (boundary_krel_ == BoundaryRelPerm::INTERIOR_PRESSURE) {
-        krel = wrms_->second[index]->k_relative(sat_c[0][cells[0]]);
+        krel = std::min(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]),1.);
       } else if (boundary_krel_ == BoundaryRelPerm::ONE) {
         krel = 1.;
       } else {
-        krel = wrms_->second[index]->k_relative(sat_bf[0][bf]);
+        krel = std::min(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),1.);
       }
       res_bf[0][bf] = std::max(krel, min_val_);
     }
@@ -283,13 +291,15 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     // -- Evaluate the model to calculate krel on cells.
     const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
         ->ViewComponent("cell",false);
+    const Epetra_MultiVector& sat_gas_c = *S->GetFieldData(sat_gas_key_)
+        ->ViewComponent("cell",false);
     Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
     int ncells = res_c.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
       int index = (*wrms_->first)[c];
-      res_c[0][c] = wrms_->second[index]->d_k_relative(sat_c[0][c]);
-      AMANZI_ASSERT(res_c[0][c] >= 0.);
+      res_c[0][c] = wrms_->second[index]->d_k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c]);
+      AMANZI_ASSERT(res_c[0][c] >= 0);
     }
 
     // -- Potentially evaluate the model on boundary faces as well.
