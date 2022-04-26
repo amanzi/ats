@@ -27,6 +27,7 @@ namespace Relations {
 
 double CalcAlbedoSnow(double density_snow) {
   double AlSnow;
+//  432.23309912785146
   if (density_snow <= 432.23309912785146) {
     AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5);
   } else {
@@ -80,10 +81,10 @@ double BeersLaw(double sw_in, double k_extinction, double lai)
 }
 
 
-double WindFactor(double Us, double Z_Us, double Z_rough)
+double WindFactor(double Us, double Z_Us, double Z_rough, double KB)
 {
   // Calculate D_h, D_e,
-  return std::pow(c_von_Karman,2) * Us / std::pow(std::log(Z_Us / Z_rough), 2);
+  return std::pow(c_von_Karman,2) * Us / (std::pow(std::log(Z_Us / Z_rough), 2) + std::log(Z_Us / Z_rough) * KB);
 }
 
 
@@ -169,7 +170,7 @@ double EvaporativeResistanceGround(const GroundProperties& surf,
   if (vapor_pressure_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-    return EvaporativeResistanceCoef(surf.saturation_gas, surf.porosity, surf.dz, params.Clapp_Horn_b);
+    return EvaporativeResistanceCoef(surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
   }
 }
 
@@ -231,7 +232,7 @@ double ConductedHeatIfSnow(double ground_temp,
     // adjust for frost hoar
     density = 1. / ((0.90/density) + (0.10/150));
   }
-  double Ks = params.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
+  double Ks = snow.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
   return Ks * (snow.temp - ground_temp) / snow.height;
 }
 
@@ -248,14 +249,15 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQlwOut = OutgoingLongwaveRadiation(snow.temp, snow.emissivity);
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness));
+  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), met.KB);
   double Sqig = StabilityFunction(met.air_temp, snow.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, snow.temp);
 
   // latent heat
   double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
-  eb.fQe = LatentHeat(Dhe * Sqig, params.density_air, params.H_sublimation,
+  double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
+  eb.fQe = LatentHeat(Dhe_latent * Sqig, params.density_air, params.H_sublimation,
                       vapor_pressure_air, vapor_pressure_skin, params.P_atm);
 
   // conducted heat
@@ -287,6 +289,7 @@ EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
     eb.error = eb.fQm;
     eb.fQm = 0.;
   }
+
   return eb;
 }
 
@@ -314,16 +317,16 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   }
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness);
+  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, met.KB);
   double Sqig = StabilityFunction(met.air_temp, surf.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe*Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
 
   // latent heat
   double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-
+  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_air, vapor_pressure_skin);
-  double coef = 1.0 / (Rsoil + 1.0/(Dhe*Sqig));
+  double coef = 1.0 / (Rsoil + 1.0/(Dhe_latent*Sqig));
 
   // positive is condensation
   eb.fQe = LatentHeat(coef, params.density_air,

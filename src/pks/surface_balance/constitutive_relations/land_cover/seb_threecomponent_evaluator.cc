@@ -153,12 +153,15 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   dependencies_.insert(poro_key_);
   ss_pres_key_ = Keys::readKey(plist, domain_ss_, "subsurface pressure", "pressure");
   dependencies_.insert(ss_pres_key_);
+  
 
   // parameters
   min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
   AMANZI_ASSERT(wind_speed_ref_ht_ > 0.);
+  thermalK_freshsnow_ = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", 0.029);
+  KB_ = plist.get<double>("log ratio between z0m and z0h [-]", 0.);
 }
 
 void
@@ -196,6 +199,8 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   const auto& sat_gas = *S->GetFieldData(sat_gas_key_)->ViewComponent("cell",false);
   const auto& poro = *S->GetFieldData(poro_key_)->ViewComponent("cell",false);
   const auto& ss_pres = *S->GetFieldData(ss_pres_key_)->ViewComponent("cell",false);
+
+
 
   // collect output vecs
   auto& water_source = *results[0]->ViewComponent("cell",false);
@@ -254,6 +259,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       // met data structure
       Relations::MetData met;
       met.Z_Us = wind_speed_ref_ht_;
+      met.KB = KB_;
       met.Us = std::max(wind_speed[0][c], min_wind_speed_);
       met.QswIn = qSW_in[0][c];
       met.QlwIn = qLW_in[0][c];
@@ -269,6 +275,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
         surf.ponded_depth = 0.; // by definition
@@ -336,6 +343,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
         surf.ponded_depth = std::max(lc.second.water_transition_depth,
@@ -404,6 +412,7 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
         surf.ponded_depth = 0; // does not matter
@@ -427,6 +436,8 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         snow.albedo = surf.albedo;
         snow.emissivity = surf.emissivity;
         snow.roughness = lc.second.roughness_snow;
+        
+        snow.thermalK_freshsnow = thermalK_freshsnow_;
 
         const Relations::EnergyBalance eb = Relations::UpdateEnergyBalanceWithSnow(surf, met, params, snow);
         const Relations::MassBalance mb = Relations::UpdateMassBalanceWithSnow(surf, params, eb);
