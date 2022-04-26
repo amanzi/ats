@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "seb_threecomponent_evaluator.hh"
 #include "seb_physics_defs.hh"
 #include "seb_physics_funcs.hh"
 #include "surface_balance_implicit_subgrid.hh"
@@ -30,6 +31,7 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
   PK(pk_tree, global_list,  S, solution),
   SurfaceBalanceBase(pk_tree, global_list,  S, solution)
 {
+
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set("conserved quantity key suffix", "snow_water_equivalent");
 
@@ -40,6 +42,9 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
   new_snow_key_ = Keys::readKey(*plist_, domain_, "new snow source", "source");
   area_frac_key_ = Keys::readKey(*plist_, domain_surf, "area fractions", "area_fractions");
   snow_death_rate_key_ = Keys::readKey(*plist_, domain_, "snow death rate", "death_rate");
+  
+  density_snow_max_ = plist_->get<double>("max density of snow [kg m^-3]", 600.);
+
 
   // set up additional primary variables -- this is very hacky, and can become
   // an evaluator in new-state
@@ -53,6 +58,7 @@ ImplicitSubgrid::ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
 
   // set the error tolerance for snow
   plist_->set("absolute error tolerance", 0.01);
+
 }
 
 // main methods
@@ -249,7 +255,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
                            / (std::max(swe_old - swe_lost,0.) + swe_added);
       snow_dens_new[0][c] = (dens_settled * std::max(swe_old - swe_lost,0.) + params.density_freshsnow * swe_added)
                             / (std::max(swe_old - swe_lost,0.) + swe_added);
-      snow_dens_new[0][c] = std::min(snow_dens_new[0][c], params.density_snow_max);
+      snow_dens_new[0][c] = std::min(snow_dens_new[0][c], density_snow_max_);
     }
   }
   pvfe_snow_dens_->SetFieldAsChanged(S_next_.ptr());
