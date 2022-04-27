@@ -33,9 +33,9 @@ namespace ATS {
 
 
   ELM_ATSCoordinator::ELM_ATSCoordinator(Teuchos::ParameterList& parameter_list,
-                         Teuchos::RCP<Amanzi::State>& S,
-                         Amanzi::Comm_ptr_type comm ) :
-    Coordinator(parameter_list, S, comm) {}
+                                         Teuchos::RCP<Amanzi::State>& S,
+                                         Amanzi::Comm_ptr_type comm )
+  : Coordinator(parameter_list, S, comm) {}
 
 void ELM_ATSCoordinator::setup() {
   Teuchos::TimeMonitor monitor(*setup_timer_);
@@ -45,12 +45,6 @@ void ELM_ATSCoordinator::setup() {
 void ELM_ATSCoordinator::initialize() {
 
   Coordinator::initialize();
-
-  // get the intial timestep
-  //if (!restart_) {
-  //  double dt = get_dt(false);
-  //  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  //}
 
   // visualization at IC
   // for testing
@@ -112,7 +106,6 @@ bool ELM_ATSCoordinator::advance(double dt) {
   checkpoint(); // checkpoint with the new dt
 
   return false;
-
 }
 
 } // namespace ATS
