@@ -298,7 +298,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     int ncells = res_c.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
       int index = (*wrms_->first)[c];
-      res_c[0][c] = wrms_->second[index]->d_k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c]);
+      res_c[0][c] = wrms_->second[index]->d_k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c])*beta_;
       AMANZI_ASSERT(res_c[0][c] >= 0);
     }
 
@@ -401,7 +401,78 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
 
     // rescale as neeeded
     result->Scale(1./perm_scale_);
+  } else if (wrt_key == sat_gas_key_) {
+    // Evaluate k_rel.
+    // -- Evaluate the model to calculate krel on cells.
+    const Epetra_MultiVector& sat_c = *S->GetFieldData(sat_key_)
+        ->ViewComponent("cell",false);
+    const Epetra_MultiVector& sat_gas_c = *S->GetFieldData(sat_gas_key_)
+        ->ViewComponent("cell",false);
+    Epetra_MultiVector& res_c = *result->ViewComponent("cell",false);
 
+    int ncells = res_c.MyLength();
+    for (unsigned int c=0; c!=ncells; ++c) {
+      int index = (*wrms_->first)[c];
+      res_c[0][c] = wrms_->second[index]->d_k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c])*(beta_-1.);
+      AMANZI_ASSERT(res_c[0][c] >= 0);
+    }
+
+    // -- Potentially evaluate the model on boundary faces as well.
+    if (result->HasComponent("boundary_face")) {
+      Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
+      res_bf.PutScalar(0.);
+    }
+
+    // Patch k_rel with surface rel perm values
+    if (boundary_krel_ == BoundaryRelPerm::SURF_REL_PERM) {
+      const Epetra_MultiVector& surf_kr = *S->GetFieldData(surf_rel_perm_key_)
+          ->ViewComponent("cell",false);
+      Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
+
+      Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = S->GetMesh(surf_domain_);
+      Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+      const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
+      const Epetra_Map& face_map = mesh->face_map(false);
+
+      unsigned int nsurf_cells = surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+      for (unsigned int sc=0; sc!=nsurf_cells; ++sc) {
+        // need to map from surface quantity on cells to subsurface boundary_face quantity
+        AmanziMesh::Entity_ID f = surf_mesh->entity_get_parent(AmanziMesh::CELL, sc);
+        AmanziMesh::Entity_ID bf = vandelay_map.LID(face_map.GID(f));
+        res_bf[0][bf] = 0.;
+      }
+    }
+
+    // Potentially scale quantities by dens / visc
+    if (is_dens_visc_) {
+      // -- Scale cells.
+      const Epetra_MultiVector& dens_c = *S->GetFieldData(dens_key_)
+          ->ViewComponent("cell",false);
+      const Epetra_MultiVector& visc_c = *S->GetFieldData(visc_key_)
+          ->ViewComponent("cell",false);
+
+      for (unsigned int c=0; c!=ncells; ++c) {
+        res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
+      }
+
+      // Potentially scale boundary faces.
+      if (result->HasComponent("boundary_face")) {
+        const Epetra_MultiVector& dens_bf = *S->GetFieldData(dens_key_)
+            ->ViewComponent("boundary_face",false);
+        const Epetra_MultiVector& visc_bf = *S->GetFieldData(visc_key_)
+            ->ViewComponent("boundary_face",false);
+        Epetra_MultiVector& res_bf = *result->ViewComponent("boundary_face",false);
+
+        // Evaluate the evaluator to calculate sat.
+        int nbfaces = res_bf.MyLength();
+        for (unsigned int bf=0; bf!=nbfaces; ++bf) {
+          res_bf[0][bf] *= dens_bf[0][bf] / visc_bf[0][bf];
+        }
+      }
+    }
+
+    // rescale as neeeded
+    result->Scale(1./perm_scale_);
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);
@@ -431,7 +502,6 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
         res_bf[0][bf] = kr_bf[0][bf] / dens_bf[0][bf];
       }
     }
-
 
   } else if (wrt_key == visc_key_) {
     AMANZI_ASSERT(is_dens_visc_);
