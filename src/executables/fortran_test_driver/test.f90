@@ -19,12 +19,12 @@ program elm_test
 
     integer :: ncols_local, ncols_global, ncells_per_col
 
-double precision, dimension(100) :: dz
-double precision, dimension(100) :: depth
-double precision, dimension(1) :: elev
-double precision, dimension(1) :: surf_area_m2
-double precision, dimension(1) :: lat
-double precision, dimension(1) :: lon
+    double precision, dimension(100) :: dz
+    double precision, dimension(100) :: depth
+    double precision, dimension(1) :: elev
+    double precision, dimension(1) :: surf_area_m2
+    double precision, dimension(1) :: lat
+    double precision, dimension(1) :: lon
 
     infil(1) = 10.0
     evap(1) = 3.0
