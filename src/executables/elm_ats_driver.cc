@@ -84,7 +84,7 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   // infile must be null-terminated
   std::string input_filename(infile);
 
-  // parse the input file and check validity
+  // check validity of input file name
   if (input_filename.empty()) {
     if (rank == 0)
       std::cerr << "ERROR: no input file provided" << std::endl;
@@ -111,9 +111,11 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   // create and register meshes
   ATS::Mesh::createMeshes(*plist, comm, gm, *S_);
 
-  // keys
+  // domains
   domain_sub_ = plist->get<std::string>("domain name", "domain");
   domain_srf_ = Amanzi::Keys::readDomainHint(*plist, domain_sub_, "subsurface", "surface");
+
+  // keys for fields exchanged with ELM
   sub_src_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "subsurface source", "source_sink");
   srf_src_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface source", "source_sink");
   pres_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "pressure", "pressure");
@@ -122,6 +124,7 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   por_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "porosity", "porosity");
   elev_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "elevation", "elevation");
 
+  // keys for fields used to convert ELM units to ATS units
   srf_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface molar density", "molar_density_liquid");
   srf_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface mass density", "mass_density_liquid");
   sub_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "molar density", "molar_density_liquid");
@@ -139,6 +142,8 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   AMANZI_ASSERT(ncolumns_ == mesh_subsurf_->num_columns(false));
 
   // get num cells per column - include consistency check later
+  // need to know if coupling zone is the entire subsurface mesh (as currently coded)
+  // or a portion of the total depth specified by # of cells into the subsurface
   auto& col_zero = mesh_subsurf_->cells_of_column(0);
   ncol_cells_ = col_zero.size();
 
@@ -157,6 +162,9 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>("depth", Amanzi::Tags::NEXT,  "depth")
     .SetMesh(mesh_subsurf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
   RequireEvaluatorPrimary("depth", Amanzi::Tags::NEXT, *S_);
+
+  // commented out for now while building and testing- setting as Primary (and initializing as 0.0)
+  // causes problems when running existing unmodified ATS xml files
   // -- porosity
   //S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(por_key_, Amanzi::Tags::NEXT,  por_key_)
   //  .SetMesh(mesh_subsurf_)->SetComponent("cell", Amanzi::AmanziMesh::CELL, 1);
@@ -221,19 +229,16 @@ with ncells = ncells_per_column * ncols
 
 assume surface can be indexed:
 for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col)
-{  Epetra_MultiVector[0][col] = elm_data[col]; }
+{ ATS_surf_Epetra_MultiVector[0][col] = elm_surf_data[col];
 
-assume subsurface can be indexed:
-for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col)
-{  
+  and assume subsurface can be indexed:
   auto& col_iter = mesh_subsurf_->cells_of_column(col);
   for (std::size_t i=0; i!=col_iter.size(); ++i) 
-  {  Epetra_MultiVector[0][col_iter[i]] = elm_data[col*ncol_cells_+i]; }
+  {  ATS_subsurf_Epetra_MultiVector[0][col_iter[i]] = elm_subsurf_data[col*ncol_cells_+i]; }
 }
 
 assume evaporation and infiltration have same sign
 */
-
 void
 ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   double *root_transpiration, int *ncols, int *ncells)
@@ -267,13 +272,12 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   // negative out of subsurface and positive into subsurface?
   // or positive evap is out and positive infil is in?
   // for now, assume same sign
-
-  // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     double srf_mol_h20_kg = srf_mol_dens[0][col] / srf_mass_dens[0][col];
     surf_ss[0][col] = soil_evaporation[col] * srf_mol_h20_kg;
     surf_ss[0][col] += (soil_infiltration[col] * srf_mol_h20_kg);
 
+    // scale root_transpiration and add to subsurface source
     auto& col_iter = mesh_subsurf_->cells_of_column(col);
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       double sub_mol_h20_kg = sub_mol_dens[0][col_iter[i]] / sub_mass_dens[0][col_iter[i]];
