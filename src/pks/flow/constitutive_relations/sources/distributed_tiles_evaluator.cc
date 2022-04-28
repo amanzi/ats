@@ -1,0 +1,145 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  License: see $ATS_DIR/COPYRIGHT
+  Author: 
+*/
+
+/*!
+
+Requires the following dependencies:
+
+
+*/
+
+#include "Key.hh"
+#include "distributed_tiles_evaluator.hh"
+
+namespace Amanzi {
+namespace Flow {
+namespace Relations {
+
+
+DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
+    SecondaryVariableFieldEvaluator(plist),
+    compatibility_checked_(false)
+{
+
+  domain_ = Keys::getDomain(my_key_);
+
+  subsurface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
+  // surface_marks_key_ = Keys::readKey(plist, domain_surf_, "ditch marks", "ditch_marks");
+  // surf_len_key_ = Keys::readKey(plist, domain_surf_, "ditch length", "ditch_length");
+  
+  num_ditches_ = plist.get<int>("number of ditches");
+  p_enter_ = plist.get<double>("entering pressure", 101325);
+  k_ = plist.get<double>("tile permeability");
+  implicit_ = plist.get<bool>("implicit drainage", true);
+
+  dependencies_.insert(subsurface_marks_key_);
+  pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
+  dependencies_.insert(pres_key_);
+
+  
+  times_.resize(2);
+  times_[0] = -1.0; times_[1] = -1.0;
+}
+
+// Required methods from SecondaryVariableFieldEvaluator
+void
+DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
+                 const Teuchos::Ptr<CompositeVector>& result)
+{
+
+  double t0 = S->time();
+  double dt = *S->GetScalarData("dt");
+  //  double t1 = S->final_time();
+
+  Teuchos::RCP<Field> src_field =  S->GetField(sources_key_, "state");
+
+  const auto& pres = *S->GetFieldData(pres_key_)->ViewComponent("cell", false);
+  const auto& sub_marks = *S->GetFieldData(subsurface_marks_key_)->ViewComponent("cell", false);
+  
+  auto& sub_sink = *result->ViewComponent("cell",false);
+  sub_sink.PutScalar(0);
+  
+  AmanziMesh::Entity_ID ncells = sub_marks.MyLength();
+  Teuchos::RCP<Epetra_Vector> src_vec = src_field->GetConstantVectorData();
+
+  double total = 0.0;
+  src_vec->PutScalar(0.0);
+  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+    if (sub_marks[0][c] > 0) {
+      double val = std::min(p_enter_ - pres[0][c], 0.0)*k_;
+      //val = 1e-6;
+      //std::cout<<"val "<<" "<<val<<" "<< pres[0][c]<<"\n";
+      sub_sink[0][c] = val;
+      (*src_vec)[sub_marks[0][c] - 1] += val * dt;
+      total += val * dt;
+    }
+  }
+
+  // std::cout <<"Sink vector\n";
+  // std::cout << *src_vec<<"\n";  
+  Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
+  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
+    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
+  const MPI_Comm& comm = mpi_comm_p->Comm();
+
+  double *src_vec_ptr;
+  src_vec -> ExtractView(&src_vec_ptr);
+  MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
+
+
+  // std::cout <<"After MPI_Allreduce\n";
+  // std::cout << *src_vec<<"\n";
+  
+
+}
+
+// Required methods from SecondaryVariableFieldEvaluator
+void
+DistributedTilesRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
+                     Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+{
+
+  result->PutScalar(0.0);
+  
+}
+
+void
+DistributedTilesRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
+
+  sources_key_ = Key("subdomain_sources");
+  if (!S->HasField(sources_key_)){
+    S->RequireConstantVector(sources_key_, num_ditches_);
+    Teuchos::RCP<Field> field =  S->GetField(sources_key_, "state");
+    Teuchos::RCP<Field_ConstantVector> cvfield =
+      Teuchos::rcp_dynamic_cast<Field_ConstantVector>(field, true);
+    cvfield->CreateData();
+
+    field->GetConstantVectorData()->PutScalar(0.0);
+    field->set_initialized();
+
+    if (!implicit_) {
+      Key prev_step("prev_timestep");
+      field->RequireCopy(prev_step);
+    }
+  }
+  
+  SecondaryVariableFieldEvaluator::EnsureCompatibility(S);
+  S->GetField(my_key_, my_key_)->set_io_vis();
+}
+
+void
+DistributedTilesRateEvaluator::InitializeFromPlist_() {
+
+  
+  
+}
+
+
+
+} //namespace
+} //namespace
+} //namespace
+

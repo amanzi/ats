@@ -31,6 +31,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
 #include "Checkpoint.hh"
+#include "MeshInfo.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"
 #include "PK.hh"
@@ -113,6 +114,17 @@ void Coordinator::coordinator_init() {
       analysis.Init(parameter_list_->sublist("analysis").sublist(mesh->first));
       analysis.RegionAnalysis();
       analysis.OutputBCs();
+    }
+
+    std::string plist_name = "mesh info " + mesh->first;
+    // in the case of just a domain mesh, we want to allow no name.
+    if ((mesh->first == "domain") && !parameter_list_->isSublist(plist_name)) {
+      plist_name = "mesh info";
+    }
+    if (parameter_list_->isSublist(plist_name)) {
+      auto& mesh_info_list = parameter_list_->sublist(plist_name);
+      Teuchos::RCP<Amanzi::MeshInfo> mesh_info = Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
+      mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
     }
   }
 
