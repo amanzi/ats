@@ -11,7 +11,6 @@
 
 #include <algorithm>
 
-#include "ReconstructionCellGrad.hh"
 #include "OperatorDefs.hh"
 #include "transport_ats.hh"
 
