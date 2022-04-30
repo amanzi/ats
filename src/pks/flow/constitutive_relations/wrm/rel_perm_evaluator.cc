@@ -414,7 +414,7 @@ void RelPermEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>
     for (unsigned int c=0; c!=ncells; ++c) {
       int index = (*wrms_->first)[c];
       res_c[0][c] = wrms_->second[index]->d_k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c])*(beta_-1.);
-      AMANZI_ASSERT(res_c[0][c] >= 0);
+      AMANZI_ASSERT(res_c[0][c] <= 0);
     }
 
     // -- Potentially evaluate the model on boundary faces as well.
