@@ -49,7 +49,7 @@ void RelPermEvaluator::InitializeFromPlist_() {
   sat_key_ = Keys::readKey(plist_, domain_name, "saturation", "saturation_liquid");
   dependencies_.insert(sat_key_);
 
-  sat_gas_key_ = Keys::readKey(plist_, domain_name, "saturation", "saturation_gas");
+  sat_gas_key_ = Keys::readKey(plist_, domain_name, "saturation gas", "saturation_gas");
   dependencies_.insert(sat_gas_key_);
 
   is_dens_visc_ = plist_.get<bool>("use density on viscosity in rel perm", true);
@@ -176,7 +176,7 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   int ncells = res_c.MyLength();
   for (unsigned int c=0; c!=ncells; ++c) {
     int index = (*wrms_->first)[c];
-    res_c[0][c] = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c]), min_val_), 1.);
+    res_c[0][c] = std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][c])+beta_*sat_c[0][c]), min_val_);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
@@ -203,19 +203,19 @@ void RelPermEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       int index = (*wrms_->first)[cells[0]];
       double krel;
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
-        double krelb = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_),1.);
-        double kreli = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_),1.);
+        double krelb = std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_);
+        double kreli = std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_);
         krel = 1.0 / (1.0/krelb + 1.0/kreli);
       } else if (boundary_krel_ == BoundaryRelPerm::ARITHMETIC_MEAN) {
-        double krelb = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_),1.);
-        double kreli = std::min(std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_),1.);
+        double krelb = std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),min_val_);
+        double kreli = std::max(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]), min_val_);
         krel = (krelb + kreli)/2.0;
       } else if (boundary_krel_ == BoundaryRelPerm::INTERIOR_PRESSURE) {
-        krel = std::min(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]),1.);
+        krel = wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_c[0][cells[0]])+beta_*sat_c[0][cells[0]]);
       } else if (boundary_krel_ == BoundaryRelPerm::ONE) {
         krel = 1.;
       } else {
-        krel = std::min(wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]),1.);
+        krel = wrms_->second[index]->k_relative((1-beta_)*(1-sat_gas_bf[0][bf])+beta_*sat_bf[0][bf]);
       }
       res_bf[0][bf] = std::max(krel, min_val_);
     }
