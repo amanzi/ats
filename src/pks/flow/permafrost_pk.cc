@@ -20,6 +20,7 @@ Authors: Ethan Coon (ecoon@lanl.gov)
 #include "primary_variable_field_evaluator.hh"
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
+#include "rel_perm_sutraice_evaluator.hh"
 
 #include "permafrost.hh"
 
@@ -54,7 +55,7 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
 
   S->RequireField(coef_key_)->SetMesh(mesh_)->SetGhosted()
       ->AddComponents(names2,locations2,num_dofs2);
- 
+   
   // -- This setup is a little funky -- we use four evaluators to capture the physics.
   Teuchos::ParameterList wrm_plist = plist_->sublist("water retention evaluator");
   wrm_plist.set("evaluator name", sat_key_);
@@ -72,13 +73,22 @@ void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   wrm_plist.set("permeability rescaling", perm_scale_);
   wrm_plist.setName(coef_key_);
   wrm_plist.set("evaluator name", coef_key_);
-  Teuchos::RCP<Flow::RelPermEvaluator> rel_perm_evaluator =
+
+
+  sutra_kr_ = plist_->get<bool>("use sutra-ice rel perm");
+  if (sutra_kr_) {
+    Teuchos::RCP<Flow::RelPermSutraIceEvaluator> rel_perm_evaluator =
+      Teuchos::rcp(new Flow::RelPermSutraIceEvaluator(wrm_plist, wrm->get_WRMs()));
+    S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  } else {
+    Teuchos::RCP<Flow::RelPermEvaluator> rel_perm_evaluator =
       Teuchos::rcp(new Flow::RelPermEvaluator(wrm_plist, wrm->get_WRMs()));
+    S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  }
   wrms_ = wrm->get_WRMs();
   
 
 
-  S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
   
   // -- Liquid density and viscosity for the transmissivity.
 

@@ -65,6 +65,9 @@ public:
   // Virtual destructor
   virtual ~Permafrost() {}
 
+  // 
+  bool sutra_kr_;
+
 protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
