@@ -28,7 +28,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ats-regression-tests/README.md")
 
       list(GET ats_test_and_dir 0 ats_test_dir)
       list(GET ats_test_and_dir 1 ats_test_name)
-      set(ats_test_full_name "ats-regression-test-${ats_test_name}")
+      set(ats_test_full_name "ats_regression_test-${ats_test_dir}-${ats_test_name}")
       
       add_test(NAME ${ats_test_full_name}
         COMMAND ${PYTHON_EXECUTABLE} ${ATS_REGRESSION_TESTS_DIR}/regression_tests.py -e ${ATS_BINARY_DIR}/src/executables/ats ${ats_test_dir} -t ${ats_test_name}

@@ -14,7 +14,7 @@
 
 /*!
 
-In general, boundary conditions are provided in a heirarchical list by
+In general, boundary conditions are provided in a hierarchical list by
 boundary condition type, then functional form.  Boundary condition specs are
 split between two types -- those which require a user-provided function
 (i.e. Dirichlet data, etc) and those which do not (i.e. zero gradient

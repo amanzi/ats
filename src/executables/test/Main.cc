@@ -7,8 +7,6 @@
 #include "state_evaluators_registration.hh"
 #include "VerboseObject_objs.hh"
 
-Teuchos::EVerbosityLevel Amanzi::VerbosityLevel::level_ = Teuchos::VERB_MEDIUM;
-
 int main(int argc, char *argv[])
 {
   Teuchos::GlobalMPISession mpiSession(&argc,&argv);

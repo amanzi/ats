@@ -42,7 +42,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
       not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
-    * `"mass source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+    * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
     * `"source term is differentiable`" ``[bool]`` **true** Can the source term
       be differentiated with respect to the primary variable?
     * `"explicit source term`" ``[bool]`` **false** Apply the source term from

@@ -227,6 +227,20 @@ Snow Distribution PK
 { snow_distribution }
 
 
+Transport PK
+------------
+
+The Transport PK describes the conservation of mass of components transported
+with water as it flows. The transport PK is based on the advection-diffusion 
+equation, applies to one or more components that are dissolved in the aqueous 
+phase, and is currently used in both surface and subsurface compartments. 
+The key difference between surface and subsurface transport is in capturing 
+the volume of water. In the subsurface, the volume of water is set by the 
+porosity and saturation of the porous medium, while in the surface it is set 
+by the ponded depth.
+
+{transport_pk}
+
 Energy PKs
 -----------
 
@@ -1180,6 +1194,12 @@ Flow-specific Boundary Conditions
 ----------------------------------
 
 { flow_bc_factory }
+
+Transport-specific Boundary Conditions
+--------------------------------------
+
+{ TransportBoundaryFunction_Alquimia }
+
 
 Energy-specific Boundary Conditions
 ----------------------------------

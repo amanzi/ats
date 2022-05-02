@@ -101,7 +101,7 @@ void Transport_ATS::InitializeAll_()
     runtime_regions_ = plist_->get<Teuchos::Array<std::string> >("runtime diagnostics: regions").toVector();
   }
 
-  internal_tests = plist_->get<std::string>("enable internal tests", "no") == "yes";
+  internal_tests = plist_->get<bool>("enable internal tests", false);
   tests_tolerance = plist_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
   dt_debug_ = plist_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
 

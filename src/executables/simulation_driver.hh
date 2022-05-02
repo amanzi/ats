@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -23,20 +23,22 @@ ATS's top-level main accepts an XML list including a few required elements.
     * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
-    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.      
+    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.
     * `"PKs`" ``[pk-typed-spec-list]`` A list of PK_ objects.
     * `"state`" ``[state-spec]`` See State_.
 
  */
-  
 
+#pragma once
 #include "Teuchos_ParameterList.hpp"
-#include "Teuchos_VerboseObject.hpp"
+#include "VerboseObject.hh"
 
-struct SimulationDriver
-  : public Teuchos::VerboseObject<SimulationDriver>
-{
-  virtual int Run (const MPI_Comm&               mpi_comm,
-                   Teuchos::ParameterList&       input_parameter_list);
+namespace ATS {
+
+struct SimulationDriver {
+  int Run(const Teuchos::RCP<const Amanzi::Comm_type>& comm,
+          Teuchos::ParameterList&       input_parameter_list);
 
 };
+
+} // namespace

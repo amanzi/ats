@@ -54,11 +54,7 @@
 #endif
 #endif
 
-#include <boost/filesystem.hpp>
-//using namespace boost::filesystem;
-
-
-Teuchos::EVerbosityLevel Amanzi::VerbosityLevel::level_ = Teuchos::VERB_MEDIUM;
+#include "boost/filesystem.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -71,82 +67,132 @@ int main(int argc, char *argv[])
   Teuchos::GlobalMPISession mpiSession(&argc,&argv,0);
   int rank = mpiSession.getRank();
 
-  try{
-    Teuchos::CommandLineProcessor CLP;
-    CLP.setDocString("\nATS: simulations for ecosystem hydrology\n");
+  std::string input_filename;
+  if ((argc >= 2) && (argv[argc-1][0] != '-')) {
+    input_filename = std::string(argv[argc-1]);
+    argc--;
+  }
 
-    std::string xmlInFileName = "";
-    CLP.setOption("xml_file", &xmlInFileName, "XML options file");
-    
-    bool print_version(false);
-    CLP.setOption("print_version", "no_print_version", &print_version, "Print version number and exit.");
+  Teuchos::CommandLineProcessor clp;
+  clp.setDocString("Run ATS simulations for ecosystem hydrology.\n\nStandard usage: ats input.xml\n");
 
-    CLP.throwExceptions(false);
-    CLP.recogniseAllOptions(true);
+  std::string opt_input_filename = "";
+  clp.setOption("xml_file", &opt_input_filename, "XML input file");
 
-    Teuchos::CommandLineProcessor::EParseCommandLineReturn
-      parseReturn = CLP.parse(argc, argv);
+  bool version(false);
+  clp.setOption("version", "no_version", &version, "Print version number and exit.");
 
-    if (parseReturn == Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED) {
-      return 0;
-    }
-    if (parseReturn != Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL) {
-      return 1;
-    }
+  bool print_version(false);
+  clp.setOption("print_version", "no_print_version", &print_version, "Print full version info and exit.");
 
-    // strinigy magic
+  std::string verbosity;
+  clp.setOption("verbosity", &verbosity, "Default verbosity level: \"none\", \"low\", \"medium\", \"high\", \"extreme\".");
+
+  clp.throwExceptions(false);
+  clp.recogniseAllOptions(true);
+
+  auto parseReturn = clp.parse(argc, argv);
+  if (parseReturn == Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED) {
+    return 0;
+  }
+  if (parseReturn != Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL) {
+    return 1;
+  }
+
 #define XSTR(s) STR(s)
 #define STR(s) #s
-
-    // check for verbose option
-    if (print_version) {
-      if (rank == 0) {
-        std::cout << std::endl;
-        std::cout << "ATS Version     " << XSTR(ATS_VERSION) << std::endl;
-        std::cout << "GIT branch      " << XSTR(ATS_GIT_BRANCH) << std::endl;
-        std::cout << "GIT global hash " << XSTR(ATS_GIT_GLOBAL_HASH) << std::endl;
-        std::cout << std::endl;
-        std::cout << "Amanzi Version  " << XSTR(AMANZI_VERSION) << std::endl;
-        std::cout << "GIT branch      " << XSTR(AMANZI_GIT_BRANCH) << std::endl;
-        std::cout << "GIT global hash " << XSTR(AMANZI_GIT_GLOBAL_HASH) << std::endl;
-        std::cout << std::endl;
-      }
-
-      if (!boost::filesystem::exists(xmlInFileName)) {
-        throw std::string("ATS not run");
-      }
-   
-    }
-
-    // this only make sense if the default is blank
-    if (xmlInFileName.size() == 0) {
-      if (rank == 0) {
-        std::cout << "ERROR: No xml input file was specified. Use the command line option --xml_file to specify one." << std::endl;
-      }      
-      throw std::string("ATS not run");      
-    }
-    
-    MPI_Comm mpi_comm(MPI_COMM_WORLD);
-
-    // read the main parameter list
-    Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(xmlInFileName); 
-    
-    Teuchos::RCP<Teuchos::FancyOStream> fos;
-    Teuchos::readVerboseObjectSublist(&*plist, &fos, &Amanzi::VerbosityLevel::level_);
-    
-    SimulationDriver simulator;
-    int ret = simulator.Run(mpi_comm, *plist);
-  }
-  
-  catch (std::string& s) {
+  // check for version info request
+  if (version) {
     if (rank == 0) {
-      if (s == "ATS not run") {
-        std::cout << "ATS::SIMULATION_DID_NOT_RUN\n";
-      } 
+      std::cout << "ATS version " << XSTR(ATS_VERSION) << std::endl;
+    }
+    return 0;
+  }
+  if (print_version) {
+    if (rank == 0) {
+      std::cout << "ATS version     " << XSTR(ATS_VERSION) << std::endl;
+      std::cout << "GIT branch      " << XSTR(ATS_GIT_BRANCH) << std::endl;
+      std::cout << "GIT global hash " << XSTR(ATS_GIT_GLOBAL_HASH) << std::endl;
+      std::cout << std::endl;
+      std::cout << "Amanzi version  " << XSTR(AMANZI_VERSION) << std::endl;
+      std::cout << "GIT branch      " << XSTR(AMANZI_GIT_BRANCH) << std::endl;
+      std::cout << "GIT global hash " << XSTR(AMANZI_GIT_GLOBAL_HASH) << std::endl;
+      std::cout << std::endl;
+    }
+    return 0;
+  }
+
+  // parse the verbosity level
+  Teuchos::EVerbosityLevel opt_level;
+  if (verbosity.empty()) {
+    // pass
+  } else if (verbosity == "none") {
+    opt_level = Teuchos::VERB_NONE;
+  } else if (verbosity == "low") {
+    opt_level = Teuchos::VERB_LOW;
+  } else if (verbosity == "medium") {
+    opt_level = Teuchos::VERB_MEDIUM;
+  } else if (verbosity == "high") {
+    opt_level = Teuchos::VERB_HIGH;
+  } else if (verbosity == "extreme") {
+    opt_level = Teuchos::VERB_EXTREME;
+  } else {
+    if (rank == 0) {
+      std::cerr << "ERROR: invalid verbosity level \"" << verbosity << "\"" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
     }
     return 1;
   }
-  
+
+  // parse the input file and check validity
+  if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
+  if (input_filename.empty()) {
+    if (rank == 0) {
+      std::cerr << "ERROR: no input file provided" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
+    }
+    return 1;
+  } else if (!boost::filesystem::exists(input_filename)) {
+    if (rank == 0) {
+      std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
+    }
+    return 1;
+  }
+
+  // run the simulation
+  // -- create communicator
+  auto comm = Amanzi::getDefaultComm();
+
+  // -- parse input file
+  Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
+
+  // -- set default verbosity level
+  Teuchos::RCP<Teuchos::FancyOStream> fos;
+  Teuchos::EVerbosityLevel verbosity_from_list;
+  Teuchos::readVerboseObjectSublist(&*plist, &fos, &verbosity_from_list);
+  if (verbosity_from_list != Teuchos::VERB_DEFAULT)
+    Amanzi::VerboseObject::global_default_level = verbosity_from_list;
+  if (!verbosity.empty())
+    Amanzi::VerboseObject::global_default_level = opt_level;
+
+  // -- create simulator object and run
+  ATS::SimulationDriver simulator;
+  int ret = 0;
+  try {
+    ret = simulator.Run(comm, *plist);
+  } catch (std::string& s) {
+    if (rank == 0) {
+      std::cerr << "ERROR:" << std::endl
+                << s << std::endl;
+    }
+    return 1;
+  } catch (int& ierr) {
+    if (rank == 0) {
+      std::cerr << "ERROR: unknown error code " << ierr << std::endl;
+    }
+    return ierr;
+  }
+  return ret;
 }
 
 

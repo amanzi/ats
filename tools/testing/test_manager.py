@@ -137,6 +137,15 @@ class RegressionTest(object):
         self._num_failed = 0
         self._test_name = None
 
+        # docker goodies
+        self._docker_executable = "docker"
+        self._docker_container_mnt = "/home/amanzi_usr/work"
+        self._docker_container_pwd = "/home/amanzi_usr/work"
+        self._docker_host_mnt = "."
+        self._docker_mpiexec = "mpirun"
+        self._docker_image = executable
+        self._docker_ats_executable="ats"
+
         # assign default tolerances for different classes of variables
         # absolute min and max thresholds for determining whether to
         # compare to baseline, i.e. if (min_threshold <= abs(value) <=
@@ -249,42 +258,67 @@ class RegressionTest(object):
           to catch hanging jobs, but for python < 3.3 we have to
           manually manage the timeout...?
         """
+
         command = []
-        if self._np is not None:
-            if self._mpiexec:
-                command.append(self._mpiexec)
-                command.append("-np")
-                command.append(self._np)
-            else:
-                # parallel test, but don't have mpiexec, we mark the
-                # test as skipped and bail....
-                message = self._txtwrap.fill(
-                    "WARNING : mpiexec was not provided for a parallel test '{0}'.\n"
-                    "This test was skipped!".format(self.name()))
-                print(message, file=testlog)
-                status.skipped = 1
-                return None
+        if "metsi/ats" in self._executable:
+            command.append("docker run --rm")
+        else:
+            if self._np is not None:
+                if self._mpiexec:
+                    command.append(self._mpiexec)
+                    command.append("-np")
+                    command.append(self._np)
+                else:
+                    # parallel test, but don't have mpiexec, we mark the
+                    # test as skipped and bail....
+                    message = self._txtwrap.fill(
+                        "WARNING : mpiexec was not provided for a parallel test '{0}'.\n"
+                        "This test was skipped!".format(self.name()))
+                    print(message, file=testlog)
+                    status.skipped = 1
+                    return None
 
-        command.append(self._executable)
-        command.append("{0}../{1}.{2}".format(self._input_arg,test_name,self._input_suffix))
-
+        # Setting CWD for current test
         test_directory = os.getcwd()
         run_directory = os.path.join(test_directory, self.dirname())
         os.mkdir(run_directory)
         os.chdir(run_directory)
         with open('ats_version.txt', 'w') as fid:
             fid.write(self._version)
-        
+
+        if "metsi/ats" in self._executable:
+            command.append("-v " + test_directory + ":/home/amanzi_usr/work:delegated")
+            command.append("-w " + "/home/amanzi_usr/work")
+            command.append(self._executable)
+            command.append("/bin/sh -c 'cd " + self.dirname() + ";")
+            if self._np is not None:
+                command.append(self._docker_mpiexec + " -n " + self._np + " ats")
+            else:
+                command.append("ats")
+            command.append("{0}../{1}.{2}".format(self._input_arg,test_name,self._input_suffix))
+            command.append("'")
+            #print(" ".join(command))
+        else:
+            command.append(self._executable)
+            command.append("{0}../{1}.{2}".format(self._input_arg,test_name,self._input_suffix))
+
         print("    cd {0}".format(run_directory), file=testlog)
         print("    {0}".format(" ".join(command)), file=testlog)
 
         if not dry_run:
             run_stdout = open(test_name + ".stdout", 'w')
             start = time.time()
-            proc = subprocess.Popen(command,
-                                    shell=False,
-                                    stdout=run_stdout,
-                                    stderr=run_stdout)
+            if "metsi/ats" in self._executable:
+                proc = subprocess.Popen(" ".join(command),
+                                        shell=True,
+                                        stdout=run_stdout,
+                                        stderr=run_stdout)
+            else:
+                proc = subprocess.Popen(command,
+                                        shell=False,
+                                        stdout=run_stdout,
+                                        stderr=run_stdout)
+
             while proc.poll() is None:
                 time.sleep(0.1)
                 if time.time() - start > self._timeout:
@@ -1311,6 +1345,40 @@ def check_options(options):
                                "regression files at the same time.")
 
 
+def check_for_docker_image(docker_image):
+    """
+    Try to verify that we have something reasonable for the executable
+    """
+
+    # Check if we have docker installed
+    docker_full_path=shutil.which("docker")
+    if (docker_full_path is None):
+        raise RuntimeError("ERROR: Docker is not installed in your current PATH.")
+
+    # Check if docker runs
+    output=subprocess.check_output(docker_full_path +" --version ", shell=True, text=True)
+    if ("Docker version" not in output):
+        raise RuntimeError("ERROR: Docker did not run correctly. \n" + output)
+    # could print version of docker
+
+    # Check that we can run ATS from docker
+    pwd = os.path.abspath(os.getcwd())
+    command=[]
+    command.append("docker run --rm")
+    command.append("-v"+pwd+":/home/amanzi_usr/work:delegated")
+    command.append(docker_image)
+    command.append("ats --print_version")
+    print(" ".join(command))
+
+    output=subprocess.run(" ".join(command), shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    if ("ATS Version" not in output.stdout):
+        raise RuntimeError("ERROR: ATS did not run correctly in Docker. \n")
+    else:
+        print(output.stdout)
+    # could print version of ATS being run
+
+    return docker_image
+        
 def check_for_executable(options, testlog):
     """
     Try to verify that we have something reasonable for the executable
@@ -1328,11 +1396,14 @@ def check_for_executable(options, testlog):
 
     else:
         # absolute path to the executable
-        executable = os.path.abspath(options.executable[0])
-        # is it a valid file?
-        if not os.path.isfile(executable):
-            raise RuntimeError("ERROR: executable is not a valid file: "
-                               "'{0}'".format(executable))
+        if ( "metsi/ats" in options.executable[0] ):
+            executable=check_for_docker_image(options.executable[0])
+        else:
+            executable = os.path.abspath(options.executable[0])
+            # is it a valid file?
+            if not os.path.isfile(executable):
+                raise RuntimeError("ERROR: executable is not a valid file: "
+                                   "'{0}'".format(executable))
 
     if executable is None:
         message = ("\n** WARNING ** : ATS executable was not provided on the command line\n"
