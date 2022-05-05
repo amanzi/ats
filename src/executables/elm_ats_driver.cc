@@ -215,9 +215,10 @@ void ELM_ATSDriver::initialize()
 }
 
 
-void ELM_ATSDriver::advance(double *dt)
+void ELM_ATSDriver::advance(double *dt, bool visout, bool chkout)
 {
-  auto fail = elm_coordinator_->advance(*dt);
+  //
+  auto fail = elm_coordinator_->advance(*dt, visout, chkout);
   if (fail) {
     Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");
     Exceptions::amanzi_throw(msg);

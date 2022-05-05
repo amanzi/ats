@@ -16,7 +16,7 @@ void ats_setup(ELM_ATS_DRIVER ats, MPI_Fint *f_comm, const char *input_filename)
 // call driver initialize()
 void ats_initialize(ELM_ATS_DRIVER ats);
 // call driver advance(dt)
-void ats_advance(ELM_ATS_DRIVER ats, double *dt);
+void ats_advance(ELM_ATS_DRIVER ats, double *dt, bool visout=false, bool chkout=false);
 // call driver advance_test()
 void ats_advance_test(ELM_ATS_DRIVER ats);
 //

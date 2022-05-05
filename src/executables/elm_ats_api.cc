@@ -25,8 +25,8 @@ void ats_initialize(ELM_ATS_DRIVER ats){
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize();
 }
 // call driver advance()
-void ats_advance(ELM_ATS_DRIVER ats, double *dt) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt);
+void ats_advance(ELM_ATS_DRIVER ats, double *dt, bool visout, bool chkout) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt, visout, chkout);
 }
 // call driver advance_test()
 void ats_advance_test(ELM_ATS_DRIVER ats) {

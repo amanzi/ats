@@ -34,11 +34,13 @@ interface
         type(c_ptr), value :: ats
     end subroutine
     
-    subroutine ats_advance_c(ats, dt) bind(c, name="ats_advance")
+    subroutine ats_advance_c(ats, dt, visout, chkout) bind(c, name="ats_advance")
         use iso_c_binding
         implicit none
         type(c_ptr), value :: ats
         real(c_double), intent(in) :: dt
+        logical(C_BOOL), intent(in), value :: visout
+        logical(C_BOOL), intent(in), value :: chkout
     end subroutine
 
     subroutine ats_set_sources_c(ats, soil_infil, soil_evap, root_trans, ncols, ncells) bind(c, name="ats_set_sources")

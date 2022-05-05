@@ -59,8 +59,7 @@ void ELM_ATSCoordinator::initialize() {
                          - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
 }
 
-bool ELM_ATSCoordinator::advance(double dt) {
-
+bool ELM_ATSCoordinator::advance(double dt, bool visout, bool chkout) {    
   // start and end times for timestep
   double t_end = S_->get_time() + dt;
 
@@ -104,8 +103,8 @@ bool ELM_ATSCoordinator::advance(double dt) {
 
       // make observations, vis, and checkpoints
       for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-      visualize();
-      checkpoint(); // checkpoint with the new dt
+      visualize(visout);
+      checkpoint(chkout); // checkpoint with the new dt
     }
 
     // get new dt and assign to State

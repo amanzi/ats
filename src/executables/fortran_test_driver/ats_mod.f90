@@ -67,7 +67,9 @@ contains
         implicit none
         class(ats) :: this
         double precision, intent(in) :: dt
-        call ats_advance_c(this%ptr, dt)
+        logical(C_BOOL) :: visout = .false.            ! instruct ATS output data
+        logical(C_BOOL) :: chkout = .false.            ! instruct ATS output checkpoint
+        call ats_advance_c(this%ptr, dt, visout, chkout)
     end subroutine
 
     subroutine ats_advance_test(this)

@@ -26,7 +26,7 @@ public:
   // methods
   void setup(MPI_Fint *f_comm, const char *input_filename);
   void initialize();
-  void advance(double *dt);
+  void advance(double *dt, bool visout=false, bool chkout=false);
   void advance_test();
   void finalize();
 
