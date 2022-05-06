@@ -10,7 +10,7 @@
 */
 
 
-/*
+/*!
 
 The advection-diffusion equation for component *i* in partially saturated porous media may be written as
 
@@ -36,11 +36,11 @@ The advection-diffusion equation for component *i* in the surface may be written
     * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
        the domain of this PK.
 
-    * `"number of liquid components`" ``[int]`` is the number of liquid components.
+    * `"component names`" ``[Array(string)]`` No default. Provides the names of the
+      components that will be transported. Must be in the order: aqueous, gaseous, solid. 
 
     * `"number of aqueous components`" ``[int]`` **-1** The total number of
-      aqueous components.  Default value is the total number of liquid
-      components.
+      aqueous components.  Default value is the length of `"component names`"
 
     * `"number of gaseous components`" ``[int]`` **0** The total number of
       gaseous components.
@@ -48,9 +48,6 @@ The advection-diffusion equation for component *i* in the surface may be written
     * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
       transport are dependent on the boundary conditions for flow. See
       `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
-
-    * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-      components that will be transported.
 
     * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
       each component.
