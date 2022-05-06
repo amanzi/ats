@@ -280,10 +280,10 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   AMANZI_ASSERT(*ncells == subsurf_ss.MyLength());
 
   // scale evaporation and infiltration and add to surface source
-  // assume evaporation and infiltration have same sign?
-  // negative out of subsurface and positive into subsurface?
-  // or positive evap is out and positive infil is in?
-  // for now, assume same sign
+  // negative out of subsurface (source) and possitive into subsurface (sink).
+  // unit: mass-source/sink of kgH2O/m3/s
+
+  // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     double srf_mol_h20_kg = srf_mol_dens[0][col] / srf_mass_dens[0][col];
     surf_ss[0][col] = soil_evaporation[col] * srf_mol_h20_kg;

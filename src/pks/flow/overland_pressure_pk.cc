@@ -337,7 +337,7 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
   is_source_term_ = plist_->get<bool>("source term");
   if (is_source_term_) {
     if (source_key_.empty()) {
-      source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
+      source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");
     }
     source_in_meters_ = plist_->get<bool>("water source in meters", true);
 
@@ -347,8 +347,8 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
 
     if (source_in_meters_) {
       // density of incoming water [mol/m^3]
-      source_molar_dens_key_ = Keys::readKey(*plist_, domain_, "source molar density",
-              "source_molar_density");
+      source_molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid",
+              "molar_density_liquid");
       S_->Require<CompositeVector,CompositeVectorSpace>(source_molar_dens_key_, tag_next_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
       S_->RequireEvaluator(source_molar_dens_key_, tag_next_);
