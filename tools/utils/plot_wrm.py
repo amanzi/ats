@@ -230,7 +230,6 @@ if __name__ == "__main__":
             print("s = {}".format(s))
             assert(2 <= len(s) <= 3)
 
-
             p_open, p_closed = map(float, s[0:2])
 
 

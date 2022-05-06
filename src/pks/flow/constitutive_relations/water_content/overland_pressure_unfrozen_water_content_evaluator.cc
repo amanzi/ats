@@ -1,7 +1,7 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 
 /*
-  Evaluator for determining height( rho, head )
+  Evaluator for determining amount of water on the surface based on density and pressure
 
   Authors: Daniil Svyatsky(dasvyat@lanl.gov)
 */
@@ -84,7 +84,6 @@ void OverlandPressureUnfrozenWaterContentEvaluator::EvaluateField_(const Teuchos
     for (int c=0; c!=ncells; ++c) {
       res[0][c] = pres[0][c] < p_atm ? 0. :
         cv[0][c] * (molar_den[0][c]/mass_den[0][c])*(pres[0][c] - p_atm) / (gz);
-      if (c==299) std::cout<<"res " <<res[0][c]<<" gz "<<gz<<" mol den "<<molar_den[0][c]<<" mass den "<<mass_den[0][c]<<" cv "<<cv[0][c]<<"\n";
     }
   }
 }
