@@ -160,7 +160,6 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
   S->RequireField(tcc_key_, name_, subfield_names)->SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, ncomponents);
 
-
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
   S->RequireField(cv_key_);

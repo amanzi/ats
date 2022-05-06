@@ -232,7 +232,6 @@ if __name__ == "__main__":
 
             p_open, p_closed = map(float, s[0:2])
 
-
             if len(s) > 2:
                 label = s[2]
             else:
@@ -259,7 +258,7 @@ if __name__ == "__main__":
         args.wrm = []
     if args.wp is None:
         args.wp = []
-        
+
     color_list = colors.enumerated_colors(len(args.wrm)+len(args.wp))
 
     fig = plt.figure()
@@ -271,7 +270,6 @@ if __name__ == "__main__":
     else:
         for (label,wrm), color in zip(args.wrm, color_list):
             plot(wrm, ax, color, y_units=args.y_units, label=label)
-
         for (label,wp), color in zip(args.wrm, color_list[len(args.wrm):]):
             plot(wp, ax, color, y_units=args.y_units, label=label)
     ax.legend()
