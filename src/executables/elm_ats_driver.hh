@@ -25,6 +25,7 @@ public:
   void initialize();
   void advance(double *dt);
   void advance_test();
+  void finalize();
 
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
     int *ncols, int *ncells);

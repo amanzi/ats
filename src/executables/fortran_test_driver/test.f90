@@ -9,28 +9,29 @@ program elm_test
 
     ! dummy data
     ! 1 column, 100 cells
-    double precision, dimension(1) :: infil
-    double precision, dimension(1) :: evap
-    double precision, dimension(100) :: tran
+    integer, parameter :: ncol = 1
+    integer, parameter :: ncell = 100
+    double precision, dimension(ncol) :: infil
+    double precision, dimension(ncol) :: evap
+    double precision, dimension(ncol) :: surf_pres
+    double precision, dimension(ncol) :: elev
+    double precision, dimension(ncol) :: surf_area_m2
+    double precision, dimension(ncol) :: lat
+    double precision, dimension(ncol) :: lon
 
-    double precision, dimension(1) :: surf_pres
-    double precision, dimension(100) :: soil_pres
-    double precision, dimension(100) :: satur
+    double precision, dimension(ncell) :: dz
+    double precision, dimension(ncell) :: depth
+    double precision, dimension(ncell) :: soil_pres
+    double precision, dimension(ncell) :: satur
+    double precision, dimension(ncell) :: tran
 
     integer :: ncols_local, ncols_global, ncells_per_col
 
-    double precision, dimension(100) :: dz
-    double precision, dimension(100) :: depth
-    double precision, dimension(1) :: elev
-    double precision, dimension(1) :: surf_area_m2
-    double precision, dimension(1) :: lat
-    double precision, dimension(1) :: lon
+    infil(:) = 10.0
+    evap(:) = 3.0
 
-    infil(1) = 10.0
-    evap(1) = 3.0
-
-    do i=1,100
-      tran(i) = (1.0 - 0.01*i)
+    do i=1,ncell
+      tran(i) = (1.0 - (1.0/ncell)*i)
     end do
 
     call get_command_argument(1, infile_name)
@@ -44,10 +45,10 @@ program elm_test
     call ats_driver%setup(MPI_COMM_WORLD, infile_name)
     call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
     call ats_driver%initialize()
-    call ats_driver%set_sources(infil, evap, tran, 1, 100)
+    call ats_driver%set_sources(infil, evap, tran, ncol, ncell)
     call ats_driver%advance_test()
 
-    call ats_driver%get_waterstate(surf_pres, soil_pres, satur, 1, 100)
+    call ats_driver%get_waterstate(surf_pres, soil_pres, satur, ncol, ncell)
 
     ! don't need to call anymore now that final is used
     !call ats_driver%delete

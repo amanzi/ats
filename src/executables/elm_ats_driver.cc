@@ -196,29 +196,41 @@ void ELM_ATSDriver::initialize()
 
 void ELM_ATSDriver::advance(double *dt)
 {
-
-  elm_coordinator_->advance(*dt);
+  auto fail = elm_coordinator_->advance(*dt);
+  if (fail) {
+    Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");
+    Exceptions::amanzi_throw(msg);
+  }
 
   // update ATS->ELM data if necessary
   S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
-  const Epetra_MultiVector& pres = *S_->Get<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& pres = *S_->Get<Amanzi::
+    CompositeVector>(pres_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT).Update(*S_, satl_key_);
-  const Epetra_MultiVector& satl = *S_->Get<Amanzi::CompositeVector>(satl_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
+  const Epetra_MultiVector& satl = *S_->Get<Amanzi::
+    CompositeVector>(satl_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
   //S_->GetEvaluator(por_key_, Amanzi::Tags::NEXT).Update(*S_, por_key_);
   //const Epetra_MultiVector& poro = *S_->Get<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-
 }
 
+// simulates external timeloop with dt coming from calling model
 void ELM_ATSDriver::advance_test()
 {
-  // use dt from ATS for now
-  double dt = elm_coordinator_->get_dt(false);
-
   while (S_->get_time() < elm_coordinator_->get_end_time()) {
+    // use dt from ATS for testing
+    double dt = elm_coordinator_->get_dt(false);
+    // call main method
     advance(&dt);
-    dt = elm_coordinator_->get_dt(false);
-  };
+  }
 }
+
+
+// finalize simulation - print stats, dump final checkpoint
+void ELM_ATSDriver::finalize()
+{
+  elm_coordinator_->finalize();
+}
+
 
 /*
 assume that incoming data is in form
