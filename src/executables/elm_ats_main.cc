@@ -109,32 +109,34 @@ int main(int argc, char *argv[])
   // 1 col, 100 cells
   int n = 1;
   int m = 100;
-  std::vector<double> soil_infil(n, 10.0);
-  std::vector<double> soil_evap(n,3.0);
-  std::vector<double> root_tran(m,0.5);
-  std::vector<double> surf_pres(n,3.0);
-  std::vector<double> soil_pres(m, 10.0);
-  std::vector<double> satl(m,0.5);
-
   int ncols_local, ncols_global, ncells_per_col;
-  std::vector<double> dz(m,0.0);
-  std::vector<double> depth(m,0.0);
-  std::vector<double> elev(n,0.0);
-  std::vector<double> surf_area_m2(n,0.0);
-  std::vector<double> lat(n,0.0);
-  std::vector<double> lon(n,0.0);
+  std::vector<double> soil_infil(n, 10.0);
+  std::vector<double> soil_evap(n, 3.0);
+  std::vector<double> surf_pres(n);
+  std::vector<double> elev(n);
+  std::vector<double> surf_area_m2(n);
+  std::vector<double> lat(n);
+  std::vector<double> lon(n);
 
-  // test driver directly
-  auto driver = std::make_unique<ATS::ELM_ATSDriver>();
+  std::vector<double> dz(m);
+  std::vector<double> depth(m);
+  std::vector<double> root_tran(m);
+  std::vector<double> soil_pres(m);
+  std::vector<double> satl(m);
+
   // dummy fortran comm
   MPI_Fint comm = 0;
-  driver->setup(&comm, input_filename.data());
-  driver->get_mesh_info(&ncols_local, &ncols_global, &ncells_per_col, dz.data(), depth.data(),
-    elev.data(), surf_area_m2.data(), lat.data(), lon.data());
-  driver->initialize();
-  driver->set_sources(soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
-  driver->advance_test();
-  driver->get_waterstate(surf_pres.data(), soil_pres.data(), satl.data(), &n, &m);
+
+  // test driver directly
+  //auto driver = std::make_unique<ATS::ELM_ATSDriver>();
+  //driver->setup(&comm, input_filename.data());
+  //driver->get_mesh_info(&ncols_local, &ncols_global, &ncells_per_col, dz.data(), depth.data(),
+  //  elev.data(), surf_area_m2.data(), lat.data(), lon.data());
+  //driver->initialize();
+  //driver->set_sources(soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
+  //driver->advance_test();
+  //driver->get_waterstate(surf_pres.data(), soil_pres.data(), satl.data(), &n, &m);
+  //driver->finalize();
 
   // test api
   auto driver_api = ats_create();

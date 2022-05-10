@@ -61,51 +61,67 @@ void ELM_ATSCoordinator::initialize() {
 
 bool ELM_ATSCoordinator::advance(double dt) {
 
-  // run model for single timestep
-  // order is important
-  // assign dt and advance NEXT
-  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  S_->advance_time(Amanzi::Tags::NEXT, dt);
-  // get time from tags
-  double t_old = S_->get_time(Amanzi::Tags::CURRENT);
-  double t_new = S_->get_time(Amanzi::Tags::NEXT);
-  // check that dt and time tags align
-  AMANZI_ASSERT(std::abs((t_new - t_old) - dt) < 1.e-4);
+  // start and end times for timestep
+  double t_end = S_->get_time() + dt;
 
-  // advance pks
-  auto fail = pk_->AdvanceStep(t_old, t_new, false);
-  if (!fail) fail |= !pk_->ValidStep();
+  bool fail = false;
+  while (S_->get_time() < t_end && dt > 0.0) {
 
-  if (!fail) {
-    // commit the state, copying NEXT --> CURRENT
-    pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
+    // run model for a duration of dt
+    // order is important
+    // advance NEXT time tag
+    S_->advance_time(Amanzi::Tags::NEXT, dt);
+    // get time from tags
+    double t_old = S_->get_time(Amanzi::Tags::CURRENT);
+    double t_new = S_->get_time(Amanzi::Tags::NEXT);
+    // check that dt and time tags align
+    AMANZI_ASSERT(std::abs((t_new - t_old) - dt) < 1.e-4);
 
-  } else {
-    // Failed the timestep.
-    // Potentially write out failed timestep for debugging
-    for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
+    // advance pks
+    fail = pk_->AdvanceStep(t_old, t_new, false);
+    if (!fail) fail |= !pk_->ValidStep();
 
-    // copy from old time into new time to reset the timestep
-    pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
-    S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
+    if (fail) {
+
+      // Failed the timestep.
+      // Potentially write out failed timestep for debugging
+      for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
+
+      // set as failed and revert timestamps
+      pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
+      // set NEXT = CURRENT to reset t_new
+      S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
+
+    } else {
+
+      // commit the state, copying NEXT --> CURRENT
+      pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
+
+      // set CURRENT = NEXT
+      S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
+      // state advance_cycle - necessary??
+      S_->advance_cycle();
+
+      // make observations, vis, and checkpoints
+      for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
+      visualize();
+      checkpoint(); // checkpoint with the new dt
+    }
+
+    // get new dt and assign to State
+    dt = get_dt(fail);
+    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
   }
 
-  if (fail) {
-    Errors::Message msg("ELM_ATSCoordinator: Coordinator advance failed.");
-    Exceptions::amanzi_throw(msg);
-  }
+  return fail;
+}
 
-  // set CURRENT = NEXT
-  // state advance_cycle - necessary??
-  S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-  S_->advance_cycle();
-
-  // make observations, vis, and checkpoints
-  for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-  visualize();
-  checkpoint(); // checkpoint with the new dt
-
-  return false;
+void ELM_ATSCoordinator::finalize()
+{
+  WriteStateStatistics(*S_, *vo_);
+  report_memory();
+  Teuchos::TimeMonitor::summarize(*vo_->os());
+  Coordinator::finalize();
 }
 
 } // namespace ATS
