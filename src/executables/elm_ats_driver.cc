@@ -254,6 +254,21 @@ void ELM_ATSDriver::finalize()
 }
 
 
+void ELM_ATSDriver::advance_elmstep(double *dt_elm, bool visout, bool chkout)
+{
+  // elm one timestep: starting --> ending
+  double ending_time_ = S_->get_time() + *dt_elm;
+  std::cout<<"ATS running period of time: "<<S_->get_time()<<" - "<<ending_time_<<std::endl;
+  
+  double dt = elm_coordinator_->get_dt(false);
+  while (S_->get_time() < ending_time_) {
+    advance(&dt, visout, chkout);
+    dt = elm_coordinator_->get_dt(false);
+    std::cout<<"successfully advanced dt: "<<dt<<std::endl;
+  };
+}
+
+
 //------------------------------------------------------------------------------------------------------------------------
 void
 ELM_ATSDriver::set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,
@@ -404,7 +419,8 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
 
   // scale evaporation and infiltration and add to surface source
   // negative out of subsurface (source) and possitive into subsurface (sink).
-  // unit: mass-source/sink of kgH2O/m2/s
+  // unit: mass-source/sink of kgH2O/m2/s - surface
+  // unit: mass-source/sink of kgH2O/m3/s - subsurface (to be checking???)
 
   // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {

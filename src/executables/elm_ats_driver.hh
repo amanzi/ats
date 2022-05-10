@@ -28,6 +28,7 @@ public:
   void initialize();
   void advance(double *dt, bool visout=false, bool chkout=false);
   void advance_test();
+  void advance_elmstep(double *dt_elm, bool visout=false, bool chkout=false);
   void finalize();
 
   void set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,

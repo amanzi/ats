@@ -19,6 +19,8 @@ void ats_initialize(ELM_ATS_DRIVER ats);
 void ats_advance(ELM_ATS_DRIVER ats, double *dt, bool visout=false, bool chkout=false);
 // call driver advance_test()
 void ats_advance_test(ELM_ATS_DRIVER ats);
+// call driver advance_elmstep()
+void ats_advance_elmstep(ELM_ATS_DRIVER ats, double *dt_elm, bool visout=false, bool chkout=false);
 //
 //
 void ats_set_mesh(ELM_ATS_DRIVER ats,

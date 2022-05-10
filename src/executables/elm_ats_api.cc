@@ -32,6 +32,10 @@ void ats_advance(ELM_ATS_DRIVER ats, double *dt, bool visout, bool chkout) {
 void ats_advance_test(ELM_ATS_DRIVER ats) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
 }
+// call driver advance_elmstep()
+void ats_advance_elmstep(ELM_ATS_DRIVER ats, double *dt_elm, bool visout, bool chkout) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_elmstep(dt_elm, visout, chkout);
+}
 //
 // call driver set_mesh()
 void ats_set_mesh(ELM_ATS_DRIVER ats,
