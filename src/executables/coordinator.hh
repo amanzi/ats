@@ -111,7 +111,7 @@ public:
   // PK methods
   virtual void setup();
   virtual void initialize();
-  void finalize();
+  virtual void finalize();
   void report_memory();
   virtual bool advance();
   void visualize(bool force=false);

@@ -41,6 +41,7 @@ public:
   virtual void setup();
   virtual void initialize();
   virtual bool advance(double dt);
+  virtual void finalize();
 
   // for testing
   double get_end_time() {return t1_;}
