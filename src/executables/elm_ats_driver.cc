@@ -357,9 +357,12 @@ ELM_ATSDriver::set_initialconditions(double *patm, double *soilpressure, double 
       sub_pv[0][col_iter[i]] = soilp[col*ncol_cells_+i];
     }
   }
-  // mark sources as changed
+  // mark pvs as changed
   ChangedEvaluatorPrimary(srf_pv_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_pv_key_, Amanzi::Tags::NEXT, *S_);
+
+  // commit the initial conditions
+  elm_coordinator_->reinit();
 
 }
 

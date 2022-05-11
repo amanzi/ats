@@ -40,6 +40,7 @@ public:
   // methods
   virtual void setup();
   virtual void initialize();
+  virtual void reinit();
   virtual bool advance(double dt, bool visout=false, bool chkout=false);
   virtual void finalize();
 

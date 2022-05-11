@@ -59,6 +59,22 @@ void ELM_ATSCoordinator::initialize() {
                          - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
 }
 
+void ELM_ATSCoordinator::reinit() {
+  // commit the initial conditions
+  pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
+
+  // visualization at IC
+  visualize();
+  checkpoint();
+
+  // is this needed?
+  Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
+
+  // Make sure times are set up correctly
+  AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT)
+                         - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
+}
+
 bool ELM_ATSCoordinator::advance(double dt, bool visout, bool chkout) {    
   // start and end times for timestep
   double t_end = S_->get_time() + dt;
