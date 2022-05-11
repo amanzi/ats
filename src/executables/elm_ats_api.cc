@@ -53,10 +53,10 @@ void ats_set_materials(ELM_ATS_DRIVER ats,
   ->set_materials(porosity, hksat, CH_bsw, CH_smpsat, CH_sr, eff_porosity);
 }
 // call driver set_initialconditions()
-void ats_set_initialconditions(ELM_ATS_DRIVER ats,
-  double *patm, double *soilpressure, double *wtd){
+void ats_set_initialconditions(ELM_ATS_DRIVER ats, double *start_t,
+  double *patm, double *soilpressure, double *wtd, bool visout){
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->set_initialconditions(patm, soilpressure, wtd);
+  ->set_initialconditions(start_t, patm, soilpressure, wtd, visout);
 }
 // call driver set_boundaryconditions
 void ats_set_boundaryconditions(ELM_ATS_DRIVER ats){

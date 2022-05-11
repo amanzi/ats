@@ -254,6 +254,7 @@ void ELM_ATSDriver::finalize()
 }
 
 
+// simulates one ELM timestep
 void ELM_ATSDriver::advance_elmstep(double *dt_elm, bool visout, bool chkout)
 {
   // elm one timestep: starting --> ending
@@ -262,9 +263,9 @@ void ELM_ATSDriver::advance_elmstep(double *dt_elm, bool visout, bool chkout)
   
   double dt = elm_coordinator_->get_dt(false);
   while (S_->get_time() < ending_time_) {
+	//  call main method, with output instruction(s) from ELM
     advance(&dt, visout, chkout);
     dt = elm_coordinator_->get_dt(false);
-    std::cout<<"successfully advanced dt: "<<dt<<std::endl;
   };
 }
 
@@ -322,7 +323,7 @@ ELM_ATSDriver::set_materials(double *porosity, double *hksat, double *CH_bsw, do
 }
 
 void
-ELM_ATSDriver::set_initialconditions(double *patm, double *soilpressure, double *wtd)
+ELM_ATSDriver::set_initialconditions(double *start_t, double *patm, double *soilpressure, double *wtd, bool visout)
 {
   std::vector<double> col_patm;
   std::vector<double> col_wtd;
@@ -361,8 +362,8 @@ ELM_ATSDriver::set_initialconditions(double *patm, double *soilpressure, double 
   ChangedEvaluatorPrimary(srf_pv_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_pv_key_, Amanzi::Tags::NEXT, *S_);
 
-  // commit the initial conditions
-  elm_coordinator_->reinit();
+  // commit the initial conditions after resetting
+  elm_coordinator_->reinit(*start_t, visout);
 
 }
 
@@ -415,7 +416,18 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
       .ViewComponent("cell", false);
   Epetra_MultiVector& subsurf_ss = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
       .ViewComponent("cell", false);
-  
+
+#if 0
+  const Epetra_MultiVector& cv0 =
+    *S_->Get<Amanzi::CompositeVector>(Amanzi::Keys::getKey(domain_srf_,"cell_volume"), Amanzi::Tags::NEXT)
+	  .ViewComponent("cell",false);
+  std::cout<<std::endl<<"checking cell_volume 1 "<<cv0<<std::endl<<std::endl;
+  const Epetra_MultiVector& cv =
+    *S_->Get<Amanzi::CompositeVector>(Amanzi::Keys::getKey(domain_sub_,"cell_volume"), Amanzi::Tags::NEXT)
+	  .ViewComponent("cell",false);
+  std::cout<<std::endl<<"checking cell_volume 2 "<<cv<<std::endl<<std::endl;
+#endif
+
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
   AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
   AMANZI_ASSERT(*ncells == subsurf_ss.MyLength());
@@ -423,7 +435,7 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   // scale evaporation and infiltration and add to surface source
   // negative out of subsurface (source) and possitive into subsurface (sink).
   // unit: mass-source/sink of kgH2O/m2/s - surface
-  // unit: mass-source/sink of kgH2O/m3/s - subsurface (to be checking???)
+  // unit: mass-source/sink of kgH2O/m3/s - subsurface
 
   // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {

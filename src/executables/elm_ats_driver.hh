@@ -35,7 +35,7 @@ public:
     const int len_gridsX, const int len_gridsY, const int len_vertices);
   void set_materials(double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
     double *eff_porosity);
-  void set_initialconditions(double *patm, double *soilpressure, double *wtd);
+  void set_initialconditions(double *start_t, double *patm, double *soilpressure, double *wtd, bool visout=false);
   void set_boundaryconditions();
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
     int *ncols, int *ncells);

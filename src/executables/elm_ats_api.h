@@ -30,8 +30,8 @@ void ats_set_mesh(ELM_ATS_DRIVER ats,
 void ats_set_materials(ELM_ATS_DRIVER ats,
   double *porosity, double* hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
   double *eff_porosity);
-void ats_set_initialconditions(ELM_ATS_DRIVER ats,
-  double *patm, double *soilpressure, double *wtd);
+void ats_set_initialconditions(ELM_ATS_DRIVER ats, double *start_t,
+  double *patm, double *soilpressure, double *wtd, bool visout=false);
 void ats_set_boundaryconditions(ELM_ATS_DRIVER ats);      // (TODO)
 // call driver set_sources()
 // soil_infiltration & soil_evaporation are 1D arrays of length ncols

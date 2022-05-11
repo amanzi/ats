@@ -46,10 +46,10 @@ void ELM_ATSCoordinator::initialize() {
 
   Coordinator::initialize();
 
-  // visualization at IC
+  // visualization at IC  - This will cause error in ::reinit()
   // for testing
-  visualize();
-  checkpoint();
+  //visualize();
+  //checkpoint();
 
   // is this needed?
   Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
@@ -59,13 +59,22 @@ void ELM_ATSCoordinator::initialize() {
                          - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
 }
 
-void ELM_ATSCoordinator::reinit() {
+//
+void ELM_ATSCoordinator::reinit(double start_time, bool visout) {
+  //
+  t0_ = start_time;
+
+  S_->set_time(Amanzi::Tags::CURRENT, t0_);
+  S_->set_time(Amanzi::Tags::NEXT, t0_);
+  S_->set_cycle(cycle0_);
+
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+
   // commit the initial conditions
   pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
-  // visualization at IC
-  visualize();
-  checkpoint();
+  // visualization at reset ICs
+  visualize(visout);
 
   // is this needed?
   Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
