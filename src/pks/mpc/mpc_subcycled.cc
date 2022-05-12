@@ -42,6 +42,7 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
 
   // min dt allowed in subcycling
   min_dt_ = plist_->get<double>("minimum subcycled relative dt", 1.e-5);
+  max_dt_ = plist_->get<double>("subcycling target time step [s]", -1);
 }
 
 
@@ -113,6 +114,8 @@ MPCSubcycled::Initialize()
 double MPCSubcycled::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
+  if (max_dt_ > 0) dt = max_dt_;
+
   int i = 0;
   for (auto& pk : sub_pks_) {
     dts_[i] = pk->get_dt();
@@ -144,6 +147,74 @@ void MPCSubcycled::set_dt(double dt)
 
 
 // -----------------------------------------------------------------------------
+// Advance the ith sub-PK individually, returning a failure
+// -----------------------------------------------------------------------------
+bool
+MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit)
+{
+  bool fail = false;
+  if (subcycling_[i]) {
+    // advance the subcycled, subcycling if needed
+    bool done = false;
+    double t_inner = t_old;
+    double dt_inner = dts_[i];
+
+    Tag tag_subcycle_current = tags_[i].first;
+    Tag tag_subcycle_next = tags_[i].second;
+
+    S_->set_time(tag_subcycle_current, t_old);
+    while (!done) {
+      dt_inner = std::min(dt_inner, t_new - t_inner);
+      S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
+      S_->set_time(tag_subcycle_next, t_inner + dt_inner);
+      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
+
+      if (vo_->os_OK(Teuchos::VERB_EXTREME))
+        *vo_->os() << "  step failed? " << fail_inner << std::endl;
+      bool valid_inner = sub_pks_[i]->ValidStep();
+      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+        *vo_->os() << "  step valid? " << valid_inner << std::endl;
+      }
+
+      if (fail_inner || !valid_inner) {
+        sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
+
+        dt_inner = sub_pks_[i]->get_dt();
+        S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
+
+        if (vo_->os_OK(Teuchos::VERB_EXTREME))
+          *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
+
+      } else {
+        sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
+        t_inner += dt_inner;
+        if (std::abs(t_new - t_inner) < 1.e-10) done = true;
+
+        S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
+        S_->advance_cycle(tag_subcycle_next);
+
+        dt_inner = sub_pks_[i]->get_dt();
+        if (vo_->os_OK(Teuchos::VERB_EXTREME))
+          *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
+      }
+
+      if (dt_inner < min_dt_) {
+        Errors::Message msg;
+        msg << "SubPK " << sub_pks_[i]->name() << " crashing timestep in subcycling: dt = " << dt_inner;
+        Exceptions::amanzi_throw(msg);
+      }
+    }
+
+  } else {
+    // advance the standard PK using the full step size
+    fail = sub_pks_[i]->AdvanceStep(t_old, t_new, reinit);
+  }
+  return fail;
+}
+
+
+
+// -----------------------------------------------------------------------------
 // Advance each sub-PK individually, returning a failure as soon as possible.
 // -----------------------------------------------------------------------------
 bool MPCSubcycled::AdvanceStep(double t_old, double t_new, bool reinit)
@@ -153,67 +224,12 @@ bool MPCSubcycled::AdvanceStep(double t_old, double t_new, bool reinit)
 
   int i = 0;
   for (auto& pk : sub_pks_) {
-    if (subcycling_[i]) {
-      // advance the subcycled, subcycling if needed
-      bool done = false;
-      double t_inner = t_old;
-      double dt_inner = dts_[i];
-
-      Tag tag_subcycle_current = tags_[i].first;
-      Tag tag_subcycle_next = tags_[i].second;
-
-      S_->set_time(tag_subcycle_current, t_old);
-      while (!done) {
-        dt_inner = std::min(dt_inner, t_new - t_inner);
-        S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
-        S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-        bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
-
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          *vo_->os() << "  step failed? " << fail_inner << std::endl;
-        bool valid_inner = sub_pks_[i]->ValidStep();
-        if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-          *vo_->os() << "  step valid? " << valid_inner << std::endl;
-        }
-
-        if (fail_inner || !valid_inner) {
-          sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
-
-          dt_inner = sub_pks_[i]->get_dt();
-          S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
-
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
-            *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
-
-        } else {
-          sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
-          t_inner += dt_inner;
-          if (std::abs(t_new - t_inner) < 1.e-10) done = true;
-
-          S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
-          S_->advance_cycle(tag_subcycle_next);
-
-          dt_inner = sub_pks_[i]->get_dt();
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
-            *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
-        }
-
-        if (dt_inner < min_dt_) {
-          Errors::Message msg;
-          msg << "SubPK " << pk->name() << " crashing timestep in subcycling: dt = " << dt_inner;
-          Exceptions::amanzi_throw(msg);
-        }
-      }
-
-    } else {
-      // advance the standard PK using the full step size
-      bool fail = pk->AdvanceStep(t_old, t_new, reinit);
-      if (fail) return fail;
-    }
+    fail = AdvanceStep_i_(i, t_old, t_new, reinit);
+    if (fail) return fail;
     ++i;
   }
 
-  return false;
+  return fail;
 }
 
 

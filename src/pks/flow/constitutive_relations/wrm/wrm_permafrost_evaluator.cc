@@ -78,6 +78,7 @@ void WRMPermafrostEvaluator::InitializeFromPlist_() {
   // my keys are for saturation -- order matters... gas -> liq -> ice
   Key akey = my_keys_.front().first;
   Key domain_name = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   Tag tag = my_keys_.front().second;
   my_keys_.clear();
 
@@ -86,21 +87,21 @@ void WRMPermafrostEvaluator::InitializeFromPlist_() {
   std::size_t ice_pos = akey.find("ice");
   std::size_t gas_pos = akey.find("gas");
   if (liq_pos != std::string::npos) {
-    liqkey = akey;
+    liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", akey);
     gaskey = akey.substr(0,liq_pos)+"gas"+akey.substr(liq_pos+6);
     gaskey = Keys::readKey(plist_, domain_name, "gas saturation", gaskey);
     icekey = akey.substr(0,liq_pos)+"ice"+akey.substr(liq_pos+6);
     icekey = Keys::readKey(plist_, domain_name, "ice saturation", icekey);
 
   } else if (ice_pos != std::string::npos) {
-    icekey = akey;
+    icekey = Keys::readKey(plist_, domain_name, "ice saturation", akey);
     gaskey = akey.substr(0,ice_pos)+"gas"+akey.substr(ice_pos+3);
     gaskey = Keys::readKey(plist_, domain_name, "gas saturation", gaskey);
     liqkey = akey.substr(0,ice_pos)+"liquid"+akey.substr(ice_pos+3);
     liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", liqkey);
 
   } else if (gas_pos != std::string::npos) {
-    gaskey = akey;
+    gaskey = Keys::readKey(plist_, domain_name, "gas saturation", akey);
     icekey = akey.substr(0,gas_pos)+"ice"+akey.substr(gas_pos+3);
     icekey = Keys::readKey(plist_, domain_name, "ice saturation", icekey);
     liqkey = akey.substr(0,gas_pos)+"liquid"+akey.substr(gas_pos+3);

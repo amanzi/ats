@@ -37,6 +37,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
+#include "pk_helpers.hh"
 
 #include "coordinator.hh"
 
@@ -99,18 +100,15 @@ void Coordinator::coordinator_init()
     }
   }
 
-  // check whether meshes are deformable, and if so require a nodal position
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
 
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
       Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
       S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(
-        node_key, Amanzi::Tags::NEXT)
+        node_key, Amanzi::Tags::NEXT, node_key)
         .SetMesh(mesh->second.first)->SetGhosted()
-        ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
-      S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(
-        node_key, Amanzi::Tags::DEFAULT);
+        ->SetComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
 
     // writes region information
@@ -174,6 +172,16 @@ void Coordinator::initialize()
   // calling CommitStep to set up copies as needed
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
+  // initialize vertex coordinate data
+  for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
+       mesh!=S_->mesh_end(); ++mesh) {
+    if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
+      Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
+      copyMeshCoordinatesToVector(*mesh->second.first,
+              S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
+      S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
+    }
+  }
 
   // Restart from checkpoint part 2:
   // -- load all other data

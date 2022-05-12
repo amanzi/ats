@@ -1,59 +1,44 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-ATS
+//! Weak MPC for subdomain model MPCs.
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-A DomainSet coupler, couples a bunch of domains of the same structure.
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
-------------------------------------------------------------------------- */
 
-#include "mpc_domain_set.hh"
+/*!
+
+Weakly couples N PKs of the same type across a domain set.  Handles several
+options in subcycling, subcommunicators, and other complexity associated with
+this task.
+
+Note that, unlike mpc_subcycled, this does not let a subset of PKs be
+subcycled.  That seems appropriate as this means to couple PKs of the same type
+-- why would you want to subcycle some columns but not all, or some watersheds
+but not all?  That could be generalized, but it would be tricky to define on an
+input spec.
+
+*/
+
+
+#include "mpc_weak_subdomain.hh"
+
 
 namespace Amanzi {
 
-MPCDomainSet::MPCDomainSet(Teuchos::ParameterList& pk_tree,
-                           const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                           const Teuchos::RCP<State>& S,
-                           const Teuchos::RCP<TreeVector>& solution)
-    : MPC<PK>(pk_tree, global_list, S, solution),
-      PK(pk_tree, global_list, S, solution),
-      subcycled_(false),
-      subcycled_target_dt_(-1.)
+
+MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
+        const Teuchos::RCP<Teuchos::ParameterList>& plist,
+        const Teuchos::RCP<State>& S,
+        const Teuchos::RCP<TreeVector>& solution)
+    : PK(FElist, plist, S, solution),
+      MPC<PK>(FElist, plist, S, solution)
 {
-  // grab the list of subpks
-  auto subpks = this->plist_->template get<Teuchos::Array<std::string> >("PKs order");
-  if (subpks.size() != 1) {
-    Errors::Message msg;
-    msg << "MPCDomainSet: \"" << name()
-        << "\" expected exactly one entry in PKs order and it must be a domain set.";
-    Exceptions::amanzi_throw(msg);
-  }
-
-  auto pk_name = subpks.back();
-  subpks.pop_back();
-
-  KeyTriple triple;
-  bool is_ds = Keys::splitDomainSet(pk_name, triple);
-  ds_name_ = std::get<0>(triple);
-  if (!is_ds || !S->HasDomainSet(ds_name_)) {
-    Errors::Message msg;
-    msg << "MPCDomainSet: \"" << ds_name_ << "\" should be a domain-set of the form DOMAIN_*-PK_NAME";
-    Exceptions::amanzi_throw(msg);
-  }
-
-  // add for the various sub-pks based on IDs
-  auto ds = S->GetDomainSet(ds_name_);
-  for (auto& subdomain : *ds) {
-    subpks.push_back(Keys::getKey(subdomain, std::get<2>(triple)));
-  }
-  this->plist_->template set("PKs order", subpks);
-
-  // construct the sub-PKs on COMM_SELF
-  // FIXME: This should somehow get run on the DomainSet's entries Comms, not
-  // on COMM_SELF! --etc
-  MPC<PK>::init_(getCommSelf());
+  init_();
 
   // check whether we are subcycling
   subcycled_ = plist_->template get<bool>("subcycle subdomains", false);
@@ -61,20 +46,19 @@ MPCDomainSet::MPCDomainSet(Teuchos::ParameterList& pk_tree,
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
     subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
   }
-}
+};
 
 
-// must communicate dts since columns are serial
-double MPCDomainSet::get_dt()
-{
-  double dt = 1.0e99;
+// -----------------------------------------------------------------------------
+// Calculate the min of sub PKs timestep sizes.
+// -----------------------------------------------------------------------------
+double MPCWeakSubdomain::get_dt() {
+  double dt = std::numeric_limits<double>::max();
+
   if (subcycled_) {
     dt = subcycled_target_dt_;
   } else {
-    for (const auto& pk : sub_pks_) {
-      dt = std::min<double>(dt,pk->get_dt());
-    }
-
+    for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
     double dt_local = dt;
     solution_->Comm()->MinAll(&dt_local, &dt, 1);
   }
@@ -84,14 +68,11 @@ double MPCDomainSet::get_dt()
 // -----------------------------------------------------------------------------
 // Set timestep for sub PKs
 // -----------------------------------------------------------------------------
-void MPCDomainSet::set_dt(double dt)
-{
+void MPCWeakSubdomain::set_dt(double dt) {
   if (subcycled_) {
     cycle_dt_ = dt;
   } else {
-    for (const auto& pk : sub_pks_) {
-      pk->set_dt(dt);
-    }
+    for (auto& pk : sub_pks_) pk->set_dt(dt);
   }
 };
 
@@ -99,7 +80,7 @@ void MPCDomainSet::set_dt(double dt)
 // -----------------------------------------------------------------------------
 // Set tags for this and for subcycling
 // -----------------------------------------------------------------------------
-void MPCDomainSet::set_tags(const Tag& current, const Tag& next)
+void MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 {
   if (subcycled_) {
     PK::set_tags(current, next);
@@ -115,44 +96,36 @@ void MPCDomainSet::set_tags(const Tag& current, const Tag& next)
 }
 
 
-
-//-------------------------------------------------------------------------------------
-// Advance the timestep
-//-------------------------------------------------------------------------------------
-bool
-MPCDomainSet::AdvanceStep(double t_old, double t_new, bool reinit)
-{
+// -----------------------------------------------------------------------------
+// Advance each sub-PK individually.
+// -----------------------------------------------------------------------------
+bool MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit) {
   if (subcycled_) return AdvanceStep_Subcycled_(t_old, t_new, reinit);
   else return AdvanceStep_Standard_(t_old, t_new, reinit);
 }
 
-
-//-------------------------------------------------------------------------------------
-// Advance the timestep in the standard MPC way, but make sure to communicate failure
-//-------------------------------------------------------------------------------------
-bool
-MPCDomainSet::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
-{
-  int nfailed = 0;
-  for (const auto& pk : sub_pks_) {
-    bool fail = pk->AdvanceStep(t_old, t_new, reinit);
-    if (fail) {
-      nfailed++;
-      break;
-    }
+// -----------------------------------------------------------------------------
+// Advance each sub-PK individually.
+// -----------------------------------------------------------------------------
+bool MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit) {
+  bool fail = false;
+  for (auto& pk : sub_pks_) {
+    fail = pk->AdvanceStep(t_old, t_new, reinit);
+    if (fail) break;
   }
-  int nfailed_global(0);
-  solution_->Comm()->SumAll(&nfailed, &nfailed_global, 1);
-  if (nfailed_global) return true;
-  return false;
-}
+
+  int sub_fail_i = fail ? 1 : 0;
+  int fail_i;
+  comm_->SumAll(&sub_fail_i, &fail_i, 1);
+  return (bool) fail_i;
+};
 
 
 //-------------------------------------------------------------------------------------
 // Advance the timestep through subcyling
 //-------------------------------------------------------------------------------------
 bool
-MPCDomainSet::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
+MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   bool fail = false;
@@ -221,28 +194,44 @@ MPCDomainSet::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
 }
 
 
-bool
-MPCDomainSet::ValidStep()
+void
+MPCWeakSubdomain::init_()
 {
-  if (subcycled_) return true; // this was already checked in advance
-  else {
-    int valid_l = MPC<PK>::ValidStep() ? 1 : 0;
-    int valid_g(-1);
-    solution_->Comm()->MinAll(&valid_l, &valid_g, 1);
-    return (valid_g == 1);
+  // grab the list of subpks
+  auto subpks = plist_->get<Teuchos::Array<std::string> >("PKs order");
+  if (subpks.size() != 1) {
+    Errors::Message msg;
+    msg << "MPCWeakSubdomain: \"PKs order\" should consist of a single domain set of sub-pks.";
+    Exceptions::amanzi_throw(msg);
+  }
+  std::string subdomain_name = subpks[0];
+  subpks.pop_back();
+
+  KeyTriple subdomain_triple;
+  bool is_ds = Keys::splitDomainSet(subdomain_name, subdomain_triple);
+  if (!is_ds) {
+    Errors::Message msg;
+    msg << "MPCWeakSubdomain: subpk \"" << subdomain_name << "\" should be a domain-set PK of the form SUBDOMAIN_DOMAIN_NAME_*-NAME";
+    Exceptions::amanzi_throw(msg);
+  }
+
+  // get the domain set and save the comm of the parent mesh for later
+  ds_name_ = std::get<0>(subdomain_triple);
+  const auto& ds = S_->GetDomainSet(ds_name_);
+  comm_ = ds->get_indexing_parent()->get_comm();
+
+  // -- create the lifted PKs
+  PKFactory pk_factory;
+  for (const auto& subdomain : *ds) {
+    auto mesh = S_->GetMesh(subdomain);
+    // create the solution vector
+    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->get_comm()));
+    solution_->PushBack(pk_soln);
+
+    // create the PK
+    auto subpk = Keys::getKey(subdomain, std::get<2>(subdomain_triple));
+    sub_pks_.emplace_back(pk_factory.CreatePK(subpk, pk_tree_, global_list_, S_, pk_soln));
   }
 }
 
-
-void
-MPCDomainSet::CommitStep(double t_old, double t_new, const Tag& tag)
-{
-  // In the case of subcycling, the sub-PKs would call Commit a second time --
-  // it was already called when the inner step was successful and commited.
-  // Calling it a second time is bad because it messes up the nonlinear
-  // solver's inner solution history.
-  if (subcycled_) return;
-  else MPC<PK>::CommitStep(t_old, t_new, tag);
-}
-
-} // namespace Amanzi
+} // namespace

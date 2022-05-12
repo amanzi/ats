@@ -30,7 +30,7 @@ ColumnElevationEvaluator::Clone() const {
 
 void ColumnElevationEvaluator::EnsureEvaluators(State& S)
 {
-  auto tag = my_keys_.front().first;
+  auto tag = my_keys_.front().second;
   auto dset = S.GetDomainSet(dset_name_);
   for (const auto& domain : *dset) {
     dependencies_.insert(KeyTag{Keys::getKey(domain, base_poro_suffix_), tag});

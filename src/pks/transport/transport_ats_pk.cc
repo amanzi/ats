@@ -292,7 +292,8 @@ void Transport_ATS::Setup()
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
 
-  // alias to next for subcycled cases -- revisit this in state subcycling revision --ETC
+  // alias to next for subcycled cases -- revisit this in state subcycling
+  // revision --ETC
   if (tag_next_ != Tags::NEXT) {
     aliasVector(*S_, tcc_key_, tag_next_, Tags::NEXT);
     aliasVector(*S_, conserve_qty_key_, tag_next_, Tags::NEXT);
@@ -312,6 +313,10 @@ void Transport_ATS::Initialize()
   dt_ = dt_debug_ = t_physics_ = 0.0;
   double time = S_->get_time();
   if (time >= 0.0) t_physics_ = time;
+
+  if (plist_->isSublist("initial condition")) {
+    S_->GetRecordW(tcc_key_, tag_subcycle_next_, passwd_).Initialize(plist_->sublist("initial condition"));
+  }
 
   internal_tests = 0;
   tests_tolerance = TRANSPORT_CONCENTRATION_OVERSHOOT;
@@ -402,9 +407,10 @@ void Transport_ATS::Initialize()
         std::string bc_type = bc_list.get<std::string>("spatial distribution method", "none");
 
         if (bc_type == "domain coupling") {
+          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "fields", AmanziMesh::FACE, Kxy);
+            factory.Create(bc_list, "fields", AmanziMesh::FACE, Kxy, tag_current_);
 
           for (int i = 0; i < num_components; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -421,8 +427,9 @@ void Transport_ATS::Initialize()
           int gid = std::stoi(domain_.substr(last_of+1, domain_.size()));
           bc_list.set("entity_gid_out", gid);
 
+          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "boundary concentration", AmanziMesh::FACE, Kxy);
+            factory.Create(bc_list, "boundary concentration", AmanziMesh::FACE, Kxy, tag_current_);
 
           for (int i = 0; i < num_components; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -432,8 +439,9 @@ void Transport_ATS::Initialize()
           bcs_.push_back(bc);
 
         } else {
+          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "boundary concentration function", AmanziMesh::FACE, Kxy);
+            factory.Create(bc_list, "boundary concentration function", AmanziMesh::FACE, Kxy, tag_current_);
           bc->set_state(S_);
 
           std::vector<std::string> tcc_names = bc_list.get<Teuchos::Array<std::string>>("component names").toVector();
@@ -506,8 +514,9 @@ void Transport_ATS::Initialize()
           src->set_state(S_);
           srcs_.push_back(src);
         } else {
+          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> src =
-              factory.Create(src_list, "source function", AmanziMesh::CELL, Kxy);
+            factory.Create(src_list, "source function", AmanziMesh::CELL, Kxy, tag_current_);
 
           std::vector<std::string> tcc_names = src_list.get<Teuchos::Array<std::string>>("component names").toVector();
           src->set_tcc_names(tcc_names);

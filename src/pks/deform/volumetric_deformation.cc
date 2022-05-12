@@ -22,21 +22,6 @@ namespace Deform {
 
 using namespace Amanzi::AmanziMesh;
 
-// helper function -- could get used by PK_Helpers if useful elsewhere
-void
-CopyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
-                            CompositeVector& vec)
-{
-  Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
-
-  int ndim = mesh.space_dimension();
-  AmanziGeometry::Point nc;
-  for (int i=0; i!=nodes.MyLength(); ++i) {
-    mesh.node_get_coordinates(i, &nc);
-    for (int j=0; j!=ndim; ++j) nodes[j][i] = nc[j];
-  }
-}
-
 
 VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
         const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -102,7 +87,6 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
   del_cv_key_ = Keys::readKey(*plist_, domain_, "cell volume change", "delta_cell_volume");
   poro_key_ = Keys::readKey(*plist_, domain_, "porosity", "porosity");
   vertex_loc_key_ = Keys::getKey(domain_, "vertex_coordinates");
-  vertex_loc_surf_key_ = Keys::getKey(domain_surf_, "vertex_coordinates");
   vertex_loc_surf3d_key_ = Keys::getKey(domain_surf_3d_, "vertex_coordinates");
   nodal_dz_key_ = Keys::readKey(*plist_, domain_, "vertex coordinate dz", "nodal_dz");
   face_above_dz_key_ = Keys::readKey(*plist_, domain_, "face above dz", "face_above_dz");
@@ -119,8 +103,12 @@ VolumetricDeformation::Setup()
   // deformed mesh after restart, and additionally must be checkpointed.
   int dim = mesh_->space_dimension();
   mesh_nc_ = S_->GetDeformableMesh(domain_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_key_, tag_current_, name_)
+  S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_key_, tag_next_, vertex_loc_key_)
     .SetMesh(mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, dim);
+  if (tag_next_ != Amanzi::Tags::NEXT) {
+    S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_key_, Amanzi::Tags::NEXT, vertex_loc_key_)
+      .SetMesh(mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, dim);
+  }
 
   // note this mesh is never deformed in this PK as all movement is vertical
   if (S_->HasMesh(domain_surf_)) surf_mesh_ = S_->GetMesh(domain_surf_);
@@ -129,8 +117,12 @@ VolumetricDeformation::Setup()
   if (S_->HasMesh(domain_surf_3d_)) {
     surf3d_mesh_ = S_->GetMesh(domain_surf_3d_);
     surf3d_mesh_nc_ = S_->GetDeformableMesh(domain_surf_3d_);
-    S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_surf3d_key_, tag_current_, name_)
+    S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_surf3d_key_, tag_next_, vertex_loc_surf3d_key_)
       .SetMesh(surf3d_mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, dim);
+    if (tag_next_ != Amanzi::Tags::NEXT) {
+      S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_surf3d_key_, Amanzi::Tags::NEXT, vertex_loc_surf3d_key_)
+        .SetMesh(mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, dim);
+    }
   }
 
   // create storage for primary variable, base_porosity
@@ -270,35 +262,27 @@ void VolumetricDeformation::Initialize()
   }
 
   // initialize the vertex coordinate to the current mesh
-  CopyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, tag_next_, name_));
-  S_->GetRecordW(vertex_loc_key_, tag_next_, name_).set_initialized();
-
-  if (surf3d_mesh_ != Teuchos::null) {
-    CopyMeshCoordinatesToVector(*surf_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf_key_, tag_next_, name_));
-    S_->GetRecordW(vertex_loc_surf_key_, tag_next_, name_).set_initialized();
+  copyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, tag_next_, vertex_loc_key_));
+  S_->GetRecordW(vertex_loc_key_, tag_next_, vertex_loc_key_).set_initialized();
+  if (tag_next_ != Amanzi::Tags::NEXT) {
+    copyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, Amanzi::Tags::NEXT, vertex_loc_key_));
+    S_->GetRecordW(vertex_loc_key_, Amanzi::Tags::NEXT, vertex_loc_key_).set_initialized();
   }
 
-
-  // initialize the vertex coordinates of the surface meshes
   if (surf3d_mesh_ != Teuchos::null) {
-    int dim = surf3d_mesh_->space_dimension();
-    AmanziGeometry::Point coords(dim);
-    int nnodes = surf3d_mesh_->num_entities(Amanzi::AmanziMesh::NODE,
-            Amanzi::AmanziMesh::Parallel_type::OWNED);
-
-    auto& vc = *S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag_next_, name_).ViewComponent("node",false);
-    for (int iV=0; iV!=nnodes; ++iV) {
-      // get the coords of the node
-      surf3d_mesh_->node_get_coordinates(iV,&coords);
-      for (int s=0; s!=dim; ++s) vc[s][iV] = coords[s];
+    copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag_next_, vertex_loc_surf3d_key_));
+    S_->GetRecordW(vertex_loc_surf3d_key_, tag_next_, vertex_loc_surf3d_key_).set_initialized();
+    if (tag_next_ != Amanzi::Tags::NEXT) {
+      copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, Amanzi::Tags::NEXT, vertex_loc_surf3d_key_));
+      S_->GetRecordW(vertex_loc_surf3d_key_, Amanzi::Tags::NEXT, vertex_loc_surf3d_key_).set_initialized();
     }
-    S_->GetRecordW(vertex_loc_surf3d_key_, tag_next_, name_).set_initialized();
   }
 }
 
 
 bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 {
+  deformed_this_step_ = false;
   double dt = t_new - t_old;
   Teuchos::OSTab out = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
@@ -501,6 +485,7 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         }
 
         mesh_nc_->deform(target_cell_vols, min_cell_vols, below_node_list, true);
+        deformed_this_step_ = true;
         break;
       }
 
@@ -578,6 +563,7 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
           AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.);
         }
         mesh_nc_->deform(node_ids, new_positions, true, &final_positions);
+        deformed_this_step_ = true;
         // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
         break;
       }
@@ -697,8 +683,29 @@ void VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& ta
       S_->Assign(poro_key_, tag_current_, tag_next_);
     // ChangedEvaluatorPrimary(poro_key_, tag_current_, *S_);
   }
+
+  // lastly, save the new coordinates for checkpointing
+  if (deformed_this_step_) {
+    copyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, tag, vertex_loc_key_));
+    if (surf3d_mesh_ != Teuchos::null) {
+      copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag, vertex_loc_surf3d_key_));
+    }
+  }
 }
 
+void VolumetricDeformation::FailStep(double t_old, double t_new, const Tag& tag)
+{
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "Failing step." << std::endl;
+
+  if (deformed_this_step_) {
+    copyVectorToMeshCoordinates(S_->Get<CompositeVector>(vertex_loc_key_, tag), *mesh_nc_);
+    if (surf3d_mesh_ != Teuchos::null) {
+      copyVectorToMeshCoordinates(S_->Get<CompositeVector>(vertex_loc_surf3d_key_, tag), *surf3d_mesh_nc_);
+    }
+  }
+}
 
 } // namespace
 } // namespace

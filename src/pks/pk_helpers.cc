@@ -212,4 +212,39 @@ AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
 }
 
 
+void
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
+                            CompositeVector& vec)
+{
+  Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
+
+  int ndim = mesh.space_dimension();
+  AmanziGeometry::Point nc;
+  for (int i=0; i!=nodes.MyLength(); ++i) {
+    mesh.node_get_coordinates(i, &nc);
+    for (int j=0; j!=ndim; ++j) nodes[j][i] = nc[j];
+  }
+}
+
+void
+copyVectorToMeshCoordinates(const CompositeVector& vec,
+                            AmanziMesh::Mesh& mesh)
+{
+  const Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
+  int ndim = mesh.space_dimension();
+
+  std::vector<int> node_ids(nodes.MyLength());
+  Amanzi::AmanziGeometry::Point_List new_positions(nodes.MyLength());
+  for (int n=0; n!=nodes.MyLength(); ++n) {
+    node_ids[n] = n;
+    if (mesh.space_dimension() == 2) {
+      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n]};
+    } else {
+      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n], nodes[2][n]};
+    }
+  }
+  mesh.deform(node_ids, new_positions);
+}
+
+
 } // namespace Amanzi

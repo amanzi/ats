@@ -17,7 +17,9 @@ namespace Relations {
 SubgridDisaggregateEvaluator::SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-  domain_ = Keys::getDomainSetName(my_keys_.front().first);
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  domain_index_ = domain;
+  domain_set_ = Keys::getDomainSetName(domain);
   source_domain_ = plist_.get<std::string>("source domain name");
   Key var_key = Keys::getVarName(my_keys_.front().first);
   source_key_ = Keys::readKey(plist_, source_domain_, "field", var_key);
@@ -38,8 +40,8 @@ SubgridDisaggregateEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  auto ds = S.GetDomainSet(domain_);
-  ds->DoExport(domain_,
+  auto ds = S.GetDomainSet(domain_set_);
+  ds->DoExport(domain_index_,
                *S.Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false),
                *result[0]->ViewComponent("cell", false));
 }

@@ -131,11 +131,11 @@ void MPCCoupledReactiveTransport::Initialize()
 
   chemistry_pk_surf_->set_aqueous_components(tcc_surf);
   chemistry_pk_surf_->Initialize();
-  *tcc_surf = *chemistry_pk_surf_->aqueous_components();
+  //*tcc_surf = *chemistry_pk_surf_->aqueous_components();
 
   chemistry_pk_->set_aqueous_components(tcc);
   chemistry_pk_->Initialize();
-  *tcc = *chemistry_pk_->aqueous_components();
+  //*tcc = *chemistry_pk_->aqueous_components();
 
   ConvertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
   ConvertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);

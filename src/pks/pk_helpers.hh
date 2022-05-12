@@ -90,4 +90,13 @@ AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
                  Teuchos::RCP<Epetra_MultiVector> tcc,
                  Teuchos::Time& timer);
 
+
+void
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
+                            CompositeVector& vec);
+void
+copyVectorToMeshCoordinates(const CompositeVector& vec,
+                            AmanziMesh::Mesh& mesh);
+
+
 } // namespace Amanzi
