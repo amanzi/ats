@@ -6,10 +6,10 @@ License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 ------------------------------------------------------------------------- */
 
-#include "mpc_weak_domain_decomposition.hh"
+#include "mpc_weak_subdomain.hh"
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCWeakDomainDecomposition> MPCWeakDomainDecomposition::reg_("weakly coupled subdomain PKs");
+RegisteredPKFactory<MPCWeakSubdomain> MPCWeakSubdomain::reg_("domain set weak MPC");
 
 } // namespace

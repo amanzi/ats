@@ -82,6 +82,10 @@ class ColumnElevationEvaluator : public ElevationEvaluator {
   // Custom EnsureCompatibility fills dependencies based on domain set.
   virtual void EnsureEvaluators(State& S) override;
 
+  // do not pass my structure to my dependencies
+  virtual void EnsureCompatibility_ToDeps_(State& S) override {}
+
+
  private:
   static Utils::RegisteredFactory<Evaluator,ColumnElevationEvaluator> reg_;
 

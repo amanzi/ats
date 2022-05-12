@@ -50,8 +50,12 @@ public:
   // virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
+
+  // advance the ith sub_pk
+  bool AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit);
+
   Teuchos::Array<int> subcycling_;
-  double dt_, min_dt_;
+  double dt_, min_dt_, max_dt_;
   std::vector<double> dts_;
   std::vector<std::pair<Tag,Tag>> tags_;
 

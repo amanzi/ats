@@ -55,7 +55,8 @@ class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   Key source_domain_;
-  Key domain_;
+  Key domain_index_;
+  Key domain_set_;
   Key source_key_;
 
  private:

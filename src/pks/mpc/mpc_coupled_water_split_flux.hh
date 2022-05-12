@@ -29,7 +29,6 @@ lateral fluxes as a fixed source term.
 
 #include "PK.hh"
 #include "mpc.hh"
-#include "EvaluatorPrimary.hh"
 
 namespace Amanzi {
 
@@ -42,27 +41,21 @@ class MPCCoupledWaterSplitFlux : public MPC<PK> {
           const Teuchos::RCP<State>& S,
           const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~MPCCoupledWaterSplitFlux() = default;
-
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt();
+  virtual double get_dt() override;
+  virtual void set_dt(double dt) override;
 
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  
+  virtual void Initialize() override;
+  virtual void Setup() override;
+
   // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
-
-  virtual void set_dt(double dt);
-
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
   virtual void CommitStep(double t_old, double t_new,
-                          const Teuchos::RCP<State>& S);
-  
-  virtual void CopyPrimaryToStar(const Teuchos::Ptr<const State>& S,
-          const Teuchos::Ptr<State>& S_star);
-  virtual void CopyStarToPrimary(double dt);
+                          const Tag& tag) override;
+
+  virtual void CopyPrimaryToStar(const Tag& prim, const Tag& star);
+  virtual void CopyStarToPrimary(const Tag& star_current, const Tag& star_next, const Tag& prim);
 
  protected:
   Key primary_variable_;
@@ -70,8 +63,7 @@ class MPCCoupledWaterSplitFlux : public MPC<PK> {
   Key conserved_variable_star_;
   Key lateral_flow_source_;
   Key cv_key_;
-  Teuchos::RCP<EvaluatorPrimary> eval_pvfe_;
-  
+
  private:
   // factory registration
   static RegisteredPKFactory<MPCCoupledWaterSplitFlux> reg_;

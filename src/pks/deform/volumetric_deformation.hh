@@ -114,14 +114,11 @@ values from the old time.
 #include "PK.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_default.hh"
+#include "pk_helpers.hh"
 //#include "MatrixVolumetricDeformation.hh"
 
 namespace Amanzi {
 namespace Deform {
-
-void
-CopyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
-                            CompositeVector& vec);
 
 class VolumetricDeformation : public PK_Physical_Default {
 
@@ -141,6 +138,7 @@ class VolumetricDeformation : public PK_Physical_Default {
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Update diagnostics for vis.
   virtual void CalculateDiagnostics(const Tag& tag) override {}
@@ -204,8 +202,9 @@ class VolumetricDeformation : public PK_Physical_Default {
   Key sat_liq_key_, sat_gas_key_, sat_ice_key_;
   Key cv_key_, del_cv_key_;
   Key poro_key_;
-  Key vertex_loc_key_, vertex_loc_surf_key_, vertex_loc_surf3d_key_;
+  Key vertex_loc_key_, vertex_loc_surf3d_key_;
   Key nodal_dz_key_, face_above_dz_key_;
+  bool deformed_this_step_;
 
   // factory registration
   static RegisteredPKFactory<VolumetricDeformation> reg_;
