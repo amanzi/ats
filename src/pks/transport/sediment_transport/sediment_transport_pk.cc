@@ -305,7 +305,7 @@ void SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
  
   // reconstruction initialization
   const Epetra_Map& cmap_wghost = mesh_->cell_map(true);
-  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellGrad(mesh_));
+  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
 
   // create boundary conditions
   if (tp_list_->isSublist("boundary conditions")) {
