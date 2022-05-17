@@ -374,7 +374,7 @@ void Transport_ATS::Initialize()
 
   // reconstruction initialization
   limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
-  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
+  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellGrad(mesh_));
 
   // mechanical dispersion
   flag_dispersion_ = false;

@@ -24,7 +24,7 @@
 //#include "MaterialProperties.hh"
 #include "PK.hh"
 #include "PK_Factory.hh"
-#include "ReconstructionCellLinear.hh"
+#include "ReconstructionCellGrad.hh"
 #include "State.hh"
 #include "Tensor.hh"
 #include "Units.hh"
@@ -221,7 +221,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_start, mol_dens_subcycle_end;
 
   int current_component_;  // data for lifting
-  Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
+  Teuchos::RCP<Operators::ReconstructionCellGrad> lifting_;
 
   std::vector<Teuchos::RCP<TransportDomainFunction> > srcs_;  // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction> > bcs_;  // influx BC for components
