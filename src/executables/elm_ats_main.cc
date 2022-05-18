@@ -104,14 +104,18 @@ int main(int argc, char *argv[])
   }
 
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
+  std::cout << "START WITH ELM-ATS C++ TEST" << std::endl;
 
   // dummy data
-  // 1 col, 100 cells
+  // 1 col, 15 cells
   int n = 1;
-  int m = 100;
+  int m = 15;
+  //unit: kgH2O/m2/s, + in (sink), - out (source)
+  std::vector<double> soil_infil(n, 2.5e-4);  // if increased to 1.0e-3, converging fast
+  std::vector<double> soil_evap(n,-0.0e-9);
+  std::vector<double> root_tran(m,-0.0e-5);   // source: - (out of subsurf), sink: + (into subsurf)
+
   int ncols_local, ncols_global, ncells_per_col;
-  std::vector<double> soil_infil(n, 10.0);
-  std::vector<double> soil_evap(n, 3.0);
   std::vector<double> surf_pres(n);
   std::vector<double> elev(n);
   std::vector<double> surf_area_m2(n);
@@ -120,7 +124,6 @@ int main(int argc, char *argv[])
 
   std::vector<double> dz(m);
   std::vector<double> depth(m);
-  std::vector<double> root_tran(m);
   std::vector<double> soil_pres(m);
   std::vector<double> satl(m);
 

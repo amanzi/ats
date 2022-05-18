@@ -281,7 +281,7 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
 
   // scale evaporation and infiltration and add to surface source
   // negative out of subsurface (source) and possitive into subsurface (sink).
-  // unit: mass-source/sink of kgH2O/m3/s
+  // unit: mass-source/sink of kgH2O/m2/s
 
   // scale root_transpiration and add to subsurface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
