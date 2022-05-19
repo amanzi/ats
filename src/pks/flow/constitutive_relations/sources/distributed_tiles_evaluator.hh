@@ -63,7 +63,7 @@ class DistributedTilesRateEvaluator : public SecondaryVariableFieldEvaluator {
   
   std::vector<double> times_;
   
-  Key subsurface_marks_key_, sources_key_, pres_key_;
+  Key subsurface_marks_key_, sources_key_, pres_key_, mol_dens_key_;
   Key domain_, domain_surf_;
   bool compatibility_checked_, implicit_;
   double p_enter_, k_;

@@ -37,6 +37,7 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
 
   dependencies_.insert(subsurface_marks_key_);
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
+  mol_dens_key_ = Keys::readKey(plist, domain_, "molar density", "molar_density_liquid");
   dependencies_.insert(pres_key_);
 
   
@@ -57,6 +58,9 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Teuchos::RCP<Field> src_field =  S->GetField(sources_key_, "state");
 
   const auto& pres = *S->GetFieldData(pres_key_)->ViewComponent("cell", false);
+  const auto& dens = *S->GetFieldData(mol_dens_key_)->ViewComponent("cell", false);
+  const auto& cv =
+      *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
   const auto& sub_marks = *S->GetFieldData(subsurface_marks_key_)->ViewComponent("cell", false);
   
   auto& sub_sink = *result->ViewComponent("cell",false);
@@ -67,19 +71,31 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   double total = 0.0;
   src_vec->PutScalar(0.0);
-  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
-    if (sub_marks[0][c] > 0) {
-      double val = std::min(p_enter_ - pres[0][c], 0.0)*k_;
-      //val = 1e-6;
-      //std::cout<<"val "<<" "<<val<<" "<< pres[0][c]<<"\n";
-      sub_sink[0][c] = val;
-      (*src_vec)[sub_marks[0][c] - 1] += val * dt;
-      total += val * dt;
+  sub_sink.PutScalar(0.0);
+  //std::cout<<sub_sink<<"\n";
+
+  if (abs(dt) > 1e-13) {
+    for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+      if (sub_marks[0][c] > 0) {
+        double val = std::min(p_enter_ - pres[0][c], 0.0)*dens[0][c]*k_;
+        //val = 1e-6;
+        //std::cout<<"sink val "<<" "<<val<<" "<< pres[0][c]<<"\n";
+        sub_sink[0][c] = val;
+        (*src_vec)[sub_marks[0][c] - 1] +=  + val * dt * cv[0][c];
+        total = total + val * dt * cv[0][c];
+      }
     }
   }
-
   // std::cout <<"Sink vector\n";
-  // std::cout << *src_vec<<"\n";  
+  // std::cout << *src_vec<<"\n";
+  // std::cout<<"Total sink "<<total<<"\n";
+  // total = 0.;
+  // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+  //   total += sub_sink[0][c] * cv[0][c];
+  // }
+  // std::cout<<"Total sink field "<<total<<"\n";
+
+  
   Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
@@ -90,9 +106,18 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
 
 
-  // std::cout <<"After MPI_Allreduce\n";
-  // std::cout << *src_vec<<"\n";
-  
+  //std::cout <<"After MPI_Allreduce\n";
+  //std::cout << *src_vec<<"\n";
+
+  //double norm;
+
+  //std::cout<<sub_sink<<"\n";
+  // sub_sink.Norm2(&norm);
+  // if (norm >1e-10) {
+  //   //sub_sink.Norm2(&norm);
+  //   std::cout << "Sink norm "<<norm <<"\n";
+  //   //    exit(0);
+  // }
 
 }
 
