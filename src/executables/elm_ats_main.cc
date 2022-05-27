@@ -111,9 +111,9 @@ int main(int argc, char *argv[])
   int n = 1;
   int m = 15;
   //unit: kgH2O/m2/s, + in (sink), - out (source)
-  std::vector<double> soil_infil(n, 2.5e-4);  // if increased to 1.0e-3, converging fast
+  std::vector<double> soil_infil(n, 0.0); // (n, 2.5e-4) - for 'test_interface_infiltration.xml'
   std::vector<double> soil_evap(n,-0.0e-9);
-  std::vector<double> root_tran(m,-0.0e-5);   // source: - (out of subsurf), sink: + (into subsurf)
+  std::vector<double> root_tran(m,-1.0e-5);   // source: - (out of subsurf), sink: + (into subsurf)
 
   int ncols_local, ncols_global, ncells_per_col;
   std::vector<double> surf_pres(n);
