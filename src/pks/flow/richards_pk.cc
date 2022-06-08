@@ -314,14 +314,15 @@ void Richards::SetupRichardsFlow_()
     source_term_is_differentiable_ =
         plist_->get<bool>("source term is differentiable", true);
     explicit_source_ = plist_->get<bool>("explicit source term", false);
-    S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_).SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+    requireAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
     if (source_term_is_differentiable_) {
       // require derivative of source
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
               tag_next_, key_, tag_next_);
     }
-    S_->RequireEvaluator(source_key_, tag_next_);
   }
 
   // coupling to the surface
@@ -364,13 +365,13 @@ void Richards::SetupRichardsFlow_()
     .Update(matrix_cvs)->SetGhosted();
 
   // -- flux is managed here as a primary variable
-  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_, name_)
+  requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  RequireEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
-  // -- also need a velocity, but only for vis/diagnostics
-  S_->Require<CompositeVector,CompositeVectorSpace>(velocity_key_, tag_next_,  name_)
+  // -- also need a velocity, but only for vis/diagnostics, so might as well
+  // -- only keep at NEXT
+  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 3);
 
@@ -403,22 +404,19 @@ void Richards::SetupPhysicalEvaluators_()
 {
   // -- Absolute permeability.
   //       For now, we assume scalar permeability.  This will change.
-  S_->Require<CompositeVector,CompositeVectorSpace>(perm_key_, tag_next_)
+  requireAtNext(perm_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
-  S_->RequireEvaluator(perm_key_, tag_next_);
 
   // -- water content, and evaluator, and derivative for PC
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_)
+  requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
           tag_next_, key_, tag_next_);
-  S_->RequireEvaluator(conserved_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  //S_->RequireEvaluator(conserved_key_, tag_current_);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- Water retention evaluators
   // This deals with deprecated location for the WRM list (in the PK).  Move it
@@ -436,30 +434,24 @@ void Richards::SetupPhysicalEvaluators_()
   }
 
   // -- saturation
-  S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, tag_next_).SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(sat_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(sat_gas_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
-  S_->RequireEvaluator(sat_gas_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  S_->Require<CompositeVector,CompositeVectorSpace>(sat_key_, tag_current_, name_);
-  // S_->RequireEvaluator(sat_key_, tag_current_);
+  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // -- rel perm
-  std::vector<AmanziMesh::Entity_kind> locations2(2);
-  std::vector<std::string> names2(2);
-  std::vector<int> num_dofs2(2,1);
-  locations2[0] = AmanziMesh::CELL;
-  locations2[1] = AmanziMesh::BOUNDARY_FACE;
-  names2[0] = "cell";
-  names2[1] = "boundary_face";
-  S_->Require<CompositeVector,CompositeVectorSpace>(coef_key_, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->AddComponents(names2, locations2, num_dofs2);
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
-  S_->RequireEvaluator(coef_key_, tag_next_);
+  requireAtNext(coef_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+
 
   // -- get the WRM models
   auto wrm_eval = dynamic_cast<Flow::WRMEvaluator*>(&wrm);
@@ -467,17 +459,14 @@ void Richards::SetupPhysicalEvaluators_()
   wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
+  requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(molar_dens_key_, tag_next_);
 
   // -- liquid mass density for the gravity fluxes
-  S_->Require<CompositeVector,CompositeVectorSpace>(mass_dens_key_, tag_next_)
+  requireAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(mass_dens_key_, tag_next_); // simply picks up the molar density one.
-
 }
 
 
@@ -507,12 +496,12 @@ void Richards::Initialize()
 
   S_->GetW<CompositeVector>(flux_key_, tag_next_, name()).PutScalar(0.0);
   S_->GetRecordW(flux_key_, tag_next_, name()).set_initialized();
-  ChangedEvaluatorPrimary(flux_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name()).PutScalar(0.0);
   S_->GetRecordW(flux_dir_key_, tag_next_, name()).set_initialized();
-  S_->GetW<CompositeVector>(velocity_key_, tag_next_, name()).PutScalar(0.0);
-  S_->GetRecordW(velocity_key_, tag_next_, name()).set_initialized();
+  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).PutScalar(0.0);
+  S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
 
   // absolute perm
   SetAbsolutePermeabilityTensor_(tag_next_);
@@ -661,54 +650,50 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
 
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
-
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
 
   // also save conserved quantity and saturation
-  if (!S_->HasEvaluator(conserved_key_, tag_current_))
-    S_->Assign(conserved_key_, tag_current_, tag_next_);
-  // ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  if (!S_->HasEvaluator(sat_key_, tag_current_))
-    S_->Assign(sat_key_, tag_current_, tag_next_);
-  // ChangedEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  //if (!S_->HasEvaluator(conserved_key_, tag_current_))
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // changedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  //if (!S_->HasEvaluator(sat_key_, tag_current_))
+  S_->Assign(sat_key_, tag_current_, tag_next_);
+  // changedEvaluatorPrimary(sat_key_, tag_current_, *S_);
   if (S_->HasRecordSet(sat_ice_key_)) {
-    if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
-      S_->Assign(sat_ice_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+    //  if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
+    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
   }
 
-  // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
-  // update BCs, rel perm
-  UpdateBoundaryConditions_(tag);
-  bool update = UpdatePermeabilityData_(tag);
-  update |= S_->GetEvaluator(key_, tag).Update(*S_, name_);
-  update |= S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
+  // // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
+  // // update BCs, rel perm
+  // UpdateBoundaryConditions_(tag);
+  // bool update = UpdatePermeabilityData_(tag);
+  // update |= S_->GetEvaluator(key_, tag).Update(*S_, name_);
+  // update |= S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
 
-  if (update) {
-    // update the stiffness matrix and derive fluxes
-    Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(uw_coef_key_, tag);
-    Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
-    Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
+  // if (update) {
+  //   // update the stiffness matrix and derive fluxes
+  //   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(uw_coef_key_, tag);
+  //   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
+  //   Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
 
-    matrix_->Init();
-    matrix_diff_->SetDensity(rho);
-    matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-    matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-    matrix_diff_->ApplyBCs(true, true, true);
+  //   matrix_->Init();
+  //   matrix_diff_->SetDensity(rho);
+  //   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
+  //   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
+  //   matrix_diff_->ApplyBCs(true, true, true);
 
-    // derive fluxes
-    Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
-    matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
+  //   // derive fluxes
+  //   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
+  //   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
 
-    if (compute_boundary_values_) {
-      applyDirichletBCs(*bc_, *pres);
-    }
-  }
-  // END LIKELY UNNECESSARY CODE -- ETC FIXME
+  //   if (compute_boundary_values_) {
+  //     applyDirichletBCs(*bc_, *pres);
+  //   }
+  // }
+  // // END LIKELY UNNECESSARY CODE -- ETC FIXME
 
   // As a diagnostic, calculate the mass balance error
 // #if DEBUG_FLAG
@@ -794,16 +779,17 @@ Richards::ValidStep()
 // -----------------------------------------------------------------------------
 void Richards::CalculateDiagnostics(const Tag& tag)
 {
+  AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Calculating diagnostic variables." << std::endl;
 
   // update the cell velocities
-  UpdateBoundaryConditions_(tag);
+  UpdateBoundaryConditions_(tag_next_);
 
-  Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
-  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(uw_coef_key_, tag);
-  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
+  Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
   // update the stiffness matrix
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
@@ -811,9 +797,8 @@ void Richards::CalculateDiagnostics(const Tag& tag)
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
-  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
+  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-
   UpdateVelocity_(tag);
 };
 

@@ -45,7 +45,7 @@ void Richards::ApplyDiffusion_(const Tag& tag,
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-  ChangedEvaluatorPrimary(flux_key_, tag, *S_);
+  changedEvaluatorPrimary(flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);
@@ -170,12 +170,15 @@ void Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
 
 
 void
-Richards::UpdateVelocity_(const Tag& tag) {
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag)
+Richards::UpdateVelocity_(const Tag& tag)
+{
+  AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
+
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_)
       .ViewComponent("face", true);
 
-  S_->GetEvaluator(molar_dens_key_, tag).Update(*S_, name_);
-  const Epetra_MultiVector& nliq_c = *S_->Get<CompositeVector>(molar_dens_key_, tag)
+  S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& nliq_c = *S_->Get<CompositeVector>(molar_dens_key_, tag_next_)
       .ViewComponent("cell",false);
   Epetra_MultiVector& velocity = *S_->GetW<CompositeVector>(velocity_key_, tag, name_)
       .ViewComponent("cell", true);

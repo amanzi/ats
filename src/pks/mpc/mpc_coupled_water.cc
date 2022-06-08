@@ -56,7 +56,7 @@ MPCCoupledWater::Setup()
   exfilt_key_ = Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
   S_->Require<CompositeVector,CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
   // -- collect the preconditioners
@@ -119,7 +119,7 @@ MPCCoupledWater::Initialize()
    // initialize coupling terms
   S_->GetPtrW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_)->PutScalar(0.);
   S_->GetRecordW(exfilt_key_, tag_next_, exfilt_key_).set_initialized();
-  ChangedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
   MPC<PK_PhysicalBDF_Default>::Initialize();
@@ -151,7 +151,7 @@ MPCCoupledWater::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   Epetra_MultiVector& source = *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_)
     .ViewComponent("cell",false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell",false);
-  ChangedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Evaluate the subsurface residual, which uses this flux as a Neumann BC.
   domain_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0),

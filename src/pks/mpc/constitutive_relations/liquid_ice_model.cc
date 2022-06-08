@@ -39,6 +39,8 @@ namespace Amanzi {
 void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
                                      const Tag& tag,
                                      Teuchos::ParameterList& plist) {
+  tag_ = tag;
+
   // these are not yet initialized
   rho_rock_ = -1.;
   p_atm_ = -1.e12;
@@ -55,14 +57,14 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   Key iem_ice_key = Keys::readKey(plist, domain, "internal energy ice", "internal_energy_ice");
   Key iem_rock_key = Keys::readKey(plist, domain, "internal energy rock", "internal_energy_rock");
   Key si_key = Keys::readKey(plist, domain, "ice saturation", "saturation_ice");
-  
+
   // Grab the models.
   // get the WRM models and their regions
   auto& sat_ice_eval = S->RequireEvaluator(si_key, tag);
   auto wrm_me = dynamic_cast<Flow::WRMPermafrostEvaluator*>(&sat_ice_eval);
   AMANZI_ASSERT(wrm_me != nullptr);
   wrms_ = wrm_me->get_WRMPermafrostModels();
-  
+
   // -- liquid EOS
   auto& liq_eval = S->RequireEvaluator(liq_dens_key, tag);
   auto eos_liquid_me = dynamic_cast<Relations::EOSEvaluator*>(&liq_eval);
@@ -89,7 +91,7 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   auto pc_liq_me = dynamic_cast<Flow::PCLiquidEvaluator*>(&pc_gas_eval);
   AMANZI_ASSERT(pc_liq_me != nullptr);
   pc_l_ = pc_liq_me->get_PCLiqAtm();
-  
+
   // -- iem for liquid
   auto& iem_liq_eval = S->RequireEvaluator(iem_liq_key, tag);
   auto iem_liquid_me = dynamic_cast<Energy::IEMEvaluator*>(&iem_liq_eval);
@@ -121,22 +123,20 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
     AMANZI_ASSERT(poro_me != nullptr);
     poro_leij_models_ = poro_me->get_Models();
   }
-  
-
 }
 
 
 void LiquidIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), Tags::NEXT).ViewComponent("cell"))[0][c];
-  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), Tags::NEXT).ViewComponent("cell"))[0][c];
+  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), tag_).ViewComponent("cell"))[0][c];
+  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), tag_).ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
   if(!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
   else
     poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
-    
+
   AMANZI_ASSERT(IsSetUp_());
 }
 
@@ -163,13 +163,13 @@ bool LiquidIceModel::IsSetUp_() {
 }
 
 
-bool 
+bool
 LiquidIceModel::Freezing(double T, double p) {
   double eff_p = std::max(p_atm_, p);
   std::vector<double> eos_param(2);
   eos_param[0] = T;
-  eos_param[1] = eff_p;        
-  
+  eos_param[1] = eff_p;
+
   double pc_l = pc_l_->CapillaryPressure(p,p_atm_);
   double pc_i;
   if (use_pc_ice_) {
@@ -194,7 +194,7 @@ int LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, doubl
     std::vector<double> eos_param(2);
     eos_param[0] = T;
     eos_param[1] = eff_p;
-    
+
     double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
     double pc_i;
     if (use_pc_ice_) {
@@ -237,13 +237,13 @@ int LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeo
       poro = poro_model_->Porosity(poro_, p, p_atm_);
     else
       poro = poro_leij_model_->Porosity(poro_, p, p_atm_);
-    
+
     double eff_p = std::max(p_atm_, p);
 
     std::vector<double> eos_param(2);
     eos_param[0] = T;
     eos_param[1] = eff_p;
-    
+
     double rho_l = liquid_eos_->MolarDensity(eos_param);
     double rho_i = ice_eos_->MolarDensity(eos_param);
 

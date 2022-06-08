@@ -41,6 +41,7 @@ namespace Amanzi {
 void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
                                       const Tag& tag,
                                       Teuchos::ParameterList& plist) {
+  tag_ = tag;
   // these are not yet initialized
   rho_rock_ = -1.;
   p_atm_ = -1.e12;
@@ -152,8 +153,8 @@ void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
 void PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), Tags::NEXT).ViewComponent("cell"))[0][c];
-  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), Tags::NEXT).ViewComponent("cell"))[0][c];
+  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), tag_).ViewComponent("cell"))[0][c];
+  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), tag_).ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
   if(!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];

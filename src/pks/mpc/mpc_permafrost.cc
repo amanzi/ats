@@ -117,18 +117,15 @@ MPCPermafrost::Setup() {
   MPCSubsurface::Setup();
 
   // require the coupling fields, claim ownership
-  S_->Require<CompositeVector,CompositeVectorSpace>(mass_exchange_key_, tag_next_, mass_exchange_key_)
+  requireAtNext(mass_exchange_key_, tag_next_, *S_, mass_exchange_key_)
     .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
-
-  S_->Require<CompositeVector,CompositeVectorSpace>(energy_exchange_key_, tag_next_, energy_exchange_key_)
+  requireAtNext(energy_exchange_key_, tag_next_, *S_, energy_exchange_key_)
     .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // require in case the PK did not do so already
-  S_->Require<CompositeVector,CompositeVectorSpace>(surf_pd_key_, tag_next_)
+  requireAtNext(surf_pd_key_, tag_next_, *S_)
     .SetMesh(surf_mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(surf_pd_key_, tag_next_);
+  requireAtCurrent(surf_pd_key_, tag_current_, *S_, surf_pd_key_);
 
   // require surface derivatives
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_e_key_,
@@ -312,11 +309,11 @@ MPCPermafrost::Initialize()
   // initialize coupling terms
   S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)->PutScalar(0.0);
   S_->GetRecordW(mass_exchange_key_, tag_next_, mass_exchange_key_).set_initialized();
-  ChangedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
   S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)->PutScalar(0.0);
   S_->GetRecordW(energy_exchange_key_, tag_next_, energy_exchange_key_).set_initialized();
-  ChangedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
   MPCSubsurface::Initialize();
@@ -364,7 +361,7 @@ void MPCPermafrost::CommitStep(double t_old, double t_new, const Tag& tag)
     double dt = t_new - t_old;
     surf_ewc_->commit_state();
   }
-
+  S_->Assign(surf_pd_key_, tag_current_, tag_next_);
   MPCSubsurface::CommitStep(t_old, t_new, tag);
 }
 
@@ -386,7 +383,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   Epetra_MultiVector& source = *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)
     .ViewComponent("cell",false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell",false);
-  ChangedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface residual, which uses this flux as a Neumann BC.
   domain_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0),
@@ -405,7 +402,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   Epetra_MultiVector& esource =
     *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_).ViewComponent("cell",false);
   esource = *g->SubVector(3)->Data()->ViewComponent("cell",false);
-  ChangedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface energy residual.
   domain_energy_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),

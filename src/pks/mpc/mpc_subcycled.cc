@@ -41,8 +41,8 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
   dts_.resize(sub_pks_.size(), -1);
 
   // min dt allowed in subcycling
-  min_dt_ = plist_->get<double>("minimum subcycled relative dt", 1.e-5);
   max_dt_ = plist_->get<double>("subcycling target time step [s]", -1);
+  min_dt_ = plist_->get<double>("minimum subcycled time step [s]", 1.e-4);
 }
 
 
@@ -55,7 +55,9 @@ MPCSubcycled::set_tags(const Tag& current, const Tag& next)
   int i = 0;
   for (auto& pk : sub_pks_) {
     if (subcycling_[i]) {
-      tags_.emplace_back(std::make_pair(Tag{pk->name()+"_current"}, Tag{pk->name()+"_next"}));
+      Tag lcurrent(Keys::cleanName(pk->name() + " current"));
+      Tag lnext(Keys::cleanName(pk->name() + " next"));
+      tags_.emplace_back(std::make_pair(lcurrent, lnext));
     } else {
       tags_.emplace_back(std::make_pair(current, next));
     }
@@ -76,22 +78,7 @@ MPCSubcycled::Setup()
     if (subcycling_[i]) S_->Require<double>("dt", tag.second, name());
     ++i;
   }
-  sub_pks_[0]->Setup();
-
-  // BEGIN HACK --etc
-  // hack -- assign water flux eval and field to transport's next
-  // This mimics the concept of "pointer" evaluators and fields.
-  // aliasVector(*S_, "water_flux", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "saturation_liquid", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "porosity", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "molar_density_liquid", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "surface-water_flux", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "surface-ponded_depth", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "surface-porosity", tag_next_, tags_[1].second);
-  // aliasVector(*S_, "surface-molar_density_liquid", tag_next_, tags_[1].second);
-
-  sub_pks_[1]->Setup();
-  // END HACK
+  MPC<PK>::Setup();
 }
 
 void
@@ -220,7 +207,6 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
 bool MPCSubcycled::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   bool fail = false;
-  AMANZI_ASSERT(std::abs(t_new - t_old - dt_) < 1.e-4);
 
   int i = 0;
   for (auto& pk : sub_pks_) {

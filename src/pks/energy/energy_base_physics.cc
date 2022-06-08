@@ -76,7 +76,7 @@ void EnergyBase::AddAdvection_(const Tag& tag,
   // update the flux
   Teuchos::RCP<CompositeVector> adv_energy = S_->GetPtrW<CompositeVector>(adv_energy_flux_key_, tag, name_);
   matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
-  ChangedEvaluatorPrimary(adv_energy_flux_key_, tag, *S_);
+  changedEvaluatorPrimary(adv_energy_flux_key_, tag, *S_);
 
   matrix_adv_->global_operator()->ComputeNegativeResidual(*enth, *g, false);
 }
@@ -100,7 +100,7 @@ void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVec
   // update the flux
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(energy_flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(temp.ptr(), flux.ptr());
-  ChangedEvaluatorPrimary(energy_flux_key_, tag, *S_);
+  changedEvaluatorPrimary(energy_flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_diff_->global_operator()->ComputeNegativeResidual(*temp, *g);

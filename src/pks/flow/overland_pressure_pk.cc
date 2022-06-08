@@ -115,20 +115,17 @@ void OverlandPressureFlow::Setup()
   PK_PhysicalBDF_Default::Setup();
 
   // -- water content, and evaluator, and derivative for PC
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_)
+  requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(conserved_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-  // S_->RequireEvaluator(conserved_key_, tag_current_);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // this pk uses density to invert for velocity from flux
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_dens_key_, tag_next_)
+  requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(molar_dens_key_, tag_next_);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();
@@ -303,26 +300,19 @@ void OverlandPressureFlow::SetupOverlandFlow_()
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   //  NOTE: no need to require evaluator for p here, this was done in pk_physical
 
-  // -- make a copy of pressure at the old time for backup, and of ponded depth
-  // -- at the old time for debugging
-  S_->Require<CompositeVector,CompositeVectorSpace>(key_, tag_current_, name_);
-  S_->RequireEvaluator(key_, tag_current_);
-
   // potential may not actually need cells, but for debugging and sanity's sake, we require them
-  S_->Require<CompositeVector,CompositeVectorSpace>(potential_key_, tag_next_)
+  requireAtNext(potential_key_, tag_next_, *S_)
     .Update(matrix_->RangeMap())->SetGhosted()
       ->AddComponent("cell", AmanziMesh::CELL, 1)
       ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  S_->RequireEvaluator(potential_key_, tag_next_);
 
   // flux
-  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_next_,  name_)
+  requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  RequireEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   // velocity for diagnostics
-  S_->Require<CompositeVector,CompositeVectorSpace>(velocity_key_, tag_next_,  name_)
+  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 3);
 };
@@ -341,50 +331,43 @@ void OverlandPressureFlow::SetupPhysicalEvaluators_()
     }
     source_in_meters_ = plist_->get<bool>("water source in meters", true);
 
-    S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_)
+    requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(source_key_, tag_next_);
 
     if (source_in_meters_) {
       // density of incoming water [mol/m^3]
       source_molar_dens_key_ = Keys::readKey(*plist_, domain_, "source molar density",
               "source_molar_density");
-      S_->Require<CompositeVector,CompositeVectorSpace>(source_molar_dens_key_, tag_next_)
+      requireAtNext(source_molar_dens_key_, tag_next_, *S_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S_->RequireEvaluator(source_molar_dens_key_, tag_next_);
     }
   }
 
   // -- water content bar (can be negative)
-  S_->Require<CompositeVector,CompositeVectorSpace>(wc_bar_key_, tag_next_)
+  requireAtNext(wc_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(wc_bar_key_, tag_next_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_bar_key_,
           tag_next_, key_, tag_next_);
 
   // -- ponded depth
-  S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_next_)
+  requireAtNext(pd_key_, tag_next_, *S_)
     .Update(matrix_->RangeMap())->SetGhosted();
-  S_->RequireEvaluator(pd_key_, tag_next_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_key_,
           tag_next_, key_, tag_next_);
   //    ...with a copy at the old time
-  S_->Require<CompositeVector,CompositeVectorSpace>(pd_key_, tag_current_, name_);
-  // S_->RequireEvaluator(pd_key_, tag_current_);
+  requireAtCurrent(pd_key_, tag_current_, *S_, pd_key_);
 
   // -- ponded depth bar (can be negative)
-  S_->Require<CompositeVector,CompositeVectorSpace>(pd_bar_key_, tag_next_)
+  requireAtNext(pd_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(pd_bar_key_, tag_next_);
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(pd_bar_key_,
           tag_next_, key_, tag_next_);
 
   // -- conductivity evaluator
-  S_->Require<CompositeVector,CompositeVectorSpace>(cond_key_, tag_next_)
+  requireAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  S_->RequireEvaluator(cond_key_, tag_next_);
 }
 
 
@@ -489,8 +472,8 @@ void OverlandPressureFlow::Initialize()
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name_).PutScalar(0.);
   S_->GetRecordW(flux_dir_key_, tag_next_, name_).set_initialized();
-  S_->GetW<CompositeVector>(velocity_key_, tag_next_, name_).PutScalar(0.);
-  S_->GetRecordW(velocity_key_, tag_next_, name_).set_initialized();
+  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name_).PutScalar(0.);
+  S_->GetRecordW(velocity_key_, Tags::NEXT, name_).set_initialized();
 };
 
 
@@ -508,44 +491,40 @@ void OverlandPressureFlow::CommitStep(double t_old, double t_new,
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
 
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
-
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
 
   // also save conserved quantity and ponded depth
-  if (!S_->HasEvaluator(conserved_key_, tag_current_))
-    S_->Assign(conserved_key_, tag_current_, tag_next_);
-  // ChangedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  if (!S_->HasEvaluator(pd_key_, tag_current_))
-    S_->Assign(pd_key_, tag_current_, tag_next_);
-  // ChangedEvaluatorPrimary(pd_key_, tag_current_, *S_);
+  // if (!S_->HasEvaluator(conserved_key_, tag_current_))
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // changedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  // if (!S_->HasEvaluator(pd_key_, tag_current_))
+  S_->Assign(pd_key_, tag_current_, tag_next_);
+  // changedEvaluatorPrimary(pd_key_, tag_current_, *S_);
 
   // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
   // update boundary conditions
-  ComputeBoundaryConditions_(tag);
-  UpdateBoundaryConditions_(tag);
+  // ComputeBoundaryConditions_(tag);
+  // UpdateBoundaryConditions_(tag);
 
-  // Update flux if rel perm or h + Z has changed.
-  bool update = UpdatePermeabilityData_(tag);
-  update |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
+  // // Update flux if rel perm or h + Z has changed.
+  // bool update = UpdatePermeabilityData_(tag);
+  // update |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
 
-  // update the stiffness matrix with the new rel perm
-  auto cond = S_->GetPtr<CompositeVector>(uw_cond_key_, tag);
+  // // update the stiffness matrix with the new rel perm
+  // auto cond = S_->GetPtr<CompositeVector>(uw_cond_key_, tag);
 
-  // update the stiffness matrix
-  matrix_->Init();
-  matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
-  matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
-  matrix_diff_->ApplyBCs(true, true, true);
+  // // update the stiffness matrix
+  // matrix_->Init();
+  // matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
+  // matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
+  // FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
+  // matrix_diff_->ApplyBCs(true, true, true);
 
-  // derive the fluxes
-  Teuchos::RCP<const CompositeVector> potential = S_->GetPtr<CompositeVector>(potential_key_, tag);
-  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
-  matrix_diff_->UpdateFlux(potential.ptr(), flux.ptr());
+  // // derive the fluxes
+  // Teuchos::RCP<const CompositeVector> potential = S_->GetPtr<CompositeVector>(potential_key_, tag);
+  // Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
+  // matrix_diff_->UpdateFlux(potential.ptr(), flux.ptr());
   // END LIKELY UNNECESSARY CODE -- ETC FIXME
 };
 
@@ -560,18 +539,18 @@ void OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
     *vo_->os() << "Calculating diagnostic variables." << std::endl;
 
   // update the cell velocities
-  UpdateBoundaryConditions_(tag);
+  UpdateBoundaryConditions_(tag_next_);
 
   // update the stiffness matrix
-  auto conductivity = S_->GetPtr<CompositeVector>(uw_cond_key_, tag);
+  auto conductivity = S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
   matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
+  FixBCsForOperator_(tag_next_, matrix_diff_.ptr()); // deals with zero gradient case
   matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
-  Teuchos::RCP<const CompositeVector> potential = S_->GetPtr<CompositeVector>(potential_key_, tag);
-  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
+  Teuchos::RCP<const CompositeVector> potential = S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
+  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
   matrix_diff_->UpdateFlux(potential.ptr(), flux.ptr());
 
   // update velocity
@@ -579,9 +558,9 @@ void OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
       ->ViewComponent("cell", true);
   flux->ScatterMasterToGhosted("face");
   const Epetra_MultiVector& flux_f = *flux->ViewComponent("face", true);
-  const Epetra_MultiVector& nliq_c = *S_->GetPtr<CompositeVector>(molar_dens_key_, tag)
+  const Epetra_MultiVector& nliq_c = *S_->GetPtr<CompositeVector>(molar_dens_key_, tag_next_)
     ->ViewComponent("cell");
-  const Epetra_MultiVector& pd_c = *S_->GetPtr<CompositeVector>(pd_key_, tag)
+  const Epetra_MultiVector& pd_c = *S_->GetPtr<CompositeVector>(pd_key_, tag_next_)
     ->ViewComponent("cell");
 
   int d(mesh_->space_dimension());

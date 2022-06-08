@@ -126,8 +126,8 @@ void MPCCoupledReactiveTransport::Initialize()
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
   int num_aqueous = chemistry_pk_surf_->num_aqueous_components();
-  ConvertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
-  ConvertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
+  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
 
   chemistry_pk_surf_->set_aqueous_components(tcc_surf);
   chemistry_pk_surf_->Initialize();
@@ -137,8 +137,8 @@ void MPCCoupledReactiveTransport::Initialize()
   chemistry_pk_->Initialize();
   //*tcc = *chemistry_pk_->aqueous_components();
 
-  ConvertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
-  ConvertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
+  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
 
   transport_pk_surf_->Initialize();
   transport_pk_->Initialize();
@@ -182,9 +182,9 @@ bool MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool r
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
     S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
-  fail = AdvanceChemistry(chemistry_pk_surf_, t_old, t_new, reinit,
+  fail = advanceChemistry(chemistry_pk_surf_, t_old, t_new, reinit,
                           *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
-  ChangedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
       *vo_->os() << chemistry_pk_surf_->name() << " failed." << std::endl;
@@ -200,8 +200,8 @@ bool MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool r
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
-  fail = AdvanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
-  ChangedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+  fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
+  changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
       *vo_->os() << chemistry_pk_->name() << " failed." << std::endl;

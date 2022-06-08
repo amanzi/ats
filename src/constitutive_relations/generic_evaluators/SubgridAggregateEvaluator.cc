@@ -63,6 +63,7 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
 {
   if (dependencies_.size() == 0) {
     auto ds = S.GetDomainSet(source_domain_);
+    Tag dep_tag = Keys::readTag(plist_, my_keys_.front().second);
     if (ds->get_referencing_parent() == Teuchos::null) {
       Errors::Message msg;
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_ << "\" does not have a referencing parent but must have one to aggregate.";
@@ -75,7 +76,7 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
     }
 
     for (const auto& subdomain : *ds) {
-      dependencies_.insert(KeyTag{Keys::getKey(subdomain, var_key_), my_keys_.front().second});
+      dependencies_.insert(KeyTag{Keys::getKey(subdomain, var_key_), dep_tag});
     }
   }
 
