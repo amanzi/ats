@@ -52,28 +52,21 @@ ImplicitSubgrid::Setup()
   SurfaceBalanceBase::Setup();
 
   // requirements: things I use
-  S_->Require<CompositeVector,CompositeVectorSpace>(new_snow_key_, tag_next_)
+  requireAtNext(new_snow_key_, tag_next_, *S_)
     .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(new_snow_key_, tag_next_);
 
   // requirements: other primary variables
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_dens_key_, tag_next_,  name_)
+  requireAtNext(snow_dens_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_dens_key_, tag_current_,  name_);
-  //RequireEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  requireAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, tag_next_,  name_)
+  requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_death_rate_key_, tag_current_,  name_);
- // RequireEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  requireAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_age_key_, tag_next_,  name_)
+  requireAtNext(snow_age_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
-  S_->Require<CompositeVector,CompositeVectorSpace>(snow_age_key_, tag_current_,  name_);
-  //RequireEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+  requireAtCurrent(snow_age_key_, tag_current_, *S_, name_);
 }
 
 // -- Initialize owned (dependent) variables.
@@ -180,7 +173,7 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   // This line of code is commented out to ensure consistent code with master.
   // Uncommenting removes the bug described in ats#123, but does not fix it,
   // because it results in the cycle.
-  // ChangedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  // changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
 
   // update the residual
   SurfaceBalanceBase::FunctionalResidual(t_old, t_new, u_old, u_new, g);
@@ -231,8 +224,8 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
   // This line of code is commented out to ensure consistent code with master.
   // Uncommenting removes the bug described in ats#123, but does not fix it,
   // because it results in the cycle.
-  // ChangedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
-  // ChangedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+  // changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  // changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 
   // debugging
   std::vector<std::string> vnames;
@@ -251,17 +244,17 @@ ImplicitSubgrid::CommitStep(double t_old, double t_new,  const Tag& tag)
 {
   SurfaceBalanceBase::CommitStep(t_old, t_new, tag);
 
-  if (!S_->HasEvaluator(snow_age_key_, tag_current_))
-    S_->Assign(snow_age_key_, tag_current_, tag_next_);
-  //ChangedEvaluatorPrimary(snow_age_key_, tag_current_, *S_);
-  
-  if (!S_->HasEvaluator(snow_dens_key_, tag_current_))
-    S_->Assign(snow_dens_key_, tag_current_, tag_next_);
-  //ChangedEvaluatorPrimary(snow_dens_key_, tag_current_, *S_);
-  
-  if (!S_->HasEvaluator(snow_death_rate_key_, tag_current_))
-    S_->Assign(snow_death_rate_key_, tag_current_, tag_next_);
-  //ChangedEvaluatorPrimary(snow_death_rate_key_, tag_current_, *S_);
+  // if (!S_->HasEvaluator(snow_age_key_, tag_current_))
+  S_->Assign(snow_age_key_, tag_current_, tag_next_);
+  //changedEvaluatorPrimary(snow_age_key_, tag_current_, *S_);
+
+  // if (!S_->HasEvaluator(snow_dens_key_, tag_current_))
+  S_->Assign(snow_dens_key_, tag_current_, tag_next_);
+  //changedEvaluatorPrimary(snow_dens_key_, tag_current_, *S_);
+
+  // if (!S_->HasEvaluator(snow_death_rate_key_, tag_current_))
+  S_->Assign(snow_death_rate_key_, tag_current_, tag_next_);
+  //changedEvaluatorPrimary(snow_death_rate_key_, tag_current_, *S_);
 }
 
 
@@ -271,13 +264,13 @@ ImplicitSubgrid::FailStep(double t_old, double t_new,  const Tag& tag)
   SurfaceBalanceBase::FailStep(t_old, t_new, tag);
 
   S_->Assign(snow_age_key_, tag_next_, tag_current_);
-  ChangedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 
   S_->Assign(snow_dens_key_, tag_next_, tag_current_);
-  ChangedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
 
   S_->Assign(snow_death_rate_key_, tag_next_, tag_current_);
-  ChangedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
 }
 
 } // namespace

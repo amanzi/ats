@@ -103,6 +103,7 @@ VolumetricDeformation::Setup()
   // deformed mesh after restart, and additionally must be checkpointed.
   int dim = mesh_->space_dimension();
   mesh_nc_ = S_->GetDeformableMesh(domain_);
+
   S_->Require<CompositeVector,CompositeVectorSpace>(vertex_loc_key_, tag_next_, vertex_loc_key_)
     .SetMesh(mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, dim);
   if (tag_next_ != Amanzi::Tags::NEXT) {
@@ -147,18 +148,18 @@ VolumetricDeformation::Setup()
     }
 
     case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
-      S_->Require<CompositeVector,CompositeVectorSpace>(sat_liq_key_, tag_current_)
+      // note, we set these to false (e.g. no evaluator) because the evaluator
+      // will be a copy evaluator set in the flow, which does not yet exist in
+      // the input spec or state.  Maybe there is a better strategy required
+      // here? Alternatively, could deformation be done after flow?  --ETC
+      requireAtCurrent(sat_liq_key_, tag_current_, *S_, "", false)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(sat_liq_key_, tag_current_);
-      S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_current_)
+      requireAtCurrent(sat_ice_key_, tag_current_, *S_, "", false)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(sat_ice_key_, tag_current_);
-      S_->Require<CompositeVector,CompositeVectorSpace>(sat_gas_key_, tag_current_)
+      requireAtCurrent(sat_gas_key_, tag_current_, *S_, "", false)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(sat_gas_key_, tag_current_);
-      S_->Require<CompositeVector,CompositeVectorSpace>(poro_key_, tag_current_)
+      requireAtCurrent(poro_key_, tag_current_, *S_, "", false)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(poro_key_, tag_current_);
       break;
     }
     default: {
@@ -167,8 +168,6 @@ VolumetricDeformation::Setup()
   }
 
   // require for cell volume, and make sure the cell volume is deformable!
-  S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_next_)
-    .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
   Teuchos::ParameterList& cv_eval_list = S_->GetEvaluatorList(cv_key_);
   if (!cv_eval_list.isParameter("evaluator type")) {
     // empty list -- set it to be deforming cell volume, that uses our primary
@@ -176,11 +175,11 @@ VolumetricDeformation::Setup()
     cv_eval_list.set<std::string>("evaluator type", "deforming cell volume");
     cv_eval_list.set<std::string>("deformation key", key_);
   }
-  S_->RequireEvaluator(cv_key_, tag_next_);
+  requireAtNext(cv_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // require a copy at the old tag
-  S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_current_);
-  // S_->RequireEvaluator(cv_key_, tag_current_);
+  requireAtCurrent(cv_key_, tag_current_, *S_, name_);
 
   // Strategy-specific setup
   switch (strategy_) {
@@ -201,13 +200,11 @@ VolumetricDeformation::Setup()
     }
 
     case (DEFORM_STRATEGY_MSTK) : {
-      S_->Require<CompositeVector,CompositeVectorSpace>(sat_ice_key_, tag_current_)
+      requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(sat_ice_key_, tag_current_);
 
-      S_->Require<CompositeVector,CompositeVectorSpace>(poro_key_, tag_current_)
+      requireAtCurrent(poro_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      // S_->RequireEvaluator(poro_key_, tag_current_);
       break;
     }
 
@@ -220,7 +217,7 @@ VolumetricDeformation::Setup()
       //  dof 0: the volume-averaged displacement
       //  dof 1: the simply averaged displacement
       //  dof 2: count of number of faces contributing to the node change
-      S_->Require<CompositeVector,CompositeVectorSpace>(nodal_dz_key_, tag_next_, name_)
+      requireAtNext(nodal_dz_key_, tag_next_, *S_, name_)
         .SetMesh(mesh_)->SetGhosted()->SetComponent("node", AmanziMesh::NODE, 3);
 
       // create cell-based storage for deformation of the face above the cell
@@ -653,35 +650,31 @@ void VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& ta
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
 
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
-
   // saves primary variable
   PK_Physical_Default::CommitStep(t_old, t_new, tag);
 
   // also save conserved quantity and saturation
   if (deform_mode_ == DEFORM_MODE_SATURATION ||
       deform_mode_ == DEFORM_MODE_STRUCTURAL) {
-    if (!S_->HasEvaluator(sat_liq_key_, tag_current_))
-      S_->Assign(sat_liq_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(sat_liq_key_, tag_current_, *S_);
-    if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
-      S_->Assign(sat_ice_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
-    if (!S_->HasEvaluator(sat_gas_key_, tag_current_))
-      S_->Assign(sat_gas_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(sat_gas_key_, tag_current_, *S_);
+    // if (!S_->HasEvaluator(sat_liq_key_, tag_current_))
+    S_->Assign(sat_liq_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(sat_liq_key_, tag_current_, *S_);
+    // if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
+    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+    // if (!S_->HasEvaluator(sat_gas_key_, tag_current_))
+    S_->Assign(sat_gas_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(sat_gas_key_, tag_current_, *S_);
 
-    if (!S_->HasEvaluator(poro_key_, tag_current_))
-      S_->Assign(poro_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(poro_key_, tag_current_, *S_);
+    //if (!S_->HasEvaluator(poro_key_, tag_current_))
+    S_->Assign(poro_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(poro_key_, tag_current_, *S_);
   }
 
   if (strategy_ == DEFORM_STRATEGY_MSTK) {
-    if (!S_->HasEvaluator(poro_key_, tag_current_))
-      S_->Assign(poro_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(poro_key_, tag_current_, *S_);
+    // if (!S_->HasEvaluator(poro_key_, tag_current_))
+    S_->Assign(poro_key_, tag_current_, tag_next_);
+    // changedEvaluatorPrimary(poro_key_, tag_current_, *S_);
   }
 
   // lastly, save the new coordinates for checkpointing

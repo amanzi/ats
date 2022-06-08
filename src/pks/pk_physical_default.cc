@@ -42,10 +42,8 @@ void PK_Physical_Default::Setup()
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 
   // require primary variable evaluators
-  S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_);
-  RequireEvaluatorPrimary(key_, tag_next_, *S_);
-  S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_current_, name_);
-  RequireEvaluatorPrimary(key_, tag_current_, *S_);
+  requireAtNext(key_, tag_next_, *S_, name_);
+  requireAtCurrent(key_, tag_current_, *S_, name_);
 };
 
 
@@ -55,20 +53,15 @@ void PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Commiting state." << std::endl;
 
-  AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-  AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-  double dt = t_new - t_old;
-
   S_->Assign(key_, tag_current_, tag_next_);
-  ChangedEvaluatorPrimary(key_, tag_current_, *S_);
+  changedEvaluatorPrimary(key_, tag_current_, *S_);
 }
 
 
 void PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag)
 {
-  S_->GetW<CompositeVector>(key_, tag_next_, name_) =
-    S_->Get<CompositeVector>(key_, tag_current_);
-  ChangedEvaluatorPrimary(key_, tag_next_, *S_);
+  S_->Assign(key_, tag_next_, tag_current_);
+  changedEvaluatorPrimary(key_, tag_next_, *S_);
 }
 
 
@@ -104,7 +97,7 @@ bool PK_Physical_Default::ValidStep()
 // -----------------------------------------------------------------------------
 void PK_Physical_Default::ChangedSolutionPK(const Tag& tag)
 {
-  ChangedEvaluatorPrimary(key_, tag, *S_);
+  changedEvaluatorPrimary(key_, tag, *S_);
 }
 
 

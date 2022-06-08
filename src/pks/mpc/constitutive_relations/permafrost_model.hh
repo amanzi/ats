@@ -70,6 +70,7 @@ class PermafrostModel : public EWCModelBase {
   Teuchos::RCP<Flow::CompressiblePorosityLeijnseModelPartition> poro_leij_models_;
   Teuchos::RCP<Flow::CompressiblePorosityLeijnseModel> poro_leij_model_;
 
+  Tag tag_;
   double p_atm_;
   double poro_;
   double rho_rock_;

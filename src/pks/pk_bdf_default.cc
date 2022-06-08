@@ -92,12 +92,14 @@ void PK_BDF_Default::set_dt(double dt) { dt_ = dt; }
 // -- Commit any secondary (dependent) variables.
 void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag) \
 {
-  double dt = t_new - t_old;
-  if (time_stepper_ != Teuchos::null) {
-    if (dt <= 0) {
-      ResetTimeStepper(t_old);
-    } else {
-      time_stepper_->CommitSolution(dt, solution_, true);
+  if (tag == tag_next_) {
+    double dt = t_new - t_old;
+    if (time_stepper_ != Teuchos::null) {
+      if (dt <= 0) {
+        ResetTimeStepper(t_old);
+      } else {
+        time_stepper_->CommitSolution(dt, solution_, true);
+      }
     }
   }
 }

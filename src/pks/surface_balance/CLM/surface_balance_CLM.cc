@@ -108,12 +108,12 @@ SurfaceBalanceCLM::Setup()
   // -- surface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
   S_->Require<CompositeVector,CompositeVectorSpace>(surf_water_src_key_, tag_next_,  name_)
     .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
 
   // -- subsurface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
   S_->Require<CompositeVector,CompositeVectorSpace>(ss_water_src_key_, tag_next_,  name_)
     .SetMesh(subsurf_mesh)->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
@@ -410,7 +410,7 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_MultiVector& can_temp = *S_->GetW<CompositeVector>(can_temp_key_, tag, name_)
     .ViewComponent("cell", false);
   ATS::CLM::get_diagnostics(snow_swe, snow_depth, can_wc, surf_temp, can_temp, soil_temp);
-  ChangedEvaluatorPrimary(key_, tag, *S_);
+  changedEvaluatorPrimary(key_, tag, *S_);
 
   // get output
   Epetra_MultiVector& surf_water_src = *S_->GetW<CompositeVector>(surf_water_src_key_, tag, name_)
@@ -418,8 +418,8 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_MultiVector& ss_water_src = *S_->GetW<CompositeVector>(ss_water_src_key_, tag, name_)
     .ViewComponent("cell", false);
   ATS::CLM::get_total_mass_fluxes(surf_water_src, ss_water_src);
-  ChangedEvaluatorPrimary(surf_water_src_key_, tag, *S_);
-  ChangedEvaluatorPrimary(ss_water_src_key_, tag, *S_);
+  changedEvaluatorPrimary(surf_water_src_key_, tag, *S_);
+  changedEvaluatorPrimary(ss_water_src_key_, tag, *S_);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     std::vector<std::string> vnames;

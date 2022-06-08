@@ -142,17 +142,17 @@ void BGCSimple::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>(trans_key_, tag_next_, name_)
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(trans_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(trans_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(shaded_sw_key_, tag_next_, name_)
     .SetMesh(mesh_surf_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(total_lai_key_, tag_next_, name_)
     .SetMesh(mesh_surf_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 1);
-  RequireEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
+  requireEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
 
   // requirement: diagnostics
   S_->Require<CompositeVector,CompositeVectorSpace>("co2_decomposition", tag_next_, name_)
@@ -160,23 +160,23 @@ void BGCSimple::Setup()
 
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-total_biomass", tag_next_, name_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
-  S_->GetRecordW("surface-total_biomass", tag_next_, name_).set_subfieldnames(pft_names);
+  S_->GetRecordSetW("surface-total_biomass").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-leaf_biomass", tag_next_, name_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
-  S_->GetRecordW("surface-leaf_biomass", tag_next_, name_).set_subfieldnames(pft_names);
+  S_->GetRecordSetW("surface-leaf_biomass").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-leaf_area_index", tag_next_, name_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
-  S_->GetRecordW("surface-leaf_area_index", tag_next_, name_).set_subfieldnames(pft_names);
+  S_->GetRecordSetW("surface-leaf_area_index").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-c_sink_limit", tag_next_, name_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
-  S_->GetRecordW("surface-c_sink_limit", tag_next_, name_).set_subfieldnames(pft_names);
+  S_->GetRecordSetW("surface-c_sink_limit").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-veg_total_transpiration", tag_next_, name_)
     .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
-  S_->GetRecordW("surface-veg_total_transpiration", tag_next_, name_).set_subfieldnames(pft_names);
+  S_->GetRecordSetW("surface-veg_total_transpiration").set_subfieldnames(pft_names);
 
   // requirement: temp of each cell
   S_->RequireEvaluator("temperature", tag_next_);
@@ -469,9 +469,9 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   } // end loop over columns
 
   // mark primaries as changed
-  ChangedEvaluatorPrimary(trans_key_, tag_next_, *S_);
-  ChangedEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
-  ChangedEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(trans_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
   return false;
 }
 

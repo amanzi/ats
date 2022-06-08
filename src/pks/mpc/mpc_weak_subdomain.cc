@@ -41,7 +41,7 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
   init_();
 
   // check whether we are subcycling
-  subcycled_ = plist_->template get<bool>("subcycle subdomains", false);
+  subcycled_ = plist_->template get<bool>("subcycle", false);
   if (subcycled_) {
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
     subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
@@ -84,15 +84,53 @@ void MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 {
   if (subcycled_) {
     PK::set_tags(current, next);
-    for (auto& pk : sub_pks_) {
+
+    const auto& ds = S_->GetDomainSet(ds_name_);
+    int i = 0;
+    for (const auto& subdomain : *ds) {
       // create tags for subcycling
-      Tag tag_subcycle_current(tag_current_.get()+" "+pk->name());
-      Tag tag_subcycle_next(tag_next_.get()+" "+pk->name());
-      pk->set_tags(tag_subcycle_current, tag_subcycle_next);
+      Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
+      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
+      sub_pks_[i]->set_tags(tag_subcycle_current, tag_subcycle_next);
+      ++i;
     }
   } else {
     MPC<PK>::set_tags(current, next);
   }
+}
+
+
+
+void
+MPCWeakSubdomain::Setup()
+{
+  if (subcycled_) {
+    const auto& ds = S_->GetDomainSet(ds_name_);
+    for (const auto& subdomain : *ds) {
+      Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
+      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
+
+      S_->require_time(tag_subcycle_current);
+      S_->require_time(tag_subcycle_next);
+      S_->require_cycle(tag_subcycle_next);
+      S_->Require<double>("dt", tag_subcycle_next, name());
+    }
+  }
+  MPC<PK>::Setup();
+}
+
+
+void
+MPCWeakSubdomain::Initialize()
+{
+  if (subcycled_) {
+    const auto& ds = S_->GetDomainSet(ds_name_);
+    for (const auto& subdomain : *ds) {
+      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
+      S_->GetRecordW("dt", tag_subcycle_next, name()).set_initialized();
+    }
+  }
+  MPC<PK>::Initialize();
 }
 
 
@@ -132,24 +170,24 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "Beginning subcycled timestepping." << std::endl;
 
-  const auto& domain_set = *S_->GetDomainSet(ds_name_);
+  const auto& ds = *S_->GetDomainSet(ds_name_);
   int my_pid = solution_->Comm()->MyPID();
 
   int i = 0;
-  for (const auto& domain : domain_set) {
+  for (const auto& subdomain : ds) {
     if (vo_->os_OK(Teuchos::VERB_EXTREME))
       *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
 
     bool done = false;
     double t_inner = t_old;
 
-    Tag tag_subcycle_current(tag_current_.get()+" "+sub_pks_[i]->name());
-    Tag tag_subcycle_next(tag_next_.get()+" "+sub_pks_[i]->name());
+    Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
+    Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
 
     S_->set_time(tag_subcycle_current, t_old);
     while (!done) {
       double dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
-      S_->Assign("dt", tag_subcycle_next, "coordinator", dt_inner);
+      S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
       bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -174,7 +212,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         if (std::abs(t_new - t_inner) < 1.e-10) done = true;
 
         S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
-        S_->advance_cycle(tag_subcycle_current);
+        S_->advance_cycle(tag_subcycle_next);
 
         dt_inner = sub_pks_[i]->get_dt();
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -183,7 +221,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
 
       if (dt_inner < subcycled_min_dt_) {
         Errors::Message msg;
-        msg << "Subdomain " << domain << " on PID " << my_pid << " crashing timestep in subcycling: dt = " << dt_inner;
+        msg << "Subdomain " << subdomain << " on PID " << my_pid << " crashing timestep in subcycling: dt = " << dt_inner;
         Exceptions::amanzi_throw(msg);
       }
     }

@@ -193,7 +193,6 @@ void MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "commiting step @ " << tag << std::endl;
   for (auto& pk : sub_pks_) {
-    std::cout << "Committing step for " << pk->name() << std::endl;
     pk->CommitStep(t_old, t_new, tag);
   }
 };

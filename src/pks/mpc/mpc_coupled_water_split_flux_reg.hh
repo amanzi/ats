@@ -4,6 +4,6 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCCoupledWaterSplitFlux> MPCCoupledWaterSplitFlux::reg_("operator split integrated hydrology");
+RegisteredPKFactory<MPCCoupledWaterSplitFlux> MPCCoupledWaterSplitFlux::reg_("operator split coupled water");
 
 } // namespace

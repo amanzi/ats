@@ -54,7 +54,7 @@ void Transport_ATS::CreateDefaultState(
     }
     S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT, name)
       .SetMesh(mesh_)->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, ncomponents);
-    S_->GetRecordW(tcc_key_, Tags::NEXT, name).set_subfieldnames(subfield_names);
+    S_->GetRecordSetW(tcc_key_).set_subfieldnames(subfield_names);
   }
 
   // initialize fields
@@ -207,11 +207,8 @@ void Transport_ATS::VV_CheckInfluxBC() const
           for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
             int f = it->first;
             if ((*flux_)[0][f] < 0 && influx_face[f] == 0) {
-              char component[3];
-              std::sprintf(component, "%3d", i);
-
               Errors::Message msg;
-              msg << "No influx boundary condition has been found for component " << component << ".\n";
+              msg << "No influx boundary condition has been found for component " << i << ".\n";
               Exceptions::amanzi_throw(msg);
             }
           }

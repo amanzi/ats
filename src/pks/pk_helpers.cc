@@ -18,7 +18,7 @@ bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
 {
   if (S.HasEvaluator(key, target) && !S.HasEvaluator(key, alias)) {
-    S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
+    // S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
     S.GetRecordSetW(key).AliasRecord(target, alias);
     return true;
   }
@@ -104,7 +104,7 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
 // Get a primary variable evaluator for a key at tag
 // -----------------------------------------------------------------------------
 Teuchos::RCP<EvaluatorPrimaryCV>
-RequireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
 {
   // first check, is there one already
   if (S.HasEvaluator(key, tag)) {
@@ -139,7 +139,7 @@ RequireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
 // Marks a primary evaluator as changed.
 // -----------------------------------------------------------------------------
 void
-ChangedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
 {
   Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
   Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
@@ -155,10 +155,52 @@ ChangedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
 
 
 // -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at current tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool is_eval)
+{
+  CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
+  if (!name.empty()) {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+    if (is_eval) requireEvaluatorPrimary(key, tag, S);
+    if (tag != Tags::CURRENT) {
+      S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, name);
+      if (is_eval) requireEvaluatorPrimary(key, Tags::CURRENT, S);
+    }
+  } else {
+    if (is_eval) S.RequireEvaluator(key, tag);
+  }
+  return cvs;
+}
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at next tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
+{
+  CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
+  if (!name.empty()) {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+    requireEvaluatorPrimary(key, tag, S);
+  } else {
+    S.RequireEvaluator(key, tag);
+  }
+
+  if (tag != Tags::NEXT) {
+    aliasVector(S, key, tag, Tags::NEXT);
+  }
+  return cvs;
+}
+
+
+// -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
 void
-ConvertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
+convertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
                              int num_aqueous,
                              const Epetra_MultiVector& tcc_ats,
                              Epetra_MultiVector& tcc_amanzi)
@@ -174,7 +216,7 @@ ConvertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
 
 
 void
-ConvertConcentrationToATS(const Epetra_MultiVector& mol_dens,
+convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
                           int num_aqueous,
                           const Epetra_MultiVector& tcc_amanzi,
                           Epetra_MultiVector& tcc_ats)
@@ -189,7 +231,7 @@ ConvertConcentrationToATS(const Epetra_MultiVector& mol_dens,
 
 
 bool
-AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
                  double t_old, double t_new, bool reinit,
                  const Epetra_MultiVector& mol_dens,
                  Teuchos::RCP<Epetra_MultiVector> tcc,
@@ -197,7 +239,7 @@ AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
 {
   bool fail = false;
   int num_aqueous = chem_pk->num_aqueous_components();
-  ConvertConcentrationToAmanzi(mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToAmanzi(mol_dens, num_aqueous, *tcc, *tcc);
   chem_pk->set_aqueous_components(tcc);
 
   {
@@ -207,7 +249,7 @@ AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
   if (fail) return fail;
 
   *tcc = *chem_pk->aqueous_components();
-  ConvertConcentrationToATS(mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToATS(mol_dens, num_aqueous, *tcc, *tcc);
   return fail;
 }
 

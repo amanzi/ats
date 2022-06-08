@@ -73,7 +73,7 @@ class PK_Physical_Default : public PK_Physical {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
   virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
- protected: // data
+ protected:
 
   // step validity
   double max_valid_change_;

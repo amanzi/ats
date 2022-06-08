@@ -103,8 +103,8 @@ void Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
   PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
   if (subcycling_) {
-    tag_subcycle_current_ = Tag{name()+"_inner_subcycling_current"};
-    tag_subcycle_next_ = Tag{name()+"_inner_subcycling_next"};
+    tag_subcycle_current_ = Tag{Keys::cleanName(name()+"_inner_subcycling_current")};
+    tag_subcycle_next_ = Tag{Keys::cleanName(name()+"_inner_subcycling_next")};
   } else {
     tag_subcycle_current_ = tag_current_;
     tag_subcycle_next_ = tag_next_;
@@ -156,34 +156,26 @@ void Transport_ATS::Setup()
     Exceptions::amanzi_throw(msg);
   }
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, passwd_)
+  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordW(tcc_key_, tag_next_, passwd_).set_subfieldnames(component_names_);
-  RequireEvaluatorPrimary(tcc_key_, tag_next_, *S_);
-
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_current_, passwd_);
-  if (subcycling_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_current_, passwd_);
-    // S_->Require<double>("time", tag_subcycle_current_, name_);
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_subcycle_next_, passwd_);
-    // S_->Require<double>("time", tag_subcycle_next_, name_);
-  }
+  S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
+  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
-  S_->Require<CompositeVector,CompositeVectorSpace>(cv_key_, tag_next_)
+  requireAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(cv_key_, tag_next_);
 
   // Raw data, no evaluator?
   //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
   auto primary_names = component_names_;
-  S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
+  // S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
+  requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordW(solid_residue_mass_key_, tag_next_, name_).set_subfieldnames(primary_names);
+  S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
 
   // This vector stores the conserved amount (in mols) of ncomponent
   // transported components, plus two for water.  The first water component is
@@ -196,17 +188,17 @@ void Transport_ATS::Setup()
   // Note that component_names includes secondaries, but we only need primaries
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
+  //S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
+  requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, num_components+2);
-  S_->GetRecordW(conserve_qty_key_, tag_next_, name_).set_subfieldnames(primary_names);
+  S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(primary_names);
 
   // dependencies:
   // -- permeability
   bool abs_perm = physical_models->get<bool>("permeability field is required", false);
   if (abs_perm) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(permeability_key_, tag_next_)
-      .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, dim);
-    S_->RequireEvaluator(permeability_key_, tag_next_);
+    requireAtNext(permeability_key_, tag_next_, *S_)
+      .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, dim);
   }
 
   // HACK ALERT -- FIXME --ETC
@@ -222,18 +214,15 @@ void Transport_ATS::Setup()
   //
   // This will need to be fixed in amanzi/amanzi#646 somehow....? --ETC
   // -- water flux
-  S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT)
+  requireAtNext(flux_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)->SetComponent("face", AmanziMesh::FACE, 1);
   S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
-  S_->RequireEvaluator(flux_key_, Tags::NEXT);
 
   // -- water saturation
-  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT)
+  requireAtNext(saturation_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(saturation_key_, Tags::NEXT);
   // Require a copy of saturation at the old time tag
-  S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::CURRENT);
-  // S_->RequireEvaluator(saturation_key_, tag_current_); // for the future...
+  requireAtNext(saturation_key_, Tags::CURRENT, *S_);
   if (subcycling_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_subcycle_current_, name_);
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
@@ -241,16 +230,12 @@ void Transport_ATS::Setup()
     // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
   }
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(porosity_key_, Tags::NEXT)
+  requireAtNext(porosity_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(porosity_key_, Tags::NEXT);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::NEXT)
+  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireEvaluator(molar_density_key_, Tags::NEXT);
-  // Require a copy of molar_density at the old time tag
-  S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, Tags::CURRENT);
-  // S_->RequireEvaluator(molar_density_key_, tag_current_); // for the future...
+  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
   if (subcycling_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, tag_subcycle_current_, name_);
     S_->Require<CompositeVector,CompositeVectorSpace>(molar_density_key_, tag_subcycle_next_, name_);
@@ -261,9 +246,8 @@ void Transport_ATS::Setup()
 
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT)
+    requireAtNext(water_src_key_, Tags::NEXT, *S_)
       .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(water_src_key_, Tags::NEXT);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
 
@@ -271,35 +255,33 @@ void Transport_ATS::Setup()
       geochem_src_factor_key_ = water_src_key_;
     } else {
       // set the coefficient as water source / water density
-      S_->Require<CompositeVector,CompositeVectorSpace>(geochem_src_factor_key_, Tags::NEXT)
-        .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-
       Teuchos::ParameterList& wc_eval = S_->GetEvaluatorList(geochem_src_factor_key_);
       wc_eval.set<std::string>("evaluator type", "reciprocal evaluator");
       std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
       wc_eval.set<Teuchos::Array<std::string> >("dependencies", dep);
       wc_eval.set<std::string>("reciprocal", dep[1]);
-      S_->RequireEvaluator(geochem_src_factor_key_, Tags::NEXT);
+
+      requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+        .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
     }
   }
 
   // this is the not-yet-existing source, and is dead code currently! (What does this mean? --ETC)
   if (plist_->sublist("source terms").isSublist("component concentration source")) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(water_src_key_, Tags::NEXT)
+    requireAtNext(water_src_key_, Tags::NEXT, *S_)
       .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(water_src_key_, Tags::NEXT);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
 
-  // alias to next for subcycled cases -- revisit this in state subcycling
-  // revision --ETC
-  if (tag_next_ != Tags::NEXT) {
-    aliasVector(*S_, tcc_key_, tag_next_, Tags::NEXT);
-    aliasVector(*S_, conserve_qty_key_, tag_next_, Tags::NEXT);
-    aliasVector(*S_, tcc_matrix_key_, tag_next_, Tags::NEXT);
-    aliasVector(*S_, solid_residue_mass_key_, tag_next_, Tags::NEXT);
-  }
+  // // alias to next for subcycled cases -- revisit this in state subcycling
+  // // revision --ETC
+  // if (tag_next_ != Tags::NEXT) {
+  //   aliasVector(*S_, tcc_key_, tag_next_, Tags::NEXT);
+  //   aliasVector(*S_, conserve_qty_key_, tag_next_, Tags::NEXT);
+  //   aliasVector(*S_, tcc_matrix_key_, tag_next_, Tags::NEXT);
+  //   aliasVector(*S_, solid_residue_mass_key_, tag_next_, Tags::NEXT);
+  // }
 }
 
 
@@ -581,30 +563,30 @@ void Transport_ATS::InitializeFields_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  // set popular default values when flow PK is off
-  if (S_->HasRecord(saturation_key_, tag_next_)) {
-    if (S_->GetRecord(saturation_key_, tag_next_).owner() == name_) {
-      if (!S_->GetRecord(saturation_key_, tag_next_).initialized()) {
-        S_->GetW<CompositeVector>(saturation_key_, tag_next_, name_).PutScalar(1.0);
-        S_->GetRecordW(saturation_key_, tag_next_, name_).set_initialized();
+  // // set popular default values when flow PK is off
+  // if (S_->HasRecord(saturation_key_, tag_next_)) {
+  //   if (S_->GetRecordSet(saturation_key_, tag_next_).owner() == name_) {
+  //     if (!S_->GetRecord(saturation_key_, tag_next_).initialized()) {
+  //       S_->GetW<CompositeVector>(saturation_key_, tag_next_, name_).PutScalar(1.0);
+  //       S_->GetRecordW(saturation_key_, tag_next_, name_).set_initialized();
 
-        if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-          *vo_->os() << "initialized saturation_liquid to value 1.0" << std::endl;
-      }
-      S_->Assign(saturation_key_, tag_current_, tag_next_);
-      S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
+  //       if (vo_->os_OK(Teuchos::VERB_MEDIUM))
+  //         *vo_->os() << "initialized saturation_liquid to value 1.0" << std::endl;
+  //     }
+  //     S_->Assign(saturation_key_, tag_current_, tag_next_);
+  //     S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
 
-    } else {
-      if (S_->GetRecord(saturation_key_, tag_current_).owner() == name_) {
-        if (!S_->GetRecord(saturation_key_, tag_current_).initialized()) {
-          S_->Assign(saturation_key_, tag_current_, tag_next_);
-          S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
-          if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-            *vo_->os() << "initialized prev_saturation_liquid from saturation" << std::endl;
-        }
-      }
-    }
-  }
+  //   } else {
+  //     if (S_->GetRecord(saturation_key_, tag_current_).owner() == name_) {
+  //       if (!S_->GetRecord(saturation_key_, tag_current_).initialized()) {
+  //         S_->Assign(saturation_key_, tag_current_, tag_next_);
+  //         S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
+  //         if (vo_->os_OK(Teuchos::VERB_MEDIUM))
+  //           *vo_->os() << "initialized prev_saturation_liquid from saturation" << std::endl;
+  //       }
+  //     }
+  //   }
+  // }
 
   InitializeFieldFromField_(tcc_matrix_key_, tag_next_, tcc_key_, tag_next_, false, false);
   S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).PutScalar(0.0);
@@ -948,12 +930,8 @@ bool Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     VV_PrintSoluteExtrema(tcc_next, dt_MPC);
   }
 
-  S_->Assign(tcc_key_, tag_next_, tag_subcycle_next_);
-  ChangedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
-
   // ETC BEGIN HACKING
   StableTimeStep();
-
   return failed;
 }
 
@@ -1174,7 +1152,7 @@ void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag)
     AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
     AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
     S_->Assign(tcc_key_, tag_current_, tag_next_);
-    // ChangedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
+    // changedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
   }
 }
 
