@@ -109,11 +109,11 @@ public:
               //              Amanzi::ObservationData& output_observations);
 
   // PK methods
-  virtual void setup();
-  virtual void initialize();
-  virtual void finalize();
+  void setup();
+  void initialize();
+  void finalize();
   void report_memory();
-  virtual bool advance();
+  bool advance();
   void visualize(bool force=false);
   void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);
@@ -121,7 +121,7 @@ public:
   // one stop shopping
   void cycle_driver();
 
- protected:
+ private:
   void coordinator_init();
   void read_parameter_list();
 
