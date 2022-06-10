@@ -635,10 +635,11 @@ class RegressionTest(object):
             if h5_reg is not None and h5_gold is not None:
                 status.local_fail = 0
                 self._compare(h5_reg, h5_gold, status, testlog)
+                chkp_file = os.path.join(*(os.path.normpath(gold_file).split(os.sep)[1:]))
                 if status.local_fail == 0:
-                    print("    Passed tests {}".format(os.path.split(gold_file)[-1]), file=testlog)
+                    print("    Passed tests {}".format(chkp_file), file=testlog)
                 else:
-                    print("    Failed test {}".format(os.path.split(gold_file)[-1]), file=testlog)
+                    print("    Failed test {}".format(chkp_file), file=testlog)
 
             if h5_reg is not None: h5_reg.close()
             if h5_gold is not None: h5_gold.close()

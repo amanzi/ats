@@ -39,7 +39,7 @@ void OverlandPressureFlow::ApplyDiffusion_(const Tag& tag,
   auto pres_elev = S_->GetPtr<CompositeVector>(potential_key_, tag);
   auto flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
-  ChangedEvaluatorPrimary(flux_key_, tag, *S_);
+  changedEvaluatorPrimary(flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres_elev, *g);

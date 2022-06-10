@@ -87,25 +87,29 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
 
  protected:
 
-  void CopyPrimaryToStar_(const Tag& prim, const Tag& star);
-  void CopyStarToPrimary_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
+  void CopyPrimaryToStar_();
+  void CopyStarToPrimary_();
 
-  void CopyPrimaryToStar_DomainSet_(const Tag& prim, const Tag& star);
-  void CopyStarToPrimary_DomainSet_Pressure_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
-  void CopyStarToPrimary_DomainSet_Flux_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
-  void CopyStarToPrimary_DomainSet_Hybrid_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
+  void CopyPrimaryToStar_DomainSet_();
+  void CopyStarToPrimary_DomainSet_Pressure_();
+  void CopyStarToPrimary_DomainSet_Flux_();
+  void CopyStarToPrimary_DomainSet_Hybrid_();
 
-  void CopyPrimaryToStar_Standard_(const Tag& prim, const Tag& star);
-  void CopyStarToPrimary_Standard_Pressure_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
-  void CopyStarToPrimary_Standard_Flux_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
-  void CopyStarToPrimary_Standard_Hybrid_(const Tag& star_current, const Tag& star_next,
-          const Tag& prim_current, const Tag& prim_next);
+  void CopyPrimaryToStar_Standard_();
+  void CopyStarToPrimary_Standard_Pressure_();
+  void CopyStarToPrimary_Standard_Flux_();
+  void CopyStarToPrimary_Standard_Hybrid_();
+
+  Tag get_ds_tag_next_(const std::string& subdomain) {
+    if (subcycling_[1])
+      return Tag{Keys::cleanName(tags_[1].second.get() + "_" + Keys::getDomainSetIndex(subdomain))};
+    else return Tag{tags_[1].second};
+  }
+  Tag get_ds_tag_current_(const std::string& subdomain) {
+    if (subcycling_[1])
+      return Tag{Keys::cleanName(tags_[1].first.get() + "_" + Keys::getDomainSetIndex(subdomain))};
+    else return Tag{tags_[1].first};
+  }
 
 
  protected:
@@ -115,6 +119,7 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   Key p_sub_primary_variable_suffix_;
   Key p_primary_variable_star_;
   Key p_conserved_variable_;
+  Key p_conserved_variable_suffix_;
   Key p_conserved_variable_star_;
   Key p_lateral_flow_source_;
   Key p_lateral_flow_source_suffix_;
@@ -125,6 +130,7 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   Key T_sub_primary_variable_suffix_;
   Key T_primary_variable_star_;
   Key T_conserved_variable_;
+  Key T_conserved_variable_suffix_;
   Key T_conserved_variable_star_;
   Key T_lateral_flow_source_;
   Key T_lateral_flow_source_suffix_;

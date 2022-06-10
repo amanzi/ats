@@ -58,33 +58,48 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
 // Get a primary variable evaluator for a key at tag
 // -----------------------------------------------------------------------------
 Teuchos::RCP<EvaluatorPrimaryCV>
-RequireEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
 
 
 // -----------------------------------------------------------------------------
 // Mark primary variable evaluator as changed.
 // -----------------------------------------------------------------------------
 void
-ChangedEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at current tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtCurrent(const Key& key, const Tag& tag, State& S,
+                 const Key& name = "", bool is_eval = true);
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at next tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "");
 
 
 // -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
 void
-ConvertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
+convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
                              int num_aqueous,
                              const Epetra_MultiVector& tcc_ats,
                              Epetra_MultiVector& tcc_amanzi);
 
 void
-ConvertConcentrationToATS(const Epetra_MultiVector& mol_den,
+convertConcentrationToATS(const Epetra_MultiVector& mol_den,
                           int num_aqueous,
                           const Epetra_MultiVector& tcc_ats,
                           Epetra_MultiVector& tcc_amanzi);
 
 bool
-AdvanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
                  double t_old, double t_new, bool reinit,
                  const Epetra_MultiVector& mol_dens,
                  Teuchos::RCP<Epetra_MultiVector> tcc,

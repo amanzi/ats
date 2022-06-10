@@ -43,7 +43,7 @@ class LiquidIceModel : public EWCModelBase {
   virtual bool Freezing(double T, double p) override;
   virtual int EvaluateSaturations(
     double T, double p, double& s_gas,double& s_liq, double& s_ice) override;
-  
+
  protected:
   bool IsSetUp_();
 
@@ -73,6 +73,7 @@ class LiquidIceModel : public EWCModelBase {
   bool poro_leij_;
   Key domain;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
+  Tag tag_;
 
   bool use_pc_ice_;
 

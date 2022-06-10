@@ -85,11 +85,11 @@ void MPCReactiveTransport::Initialize()
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
   int num_aqueous = chemistry_pk_->num_aqueous_components();
-  ConvertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
   chemistry_pk_->set_aqueous_components(tcc);
   chemistry_pk_->Initialize();
   //*tcc = *chemistry_pk_->aqueous_components();
-  ConvertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
+  convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
 
   transport_pk_->Initialize();
 }
@@ -131,8 +131,8 @@ bool MPCReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
-  fail |= AdvanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc_copy, *alquimia_timer_);
-  ChangedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+  fail |= advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc_copy, *alquimia_timer_);
+  changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (!fail) chem_step_succeeded_ = true;
   return fail;
 };

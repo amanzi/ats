@@ -11,7 +11,7 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 ------------------------------------------------------------------------- */
 
 #include "boost/math/special_functions/fpclassify.hpp"
-
+#include "pk_helpers.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
@@ -32,20 +32,19 @@ void PK_PhysicalBDF_Default::Setup()
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   }
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_)
+  requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)->AddComponent("cell",AmanziMesh::CELL,true);
-  S_->RequireEvaluator(conserved_key_, tag_next_);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
-  S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_);
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
   // S_->RequireEvaluator(conserved_key_, tag_next_); // for the future...
 
   // cell volume used throughout
   if (cell_vol_key_.empty()) {
     cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
   }
-  S_->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, tag_next_).SetMesh(mesh_)
-      ->AddComponent("cell",AmanziMesh::CELL,true);
-  S_->RequireEvaluator(cell_vol_key_, tag_next_);
+  requireAtNext(cell_vol_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell",AmanziMesh::CELL,true);
 
   atol_ = plist_->get<double>("absolute error tolerance",1.0);
   rtol_ = plist_->get<double>("relative error tolerance",1.0);
