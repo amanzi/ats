@@ -29,7 +29,7 @@ void ats_set_mesh(ELM_ATS_DRIVER ats,
   const int len_gridsX, const int len_gridsY, const int len_verticesZ);
 void ats_set_materials(ELM_ATS_DRIVER ats,
   double *porosity, double* hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
-  double *eff_porosity);
+  double *eff_porosity, double *zwt);
 void ats_set_initialconditions(ELM_ATS_DRIVER ats, double *start_t,
   double *patm, double *soilpressure, double *wtd, bool visout=false);
 void ats_set_boundaryconditions(ELM_ATS_DRIVER ats);      // (TODO)

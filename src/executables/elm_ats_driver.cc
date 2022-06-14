@@ -304,7 +304,7 @@ ELM_ATSDriver::set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_g
 
 void
 ELM_ATSDriver::set_materials(double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
-  double *eff_porosity)
+  double *eff_porosity, double *zwt)
 {
 	elmdata_.porosity_.reserve(elmdata_.NCELLS_);
 	elmdata_.hksat_.reserve(elmdata_.NCELLS_);
@@ -312,7 +312,7 @@ ELM_ATSDriver::set_materials(double *porosity, double *hksat, double *CH_bsw, do
 	elmdata_.CH_smpsat_.reserve(elmdata_.NCELLS_);
 	elmdata_.CH_sr_.reserve(elmdata_.NCELLS_);
 	elmdata_.eff_porosity_.reserve(elmdata_.NCELLS_);
-	for (int i=0; i<elmdata_.NCELLS_-1; i++) {
+	for (int i=0; i<elmdata_.NCELLS_; i++) {
 		elmdata_.porosity_.push_back(porosity[i]);
 		elmdata_.hksat_.push_back(hksat[i]);
 		elmdata_.CH_bsw_.push_back(CH_bsw[i]);
@@ -320,50 +320,67 @@ ELM_ATSDriver::set_materials(double *porosity, double *hksat, double *CH_bsw, do
 		elmdata_.CH_sr_.push_back(CH_sr[i]);
 		elmdata_.eff_porosity_.push_back(eff_porosity[i]);
 	}
+    
+    elmdata_.zwt_.reserve(elmdata_.NCOLS_);
+    for (int i=0; i<elmdata_.NCOLS_; i++) {
+        elmdata_.zwt_.push_back(zwt[i]);
+    }
 }
 
 void
 ELM_ATSDriver::set_initialconditions(double *start_t, double *patm, double *soilpressure, double *wtd, bool visout)
 {
-  std::vector<double> col_patm;
-  std::vector<double> col_wtd;
-  std::vector<double> col_surfp;
-  col_patm.reserve(elmdata_.NCOLS_);
-  col_wtd.reserve(elmdata_.NCOLS_);
-  col_surfp.reserve(elmdata_.NCOLS_);
-  for (int ij=0; ij<elmdata_.NCOLS_; ij++) {
-    col_patm.push_back(patm[ij]);
-    col_wtd.push_back(wtd[ij]);
-    col_surfp.push_back(soilpressure[ij*(elmdata_.NZ_-1)]);
-    // temporarilly set (TODO: better to include surface water depth from ELM)
+
+  // checking if flow PK's initial condition type
+  Teuchos::RCP<Teuchos::ParameterList> pk_flow_initial_plist_ = Teuchos::sublist(
+                    Teuchos::sublist(pks_plist_, "flow"),  "initial condition");
+  auto init_wh = pk_flow_initial_plist_->get<double>("hydrostatic head [m]",-999.9);
+
+  // IF NOT IC type of hydrostatic head [m]
+  if (init_wh==-999.9) {
+
+	  std::vector<double> col_patm;
+	  std::vector<double> col_wtd;
+	  std::vector<double> col_surfp;
+	  col_patm.reserve(elmdata_.NCOLS_);
+	  col_wtd.reserve(elmdata_.NCOLS_);
+	  col_surfp.reserve(elmdata_.NCOLS_);
+	  for (int ij=0; ij<elmdata_.NCOLS_; ij++) {
+	    col_patm.push_back(patm[ij]);
+	    col_wtd.push_back(wtd[ij]);
+	    col_surfp.push_back(soilpressure[ij*(elmdata_.NZ_-1)]);
+	    // temporarilly set (TODO: better to include surface water depth from ELM)
+	  }
+
+	  std::vector<double> soilp;
+	  soilp.reserve(elmdata_.NCELLS_);
+	  for (int ijk=0; ijk<elmdata_.NCELLS_; ijk++) {
+	    soilp.push_back(soilpressure[ijk]);
+	  }
+
+
+	  // real IC, i.e. primary variable in PKs
+	  Epetra_MultiVector& srf_pv = *S_->GetW<Amanzi::CompositeVector>(srf_pv_key_, Amanzi::Tags::NEXT, srfpk_key_)
+		  .ViewComponent("cell", false);
+	  Epetra_MultiVector& sub_pv = *S_->GetW<Amanzi::CompositeVector>(sub_pv_key_, Amanzi::Tags::NEXT, subpk_key_)
+		  .ViewComponent("cell", false);
+
+	  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+		srf_pv[0][col] = col_surfp[col];
+
+		auto& col_iter = mesh_subsurf_->cells_of_column(col);
+		for (std::size_t i=0; i!=col_iter.size(); ++i) {
+		  sub_pv[0][col_iter[i]] = soilp[col*ncol_cells_+i];
+		}
+	  }
+	  // mark pvs as changed
+	  ChangedEvaluatorPrimary(srf_pv_key_, Amanzi::Tags::NEXT, *S_);
+	  ChangedEvaluatorPrimary(sub_pv_key_, Amanzi::Tags::NEXT, *S_);
+
+	  // commit the initial conditions after resetting
+	  elm_coordinator_->reinit(*start_t, visout);
   }
 
-  std::vector<double> soilp;
-  soilp.reserve(elmdata_.NCELLS_);
-  for (int ijk=0; ijk<elmdata_.NCELLS_; ijk++) {
-    soilp.push_back(soilpressure[ijk]);
-  }
-
-  // real IC, i.e. primary variable in PKs
-  Epetra_MultiVector& srf_pv = *S_->GetW<Amanzi::CompositeVector>(srf_pv_key_, Amanzi::Tags::NEXT, srfpk_key_)
-      .ViewComponent("cell", false);
-  Epetra_MultiVector& sub_pv = *S_->GetW<Amanzi::CompositeVector>(sub_pv_key_, Amanzi::Tags::NEXT, subpk_key_)
-      .ViewComponent("cell", false);
-
-  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
-    srf_pv[0][col] = col_surfp[col];
-
-    auto& col_iter = mesh_subsurf_->cells_of_column(col);
-    for (std::size_t i=0; i!=col_iter.size(); ++i) {
-      sub_pv[0][col_iter[i]] = soilp[col*ncol_cells_+i];
-    }
-  }
-  // mark pvs as changed
-  ChangedEvaluatorPrimary(srf_pv_key_, Amanzi::Tags::NEXT, *S_);
-  ChangedEvaluatorPrimary(sub_pv_key_, Amanzi::Tags::NEXT, *S_);
-
-  // commit the initial conditions after resetting
-  elm_coordinator_->reinit(*start_t, visout);
 
 }
 

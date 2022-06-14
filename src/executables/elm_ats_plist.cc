@@ -126,6 +126,15 @@ void elm_ats_plist::plist_general_mesh_reset(elm_data &elmdata, const bool elm_m
 // override whatever read-in from *.xml
 void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
 
+  // flow PK initial condition by water table
+  Teuchos::RCP<Teuchos::ParameterList> pk_flow_initial_plist_ = Teuchos::sublist(
+                    Teuchos::sublist(elm_pks_plist_, "flow"),  "initial condition");
+    if (pk_flow_initial_plist_->get<double>("hydrostatic head [m]",-999.9)!=-999.9){
+        double zwt = pk_flow_initial_plist_->get<double>("hydrostatic head [m]");
+        zwt = elmdata.zwt_[0];   // (TODO) need to figure out how to pass multiple columns' data
+        pk_flow_initial_plist_->set("hydrostatic head [m]", zwt);
+    }
+    
   // porosity, viscosity, & permibility in 'state -> evaluators'
   Teuchos::RCP<Teuchos::ParameterList> evals_plist_ = Teuchos::sublist(elm_state_plist_, "evaluators");
   Teuchos::RCP<Teuchos::ParameterList> state_constants_plist_ = Teuchos::sublist(elm_state_plist_, "initial conditions");
@@ -169,6 +178,7 @@ void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
 					    "function-constant");
     double perm = layer2_plist_->get<double>("value");
     perm = (elmdata.hksat_[c]/1000.0)*visco/den_mass/(-gravity);   //mmH2O/s --> m2
+    std::cout<<c<<" "<<layer2_plist_->get<double>("value")<<" "<<perm<<std::endl;
     layer2_plist_->set("value", perm);
     c++;
   }
@@ -185,7 +195,7 @@ void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
 
     auto layer3_plist_ = Teuchos::sublist(wrm_constants_plist_, layer_name);
     std::string wrm_type = layer3_plist_->get<std::string>("WRM Type");
-
+    std::cout<<"WRM TYPE: "<<layer_name<<" "<<wrm_type<<std::endl;
     if(wrm_type == "van Genuchten"){
        double vG_alpha = layer3_plist_->get<double>("van Genuchten alpha [Pa^-1]");
        double vG_n = layer3_plist_->get<double>("van Genuchten n [-]");
@@ -230,7 +240,7 @@ void elm_ats_plist::plist_cycle_driver_reset(const double t0, const double dt) {
 
   // dt_
   elm_drv_plist_->set("max time step size [s]", dt);
-  elm_drv_plist_->set("min time step size [s]", 1.00);
+  elm_drv_plist_->set("min time step size [s]", 1.0e-3);
 
 }
 

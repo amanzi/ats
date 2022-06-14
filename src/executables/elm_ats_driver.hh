@@ -34,7 +34,7 @@ public:
   void set_mesh(double *surf_gridsX, double *surf_gridsY, double *surf_gridsZ, double *col_verticesZ,
     const int len_gridsX, const int len_gridsY, const int len_vertices);
   void set_materials(double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
-    double *eff_porosity);
+    double *eff_porosity, double *zwt);
   void set_initialconditions(double *start_t, double *patm, double *soilpressure, double *wtd, bool visout=false);
   void set_boundaryconditions();
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,

@@ -37,6 +37,7 @@ typedef struct {
     std::vector<double> CH_smpsat_;       // unit: [-]
     std::vector<double> CH_sr_;           // unit: [-]
     std::vector<double> eff_porosity_;    // unit: [-]
+    std::vector<double> zwt_;             // unit: [m]
 
 } elm_data;
 

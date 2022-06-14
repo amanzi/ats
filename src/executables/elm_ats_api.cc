@@ -48,9 +48,9 @@ void ats_set_mesh(ELM_ATS_DRIVER ats,
 // call driver set_materials()
 void ats_set_materials(ELM_ATS_DRIVER ats,
   double *porosity, double *hksat, double *CH_bsw, double *CH_smpsat, double *CH_sr,
-  double *eff_porosity){
+  double *eff_porosity, double *zwt){
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->set_materials(porosity, hksat, CH_bsw, CH_smpsat, CH_sr, eff_porosity);
+  ->set_materials(porosity, hksat, CH_bsw, CH_smpsat, CH_sr, eff_porosity, zwt);
 }
 // call driver set_initialconditions()
 void ats_set_initialconditions(ELM_ATS_DRIVER ats, double *start_t,
