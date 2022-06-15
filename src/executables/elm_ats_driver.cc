@@ -259,8 +259,15 @@ void ELM_ATSDriver::advance_elmstep(double *dt_elm, bool visout, bool chkout)
 {
   // elm one timestep: starting --> ending
   double ending_time_ = S_->get_time() + *dt_elm;
-  std::cout<<"ATS running period of time: "<<S_->get_time()<<" - "<<ending_time_<<std::endl;
-  
+  if (visout) {
+    if (ending_time_<86400.0) {
+      std::cout<<"ATS running period of time: ending by - "<<ending_time_<<" seconds"<<std::endl;
+    } else {
+      int yr = std::floor(ending_time_/86400.0/365.0);
+      double day = ending_time_/86400.0 - yr*365.0;
+      std::cout<<"ATS running period of time: ending by - YEAR "<<yr<<" DOY "<<day<<std::endl;
+    }
+  }
   double dt = elm_coordinator_->get_dt(false);
   while (S_->get_time() < ending_time_) {
 	//  call main method, with output instruction(s) from ELM

@@ -48,7 +48,7 @@ void ELM_ATSCoordinator::initialize() {
 
   // visualization at IC  - This will cause error in ::reinit()
   // for testing
-  //visualize();
+  visualize();
   //checkpoint();
 
   // is this needed?
@@ -128,8 +128,9 @@ bool ELM_ATSCoordinator::advance(double dt, bool visout, bool chkout) {
 
       // make observations, vis, and checkpoints
       for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-      visualize(visout);
-      checkpoint(chkout); // checkpoint with the new dt
+      double t1 = get_end_time();
+      if (t_end>=t1 && visout) {visualize(visout);}
+      if (t_end>=t1 && chkout) {checkpoint(chkout);} // checkpoint with the new dt
     }
 
     // get new dt and assign to State
