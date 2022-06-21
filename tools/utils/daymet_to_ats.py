@@ -83,7 +83,13 @@ def daymet_to_ats(dat):
     precip_ms = dat['prcp_mmday'] / 1.e3 / 86400.
     
     # Sat vap. press o/water Dingman D-7 (Bolton, 1980)
-    sat_vp_Pa = 611.2 * np.exp(17.67 * mean_air_temp_c / (mean_air_temp_c + 243.5))
+    # sat_vp_Pa = 611.2 * np.exp(17.67 * mean_air_temp_c / (mean_air_temp_c + 243.5))
+
+    # August–Roche–Magnus formula (Westermann et al., 2016)
+    if mean_air_temp_c > 0:
+        sat_vp_Pa = 611 * np.exp(17.62 * mean_air_temp_c /(mean_air_temp_c + 243.12))
+    else:
+        sat_vp_Pa = 611 * np.exp(22.46 * mean_air_temp_c /(mean_air_temp_c + 272.62))
 
     dout['time [s]'] = np.arange(0, len(dat), 1)*86400.
     dout['air temperature [K]'] = 273.15 + mean_air_temp_c

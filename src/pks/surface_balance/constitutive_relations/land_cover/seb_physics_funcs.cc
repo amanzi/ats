@@ -105,10 +105,18 @@ double SaturatedVaporPressure(double temp)
 {
   // Sat vap. press o/water Dingman D-7 (Bolton, 1980)
   // *** (Bolton, 1980) Calculates vapor pressure in [KPa]  ****
-  double tempC = temp - 273.15;
-  double vp_mbar = 6.112 * std::exp(17.67 * tempC / (tempC + 243.5));
+//  double tempC = temp - 273.15;
+//  double vp_mbar = 6.112 * std::exp(17.67 * tempC / (tempC + 243.5));
   // convert to Pa
-  return 1e2 * vp_mbar;
+//  return 1e2 * vp_mbar;
+
+  // August–Roche–Magnus formula (Westermann et al., 2016), Pa
+  double double tempC = temp - 273.15;
+  if (tempC > 0) {
+    return 611 * std::exp(17.62 * tempC /(tempC + 243.12));
+  } else {
+    return 611 * std::exp(22.46 * tempC /(tempC + 272.62));
+  }
 }
 
 double SaturatedVaporPressureELM(double temp)
