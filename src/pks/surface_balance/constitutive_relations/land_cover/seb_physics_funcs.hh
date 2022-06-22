@@ -31,7 +31,7 @@ double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rou
 //
 // Calculate longwave from air temp and relative humidity
 // ------------------------------------------------------------------------------------------
-double IncomingLongwaveRadiation(double air_temp, double relative_humidity);
+double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air);
 
 //
 // Calculates incoming shortwave and longwave radiation incident on surface
@@ -76,7 +76,7 @@ double SaturatedSpecificHumidityELM(double temp);
 // Partial pressure of water vapor in air.
 // In [kPa]
 // ------------------------------------------------------------------------------------------
-double VaporPressureAir(double air_temp, double relative_humidity);
+//double VaporPressureAir(double air_temp, double relative_humidity);
 
 //
 // Partial pressure of water vapor in gaseous phase, in the soil.
@@ -93,7 +93,7 @@ double VaporPressureGround(const GroundProperties& surf, const ModelParams& para
 double EvaporativeResistanceGround(const GroundProperties& surf,
         const MetData& met,
         const ModelParams& params,
-        double vapor_pressure_air, double vapor_pressure_ground);
+        double vapor_pressure_ground);
 
 double EvaporativeResistanceCoef(double saturation_gas,
         double porosity, double dessicated_zone_thickness, double Clapp_Horn_b);

@@ -84,8 +84,8 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList&
   surf_temp_key_ = Keys::readKey(plist, domain_, "surface temperature", "temperature");
   dependencies_.insert(surf_temp_key_);
 
-  rel_hum_key_ = Keys::readKey(plist, domain_, "relative humidity", "relative_humidity");
-  dependencies_.insert(rel_hum_key_);
+  vp_air_key_ = Keys::readKey(plist, domain_, "vapor pressure air", "vapor_pressure_air");
+  dependencies_.insert(vp_air_key_);
 
   elev_key_ = Keys::readKey(plist, domain_, "elevation", "elevation");
   dependencies_.insert(elev_key_);
@@ -115,7 +115,7 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
   const auto& air_temp = *S->GetFieldData(air_temp_key_)->ViewComponent("cell", false);
   const auto& surf_temp = *S->GetFieldData(surf_temp_key_)->ViewComponent("cell", false);
-  const auto& rel_hum = *S->GetFieldData(rel_hum_key_)->ViewComponent("cell", false);
+  const auto& vp_air = *S->GetFieldData(vp_air_key_)->ViewComponent("cell", false);
   const auto& elev = *S->GetFieldData(elev_key_)->ViewComponent("cell", false);
   const auto& rad = *S->GetFieldData(rad_key_)->ViewComponent("cell",false);
 

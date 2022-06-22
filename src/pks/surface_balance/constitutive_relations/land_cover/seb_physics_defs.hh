@@ -152,7 +152,8 @@ struct MetData {
   double Ps;                    // precip snow, [m (SWE)/s]
   double Pr;                    // precip rain, [m/s]
   double air_temp;              // air temperature [K]
-  double relative_humidity;     // relative humidity [-]
+  double vapor_pressure_air;    // vapor pressure air [Pa]
+//  double relative_humidity;     // relative humidity [-]
 
   MetData() :
       Us(NaN),
@@ -162,7 +163,8 @@ struct MetData {
       Ps(NaN),
       Pr(NaN),
       air_temp(NaN),
-      relative_humidity(NaN) {}
+      vapor_pressure_qir(NaN) {}
+//      relative_humidity(NaN) {}
 };
 
 

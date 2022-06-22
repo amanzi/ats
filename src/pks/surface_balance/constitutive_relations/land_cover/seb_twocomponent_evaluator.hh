@@ -138,7 +138,7 @@ class SEBTwoComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   Key water_source_key_, energy_source_key_;
   Key ss_water_source_key_, ss_energy_source_key_;
   Key snow_source_key_, new_snow_key_;
-  Key met_sw_key_, met_lw_key_, met_air_temp_key_, met_rel_hum_key_;
+  Key met_sw_key_, met_lw_key_, met_air_temp_key_, met_vp_air_key_; //met_rel_hum_key_;
   Key met_wind_speed_key_, met_prain_key_, met_psnow_key_;
   Key snow_depth_key_, snow_dens_key_, snow_death_rate_key_;
   Key ponded_depth_key_, unfrozen_fraction_key_;

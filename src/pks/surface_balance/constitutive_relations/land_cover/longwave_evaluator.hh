@@ -52,8 +52,8 @@ class LongwaveEvaluator : public SecondaryVariableFieldEvaluator {
 
  protected:
 
-  Key air_temp_key_, rel_hum_key_;
-  double min_rel_hum_, scale_;
+  Key air_temp_key_, vp_air_key_;
+  double scale_; // min_rel_hum_, scale_;
 
  private:
   static Utils::RegisteredFactory<FieldEvaluator,LongwaveEvaluator> reg_;
