@@ -64,11 +64,11 @@ public:
   // Virtual destructor
   virtual ~Permafrost() override {}
 
-protected:
+ protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_() override;
 
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<Permafrost> reg_;
 
