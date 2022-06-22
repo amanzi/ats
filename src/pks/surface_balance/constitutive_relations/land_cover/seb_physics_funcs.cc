@@ -29,9 +29,9 @@ double CalcAlbedoSnow(double density_snow) {
   double AlSnow;
 //  432.23309912785146
   if (density_snow <= 432.23309912785146) {
-    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5);
+    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5) + 0.07;
   } else {
-    AlSnow = 0.6 - density_snow / 4600;
+    AlSnow = 0.6 - density_snow / 4600 + 0.07;
   }
   return AlSnow;
 }
