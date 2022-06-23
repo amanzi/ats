@@ -10,13 +10,13 @@
 #define AMANZI_ENERGY_RELATIONS_IEM_WATER_VAPOR_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "iem_water_vapor.hh"
 
 namespace Amanzi {
 namespace Energy {
 
-class IEMWaterVaporEvaluator : public SecondaryVariableFieldEvaluator {
+class IEMWaterVaporEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -24,19 +24,20 @@ class IEMWaterVaporEvaluator : public SecondaryVariableFieldEvaluator {
   IEMWaterVaporEvaluator(Teuchos::ParameterList& plist);
   IEMWaterVaporEvaluator(Teuchos::ParameterList& plist,
                          const Teuchos::RCP<IEMWaterVapor>& iem);
-  IEMWaterVaporEvaluator(const IEMWaterVaporEvaluator& other);
+  IEMWaterVaporEvaluator(const IEMWaterVaporEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& results);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& results);
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<IEMWaterVapor> get_IEM() { return iem_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
+
   void InitializeFromPlist_();
 
   Key temp_key_;
@@ -44,7 +45,7 @@ class IEMWaterVaporEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<IEMWaterVapor> iem_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,IEMWaterVaporEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,IEMWaterVaporEvaluator> factory_;
 
 };
 

@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,UnfrozenFractionEvaluator>
+Utils::RegisteredFactory<Evaluator,UnfrozenFractionEvaluator>
 UnfrozenFractionEvaluator::fac_("unfrozen fraction");
 
 } //namespace

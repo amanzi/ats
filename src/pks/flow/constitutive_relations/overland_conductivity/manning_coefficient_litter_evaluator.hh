@@ -3,7 +3,7 @@
 
   Generated via evaluator_generator with:
 Manning's coefficient that varies based on litter thickness and ponded depth.
-    
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
@@ -13,7 +13,7 @@ Manning's coefficient that varies based on litter thickness and ponded depth.
 #include "Teuchos_RCP.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -24,42 +24,43 @@ class ManningCoefficientLitterModel;
 typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel> > ManningCoefList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, ManningCoefList> ManningCoefPartition;
 
-  
-class ManningCoefficientLitterEvaluator : public SecondaryVariableFieldEvaluator {
+
+class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
-  ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other);
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<ManningCoefPartition> get_models() { return models_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key ld_key_;
   Key pd_key_;
   Teuchos::RCP<ManningCoefPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ManningCoefficientLitterEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ManningCoefficientLitterEvaluator> reg_;
 
 };
 
-  
+
 // Non-member factory
 Teuchos::RCP<ManningCoefPartition>
 createManningCoefPartition(Teuchos::ParameterList& plist);
 
-  
+
 } //namespace
 } //namespace
 } //namespace

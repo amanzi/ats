@@ -40,6 +40,7 @@ void Transport_ATS::InitializeAll_()
   if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
 
   num_aqueous = plist_->get<int>("number of aqueous components", component_names_.size());
+  num_advect = plist_->get<int>("number of aqueous components advected", num_aqueous);
   num_gaseous = plist_->get<int>("number of gaseous components", 0);
 
   if (plist_->isSublist("material properties")) {
@@ -88,9 +89,9 @@ void Transport_ATS::InitializeAll_()
   // statistics of solutes
   if (plist_->isParameter("runtime diagnostics: solute names")) {
     runtime_solutes_ = plist_->get<Teuchos::Array<std::string> >("runtime diagnostics: solute names").toVector();
-  } else {
-    runtime_solutes_.push_back(component_names_[0]);
-    if (num_gaseous > 0) runtime_solutes_.push_back(component_names_[num_aqueous]);
+    if (runtime_solutes_.size() == 1 && runtime_solutes_[0] == "all") {
+      runtime_solutes_ = component_names_;
+    }
   }
   mass_solutes_exact_.assign(num_aqueous + num_gaseous, 0.0);
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);

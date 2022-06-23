@@ -10,7 +10,7 @@ Authors: Ethan Coon (ecoon@lanl.gov)
 namespace Amanzi {
 namespace Flow {
 
-void IcyOverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
+void IcyOverlandFlow::SetupPhysicalEvaluators_() {
   // ensure that the overland conductivity uses the unfrozen ponded depth
   // -- set the height key to be eta * h, not just h, for the frozen case.
   //AMANZI_ASSERT(plist_->isSublist("overland conductivity evaluator") || plist_->isSublist("overland conductivity subgrid evaluator"));
@@ -31,7 +31,7 @@ void IcyOverlandFlow::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   } 
   
   // Now continue as usual for overland head
-  OverlandPressureFlow::SetupPhysicalEvaluators_(S);
+  OverlandPressureFlow::SetupPhysicalEvaluators_();
 }
 
 } // namespace

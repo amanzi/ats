@@ -17,44 +17,39 @@ namespace Relations {
 
 // Constructor from ParameterList
 PlantWiltingFactorEvaluator::PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
+  Tag tag = my_keys_.front().second;
   // Set up my dependencies
   // - defaults to prefixed via domain
-  domain_sub_ = Keys::getDomain(my_key_);
+  domain_sub_ = Keys::getDomain(my_keys_.front().first);
   domain_surf_ = Keys::readDomainHint(plist_, domain_sub_, "domain", "surface");
 
   // - pull Keys from plist
   pc_key_ = Keys::readKey(plist_, domain_sub_, "capillary pressure", "capillary_pressure_gas_liq");
-  dependencies_.insert(pc_key_);
+  dependencies_.insert(KeyTag{pc_key_, tag});
 }
 
+
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 PlantWiltingFactorEvaluator::Clone() const
 {
   return Teuchos::rcp(new PlantWiltingFactorEvaluator(*this));
 }
 
 
-
 void
-PlantWiltingFactorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+PlantWiltingFactorEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  if (models_.size() == 0) {
-    land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
-            {"stomata_closed_mafic_potential", "stomata_open_mafic_potential"});
-    for (const auto& lc : land_cover_) {
-      models_[lc.first] = Teuchos::rcp(new PlantWiltingFactorModel(lc.second));
-    }
-  }
+  Tag tag = my_keys_.front().second;
 
-  const Epetra_MultiVector& pc_v = *S->GetFieldData(pc_key_)->ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result->ViewComponent("cell",false);
+  const Epetra_MultiVector& pc_v = *S.Get<CompositeVector>(pc_key_, tag).ViewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell",false);
 
-  auto& subsurf_mesh = *S->GetMesh(domain_sub_);
-  auto& surf_mesh = *S->GetMesh(domain_surf_);
+  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
+  auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
     AmanziMesh::Entity_ID_List lc_ids;
@@ -71,15 +66,16 @@ PlantWiltingFactorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-PlantWiltingFactorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+PlantWiltingFactorEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
+  Tag tag = my_keys_.front().second;
   if (wrt_key == pc_key_) {
-    const Epetra_MultiVector& pc_v = *S->GetFieldData(pc_key_)->ViewComponent("cell", false);
-    Epetra_MultiVector& result_v = *result->ViewComponent("cell",false);
+    const Epetra_MultiVector& pc_v = *S.Get<CompositeVector>(pc_key_, tag).ViewComponent("cell", false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell",false);
 
-    auto& subsurf_mesh = *S->GetMesh(domain_sub_);
-    auto& surf_mesh = *S->GetMesh(domain_surf_);
+    auto& subsurf_mesh = *S.GetMesh(domain_sub_);
+    auto& surf_mesh = *S.GetMesh(domain_surf_);
 
     for (const auto& region_model : models_) {
       AmanziMesh::Entity_ID_List lc_ids;
@@ -95,6 +91,18 @@ PlantWiltingFactorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
   }
 }
 
+
+void PlantWiltingFactorEvaluator::EnsureCompatibility_ToDeps_(State& S)
+{
+  if (models_.size() == 0) {
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
+            {"stomata_closed_mafic_potential", "stomata_open_mafic_potential"});
+    for (const auto& lc : land_cover_) {
+      models_[lc.first] = Teuchos::rcp(new PlantWiltingFactorModel(lc.second));
+    }
+  }
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
+}
 
 } //namespace
 } //namespace

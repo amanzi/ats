@@ -33,28 +33,28 @@ from Jan et al WRR 2018.
 #define AMANZI_FLOWRELATIONS_FRACTIONAL_CONDUCTANCE_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace FlowRelations {
 
-class FractionalConductanceEvaluator : public SecondaryVariableFieldEvaluator {
+class FractionalConductanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   FractionalConductanceEvaluator(Teuchos::ParameterList& plist);
   FractionalConductanceEvaluator(const FractionalConductanceEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const override;
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
 private:
   Key mobile_depth_key_;
@@ -63,7 +63,7 @@ private:
   Key delta_ex_key_, delta_max_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,FractionalConductanceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,FractionalConductanceEvaluator> factory_;
 };
 
 } //namespace

@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,WRMPermafrostEvaluator> WRMPermafrostEvaluator::factory_("permafrost WRM");
+Utils::RegisteredFactory<Evaluator,WRMPermafrostEvaluator> WRMPermafrostEvaluator::factory_("permafrost WRM");
 
 } // namespace
 } // namespace

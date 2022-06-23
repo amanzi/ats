@@ -42,30 +42,31 @@ converts the flow law to water flux rather than volumetric flux.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class ManningConductivityModel;
 
-class OverlandConductivitySubgridEvaluator : public SecondaryVariableFieldEvaluator {
+class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   OverlandConductivitySubgridEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivitySubgridEvaluator(const OverlandConductivitySubgridEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const override;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<ManningConductivityModel> get_Model() { return model_; }
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
 
  protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
 private:
   Teuchos::RCP<ManningConductivityModel> model_;
@@ -78,7 +79,7 @@ private:
   Key frac_cond_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,OverlandConductivitySubgridEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,OverlandConductivitySubgridEvaluator> factory_;
 };
 
 } //namespace

@@ -26,38 +26,38 @@ class UpwindPotentialDifference : public Upwinding {
 
 public:
 
-  UpwindPotentialDifference(std::string pkname,
-                            std::string cell_coef,
-                            std::string face_coef,
-                            std::string potential,
-                            std::string overlap=std::string(""));
+  UpwindPotentialDifference(const std::string& pkname,
+                            const Tag& tag,
+                            const std::string& potential,
+                            const std::string& overlap=std::string(""));
 
-  void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null);
-
+  virtual void
+  Update(const CompositeVector& data,
+         CompositeVector& uw_data,
+         const State& S,
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const CompositeVector& potential,
         const CompositeVector& overlap,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+        CompositeVector& face_coef) const;
 
   virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
+  UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
                     const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
+  CoefficientLocation() const override { return "upwind: face"; }
 
  private:
 
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
+  Tag tag_;
   std::string potential_;
   std::string overlap_;
 };

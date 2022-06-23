@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace General {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,EosIdealGasEvaluator> EosIdealGasEvaluator::reg_("ideal gas equation of state");
+Utils::RegisteredFactory<Evaluator,EosIdealGasEvaluator> EosIdealGasEvaluator::reg_("ideal gas equation of state");
 
 } //namespace
 } //namespace

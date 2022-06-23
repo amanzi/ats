@@ -22,8 +22,7 @@ order.
 */
 
 
-#ifndef PKS_MPC_WEAKMPC_HH_
-#define PKS_MPC_WEAKMPC_HH_
+#pragma once
 
 #include "PK.hh"
 #include "mpc.hh"
@@ -34,22 +33,19 @@ class WeakMPC : public MPC<PK> {
 
 public:
 
-  WeakMPC(Teuchos::ParameterList& FElist,
-          const Teuchos::RCP<Teuchos::ParameterList>& plist,
+  WeakMPC(Teuchos::ParameterList& pk_tree,
+          const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
           const Teuchos::RCP<State>& S,
           const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~WeakMPC() = default;
-
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt();
+  virtual double get_dt() override;
 
   // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  virtual void set_dt(double dt);
+  virtual void set_dt(double dt) override;
 
 private:
   // factory registration
@@ -58,4 +54,3 @@ private:
 };
 } // close namespace Amanzi
 
-#endif

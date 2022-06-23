@@ -13,7 +13,6 @@ Explicit.
 #include "Teuchos_TimeMonitor.hpp"
 #include "PK.hh"
 #include "State.hh"
-#include "boost/algorithm/string.hpp"
 #include "pk_explicit_default.hh"
 
 namespace Amanzi {
@@ -21,7 +20,7 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Setup(const Teuchos::Ptr<State>& S) {
+void PK_Explicit_Default::Setup() {
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
 };
@@ -30,12 +29,12 @@ void PK_Explicit_Default::Setup(const Teuchos::Ptr<State>& S) {
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Initialize(const Teuchos::Ptr<State>& S) {
+void PK_Explicit_Default::Initialize() {
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
     // -- instantiate time stepper
     Teuchos::ParameterList& ti_plist = plist_->sublist("time integrator");
-    ti_plist.set("initial time", S->time());
+    ti_plist.set("initial time", S_->get_time());
     time_stepper_ = Teuchos::rcp(new Explicit_TI::RK<TreeVector>(*this, ti_plist, *solution_));
 
     solution_old_ = Teuchos::rcp(new TreeVector(*solution_));
@@ -52,15 +51,15 @@ bool PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
   Teuchos::OSTab out = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Advancing: t0 = " << S_inter_->time()
-               << " t1 = " << S_next_->time() << " h = " << dt << std::endl
+               << "Advancing: t0 = " << S_->get_time(tag_current_)
+               << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  State_to_Solution(S_inter_, *solution_old_);
-  State_to_Solution(S_next_, *solution_);
+  State_to_Solution(tag_current_, *solution_old_);
+  State_to_Solution(tag_next_, *solution_);
 
   // take a timestep
-  time_stepper_->TimeStep(S_inter_->time(), dt, *solution_old_, *solution_);
+  time_stepper_->TimeStep(S_->get_time(tag_current_), dt, *solution_old_, *solution_);
   return false;
 };
 

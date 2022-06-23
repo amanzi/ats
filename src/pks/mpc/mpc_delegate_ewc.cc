@@ -8,7 +8,7 @@ Author: Ethan Coon
 Interface for EWC, a helper class that does projections and preconditioners in
 energy/water-content space instead of temperature/pressure space.
 ------------------------------------------------------------------------- */
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "ewc_model.hh"
 #include "mpc_delegate_ewc.hh"
 
@@ -19,8 +19,9 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Constructor
 // -----------------------------------------------------------------------------
-MPCDelegateEWC::MPCDelegateEWC(Teuchos::ParameterList& plist) :
-    plist_(Teuchos::rcpFromRef(plist)) {
+MPCDelegateEWC::MPCDelegateEWC(Teuchos::ParameterList& plist, const Teuchos::RCP<State>& S) :
+    plist_(Teuchos::rcpFromRef(plist)),
+    S_(S) {
   // set up the VerboseObject
   std::string name = plist_->get<std::string>("PK name")+std::string(" EWC");
   vo_ = Teuchos::rcp(new VerboseObject(name, *plist_));
@@ -29,7 +30,7 @@ MPCDelegateEWC::MPCDelegateEWC(Teuchos::ParameterList& plist) :
 // -----------------------------------------------------------------------------
 // Allocate any data or models required.
 // -----------------------------------------------------------------------------
-void MPCDelegateEWC::setup(const Teuchos::Ptr<State>& S) {
+void MPCDelegateEWC::setup() {
   // Verbosity
   std::string name = plist_->get<std::string>("PK name")+std::string(" EWC");
 
@@ -37,9 +38,9 @@ void MPCDelegateEWC::setup(const Teuchos::Ptr<State>& S) {
   Key domain = plist_->get<std::string>("domain name", "");
 
   if (domain.size() != 0) {
-    mesh_ = S->GetMesh(domain);
+    mesh_ = S_->GetMesh(domain);
   } else {
-    mesh_ = S->GetMesh("domain");
+    mesh_ = S_->GetMesh("domain");
   }
 
   // set up a debugger
@@ -102,13 +103,13 @@ void MPCDelegateEWC::setup(const Teuchos::Ptr<State>& S) {
 // -----------------------------------------------------------------------------
 // Initialize any data required in setup.
 // -----------------------------------------------------------------------------
-void MPCDelegateEWC::initialize(const Teuchos::Ptr<State>& S) {
+void MPCDelegateEWC::initialize() {
   // Create and initialize old stored data for previous steps.
 
   if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
-    const Epetra_MultiVector& wc = *S->GetFieldData(wc_key_)
+    const Epetra_MultiVector& wc = *S_->GetPtr<CompositeVector>(wc_key_, tag_next_)
         ->ViewComponent("cell",false);
-    const Epetra_MultiVector& e = *S->GetFieldData(e_key_)
+    const Epetra_MultiVector& e = *S_->GetPtr<CompositeVector>(e_key_, tag_next_)
         ->ViewComponent("cell",false);
 
     wc_prev2_ = Teuchos::rcp(new Epetra_MultiVector(wc));
@@ -116,7 +117,7 @@ void MPCDelegateEWC::initialize(const Teuchos::Ptr<State>& S) {
     wc_prev2_->PutScalar(0.);
     e_prev2_->PutScalar(0.);
 
-    time_prev2_ = S->time();
+    time_prev2_ = S_->get_time(tag_next_);
   }
 
   // initialize the Jacobian
@@ -126,32 +127,26 @@ void MPCDelegateEWC::initialize(const Teuchos::Ptr<State>& S) {
   }
 
   // initialize the model, which grabs all needed models from state
-  model_->InitializeModel(S, *plist_);
+  model_->InitializeModel(S_.ptr(), tag_next_, *plist_);
 }
 
 
 // -----------------------------------------------------------------------------
-// Set state pointers.
+// Set state tags.
 // -----------------------------------------------------------------------------
-void MPCDelegateEWC::set_states(const Teuchos::RCP<State>& S,
-        const Teuchos::RCP<State>& S_inter,
-        const Teuchos::RCP<State>& S_next) {
-  S_= S;
-  S_inter_ = S_inter;
-  S_next_ = S_next;
-}
+void MPCDelegateEWC::set_tags(const Tag& tag_current, const Tag& tag_next)
+  { tag_current_ = tag_current; tag_next_ = tag_next; }
 
 
 // -----------------------------------------------------------------------------
 // Save info from previous iterations if needed.
 // -----------------------------------------------------------------------------
-void MPCDelegateEWC::commit_state(double dt, const Teuchos::RCP<State>& S) {
-  if ((predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC)
-      && S_inter_ != Teuchos::null) {
+void MPCDelegateEWC::commit_state() {
+  if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
     // stash water content and energy in S_work.
-    *wc_prev2_ = *S_inter_->GetFieldData(wc_key_)->ViewComponent("cell",false);
-    *e_prev2_ = *S_inter_->GetFieldData(e_key_)->ViewComponent("cell",false);
-    time_prev2_ = S_inter_->time();
+    *wc_prev2_ = *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell",false);
+    *e_prev2_ = *S_->Get<CompositeVector>(e_key_, tag_current_).ViewComponent("cell",false);
+    time_prev2_ = S_->get_time(tag_current_);
   }
 }
 
@@ -161,7 +156,7 @@ void MPCDelegateEWC::commit_state(double dt, const Teuchos::RCP<State>& S) {
 // -----------------------------------------------------------------------------
 bool MPCDelegateEWC::ModifyPredictor(double h, Teuchos::RCP<TreeVector> up) {
   bool modified = false;
-  double dt_prev = S_inter_->time() - time_prev2_;
+  double dt_prev = S_->get_time(tag_current_) - time_prev2_;
 
   if (predictor_type_ == PREDICTOR_EWC) {
     if (dt_prev > 0.) {
@@ -203,28 +198,29 @@ int MPCDelegateEWC::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teucho
 
 
 void MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, double h) {
-  Key dedT_key = Keys::getKey(e_key_, temp_key_);
-  S_next_->GetFieldEvaluator(e_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
-  const Epetra_MultiVector& dedT = *S_next_->GetFieldData(dedT_key)
+
+  S_->GetEvaluator(e_key_, tag_next_)
+      .UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
+  const Epetra_MultiVector& dedT =
+  *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, temp_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dedp_key = Keys::getKey(e_key_, pres_key_);
-  S_next_->GetFieldEvaluator(e_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
-  const Epetra_MultiVector& dedp = *S_next_->GetFieldData(dedp_key)
+  S_->GetEvaluator(e_key_, tag_next_)
+      .UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
+  const Epetra_MultiVector& dedp =
+  *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dwcdT_key = Keys::getKey(wc_key_, temp_key_);
-  S_next_->GetFieldEvaluator(wc_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", temp_key_);
-  const Epetra_MultiVector& dwcdT = *S_next_->GetFieldData(dwcdT_key)
+  S_->GetEvaluator(wc_key_, tag_next_)
+      .UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
+  const Epetra_MultiVector& dwcdT =
+  *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_)
       ->ViewComponent("cell",false);
 
-  Key dwcdp_key = Keys::getKey(wc_key_, pres_key_);
-  S_next_->GetFieldEvaluator(wc_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), "ewc", pres_key_);
-  const Epetra_MultiVector& dwcdp = *S_next_->GetFieldData(dwcdp_key)
+  S_->GetEvaluator(wc_key_, tag_next_)
+      .UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
+  const Epetra_MultiVector& dwcdp =
+  *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, pres_key_, tag_next_)
       ->ViewComponent("cell",false);
 
   int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);

@@ -6,7 +6,7 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 ------------------------------------------------------------------------- */
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "enthalpy_evaluator.hh"
 #include "thermal_conductivity_threephase_evaluator.hh"
 #include "energy_three_phase.hh"
@@ -15,38 +15,37 @@ namespace Amanzi {
 namespace Energy {
 
 // -------------------------------------------------------------
-// Create the physical evaluators for water content, water
-// retention, rel perm, etc, that are specific to Richards.
+// Constructor
 // -------------------------------------------------------------
-void ThreePhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
-  // Get data and evaluators needed by the PK
-  // -- energy, the conserved quantity
+ThreePhase::ThreePhase(Teuchos::ParameterList& FElist,
+                       const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                       const Teuchos::RCP<State>& S,
+                       const Teuchos::RCP<TreeVector>& solution) :
+    PK(FElist, plist, S, solution),
+    TwoPhase(FElist, plist, S, solution) {}
 
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
-
+// -------------------------------------------------------------
+// Create the physical evaluators for energy and thermal conductivity
+// -------------------------------------------------------------
+void ThreePhase::SetupPhysicalEvaluators_()
+{
   // -- thermal conductivity
-  S->RequireField(conductivity_key_)->SetMesh(mesh_)
-    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  Teuchos::ParameterList tcm_plist =
-    plist_->sublist("thermal conductivity evaluator");
-  tcm_plist.set("evaluator name", conductivity_key_);
-  Teuchos::RCP<Energy::ThermalConductivityThreePhaseEvaluator> tcm =
-    Teuchos::rcp(new Energy::ThermalConductivityThreePhaseEvaluator(tcm_plist));
-  S->SetFieldEvaluator(conductivity_key_, tcm);
-
+  // move evaluator from PK plist to State
+  if (plist_->isSublist("thermal conductivity evaluator")) {
+    auto& tcm_plist = S_->GetEvaluatorList(conductivity_key_);
+    tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
+    tcm_plist.set("evaluator type", "three-phase thermal conductivity");
+  }
+  EnergyBase::SetupPhysicalEvaluators_();
 }
 
 void
-ThreePhase::Initialize(const Teuchos::Ptr<State>& S) {
+ThreePhase::Initialize() {
   // INTERFROST comparison needs some very specialized ICs
-  Teuchos::ParameterList& ic_plist = plist_->sublist("initial condition");
-  if (ic_plist.isParameter("interfrost initial condition")) {
-    std::string interfrost_ic = ic_plist.get<std::string>("interfrost initial condition");
-    AMANZI_ASSERT(interfrost_ic == "TH3");
-
-    Teuchos::RCP<CompositeVector> temp = S->GetFieldData(key_, name_);
+  if (plist_->sublist("initial condition").isParameter("interfrost initial condition")) {
+    AMANZI_ASSERT(plist_->sublist("initial condition")
+      .get<std::string>("interfrost initial condition") == "TH3");
+    Teuchos::RCP<CompositeVector> temp = S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
     double r_sq = std::pow(0.5099,2);
     Epetra_MultiVector& temp_c = *temp->ViewComponent("cell", false);
     for (int c = 0; c!=temp_c.MyLength(); ++c) {
@@ -61,14 +60,13 @@ ThreePhase::Initialize(const Teuchos::Ptr<State>& S) {
       }
     }
 
-    Teuchos::RCP<Field> field = S->GetField(key_, name_);
-    field->set_initialized();
+    S_->GetRecordW(key_, tag_next_, name_).set_initialized();
 
     // additionally call Initalize() to get faces from cell values
-    field->Initialize(ic_plist);
+    S_->GetRecordW(key_, tag_next_, name_).Initialize(plist_->sublist("initial condition"));
   }
 
-  TwoPhase::Initialize(S);
+  EnergyBase::Initialize();
 }
 
 

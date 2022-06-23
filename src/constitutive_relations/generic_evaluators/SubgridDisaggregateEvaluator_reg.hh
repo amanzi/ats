@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,SubgridDisaggregateEvaluator> SubgridDisaggregateEvaluator::factory_("subgrid disaggregate evaluator");
+Utils::RegisteredFactory<Evaluator,SubgridDisaggregateEvaluator> SubgridDisaggregateEvaluator::factory_("subgrid disaggregate evaluator");
 
 } // namespace
 } // namespace

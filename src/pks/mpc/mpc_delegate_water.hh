@@ -81,17 +81,17 @@ class MPCDelegateWater {
 
  public:
 
-  MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist, std::string domain=" ");
+  MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                   const Teuchos::RCP<State>& S,
+                   const std::string& domain="domain");
 
   void set_db(const Teuchos::RCP<Debugger>& db) { db_ = db; }
 
   void
-  set_states(const Teuchos::RCP<State>& S,
-             const Teuchos::RCP<State>& S_inter,
-             const Teuchos::RCP<State>& S_next) {
-    S_= S;
-    S_inter_ = S_inter;
-    S_next_ = S_next;
+  set_tags(const Tag& tag_current,
+           const Tag& tag_next) {
+    tag_current_ = tag_current;
+    tag_next_ = tag_next;
   }
 
   void set_indices(int i_pdomain, int i_psurf) {
@@ -152,9 +152,9 @@ protected:
   Teuchos::RCP<Debugger> db_;
 
   // states
-  Teuchos::RCP<State> S_next_;
-  Teuchos::RCP<State> S_inter_;
-  Teuchos::RCP<const State> S_;
+  Teuchos::RCP<State> S_;
+  Tag tag_current_;
+  Tag tag_next_;
 
   // predictor fixes
   bool modify_predictor_heuristic_;

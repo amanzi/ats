@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,SubgridAggregateEvaluator> SubgridAggregateEvaluator::factory_("subgrid aggregate evaluator");
+Utils::RegisteredFactory<Evaluator,SubgridAggregateEvaluator> SubgridAggregateEvaluator::factory_("subgrid aggregate evaluator");
 
 } // namespace
 } // namespace

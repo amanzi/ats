@@ -13,7 +13,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 EosIdealGasEvaluator::EosIdealGasEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("eos_ideal_gas parameters");
   model_ = Teuchos::rcp(new EosIdealGasModel(sublist));
@@ -23,14 +23,14 @@ EosIdealGasEvaluator::EosIdealGasEvaluator(Teuchos::ParameterList& plist) :
 
 // Copy constructor
 EosIdealGasEvaluator::EosIdealGasEvaluator(const EosIdealGasEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     temp_key_(other.temp_key_),
     pres_key_(other.pres_key_),    
     model_(other.model_) {}
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 EosIdealGasEvaluator::Clone() const
 {
   return Teuchos::rcp(new EosIdealGasEvaluator(*this));

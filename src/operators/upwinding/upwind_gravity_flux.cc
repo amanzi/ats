@@ -18,45 +18,40 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindGravityFlux::UpwindGravityFlux(std::string pkname,
-        std::string cell_coef,
-        std::string face_coef,
-        const Teuchos::RCP<std::vector<WhetStone::Tensor> > K) :
-    pkname_(pkname),
-    cell_coef_(cell_coef),
-    face_coef_(face_coef),
+UpwindGravityFlux:: UpwindGravityFlux(const std::string& pkname,
+        const Tag& tag,
+        const Teuchos::RCP<std::vector<WhetStone::Tensor> > K)
+  : pkname_(pkname),
+    tag_(tag),
     K_(K) {};
 
 
-void UpwindGravityFlux::Update(const Teuchos::Ptr<State>& S,
-                               const Teuchos::Ptr<Debugger>& db) {
-
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const Epetra_Vector> g_vec = S->GetConstantVectorData("gravity");
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-  CalculateCoefficientsOnFaces(*cell, *g_vec, face.ptr());
+void
+UpwindGravityFlux::Update(const CompositeVector& cells,
+                          CompositeVector& faces,
+                          const State& S,
+                          const Teuchos::Ptr<Debugger>& db) const
+{
+  const auto& g_vec = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  CalculateCoefficientsOnFaces(cells, g_vec, faces);
 };
 
 
 void UpwindGravityFlux::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Epetra_Vector& g_vec,
-        const Teuchos::Ptr<CompositeVector>& face_coef) {
-
+        const AmanziGeometry::Point& gravity,
+        CompositeVector& face_coef) const
+{
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> dirs;
   double flow_eps = 1.e-10;
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
-
-  // set up gravity
-  AmanziGeometry::Point gravity(g_vec.MyLength());
-  for (int i=0; i!=g_vec.MyLength(); ++i) gravity[i] = g_vec[i];
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  face_coef->ViewComponent("face",true)->PutScalar(0.0);
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  face_coef.ViewComponent("face",true)->PutScalar(0.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
@@ -68,7 +63,7 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   // communicate ghosted cells
   cell_coef.ScatterMasterToGhosted("cell");
 
-  Epetra_MultiVector& face_coef_v = *face_coef->ViewComponent("face",true);
+  Epetra_MultiVector& face_coef_v = *face_coef.ViewComponent("face",true);
   const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent("cell",true);
 
 

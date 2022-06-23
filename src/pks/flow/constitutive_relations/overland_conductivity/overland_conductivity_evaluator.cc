@@ -14,9 +14,10 @@ namespace Amanzi {
 namespace Flow {
 
 OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterList& plist)
-    : SecondaryVariableFieldEvaluator(plist)
+    : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Key domain = Keys::getDomain(my_key_);
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   if (plist_.isParameter("height key") ||
       plist_.isParameter("ponded depth key") ||
@@ -27,14 +28,16 @@ OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterL
     Errors::Message message("OverlandConductivity: only use \"mobile depth key\" or \"mobile depth key suffix\", not \"height key\" or \"ponded depth key\" or \"depth key\".");
     Exceptions::amanzi_throw(message);
   }
+
+
   mobile_depth_key_ = Keys::readKey(plist_, domain, "mobile depth", "ponded_depth");
-  dependencies_.insert(mobile_depth_key_);
+  dependencies_.insert(KeyTag{mobile_depth_key_, tag});
 
   slope_key_ = Keys::readKey(plist_, domain, "slope", "slope_magnitude");
-  dependencies_.insert(slope_key_);
+  dependencies_.insert(KeyTag{slope_key_, tag});
 
   coef_key_ = Keys::readKey(plist_, domain, "coefficient", "manning_coefficient");
-  dependencies_.insert(coef_key_);
+  dependencies_.insert(KeyTag{coef_key_, tag});
 
   dt_swe_factor_ = plist_.get<double>("dt factor [s]", -1);
   if (dt_swe_factor_ > 0) {
@@ -45,7 +48,7 @@ OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterL
   dens_ = plist_.get<bool>("include density", true);
   if (dens_) {
     dens_key_ = Keys::readKey(plist_, domain, "molar density liquid", "molar_density_liquid");
-    dependencies_.insert(dens_key_);
+    dependencies_.insert(KeyTag{dens_key_, tag});
   }
 
   // create the model
@@ -54,20 +57,21 @@ OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterL
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 OverlandConductivityEvaluator::Clone() const
 {
   return Teuchos::rcp(new OverlandConductivityEvaluator(*this));
 }
 
 
-// Required methods from SecondaryVariableFieldEvaluator
-void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+// Required methods from EvaluatorSecondaryMonotypeCV
+void OverlandConductivityEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(mobile_depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
+  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
+  Teuchos::RCP<const CompositeVector> coef = S.GetPtr<CompositeVector>(coef_key_, tag);
 
 #ifdef ENABLE_DBC
   double min_coef = 1.;
@@ -83,8 +87,8 @@ void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // not-cells.  These vectors are used in a wierd way on boundary faces,
   // getting the internal cell and using that.  This currently cannot be used
   // on any other components than "cell" and "boundary_face".
-  const AmanziMesh::Mesh& mesh = *result->Mesh();
-  for (const auto& comp : *result) {
+  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
+  for (const auto& comp : *result[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
@@ -93,9 +97,9 @@ void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp,false);
 
     const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp,false);
 
-    int ncomp = result->size(comp, false);
+    int ncomp = result[0]->size(comp, false);
     if (dt_swe_factor_ > 0) {
       for (int i=0; i!=ncomp; ++i) {
         int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
@@ -110,7 +114,7 @@ void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
 
     if (dens_) {
-      const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+      const Epetra_MultiVector& dens_v = *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp,false);
       for (int i=0; i!=ncomp; ++i) result_v[0][i] *= dens_v[0][i];
     }
   }
@@ -118,18 +122,20 @@ void OverlandConductivityEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+OverlandConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
   // NOTE, we can only differentiate with respect to quantities that exist on
   // all entities, not just cell entities.
-  Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(mobile_depth_key_);
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_key_);
-  Teuchos::RCP<const CompositeVector> coef = S->GetFieldData(coef_key_);
-  const AmanziMesh::Mesh& mesh = *result->Mesh();
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
+  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
+  Teuchos::RCP<const CompositeVector> coef = S.GetPtr<CompositeVector>(coef_key_, tag);
+
+  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
   if (wrt_key == mobile_depth_key_) {
-    for (const auto& comp : *result) {
+    for (const auto& comp : *result[0]) {
       AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
@@ -138,9 +144,9 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
       const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp,false);
 
       const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp,false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp,false);
 
-      int ncomp = result->size(comp, false);
+      int ncomp = result[0]->size(comp, false);
       if (dt_swe_factor_ > 0.) {
         for (int i=0; i!=ncomp; ++i) {
           int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
@@ -156,7 +162,7 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
       }
 
       if (dens_) {
-        const Epetra_MultiVector& dens_v = *S->GetFieldData(dens_key_)->ViewComponent(comp,false);
+        const Epetra_MultiVector& dens_v = *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp,false);
         for (int i=0; i!=ncomp; ++i) {
           result_v[0][i] *= dens_v[0][i];
         }
@@ -165,7 +171,8 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(dens_);
-    for (const auto& comp : *result) {
+
+    for (const auto& comp : *result[0]) {
       AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
@@ -174,9 +181,9 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
       const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp,false);
 
       const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp,false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp,false);
 
-      int ncomp = result->size(comp, false);
+      int ncomp = result[0]->size(comp, false);
       if (dt_swe_factor_ > 0.) {
         for (int i=0; i!=ncomp; ++i) {
           int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
@@ -192,29 +199,24 @@ OverlandConductivityEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
     }
 
   } else {
-    result->PutScalar(0.);
+    // FIX ME -- need to add derivatives of conductivity model wrt slope, coef --etc
+    result[0]->PutScalar(0.);
   }
 }
 
 
-void OverlandConductivityEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+void OverlandConductivityEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // Ensure my field exists.  Requirements should be already set.
-  AMANZI_ASSERT(my_key_ != std::string(""));
-  Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(my_key_, my_key_);
-
-  // check plist for vis or checkpointing control
-  bool io_my_key = plist_.get<bool>("visualize", true);
-  S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-  bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-  S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
+  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(
+    my_keys_.front().first, my_keys_.front().second);
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac->Mesh() != Teuchos::null) {
+  if (my_fac.Mesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac =
-        Teuchos::rcp(new CompositeVectorSpace(*my_fac));
+        Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
@@ -228,25 +230,14 @@ void OverlandConductivityEvaluator::EnsureCompatibility(const Teuchos::Ptr<State
     }
 
     // Loop over my dependencies, ensuring they meet the requirements.
-    for (const auto& key : dependencies_) {
-      if (key == my_key_) {
-        Errors::Message msg;
-        msg << "Evaluator for key \"" << my_key_ << "\" depends upon itself.";
-        Exceptions::amanzi_throw(msg);
-      }
-
-      if (key == coef_key_ || key == slope_key_) {
-        Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
-        fac->Update(*no_bf_dep_fac);
+    for (const auto& key_tag : dependencies_) {
+      if (key_tag.first == coef_key_ || key_tag.first == slope_key_) {
+        S.Require<CompositeVector, CompositeVectorSpace>(key_tag.first, key_tag.second)
+          .Update(*no_bf_dep_fac);
       } else {
-        Teuchos::RCP<CompositeVectorSpace> fac = S->RequireField(key);
-        fac->Update(*dep_fac);
+        S.Require<CompositeVector, CompositeVectorSpace>(key_tag.first, key_tag.second)
+          .Update(*dep_fac);
       }
-    }
-
-    // Recurse into the tree to propagate info to leaves.
-    for (const auto& key : dependencies_) {
-      S->RequireFieldEvaluator(key)->EnsureCompatibility(S);
     }
   }
 }

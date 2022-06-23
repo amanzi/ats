@@ -51,11 +51,11 @@ class IcyOverlandFlow : public OverlandPressureFlow {
     OverlandPressureFlow(pk_tree, global_list, S, solution) {}
 
   // Virtual destructor
-  virtual ~IcyOverlandFlow() {}
+  virtual ~IcyOverlandFlow() override {}
 
  protected:
   // setup methods
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_() override;
 
  private:
   // factory registration

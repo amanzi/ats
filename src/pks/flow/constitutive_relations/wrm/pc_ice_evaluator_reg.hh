@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,PCIceEvaluator> PCIceEvaluator::factory_("capillary pressure, water over ice");
+Utils::RegisteredFactory<Evaluator,PCIceEvaluator> PCIceEvaluator::factory_("capillary pressure, water over ice");
 
 } // namespace
 } // namespace

@@ -1,16 +1,16 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (coonet@ornl.gov)
+*/
 
 /*
-  A base three-phase, thermal Richard's equation with water, water vapor, and
-  ice for permafrost applications.
 
-  Note that the only difference between permafrost and richards is in
-  constitutive relations -- the WRM changes to provide three saturations,
-  while the water content changes to account for water in ice phase.  As these
-  are now drop-in field evaluators, there is very little to change in the PK.
+A three-phase flow PK based on the Interfrost code comparison.
 
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
 #ifndef PK_FLOW_INTERFROST_HH_
@@ -45,17 +45,17 @@ public:
     Permafrost(FElist, plist, S, solution) {}
 
   // Virtual destructor
-  virtual ~Interfrost() {}
+  virtual ~Interfrost() override {}
 
   // -- accumulation term
   virtual void UpdatePreconditioner(double t,
-          Teuchos::RCP<const TreeVector> up, double h);
+          Teuchos::RCP<const TreeVector> up, double h) override;
 
 protected:
-  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
+  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) override;
 
   // Create of physical evaluators.
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_() override;
 
 private:
   // factory registration

@@ -34,37 +34,72 @@ public:
 
   // main methods
   // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
 
-  // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new,  const Teuchos::RCP<State>& S) {}
+  // // -- Commit any secondary (dependent) variables.
+  // virtual void CommitStep(double t_old, double t_new,  );
 
   // -- Calculate any diagnostics prior to doing vis
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {}
+  virtual void CalculateDiagnostics(const Tag& tag) override {}
 
-  virtual void set_dt(double dt) {}
-  virtual double get_dt() {return dt_;}
+  virtual void set_dt(double dt) override {
+    AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4);
+  }
+  virtual double get_dt() override { return dt_; }
 
-  // Advance PK from time t_old to time t_new. True value of the last 
+  // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms
-  // that may need PK's attention. 
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
-  
+  // that may need PK's attention.
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
+
+ protected:
+  void SetupDependencies_(const Tag& tag);
+  void InitializeCLM_(const Tag& tag);
+  void InitializePrimaryVariables_(const Tag& tag);
 
  protected:
   Key domain_ss_;
-  Teuchos::RCP<const AmanziMesh::Mesh> subsurf_mesh_;
-
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_wsource_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> pvfe_w_sub_source_;
+  Key domain_snow_;
+  Key domain_can_;
 
   double dt_;
-  double my_next_time_;
-  
+
+  Key surf_water_src_key_;
+  Key ss_water_src_key_;
+
+  Key met_sw_key_;
+  Key met_lw_key_;
+  Key met_air_temp_key_;
+  Key met_rel_hum_key_;
+  Key met_wind_speed_key_;
+  Key met_prain_key_;
+  Key met_psnow_key_;
+
+  Key qE_lh_key_;
+  Key qE_sh_key_;
+  Key qE_lw_out_key_;
+  Key qE_cond_key_;
+
+  Key snow_swe_key_;
+  Key can_wc_key_;
+  Key surf_temp_key_;
+  Key soil_temp_key_;
+  Key can_temp_key_;
+
+  Key pres_key_;
+  Key poro_key_;
+  Key sl_key_;
+
+  Key sand_frac_key_;
+  Key silt_frac_key_;
+  Key clay_frac_key_;
+  Key color_index_key_;
+  Key pft_index_key_;
+
  private:
   // factory registration
   static RegisteredPKFactory<SurfaceBalanceCLM> reg_;
