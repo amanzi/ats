@@ -45,7 +45,8 @@ Some additional parameters are available.
    KEYS:
 
    - `"rel perm`"
-   - `"saturation`"
+   - `"saturation_liquid`"
+   - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
@@ -57,22 +58,14 @@ Some additional parameters are available.
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "rel_perm_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-enum class BoundarySutraIceRelPerm {
-  BOUNDARY_PRESSURE,
-  INTERIOR_PRESSURE,
-  HARMONIC_MEAN,
-  ARITHMETIC_MEAN,
-  ONE,
-  SURF_REL_PERM
-};
-
-class RelPermSutraIceEvaluator : public SecondaryVariableFieldEvaluator {
+class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -83,19 +76,20 @@ class RelPermSutraIceEvaluator : public SecondaryVariableFieldEvaluator {
                    const Teuchos::RCP<WRMPartition>& wrms);
 
   RelPermSutraIceEvaluator(const RelPermSutraIceEvaluator& other) = default;
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -110,14 +104,14 @@ class RelPermSutraIceEvaluator : public SecondaryVariableFieldEvaluator {
 
   bool is_dens_visc_;
   Key surf_domain_;
-  BoundarySutraIceRelPerm boundary_krel_;
+  BoundaryRelPerm boundary_krel_;
 
   double perm_scale_;
   double min_val_;
   double omega_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RelPermSutraIceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,RelPermSutraIceEvaluator> factory_;
 };
 
 } //namespace

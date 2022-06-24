@@ -45,7 +45,7 @@ Some additional parameters are available.
    KEYS:
 
    - `"rel perm`"
-   - `"saturation`"
+   - `"saturation_liquid`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")

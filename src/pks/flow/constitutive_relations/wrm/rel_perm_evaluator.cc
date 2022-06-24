@@ -14,8 +14,8 @@ namespace Flow {
 
 RelPermEvaluator::RelPermEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist),
-    min_val_(0.) {
-
+    min_val_(0.)
+{
   AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("WRM parameters");
   wrms_ = createWRMPartition(sublist);
@@ -270,67 +270,9 @@ void RelPermEvaluator::EvaluatePartialDerivative_(const State& S,
       //                                    ->ViewComponent("boundary_face",false);
       Epetra_MultiVector& res_bf = *result[0]->ViewComponent("boundary_face",false);
 
-      // it is unclear that this is used -- in fact it probably isn't --etc
+      // it is unclear that this is used -- in fact it probably isn't -- so we
+      // just set it to zero --etc
       res_bf.PutScalar(0.);
-      // Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-      // const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-      // const Epetra_Map& face_map = mesh->face_map(false);
-
-      // // Evaluate the model to calculate krel.
-      // AmanziMesh::Entity_ID_List cells;
-      // int nbfaces = res_bf.MyLength();
-      // for (unsigned int bf=0; bf!=nbfaces; ++bf) {
-      //   // given a boundary face, we need the internal cell to choose the right WRM
-      //   AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      //   mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      //   AMANZI_ASSERT(cells.size() == 1);
-
-      //   int index = (*wrms_->first)[cells[0]];
-
-      //   double krel;
-      //   if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
-      //     krelb = std::max(wrms_->second[index]->d_k_relative(sat_bf[0][bf]),min_val_);
-      //     kreli = std::max(wrms_->second[index]->d_k_relative(sat_c[0][cells[0]]), min_val_);
-      //     krel = 1.0 / (1.0/krelb + 1.0/kreli);
-      //   } else if (boundary_krel_ == BoundaryRelPerm::ARITHMETIC_MEAN) {
-      //     krelb = std::max(wrms_->second[index]->d_k_relative(sat_bf[0][bf]),min_val_);
-      //     kreli = std::max(wrms_->second[index]->d_k_relative(sat_c[0][cells[0]]), min_val_);
-      //     krel = (krelb + kreli)/2.0;
-      //   } else if (boundary_krel_ == BoundaryRelPerm::INTERIOR_PRESSURE) {
-      //     krel = wrms_->second[index]->d_k_relative(sat_c[0][cells[0]]);
-      //   } else if (boundary_krel_ == BoundaryRelPerm::ONE) {
-      //     krel = 1.;
-      //   } else {
-      //     krel = wrms_->second[index]->d_k_relative(sat_bf[0][bf]);
-      //   }
-      // }
-
-
-      //   res_bf[0][bf] = wrms_->second[index]->d_k_relative(sat_bf[0][bf]);
-      //   AMANZI_ASSERT(res_bf[0][bf] >= 0.);
-      // }
-    }
-
-    // Patch k_rel with surface rel perm values
-    if (boundary_krel_ == BoundaryRelPerm::SURF_REL_PERM) {
-      const Epetra_MultiVector& surf_kr = *S.GetPtr<CompositeVector>(surf_rel_perm_key_, tag)
-          ->ViewComponent("cell",false);
-      Epetra_MultiVector& res_bf = *result[0]->ViewComponent("boundary_face",false);
-
-      Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = S.GetMesh(surf_domain_);
-      Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-      const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-      const Epetra_Map& face_map = mesh->face_map(false);
-
-      unsigned int nsurf_cells = surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-      for (unsigned int sc=0; sc!=nsurf_cells; ++sc) {
-        // need to map from surface quantity on cells to subsurface boundary_face quantity
-        AmanziMesh::Entity_ID f = surf_mesh->entity_get_parent(AmanziMesh::CELL, sc);
-        AmanziMesh::Entity_ID bf = vandelay_map.LID(face_map.GID(f));
-
-        //        res_bf[0][bf] = std::max(surf_kr[0][sc], min_val_);
-        res_bf[0][bf] = 0.;
-      }
     }
 
     // Potentially scale quantities by dens / visc
@@ -344,26 +286,10 @@ void RelPermEvaluator::EvaluatePartialDerivative_(const State& S,
       for (unsigned int c=0; c!=ncells; ++c) {
         res_c[0][c] *= dens_c[0][c] / visc_c[0][c];
       }
-
-      // Potentially scale boundary faces.
-      if (result[0]->HasComponent("boundary_face")) {
-        const Epetra_MultiVector& dens_bf = *S.GetPtr<CompositeVector>(dens_key_, tag)
-            ->ViewComponent("boundary_face",false);
-        const Epetra_MultiVector& visc_bf = *S.GetPtr<CompositeVector>(visc_key_, tag)
-            ->ViewComponent("boundary_face",false);
-        Epetra_MultiVector& res_bf = *result[0]->ViewComponent("boundary_face",false);
-
-        // Evaluate the evaluator to calculate sat.
-        int nbfaces = res_bf.MyLength();
-        for (unsigned int bf=0; bf!=nbfaces; ++bf) {
-          res_bf[0][bf] *= dens_bf[0][bf] / visc_bf[0][bf];
-        }
-      }
     }
 
     // rescale as neeeded
     result[0]->Scale(1./perm_scale_);
-
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);
@@ -428,7 +354,6 @@ void RelPermEvaluator::EvaluatePartialDerivative_(const State& S,
   } else {
     AMANZI_ASSERT(0);
   }
-
 }
 
 
