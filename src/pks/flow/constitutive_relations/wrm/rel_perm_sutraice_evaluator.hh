@@ -46,46 +46,42 @@ Some additional parameters are available.
 
    - `"rel perm`"
    - `"saturation_liquid`"
+   - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
 
 */
 
-#ifndef AMANZI_FLOWRELATIONS_REL_PERM_EVALUATOR_
-#define AMANZI_FLOWRELATIONS_REL_PERM_EVALUATOR_
+#ifndef AMANZI_FLOWRELATIONS_REL_PERM_SUTRAICE_EVALUATOR_
+#define AMANZI_FLOWRELATIONS_REL_PERM_SUTRAICE_EVALUATOR_
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
+#include "rel_perm_evaluator.hh"
 #include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-enum class BoundaryRelPerm {
-  BOUNDARY_PRESSURE,
-  INTERIOR_PRESSURE,
-  HARMONIC_MEAN,
-  ARITHMETIC_MEAN,
-  ONE,
-  SURF_REL_PERM
-};
-
-class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
+class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   explicit
-  RelPermEvaluator(Teuchos::ParameterList& plist);
-  RelPermEvaluator(Teuchos::ParameterList& plist,
+  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist);
+
+  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist,
                    const Teuchos::RCP<WRMPartition>& wrms);
-  RelPermEvaluator(const RelPermEvaluator& other) = default;
+
+  RelPermSutraIceEvaluator(const RelPermSutraIceEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
+
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
@@ -100,6 +96,8 @@ class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   Teuchos::RCP<WRMPartition> wrms_;
   Key sat_key_;
+  Key sat_gas_key_;
+  Key sat_ice_key_;
   Key dens_key_;
   Key visc_key_;
   Key surf_rel_perm_key_;
@@ -110,9 +108,10 @@ class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   double perm_scale_;
   double min_val_;
+  double omega_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RelPermEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,RelPermSutraIceEvaluator> factory_;
 };
 
 } //namespace
