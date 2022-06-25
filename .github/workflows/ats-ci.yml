@@ -19,7 +19,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: amanzi/amanzi
-        ref: konstantin/state
+        ref: master
         submodules: true
     - name: Extract the Amanzi branch name
       id: amanzi_branch
