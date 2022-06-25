@@ -172,7 +172,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
                              const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
-  const Relations::ModelParams params;
+  const Relations::ModelParams params(plist_);
 
   // collect met data
   const auto& qSW_in = *S.Get<CompositeVector>(met_sw_key_, tag).ViewComponent("cell",false);
@@ -276,6 +276,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
         surf.ponded_depth = 0.; // by definition
@@ -343,6 +344,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
         surf.ponded_depth = std::max(lc.second.water_transition_depth,
@@ -411,6 +413,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
         surf.ponded_depth = 0; // does not matter
