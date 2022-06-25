@@ -154,6 +154,7 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
+  AMANZI_ASSERT(wind_speed_ref_ht_ > 0.);
 }
 
 void

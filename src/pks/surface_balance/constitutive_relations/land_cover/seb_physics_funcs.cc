@@ -232,7 +232,7 @@ double ConductedHeatIfSnow(double ground_temp,
     // adjust for frost hoar
     density = 1. / ((0.90/density) + (0.10/150));
   }
-  double Ks = snow.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
+  double Ks = params.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
   return Ks * (snow.temp - ground_temp) / snow.height;
 }
 
@@ -249,7 +249,7 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQlwOut = OutgoingLongwaveRadiation(snow.temp, snow.emissivity);
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), met.KB);
+  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), params.KB);
   double Sqig = StabilityFunction(met.air_temp, snow.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, snow.temp);
 
@@ -289,7 +289,6 @@ EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
     eb.error = eb.fQm;
     eb.fQm = 0.;
   }
-
   return eb;
 }
 
@@ -317,7 +316,7 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   }
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, met.KB);
+  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, params.KB);
   double Sqig = StabilityFunction(met.air_temp, surf.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe*Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
 

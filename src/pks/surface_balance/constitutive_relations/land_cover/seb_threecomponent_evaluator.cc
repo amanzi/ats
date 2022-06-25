@@ -165,8 +165,6 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
   AMANZI_ASSERT(wind_speed_ref_ht_ > 0.);
-  thermalK_freshsnow_ = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", 0.029);
-  KB_ = plist.get<double>("log ratio between z0m and z0h [-]", 0.);
 }
 
 void
@@ -174,7 +172,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
                              const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
-  const Relations::ModelParams params;
+  const Relations::ModelParams params(plist_);
 
   // collect met data
   const auto& qSW_in = *S.Get<CompositeVector>(met_sw_key_, tag).ViewComponent("cell",false);
@@ -205,8 +203,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
   const auto& sat_gas = *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell",false);
   const auto& poro = *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell",false);
   const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell",false);
-
-
 
   // collect output vecs
   auto& water_source = *results[0]->ViewComponent("cell",false);
@@ -265,7 +261,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
       // met data structure
       Relations::MetData met;
       met.Z_Us = wind_speed_ref_ht_;
-      met.KB = KB_;
       met.Us = std::max(wind_speed[0][c], min_wind_speed_);
       met.QswIn = qSW_in[0][c];
       met.QlwIn = qLW_in[0][c];
@@ -442,8 +437,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
         snow.albedo = surf.albedo;
         snow.emissivity = surf.emissivity;
         snow.roughness = lc.second.roughness_snow;
-        
-        snow.thermalK_freshsnow = thermalK_freshsnow_;
 
         const Relations::EnergyBalance eb = Relations::UpdateEnergyBalanceWithSnow(surf, met, params, snow);
         const Relations::MassBalance mb = Relations::UpdateMassBalanceWithSnow(surf, params, eb);

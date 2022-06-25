@@ -164,8 +164,6 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   double min_rel_hum_;       // relative humidity of 0 causes problems -- large evaporation
   double min_wind_speed_;       // wind speed of 0, under this model, would have 0 latent or sensible heat?
   double wind_speed_ref_ht_;    // reference height of the met data
-  double KB_;
-  double thermalK_freshsnow_;
 
   LandCoverMap land_cover_;
 
