@@ -14,7 +14,7 @@
     modelMethodDeclaration =   double EvaporativeFlux(double wc, double rho, double L) const;
     myKeyMethod = EvaporativeFlux
     myMethodArgs = wc_v[0][i], rho_v[0][i], L_v[0][i]
-    
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
@@ -22,7 +22,7 @@
 #define AMANZI_SURFACEBALANCE_EVAPORATIVE_FLUX_RELAXATION_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -30,34 +30,35 @@ namespace Relations {
 
 class EvaporativeFluxRelaxationModel;
 
-class EvaporativeFluxRelaxationEvaluator : public SecondaryVariableFieldEvaluator {
+class EvaporativeFluxRelaxationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  EvaporativeFluxRelaxationEvaluator(Teuchos::ParameterList& plist);
-  EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other);
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  explicit EvaporativeFluxRelaxationEvaluator(Teuchos::ParameterList& plist);
+  EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<EvaporativeFluxRelaxationModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
+
+ protected:
 
   Key wc_key_;
   Key rho_key_;
-  Key L_key_;
+  Key thickness_key_;
+  Key cv_key_;
 
   Teuchos::RCP<EvaporativeFluxRelaxationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EvaporativeFluxRelaxationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,EvaporativeFluxRelaxationEvaluator> reg_;
 
 };
 

@@ -95,20 +95,18 @@ class MPCDelegateEWC {
 
  public:
 
-  MPCDelegateEWC(Teuchos::ParameterList& plist);
+  MPCDelegateEWC(Teuchos::ParameterList& plist, const Teuchos::RCP<State>& S);
   virtual ~MPCDelegateEWC() = default;
 
-  virtual void setup(const Teuchos::Ptr<State>& S);
-  virtual void initialize(const Teuchos::Ptr<State>& S);
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
-  virtual void commit_state(double dt, const Teuchos::RCP<State>& S);
+  virtual void setup();
+  virtual void initialize();
+  virtual void commit_state();
   virtual bool ModifyPredictor(double h, Teuchos::RCP<TreeVector> up);
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
   void set_model(const Teuchos::RCP<EWCModel>& model) { model_ = model; }
+  void set_tags(const Tag& tag_current, const Tag& tag_next);
 
  protected:
   virtual bool modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up) = 0;
@@ -123,6 +121,11 @@ class MPCDelegateEWC {
   Teuchos::RCP<Teuchos::ParameterList> plist_;
   Teuchos::RCP<VerboseObject> vo_;
   Teuchos::RCP<Debugger> db_;
+
+  // states
+  Teuchos::RCP<State> S_;
+  Tag tag_current_;
+  Tag tag_next_;
 
   // model
   Teuchos::RCP<EWCModel> model_;
@@ -153,11 +156,6 @@ class MPCDelegateEWC {
   // parameters for heuristic
   double cusp_size_T_freezing_;
   double cusp_size_T_thawing_;
-
-  // states
-  Teuchos::RCP<State> S_next_;
-  Teuchos::RCP<State> S_inter_;
-  Teuchos::RCP<const State> S_;
 
   // keys
   Key pres_key_;

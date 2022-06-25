@@ -31,8 +31,21 @@ public:
   virtual double MassDensity(std::vector<double>& params) override;
   virtual double DMassDensityDT(std::vector<double>& params) override;
   virtual double DMassDensityDp(std::vector<double>& params) override;
+  virtual double DMassDensityDC(std::vector<double>& params) override {
+    return 0;
+  }
 
-private:
+  virtual bool IsConcentration() override {
+    return false;
+  }
+  virtual bool IsTemperature() override {
+    return true;
+  }
+  virtual bool IsPressure() override {
+    return true;
+  }
+
+ private:
   Teuchos::ParameterList eos_plist_;
 
   // constants for water, hard-coded because it would be crazy to try to come

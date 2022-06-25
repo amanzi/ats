@@ -45,7 +45,7 @@ Some additional parameters are available.
    KEYS:
 
    - `"rel perm`"
-   - `"saturation`"
+   - `"saturation_liquid`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
@@ -57,7 +57,7 @@ Some additional parameters are available.
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
@@ -72,30 +72,28 @@ enum class BoundaryRelPerm {
   SURF_REL_PERM
 };
 
-class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
+class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   explicit
   RelPermEvaluator(Teuchos::ParameterList& plist);
-
   RelPermEvaluator(Teuchos::ParameterList& plist,
                    const Teuchos::RCP<WRMPartition>& wrms);
-
   RelPermEvaluator(const RelPermEvaluator& other) = default;
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -114,7 +112,7 @@ class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
   double min_val_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RelPermEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,RelPermEvaluator> factory_;
 };
 
 } //namespace

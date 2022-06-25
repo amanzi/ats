@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,InterfrostDenergyDtemperatureEvaluator> InterfrostDenergyDtemperatureEvaluator::reg_("interfrost denergy_dtemperature");
+Utils::RegisteredFactory<Evaluator,InterfrostDenergyDtemperatureEvaluator> InterfrostDenergyDtemperatureEvaluator::reg_("interfrost denergy_dtemperature");
 
 } //namespace
 } //namespace

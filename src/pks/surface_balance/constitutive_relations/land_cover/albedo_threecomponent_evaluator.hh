@@ -39,32 +39,32 @@ Requires the use of LandCover types, for ground albedo and emissivity.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class AlbedoThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
+class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  AlbedoThreeComponentEvaluator(Teuchos::ParameterList& plist);
+  explicit AlbedoThreeComponentEvaluator(Teuchos::ParameterList& plist);
   AlbedoThreeComponentEvaluator(const AlbedoThreeComponentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new AlbedoThreeComponentEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
 
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key domain_;
@@ -82,7 +82,7 @@ class AlbedoThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,AlbedoThreeComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,AlbedoThreeComponentEvaluator> reg_;
 };
 
 } // namespace Relations

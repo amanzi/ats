@@ -8,12 +8,12 @@
 #define AMANZI_RELATIONS_RECIPROCAL_EVALUATOR_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class ReciprocalEvaluator : public SecondaryVariableFieldEvaluator {
+class ReciprocalEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -21,13 +21,15 @@ class ReciprocalEvaluator : public SecondaryVariableFieldEvaluator {
   ReciprocalEvaluator(Teuchos::ParameterList& plist);
   ReciprocalEvaluator(const ReciprocalEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  void EvaluateField_(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<CompositeVector>& result);
-  void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  void Evaluate_(const State& S,
+                 const std::vector<CompositeVector*>& result) override;
+  void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   double coef_;
@@ -35,7 +37,7 @@ class ReciprocalEvaluator : public SecondaryVariableFieldEvaluator {
   Key reciprocal_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ReciprocalEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,ReciprocalEvaluator> factory_;
 };
 
 } // namespace

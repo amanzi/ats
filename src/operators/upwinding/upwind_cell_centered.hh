@@ -13,6 +13,8 @@
 #ifndef AMANZI_UPWINDING_CELLCENTERED_SCHEME_
 #define AMANZI_UPWINDING_CELLCENTERED_SCHEME_
 
+#include "Key.hh"
+#include "Tag.hh"
 #include "upwinding.hh"
 
 namespace Amanzi {
@@ -23,29 +25,20 @@ class CompositeVector;
 namespace Operators {
 
 class UpwindCellCentered : public Upwinding {
+ public:
+  UpwindCellCentered(const std::string& pkname, const Tag& tag);
 
-public:
-
-  UpwindCellCentered(std::string pkname,
-                     std::string cell_coef,
-                     std::string face_coef);
-
-  void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null);
-
-
-  void CalculateCoefficientsOnFaces(
-        const CompositeVector& cell_coef,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   virtual std::string
-  CoefficientLocation() { return "standard: cell"; }
+  CoefficientLocation() const override { return "standard: cell"; }
 
 private:
-
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
+  Tag tag_;
 };
 
 } // namespace

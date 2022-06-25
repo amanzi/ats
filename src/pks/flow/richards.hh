@@ -190,8 +190,8 @@ Solves Richards equation:
       **DOMAIN-upwind_relative_permeability** upwinded (face-based) scalar
       coefficient of the permeability.  Note the units of this are strange, but
       this represents :math:`\frac{n_l k_r}{\mu}` ``[mol kg^-1 s^1 m^-2]``
-   - `"darcy flux key`" **DOMAIN-mass_flux** mass flux across a face ``[mol s^-1]``
-   - `"darcy flux direction key`" **DOMAIN-mass_flux_direction**
+   - `"darcy flux key`" **DOMAIN-water_flux** water flux across a face ``[mol s^-1]``
+   - `"darcy flux direction key`" **DOMAIN-water_flux_direction**
       direction of the darcy flux (used in upwinding :math:`k_r`) ``[??]``
    - `"darcy velocity key`" **DOMAIN-darcy_velocity** darcy velocity
       vector, interpolated from faces to cells ``[m s^-1]``
@@ -209,6 +209,7 @@ Solves Richards equation:
 #include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
+#include "EvaluatorPrimary.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
 #include "PK_Factory.hh"
@@ -219,7 +220,6 @@ namespace Amanzi {
 // forward declarations
 class MPCSubsurface;
 class PredictorDelegateBCFlux;
-class PrimaryVariableFieldEvaluator;
 namespace WhetStone { class Tensor; }
 
 namespace Flow {
@@ -233,71 +233,68 @@ public:
            const Teuchos::RCP<State>& S,
            const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
   virtual ~Richards() {}
 
-  // virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {CalculateDiagnostics(S);};
-
-  // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  // -- Set requirements of data and evaluators
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
-  // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  // -- Finalize a step as successful at the given tag.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
-  // -- limit changes in a valid time step
-  virtual bool ValidStep();
+  // -- Is the previous step valid
+  virtual bool ValidStep() override;
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
+  virtual void CalculateDiagnostics(const Tag& tag) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
   virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
+          Teuchos::RCP<TreeVector> u) override;
 
   // problems with pressures -- setting a range of admissible pressures
-  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up);
+  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
 protected:
   // Create of physical evaluators.
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
-  virtual void SetupRichardsFlow_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_();
+  virtual void SetupRichardsFlow_();
 
   // boundary condition members
-  void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr=true);
+  void ComputeBoundaryConditions_(const Tag& tag);
+  virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr=true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual void SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S);
+  virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
+  virtual bool UpdatePermeabilityData_(const Tag& tag);
+  virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
 
-  virtual void UpdateVelocity_(const Teuchos::Ptr<State>& S);
-  virtual void InitializeHydrostatic_(const Teuchos::Ptr<State>& S);
+  virtual void UpdateVelocity_(const Tag& tag);
+  virtual void InitializeHydrostatic_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
-  virtual void ApplyDiffusion_(const Teuchos::Ptr<State>& S,
+  virtual void ApplyDiffusion_(const Tag& tag,
           const Teuchos::Ptr<CompositeVector>& g);
 
-  // virtual void AddVaporDiffusionResidual_(const Teuchos::Ptr<State>& S,
+  // virtual void AddVaporDiffusionResidual_(const Tag& tag,
   //         const Teuchos::Ptr<CompositeVector>& g);
-  // virtual void ComputeVaporDiffusionCoef(const Teuchos::Ptr<State>& S,
+  // virtual void ComputeVaporDiffusionCoef(const Tag& tag,
   //                                        Teuchos::RCP<CompositeVector>& vapor_diff,
   //                                        std::string var_name);
 
@@ -305,9 +302,9 @@ protected:
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- Add any source terms into the residual.
-  virtual void AddSources_(const Teuchos::Ptr<State>& S,
+  virtual void AddSources_(const Tag& tag,
                            const Teuchos::Ptr<CompositeVector>& f);
-  virtual void AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h);
+  virtual void AddSourcesToPrecon_(double h);
 
   // Nonlinear version of CalculateConsistentFaces()
   // virtual void CalculateConsistentFacesForInfiltration_(
@@ -322,9 +319,9 @@ protected:
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du);
+                       Teuchos::RCP<TreeVector> du) override;
 
-  void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
+  // void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
 protected:
   // control switches
@@ -414,7 +411,7 @@ protected:
   Key mass_dens_key_;
   Key molar_dens_key_;
   Key perm_key_;
-  Key coef_key_, dcoef_key_;
+  Key coef_key_;
   Key uw_coef_key_, duw_coef_key_;
   Key flux_key_;
   Key flux_dir_key_;
@@ -425,9 +422,8 @@ protected:
   Key sat_key_;
   Key sat_gas_key_;
   Key sat_ice_key_;
-
-  // evaluator for flux, which is needed by other pks
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> flux_pvfe_;
+  Key capillary_pressure_gas_liq_key_;
+  Key capillary_pressure_liq_ice_key_;
 
 private:
   // factory registration

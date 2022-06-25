@@ -25,23 +25,27 @@ class EOS_SW : public EOS {
   virtual ~EOS_SW() {};
 
   // Virtual methods that form the EOS
-  virtual double MassDensity(std::vector<double>& params);
-  virtual double DMassDensityDC(std::vector<double>& params);  
-  virtual double DMassDensityDT(std::vector<double>& params);
-  virtual double DMassDensityDp(std::vector<double>& params);
+  virtual double MassDensity(std::vector<double>& params) override;
+  virtual double DMassDensityDC(std::vector<double>& params) override;
 
+  virtual double MolarDensity(std::vector<double>& params) override;
+  virtual double DMolarDensityDC(std::vector<double>& params) override;
 
-  virtual double MolarDensity(std::vector<double>& params);
-  virtual double DMolarDensityDC(std::vector<double>& params);  
-  virtual double DMolarDensityDT(std::vector<double>& params);
-  virtual double DMolarDensityDp(std::vector<double>& params);
-
+  virtual bool IsTemperature() override {
+    return true;
+  }
+  virtual bool IsPressure() override {
+    return true;
+  }
+  virtual bool IsConcentration() override {
+    return true;
+  }
 
   // If molar mass is constant, we can take some shortcuts if we need both
   // molar and mass densities.  MolarMass() is undefined if
   // !IsConstantMolarMass()
-  virtual bool IsConstantMolarMass(){return false;}
-  virtual double MolarMass() {AMANZI_ASSERT(0); return 0.0;}
+  virtual bool IsConstantMolarMass() override { return false; }
+  virtual double MolarMass() override { AMANZI_ASSERT(0); return 0.0; }
 
 protected:
   virtual void InitializeFromPlist_();
@@ -54,8 +58,6 @@ protected:
 
  private:
   static Utils::RegisteredFactory<EOS, EOS_SW> factory_;
-
-  
 };
 
 } // namespace

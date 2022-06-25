@@ -1,7 +1,7 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -11,7 +11,7 @@
 
 Water Retention Models (WRMs) determine the saturation as a function of
 pressure and the relative permeability as a function of saturation.  Most
-commonly used in practice is the van Genuchten model, but others are available.
+commonly used in practice is the van Genuchten model, but others are available default default;
 
 .. _wrm-evaluator-spec
 .. admonition:: wrm-evaluator-spec
@@ -35,13 +35,13 @@ commonly used in practice is the van Genuchten model, but others are available.
 
 #include "wrm_partition.hh"
 #include "wrm.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class WRMEvaluator : public SecondaryVariablesFieldEvaluator {
+class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -49,20 +49,24 @@ class WRMEvaluator : public SecondaryVariablesFieldEvaluator {
   WRMEvaluator(Teuchos::ParameterList& plist);
   WRMEvaluator(Teuchos::ParameterList& plist,
                const Teuchos::RCP<WRMPartition>& wrms);
-  WRMEvaluator(const WRMEvaluator& other);
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  WRMEvaluator(const WRMEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
   void InitializeFromPlist_();
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
+
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
  protected:
   Teuchos::RCP<WRMPartition> wrms_;
@@ -70,8 +74,8 @@ class WRMEvaluator : public SecondaryVariablesFieldEvaluator {
   Key cap_pres_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,WRMEvaluator> factory_;
-  static Utils::RegisteredFactory<FieldEvaluator,WRMEvaluator> factory2_;
+  static Utils::RegisteredFactory<Evaluator,WRMEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,WRMEvaluator> factory2_;
 
 };
 

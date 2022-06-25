@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  EOSFieldEvaluator is the interface between state/data and the model, an EOS.
+  EOSEvaluator is the interface between state/data and the model, an EOS.
 
   License: BSD
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -13,9 +11,8 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist) {
-
+void EOSEvaluator::ParsePlistKeys_()
+{
   // Process the list for my provided field.
   std::string mode = plist_.get<std::string>("EOS basis", "molar");
   if (mode == "molar") {
@@ -29,91 +26,132 @@ EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist) :
   }
 
   // my keys
-  Key name = plist_.get<std::string>("evaluator name");
+  AMANZI_ASSERT(my_keys_.size() > 0);
+  KeyTag key_tag = my_keys_.front();
+  my_keys_.clear();
+  Key key = key_tag.first;
+  Tag tag = key_tag.second;
+  Key domain = Keys::getDomain(key);
+  Key varname = Keys::getVarName(key);
+
   if (mode_ == EOS_MODE_MOLAR || mode_ == EOS_MODE_BOTH) {
-    std::size_t molar_pos = name.find("molar");
+    std::size_t molar_pos = varname.find("molar");
     if (molar_pos != std::string::npos) {
-      Key molar_key = plist_.get<std::string>("molar density key", name);
-      my_keys_.push_back(molar_key);
+      Key molar_key = Keys::readKey(plist_, domain, "molar density", varname);
+      my_keys_.emplace_back(KeyTag{molar_key, tag});
     } else {
-      std::size_t mass_pos = name.find("mass");
+      std::size_t mass_pos = varname.find("mass");
       if (mass_pos != std::string::npos) {
-        Key molar_key = name.substr(0,mass_pos)+"molar"+name.substr(mass_pos+4, name.size());
-        molar_key = plist_.get<std::string>("molar density key", molar_key);
-        my_keys_.push_back(molar_key);
+        Key molar_key = varname.substr(0,mass_pos)+"molar"+varname.substr(mass_pos+4, varname.size());
+        molar_key = Keys::readKey(plist_, domain, "molar density", molar_key);
+        my_keys_.emplace_back(KeyTag{molar_key, tag});
       } else {
-        Key molar_key = plist_.get<std::string>("molar density key");
-        my_keys_.push_back(molar_key);
+        Key molar_key = Keys::readKey(plist_, domain, "molar density");
+        my_keys_.emplace_back(KeyTag{molar_key, tag});
       }
     }
   }
 
   if (mode_ == EOS_MODE_MASS || mode_ == EOS_MODE_BOTH) {
-    std::size_t mass_pos = name.find("mass");
+    std::size_t mass_pos = varname.find("mass");
     if (mass_pos != std::string::npos) {
-      Key mass_key = plist_.get<std::string>("mass density key", name);
-      my_keys_.push_back(mass_key);
+      Key mass_key = Keys::readKey(plist_, domain, "mass density", varname);
+      my_keys_.emplace_back(KeyTag{mass_key, tag});
     } else {
-      std::size_t molar_pos = name.find("molar");
+      std::size_t molar_pos = varname.find("molar");
       if (molar_pos != std::string::npos) {
-        Key mass_key = name.substr(0,molar_pos)+"mass"+name.substr(molar_pos+5, name.size());
-        mass_key = plist_.get<std::string>("mass density key", mass_key);
-        my_keys_.push_back(mass_key);
+        Key mass_key = varname.substr(0,molar_pos)+"mass"+varname.substr(molar_pos+5, varname.size());
+        mass_key = Keys::readKey(plist_, domain, "mass density", mass_key);
+        my_keys_.emplace_back(KeyTag{mass_key, tag});
       } else {
-        Key mass_key = plist_.get<std::string>("mass density key");
-        my_keys_.push_back(mass_key);
+        Key mass_key = Keys::readKey(plist_, domain, "mass density");
+        my_keys_.emplace_back(KeyTag{mass_key, tag});
       }
     }
   }
+}
 
-  // Set up my dependencies.
-  Key domain_name = Keys::getDomain(name);
+void EOSEvaluator::ParsePlistTemp_()
+{
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
-  // -- logging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-    Teuchos::OSTab tab = vo_->getOSTab();
-    for (KeySet::const_iterator dep=dependencies_.begin();
-         dep!=dependencies_.end(); ++dep) {
-      *vo_->os() << " dep: " << *dep << std::endl;
-    }
-  }
+  // -- temperature
+  temp_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
+  dependencies_.insert(KeyTag{temp_key_, tag});
+}
+
+
+void EOSEvaluator::ParsePlistPres_()
+{
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
+
+  // -- pressure
+  pres_key_ = Keys::readKey(plist_, domain_name, "pressure", "pressure");
+  dependencies_.insert(KeyTag{pres_key_, tag});
+}
+
+
+void EOSEvaluator::ParsePlistConc_()
+{
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
+
+  // -- concentration
+  conc_key_ = Keys::readKey(plist_, domain_name, "concentration", "total_component_concentration");
+  dependencies_.insert(KeyTag{conc_key_, tag});
+}
+
+
+EOSEvaluator::EOSEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
+  ParsePlistKeys_();
 
   // Construct my EOS model
-  AMANZI_ASSERT(plist_.isSublist("EOS parameters"));
   EOSFactory eos_fac;
   eos_ = eos_fac.createEOS(plist_.sublist("EOS parameters"));
+
+  if (eos_->IsConcentration()) ParsePlistConc_();
+  if (eos_->IsTemperature()) ParsePlistTemp_();
+  if (eos_->IsPressure()) ParsePlistPres_();
+
+  // -- logging
+  if (vo_.os_OK(Teuchos::VERB_EXTREME)) {
+    Teuchos::OSTab tab = vo_.getOSTab();
+    for (const auto& dep : dependencies_) {
+      *vo_.os() << " dep: " << dep.first << "@" << dep.second << std::endl;
+    }
+  }
 };
 
 
-EOSEvaluator::EOSEvaluator(const EOSEvaluator& other) :
-    SecondaryVariablesFieldEvaluator(other),
-    eos_(other.eos_),
-    mode_(other.mode_)
- {}
-
-
-Teuchos::RCP<FieldEvaluator> EOSEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> EOSEvaluator::Clone() const
+{
   return Teuchos::rcp(new EOSEvaluator(*this));
 }
 
 
-void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-                         const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
-  
-  int num_dep = dependencies_.size();  
+void EOSEvaluator::Evaluate_(const State& S,
+                             const std::vector<CompositeVector*>& results)
+{
+  int num_dep = dependencies_.size();
   std::vector<double> eos_params(num_dep);
-  std::vector< Teuchos::RCP<const CompositeVector> > dep_cv(num_dep);
-  std::vector< Teuchos::RCP<const Epetra_MultiVector> > dep_vec(num_dep);
+  std::vector<const CompositeVector*> dep_cv;
+  std::vector<const Epetra_MultiVector*> dep_vec(num_dep, nullptr);
 
-  // Pull dependencies out of state.  
-  KeySet::const_iterator dep;
-  int k;
-  for (k=0, dep=dependencies_.begin();
-       dep!=dependencies_.end(); ++k, ++dep)  {
-    dep_cv[k] = S->GetFieldData(*dep);
-  }
+  // Pull dependencies out of state.
+  auto tag = my_keys_.front().second;
+  if (eos_->IsConcentration())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_, tag).get());
+  if (eos_->IsTemperature())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_, tag).get());
+  if (eos_->IsPressure())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_, tag).get());
 
-  Teuchos::Ptr<CompositeVector> molar_dens, mass_dens;
+  CompositeVector* molar_dens(nullptr);
+  CompositeVector* mass_dens(nullptr);
   if (mode_ == EOS_MODE_MOLAR) {
     molar_dens = results[0];
   } else if (mode_ == EOS_MODE_MASS) {
@@ -123,26 +161,27 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     mass_dens = results[1];
   }
 
-  if (molar_dens != Teuchos::null) {
+  if (molar_dens != nullptr) {
     // evaluate MolarDensity()
     for (CompositeVector::name_iterator comp=molar_dens->begin();
          comp!=molar_dens->end(); ++comp) {
-      for (k=0; k<num_dep; k++){
-        dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false);
+      for (int k=0; k<num_dep; k++){
+        dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false).get();
       }
-      
-      Epetra_MultiVector& dens_v = *(molar_dens->ViewComponent(*comp,false));
+
+      auto& dens_v = *(molar_dens->ViewComponent(*comp,false));
       int count = dens_v.MyLength();
       for (int id=0; id!=count; ++id) {
-        for (k=0; k<num_dep; k++) {
+        for (int k=0; k<num_dep; k++) {
           eos_params[k] = (*dep_vec[k])[0][id];
         }
         dens_v[0][id] = eos_->MolarDensity(eos_params);
+        AMANZI_ASSERT(dens_v[0][id] > 0);
       }
     }
   }
 
-  if (mass_dens != Teuchos::null) {
+  if (mass_dens != nullptr) {
     for (CompositeVector::name_iterator comp=mass_dens->begin();
          comp!=mass_dens->end(); ++comp) {
       if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
@@ -153,20 +192,20 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                 *molar_dens->ViewComponent(*comp,false), 0.);
       } else {
         // evaluate MassDensity() directly
-        for (k=0; k<num_dep; k++){
-          dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false);
+        for (int k=0; k<num_dep; k++){
+          dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false).get();
         }
-   
-        Epetra_MultiVector& dens_v = *(mass_dens->ViewComponent(*comp,false));
+
+        auto& dens_v = *(mass_dens->ViewComponent(*comp,false));
         int count = dens_v.MyLength();
         for (int id=0; id!=count; ++id) {
-          for (k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];  
+          for (int k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
           dens_v[0][id] = eos_->MassDensity(eos_params);
+          AMANZI_ASSERT(dens_v[0][id] > 0);
         }
       }
     }
   }
-
 
 #ifdef ENABLE_DBC
   for (const auto& vec : results) {
@@ -178,16 +217,116 @@ void EOSEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     }
   }
 #endif
-  
 }
 
 
-void EOSEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+void EOSEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results)
 {
-  Errors::Message msg("Derivative computation is missing for these EOSEvaluator");
-  Exceptions::amanzi_throw(msg);
+  int num_dep = dependencies_.size();
+  std::vector<double> eos_params(num_dep);
+  std::vector<const CompositeVector*> dep_cv;
+  std::vector<const Epetra_MultiVector*> dep_vec(num_dep, nullptr);
+
+  // Pull dependencies out of state.
+  auto tag = my_keys_.front().second;
+  if (eos_->IsConcentration())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_, tag).get());
+  if (eos_->IsTemperature())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_, tag).get());
+  if (eos_->IsPressure())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_, tag).get());
+
+  CompositeVector* molar_dens(nullptr);
+  CompositeVector* mass_dens(nullptr);
+  if (mode_ == EOS_MODE_MOLAR) {
+    molar_dens = results[0];
+  } else if (mode_ == EOS_MODE_MASS) {
+    mass_dens = results[0];
+  } else {
+    molar_dens = results[0];
+    mass_dens = results[1];
+  }
+
+  if (molar_dens != nullptr) {
+    // evaluate MolarDensity()
+    for (CompositeVector::name_iterator comp=molar_dens->begin();
+         comp!=molar_dens->end(); ++comp) {
+      for (int k=0; k<num_dep; k++){
+        dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false).get();
+      }
+
+      auto& dens_v = *(molar_dens->ViewComponent(*comp,false));
+      int count = dens_v.MyLength();
+
+      if (wrt_key == conc_key_) {
+        for (int id=0; id!=count; ++id) {
+          for (int k=0; k<num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
+          dens_v[0][id] = eos_->DMolarDensityDC(eos_params);
+        }
+      } else if (wrt_key == pres_key_) {
+        for (int id=0; id!=count; ++id) {
+          for (int k=0; k<num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
+          dens_v[0][id] = eos_->DMolarDensityDp(eos_params);
+        }
+      } else if (wrt_key == temp_key_) {
+        for (int id=0; id!=count; ++id) {
+          for (int k=0; k<num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
+          dens_v[0][id] = eos_->DMolarDensityDT(eos_params);
+        }
+      } else {
+        AMANZI_ASSERT(false);
+      }
+    }
+  }
+
+  if (mass_dens != nullptr) {
+    for (CompositeVector::name_iterator comp=mass_dens->begin();
+         comp!=mass_dens->end(); ++comp) {
+      if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
+          molar_dens->HasComponent(*comp)) {
+        // calculate MassDensity from MolarDensity and molar mass.
+        double M = eos_->MolarMass();
+        mass_dens->ViewComponent(*comp,false)->Update(M,
+                *molar_dens->ViewComponent(*comp,false), 0.);
+      } else {
+        // evaluate DMassDensity() directly
+        for (int k=0; k<num_dep; k++){
+          dep_vec[k] = dep_cv[k]->ViewComponent(*comp,false).get();
+        }
+
+        auto& dens_v = *(mass_dens->ViewComponent(*comp,false));
+        int count = dens_v.MyLength();
+
+        if (wrt_key == conc_key_) {
+          for (int id=0; id!=count; ++id) {
+            for (int k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
+            dens_v[0][id] = eos_->DMassDensityDC(eos_params);
+          }
+        } else if (wrt_key == pres_key_) {
+          for (int id=0; id!=count; ++id) {
+            for (int k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
+            dens_v[0][id] = eos_->DMassDensityDp(eos_params);
+          }
+        } else if (wrt_key == temp_key_) {
+          for (int id=0; id!=count; ++id) {
+            for (int k=0; k<num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
+            dens_v[0][id] = eos_->DMassDensityDT(eos_params);
+          }
+        } else {
+          AMANZI_ASSERT(false);
+        }
+      }
+    }
+  }
+
 }
 
 

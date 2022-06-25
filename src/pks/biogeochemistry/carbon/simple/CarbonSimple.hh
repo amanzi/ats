@@ -28,37 +28,31 @@ class CarbonSimple : public PK_Physical_Explicit_Default {
 
   // EnergyBase is a PK
   // -- Setup data
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
   // default ok?
-  // virtual void initialize(const Teuchos::Ptr<State>& S);
+  // virtual void initialize(const State& S);
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {};
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override {};
 
   // -- Calculate any diagnostics prior to doing vis
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S);
+  virtual void CalculateDiagnostics(const Tag& tag) override;
 
   // EnergyBase is a BDFFnBase
   // computes the non-linear functional f = f(t,u,udot)
-  virtual void FunctionalTimeDerivative(const double t, const TreeVector& u, TreeVector& f);
-
-  virtual std::string name(){return "carbon simple";};
+  virtual void FunctionalTimeDerivative(const double t, const TreeVector& u, TreeVector& f) override;
 
  protected:
+  virtual void ApplyDiffusion_(const Teuchos::Ptr<CompositeVector>& g);
+  virtual void AddSources_(const Teuchos::Ptr<CompositeVector>& g);
+  virtual void AddDecomposition_(const Teuchos::Ptr<CompositeVector>& g);
 
-  virtual void ApplyDiffusion_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& g);
-  virtual void AddSources_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& g);
-  virtual void AddDecomposition_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& g);
 
-  
  protected:
   int npools_;
-  
+
   Key cell_vol_key_;
 
   bool is_diffusion_;
@@ -73,13 +67,13 @@ class CarbonSimple : public PK_Physical_Explicit_Default {
  private:
   // factory registration
   static RegisteredPKFactory<CarbonSimple> reg_;
-  
+
 };
 
 
 } // namespace BGC
 } // namespace ATS
 
-  
 
-#endif  
+
+#endif

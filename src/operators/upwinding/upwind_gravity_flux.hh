@@ -29,29 +29,26 @@ class UpwindGravityFlux : public Upwinding {
 
 public:
 
-  UpwindGravityFlux(std::string pkname,
-                    std::string cell_coef,
-                    std::string face_coef,
+  UpwindGravityFlux(const std::string& pkname,
+                    const Tag& tag,
                     const Teuchos::RCP<std::vector<WhetStone::Tensor> > K);
 
-  void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null);
-
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        const Epetra_Vector& gravity,
-        const Teuchos::Ptr<CompositeVector>& face_coef);
+        const AmanziGeometry::Point& gravity,
+        CompositeVector& face_coef) const;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
+  CoefficientLocation() const override { return "upwind: face"; }
 
-private:
-
+ private:
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
-
+  Tag tag_;
   Teuchos::RCP<std::vector<WhetStone::Tensor> > K_;
 };
 

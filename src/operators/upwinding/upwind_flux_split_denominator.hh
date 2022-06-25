@@ -25,17 +25,18 @@ class UpwindFluxSplitDenominator : public Upwinding {
 
 public:
 
-  UpwindFluxSplitDenominator(std::string pkname,
-                             std::string cell_coef,
-                             std::string face_coef,
-                             std::string flux,
+  UpwindFluxSplitDenominator(const std::string& pkname,
+                             const Tag& tag,
+                             const std::string& flux,
+                             const std::string& slope,
+                             const std::string& manning_coef,
                              double flux_epsilon,
-                             std::string slope,
-                             std::string manning_coef,
                              double slope_regularization);
 
-  virtual void Update(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null);
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
 
   void CalculateCoefficientsOnFaces(
@@ -43,29 +44,19 @@ public:
         const CompositeVector& flux,
         const CompositeVector& slope,
         const CompositeVector& manning_coef,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db);
-
-  virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
-                    std::string potential_key,
-                    const CompositeVector& dconductivity,
-                    const std::vector<int>& bc_markers,
-                    const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
-  
-private:
+  CoefficientLocation() const override { return "upwind: face"; }
 
+private:
+  Tag tag_;
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
   std::string flux_;
-  double flux_eps_;
   std::string slope_;
   std::string manning_coef_;
+  double flux_eps_;
   double slope_regularization_;
   std::string ponded_depth_;
 };

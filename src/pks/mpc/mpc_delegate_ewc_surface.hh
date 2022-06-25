@@ -20,10 +20,8 @@ namespace Amanzi {
 class MPCDelegateEWCSurface : public MPCDelegateEWC {
  public:
 
-  MPCDelegateEWCSurface(Teuchos::ParameterList& plist) :
-      MPCDelegateEWC(plist) {
-    T_cutoff_ = plist_->get<double>("fully frozen temperature", 272.15);
-  }  
+  MPCDelegateEWCSurface(Teuchos::ParameterList& plist,
+                        const Teuchos::RCP<State>& S);
 
  protected:
   virtual bool modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up);

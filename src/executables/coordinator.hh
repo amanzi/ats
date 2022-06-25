@@ -110,19 +110,18 @@ public:
 
   // PK methods
   void setup();
-  double initialize(); // returns dt if a restarted run
+  void initialize();
   void finalize();
   void report_memory();
-  bool advance(double t_old, double t_new, double& dt_next);
+  bool advance();
   void visualize(bool force=false);
-  void checkpoint(double dt, bool force=false);
+  void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);
-  Teuchos::RCP<Amanzi::State> get_next_state() { return S_next_; }
 
   // one stop shopping
   void cycle_driver();
 
-private:
+ private:
   void coordinator_init();
   void read_parameter_list();
 
@@ -131,8 +130,6 @@ private:
 
   // states
   Teuchos::RCP<Amanzi::State> S_;
-  Teuchos::RCP<Amanzi::State> S_inter_;
-  Teuchos::RCP<Amanzi::State> S_next_;
   Teuchos::RCP<Amanzi::TreeVector> soln_;
 
   // time step manager

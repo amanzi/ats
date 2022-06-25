@@ -16,7 +16,7 @@ namespace Relations {
 
 // Constructor from ParameterList
 InterceptionFractionEvaluator::InterceptionFractionEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   Teuchos::ParameterList& sublist = plist_.sublist("interception fraction parameters");
   model_ = Teuchos::rcp(new InterceptionFractionModel(sublist));
@@ -25,7 +25,7 @@ InterceptionFractionEvaluator::InterceptionFractionEvaluator(Teuchos::ParameterL
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 InterceptionFractionEvaluator::Clone() const
 {
   return Teuchos::rcp(new InterceptionFractionEvaluator(*this));
@@ -36,45 +36,52 @@ InterceptionFractionEvaluator::Clone() const
 void
 InterceptionFractionEvaluator::InitializeFromPlist_()
 {
-  // Set up my dependencies
-  Key domain = Keys::getDomain(Keys::cleanPListName(plist_.name()));
+  Key akey = my_keys_.front().first;
+  Tag tag = my_keys_.front().second;
+  Key domain = Keys::getDomain(akey);
+  akey = Keys::getVarName(akey);
   Key domain_surf = Keys::readDomainHint(plist_, domain, "canopy", "surface");
   Key domain_snow = Keys::readDomainHint(plist_, domain, "canopy", "snow");
+  my_keys_.clear();
 
   // my keys
-  interception_key_ = Keys::readKey(plist_, domain, "interception", "interception");
-  my_keys_.push_back(interception_key_);
+  interception_key_ = Keys::in(akey, "interception") ? akey : "interception";
+  interception_key_ = Keys::readKey(plist_, domain, "interception", interception_key_);
+  my_keys_.emplace_back(KeyTag{interception_key_, tag});
 
-  throughfall_rain_key_ = Keys::readKey(plist_, domain, "throughfall and drainage rain", "throughfall_drainage_rain");
-  my_keys_.push_back(throughfall_rain_key_);
+  throughfall_rain_key_ = (Keys::in(akey, "rain") && Keys::in(akey, "throughfall")) ? akey : "throughfall_drainage_rain";
+  throughfall_rain_key_ = Keys::readKey(plist_, domain, "throughfall and drainage rain", throughfall_rain_key_);
+  my_keys_.emplace_back(KeyTag{throughfall_rain_key_, tag});
 
-  throughfall_snow_key_ = Keys::readKey(plist_, domain, "throughfall and drainage snow", "throughfall_drainage_snow");
-  my_keys_.push_back(throughfall_snow_key_);
+  throughfall_snow_key_ = (Keys::in(akey, "snow") && Keys::in(akey, "throughfall")) ? akey : "throughfall_drainage_snow";
+  throughfall_snow_key_ = Keys::readKey(plist_, domain, "throughfall and drainage snow", throughfall_snow_key_);
+  my_keys_.emplace_back(KeyTag{throughfall_snow_key_, tag});
 
   // - pull Keys from plist
   // dependency: surface-area_index
   ai_key_ = Keys::readKey(plist_, domain, "area index", "area_index");
-  dependencies_.insert(ai_key_);
+  dependencies_.insert(KeyTag{ai_key_, tag});
   rain_key_ = Keys::readKey(plist_, domain_surf, "precipitation rain", "precipitation_rain");
-  dependencies_.insert(rain_key_);
+  dependencies_.insert(KeyTag{rain_key_, tag});
   snow_key_ = Keys::readKey(plist_, domain_snow, "precipitation snow", "precipitation");
-  dependencies_.insert(snow_key_);
+  dependencies_.insert(KeyTag{snow_key_, tag});
   drainage_key_ = Keys::readKey(plist_, domain, "drainage", "drainage");
-  dependencies_.insert(drainage_key_);
+  dependencies_.insert(KeyTag{drainage_key_, tag});
   air_temp_key_ = Keys::readKey(plist_, domain_surf, "air temperature", "air_temperature");
-  dependencies_.insert(air_temp_key_);
+  dependencies_.insert(KeyTag{air_temp_key_, tag});
 }
 
 
 void
-InterceptionFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results)
+InterceptionFractionEvaluator::Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results)
 {
-  Teuchos::RCP<const CompositeVector> ai = S->GetFieldData(ai_key_);
-  Teuchos::RCP<const CompositeVector> rain = S->GetFieldData(rain_key_);
-  Teuchos::RCP<const CompositeVector> snow = S->GetFieldData(snow_key_);
-  Teuchos::RCP<const CompositeVector> drainage = S->GetFieldData(drainage_key_);
-  Teuchos::RCP<const CompositeVector> air_temp = S->GetFieldData(air_temp_key_);
+  Tag tag = my_keys_.front().second;
+  Teuchos::RCP<const CompositeVector> ai = S.GetPtr<CompositeVector>(ai_key_, tag);
+  Teuchos::RCP<const CompositeVector> rain = S.GetPtr<CompositeVector>(rain_key_, tag);
+  Teuchos::RCP<const CompositeVector> snow = S.GetPtr<CompositeVector>(snow_key_, tag);
+  Teuchos::RCP<const CompositeVector> drainage = S.GetPtr<CompositeVector>(drainage_key_, tag);
+  Teuchos::RCP<const CompositeVector> air_temp = S.GetPtr<CompositeVector>(air_temp_key_, tag);
 
   for (CompositeVector::name_iterator comp=results[0]->begin();
        comp!=results[0]->end(); ++comp) {
@@ -103,15 +110,17 @@ InterceptionFractionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-InterceptionFractionEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results)
+InterceptionFractionEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results)
 {
   if (wrt_key == drainage_key_) {
-    Teuchos::RCP<const CompositeVector> ai = S->GetFieldData(ai_key_);
-    Teuchos::RCP<const CompositeVector> rain = S->GetFieldData(rain_key_);
-    Teuchos::RCP<const CompositeVector> snow = S->GetFieldData(snow_key_);
-    Teuchos::RCP<const CompositeVector> drainage = S->GetFieldData(drainage_key_);
-    Teuchos::RCP<const CompositeVector> air_temp = S->GetFieldData(air_temp_key_);
+    Tag tag = my_keys_.front().second;
+    Teuchos::RCP<const CompositeVector> ai = S.GetPtr<CompositeVector>(ai_key_, tag);
+    Teuchos::RCP<const CompositeVector> rain = S.GetPtr<CompositeVector>(rain_key_, tag);
+    Teuchos::RCP<const CompositeVector> snow = S.GetPtr<CompositeVector>(snow_key_, tag);
+    Teuchos::RCP<const CompositeVector> drainage = S.GetPtr<CompositeVector>(drainage_key_, tag);
+    Teuchos::RCP<const CompositeVector> air_temp = S.GetPtr<CompositeVector>(air_temp_key_, tag);
 
     for (CompositeVector::name_iterator comp=results[0]->begin();
          comp!=results[0]->end(); ++comp) {

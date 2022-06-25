@@ -45,7 +45,7 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 
 #include "Debugger.hh"
 
-#include "primary_variable_field_evaluator.hh"
+#include "EvaluatorPrimary.hh"
 #include "PK.hh"
 #include "PK_Physical.hh"
 
@@ -62,18 +62,18 @@ class PK_Physical_Default : public PK_Physical {
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;
 
-  virtual bool ValidStep();
+  virtual bool ValidStep() override;
 
   // Tag the primary variable as changed in the DAG
-  virtual void ChangedSolutionPK(const Teuchos::Ptr<State>& S);
+  virtual void ChangedSolutionPK(const Tag& tag) override;
 
-  // -- setup
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
+  virtual void Initialize() override;
 
-  // -- initialize
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
- protected: // data
+ protected:
 
   // step validity
   double max_valid_change_;

@@ -35,33 +35,25 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   MPCSurface(Teuchos::ParameterList& pk_tree_list,
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                 const Teuchos::RCP<State>& S,
-                const Teuchos::RCP<TreeVector>& soln) :
-      PK(pk_tree_list, global_list, S, soln),
-      StrongMPC<PK_PhysicalBDF_Default>(pk_tree_list, global_list, S, soln)
-  {
-    dump_ = plist_->get<bool>("dump preconditioner", false);
-
-
-  }
+                const Teuchos::RCP<TreeVector>& soln);
 
   // -- Initialize owned (dependent) variables.
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
+  virtual void Initialize() override;
+  //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
 
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
+  // -- Commit any secondary (dependent) variables.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-
-  // update the predictor to be physically consistent
+  // -- Modify the predictor.
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up0,
-          Teuchos::RCP<TreeVector> up);
+          Teuchos::RCP<TreeVector> up) override;
 
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  // -- Update the preconditioner to be physically consistent
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
-  // preconditioner application
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  // -- Apply preconditioner to u and returns the result in Pu.
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner() { return preconditioner_; }
 
@@ -113,7 +105,7 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   Key potential_key_;
   Key pd_bar_key_;
   Key enth_key_;
-  Key mass_flux_key_;
+  Key water_flux_key_;
   Key rho_key_;
 
   // EWC delegate

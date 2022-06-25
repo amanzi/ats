@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -46,11 +46,11 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to
     * `"primary variable B`" ``[string]`` Key of the second sub-PK's primary variable.
     * `"no dA/dy2 block`" ``[bool]`` **false** Excludes the dA_c/dy2_c block above.
     * `"no dB/dy1 block`" ``[bool]`` **false** Excludes the dB_c/dy1_c block above.
-    
+
     INCLUDES:
 
     - ``[strong-mpc-spec]`` *Is a* StrongMPC_.
-    
+
 */
 
 #ifndef MPC_COUPLED_CELLS_HH_
@@ -73,17 +73,15 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
     PK(FElist, plist, S, solution),
     StrongMPC<PK_PhysicalBDF_Default>(FElist, plist, S, solution) {}
 
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
  protected:
-  Key dA_dy2_key_;
-  Key dB_dy1_key_;
   Key A_key_;
   Key y2_key_;
   Key B_key_;
@@ -93,7 +91,7 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
 
   Teuchos::RCP<Operators::PDE_Accumulation> dA_dy2_;
   Teuchos::RCP<Operators::PDE_Accumulation> dB_dy1_;
-  
+
   // cruft for easier global debugging
   Teuchos::RCP<Debugger> db_;
 

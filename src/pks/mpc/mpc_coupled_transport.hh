@@ -11,8 +11,7 @@
   PK for coupling of surface and subsurface transport PKs
 */
 
-#ifndef ATS_AMANZI_COUPLEDTRANSPORT_PK_HH_
-#define ATS_AMANZI_COUPLEDTRANSPORT_PK_HH_
+#pragma once
 
 #include "Teuchos_RCP.hpp"
 
@@ -23,54 +22,33 @@
 
 namespace Amanzi {
 
-  class CoupledTransport_PK: public WeakMPC{
-
+class MPCCoupledTransport: public WeakMPC {
   public:
-    CoupledTransport_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
-                     const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                     const Teuchos::RCP<State>& S,
-                     const Teuchos::RCP<TreeVector>& soln);
-    ~CoupledTransport_PK(){}
+  MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
+                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                      const Teuchos::RCP<State>& S,
+                      const Teuchos::RCP<TreeVector>& soln);
 
-    // PK methods
-    // -- dt is the minimum of the sub pks
-    virtual double get_dt();
-    virtual void Setup(const Teuchos::Ptr<State>& S);
+  // PK methods
+  virtual void Setup() override;
+  int get_num_aqueous_component();
 
-    // -- advance each sub pk from t_old to t_new.
-    virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-
-    std::string name() { return name_;}
-    int num_aqueous_component();
-
-  private:
-
-    void InterpolateCellVector(const Epetra_MultiVector& v0, const Epetra_MultiVector& v1,
-                               double dt_int, double dt, Epetra_MultiVector& v_int) ;
-
-    void ComputeVolumeDarcyFlux(const Teuchos::Ptr<State>& S);
-    void SetupCouplingConditions();
-
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh_, surf_mesh_;
-    std::string passwd_;
-
-    Teuchos::RCP<Teuchos::ParameterList> surface_transport_list_;
-    Teuchos::RCP<Teuchos::ParameterList> subsurface_transport_list_;
-    int subsurf_id_, surf_id_;
-
-    Key subsurface_tcc_key_, surface_tcc_key_;
-    Key subsurface_flux_key_, surface_flux_key_;
-    Key surface_name_, subsurface_name_;
-    Key mass_darcy_key, surf_mass_darcy_key;
-    Key mol_density_key, surf_mol_density_key;
+  // bug, see amanzi/ats#125
+  // Once that is fixed, remove this advance in favor of the default implementation.
+  bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
 
-    Teuchos::RCP<Transport::Transport_ATS> subsurf_pk_, surf_pk_;
+ protected:
+  void SetupCouplingConditions_();
 
-    // factory registration
-    static RegisteredPKFactory<CoupledTransport_PK> reg_;
+ protected:
+  Teuchos::RCP<Transport::Transport_ATS> pk_ss_, pk_surf_;
+  Key name_ss_, name_surf_;
+
+  // factory registration
+  static RegisteredPKFactory<MPCCoupledTransport> reg_;
 };
 
 }  // namespace Amanzi
 
-#endif
+

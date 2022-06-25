@@ -25,19 +25,20 @@ class UpwindFluxFOCont : public Upwinding {
 
 public:
 
-  UpwindFluxFOCont(std::string pkname,
-                             std::string cell_coef,
-                             std::string face_coef,
-                             std::string flux,
-                             std::string slope,
-                             std::string manning_coef,
-                             std::string elevation,
-                             double slope_regularization,
-                             double manning_exp);
+  UpwindFluxFOCont(const std::string& pkname,
+                   const Tag& tag,
+                   const Key& flux,
+                   const Key& slope,
+                   const Key& manning_coef,
+                   const Key& elevation,
+                   double slope_regularization,
+                   double manning_exp);
 
-  virtual void Update(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null);
-
+  virtual void
+  Update(const CompositeVector& data,
+         CompositeVector& uw_data,
+         const State& S,
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
@@ -45,25 +46,16 @@ public:
         const CompositeVector& slope,
         const CompositeVector& manning_coef,
         const CompositeVector& elevation,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db);
-
-  virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
-                    std::string potential_key,
-                    const CompositeVector& dconductivity,
-                    const std::vector<int>& bc_markers,
-                    const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
-  
+  CoefficientLocation() const override { return "upwind: face"; }
+
 private:
 
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
+  Tag tag_;
   std::string flux_;
   std::string slope_;
   std::string manning_coef_;

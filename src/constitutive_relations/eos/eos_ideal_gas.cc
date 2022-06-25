@@ -20,19 +20,19 @@ EOSIdealGas::EOSIdealGas(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_pli
 
 double EOSIdealGas::MolarDensity(std::vector<double>& params) {
   double T = params[0];
-  double p =  std::max(params[1], 101325.);  
+  double p =  std::max(params[1], 101325.);
   return p / (R_*T);
 };
 
 double EOSIdealGas::DMolarDensityDT(std::vector<double>& params) {
   double T = params[0];
-  double p = std::max(params[1], 101325.);  
+  double p = std::max(params[1], 101325.);
   return -p / (R_*T*T);
 };
 
 double EOSIdealGas::DMolarDensityDp(std::vector<double>& params) {
   double T = params[0];
-  double p = std::max(params[1], 101325.);  
+  double p = std::max(params[1], 101325.);
   return 1.0 / (R_*T);
 };
 

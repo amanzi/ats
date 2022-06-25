@@ -10,34 +10,32 @@
 #ifndef AMANZI_RELATIONS_OVERLAND_SOURCE_FROM_SUBSURFACE_FLUX_EVALUATOR_HH_
 #define AMANZI_RELATIONS_OVERLAND_SOURCE_FROM_SUBSURFACE_FLUX_EVALUATOR_HH_
 
-#include "FieldEvaluator_Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "Evaluator_Factory.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
 class OverlandSourceFromSubsurfaceFluxEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   OverlandSourceFromSubsurfaceFluxEvaluator(Teuchos::ParameterList& plist);
-
-  OverlandSourceFromSubsurfaceFluxEvaluator(const OverlandSourceFromSubsurfaceFluxEvaluator& other);
-
-  Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // custom ensure compatibility as all data is not just on the same components
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  OverlandSourceFromSubsurfaceFluxEvaluator(const OverlandSourceFromSubsurfaceFluxEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
 protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // custom ensure compatibility as all data is not just on the same components
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  void IdentifyFaceAndDirection_(const Teuchos::Ptr<State>& S);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
+  void IdentifyFaceAndDirection_(const State& S);
 
   typedef std::pair<int, double> FaceDir;
   Teuchos::RCP<std::vector<FaceDir> > face_and_dirs_;
@@ -46,11 +44,11 @@ protected:
   Key dens_key_;
   bool volume_basis_;
 
-  Key surface_mesh_key_;
-  Key subsurface_mesh_key_;
+  Key domain_surf_;
+  Key domain_sub_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,OverlandSourceFromSubsurfaceFluxEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,OverlandSourceFromSubsurfaceFluxEvaluator> fac_;
 
 };
 

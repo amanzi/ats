@@ -9,6 +9,10 @@ message(STATUS "\n-------------------------------------------")
 message(STATUS "\n-- CMake: Configuring ATS build/install.\n--")
 message(STATUS "----------------------------------------")
 project(ATS)
+
+# disable DEFAULT tag from State
+add_definitions(-DDISABLE_DEFAULT_TAG)
+
 add_subdirectory(src)
 add_subdirectory(testing)
 

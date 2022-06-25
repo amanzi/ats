@@ -33,22 +33,21 @@ class PK_Explicit_Default: public PK_Explicit<TreeVector> {
       PK_Explicit<TreeVector>(pk_tree, glist, S, solution) {}
 
   // Virtual destructor
-  virtual ~PK_Explicit_Default(){};
+  virtual ~PK_Explicit_Default() {};
 
   // Default implementations of PK methods.
   // -- setup
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- initialize
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
   // -- Choose a time step compatible with physics.
-  virtual double get_dt() { return dt_; }
-
-  virtual void set_dt(double dt) { dt_ = dt; }
+  virtual double get_dt() override { return dt_; }
+  virtual void set_dt(double dt) override { dt_ = dt; }
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
  protected: //data  timestep control
   double dt_;

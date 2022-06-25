@@ -11,7 +11,7 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 ------------------------------------------------------------------------- */
 
 #include "boost/math/special_functions/fpclassify.hpp"
-
+#include "pk_helpers.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
@@ -19,11 +19,11 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
+void PK_PhysicalBDF_Default::Setup()
 {
   // call the meat of the base constructurs via Setup methods
-  PK_Physical_Default::Setup(S);
-  PK_BDF_Default::Setup(S);
+  PK_Physical_Default::Setup();
+  PK_BDF_Default::Setup();
 
   // boundary conditions
   bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
@@ -32,17 +32,19 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   }
-  S->RequireField(conserved_key_)->SetMesh(mesh_)
-      ->AddComponent("cell",AmanziMesh::CELL,true);
-  S->RequireFieldEvaluator(conserved_key_);
+  requireAtNext(conserved_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->AddComponent("cell",AmanziMesh::CELL,true);
+  // we also use a copy of the conserved quantity, as this is a better choice in the error norm
+  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  // S_->RequireEvaluator(conserved_key_, tag_next_); // for the future...
 
   // cell volume used throughout
   if (cell_vol_key_.empty()) {
     cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
   }
-  S->RequireField(cell_vol_key_)->SetMesh(mesh_)
-      ->AddComponent("cell",AmanziMesh::CELL,true);
-  S->RequireFieldEvaluator(cell_vol_key_);
+  requireAtNext(cell_vol_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell",AmanziMesh::CELL,true);
 
   atol_ = plist_->get<double>("absolute error tolerance",1.0);
   rtol_ = plist_->get<double>("relative error tolerance",1.0);
@@ -54,13 +56,21 @@ void PK_PhysicalBDF_Default::Setup(const Teuchos::Ptr<State>& S)
 // initialize.  Note both BDFBase and PhysicalBase have initialize()
 // methods, so we need a unique overrider.
 // -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::Initialize(const Teuchos::Ptr<State>& S)
+void PK_PhysicalBDF_Default::Initialize()
 {
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // PhysicalBase grabs the primary variable and stuffs it into the solution,
   // which must be done prior to BDFBase initializing the timestepper.
-  PK_Physical_Default::Initialize(S);
-  PK_BDF_Default::Initialize(S);
+  PK_Physical_Default::Initialize();
+  PK_BDF_Default::Initialize();
+}
+
+
+int PK_PhysicalBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+        Teuchos::RCP<TreeVector> Pu)
+{
+  *Pu = *u;
+  return 0;
 }
 
 
@@ -73,11 +83,11 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // Abs tol based on old conserved quantity -- we know these have been vetted
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
-  S_inter_->GetFieldEvaluator(conserved_key_)->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& conserved = *S_inter_->GetFieldData(conserved_key_)
-      ->ViewComponent("cell",true);
-  const Epetra_MultiVector& cv = *S_inter_->GetFieldData(cell_vol_key_)
-      ->ViewComponent("cell",true);
+  //  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name()); // for the future...
+  const Epetra_MultiVector& conserved = *S_->Get<CompositeVector>(conserved_key_, tag_current_)
+      .ViewComponent("cell",true);
+  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
+      .ViewComponent("cell",true);
 
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
@@ -85,7 +95,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
     *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
-  double h = S_next_->time() - S_inter_->time();
+  double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
   Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
@@ -93,8 +103,7 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   const MPI_Comm& comm = mpi_comm_p->Comm();
 
   double enorm_val = 0.0;
-  for (CompositeVector::name_iterator comp=dvec->begin();
-       comp!=dvec->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=dvec->begin(); comp!=dvec->end(); ++comp) {
     double enorm_comp = 0.0;
     int enorm_loc = -1;
     const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
@@ -169,21 +178,22 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 };
 
 
-  // void PK_PhysicalBDF_Default::Solution_to_State(TreeVector& solution,
-  //                                                 const Teuchos::RCP<State>& S){
-  //   PK_Physical_Default::Solution_to_State(solution, S);
-  // }
+void
+PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
+{
+  PK_BDF_Default::CommitStep(t_old, t_new, tag);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag);
 
-  // void PK_PhysicalBDF_Default::Solution_to_State(const TreeVector& soln,
-  //                                                const Teuchos::RCP<State>& S){
-  //   TreeVector* soln_nc_ptr = const_cast<TreeVector*>(&soln);
-  //   PK_Physical_Default::Solution_to_State(soln_nc_ptr, S);
-  // }
+  // copy over conserved quantity
+  S_->Assign(conserved_key_, tag_current_, tag_next_);
+  // ChangedSolution(tag_current_);
+}
 
-void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<State>& S,
-                                        const Teuchos::RCP<State>& S_inter,
-                                        const Teuchos::RCP<State>& S_next) {
-  PK_Physical_Default::set_states(S, S_inter, S_next);
+
+void
+PK_PhysicalBDF_Default::FailStep(double t_old, double t_new, const Tag& tag)
+{
+  PK_Physical_Default::FailStep(t_old, t_new, tag);
 }
 
 
@@ -191,32 +201,13 @@ void PK_PhysicalBDF_Default::set_states(const Teuchos::RCP<State>& S,
 // Calling this indicates that the time integration scheme is changing the
 // value of the solution in state.
 // -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::ChangedSolution(const Teuchos::Ptr<State>& S) {
-  if (S == Teuchos::null) {
-    solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
-  } else if (S == S_next_.ptr()) {
-    if (!solution_evaluator_.get()) {
-      Teuchos::RCP<FieldEvaluator> fm = S_next_->GetFieldEvaluator(key_);
-      solution_evaluator_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
-      AMANZI_ASSERT(solution_evaluator_ != Teuchos::null);
-    }
-    solution_evaluator_->SetFieldAsChanged(S);
-  } else {
-    Teuchos::RCP<FieldEvaluator> fm = S->GetFieldEvaluator(key_);
-    Teuchos::RCP<PrimaryVariableFieldEvaluator> solution_evaluator =
-      Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fm);
-    AMANZI_ASSERT(solution_evaluator != Teuchos::null);
-    solution_evaluator->SetFieldAsChanged(S);
-  }
-};
-
-
-// -----------------------------------------------------------------------------
-// Calling this indicates that the time integration scheme is changing
-// the value of the solution in state.  This is the variant called by the TI.
-// -----------------------------------------------------------------------------
-void PK_PhysicalBDF_Default::ChangedSolution() {
-  solution_evaluator_->SetFieldAsChanged(Teuchos::null);
+void PK_PhysicalBDF_Default::ChangedSolution(const Tag& tag)
+{
+  Teuchos::RCP<Evaluator> fm = S_->GetEvaluatorPtr(key_, tag);
+  Teuchos::RCP<EvaluatorPrimaryCV> solution_evaluator =
+    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(fm);
+  AMANZI_ASSERT(solution_evaluator != Teuchos::null);
+  solution_evaluator->SetChanged();
 };
 
 } // namespace

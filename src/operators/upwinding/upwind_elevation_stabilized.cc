@@ -21,39 +21,40 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindElevationStabilized::UpwindElevationStabilized(const std::string& pkname,
-        const std::string& face_coef,
-        const std::string& slope,
-        const std::string& manning_coef,
-        const std::string& ponded_depth,
-        const std::string& elevation,
-        const std::string& density,
-        double slope_regularization,
-        double manning_exp) :
-  pkname_(pkname),
-  face_coef_(face_coef),
-  slope_(slope),
-  manning_coef_(manning_coef),
-  ponded_depth_(ponded_depth),
-  elevation_(elevation),
-  density_(density),
-  slope_regularization_(slope_regularization),
-  manning_exp_(manning_exp)
+UpwindElevationStabilized::UpwindElevationStabilized(
+  const std::string& pkname,
+  const Tag& tag,
+  const std::string& slope,
+  const std::string& manning_coef,
+  const std::string& ponded_depth,
+  const std::string& elevation,
+  const std::string& density,
+  double slope_regularization,
+  double manning_exp)
+  : pkname_(pkname),
+    tag_(tag),
+    slope_(slope),
+    manning_coef_(manning_coef),
+    ponded_depth_(ponded_depth),
+    elevation_(elevation),
+    density_(density),
+    slope_regularization_(slope_regularization),
+    manning_exp_(manning_exp)
 {}
 
 
-void UpwindElevationStabilized::Update(const Teuchos::Ptr<State>& S,
-                                        const Teuchos::Ptr<Debugger>& db)
+void UpwindElevationStabilized::Update(const CompositeVector& cells,
+        CompositeVector& faces,
+        const State& S,
+        const Teuchos::Ptr<Debugger>& db) const
 {
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
+  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_, tag_);
+  Teuchos::RCP<const CompositeVector> elev = S.GetPtr<CompositeVector>(elevation_, tag_);
+  Teuchos::RCP<const CompositeVector> pd = S.GetPtr<CompositeVector>(ponded_depth_, tag_);
+  Teuchos::RCP<const CompositeVector> manning_coef = S.GetPtr<CompositeVector>(manning_coef_, tag_);
+  Teuchos::RCP<const CompositeVector> density = S.GetPtr<CompositeVector>(density_, tag_);
 
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_);
-  Teuchos::RCP<const CompositeVector> elev = S->GetFieldData(elevation_);
-  Teuchos::RCP<const CompositeVector> pd = S->GetFieldData(ponded_depth_);
-  Teuchos::RCP<const CompositeVector> manning_coef = S->GetFieldData(manning_coef_);
-  Teuchos::RCP<const CompositeVector> density = S->GetFieldData(density_);
-
-  CalculateCoefficientsOnFaces(*slope, *manning_coef, *pd, *elev, *density, face.ptr(), db);
+  CalculateCoefficientsOnFaces(*slope, *manning_coef, *pd, *elev, *density, faces, db);
 };
 
 
@@ -63,14 +64,14 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
         const CompositeVector& ponded_depth,
         const CompositeVector& elevation,
         const CompositeVector& density,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db)
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const
 {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // communicate needed ghost values
@@ -81,7 +82,7 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
   density.ScatterMasterToGhosted("cell");
 
   // pull out vectors
-  Epetra_MultiVector& coef_faces = *face_coef->ViewComponent("face",false);
+  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face",false);
   const Epetra_MultiVector& slope_v = *slope.ViewComponent("cell",false);
   const Epetra_MultiVector& elev_v = *elevation.ViewComponent("cell",false);
   const Epetra_MultiVector& pd_v = *ponded_depth.ViewComponent("cell",false);
@@ -104,7 +105,7 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
   //
   // Note that the upwind value here is assumed to be the max of h+z.  This is
   // always true for FV, maybe not for MFD.
-  int nfaces = face_coef->size("face",false);
+  int nfaces = face_coef.size("face",false);
   for (int f=0; f!=nfaces; ++f) {
     AmanziMesh::Entity_ID_List fcells;
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
@@ -147,14 +148,5 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
 };
 
 
-void
-UpwindElevationStabilized::UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                                              const std::string& potential_key,
-                                              const CompositeVector& dconductivity,
-                                              const std::vector<int>& bc_markers,
-                                              const std::vector<double>& bc_values,
-                                              std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const {
-  AMANZI_ASSERT(0);
-}
 } //namespace
 } //namespace

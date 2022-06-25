@@ -24,35 +24,36 @@ KEYS:
 #define AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_LEIJNSE_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "compressible_porosity_leijnse_model_partition.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class CompressiblePorosityLeijnseEvaluator : public SecondaryVariableFieldEvaluator {
+class CompressiblePorosityLeijnseEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   CompressiblePorosityLeijnseEvaluator(Teuchos::ParameterList& plist);
-  CompressiblePorosityLeijnseEvaluator(const CompressiblePorosityLeijnseEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  CompressiblePorosityLeijnseEvaluator(const CompressiblePorosityLeijnseEvaluator& other) = default;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<CompressiblePorosityLeijnseModelPartition> get_Models() { return models_; }
 
-protected:
+ protected:
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
+ protected:
   Key poro_key_;
   Key pres_key_;
 
   Teuchos::RCP<CompressiblePorosityLeijnseModelPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,CompressiblePorosityLeijnseEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,CompressiblePorosityLeijnseEvaluator> fac_;
 
 
 

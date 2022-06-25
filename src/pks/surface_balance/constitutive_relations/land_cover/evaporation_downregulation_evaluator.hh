@@ -28,7 +28,7 @@ Hornberger b.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -37,22 +37,21 @@ namespace Relations {
 
 class EvaporationDownregulationModel;
 
-class EvaporationDownregulationEvaluator : public SecondaryVariableFieldEvaluator {
+class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  EvaporationDownregulationEvaluator(Teuchos::ParameterList& plist);
+  explicit EvaporationDownregulationEvaluator(Teuchos::ParameterList& plist);
   EvaporationDownregulationEvaluator(const EvaporationDownregulationEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
   void InitializeFromPlist_();
@@ -70,7 +69,7 @@ class EvaporationDownregulationEvaluator : public SecondaryVariableFieldEvaluato
   std::map<std::string, Teuchos::RCP<EvaporationDownregulationModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EvaporationDownregulationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,EvaporationDownregulationEvaluator> reg_;
 
 };
 

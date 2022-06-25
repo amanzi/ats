@@ -12,30 +12,40 @@ namespace Amanzi {
 namespace Flow {
 
 ElevationEvaluator::ElevationEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist),
-    updated_once_(false), 
-    dynamic_mesh_(false) {
+    EvaluatorSecondaryMonotypeCV(plist),
+    updated_once_(false),
+    dynamic_mesh_(false)
+{
+  auto domain = Keys::getDomain(my_keys_.front().first);
+  auto tag = my_keys_.front().second;
+  my_keys_.clear(); // clear and re-insert to ensure proper order
 
-  Key domain = Keys::getDomain(plist_.get<std::string>("evaluator name"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "elevation", "elevation"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "slope magnitude", "slope_magnitude"));
-  my_keys_.push_back(Keys::readKey(plist_, domain, "aspect", "aspect"));
+  Key elev_key = Keys::readKey(plist_, domain, "elevation", "elevation");
+  my_keys_.emplace_back(KeyTag{elev_key, tag});
+  Key slope_key = Keys::readKey(plist_, domain, "slope magnitude", "slope_magnitude");
+  my_keys_.emplace_back(KeyTag{slope_key, tag});
+  Key aspect_key = Keys::readKey(plist_, domain, "aspect", "aspect");
+  my_keys_.emplace_back(KeyTag{aspect_key, tag});
 
   // If the mesh changes dynamically (e.g. due to the presence of a deformation
-  // pk, then we must make sure that elevation is recomputed every time the 
-  // mesh has been deformed. The indicator for the mesh deformation event is the 
+  // pk, then we must make sure that elevation is recomputed every time the
+  // mesh has been deformed. The indicator for the mesh deformation event is the
   // the deformation field.
   dynamic_mesh_ = plist_.get<bool>("dynamic mesh",false);
-  deformation_key_ = Keys::getKey(domain, "deformation");
-  if (dynamic_mesh_) dependencies_.insert(deformation_key_);
+  if (dynamic_mesh_) {
+    deformation_key_ = Keys::readKey(plist_, domain, "deformation indicator", "deformation");
+    dependencies_.insert(KeyTag{deformation_key_, tag});
+  }
 }
 
-void ElevationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
+
+void ElevationEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& results)
+{
   EvaluateElevationAndSlope_(S, results);
 
   // If boundary faces are requested, grab the slopes on the internal cell
-  Teuchos::Ptr<CompositeVector> slope = results[1];
+  CompositeVector* slope = results[1];
 
   if (slope->HasComponent("boundary_face")) {
     const Epetra_Map& vandelay_map = slope->Mesh()->exterior_face_map(false);
@@ -58,60 +68,23 @@ void ElevationEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 // This is hopefully never called?
-void ElevationEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
+void ElevationEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& results)
+{
   AMANZI_ASSERT(0);
 }
 
 // Custom EnsureCompatibility forces this to be updated once.
-bool ElevationEvaluator::HasFieldChanged(const Teuchos::Ptr<State>& S,
-                                         Key request) {
-  bool changed = SecondaryVariablesFieldEvaluator::HasFieldChanged(S,request);
+bool ElevationEvaluator::Update(State& S, const Key& request)
+{
+  bool changed = EvaluatorSecondaryMonotypeCV::Update(S,request);
   if (!updated_once_) {
-    UpdateField_(S);
+    Update_(S);
     updated_once_ = true;
     return true;
   }
   return changed;
 }
-
-
-void ElevationEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
-  Teuchos::RCP<CompositeVectorSpace> master_fac;
-  for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
-       my_key!=my_keys_.end(); ++my_key) {
-    // Ensure my field exists, and claim ownership.
-    Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(*my_key, *my_key);
-
-    // Check plist for vis or checkpointing control.
-    bool io_my_key = plist_.get<bool>(std::string("visualize ")+*my_key, true);
-    S->GetField(*my_key, *my_key)->set_io_vis(io_my_key);
-    bool checkpoint_my_key = plist_.get<bool>(std::string("checkpoint ")+*my_key, false);
-    S->GetField(*my_key, *my_key)->set_io_checkpoint(checkpoint_my_key);
-
-    // Select a "master factory" to ensure commonality of all of my factories.
-    if (my_fac->Mesh() != Teuchos::null && master_fac == Teuchos::null) {
-      master_fac = my_fac;
-    }
-  }
-
-  if (master_fac == Teuchos::null) {
-    // No requirements have been set, so we'll have to hope they get set by an
-    // evaluator that depends upon this evaluator.
-  } else {
-    for (std::vector<Key>::const_iterator my_key=my_keys_.begin();
-         my_key!=my_keys_.end(); ++my_key) {
-      Teuchos::RCP<CompositeVectorSpace> my_fac = S->RequireField(*my_key, *my_key);
-
-      // Cannot just Update() the factory, since the locations may differ, but
-      // at least we can ensure the mesh exists.
-      my_fac->SetMesh(master_fac->Mesh());
-      my_fac->AddComponent("cell", AmanziMesh::CELL, 1);
-    }
-  }
-};
-
-
 
 } //namespace
 } //namespace

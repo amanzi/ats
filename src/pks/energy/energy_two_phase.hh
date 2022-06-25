@@ -45,11 +45,11 @@ class TwoPhase : public EnergyBase {
            const Teuchos::RCP<TreeVector>& solution);
 
   // Virtual destructor
-  virtual ~TwoPhase() {}
+  virtual ~TwoPhase() override {}
 
  protected:
   // -- setup the evaluators
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_() override;
 
  private:
   // factory registration

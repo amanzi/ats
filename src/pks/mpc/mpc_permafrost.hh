@@ -55,34 +55,35 @@ class MPCPermafrost : public MPCSubsurface {
                  const Teuchos::RCP<State>& S,
                  const Teuchos::RCP<TreeVector>& soln);
 
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
+  virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
+
+  virtual void Setup() override;
+  virtual void Initialize() override;
+  //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
+
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
   virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to r and returns the result in Pr.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
 
   // -- Update the preconditioner.
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Modify the predictor.
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
+          Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> r,
                        Teuchos::RCP<const TreeVector> u, 
-                       Teuchos::RCP<TreeVector> du);
+                       Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // sub PKs
@@ -100,8 +101,6 @@ class MPCPermafrost : public MPCSubsurface {
   // Primary variable evaluators for exchange fluxes
   Key mass_exchange_key_;
   Key energy_exchange_key_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> mass_exchange_pvfe_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> energy_exchange_pvfe_;
 
   // off-diagonal terms
   // -- d ( dE/dt ) / dp terms
@@ -117,10 +116,9 @@ class MPCPermafrost : public MPCSubsurface {
   Key surf_kr_key_;
   Key surf_kr_uw_key_;
   Key surf_potential_key_;
-  Key surf_pd_bar_key_;
+  Key surf_pd_key_;
   Key surf_enth_key_;
-  Key surf_mass_flux_key_;
-  Key surf_rho_key_;
+  Key surf_water_flux_key_;
 
   // EWC delegate for the surface
   Teuchos::RCP<MPCDelegateEWC> surf_ewc_;

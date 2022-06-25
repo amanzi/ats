@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Energy {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,SurfaceIceEnergyEvaluator> SurfaceIceEnergyEvaluator::reg_("surface ice energy");
+Utils::RegisteredFactory<Evaluator,SurfaceIceEnergyEvaluator> SurfaceIceEnergyEvaluator::reg_("surface ice energy");
 
 } //namespace
 } //namespace

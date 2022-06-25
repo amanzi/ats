@@ -7,21 +7,21 @@ namespace Amanzi {
 
 void
 CopySurfaceToSubsurface(const CompositeVector& surf,
-                        const Teuchos::Ptr<CompositeVector>& sub);
+                        CompositeVector& sub);
 
 void
 CopySubsurfaceToSurface(const CompositeVector& sub,
-                        const Teuchos::Ptr<CompositeVector>& surf);
+                        CompositeVector& surf);
 
 void
 MergeSubsurfaceAndSurfacePressure(const CompositeVector& kr_surf,
-				  const Teuchos::Ptr<CompositeVector>& sub_p,
-				  const Teuchos::Ptr<CompositeVector>& surf_p);
+				  CompositeVector& sub_p,
+				  CompositeVector& surf_p);
 double
 GetDomainFaceValue(const CompositeVector& sub_p, int f);
 
 void
-SetDomainFaceValue(CompositeVector& sub_p, int f, double value);  
+SetDomainFaceValue(CompositeVector& sub_p, int f, double value);
 
 
 } // namespace

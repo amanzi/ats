@@ -26,7 +26,7 @@ set(ats_mpc_relations_inc_files
   liquid_ice_model.hh
   permafrost_model.hh
   surface_ice_model.hh
-  thermal_richards_model.hh
+  #thermal_richards_model.hh
   )
 
 

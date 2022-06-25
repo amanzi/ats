@@ -24,7 +24,7 @@
 #define AMANZI_GENERAL_EOS_IDEAL_GAS_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace General {
@@ -32,16 +32,16 @@ namespace Relations {
 
 class EosIdealGasModel;
 
-class EosIdealGasEvaluator : public SecondaryVariableFieldEvaluator {
+class EosIdealGasEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   EosIdealGasEvaluator(Teuchos::ParameterList& plist);
   EosIdealGasEvaluator(const EosIdealGasEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -58,7 +58,7 @@ class EosIdealGasEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<EosIdealGasModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EosIdealGasEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,EosIdealGasEvaluator> reg_;
 
 };
 

@@ -31,17 +31,17 @@ void SnowDistribution::FunctionalResidual( double t_old,
   // bookkeeping
   double h = t_new - t_old;
   bool asserting = false;
-  if (!(std::abs(S_inter_->time() - t_old) < 1.e-4*h)) {
+  if (!(std::abs(S_->get_time(tag_inter_) - t_old) < 1.e-4*h)) {
     Errors::Message message;
-    message << "SnowDistribution PK: ASSERT!: inter_time = " << S_inter_->time() << ", t_old = " << t_old 
-            << " --> diff = " << std::abs(S_inter_->time() - t_old) << " relative to " << h*1.e-4
+    message << "SnowDistribution PK: ASSERT!: inter_time = " << S_->get_time(tag_inter_) << ", t_old = " << t_old 
+            << " --> diff = " << std::abs(S_->get_time(tag_inter_) - t_old) << " relative to " << h*1.e-4
             << "  Maybe you checkpoint-restarted from a checkpoint file that was not on an even day?  This breaks the snow distribution!";
     Exceptions::amanzi_throw(message);
   }
-  if (!(std::abs(S_next_->time() - t_new) < 1.e-4*h)) {
+  if (!(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h)) {
     Errors::Message message;
-    message << "SnowDistribution PK: ASSERT!: inter_time = " << S_next_->time() << ", t_new = " << t_new
-            << " --> diff = " << std::abs(S_next_->time() - t_new) << " relative to " << h*1.e-4
+    message << "SnowDistribution PK: ASSERT!: inter_time = " << S_->get_time(tag_next_) << ", t_new = " << t_new
+            << " --> diff = " << std::abs(S_->get_time(tag_next_) - t_new) << " relative to " << h*1.e-4
             << "  Maybe you checkpoint-restarted from a checkpoint file that was not on an even day?  This breaks the snow distribution!";
     Exceptions::amanzi_throw(message);
   }
@@ -64,7 +64,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
 
   // unnecessary here if not debeugging, but doesn't hurt either
 
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S_next_.ptr(), name_);
 
 #if DEBUG_FLAG
   // dump u_old, u_new
@@ -76,7 +76,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
   std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
   vecs.push_back(u.ptr());
 
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"skin_potential")).ptr());
+  vecs.push_back(S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"skin_potential")).ptr());
 
   db_->WriteVectors(vnames, vecs, true);
 #endif
@@ -88,7 +88,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
   ApplyDiffusion_(S_next_.ptr(), res.ptr());
 
 #if DEBUG_FLAG
-  db_->WriteVector("k_s", S_next_->GetFieldData(Keys::getKey(domain_,"upwind_conductivity")).ptr(), true);
+  db_->WriteVector("k_s", S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity")).ptr(), true);
   db_->WriteVector("res (post diffusion)", res.ptr(), true);
 #endif
 
@@ -96,7 +96,7 @@ void SnowDistribution::FunctionalResidual( double t_old,
   AddAccumulation_(res.ptr());
 #if DEBUG_FLAG
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    std::vector<double> time(1,S_next_->time());
+    std::vector<double> time(1,S_->get_time(tag_next_));
     double precip = (*precip_func_)(time);
     *vo_->os() << " precip = " << precip << std::endl;
   }
@@ -145,7 +145,7 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
 
   
   // update state with the solution up.
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   //PKDefaultBase::solution_to_state(*up, S_next_);
   PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
 
@@ -153,17 +153,17 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
   UpdatePermeabilityData_(S_next_.ptr());
   
   Teuchos::RCP<const CompositeVector> cond =
-    S_next_->GetFieldData(Keys::getKey(domain_,"upwind_conductivity"));
+    S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity"));
 
   // Jacobian
   Key deriv_key = Keys::getDerivKey(Keys::getKey(domain_,"conductivity"),key_);
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"conductivity"))
+  S_next_->GetEvaluator(Keys::getKey(domain_,"conductivity"))
       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   // playing it fast and loose.... --etc
   auto dcond = S_next_->GetFieldData(deriv_key, Keys::getKey(domain_,"conductivity"));
 
   // NOTE: this scaling of dt is wrong, but keeps consistent with the diffusion derivatives
-  double dt = S_next_->time() - S_next_->last_time();
+  double dt = S_->get_time(tag_next_) - S_next_->last_time();
   //  ASSERT(dt > 0.);
   //  dcond->Scale(1./dt);
   dcond->Scale(1./(10*dt_factor_));
@@ -174,15 +174,15 @@ void SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVec
   preconditioner_diff_->SetScalarCoefficient(cond, dcond);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_,"skin_potential"))
+  S_next_->GetEvaluator(Keys::getKey(domain_,"skin_potential"))
       ->HasFieldChanged(S_next_.ptr(), name_);
-  auto potential = S_next_->GetFieldData(Keys::getKey(domain_, "skin_potential"));
+  auto potential = S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_, "skin_potential"));
   preconditioner_diff_->UpdateMatricesNewtonCorrection(Teuchos::null, potential.ptr());
   
   // 2.b Update local matrices diagonal with the accumulation terms.
   // -- update the accumulation derivatives
 
-  const CompositeVector& cell_volume = *S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"));
+  const CompositeVector& cell_volume = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"));
   CompositeVector cv_times_10(cell_volume); cv_times_10.Scale(10);
   preconditioner_acc_->AddAccumulationTerm(cv_times_10, "cell");
 
@@ -197,10 +197,10 @@ double SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   const Epetra_MultiVector& res_c = *res->ViewComponent("cell",false);
   const Epetra_MultiVector& precip_c = *u->Data()->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(Keys::getKey(domain_,"cell_volume"))
+  const Epetra_MultiVector& cv = *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_,"cell_volume"))
       ->ViewComponent("cell",false);
-  double dt = S_next_->time() - S_inter_->time();
-  std::vector<double> time(1, S_next_->time());
+  double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
+  std::vector<double> time(1, S_->get_time(tag_next_));
   
   // Cell error is based upon error in mass conservation
   double Qe = (*precip_func_)(time);
@@ -281,8 +281,8 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit) {
   time[0] = t_old + dt_factor_;
   double Ps_new = (*precip_func_)(time);
   double Ps_mean = (Ps_new + Ps_old)/2.;
-  S_inter_->GetFieldData(key_,name_)->PutScalar(Ps_mean);
-  S_next_->GetFieldData(key_,name_)->PutScalar(Ps_mean);
+  S_inter_->GetW<CompositeVector>(key_,name_).PutScalar(Ps_mean);
+  S_next_->GetW<CompositeVector>(key_,name_).PutScalar(Ps_mean);
 
   double my_dt = -1;
   double my_t_old = t_old;
@@ -311,7 +311,7 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit) {
   // commit the precip to the OLD time as well -- this ensures that
   // even if a coupled PK fails at any point in the coming
   // distribution time, we keep the new value.
-  *S_inter_->GetFieldData(key_,name_) = *S_next_->GetFieldData(key_);
+  *S_inter_->GetPtrW<CompositeVector>(key_,name_) = *S_next_->GetPtr<CompositeVector>(key_);
 
   // clean up
   S_next_->set_time(t_new);
