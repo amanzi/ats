@@ -12,64 +12,50 @@
 
 namespace Amanzi {
 
-OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList& plist) :
-  EvaluatorSecondaryMonotypeCV(plist) {
-
+OrganicMatterRateEvaluator::OrganicMatterRateEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
   Tag tag = my_keys_.front().second;
   Key domain_name = Keys::getDomain(my_keys_.front().first);
-  
-  biomass_key_ = plist_.get<std::string>("biomass key", Keys::getKey(domain_name,"biomass"));
 
-  Bmax_ = plist_.get<double>("maximum biomass");
-  Q_db0_ = plist_.get<double>("empirical coefficient");
- 
-   
+  biomass_key_ = Keys::readKey(plist_, domain_name, "biomass", "biomass");
   dependencies_.insert(KeyTag{biomass_key_, tag});
-    
+
+  // please put units on all of these!  --etc
+  Bmax_ = 1.0 / plist_.get<double>("maximum biomass");
+  Q_db0_ = plist_.get<double>("empirical coefficient");
+  Q_on_Bmax_ = Q_db0_ / Bmax_;
 }
 
-  
-OrganicMatterRateEvaluator ::OrganicMatterRateEvaluator (const OrganicMatterRateEvaluator & other) :
-  EvaluatorSecondaryMonotypeCV(other) {
 
-  biomass_key_ = other.biomass_key_;
-  Bmax_ = other.Bmax_;
-  Q_db0_ = other.Q_db0_;
-
-} 
-
-
-Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator ::Clone() const {
-  return Teuchos::rcp(new OrganicMatterRateEvaluator (*this));
+Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator::Clone() const
+{
+  return Teuchos::rcp(new OrganicMatterRateEvaluator(*this));
 }
 
 
 void OrganicMatterRateEvaluator::Evaluate_(const State& S,
-                                           const std::vector<CompositeVector*>& result){
-
+                                           const std::vector<CompositeVector*>& result)
+{
   Tag tag = my_keys_.front().second;
-  
-  const Epetra_MultiVector& bio = *S.GetPtr<CompositeVector>(biomass_key_, tag)->ViewComponent("cell");
+  const Epetra_MultiVector& bio = *S.Get<CompositeVector>(biomass_key_, tag).ViewComponent("cell");
   Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
 
   result_c.PutScalar(0.);
-  
-  for (int c=0; c<result_c.MyLength(); c++){
-    for (int j=0; j<bio.NumVectors(); j++){
-      result_c[0][c] +=  Q_db0_*bio[j][c]/Bmax_;
+  for (int c = 0; c < result_c.MyLength(); c++) {
+    for (int j = 0; j < bio.NumVectors(); j++) {
+      result_c[0][c] += Q_on_Bmax_ * bio[j][c];
     }
   }
-
- 
-
 }
 
-void OrganicMatterRateEvaluator::EvaluatePartialDerivative_(const State& S,
-                                                            const Key& wrt_key, const Tag& wrt_tag,
-                                                            const std::vector<CompositeVector*>& result){
-                                 
-   AMANZI_ASSERT(0); 
+
+void OrganicMatterRateEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key, const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
+{
+   AMANZI_ASSERT(0);
 }
-  
-  
+
 } // namespace
