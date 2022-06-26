@@ -11,7 +11,6 @@
 
 #include <algorithm>
 
-#include "ReconstructionCell.hh"
 #include "OperatorDefs.hh"
 #include "transport_ats.hh"
 
@@ -32,7 +31,7 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
   Teuchos::ParameterList recon_list = plist_->sublist("reconstruction");
   lifting_->Init(recon_list);
-  lifting_->ComputeGradient(component_tmp);
+  lifting_->Compute(component_tmp);
 
   // extract boundary conditions for the current component
   std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
@@ -56,8 +55,8 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
   }
 
   limiter_->Init(recon_list, flux_);
-  limiter_->ApplyLimiter(component_tmp, 0, lifting_->gradient(), bc_model, bc_value);
-  limiter_->gradient()->ScatterMasterToGhosted("cell");
+  limiter_->ApplyLimiter(component_tmp, 0, lifting_, bc_model, bc_value);
+  lifting_->data()->ScatterMasterToGhosted("cell");
 
   // ADVECTIVE FLUXES
   // We assume that limiters made their job up to round-off errors.
@@ -70,14 +69,14 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
     double u1, u2, umin, umax;
     if (c1 >= 0 && c2 >= 0) {
-      u1 = component[c1];
-      u2 = component[c2];
+      u1 = (*component_tmp)[c1];
+      u2 = (*component_tmp)[c2];
       umin = std::min(u1, u2);
       umax = std::max(u1, u2);
     } else if (c1 >= 0) {
-      u1 = u2 = umin = umax = component[c1];
+      u1 = u2 = umin = umax = (*component_tmp)[c1];
     } else if (c2 >= 0) {
-      u1 = u2 = umin = umax = component[c2];
+      u1 = u2 = umin = umax = (*component_tmp)[c2];
     }
 
     double u = fabs((*flux_)[0][f]);
@@ -126,9 +125,9 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
 
   for (int c = 0; c < ncells_owned; c++) {  // calculate conservative quantatity
-    double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_start)[0][c] * (*mol_dens_start)[0][c];
-    if ((*ws_start)[0][c] < 1e-12)
-      vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_end)[0][c] * (*mol_dens_end)[0][c];
+    double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+    if ((*ws_current)[0][c] < 1e-12)
+      vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
 
     if (vol_phi_ws_den > water_tolerance_){
       f_component[c] /= vol_phi_ws_den;
@@ -149,9 +148,9 @@ void Transport_ATS::FunctionalTimeDerivative(double t,
 
           if (c2 >= 0 && f < nfaces_owned) {
             double u = fabs((*flux_)[0][f]);
-            double vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_start)[0][c2] * (*mol_dens_start)[0][c2];
-            if ((*ws_start)[0][c2] < 1e-12)
-              vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_end)[0][c2] * (*mol_dens_end)[0][c2];
+            double vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_current)[0][c2] * (*mol_dens_current)[0][c2];
+            if ((*ws_current)[0][c2] < 1e-12)
+              vol_phi_ws_den = mesh_->cell_volume(c2) * (*phi_)[0][c2] * (*ws_next)[0][c2] * (*mol_dens_next)[0][c2];
 
             double tcc_flux = u * values[i];
             if (vol_phi_ws_den > water_tolerance_ ){

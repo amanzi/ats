@@ -59,12 +59,13 @@ groundHeatFlux(double temp_ground, double temp_air)
 
 
 PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist),
+  EvaluatorSecondaryMonotypeCV(plist),
   compatible_(false),
   limiter_(false),
   one_minus_limiter_(false)
 {
-  domain_ = Keys::getDomain(my_key_);
+  domain_ = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   evap_type_ = plist.get<std::string>("evaporation type");
   if (!(evap_type_ == "bare ground" ||
@@ -79,24 +80,24 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList&
   }
 
   air_temp_key_ = Keys::readKey(plist, domain_, "air temperature", "air_temperature");
-  dependencies_.insert(air_temp_key_);
+  dependencies_.insert(KeyTag{air_temp_key_, tag});
 
   surf_temp_key_ = Keys::readKey(plist, domain_, "surface temperature", "temperature");
-  dependencies_.insert(surf_temp_key_);
+  dependencies_.insert(KeyTag{surf_temp_key_, tag});
 
   rel_hum_key_ = Keys::readKey(plist, domain_, "relative humidity", "relative_humidity");
-  dependencies_.insert(rel_hum_key_);
+  dependencies_.insert(KeyTag{rel_hum_key_, tag});
 
   elev_key_ = Keys::readKey(plist, domain_, "elevation", "elevation");
-  dependencies_.insert(elev_key_);
+  dependencies_.insert(KeyTag{elev_key_, tag});
 
   rad_key_ = Keys::readKey(plist, domain_, "net radiation", "net_radiation");
-  dependencies_.insert(rad_key_);
+  dependencies_.insert(KeyTag{rad_key_, tag});
 
   limiter_ = plist.get<bool>("include limiter", false);
   if (limiter_) {
     limiter_key_ = Keys::readKey(plist, domain_, "limiter");
-    dependencies_.insert(limiter_key_);
+    dependencies_.insert(KeyTag{limiter_key_, tag});
     limiter_nvecs_ = plist.get<int>("limiter number of dofs", 1);
     limiter_dof_ = plist.get<int>("limiter dof", 0);
   }
@@ -104,23 +105,24 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList&
   one_minus_limiter_ = plist.get<bool>("include 1 - limiter", false);
   if (one_minus_limiter_) {
     one_minus_limiter_key_ = Keys::readKey(plist, domain_, "1 - limiter");
-    dependencies_.insert(one_minus_limiter_key_);
+    dependencies_.insert(KeyTag{one_minus_limiter_key_, tag});
   }
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
-PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+PETPriestleyTaylorEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  const auto& air_temp = *S->GetFieldData(air_temp_key_)->ViewComponent("cell", false);
-  const auto& surf_temp = *S->GetFieldData(surf_temp_key_)->ViewComponent("cell", false);
-  const auto& rel_hum = *S->GetFieldData(rel_hum_key_)->ViewComponent("cell", false);
-  const auto& elev = *S->GetFieldData(elev_key_)->ViewComponent("cell", false);
-  const auto& rad = *S->GetFieldData(rad_key_)->ViewComponent("cell",false);
+  Tag tag = my_keys_.front().second;
+  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
+  const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).ViewComponent("cell", false);
+  const auto& rel_hum = *S.Get<CompositeVector>(rel_hum_key_, tag).ViewComponent("cell", false);
+  const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
+  const auto& rad = *S.Get<CompositeVector>(rad_key_, tag).ViewComponent("cell",false);
 
-  auto mesh = result->Mesh();
-  auto& res = *result->ViewComponent("cell", false);
+  auto mesh = result[0]->Mesh();
+  auto& res = *result[0]->ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
@@ -166,7 +168,7 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   // apply a limiter if requested
   if (limiter_) {
-    const auto& limiter = *S->GetFieldData(limiter_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).ViewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter(limiter_dof_)->MaxValue(&limiter_max);
@@ -177,7 +179,7 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     res(0)->Multiply(1, *limiter(limiter_dof_), *res(0), 0);
   }
   if (one_minus_limiter_) {
-    const auto& limiter = *S->GetFieldData(one_minus_limiter_key_)->ViewComponent("cell", false);
+    const auto& limiter = *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter.MaxValue(&limiter_max);
@@ -191,13 +193,15 @@ PETPriestleyTaylorEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
+  Tag tag = my_keys_.front().second;
   if (limiter_ && wrt_key == limiter_key_) {
-    const auto& limiter = *S->GetFieldData(limiter_key_)->ViewComponent("cell", false);
-    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
-    auto& res_c = *(*result->ViewComponent("cell", false))(0);
+    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).ViewComponent("cell", false);
+    const auto& evap_val = *S.Get<CompositeVector>(my_keys_.front().first, tag)
+      .ViewComponent("cell", false);
+    auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(1, *limiter(limiter_dof_), *evap_val(0), 0);
     for (int c=0; c!=res_c.MyLength(); ++c) {
       if (limiter[limiter_dof_][c] < 1.e-5) {
@@ -205,9 +209,10 @@ PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
       }
     }
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
-    const auto& limiter = *S->GetFieldData(one_minus_limiter_key_)->ViewComponent("cell", false);
-    const auto& evap_val = *S->GetFieldData(my_key_)->ViewComponent("cell", false);
-    auto& res_c = *result->ViewComponent("cell", false);
+    const auto& limiter = *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
+    const auto& evap_val = *S.Get<CompositeVector>(my_keys_.front().first, tag)
+      .ViewComponent("cell", false);
+    auto& res_c = *result[0]->ViewComponent("cell", false);
     res_c.ReciprocalMultiply(-1, limiter, evap_val, 0);
     for (int c=0; c!=res_c.MyLength(); ++c) {
       if (limiter[0][c] < 1.e-5) {
@@ -219,38 +224,24 @@ PETPriestleyTaylorEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<
 
 
 void
-PETPriestleyTaylorEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
-    land_cover_ = getLandCover(S->ICList().sublist("land cover types"),
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
             {"pt_alpha_"+evap_type_});
 
-    // see if we can find a master fac
-    auto my_fac = S->RequireField(my_key_, my_key_);
-    my_fac->SetMesh(S->GetMesh(domain_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-    // Check plist for vis or checkpointing control.
-    bool io_my_key = plist_.get<bool>("visualize", true);
-    S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-    bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-    S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-
-    for (auto dep_key : dependencies_) {
-      auto fac = S->RequireField(dep_key);
-      if (dep_key == limiter_key_) {
-        fac->SetMesh(S->GetMesh(domain_))
+    Tag tag = my_keys_.front().second;
+    for (auto& dep : dependencies_) {
+      auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, tag);
+      if (dep.first == limiter_key_) {
+        fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, limiter_nvecs_);
       } else {
-        fac->SetMesh(S->GetMesh(domain_))
+        fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, 1);
       }
-
-      // Recurse into the tree to propagate info to leaves.
-      S->RequireFieldEvaluator(dep_key)->EnsureCompatibility(S);
     }
   }
   compatible_ = true;

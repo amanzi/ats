@@ -8,56 +8,21 @@
 */
 
 //! A set of helper functions for doing common things in PKs.
+#include "Mesh_Algorithms.hh"
+#include "Chemistry_PK.hh"
 #include "pk_helpers.hh"
-
 
 namespace Amanzi {
 
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the corresponding face ID
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
+bool
+aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
 {
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return fmap.LID(bfmap.GID(bf));
-}
-
-// -----------------------------------------------------------------------------
-// Given a face ID, get the corresponding boundary face ID (assuming it is a bf)
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryBoundaryFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  const auto& fmap = mesh.face_map(true);
-  const auto& bfmap = mesh.exterior_face_map(true);
-  return bfmap.LID(fmap.GID(f));
-}
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the cell internal to that face.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf)
-{
-  return getFaceOnBoundaryInternalCell(mesh, getBoundaryFaceFace(mesh, bf));
-}
-
-
-// -----------------------------------------------------------------------------
-// Given a face ID, and assuming it is a boundary face, get the cell internal.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
-{
-  AmanziMesh::Entity_ID_List cells;
-  mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-  if (cells.size() != 1) {
-    Errors::Message message("getFaceOnBoundaryInternalCell called with non-internal face "+std::to_string(f));
-    Exceptions::amanzi_throw(message);
+  if (S.HasEvaluator(key, target) && !S.HasEvaluator(key, alias)) {
+    // S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
+    S.GetRecordSetW(key).AliasRecord(target, alias);
+    return true;
   }
-  return cells[0];
+  return false;
 }
 
 
@@ -123,7 +88,8 @@ getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const 
 // Get the directional int for a face that is on the boundary.
 // -----------------------------------------------------------------------------
 int
-getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f) {
+getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
+{
   AmanziMesh::Entity_ID_List cells;
   mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
   AMANZI_ASSERT(cells.size() == 1);
@@ -133,6 +99,194 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f) {
   return dirs[std::find(faces.begin(), faces.end(), f) - faces.begin()];
 }
 
+
+// -----------------------------------------------------------------------------
+// Get a primary variable evaluator for a key at tag
+// -----------------------------------------------------------------------------
+Teuchos::RCP<EvaluatorPrimaryCV>
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+{
+  // first check, is there one already
+  if (S.HasEvaluator(key, tag)) {
+    // if so, make sure it is primary
+    Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
+    Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
+      Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+    if (eval_pv == Teuchos::null) {
+      Errors::Message msg;
+      msg << "Expected primary variable evaluator for "
+          << key << " @ " << tag.get();
+      Exceptions::amanzi_throw(msg);
+    }
+    return eval_pv;
+  }
+
+  // if not, create one, only at this tag, not to be shared across tags.  By
+  // this, we mean we don't stick the "type" = "primary" back into the
+  // evaluator list -- this allows "copy evaluators" e.g. "water content at the
+  // old tag" to differ from the standard evalulator, e.g. "water content at
+  // the new tag" which is likely a secondary variable evaluator.
+  Teuchos::ParameterList plist(key);
+  plist.set("evaluator type", "primary variable");
+  plist.set("tag", tag.get());
+  auto eval_pv = Teuchos::rcp(new EvaluatorPrimaryCV(plist));
+  S.SetEvaluator(key, tag, eval_pv);
+  return eval_pv;
+}
+
+
+// -----------------------------------------------------------------------------
+// Marks a primary evaluator as changed.
+// -----------------------------------------------------------------------------
+void
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+{
+  Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
+  Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
+    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+  if (eval_pv == Teuchos::null) {
+    Errors::Message msg;
+    msg << "Expected primary variable evaluator for "
+        << key << " @ " << tag.get();
+    Exceptions::amanzi_throw(msg);
+  }
+  eval_pv->SetChanged();
+}
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at current tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool is_eval)
+{
+  CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
+  if (!name.empty()) {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+    if (is_eval) requireEvaluatorPrimary(key, tag, S);
+    if (tag != Tags::CURRENT) {
+      S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, name);
+      if (is_eval) requireEvaluatorPrimary(key, Tags::CURRENT, S);
+    }
+  } else {
+    if (is_eval) S.RequireEvaluator(key, tag);
+  }
+  return cvs;
+}
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at next tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
+{
+  CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
+  if (!name.empty()) {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+    requireEvaluatorPrimary(key, tag, S);
+  } else {
+    S.RequireEvaluator(key, tag);
+  }
+
+  if (tag != Tags::NEXT) {
+    aliasVector(S, key, tag, Tags::NEXT);
+  }
+  return cvs;
+}
+
+
+// -----------------------------------------------------------------------------
+// Helper functions for working with Amanzi's Chemistry PK
+// -----------------------------------------------------------------------------
+void
+convertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
+                             int num_aqueous,
+                             const Epetra_MultiVector& tcc_ats,
+                             Epetra_MultiVector& tcc_amanzi)
+{
+  // convert from mole fraction [mol C / mol H20] to [mol C / L]
+  for (int k = 0; k != num_aqueous; ++k) {
+    for (int c = 0; c != tcc_ats.MyLength(); ++c) {
+      // 1.e-3 converts L to m^3
+      tcc_amanzi[k][c] = tcc_ats[k][c] * mol_dens[0][c] * 1.e-3;
+    }
+  }
+}
+
+
+void
+convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
+                          int num_aqueous,
+                          const Epetra_MultiVector& tcc_amanzi,
+                          Epetra_MultiVector& tcc_ats)
+{
+  // convert from [mol C / L] to mol fraction [mol C / mol H20]
+  for (int k = 0; k != num_aqueous; ++k) {
+    for (int c = 0; c != tcc_amanzi.MyLength(); ++c) {
+      tcc_ats[k][c] = tcc_amanzi[k][c] / (mol_dens[0][c] * 1.e-3);
+    }
+  }
+}
+
+
+bool
+advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+                 double t_old, double t_new, bool reinit,
+                 const Epetra_MultiVector& mol_dens,
+                 Teuchos::RCP<Epetra_MultiVector> tcc,
+                 Teuchos::Time& timer)
+{
+  bool fail = false;
+  int num_aqueous = chem_pk->num_aqueous_components();
+  convertConcentrationToAmanzi(mol_dens, num_aqueous, *tcc, *tcc);
+  chem_pk->set_aqueous_components(tcc);
+
+  {
+    auto monitor = Teuchos::rcp(new Teuchos::TimeMonitor(timer));
+    fail = chem_pk->AdvanceStep(t_old, t_new, reinit);
+  }
+  if (fail) return fail;
+
+  *tcc = *chem_pk->aqueous_components();
+  convertConcentrationToATS(mol_dens, num_aqueous, *tcc, *tcc);
+  return fail;
+}
+
+
+void
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
+                            CompositeVector& vec)
+{
+  Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
+
+  int ndim = mesh.space_dimension();
+  AmanziGeometry::Point nc;
+  for (int i=0; i!=nodes.MyLength(); ++i) {
+    mesh.node_get_coordinates(i, &nc);
+    for (int j=0; j!=ndim; ++j) nodes[j][i] = nc[j];
+  }
+}
+
+void
+copyVectorToMeshCoordinates(const CompositeVector& vec,
+                            AmanziMesh::Mesh& mesh)
+{
+  const Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
+  int ndim = mesh.space_dimension();
+
+  std::vector<int> node_ids(nodes.MyLength());
+  Amanzi::AmanziGeometry::Point_List new_positions(nodes.MyLength());
+  for (int n=0; n!=nodes.MyLength(); ++n) {
+    node_ids[n] = n;
+    if (mesh.space_dimension() == 2) {
+      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n]};
+    } else {
+      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n], nodes[2][n]};
+    }
+  }
+  mesh.deform(node_ids, new_positions);
+}
 
 
 } // namespace Amanzi

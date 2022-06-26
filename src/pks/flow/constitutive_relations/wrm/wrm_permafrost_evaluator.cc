@@ -17,8 +17,8 @@ namespace Flow {
   Constructor from just a ParameterList, reads WRMs and permafrost models from list.
  -------------------------------------------------------------------------------- */
 WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist) {
-
+    EvaluatorSecondaryMonotypeCV(plist)
+{
   // get the WRMs
   AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
   Teuchos::ParameterList wrm_plist = plist_.sublist("WRM parameters");
@@ -38,9 +38,9 @@ WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist) :
  -------------------------------------------------------------------------------- */
 WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
         const Teuchos::RCP<WRMPartition>& wrms) :
-    SecondaryVariablesFieldEvaluator(plist),
-    wrms_(wrms) {
-
+    EvaluatorSecondaryMonotypeCV(plist),
+    wrms_(wrms)
+{
   // and the permafrost models
   AMANZI_ASSERT(plist_.isSublist("permafrost model parameters"));
   Teuchos::ParameterList perm_plist = plist_.sublist("permafrost model parameters");
@@ -55,27 +55,17 @@ WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
  -------------------------------------------------------------------------------- */
 WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
         const Teuchos::RCP<WRMPermafrostModelPartition>& models) :
-    SecondaryVariablesFieldEvaluator(plist),
-    permafrost_models_(models) {
-
+    EvaluatorSecondaryMonotypeCV(plist),
+    permafrost_models_(models)
+{
   InitializeFromPlist_();
 }
 
 
 /* --------------------------------------------------------------------------------
-  Copy constructor
+  Virtual opy constructor as a Evaluator.
  -------------------------------------------------------------------------------- */
-WRMPermafrostEvaluator::WRMPermafrostEvaluator(const WRMPermafrostEvaluator& other) :
-    SecondaryVariablesFieldEvaluator(other),
-    pc_liq_key_(other.pc_liq_key_),
-    pc_ice_key_(other.pc_ice_key_),
-    permafrost_models_(other.permafrost_models_) {}
-
-
-/* --------------------------------------------------------------------------------
-  Virtual opy constructor as a FieldEvaluator.
- -------------------------------------------------------------------------------- */
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 WRMPermafrostEvaluator::Clone() const {
   return Teuchos::rcp(new WRMPermafrostEvaluator(*this));
 }
@@ -86,71 +76,63 @@ WRMPermafrostEvaluator::Clone() const {
  -------------------------------------------------------------------------------- */
 void WRMPermafrostEvaluator::InitializeFromPlist_() {
   // my keys are for saturation -- order matters... gas -> liq -> ice
-  Key akey = plist_.get<std::string>("evaluator name");
+  Key akey = my_keys_.front().first;
   Key domain_name = Keys::getDomain(akey);
-      
+  akey = Keys::getVarName(akey);
+  Tag tag = my_keys_.front().second;
+  my_keys_.clear();
+
+  Key gaskey, liqkey, icekey;
   std::size_t liq_pos = akey.find("liquid");
+  std::size_t ice_pos = akey.find("ice");
+  std::size_t gas_pos = akey.find("gas");
   if (liq_pos != std::string::npos) {
-    Key liqkey = plist_.get<std::string>("liquid saturation key", akey);
-    Key gaskey = akey.substr(0,liq_pos)+"gas"+akey.substr(liq_pos+6);
-    gaskey = plist_.get<std::string>("gas saturation key", gaskey);
-    Key icekey = akey.substr(0,liq_pos)+"ice"+akey.substr(liq_pos+6);
-    icekey = plist_.get<std::string>("ice saturation key", icekey);
-    my_keys_.emplace_back(gaskey);
-    my_keys_.emplace_back(liqkey);
-    my_keys_.emplace_back(icekey);
+    liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", akey);
+    gaskey = akey.substr(0,liq_pos)+"gas"+akey.substr(liq_pos+6);
+    gaskey = Keys::readKey(plist_, domain_name, "gas saturation", gaskey);
+    icekey = akey.substr(0,liq_pos)+"ice"+akey.substr(liq_pos+6);
+    icekey = Keys::readKey(plist_, domain_name, "ice saturation", icekey);
+
+  } else if (ice_pos != std::string::npos) {
+    icekey = Keys::readKey(plist_, domain_name, "ice saturation", akey);
+    gaskey = akey.substr(0,ice_pos)+"gas"+akey.substr(ice_pos+3);
+    gaskey = Keys::readKey(plist_, domain_name, "gas saturation", gaskey);
+    liqkey = akey.substr(0,ice_pos)+"liquid"+akey.substr(ice_pos+3);
+    liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", liqkey);
+
+  } else if (gas_pos != std::string::npos) {
+    gaskey = Keys::readKey(plist_, domain_name, "gas saturation", akey);
+    icekey = akey.substr(0,gas_pos)+"ice"+akey.substr(gas_pos+3);
+    icekey = Keys::readKey(plist_, domain_name, "ice saturation", icekey);
+    liqkey = akey.substr(0,gas_pos)+"liquid"+akey.substr(gas_pos+3);
+    liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", liqkey);
 
   } else {
-    std::size_t ice_pos = akey.find("ice");
-    if (ice_pos != std::string::npos) {
-      Key icekey = plist_.get<std::string>("ice saturation key", akey);
-      Key gaskey = akey.substr(0,ice_pos)+"gas"+akey.substr(ice_pos+3);
-      gaskey = plist_.get<std::string>("gas saturation key", gaskey);
-      Key liqkey = akey.substr(0,ice_pos)+"liquid"+akey.substr(ice_pos+3);
-      liqkey = plist_.get<std::string>("liquid saturation key", liqkey);
-      my_keys_.emplace_back(gaskey);
-      my_keys_.emplace_back(liqkey);
-      my_keys_.emplace_back(icekey);
-    } else {
-      std::size_t gas_pos = akey.find("gas");
-      if (gas_pos != std::string::npos) {
-        Key gaskey = plist_.get<std::string>("gas saturation key", akey);
-        Key icekey = akey.substr(0,gas_pos)+"ice"+akey.substr(gas_pos+3);
-        icekey = plist_.get<std::string>("ice saturation key", icekey);
-        Key liqkey = akey.substr(0,gas_pos)+"liquid"+akey.substr(gas_pos+3);
-        liqkey = plist_.get<std::string>("liquid saturation key", liqkey);
-        my_keys_.emplace_back(gaskey);
-        my_keys_.emplace_back(liqkey);
-        my_keys_.emplace_back(icekey);
-      } else {
-        Key liqkey = plist_.get<std::string>("liquid saturation key",
-                Keys::getKey(domain_name, "saturation_liquid"));
-        Key icekey = plist_.get<std::string>("ice saturation key",
-                Keys::getKey(domain_name, "saturation_ice"));
-        Key gaskey = plist_.get<std::string>("gas saturation key",
-                Keys::getKey(domain_name, "saturation_gas"));
-        my_keys_.emplace_back(gaskey);
-        my_keys_.emplace_back(liqkey);
-        my_keys_.emplace_back(icekey);
-      }
-    }
+    liqkey = Keys::readKey(plist_, domain_name, "liquid saturation", "saturation_liquid");
+    icekey = Keys::readKey(plist_, domain_name, "ice saturation", "saturation_ice");
+    gaskey = Keys::readKey(plist_, domain_name, "gas saturation", "saturation_gas");
   }
 
-  // liquid-gas capillary pressure
-  pc_liq_key_ = plist_.get<std::string>("gas-liquid capillary pressure key",
-                                        Keys::getKey(domain_name,"capillary_pressure_gas_liq"));
-  dependencies_.insert(pc_liq_key_);
+  my_keys_.emplace_back(KeyTag{gaskey, tag});
+  my_keys_.emplace_back(KeyTag{liqkey, tag});
+  my_keys_.emplace_back(KeyTag{icekey, tag});
 
   // liquid-gas capillary pressure
-  pc_ice_key_ = plist_.get<std::string>("liquid-ice capillary pressure key",
-                                        Keys::getKey(domain_name,"capillary_pressure_liq_ice"));
-  dependencies_.insert(pc_ice_key_);
+  pc_liq_key_ = Keys::readKey(plist_, domain_name, "gas-liquid capillary pressure",
+          "capillary_pressure_gas_liq");
+  dependencies_.insert(KeyTag{pc_liq_key_, tag});
+
+  // liquid-ice capillary pressure
+  pc_ice_key_ = Keys::readKey(plist_, domain_name, "liquid-ice capillary pressure",
+          "capillary_pressure_liq_ice");
+  dependencies_.insert(KeyTag{pc_ice_key_, tag});
 }
 
 
 
-void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
+void WRMPermafrostEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& results)
+{
   // Initialize the MeshPartition
   if (!permafrost_models_->first->initialized()) {
     permafrost_models_->first->Initialize(results[0]->Mesh(), -1);
@@ -162,9 +144,10 @@ void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell",false);
   Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& pc_liq_c = *S->GetFieldData(pc_liq_key_)
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& pc_liq_c = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& pc_ice_c = *S->GetFieldData(pc_ice_key_)
+  const Epetra_MultiVector& pc_ice_c = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
       ->ViewComponent("cell",false);
 
   double sats[3];
@@ -182,9 +165,9 @@ void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S->GetFieldData(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S->GetFieldData(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.
@@ -213,8 +196,10 @@ void WRMPermafrostEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 
 void
-WRMPermafrostEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) {
+WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results)
+{
   // Initialize the MeshPartition
   if (!permafrost_models_->first->initialized()) {
     permafrost_models_->first->Initialize(results[0]->Mesh(), -1);
@@ -226,9 +211,10 @@ WRMPermafrostEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
   Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell",false);
   Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& pc_liq_c = *S->GetFieldData(pc_liq_key_)
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& pc_liq_c = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& pc_ice_c = *S->GetFieldData(pc_ice_key_)
+  const Epetra_MultiVector& pc_ice_c = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
       ->ViewComponent("cell",false);
 
   double dsats[3];
@@ -264,9 +250,9 @@ WRMPermafrostEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State
     Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face",false);
     Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_liq_bf = *S->GetFieldData(pc_liq_key_)
+    const Epetra_MultiVector& pc_liq_bf = *S.GetPtr<CompositeVector>(pc_liq_key_, tag)
         ->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pc_ice_bf = *S->GetFieldData(pc_ice_key_)
+    const Epetra_MultiVector& pc_ice_bf = *S.GetPtr<CompositeVector>(pc_ice_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.

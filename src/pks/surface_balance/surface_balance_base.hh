@@ -56,9 +56,7 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
-
  public:
-
   SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                      const Teuchos::RCP<State>& S,
@@ -66,10 +64,10 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
   // main methods
   // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  virtual void Setup() override;
 
-  // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override {}
+  // -- Finalize a step as successful at the given tag.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)

@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,OverlandConductivitySubgridEvaluator> OverlandConductivitySubgridEvaluator::factory_("overland conductivity subgrid");
+Utils::RegisteredFactory<Evaluator,OverlandConductivitySubgridEvaluator> OverlandConductivitySubgridEvaluator::factory_("overland conductivity subgrid");
 
 }
 }

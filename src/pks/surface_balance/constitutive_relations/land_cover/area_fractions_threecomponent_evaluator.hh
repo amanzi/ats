@@ -45,33 +45,34 @@ Ordering of the area fractions calculated are: [bare ground, water, snow].
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class AreaFractionsThreeComponentEvaluator : public SecondaryVariableFieldEvaluator {
+class AreaFractionsThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  AreaFractionsThreeComponentEvaluator(Teuchos::ParameterList& plist);
+  explicit AreaFractionsThreeComponentEvaluator(Teuchos::ParameterList& plist);
   AreaFractionsThreeComponentEvaluator(const AreaFractionsThreeComponentEvaluator& other) = default;
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new AreaFractionsThreeComponentEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
-
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override {
-    Exceptions::amanzi_throw("NotImplemented: AreaFractionsThreeComponentEvaluator currently does not provide derivatives.");
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
+    
+    result[0]->PutScalar(0.);
+    //Errors::Message msg("NotImplemented: AreaFractionsThreeComponentEvaluator currently does not provide derivatives.");
+    //Exceptions::amanzi_throw(msg);
   }
 
  protected:
@@ -86,7 +87,7 @@ class AreaFractionsThreeComponentEvaluator : public SecondaryVariableFieldEvalua
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,AreaFractionsThreeComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,AreaFractionsThreeComponentEvaluator> reg_;
 
 };
 

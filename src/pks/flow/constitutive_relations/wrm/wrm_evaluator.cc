@@ -14,9 +14,9 @@ namespace Amanzi {
 namespace Flow {
 
 WRMEvaluator::WRMEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariablesFieldEvaluator(plist),
-    calc_other_sat_(true) {
-
+    EvaluatorSecondaryMonotypeCV(plist),
+    calc_other_sat_(true)
+{
   AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
   Teuchos::ParameterList wrm_plist = plist_.sublist("WRM parameters");
   wrms_ = createWRMPartition(wrm_plist);
@@ -26,63 +26,67 @@ WRMEvaluator::WRMEvaluator(Teuchos::ParameterList& plist) :
 
 WRMEvaluator::WRMEvaluator(Teuchos::ParameterList& plist,
                            const Teuchos::RCP<WRMPartition>& wrms) :
-    SecondaryVariablesFieldEvaluator(plist),
-    wrms_(wrms) {
+    EvaluatorSecondaryMonotypeCV(plist),
+    wrms_(wrms)
+{
   InitializeFromPlist_();
 }
 
-WRMEvaluator::WRMEvaluator(const WRMEvaluator& other) :
-    SecondaryVariablesFieldEvaluator(other),
-    calc_other_sat_(other.calc_other_sat_),
-    cap_pres_key_(other.cap_pres_key_),
-    wrms_(other.wrms_) {}
 
-
-Teuchos::RCP<FieldEvaluator> WRMEvaluator::Clone() const {
+Teuchos::RCP<Evaluator> WRMEvaluator::Clone() const
+{
   return Teuchos::rcp(new WRMEvaluator(*this));
 }
 
-void WRMEvaluator::InitializeFromPlist_() {
+void WRMEvaluator::InitializeFromPlist_()
+{
   // my keys are for saturation, note that order matters, liquid -> gas
-  Key akey = Keys::cleanPListName(plist_.name());
+  Key akey = my_keys_.front().first;
   Key domain_name = Keys::getDomain(akey);
+  Tag tag = my_keys_.front().second;
+  my_keys_.clear();
 
   std::size_t liq_pos = akey.find("liquid");
+  std::size_t gas_pos = akey.find("gas");
   if (liq_pos != std::string::npos) {
-    my_keys_.push_back(plist_.get<std::string>("saturation key", akey));
+    my_keys_.emplace_back(KeyTag{akey, tag});
+
     Key otherkey = akey.substr(0,liq_pos)+"gas"+akey.substr(liq_pos+6);
-    my_keys_.push_back(plist_.get<std::string>("other saturation key", otherkey));
+    otherkey = Keys::readKey(plist_, domain_name, "other saturation", otherkey);
+    my_keys_.emplace_back(KeyTag{otherkey, tag});
+
+  } else if (gas_pos != std::string::npos) {
+    Key otherkey = akey.substr(0,gas_pos)+"liquid"+akey.substr(gas_pos+3);
+    otherkey = Keys::readKey(plist_, domain_name, "saturation", otherkey);
+    my_keys_.emplace_back(KeyTag{otherkey, tag});
+    my_keys_.emplace_back(KeyTag{akey, tag});
+
   } else {
-    std::size_t gas_pos = akey.find("gas");
-    if (gas_pos != std::string::npos) {
-      Key otherkey = akey.substr(0,gas_pos)+"liquid"+akey.substr(gas_pos+3);
-      my_keys_.push_back(plist_.get<std::string>("saturation key", otherkey));
-      my_keys_.push_back(plist_.get<std::string>("other saturation key", akey));
-    } else {
-      my_keys_.push_back(Keys::readKey(plist_, domain_name,
-              "saturation", "saturation_liquid"));
-      my_keys_.push_back(Keys::readKey(plist_, domain_name,
-              "other saturation", "saturation_gas"));
-    }
+    Key liquid_key = Keys::readKey(plist_, domain_name, "saturation");
+    Key gas_key = Keys::readKey(plist_, domain_name, "other saturation");
+    my_keys_.emplace_back(KeyTag{liquid_key, tag});
+    my_keys_.emplace_back(KeyTag{gas_key, tag});
   }
 
   // my dependencies are capillary pressure.
   cap_pres_key_ = Keys::readKey(plist_, domain_name, "capillary pressure key",
           "capillary_pressure_gas_liq");
-  dependencies_.insert(cap_pres_key_);
+  dependencies_.insert(KeyTag{cap_pres_key_, tag});
 }
 
 
-void WRMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const std::vector<Teuchos::Ptr<CompositeVector> >& results) {
+void WRMEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& results)
+{
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
     wrms_->first->Initialize(results[0]->Mesh(), -1);
     wrms_->first->Verify();
   }
 
+  Tag tag = my_keys_.front().second;
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(cap_pres_key_)
+  const Epetra_MultiVector& pres_c = *S.GetPtr<CompositeVector>(cap_pres_key_, tag)
       ->ViewComponent("cell",false);
 
   // calculate cell values
@@ -94,7 +98,7 @@ void WRMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // Potentially do face values as well.
   if (results[0]->HasComponent("boundary_face")) {
     Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pres_bf = *S->GetFieldData(cap_pres_key_)
+    const Epetra_MultiVector& pres_bf = *S.GetPtr<CompositeVector>(cap_pres_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.
@@ -138,18 +142,19 @@ void WRMEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 
-void WRMEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results) {
+void WRMEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag,
+        const std::vector<CompositeVector*>& results)
+{
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
     wrms_->first->Initialize(results[0]->Mesh(), -1);
     wrms_->first->Verify();
   }
 
-  AMANZI_ASSERT(wrt_key == cap_pres_key_);
-
+  Tag tag = my_keys_.front().second;
   Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell",false);
-  const Epetra_MultiVector& pres_c = *S->GetFieldData(cap_pres_key_)
+  const Epetra_MultiVector& pres_c = *S.GetPtr<CompositeVector>(cap_pres_key_, tag)
       ->ViewComponent("cell",false);
 
   // calculate cell values
@@ -161,7 +166,7 @@ void WRMEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
   // Potentially do face values as well.
   if (results[0]->HasComponent("boundary_face")) {
     Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face",false);
-    const Epetra_MultiVector& pres_bf = *S->GetFieldData(cap_pres_key_)
+    const Epetra_MultiVector& pres_bf = *S.GetPtr<CompositeVector>(cap_pres_key_, tag)
         ->ViewComponent("boundary_face",false);
 
     // Need to get boundary face's inner cell to specify the WRM.

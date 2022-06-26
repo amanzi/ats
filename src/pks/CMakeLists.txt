@@ -4,6 +4,8 @@
 #  ATS
 #    PK class
 #
+include_directories(${GEOCHEM_SOURCE_DIR})
+include_directories(${CHEMPK_SOURCE_DIR})
 
 set(ats_pks_src_files
   pk_helpers.cc
@@ -52,6 +54,7 @@ add_subdirectory(soil_thermo)
 add_subdirectory(energy)
 add_subdirectory(flow)
 add_subdirectory(transport)
+add_subdirectory(transport/sediment_transport)
 add_subdirectory(deform)
 add_subdirectory(surface_balance)
 add_subdirectory(biogeochemistry)

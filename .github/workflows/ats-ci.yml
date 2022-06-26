@@ -1,6 +1,9 @@
 name: ATS CI
 
 on:
+  workflow_dispatch:
+    branches:
+      - '**'
   push:
     branches:
       - '**'
@@ -16,8 +19,13 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: amanzi/amanzi
+        ref: master
         submodules: true
-    - name: Extract the branch name
+    - name: Extract the Amanzi branch name
+      id: amanzi_branch
+      run:
+        echo "::set-output name=AMANZI_BRANCH::$(echo $GITHUB_REF | sed -e 's/refs\/heads\///')"
+    - name: Extract the ATS branch name
       id: branch
       working-directory: Docker
       run:
@@ -46,7 +54,7 @@ jobs:
       id: docker
       working-directory: Docker
       run:
-        docker build --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
+        docker build --build-arg amanzi_branch=${{steps.amanzi_branch.outputs.AMANZI_BRANCH}} --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
     - name: Docker push
       working-directory: Docker
       run:

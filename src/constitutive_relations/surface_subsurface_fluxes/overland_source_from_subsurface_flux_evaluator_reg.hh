@@ -12,7 +12,7 @@
 namespace Amanzi {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,OverlandSourceFromSubsurfaceFluxEvaluator>
+Utils::RegisteredFactory<Evaluator,OverlandSourceFromSubsurfaceFluxEvaluator>
 OverlandSourceFromSubsurfaceFluxEvaluator::fac_("overland source from subsurface via flux");
 
 } // namespace

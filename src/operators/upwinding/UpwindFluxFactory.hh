@@ -1,11 +1,13 @@
-// -----------------------------------------------------------------------------
-// ATS
-//
-// License: see $ATS_DIR/COPYRIGHT
-//
-// Factory for taking coefficients for div-grad operators from cells to
-// faces.
-// -----------------------------------------------------------------------------
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (coonet@ornl.gov)
+*/
+
+//! Factory for taking coefficients for div-grad operators from cells to faces.
 
 #ifndef AMANZI_UPWINDING_FACTORY_HH_
 #define AMANZI_UPWINDING_FACTORY_HH_
@@ -19,22 +21,16 @@
 
 namespace Amanzi {
 namespace Operators {
+namespace UpwindFactory {
 
-class UpwindFluxFactory {
- public:
-  UpwindFluxFactory() {};
-  ~UpwindFluxFactory() {};
+Teuchos::RCP<Upwinding> Create(Teuchos::ParameterList& oplist,
+        State& S,
+        const std::string& pkname,
+        const Tag& tag,
+        const Key& flux_key);
 
-  Teuchos::RCP<Upwinding> Create(Teuchos::ParameterList& oplist,
-          const Teuchos::Ptr<State>& S,
-          std::string pkname,
-          std::string cell_coef,
-          std::string face_coef,
-          std::string flux);
-
-};
-
-}  // namespace Operators
-}  // namespace Amanzi
+} // namespace UpwindFluxFactory
+} // namespace Operators
+} // namespace Amanzi
 
 #endif

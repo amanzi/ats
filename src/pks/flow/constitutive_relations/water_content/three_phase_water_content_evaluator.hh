@@ -35,7 +35,7 @@ Specified with evaluator type: `"three phase water content`"
 #define AMANZI_FLOW_THREE_PHASE_WATER_CONTENT_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -43,26 +43,29 @@ namespace Relations {
 
 class ThreePhaseWaterContentModel;
 
-class ThreePhaseWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
+class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   ThreePhaseWaterContentEvaluator(Teuchos::ParameterList& plist);
-  ThreePhaseWaterContentEvaluator(const ThreePhaseWaterContentEvaluator& other);
+  ThreePhaseWaterContentEvaluator(const ThreePhaseWaterContentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
   Teuchos::RCP<ThreePhaseWaterContentModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key phi_key_;
   Key sl_key_;
   Key nl_key_;
@@ -76,7 +79,7 @@ class ThreePhaseWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<ThreePhaseWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ThreePhaseWaterContentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ThreePhaseWaterContentEvaluator> reg_;
 
 };
 

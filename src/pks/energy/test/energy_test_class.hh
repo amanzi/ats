@@ -46,7 +46,7 @@ public:
   // helper evaluation methods
   void commit_step();
   void initialize_owned();
-  void initialize_mass_flux();
+  void initialize_water_flux();
   void evaluate_error_temp(double t, double* L1, double* L2);
 };
 

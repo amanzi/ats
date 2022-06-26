@@ -12,13 +12,13 @@
 #include "wrm.hh"
 #include "wrm_partition.hh"
 #include "wrm_permafrost_model.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-class WRMPermafrostEvaluator : public SecondaryVariablesFieldEvaluator {
+class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
 
   explicit
@@ -27,19 +27,24 @@ class WRMPermafrostEvaluator : public SecondaryVariablesFieldEvaluator {
                          const Teuchos::RCP<WRMPartition>& wrms);
   WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
                          const Teuchos::RCP<WRMPermafrostModelPartition>& models);
-  WRMPermafrostEvaluator(const WRMPermafrostEvaluator& other);
+  WRMPermafrostEvaluator(const WRMPermafrostEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
   Teuchos::RCP<WRMPermafrostModelPartition> get_WRMPermafrostModels() { return permafrost_models_; }
 
  protected:
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const std::vector<Teuchos::Ptr<CompositeVector> >& results);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const std::vector<Teuchos::Ptr<CompositeVector> > & results);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& results) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& results) override;
+
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
   void InitializeFromPlist_();
 
@@ -51,7 +56,7 @@ class WRMPermafrostEvaluator : public SecondaryVariablesFieldEvaluator {
   Teuchos::RCP<WRMPartition> wrms_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,WRMPermafrostEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,WRMPermafrostEvaluator> factory_;
 
 };
 

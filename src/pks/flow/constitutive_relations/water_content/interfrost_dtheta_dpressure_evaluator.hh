@@ -3,7 +3,7 @@
 
   Generated via evaluator_generator with:
 Interfrost water content portion sl.
-    
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
@@ -11,7 +11,7 @@ Interfrost water content portion sl.
 #define AMANZI_FLOW_INTERFROST_DTHETA_DPRESSURE_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -19,20 +19,21 @@ namespace Relations {
 
 class InterfrostDthetaDpressureModel;
 
-class InterfrostDthetaDpressureEvaluator : public SecondaryVariableFieldEvaluator {
+class InterfrostDthetaDpressureEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   InterfrostDthetaDpressureEvaluator(Teuchos::ParameterList& plist);
-  InterfrostDthetaDpressureEvaluator(const InterfrostDthetaDpressureEvaluator& other);
+  InterfrostDthetaDpressureEvaluator(const InterfrostDthetaDpressureEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
   Teuchos::RCP<InterfrostDthetaDpressureModel> get_model() { return model_; }
 
@@ -46,7 +47,7 @@ class InterfrostDthetaDpressureEvaluator : public SecondaryVariableFieldEvaluato
   Teuchos::RCP<InterfrostDthetaDpressureModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,InterfrostDthetaDpressureEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,InterfrostDthetaDpressureEvaluator> reg_;
 
 };
 

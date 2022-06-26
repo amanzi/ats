@@ -31,10 +31,11 @@ include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
 
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/lake_thermo)
 #include_directories(${ATS_SOURCE_DIR}/src/pks/soil_thermo)
@@ -102,18 +103,19 @@ set(amanzi_link_libs
   mesh_mstk
   mesh_logical
   chemistry_pk
-  mpc_tree
+  #mpc_tree
   transport
   )
   
 set(ats_link_libs
   ats_operators
   ats_generic_evals
+  ats_column_integrator
   ats_surf_subsurf
   ats_eos
   ats_pks
   ats_transport
-  ats_sed_transport  
+  #ats_sed_transport  
   ats_energy
   ats_energy_relations
   ats_flow

@@ -70,7 +70,7 @@ namespace Amanzi {
     double MSF_;  // morphology scaling factor
 
     Teuchos::RCP<AmanziMesh::Mesh> mesh_, mesh_3d_, mesh_ss_;
-    Teuchos::RCP<PrimaryVariableFieldEvaluator> deform_eval_;
+    Teuchos::RCP<EvaluatorPrimary> deform_eval_;
     Key erosion_rate_;
 
     // debugger for dumping vectors

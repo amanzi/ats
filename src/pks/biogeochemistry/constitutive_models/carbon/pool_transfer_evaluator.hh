@@ -10,7 +10,7 @@
 #define AMANZI_BGCRELATIONS_POOL_DECOMP_HH_
 
 #include "Factory.hh"
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 class Epetra_SerialDenseVector;
 class Epetra_SerialDenseMatrix;
@@ -19,14 +19,14 @@ namespace Amanzi {
 namespace BGC {
 namespace BGCRelations {
 
-class PoolTransferEvaluator : public SecondaryVariablesFieldEvaluator {
+class PoolTransferEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   PoolTransferEvaluator(Teuchos::ParameterList& plist);
   PoolTransferEvaluator(const PoolTransferEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariablesFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const std::vector<Teuchos::Ptr<CompositeVector> >& results);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -47,7 +47,7 @@ class PoolTransferEvaluator : public SecondaryVariablesFieldEvaluator {
   bool init_model_;
   
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PoolTransferEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,PoolTransferEvaluator> fac_;
 
 
 

@@ -1,6 +1,7 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -18,7 +19,7 @@ In the future, this should not even need a different PK.
 
 .. _permafrost-spec:
 .. admonition:: permafrost-spec
-  
+
     * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
 
     INCLUDES:
@@ -38,8 +39,6 @@ In the future, this should not even need a different PK.
 #include "upwinding.hh"
 #include "BoundaryFunction.hh"
 
-// #include "pk.hh"
-// #include "pk_factory_ats.hh"
 #include "PK.hh"
 #include "PK_Factory.hh"
 
@@ -63,13 +62,13 @@ public:
     Richards(FElist, plist, S, solution) {}
 
   // Virtual destructor
-  virtual ~Permafrost() {}
+  virtual ~Permafrost() override {}
 
-protected:
+ protected:
   // Create of physical evaluators.
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void SetupPhysicalEvaluators_() override;
 
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<Permafrost> reg_;
 

@@ -12,35 +12,36 @@
 
 #include "Factory.hh"
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class SurfaceTopCellsEvaluator : public SecondaryVariableFieldEvaluator {
+class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   SurfaceTopCellsEvaluator(Teuchos::ParameterList& plist);
+  SurfaceTopCellsEvaluator(const SurfaceTopCellsEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  SurfaceTopCellsEvaluator(const SurfaceTopCellsEvaluator& other);
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+ protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override {
     AMANZI_ASSERT(0);
   }
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
 
  protected:
   Key dependency_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SurfaceTopCellsEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,SurfaceTopCellsEvaluator> reg_;
 
 };
 

@@ -11,39 +11,20 @@
 
 #pragma once
 
+#include "Teuchos_TimeMonitor.hpp"
+
 #include "Mesh.hh"
 #include "CompositeVector.hh"
 #include "BCs.hh"
 
+#include "EvaluatorPrimary.hh"
+#include "State.hh"
+#include "Chemistry_PK.hh"
+
 namespace Amanzi {
 
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the corresponding face ID
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf);
-
-// -----------------------------------------------------------------------------
-// Given a face ID, get the corresponding boundary face ID (assuming it is a bf)
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryBoundaryFace(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
-
-
-// -----------------------------------------------------------------------------
-// Given a boundary face ID, get the cell internal to that face.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getBoundaryFaceInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID bf);
-
-
-// -----------------------------------------------------------------------------
-// Given a face ID, and assuming it is a boundary face, get the cell internal.
-// -----------------------------------------------------------------------------
-AmanziMesh::Entity_ID
-getFaceOnBoundaryInternalCell(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
-
+bool
+aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
 
 // -----------------------------------------------------------------------------
 // Given a vector, apply the Dirichlet data to that vector's boundary_face
@@ -71,6 +52,66 @@ getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const 
 // -----------------------------------------------------------------------------
 int
 getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
+
+
+// -----------------------------------------------------------------------------
+// Get a primary variable evaluator for a key at tag
+// -----------------------------------------------------------------------------
+Teuchos::RCP<EvaluatorPrimaryCV>
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+
+
+// -----------------------------------------------------------------------------
+// Mark primary variable evaluator as changed.
+// -----------------------------------------------------------------------------
+void
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at current tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtCurrent(const Key& key, const Tag& tag, State& S,
+                 const Key& name = "", bool is_eval = true);
+
+
+// -----------------------------------------------------------------------------
+// Require a vector and a primary variable evaluator at next tag(s).
+// -----------------------------------------------------------------------------
+CompositeVectorSpace&
+requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "");
+
+
+// -----------------------------------------------------------------------------
+// Helper functions for working with Amanzi's Chemistry PK
+// -----------------------------------------------------------------------------
+void
+convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
+                             int num_aqueous,
+                             const Epetra_MultiVector& tcc_ats,
+                             Epetra_MultiVector& tcc_amanzi);
+
+void
+convertConcentrationToATS(const Epetra_MultiVector& mol_den,
+                          int num_aqueous,
+                          const Epetra_MultiVector& tcc_ats,
+                          Epetra_MultiVector& tcc_amanzi);
+
+bool
+advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+                 double t_old, double t_new, bool reinit,
+                 const Epetra_MultiVector& mol_dens,
+                 Teuchos::RCP<Epetra_MultiVector> tcc,
+                 Teuchos::Time& timer);
+
+
+void
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
+                            CompositeVector& vec);
+void
+copyVectorToMeshCoordinates(const CompositeVector& vec,
+                            AmanziMesh::Mesh& mesh);
 
 
 } // namespace Amanzi

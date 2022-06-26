@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,RelPermEvaluator> RelPermEvaluator::factory_("WRM rel perm");
+Utils::RegisteredFactory<Evaluator,RelPermEvaluator> RelPermEvaluator::factory_("WRM rel perm");
 
 } //namespace
 } //namespace

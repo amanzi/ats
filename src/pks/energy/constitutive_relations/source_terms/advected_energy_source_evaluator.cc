@@ -13,48 +13,37 @@ namespace Energy {
 
 // constructor format for all derived classes
 AdvectedEnergySourceEvaluator::AdvectedEnergySourceEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
 }
 
-AdvectedEnergySourceEvaluator::AdvectedEnergySourceEvaluator(const AdvectedEnergySourceEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    internal_enthalpy_key_(other.internal_enthalpy_key_),
-    external_enthalpy_key_(other.external_enthalpy_key_),
-    water_source_key_(other.water_source_key_),
-    internal_density_key_(other.internal_density_key_),
-    external_density_key_(other.external_density_key_),
-    cell_vol_key_(other.cell_vol_key_),
-    conducted_source_key_(other.conducted_source_key_),
-    include_conduction_(other.include_conduction_),
-    source_units_(other.source_units_)
-{}
-
-Teuchos::RCP<FieldEvaluator>
-AdvectedEnergySourceEvaluator::Clone() const {
+Teuchos::RCP<Evaluator>
+AdvectedEnergySourceEvaluator::Clone() const
+{
   return Teuchos::rcp(new AdvectedEnergySourceEvaluator(*this));
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
-AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-  const Epetra_MultiVector& int_enth = *S->GetFieldData(internal_enthalpy_key_)
+AdvectedEnergySourceEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& int_enth = *S.GetPtr<CompositeVector>(internal_enthalpy_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& ext_enth = *S->GetFieldData(external_enthalpy_key_)
+  const Epetra_MultiVector& ext_enth = *S.GetPtr<CompositeVector>(external_enthalpy_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& water_source = *S->GetFieldData(water_source_key_)
+  const Epetra_MultiVector& water_source = *S.GetPtr<CompositeVector>(water_source_key_, tag)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& cv = *S->GetFieldData(cell_vol_key_)
+  const Epetra_MultiVector& cv = *S.GetPtr<CompositeVector>(cell_vol_key_, tag)
       ->ViewComponent("cell",false);
 
-  Epetra_MultiVector& res = *result->ViewComponent("cell",false);
-  
+  Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
+
   if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
-    const Epetra_MultiVector& int_dens = *S->GetFieldData(internal_density_key_)
+    const Epetra_MultiVector& int_dens = *S.GetPtr<CompositeVector>(internal_density_key_, tag)
                                          ->ViewComponent("cell",false);
-    const Epetra_MultiVector& ext_dens = *S->GetFieldData(external_density_key_)
+    const Epetra_MultiVector& ext_dens = *S.GetPtr<CompositeVector>(external_density_key_, tag)
                                          ->ViewComponent("cell",false);
 
     unsigned int ncells = res.MyLength();
@@ -88,10 +77,9 @@ AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       res[0][c] /= cv[0][c];
     }
   }
-  
 
   if (include_conduction_) {
-    const Epetra_MultiVector& cond = *S->GetFieldData(conducted_source_key_)
+    const Epetra_MultiVector& cond = *S.GetPtr<CompositeVector>(conducted_source_key_, tag)
         ->ViewComponent("cell",false);
     unsigned int ncells = res.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
@@ -101,27 +89,32 @@ AdvectedEnergySourceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 }
 
 void
-AdvectedEnergySourceEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+AdvectedEnergySourceEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
   if (include_conduction_ && wrt_key == conducted_source_key_) {
-    *result->ViewComponent("cell",false) = *S->GetFieldData(cell_vol_key_)
+    *result[0]->ViewComponent("cell",false) = *S.GetPtr<CompositeVector>(cell_vol_key_, tag)
         ->ViewComponent("cell",false);
   } else {
-    result->PutScalar(0.);
+    result[0]->PutScalar(0.);
   }
 }
 
 void
-AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
-  std::string domain = Keys::getDomain(my_key_);
+AdvectedEnergySourceEvaluator::InitializeFromPlist_()
+{
+  std::string domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   internal_enthalpy_key_ = Keys::readKey(plist_, domain, "internal enthalpy", "enthalpy");
-  external_enthalpy_key_ = Keys::readKey(plist_, domain, "external enthalpy", "water_source_enthalpy");
-  water_source_key_ = Keys::readKey(plist_, domain, "water source", "water_source");
+  dependencies_.insert(KeyTag{internal_enthalpy_key_, tag});
 
-  dependencies_.insert(internal_enthalpy_key_);
-  dependencies_.insert(external_enthalpy_key_);
-  dependencies_.insert(water_source_key_);
+  external_enthalpy_key_ = Keys::readKey(plist_, domain, "external enthalpy", "water_source_enthalpy");
+  dependencies_.insert(KeyTag{external_enthalpy_key_, tag});
+
+  water_source_key_ = Keys::readKey(plist_, domain, "water source", "water_source");
+  dependencies_.insert(KeyTag{water_source_key_, tag});
 
   // this handles both surface fluxes (in m/s) and subsurface fluxes (in mol/s)
   std::string source_units = plist_.get<std::string>("water source units");
@@ -135,7 +128,7 @@ AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
   } else {
     Errors::Message message;
     message << "AdvectedEnergySourceEvaluator: "
-            << my_key_
+            << my_keys_.front().first
             << ": invalid units \""
             << source_units
             << "\" for \"mass source units\", valid are \"mol s^-1\", \"m s^-1\", \"mol m^-2 s^-1\","
@@ -145,9 +138,10 @@ AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
 
   if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
     internal_density_key_ = Keys::readKey(plist_, domain, "internal molar density", "molar_density_liquid");
+    dependencies_.insert(KeyTag{internal_density_key_, tag});
+
     external_density_key_ = Keys::readKey(plist_, domain, "external molar density", "source_molar_density");
-    dependencies_.insert(internal_density_key_);
-    dependencies_.insert(external_density_key_);
+    dependencies_.insert(KeyTag{external_density_key_, tag});
   }
 
   // this enables the addition of provided diffusive fluxes as well
@@ -155,11 +149,11 @@ AdvectedEnergySourceEvaluator::InitializeFromPlist_() {
   if (include_conduction_) {
     conducted_source_key_ = plist_.get<std::string>("conducted energy source key",
             Keys::getKey(domain, "conducted_energy_source"));
-    dependencies_.insert(conducted_source_key_);
+    dependencies_.insert(KeyTag{conducted_source_key_, tag});
   }
 
-  cell_vol_key_ = plist_.get<std::string>("cell volume key",
-          Keys::getKey(domain, "cell_volume"));
+  cell_vol_key_ = Keys::readKey(plist_, domain, "cell volume", "cell_volume");
+  dependencies_.insert(KeyTag{cell_vol_key_, tag});
 
 }
 

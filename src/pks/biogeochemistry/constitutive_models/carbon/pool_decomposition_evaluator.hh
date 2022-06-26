@@ -10,20 +10,20 @@
 #define AMANZI_BGCRELATIONS_POOL_DECOMP_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace BGC {
 namespace BGCRelations {
 
-class PoolDecompositionEvaluator : public SecondaryVariableFieldEvaluator {
+class PoolDecompositionEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit
   PoolDecompositionEvaluator(Teuchos::ParameterList& plist);
   PoolDecompositionEvaluator(const PoolDecompositionEvaluator& other);
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -34,7 +34,7 @@ protected:
   Key decay_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PoolDecompositionEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator,PoolDecompositionEvaluator> fac_;
 
 
 

@@ -1,3 +1,7 @@
 #include "mpc_surface.hh"
-Amanzi::RegisteredPKFactory<Amanzi::MPCSurface> Amanzi::MPCSurface::reg_("icy surface");
 
+namespace Amanzi {
+
+RegisteredPKFactory<MPCSurface> MPCSurface::reg_("icy surface");
+
+}

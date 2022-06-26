@@ -24,40 +24,39 @@ precip1 = ["precipitation rain [m s^-1]",
 names2 = ["Ta", "RH", "Qswin", "Qlwin", "Us"]
 precip2 = ["Pr", "Ps"]
 
-def plot_met(fname, axs, color='b', end_time_in_years=np.inf, style='-'):
+def plot_met(fid, axs, color='b', end_time_in_years=np.inf, style='-'):
     axs = axs.ravel()
 
-    with h5py.File(fname, 'r') as fid:
+    try:
+        time = fid['time [s]'][:]/86400.0/365.0
+    except KeyError:
         try:
-            time = fid['time [s]'][:]/86400.0/365.0
+            time = fid['time'][:]/86400.0/365.0
         except KeyError:
-            try:
-                time = fid['time'][:]/86400.0/365.0
-            except KeyError:
-                raise KeyError('Missing time entry "time [s]"')
-            else:
-                names = names2
-                precip = precip2
+            raise KeyError('Missing time entry "time [s]"')
         else:
-            names = names1
-            precip = precip1
+            names = names2
+            precip = precip2
+    else:
+        names = names1
+        precip = precip1
 
-        time = np.squeeze(time)            
+    time = np.squeeze(time)            
 
-        if end_time_in_years > time[-1]:
-            end = len(time)
-        else:
-            end = np.where(time > end_time_in_years)[0][0]
-        
-        for i,n in enumerate(names):
-            if n in fid.keys():
-                axs[i].plot(time[0:end], np.squeeze(fid[n][0:end]), style, color=color)
-            axs[i].set_title(n)
+    if end_time_in_years > time[-1]:
+        end = len(time)
+    else:
+        end = np.where(time > end_time_in_years)[0][0]
 
-        for p, s2 in zip(precip, ['-','--']):
-            if p in fid.keys():
-                axs[i+1].plot(time[0:end], np.squeeze(fid[p][0:end]), s2, color=color)
-        axs[i+1].set_title("precip (solid=rain, dash=snow) [m SWE s^-1]")
+    for i,n in enumerate(names):
+        if n in fid.keys():
+            axs[i].plot(time[0:end], np.squeeze(fid[n][0:end]), style, color=color)
+        axs[i].set_title(n)
+
+    for p, s2 in zip(precip, ['-','--']):
+        if p in fid.keys():
+            axs[i+1].plot(time[0:end], np.squeeze(fid[p][0:end]), s2, color=color)
+    axs[i+1].set_title("precip (solid=rain, dash=snow) [m SWE s^-1]")
 
 
 def get_axs():
@@ -78,7 +77,8 @@ if __name__ == "__main__":
     fig, axs = get_axs()
 
     for fname, color in zip(args.INPUT_FILES, color_list):
-        plot_met(fname, axs, color)
+        with h5py.File(fname, 'r') as fid:
+            plot_met(fid, axs, color)
 
     plt.show()
     sys.exit(0)

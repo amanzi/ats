@@ -10,7 +10,7 @@ Process kernel for energy equation for Richard's flow.
 ------------------------------------------------------------------------- */
 
 
-#include "eos_evaluator_tp.hh"
+#include "eos_evaluator.hh"
 #include "iem_evaluator.hh"
 #include "thermal_conductivity_twophase_evaluator.hh"
 #include "enthalpy_evaluator.hh"
@@ -34,26 +34,20 @@ TwoPhase::TwoPhase(Teuchos::ParameterList& FElist,
 
 
 // -------------------------------------------------------------
-// Create the physical evaluators for energy, enthalpy, thermal
-// conductivity, and any sources.
+// Create the physical evaluators for energy and thermal conductivity
 // -------------------------------------------------------------
-void TwoPhase::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
-  // Get data and evaluators needed by the PK
-  // -- energy, the conserved quantity
-  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S->RequireFieldEvaluator(conserved_key_);
-
+void TwoPhase::SetupPhysicalEvaluators_()
+{
   // -- thermal conductivity
-  S->RequireField(conductivity_key_)->SetMesh(mesh_)
-    ->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
-  Teuchos::ParameterList tcm_plist =
-    plist_->sublist("thermal conductivity evaluator");
-  tcm_plist.set("evaluator name", conductivity_key_);
-  Teuchos::RCP<Energy::ThermalConductivityTwoPhaseEvaluator> tcm =
-    Teuchos::rcp(new Energy::ThermalConductivityTwoPhaseEvaluator(tcm_plist));
-  S->SetFieldEvaluator(conductivity_key_, tcm);
+  // This deals with deprecated location for the TC list (in the PK).  Move it
+  // to State
+  if (plist_->isSublist("thermal conductivity evaluator")) {
+    auto& tcm_plist = S_->GetEvaluatorList(conductivity_key_);
+    tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
+    tcm_plist.set("evaluator type", "two-phase thermal conductivity");
+  }
 
+  EnergyBase::SetupPhysicalEvaluators_();
 }
 
 } // namespace

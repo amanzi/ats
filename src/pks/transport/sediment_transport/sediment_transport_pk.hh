@@ -24,7 +24,7 @@
 //#include "MaterialProperties.hh"
 #include "PK.hh"
 #include "PK_Factory.hh"
-#include "ReconstructionCell.hh"
+#include "ReconstructionCellLinear.hh"
 #include "State.hh"
 #include "Tensor.hh"
 #include "Units.hh"
@@ -77,10 +77,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit=false); 
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
   virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
-
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
 
   virtual std::string name() { return "sediment transport"; }
   Key get_domain_name() {return domain_name_;}
@@ -166,8 +162,10 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
 
   // initialization methods
   void InitializeAll_();
-  void InitializeFieldFromField_(const std::string& field0, 
-                                 const std::string& field1, 
+  void InitializeFieldFromField_(const std::string& field0,
+                                 const Tag& tag0,
+                                 const std::string& field1,
+                                 const Tag& tag1,
                                  const Teuchos::Ptr<State>& S,
                                  bool call_evaluator, bool overwrite);
 
@@ -212,7 +210,6 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, mol_dens_;//, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
   Teuchos::RCP<const Epetra_MultiVector> km_;  
     
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;
@@ -224,7 +221,7 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_start, mol_dens_subcycle_end;
 
   int current_component_;  // data for lifting
-  Teuchos::RCP<Operators::ReconstructionCell> lifting_;
+  Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
 
   std::vector<Teuchos::RCP<TransportDomainFunction> > srcs_;  // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction> > bcs_;  // influx BC for components
@@ -268,6 +265,10 @@ typedef double AnalyticFunction(const AmanziGeometry::Point&, const double);
   // io
     Utils::Units units_;
     Teuchos::RCP<VerboseObject> vo_;
+    Tag tag_subcycle_;
+    Tag tag_subcycle_current_;
+    Tag tag_subcycle_next_;
+
 
   // Forbidden.
   SedimentTransport_PK(const SedimentTransport_PK&);

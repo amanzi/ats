@@ -19,23 +19,20 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindCellCentered::UpwindCellCentered(std::string pkname,
-        std::string cell_coef,
-        std::string face_coef) :
-    pkname_(pkname),
-    cell_coef_(cell_coef),
-    face_coef_(face_coef) {};
+UpwindCellCentered::UpwindCellCentered(const std::string& pkname,
+        const Tag& tag)
+  : pkname_(pkname),
+    tag_(tag) {}
 
 
-void UpwindCellCentered::Update(const Teuchos::Ptr<State>& S,
-                                  const Teuchos::Ptr<Debugger>& db) {
-
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-
-  *face->ViewComponent("cell") = *cell->ViewComponent("cell");
-  if (face->HasComponent("face")) {
-    face->ViewComponent("face",true)->PutScalar(1.0);
+void UpwindCellCentered::Update(const CompositeVector& cells,
+        CompositeVector& faces,
+        const State& S,
+        const Teuchos::Ptr<Debugger>& db) const
+{
+  *faces.ViewComponent("cell") = *cells.ViewComponent("cell");
+  if (faces.HasComponent("face")) {
+    faces.ViewComponent("face",true)->PutScalar(1.0);
   }
 };
 
