@@ -163,7 +163,7 @@ if (BUILD_TESTS)
   add_amanzi_test(executable_mesh_factory executable_mesh_factory
            KIND int
            SOURCE test/Main.cc test/executable_mesh_factory.cc
-           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+           LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
 
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
   add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
