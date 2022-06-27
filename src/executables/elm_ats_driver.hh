@@ -76,6 +76,7 @@ private:
   Amanzi::Key sub_pv_key_;
   Amanzi::Key srf_pv_key_;
 
+  bool plist_visout_;
 
   int ncolumns_;
   int ncol_cells_;

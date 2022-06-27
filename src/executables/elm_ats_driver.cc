@@ -154,6 +154,20 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   mesh_surf_ = S_->GetMesh(domain_srf_);
 
 
+  // visualization on/off from input plist
+  // note: this will turn on/off what options passing from ELM interface
+  //     and, have to exactly set up in *.xml as:
+  /*
+  <ParameterList name="visualization">
+    <ParameterList name="domain">
+      <Parameter name="cycles start period stop" type="Array(int)" value="{0, 1, -1}" />  <!-- This exact format of vis will control output together with ELM options  -->
+    </ParameterList>
+  </ParameterList>
+ */
+  plist_visout_ = false;
+  Teuchos::RCP<Teuchos::ParameterList> pl = Teuchos::sublist(Teuchos::sublist(plist, "visualization"), "domain");
+  auto vis_out = pl->get<Teuchos::Array<int>>("cycles start period stop");
+  if (vis_out[2] == -1) {plist_visout_ = true; }
 
   // build columns to allow indexing by column
   mesh_subsurf_->build_columns();
@@ -259,19 +273,22 @@ void ELM_ATSDriver::advance_elmstep(double *dt_elm, bool visout, bool chkout)
 {
   // elm one timestep: starting --> ending
   double ending_time_ = S_->get_time() + *dt_elm;
-  if (visout) {
+  bool visout2 = false;
+  if (visout && plist_visout_) {
     if (ending_time_<86400.0) {
       std::cout<<"ATS running period of time: ending by - "<<ending_time_<<" seconds"<<std::endl;
     } else {
       int yr = std::floor(ending_time_/86400.0/365.0);
       double day = ending_time_/86400.0 - yr*365.0;
-      std::cout<<"ATS running period of time: ending by - YEAR "<<yr<<" DOY "<<day<<std::endl;
+      std::cout<<"ATS running period of time: ending by - YEAR "<<yr<<" DOY "<<int(day)<<std::endl;
     }
+
+    visout2 = true;
   }
   double dt = elm_coordinator_->get_dt(false);
   while (S_->get_time() < ending_time_) {
 	//  call main method, with output instruction(s) from ELM
-    advance(&dt, visout, chkout);
+    advance(&dt, visout2, chkout);
     dt = elm_coordinator_->get_dt(false);
   };
 }
@@ -440,17 +457,6 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
       .ViewComponent("cell", false);
   Epetra_MultiVector& subsurf_ss = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
       .ViewComponent("cell", false);
-
-#if 0
-  const Epetra_MultiVector& cv0 =
-    *S_->Get<Amanzi::CompositeVector>(Amanzi::Keys::getKey(domain_srf_,"cell_volume"), Amanzi::Tags::NEXT)
-	  .ViewComponent("cell",false);
-  std::cout<<std::endl<<"checking cell_volume 1 "<<cv0<<std::endl<<std::endl;
-  const Epetra_MultiVector& cv =
-    *S_->Get<Amanzi::CompositeVector>(Amanzi::Keys::getKey(domain_sub_,"cell_volume"), Amanzi::Tags::NEXT)
-	  .ViewComponent("cell",false);
-  std::cout<<std::endl<<"checking cell_volume 2 "<<cv<<std::endl<<std::endl;
-#endif
 
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
   AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
