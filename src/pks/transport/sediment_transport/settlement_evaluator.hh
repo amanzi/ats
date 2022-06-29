@@ -21,21 +21,12 @@ namespace Amanzi {
 class SettlementRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  SettlementRateEvaluator(Teuchos::ParameterList& plist);
-  SettlementRateEvaluator(const SettlementRateEvaluator& other);
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-  
-  // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
-  //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
+  explicit SettlementRateEvaluator(Teuchos::ParameterList& plist);
+  SettlementRateEvaluator(const SettlementRateEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-
-  //virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S){};
-
-protected:
-
-    // Required methods from EvaluatorSecondaryMonotypeCV
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,

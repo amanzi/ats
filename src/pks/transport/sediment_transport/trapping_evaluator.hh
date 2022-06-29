@@ -6,9 +6,7 @@
 
   Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
-
-#ifndef AMANZI_TRAPPINGRATE_EVALUATOR_
-#define AMANZI_TRAPPINGRATE_EVALUATOR_
+#pragma once
 
 // TPLs
 #include "Teuchos_ParameterList.hpp"
@@ -24,36 +22,25 @@ class TrappingRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   explicit
   TrappingRateEvaluator(Teuchos::ParameterList& plist);
 
-  TrappingRateEvaluator(const TrappingRateEvaluator& other);
-  virtual Teuchos::RCP<Evaluator> Clone() const;
-  
-  // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
-  //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
+  TrappingRateEvaluator(const TrappingRateEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
-
-  //virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S){};
-
-  protected:
-
-
-    // Required methods from EvaluatorSecondaryMonotypeCV
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;  
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
   double visc_, d_p_, alpha_, beta_, gamma_;
 
   Key velocity_key_;
   Key sediment_key_;
   Key ponded_depth_key_;
-  Key biomass_key_;  
+  Key biomass_key_;
   double sediment_density_;
-  static Utils::RegisteredFactory<Evaluator,TrappingRateEvaluator> factory_;
 
+  static Utils::RegisteredFactory<Evaluator,TrappingRateEvaluator> factory_;
 };
 
 } //namespace
-
-#endif
