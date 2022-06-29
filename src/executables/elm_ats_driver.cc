@@ -488,7 +488,8 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
 //----------------------------------------------------------------------------------------------------------------------------
 
 void
-ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation, int *ncols, int *ncells)
+ELM_ATSDriver::get_waterstate(double *surface_pd, double *soil_pressure, double *soilpsi,
+		double *saturation, double *saturation_ice, int *ncols, int *ncells)
 {
 
   S_->GetEvaluator(pd_key_, Amanzi::Tags::NEXT).Update(*S_, pd_key_);
@@ -506,12 +507,14 @@ ELM_ATSDriver::get_waterstate(double *surface_pressure, double *soil_pressure, d
   AMANZI_ASSERT(*ncells == pres.MyLength());
 
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
-    surface_pressure[col] = pd[0][col];
+    surface_pd[col] = pd[0][col];
 
     auto& col_iter = mesh_subsurf_->cells_of_column(col);
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       soil_pressure[col*ncol_cells_+i] = pres[0][col_iter[i]];
       saturation[col*ncol_cells_+i] = sat[0][col_iter[i]];
+      saturation_ice[col*ncol_cells_+i] = 0.0; // (TODO)
+      soilpsi[col*ncol_cells_+i] = 0.0; // needed?? (TODO)
     }
   }
 
