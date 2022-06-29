@@ -65,16 +65,16 @@ void ats_set_boundaryconditions(ELM_ATS_DRIVER ats){
 }
 // call driver set_sources()
 void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
-  double *root_transpiration, int *ncols, int *ncells) {
+  double *pft_transpiration, double *root_transpiration, double *soil_drainage, int *ncols, int *ncells) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
   ->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
 }
 //
 // call driver get_waterstate()
-void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure,
-  double *saturation, int *ncols, int *ncells) {
+void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pd, double *soil_pressure, double *soil_psi,
+  double *sat_liq, double *sat_ice, int *ncols, int *ncells) {
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
+  ->get_waterstate(surface_pd, soil_pressure, soil_psi, sat_liq, sat_ice, ncols, ncells);
 }
 // call driver get_mesh_info()
 void ats_get_mesh_info(ELM_ATS_DRIVER ats, int *ncols_local, int *ncols_global, int *ncells_per_col,

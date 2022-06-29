@@ -109,11 +109,14 @@ int main(int argc, char *argv[])
   // dummy data
   // 1 col, 15 cells
   int n = 1;
+  int p = 1;
   int m = 15;
   //unit: kgH2O/m2/s, + in (sink), - out (source)
   std::vector<double> soil_infil(n, 0.0); // (n, 2.5e-4) - for 'test_interface_infiltration.xml'
   std::vector<double> soil_evap(n,-0.0e-9);
+  std::vector<double> pft_tran(p,-0.0);
   std::vector<double> root_tran(m,-1.0e-5);   // source: - (out of subsurf), sink: + (into subsurf)
+  std::vector<double> soil_drain(m,-0.0);
 
   int ncols_local, ncols_global, ncells_per_col;
   std::vector<double> surf_pres(n);
@@ -125,7 +128,9 @@ int main(int argc, char *argv[])
   std::vector<double> dz(m);
   std::vector<double> depth(m);
   std::vector<double> soil_pres(m);
+  std::vector<double> soil_psi(m);
   std::vector<double> satl(m);
+  std::vector<double> satice(m);
 
   // dummy fortran comm
   MPI_Fint comm = 0;
@@ -147,9 +152,9 @@ int main(int argc, char *argv[])
   ats_get_mesh_info(driver_api, &ncols_local, &ncols_global, &ncells_per_col, dz.data(), depth.data(),
     elev.data(), surf_area_m2.data(), lat.data(), lon.data());
   ats_initialize(driver_api);
-  ats_set_sources(driver_api, soil_infil.data(), soil_evap.data(), root_tran.data(), &n, &m);
+  ats_set_sources(driver_api, soil_infil.data(), soil_evap.data(), pft_tran.data(), root_tran.data(), soil_drain.data(), &n, &m);
   ats_advance_test(driver_api);
-  ats_get_waterstate(driver_api, surf_pres.data(), soil_pres.data(), satl.data(), &n, &m);
+  ats_get_waterstate(driver_api, surf_pres.data(), soil_pres.data(), soil_psi.data(), satl.data(), satice.data(), &n, &m);
   ats_delete(driver_api);
   
   std::cout << "DONE WITH ELM-ATS C++ TEST" << std::endl;

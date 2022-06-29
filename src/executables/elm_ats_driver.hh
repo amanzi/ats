@@ -37,8 +37,8 @@ public:
     double *eff_porosity, double *zwt);
   void set_initialconditions(double *start_t, double *patm, double *soilpressure, double *wtd, bool visout=false);
   void set_boundaryconditions();
-  void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
-    int *ncols, int *ncells);
+  void set_sources(double *soil_infiltration, double *soil_evaporation,
+    double *root_transpiration, int *ncols, int *ncells);
 
   void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation,
     int *ncols, int *ncells);

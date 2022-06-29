@@ -37,13 +37,13 @@ void ats_set_boundaryconditions(ELM_ATS_DRIVER ats);      // (TODO)
 // soil_infiltration & soil_evaporation are 1D arrays of length ncols
 // root_transpiration is a 1D array array of length (ncells)
 void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
-  double *root_transpiration, int *ncols, int *ncells);
+  double *pft_transpiration, double *root_transpiration, double *soil_drainage, int *ncols, int *ncells);
 //
 // call driver get_waterstate()
 // surface_pressure is a 1D array of length ncols
 // soil_pressure & saturation are 1D arrays array of length (ncells)
-void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure,
-  double *saturation, int *ncols, int *ncells);
+void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure, double *soil_psi,
+  double *sat_liq, double *sat_ice, int *ncols, int *ncells);
 // call driver get_mesh_info()
 // ncols_local, ncols_global, and ncells_per_col are scalars
 // dz & depth are 1D arrays array of length (ncells) - these could likely only be ncells_per_col long
