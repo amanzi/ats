@@ -63,6 +63,7 @@ private:
   Amanzi::Key satl_key_;
   Amanzi::Key por_key_;
   Amanzi::Key elev_key_;
+  Amanzi::Key watl_key_;
 
   Amanzi::Key srf_mol_dens_key_;
   Amanzi::Key srf_mass_dens_key_;

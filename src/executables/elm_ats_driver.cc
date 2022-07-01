@@ -134,6 +134,8 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   por_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "porosity", "porosity");
   elev_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "elevation", "elevation");
 
+  watl_key_ = Amanzi::Keys::readKey(*plist, domain_sub_, "water_content", "water_content");
+
   // keys for fields used to convert ELM units to ATS units
   srf_mol_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface molar density", "molar_density_liquid");
   srf_mass_dens_key_ = Amanzi::Keys::readKey(*plist, domain_srf_, "surface mass density", "mass_density_liquid");
@@ -502,9 +504,32 @@ ELM_ATSDriver::get_waterstate(double *surface_pd, double *soil_pressure, double 
   const Epetra_MultiVector& sat = *S_->Get<Amanzi::CompositeVector>(satl_key_, Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
 
+  // cell water matric potential: -Pa
+  S_->GetEvaluator(watl_key_, Amanzi::Tags::NEXT).Update(*S_, "capillary_pressure_gas_liq");
+  const Epetra_MultiVector& pc = *S_->Get<Amanzi::CompositeVector>("capillary_pressure_gas_liq", Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+
+  // cell water content: mols
+  S_->GetEvaluator(watl_key_, Amanzi::Tags::NEXT).Update(*S_, watl_key_);
+  const Epetra_MultiVector& watl = *S_->Get<Amanzi::CompositeVector>(watl_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+  const Epetra_MultiVector& cv =
+    *S_->Get<Amanzi::CompositeVector>(Amanzi::Keys::getKey(domain_sub_,"cell_volume"), Amanzi::Tags::NEXT)
+	  .ViewComponent("cell",false);
+
+  // Two kinds of water densities
+  const Epetra_MultiVector& sub_mol_dens = *S_->Get<Amanzi::CompositeVector>(sub_mol_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+  const Epetra_MultiVector& sub_mass_dens = *S_->Get<Amanzi::CompositeVector>(sub_mass_dens_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
   AMANZI_ASSERT(*ncols == ncolumns_ == pd.MyLength());
   AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
   AMANZI_ASSERT(*ncells == pres.MyLength());
+
+
 
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     surface_pd[col] = pd[0][col];
@@ -512,9 +537,19 @@ ELM_ATSDriver::get_waterstate(double *surface_pd, double *soil_pressure, double 
     auto& col_iter = mesh_subsurf_->cells_of_column(col);
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       soil_pressure[col*ncol_cells_+i] = pres[0][col_iter[i]];
+      soilpsi[col*ncol_cells_+i] = std::max(0.0, pc[0][col_iter[i]]);  // negative for saturated, which should be 0.
+#if 0
       saturation[col*ncol_cells_+i] = sat[0][col_iter[i]];
+#else
+      // output 'saturation' as water content per vol, which compariable to ELM
+      double sub_mol_h20_kg = sub_mol_dens[0][col_iter[i]] / sub_mass_dens[0][col_iter[i]];
+      double convertor = 1.0/sub_mol_h20_kg;
+      // mols --> kgH2O/m3-cell
+      saturation[col*ncol_cells_+i] = watl[0][col_iter[i]]/cv[0][col_iter[i]]*convertor;
+#endif
+
       saturation_ice[col*ncol_cells_+i] = 0.0; // (TODO)
-      soilpsi[col*ncol_cells_+i] = 0.0; // needed?? (TODO)
+
     }
   }
 

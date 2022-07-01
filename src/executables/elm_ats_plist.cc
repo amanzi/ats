@@ -178,7 +178,6 @@ void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
 					    "function-constant");
     double perm = layer2_plist_->get<double>("value");
     perm = (elmdata.hksat_[c]/1000.0)*visco/den_mass/(-gravity);   //mmH2O/s --> m2
-    std::cout<<c<<" "<<layer2_plist_->get<double>("value")<<" "<<perm<<std::endl;
     layer2_plist_->set("value", perm);
     c++;
   }
@@ -195,7 +194,6 @@ void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
 
     auto layer3_plist_ = Teuchos::sublist(wrm_constants_plist_, layer_name);
     std::string wrm_type = layer3_plist_->get<std::string>("WRM Type");
-    std::cout<<"WRM TYPE: "<<layer_name<<" "<<wrm_type<<std::endl;
     if(wrm_type == "van Genuchten"){
        double vG_alpha = layer3_plist_->get<double>("van Genuchten alpha [Pa^-1]");
        double vG_n = layer3_plist_->get<double>("van Genuchten n [-]");
