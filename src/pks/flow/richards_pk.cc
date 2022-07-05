@@ -644,84 +644,19 @@ void Richards::InitializeHydrostatic_(const Tag& tag)
 //   secondary variables have been updated to be consistent with the new
 //   solution.
 // -----------------------------------------------------------------------------
-void Richards::CommitStep(double t_old, double t_new, const Tag& tag)
+void Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
-
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
-  // also save conserved quantity and saturation
-  //if (!S_->HasEvaluator(conserved_key_, tag_current_))
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
-  // changedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  //if (!S_->HasEvaluator(sat_key_, tag_current_))
-  S_->Assign(sat_key_, tag_current_, tag_next_);
-  // changedEvaluatorPrimary(sat_key_, tag_current_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
+
+  // also save saturation
+  assign(sat_key_, tag_current, tag_next, *S_);
   if (S_->HasRecordSet(sat_ice_key_)) {
-    //  if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
-    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
+    assign(sat_ice_key_, tag_current, tag_next, *S_);
   }
-
-  // // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
-  // // update BCs, rel perm
-  // UpdateBoundaryConditions_(tag);
-  // bool update = UpdatePermeabilityData_(tag);
-  // update |= S_->GetEvaluator(key_, tag).Update(*S_, name_);
-  // update |= S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
-
-  // if (update) {
-  //   // update the stiffness matrix and derive fluxes
-  //   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(uw_coef_key_, tag);
-  //   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
-  //   Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
-
-  //   matrix_->Init();
-  //   matrix_diff_->SetDensity(rho);
-  //   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-  //   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-  //   matrix_diff_->ApplyBCs(true, true, true);
-
-  //   // derive fluxes
-  //   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
-  //   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-
-  //   if (compute_boundary_values_) {
-  //     applyDirichletBCs(*bc_, *pres);
-  //   }
-  // }
-  // // END LIKELY UNNECESSARY CODE -- ETC FIXME
-
-  // As a diagnostic, calculate the mass balance error
-// #if DEBUG_FLAG
-//   if (S_next_ != Teuchos::null) {
-//     Teuchos::RCP<const CompositeVector> wc1 = S_next_->GetPtr<CompositeVector>(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_);
-//     Teuchos::RCP<const CompositeVector> water_flux = S_->GetPtrW<CompositeVector>(flux_key_, name_);
-//     CompositeVector error(*wc1);
-
-//     for (unsigned int c=0; c!=error.size("cell"); ++c) {
-//       error("cell",c) = (*wc1)("cell",c) - (*wc0)("cell",c);
-
-//       AmanziMesh::Entity_ID_List faces;
-//       std::vector<int> dirs;
-//       mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
-//       for (unsigned int n=0; n!=faces.size(); ++n) {
-//         error("cell",c) += (*water_flux)("face",faces[n]) * dirs[n] * dt;
-//       }
-//     }
-
-//     double einf(0.0);
-//     error.NormInf(&einf);
-
-//     // VerboseObject stuff.
-//     Teuchos::OSTab tab = vo_->getOSTab();
-//     *vo_->os() << "Final Mass Balance Error: " << einf << std::endl;
-//   }
-// #endif
 };
 
 

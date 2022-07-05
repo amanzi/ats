@@ -91,47 +91,39 @@ void MPCPermafrostSplitFlux::Setup()
       for (const auto& domain : *domain_set) {
         auto p_key = Keys::getKey(domain, p_lateral_flow_source_suffix_);
         Tag ds_tag_next = get_ds_tag_next_(domain);
-        S_->Require<CompositeVector,CompositeVectorSpace>(p_key, ds_tag_next, p_key)
+        requireAtNext(p_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
-        requireEvaluatorPrimary(p_key, ds_tag_next, *S_);
 
         auto T_key = Keys::getKey(domain, T_lateral_flow_source_suffix_);
-        S_->Require<CompositeVector,CompositeVectorSpace>(T_key, ds_tag_next, T_key)
+        requireAtNext(T_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
-        requireEvaluatorPrimary(T_key, ds_tag_next, *S_);
       }
     } else {
-      S_->Require<CompositeVector,CompositeVectorSpace>(p_lateral_flow_source_, tags_[1].second,  p_lateral_flow_source_)
+      requireAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
         ->SetComponent("cell", AmanziMesh::CELL, 1);
-      requireEvaluatorPrimary(p_lateral_flow_source_, tags_[1].second, *S_);
 
-      S_->Require<CompositeVector,CompositeVectorSpace>(T_lateral_flow_source_, tags_[1].second,  T_lateral_flow_source_)
+      requireAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(T_lateral_flow_source_)))
         ->SetComponent("cell", AmanziMesh::CELL, 1);
-      requireEvaluatorPrimary(T_lateral_flow_source_, tags_[1].second, *S_);
     }
 
     // also need conserved quantities at old and new times
-    S_->Require<CompositeVector,CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].second)
+    requireAtNext(p_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->Require<CompositeVector,CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].first)
+    requireAtCurrent(p_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].second);
-    //S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].first);
 
-    S_->Require<CompositeVector,CompositeVectorSpace>(T_conserved_variable_star_, tags_[0].second)
+    requireAtNext(T_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->Require<CompositeVector,CompositeVectorSpace>(T_conserved_variable_star_, tags_[0].first)
+    requireAtCurrent(T_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S_->RequireEvaluator(T_conserved_variable_star_, tags_[0].second);
-    //S_->RequireEvaluator(T_conserved_variable_star_, tags_[0].first);
   }
 }
 
@@ -206,25 +198,23 @@ bool MPCPermafrostSplitFlux::AdvanceStep(double t_old, double t_new, bool reinit
 }
 
 
-void MPCPermafrostSplitFlux::CommitStep(double t_old, double t_new,
-        const Tag& tag)
+void MPCPermafrostSplitFlux::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  // NOTE: in AJC code, these were flipped.  I believe this is correct, but
-  // might be worth checking to see which works better.  Note it should result
-  // in larget timestep sizes to get this right, but the physics shouldn't
-  // change if this is wrong.  In AJC code, the below comment was still
-  // present...
-  //
-  // Also, if this _did_ need to be flipped, than the call to
-  // sub_pks_[i]->CommitStep() in the Advance_Subcycled would be incorrect, and
-  // we would have to unravel that loop and not call Commit on the star system.
-  //
-  // Commit before copy to ensure record for extrapolation in star system uses
-  // its own solutions
-  MPCSubcycled::CommitStep(t_old, t_new, tag);
-
   // Copy the primary into the star to advance
   CopyPrimaryToStar_();
+
+  // Note we must copy before we advance to ensure that the star system can
+  // move the new pressure into the old pressure's value for that substep.
+  //
+  // This commits to the star system's tags.
+  if (subcycling_[0]) {
+    sub_pks_[0]->CommitStep(S_->get_time(tags_[0].first),
+                            S_->get_time(tags_[0].second),
+                            tags_[0].second);
+  }
+
+  // finally we can do the global commit
+  MPCSubcycled::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -354,7 +344,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Pressure_()
 
   // mark p and WC as changed
   changedEvaluatorPrimary(p_primary_variable_, tags_[1].first, *S_);
-  //changedEvaluatorPrimary(p_conserved_variable_, tags_[1].first, *S_);
+  changedEvaluatorPrimary(p_conserved_variable_, tags_[1].first, *S_);
 
   // copy to subsurface and mark that as changed
   auto p_sub_owner = S_->GetRecord(p_sub_primary_variable_, tags_[1].first).owner();
@@ -378,7 +368,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Pressure_()
 
   // mark T and E as changed
   changedEvaluatorPrimary(T_primary_variable_, tags_[1].first, *S_);
-  // changedEvaluatorPrimary(T_conserved_variable_, tags_[1].first, *S_);
+  changedEvaluatorPrimary(T_conserved_variable_, tags_[1].first, *S_);
 
   // copy to subsurface and mark that as changed
   auto T_sub_owner = S_->GetRecord(T_sub_primary_variable_, tags_[1].first).owner();
@@ -402,9 +392,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Flux_()
   auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
                 .ViewComponent("cell",false);
   q_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
@@ -418,9 +408,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Flux_()
   auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, T_lateral_flow_source_)
                 .ViewComponent("cell",false);
   qE_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
@@ -444,9 +434,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
   auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
                 .ViewComponent("cell",false);
   q_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
@@ -457,9 +447,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
   auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, T_lateral_flow_source_)
                 .ViewComponent("cell",false);
   qE_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
@@ -614,9 +604,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Flux_()
   // grab the data, difference
   Epetra_MultiVector q_div(*S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false));
   q_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(1.0, *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell",false), q_div, 0.);
@@ -624,9 +614,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Flux_()
   // grab the data, difference
   Epetra_MultiVector qE_div(*S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false));
   qE_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   qE_div.ReciprocalMultiply(1.0, *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell",false), qE_div, 0.);
@@ -661,9 +651,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
   // grab the data, difference
   Epetra_MultiVector q_div(*S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false));
   q_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(1.0, *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell",false), q_div, 0.);
@@ -671,9 +661,9 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
   // grab the data, difference
   Epetra_MultiVector qE_div(*S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false));
   qE_div.Update(1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].second).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
                -1.0/dt,
-               *S_->Get<CompositeVector>(T_conserved_variable_star_, tags_[0].first).ViewComponent("cell",false),
+               *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_current_).ViewComponent("cell",false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   qE_div.ReciprocalMultiply(1.0, *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell",false), qE_div, 0.);

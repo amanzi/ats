@@ -167,22 +167,13 @@ bool MPCCoupledWaterSplitFlux::AdvanceStep(double t_old, double t_new, bool rein
 void MPCCoupledWaterSplitFlux::CommitStep(double t_old, double t_new,
         const Tag& tag)
 {
-  // NOTE: in AJC code, these were flipped.  I believe this is correct, but
-  // might be worth checking to see which works better.  Note it should result
-  // in larget timestep sizes to get this right, but the physics shouldn't
-  // change if this is wrong.  In AJC code, the below comment was still
-  // present...
+  // Copy the primary into the star to advance.
   //
-  // Also, if this _did_ need to be flipped, than the call to
-  // sub_pks_[i]->CommitStep() in the Advance_Subcycled would be incorrect, and
-  // we would have to unravel that loop and not call Commit on the star system.
-  //
-  // Commit before copy to ensure record for extrapolation in star system uses
-  // its own solutions
-  MPCSubcycled::CommitStep(t_old, t_new, tag);
-
-  // Copy the primary into the star to advance
+  // Note that this must be done prior to commit so that all copies of the star
+  // system get the right values to start the new timestep.
   CopyPrimaryToStar_();
+
+  MPCSubcycled::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -493,18 +484,18 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
     if (p_star[0][c] > 101325. && q_div[0][c] < 0.) {
       // use the Dirichlet
       Key p_key = Keys::getKey(*ds_iter, p_primary_variable_suffix_);
-      auto p_owner = S_->GetRecord(p_key, tags_[c+1].first).owner();
-      auto& p = *S_->GetW<CompositeVector>(p_key, tags_[c+1].first, p_owner).ViewComponent("cell",false);
+      auto p_owner = S_->GetRecord(p_key, ds_tag_current).owner();
+      auto& p = *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).ViewComponent("cell",false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
       // ?? what about WC?
-      changedEvaluatorPrimary(p_key, tags_[c+1].first, *S_);
+      changedEvaluatorPrimary(p_key, ds_tag_current, *S_);
       Key p_sub_key = Keys::getKey(domain_sub_,
               Keys::getDomainSetIndex(*ds_iter), p_sub_primary_variable_suffix_);
-      auto p_sub_owner = S_->GetRecord(p_sub_key, tags_[c+1].first).owner();
-      CopySurfaceToSubsurface(S_->Get<CompositeVector>(p_key, tags_[c+1].first),
-              S_->GetW<CompositeVector>(p_sub_key, tags_[c+1].first, p_sub_owner));
+      auto p_sub_owner = S_->GetRecord(p_sub_key, ds_tag_current).owner();
+      CopySurfaceToSubsurface(S_->Get<CompositeVector>(p_key, ds_tag_current),
+              S_->GetW<CompositeVector>(p_sub_key, ds_tag_current, p_sub_owner));
 
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);

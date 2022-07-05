@@ -47,7 +47,7 @@ public:
 
   // -- advance each sub pk dt.
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
-  // virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
 

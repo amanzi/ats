@@ -36,7 +36,6 @@ void PK_PhysicalBDF_Default::Setup()
     .SetMesh(mesh_)->AddComponent("cell",AmanziMesh::CELL,true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
-  // S_->RequireEvaluator(conserved_key_, tag_next_); // for the future...
 
   // cell volume used throughout
   if (cell_vol_key_.empty()) {
@@ -179,14 +178,16 @@ double PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 
 
 void
-PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
+PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
-  PK_BDF_Default::CommitStep(t_old, t_new, tag);
-  PK_Physical_Default::CommitStep(t_old, t_new, tag);
+  PK_BDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
+
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   // copy over conserved quantity
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
-  // ChangedSolution(tag_current_);
+  assign(conserved_key_, tag_current, tag_next, *S_);
 }
 
 

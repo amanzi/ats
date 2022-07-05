@@ -148,17 +148,17 @@ VolumetricDeformation::Setup()
     }
 
     case (DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL): {
-      // note, we set these to false (e.g. no evaluator) because the evaluator
-      // will be a copy evaluator set in the flow, which does not yet exist in
-      // the input spec or state.  Maybe there is a better strategy required
-      // here? Alternatively, could deformation be done after flow?  --ETC
-      requireAtCurrent(sat_liq_key_, tag_current_, *S_, "", false)
+      requireAtNext(sat_liq_key_, tag_next_, *S_);
+      requireAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      requireAtCurrent(sat_ice_key_, tag_current_, *S_, "", false)
+      requireAtNext(sat_ice_key_, tag_next_, *S_);
+      requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      requireAtCurrent(sat_gas_key_, tag_current_, *S_, "", false)
+      requireAtNext(sat_gas_key_, tag_next_, *S_);
+      requireAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      requireAtCurrent(poro_key_, tag_current_, *S_, "", false)
+      requireAtNext(poro_key_, tag_next_, *S_);
+      requireAtCurrent(poro_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
       break;
     }
@@ -644,44 +644,32 @@ bool VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 }
 
 
-void VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& tag)
+void VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
-
   // saves primary variable
-  PK_Physical_Default::CommitStep(t_old, t_new, tag);
+  PK_Physical_Default::CommitStep(t_old, t_new, tag_next);
+
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   // also save conserved quantity and saturation
   if (deform_mode_ == DEFORM_MODE_SATURATION ||
       deform_mode_ == DEFORM_MODE_STRUCTURAL) {
-    // if (!S_->HasEvaluator(sat_liq_key_, tag_current_))
-    S_->Assign(sat_liq_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(sat_liq_key_, tag_current_, *S_);
-    // if (!S_->HasEvaluator(sat_ice_key_, tag_current_))
-    S_->Assign(sat_ice_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(sat_ice_key_, tag_current_, *S_);
-    // if (!S_->HasEvaluator(sat_gas_key_, tag_current_))
-    S_->Assign(sat_gas_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(sat_gas_key_, tag_current_, *S_);
-
-    //if (!S_->HasEvaluator(poro_key_, tag_current_))
-    S_->Assign(poro_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(poro_key_, tag_current_, *S_);
+    assign(sat_liq_key_, tag_current, tag_next, *S_);
+    assign(sat_ice_key_, tag_current, tag_next, *S_);
+    assign(sat_gas_key_, tag_current, tag_next, *S_);
+    assign(poro_key_, tag_current, tag_next, *S_);
   }
 
   if (strategy_ == DEFORM_STRATEGY_MSTK) {
-    // if (!S_->HasEvaluator(poro_key_, tag_current_))
-    S_->Assign(poro_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(poro_key_, tag_current_, *S_);
+    assign(poro_key_, tag_current, tag_next, *S_);
   }
 
   // lastly, save the new coordinates for checkpointing
   if (deformed_this_step_) {
-    copyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, tag, vertex_loc_key_));
+    copyMeshCoordinatesToVector(*mesh_, S_->GetW<CompositeVector>(vertex_loc_key_, tag_next, vertex_loc_key_));
     if (surf3d_mesh_ != Teuchos::null) {
-      copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag, vertex_loc_surf3d_key_));
+      copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag_next, vertex_loc_surf3d_key_));
     }
   }
 }

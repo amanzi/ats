@@ -59,7 +59,7 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
   coordinator_init();
 
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *parameter_list_));
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
 };
 
 void Coordinator::coordinator_init()
@@ -299,6 +299,9 @@ void Coordinator::initialize()
     Amanzi::IOEvent pause_times(sublist);
     pause_times.RegisterWithTimeStepManager(tsm_.ptr());
   }
+
+  // -- advance cycle to 0 and begin
+  if (S_->get_cycle() == -1) S_->advance_cycle();
 }
 
 
@@ -428,7 +431,7 @@ Coordinator::read_parameter_list()
 
   max_dt_ = coordinator_list_->get<double>("max time step size [s]", 1.0e99);
   min_dt_ = coordinator_list_->get<double>("min time step size [s]", 1.0e-12);
-  cycle0_ = coordinator_list_->get<int>("start cycle",0);
+  cycle0_ = coordinator_list_->get<int>("start cycle",-1);
   cycle1_ = coordinator_list_->get<int>("end cycle",-1);
   duration_ = coordinator_list_->get<double>("wallclock duration [hrs]", -1.0);
   subcycled_ts_ = coordinator_list_->get<bool>("subcycled timestep", false);
@@ -479,6 +482,9 @@ Coordinator::advance()
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
   if (!fail) fail |= !pk_->ValidStep();
 
+  // write state post-advance, if extreme
+  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
+
   if (!fail) {
     // commit the state, copying NEXT --> CURRENT
     pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
@@ -519,6 +525,9 @@ Coordinator::advance()
       }
     }
   }
+  // write state one extreme, post-commit/fail
+  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
+
   return fail;
 }
 

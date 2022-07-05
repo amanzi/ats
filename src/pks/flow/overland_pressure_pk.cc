@@ -484,48 +484,16 @@ void OverlandPressureFlow::Initialize()
 //   secondary variables have been updated to be consistent with the new
 //   solution.
 // -----------------------------------------------------------------------------
-void OverlandPressureFlow::CommitStep(double t_old, double t_new,
-        const Tag& tag)
+void OverlandPressureFlow::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
-
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
-  // also save conserved quantity and ponded depth
-  // if (!S_->HasEvaluator(conserved_key_, tag_current_))
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
-  // changedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
-  // if (!S_->HasEvaluator(pd_key_, tag_current_))
-  S_->Assign(pd_key_, tag_current_, tag_next_);
-  // changedEvaluatorPrimary(pd_key_, tag_current_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
-  // BEGIN LIKELY UNNECESSARY CODE -- ETC FIXME
-  // update boundary conditions
-  // ComputeBoundaryConditions_(tag);
-  // UpdateBoundaryConditions_(tag);
-
-  // // Update flux if rel perm or h + Z has changed.
-  // bool update = UpdatePermeabilityData_(tag);
-  // update |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
-
-  // // update the stiffness matrix with the new rel perm
-  // auto cond = S_->GetPtr<CompositeVector>(uw_cond_key_, tag);
-
-  // // update the stiffness matrix
-  // matrix_->Init();
-  // matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
-  // matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  // FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
-  // matrix_diff_->ApplyBCs(true, true, true);
-
-  // // derive the fluxes
-  // Teuchos::RCP<const CompositeVector> potential = S_->GetPtr<CompositeVector>(potential_key_, tag);
-  // Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
-  // matrix_diff_->UpdateFlux(potential.ptr(), flux.ptr());
-  // END LIKELY UNNECESSARY CODE -- ETC FIXME
+  // also save ponded depth
+  assign(pd_key_, tag_current, tag_next, *S_);
 };
 
 

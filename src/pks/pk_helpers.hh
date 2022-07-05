@@ -58,14 +58,14 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
 // Get a primary variable evaluator for a key at tag
 // -----------------------------------------------------------------------------
 Teuchos::RCP<EvaluatorPrimaryCV>
-requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = true);
 
 
 // -----------------------------------------------------------------------------
 // Mark primary variable evaluator as changed.
 // -----------------------------------------------------------------------------
-void
-changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S);
+bool
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = true);
 
 
 // -----------------------------------------------------------------------------
@@ -81,6 +81,20 @@ requireAtCurrent(const Key& key, const Tag& tag, State& S,
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
 requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name = "");
+
+// -----------------------------------------------------------------------------
+// Require assignment evaluator, which allows tracking old data.
+// -----------------------------------------------------------------------------
+Teuchos::RCP<EvaluatorPrimaryCV>
+requireEvaluatorAssign(const Key& key, const Tag& tag, State& S);
+
+// -----------------------------------------------------------------------------
+// Assign if it is an assignment evaluator.
+// -----------------------------------------------------------------------------
+void
+assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
+
+
 
 
 // -----------------------------------------------------------------------------

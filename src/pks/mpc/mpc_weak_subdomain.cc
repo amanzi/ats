@@ -232,6 +232,35 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
 }
 
 
+
+void
+MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
+{
+  if (S_->get_cycle() < 0 && tag_next == Tags::NEXT) {
+    // initial commit, also do the substep commits
+    if (subcycled_) {
+      const auto& ds = S_->GetDomainSet(ds_name_);
+      int i = 0;
+      for (auto& domain : *ds) {
+        auto l_tag_next = get_ds_tag_next_(domain);
+        sub_pks_[i]->CommitStep(t_old, t_new, l_tag_next);
+        ++i;
+      }
+    }
+  }
+
+  if (tag_next == tag_next_ && tag_next != Tags::NEXT) {
+    // do not commit step in this case -- this is nested subcycling, which we
+    // do not have a formal way of dealing with correctly.
+    return;
+  } else {
+    for (const auto& pk : sub_pks_) {
+      pk->CommitStep(t_old, t_new, tag_next);
+    }
+  }
+}
+
+
 void
 MPCWeakSubdomain::init_()
 {
