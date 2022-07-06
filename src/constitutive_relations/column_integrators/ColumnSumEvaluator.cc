@@ -44,7 +44,7 @@ ParserColumnSum::ParserColumnSum(Teuchos::ParameterList& plist, const KeyTag& ke
     dependencies.insert(KeyTag{cv_key, key_tag.second});
   }
 
-  if (plist.get<bool>("divide by density", true)) {
+  if (plist.get<bool>("divide by density", false)) {
     Key molar_dens_key = Keys::readKey(plist, domain, "molar density", "molar_density_liquid");
     dependencies.insert(KeyTag{molar_dens_key, key_tag.second});
   }

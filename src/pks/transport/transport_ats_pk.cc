@@ -222,7 +222,7 @@ void Transport_ATS::Setup()
   requireAtNext(saturation_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
   // Require a copy of saturation at the old time tag
-  requireAtNext(saturation_key_, Tags::CURRENT, *S_);
+  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
   if (subcycling_) {
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_subcycle_current_, name_);
     S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
@@ -1137,22 +1137,19 @@ void Transport_ATS :: Advance_Dispersion_Diffusion(double t_old, double t_new)
 /* *******************************************************************
 * Copy the advected tcc field to the state.
 ******************************************************************* */
-void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag)
+void Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
+    *vo_->os() << "Commiting state @ " << tag_next << std::endl;
 
-  if (tag == Tags::NEXT) {
-    S_->Assign(saturation_key_, Tags::CURRENT, Tags::NEXT);
-    S_->Assign(molar_density_key_, Tags::CURRENT, Tags::NEXT);
-  }
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
-  if (tag == tag_next_) {
-    AMANZI_ASSERT(std::abs(t_old - S_->get_time(tag_current_)) < 1.e-12);
-    AMANZI_ASSERT(std::abs(t_new - S_->get_time(tag_next_)) < 1.e-12);
-    S_->Assign(tcc_key_, tag_current_, tag_next_);
-    // changedEvaluatorPrimary(key_, tag_current_, *S_); // for the future...
+  assign(tcc_key_, tag_current, tag_next, *S_);
+  if (tag_next == Tags::NEXT) {
+    assign(saturation_key_, tag_current, tag_next, *S_);
+    assign(molar_density_key_, tag_current, tag_next, *S_);
   }
 }
 

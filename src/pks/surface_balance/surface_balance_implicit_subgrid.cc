@@ -242,21 +242,16 @@ ImplicitSubgrid::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<Tre
 
 
 void
-ImplicitSubgrid::CommitStep(double t_old, double t_new,  const Tag& tag)
+ImplicitSubgrid::CommitStep(double t_old, double t_new,  const Tag& tag_next)
 {
-  SurfaceBalanceBase::CommitStep(t_old, t_new, tag);
+  SurfaceBalanceBase::CommitStep(t_old, t_new, tag_next);
 
-  // if (!S_->HasEvaluator(snow_age_key_, tag_current_))
-  S_->Assign(snow_age_key_, tag_current_, tag_next_);
-  //changedEvaluatorPrimary(snow_age_key_, tag_current_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
-  // if (!S_->HasEvaluator(snow_dens_key_, tag_current_))
-  S_->Assign(snow_dens_key_, tag_current_, tag_next_);
-  //changedEvaluatorPrimary(snow_dens_key_, tag_current_, *S_);
-
-  // if (!S_->HasEvaluator(snow_death_rate_key_, tag_current_))
-  S_->Assign(snow_death_rate_key_, tag_current_, tag_next_);
-  //changedEvaluatorPrimary(snow_death_rate_key_, tag_current_, *S_);
+  assign(snow_age_key_, tag_current, tag_next, *S_);
+  assign(snow_dens_key_, tag_current, tag_next, *S_);
+  assign(snow_death_rate_key_, tag_current, tag_next, *S_);
 }
 
 
@@ -264,15 +259,16 @@ void
 ImplicitSubgrid::FailStep(double t_old, double t_new,  const Tag& tag)
 {
   SurfaceBalanceBase::FailStep(t_old, t_new, tag);
+  if (tag == tag_next_) {
+    S_->Assign(snow_age_key_, tag_next_, tag_current_);
+    changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
 
-  S_->Assign(snow_age_key_, tag_next_, tag_current_);
-  changedEvaluatorPrimary(snow_age_key_, tag_next_, *S_);
+    S_->Assign(snow_dens_key_, tag_next_, tag_current_);
+    changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
 
-  S_->Assign(snow_dens_key_, tag_next_, tag_current_);
-  changedEvaluatorPrimary(snow_dens_key_, tag_next_, *S_);
-
-  S_->Assign(snow_death_rate_key_, tag_next_, tag_current_);
-  changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+    S_->Assign(snow_death_rate_key_, tag_next_, tag_current_);
+    changedEvaluatorPrimary(snow_death_rate_key_, tag_next_, *S_);
+  }
 }
 
 } // namespace

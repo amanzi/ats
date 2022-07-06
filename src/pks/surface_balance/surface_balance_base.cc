@@ -62,9 +62,8 @@ SurfaceBalanceBase::Setup()
   // requirements: source terms from above
   if (is_source_) {
     if (theta_ > 0) {
-      S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_)
+      requireAtNext(source_key_, tag_next_, *S_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      S_->RequireEvaluator(source_key_, tag_next_);
 
       if (is_source_differentiable_ && !source_finite_difference_ &&
       S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
@@ -73,24 +72,21 @@ SurfaceBalanceBase::Setup()
       }
     }
     if (theta_ < 1) {
-      S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_current_)
+      requireAtCurrent(source_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
-      //S_->RequireEvaluator(source_key_, tag_current_);
     }
   }
 
   // requirements: conserved quantity at current and new times
   conserved_quantity_ = conserved_key_ != key_;
   if (conserved_quantity_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_next_).SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    requireAtNext(conserved_key_, tag_next_, *S_)
+      .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
             tag_next_, key_, tag_next_);
-    S_->RequireEvaluator(conserved_key_, tag_next_);
 
     //    and at the current time, where it is a copy evaluator
-    S_->Require<CompositeVector,CompositeVectorSpace>(conserved_key_, tag_current_, name_);
-    //requireEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+    requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
   }
 
   // operator for inverse
@@ -106,17 +102,15 @@ SurfaceBalanceBase::Setup()
 }
 
 
-void SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag)
+void SurfaceBalanceBase::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag);
+  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
 
-  // also save conserved quantity
-  //if (!S_->HasEvaluator(conserved_key_, tag_current_))
-  S_->Assign(conserved_key_, tag_current_, tag_next_);
-  if (theta_ < 1.0) // && !S_->HasEvaluator(source_key_, tag_current_))
-    S_->Assign(source_key_, tag_current_, tag_next_);
-  //changedEvaluatorPrimary(conserved_key_, tag_current_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
+
+  if (theta_ < 1.0) assign(source_key_, tag_current, tag_next, *S_);
 }
 
 

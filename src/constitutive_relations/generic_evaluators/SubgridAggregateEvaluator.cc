@@ -22,7 +22,8 @@ SubgridAggregateEvaluator::SubgridAggregateEvaluator(Teuchos::ParameterList& pli
   if (Keys::isDomainSet(source_domain_)) { // strip the :*
     source_domain_ = Keys::getDomainSetName(source_domain_);
   }
-  var_key_ = Keys::getVarName(my_keys_.front().first);
+  var_key_ = Keys::getVarName(Keys::readKey(plist_, source_domain_, "aggregated",
+          Keys::getVarName(my_keys_.front().first)));
   nonlocal_dependencies_ = true; // by definition!
 }
 

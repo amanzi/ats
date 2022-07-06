@@ -18,7 +18,7 @@ bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
 {
   if (S.HasEvaluator(key, target) && !S.HasEvaluator(key, alias)) {
-    // S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
+    S.SetEvaluator(key, alias, S.GetEvaluatorPtr(key, target));
     S.GetRecordSetW(key).AliasRecord(target, alias);
     return true;
   }
@@ -104,7 +104,7 @@ getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
 // Get a primary variable evaluator for a key at tag
 // -----------------------------------------------------------------------------
 Teuchos::RCP<EvaluatorPrimaryCV>
-requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
 {
   // first check, is there one already
   if (S.HasEvaluator(key, tag)) {
@@ -112,7 +112,7 @@ requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
     Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
     Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
       Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
-    if (eval_pv == Teuchos::null) {
+    if (or_die && eval_pv == Teuchos::null) {
       Errors::Message msg;
       msg << "Expected primary variable evaluator for "
           << key << " @ " << tag.get();
@@ -138,19 +138,25 @@ requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
 // -----------------------------------------------------------------------------
 // Marks a primary evaluator as changed.
 // -----------------------------------------------------------------------------
-void
-changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S)
+bool
+changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
 {
+  bool changed = false;
   Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
   Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
     Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
   if (eval_pv == Teuchos::null) {
-    Errors::Message msg;
-    msg << "Expected primary variable evaluator for "
-        << key << " @ " << tag.get();
-    Exceptions::amanzi_throw(msg);
+    if (or_die) {
+      Errors::Message msg;
+      msg << "Expected primary variable evaluator for "
+          << key << " @ " << tag.get();
+      Exceptions::amanzi_throw(msg);
+    }
+  } else {
+    eval_pv->SetChanged();
+    changed = true;
   }
-  eval_pv->SetChanged();
+  return changed;
 }
 
 
@@ -162,11 +168,19 @@ requireAtCurrent(const Key& key, const Tag& tag, State& S, const Key& name, bool
 {
   CompositeVectorSpace& cvs = S.Require<CompositeVector, CompositeVectorSpace>(key, tag);
   if (!name.empty()) {
-    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
-    if (is_eval) requireEvaluatorPrimary(key, tag, S);
+    Key owner = S.GetRecord(key, tag).owner();
+    if (owner.empty()) {
+      S.Require<CompositeVector, CompositeVectorSpace>(key, tag, name);
+      if (is_eval) requireEvaluatorAssign(key, tag, S);
+    }
+
     if (tag != Tags::CURRENT) {
-      S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, name);
-      if (is_eval) requireEvaluatorPrimary(key, Tags::CURRENT, S);
+      S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT);
+      Key current_owner = S.GetRecord(key, Tags::CURRENT).owner();
+      if (owner.empty()) {
+        S.Require<CompositeVector, CompositeVectorSpace>(key, Tags::CURRENT, name);
+        if (is_eval) requireEvaluatorAssign(key, Tags::CURRENT, S);
+      }
     }
   } else {
     if (is_eval) S.RequireEvaluator(key, tag);
@@ -194,6 +208,30 @@ requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
   }
   return cvs;
 }
+
+
+// -----------------------------------------------------------------------------
+// Require assignment evaluator, which allows tracking old data.
+// -----------------------------------------------------------------------------
+Teuchos::RCP<EvaluatorPrimaryCV>
+requireEvaluatorAssign(const Key& key, const Tag& tag, State& S)
+{
+  // in the future, this will likely derive from primary instead of just being
+  // primary.  This will allow confirming that the times are the same.
+  return requireEvaluatorPrimary(key, tag, S, false);
+}
+
+// -----------------------------------------------------------------------------
+// Assign if it is an assignment evaluator.
+// -----------------------------------------------------------------------------
+void
+assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S)
+{
+  S.GetEvaluator(key, tag_source).Update(S, Keys::getKey(key, tag_dest));
+  bool changed = changedEvaluatorPrimary(key, tag_dest, S, false);
+  if (changed) S.Assign(key, tag_dest, tag_source);
+}
+
 
 
 // -----------------------------------------------------------------------------

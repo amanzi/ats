@@ -47,21 +47,23 @@ void PK_Physical_Default::Setup()
 };
 
 
-void PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag)
+void PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Commiting state." << std::endl;
+    *vo_->os() << "Commiting state @ " << tag_next << std::endl;
 
-  S_->Assign(key_, tag_current_, tag_next_);
-  changedEvaluatorPrimary(key_, tag_current_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
+  assign(key_, tag_current, tag_next, *S_);
 }
 
 
-void PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag)
+void PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag_next)
 {
-  S_->Assign(key_, tag_next_, tag_current_);
-  changedEvaluatorPrimary(key_, tag_next_, *S_);
+  AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
+  Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
+  assign(key_, tag_next, tag_current, *S_);
 }
 
 
