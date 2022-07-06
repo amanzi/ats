@@ -24,10 +24,10 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist,
           "saturation_liquid");
   dependencies.insert(KeyTag{sat_key, tag});
 
-  Key cv_key = Keys::readKey(plist, domain_ss, "cell volume", "cell_volume");
+  Key cv_key = Keys::readKey(plist, domain_ss, "subsurface cell volume", "cell_volume");
   dependencies.insert(KeyTag{cv_key, tag});
 
-  Key cv_surf_key = Keys::readKey(plist, domain, "cell volume", "cell_volume");
+  Key cv_surf_key = Keys::readKey(plist, domain, "surface cell volume", "cell_volume");
   dependencies.insert(KeyTag{cv_surf_key, tag});
 }
 
@@ -36,6 +36,7 @@ IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& pli
         std::vector<const Epetra_MultiVector*>& deps,
         const AmanziMesh::Mesh* mesh)
 {
+  AMANZI_ASSERT(deps.size() == 3);
   sat_ = deps[0];
   cv_ = deps[1];
   surf_cv_ = deps[2];
