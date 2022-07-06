@@ -563,16 +563,6 @@ MPCPermafrost::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
   Teuchos::OSTab tab = vo_->getOSTab();
   bool modified = false;
 
-  // HACK to allow for predictor use in subcycling, but then trash the history
-  // if operator splitting coupler has overwritten our OLD time's value
-  S_->GetEvaluator(Keys::getKey(domain_subsurf_, "water_content"), tag_next_).Update(*S_, name_);
-  if (!S_->HasEvaluator(Keys::getKey(domain_subsurf_, "water_content"), tag_current_)) {
-    *u = *u0;
-    ChangedSolution();
-    S_->GetEvaluator(Keys::getKey(domain_subsurf_, "water_content"), tag_next_).Update(*S_, name_);
-    return false; // intentionally lieing -- true here triggers another call of ChangedSolution() which we want to avoid
-  }
-
   // write predictor
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "Extrapolated Prediction (surface):" << std::endl;
