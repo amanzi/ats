@@ -1,3 +1,7 @@
+#
+# This adds the ATS tests, which are in a separate repo, into the
+# cmake build so that they build via ctests/make test
+#
 if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ats-regression-tests/README.md")
   message("-- Adding ats-regression-tests")
 
@@ -13,7 +17,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ats-regression-tests/README.md")
   # figure out what tests are available
   if (ENABLE_Regression_Tests)
     set(ats_available_tests_string "")
-    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${ATS_REGRESSION_TESTS_DIR}/regression_tests.py --ats=${ATS_SOURCE_DIR} --list-tests .
+    execute_process(COMMAND ${PYTHON_EXECUTABLE} ${ATS_REGRESSION_TESTS_DIR}/regression_tests.py --suites=testing --ats=${ATS_SOURCE_DIR} --list-tests .
       OUTPUT_VARIABLE ats_available_tests_string
       WORKING_DIRECTORY ${ATS_REGRESSION_TESTS_DIR})
 
