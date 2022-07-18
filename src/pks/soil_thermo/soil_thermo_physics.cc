@@ -12,7 +12,7 @@ c rho dT/dt = div Ke grad T + S
 ------------------------------------------------------------------------- */
 
 #include "advection.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "soil_thermo_pk.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"

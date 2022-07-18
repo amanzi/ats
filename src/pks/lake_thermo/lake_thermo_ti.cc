@@ -12,7 +12,7 @@ Author: Ethan Coon
 
 #include "Debugger.hh"
 #include "BoundaryFunction.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "lake_thermo_pk.hh"
 #include "Op.hh"
 

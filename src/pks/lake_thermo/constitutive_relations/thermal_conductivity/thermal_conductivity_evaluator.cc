@@ -14,20 +14,15 @@ namespace LakeThermo {
 
 ThermalConductivityEvaluator::ThermalConductivityEvaluator(
     Teuchos::ParameterList& plist) :
-        SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("thermal conductivity key",
-        "surface-thermal_conductivity");
-  }
-
-  Key domain = Keys::getDomain(my_key_);
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{temperature_key_, tag});
 
   AMANZI_ASSERT(plist_.isSublist("thermal conductivity parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("thermal conductivity parameters");
@@ -45,7 +40,7 @@ ThermalConductivityEvaluator::ThermalConductivityEvaluator(
 
 ThermalConductivityEvaluator::ThermalConductivityEvaluator(
     const ThermalConductivityEvaluator& other) :
-        SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
         K_max_(other.K_max_),
         K_0_(other.K_0_),
         V_wind_(other.V_wind_),
@@ -58,14 +53,14 @@ ThermalConductivityEvaluator::ThermalConductivityEvaluator(
 //    min_K_(other.min_K_) {}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 ThermalConductivityEvaluator::Clone() const {
   return Teuchos::rcp(new ThermalConductivityEvaluator(*this));
 }
 
-void ThermalConductivityEvaluator::EvaluateField_(
-    const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void ThermalConductivityEvaluator::Evaluate_(const State& S,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
 
   ice_cover_ = false; // first always assume that there is no ice
 
@@ -77,20 +72,20 @@ void ThermalConductivityEvaluator::EvaluateField_(
 //  lambda_ice = lambda_w;
 
   // get temperature
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
   // get mesh
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
 
-  for (CompositeVector::name_iterator comp=result->begin();
-      comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+      comp!=result[0]->end(); ++comp) {
     // much more efficient to pull out vectors first
     //      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp,false);
     //      const Epetra_MultiVector& height_v = *height->ViewComponent(*comp,false);
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
 
     //      std::cout << "ncomp in lambda = " << ncomp << std::endl;
 
@@ -242,12 +237,13 @@ void ThermalConductivityEvaluator::EvaluateField_(
 }
 
 
-void ThermalConductivityEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void ThermalConductivityEvaluator::EvaluatePartialDerivative_(const State& S,
+    const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
   std::cout<<"THERMAL CONDUCITIVITY: Derivative not implemented yet!"<<wrt_key<<"\n";
   AMANZI_ASSERT(0); // not implemented, not yet needed
-  result->Scale(1.e-6); // convert to MJ
+  result[0]->Scale(1.e-6); // convert to MJ
 }
 
 } //namespace

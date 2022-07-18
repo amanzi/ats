@@ -13,26 +13,27 @@
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SoilThermo {
 
 class SoilHeatFluxBCEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   SoilHeatFluxBCEvaluator(Teuchos::ParameterList& plist);
   SoilHeatFluxBCEvaluator(const SoilHeatFluxBCEvaluator& other);
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from SecondaryVariableFieldModel
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+      const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+      const Key& wrt_key, const Tag& wrt_tag,
+      const std::vector<CompositeVector*>& result) override;
 
  protected:
   // dependencies
@@ -49,7 +50,7 @@ class SoilHeatFluxBCEvaluator :
   Key temperature_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SoilHeatFluxBCEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,SoilHeatFluxBCEvaluator> factory_;
 
 };
 

@@ -14,24 +14,19 @@ namespace LakeThermo {
 
 HeatFluxBCEvaluator::HeatFluxBCEvaluator(
     Teuchos::ParameterList& plist) :
-            SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("heat flux bc key",
-        "surface-heat_flux_bc");
-  }
-
-  Key domain = Keys::getDomain(my_key_);
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{temperature_key_, tag});
 
   // -- thermal conductivity
   conductivity_key_ = Keys::readKey(plist_, domain_name, "thermal conductivity", "thermal_conductivity");
-  dependencies_.insert(conductivity_key_);
+  dependencies_.insert(KeyTag{conductivity_key_, tag});
 
   //  AMANZI_ASSERT(plist_.isSublist("heat flux bc parameters"));
   //  Teuchos::ParameterList sublist = plist_.sublist("heat flux bc parameters");
@@ -50,7 +45,7 @@ HeatFluxBCEvaluator::HeatFluxBCEvaluator(
 
 HeatFluxBCEvaluator::HeatFluxBCEvaluator(
     const HeatFluxBCEvaluator& other) :
-            SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
             SS(other.SS),
             alpha_w(other.alpha_w),
             alpha_i(other.alpha_i),
@@ -62,22 +57,22 @@ HeatFluxBCEvaluator::HeatFluxBCEvaluator(
             conductivity_key_(other.temperature_key_){}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 HeatFluxBCEvaluator::Clone() const {
   return Teuchos::rcp(new HeatFluxBCEvaluator(*this));
 }
 
-void HeatFluxBCEvaluator::EvaluateField_(
-    const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void HeatFluxBCEvaluator::Evaluate_(const State& S,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
 
   ice_cover_ = false; // first always assume that there is no ice
 
   // get temperature
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
   // get conductivity
-  Teuchos::RCP<const CompositeVector> cond = S->GetFieldData(conductivity_key_);
+  Teuchos::RCP<const CompositeVector> cond = S.GetPtr<CompositeVector>(conductivity_key_,tag);
 
   // read parameters from the met data
   Teuchos::ParameterList& param_list = plist_.sublist("parameters");
@@ -89,7 +84,7 @@ void HeatFluxBCEvaluator::EvaluateField_(
   Teuchos::RCP<Amanzi::Function> P_a_func_ = Teuchos::rcp(fac.Create(param_list.sublist("atmospheric pressure")));
 
   std::vector<double> args(1);
-  args[0] = S->time();
+  args[0] = S.get_time();
   SS = (*SS_func_)(args);
   E_a = (*E_a_func_)(args);
   double T_a = (*T_a_func_)(args);
@@ -99,14 +94,14 @@ void HeatFluxBCEvaluator::EvaluateField_(
   double sigma = 5.67e-8;     // Stefan-Boltzman constant
   double c_lwrad_emis = 0.99; //Surface emissivity with respect to the long-wave radiation
 
-  for (CompositeVector::name_iterator comp=result->begin();
-      comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+      comp!=result[0]->end(); ++comp) {
 
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
     const Epetra_MultiVector& cond_v = *cond->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
 
     for (int i=0; i!=ncomp; ++i) {
 
@@ -175,12 +170,13 @@ void HeatFluxBCEvaluator::EvaluateField_(
 
 }
 
-void HeatFluxBCEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void HeatFluxBCEvaluator::EvaluatePartialDerivative_(const State& S,
+    const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
   std::cout<<"HEAT FLUX BC: Derivative not implemented yet!"<<wrt_key<<"\n";
   AMANZI_ASSERT(0); // not implemented, not yet needed
-  result->Scale(1.e-6); // convert to MJ
+  result[0]->Scale(1.e-6); // convert to MJ
 }
 
 } //namespace

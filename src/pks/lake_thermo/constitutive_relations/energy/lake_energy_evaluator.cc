@@ -5,7 +5,7 @@ ATS
 
 Authors: Svetlana Tokareva (tokareva@lanl.gov)
 
-FieldEvaluator for water density.
+Evaluator for water density.
 ----------------------------------------------------------------------------- */
 
 
@@ -15,63 +15,61 @@ namespace Amanzi {
 namespace LakeThermo {
 
 LakeEnergyEvaluator::LakeEnergyEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_.empty()) {
-
-    my_key_ = plist_.get<std::string>("energy key", "surface-energy");
-  }
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{temperature_key_, tag});
 
   // -- density
   density_key_ = Keys::readKey(plist_, domain_name, "density", "density");
-  dependencies_.insert(density_key_);
+  dependencies_.insert(KeyTag{density_key_, tag});
 
   // -- heat capacity
   heat_capacity_key_ = Keys::readKey(plist_, domain_name, "heat capacity", "heat_capacity");
-  dependencies_.insert(heat_capacity_key_);
+  dependencies_.insert(KeyTag{heat_capacity_key_, tag});
 
 };
 
 LakeEnergyEvaluator::LakeEnergyEvaluator(const LakeEnergyEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
     temperature_key_(other.temperature_key_),
     density_key_(other.density_key_),
     heat_capacity_key_(other.heat_capacity_key_){};
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 LakeEnergyEvaluator::Clone() const {
   return Teuchos::rcp(new LakeEnergyEvaluator(*this));
 };
 
 
-void LakeEnergyEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+void LakeEnergyEvaluator::Evaluate_(const State& S,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
 
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
   std::cout << "temperature_key_ = " << temperature_key_ << std::endl;
   std::cout << "density_key_ = " << density_key_ << std::endl;
 
   // evaluate density
   const Epetra_MultiVector& rho_v =
-      *S->GetFieldData(density_key_)->ViewComponent("cell",false);
+      *S.GetPtr<CompositeVector>(density_key_,tag)->ViewComponent("cell",false);
 
   // evaluate heat capacity
   const Epetra_MultiVector& cp_v =
-      *S->GetFieldData(heat_capacity_key_)->ViewComponent("cell",false);
+      *S.GetPtr<CompositeVector>(heat_capacity_key_,tag)->ViewComponent("cell",false);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-       comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
     for (int i=0; i!=ncomp; ++i) {
       double T = temp_v[0][i];
       double rho = rho_v[0][i];
@@ -82,28 +80,30 @@ void LakeEnergyEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 };
 
 
-void LakeEnergyEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+void LakeEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
+    const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
 
-  result->PutScalar(0.);
+  result[0]->PutScalar(0.);
 
   if (wrt_key == temperature_key_) {
-    Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+    Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
     // evaluate density
     const Epetra_MultiVector& rho_v =
-        *S->GetFieldData(density_key_)->ViewComponent("cell",false);
+        *S.GetPtr<CompositeVector>(density_key_,tag)->ViewComponent("cell",false);
 
     // evaluate heat capacity
     const Epetra_MultiVector& cp_v =
-        *S->GetFieldData(heat_capacity_key_)->ViewComponent("cell",false);
+        *S.GetPtr<CompositeVector>(heat_capacity_key_,tag)->ViewComponent("cell",false);
 
-    for (CompositeVector::name_iterator comp=result->begin();
-         comp!=result->end(); ++comp) {
+    for (CompositeVector::name_iterator comp=result[0]->begin();
+         comp!=result[0]->end(); ++comp) {
       const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-      Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-      int ncomp = result->size(*comp, false);
+      int ncomp = result[0]->size(*comp, false);
       for (int i=0; i!=ncomp; ++i) {
         double T = temp_v[0][i];
         double rho = rho_v[0][i];

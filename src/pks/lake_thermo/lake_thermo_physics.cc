@@ -12,7 +12,7 @@ c rho dT/dt + q dot grad h = div Ke grad T + S
 ------------------------------------------------------------------------- */
 
 #include "advection.hh"
-#include "FieldEvaluator.hh"
+#include "Evaluator.hh"
 #include "lake_thermo_pk.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"

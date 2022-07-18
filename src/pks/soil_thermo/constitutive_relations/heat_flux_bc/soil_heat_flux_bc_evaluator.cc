@@ -14,20 +14,15 @@ namespace SoilThermo {
 
 SoilHeatFluxBCEvaluator::SoilHeatFluxBCEvaluator(
     Teuchos::ParameterList& plist) :
-        SecondaryVariableFieldEvaluator(plist) {
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("soil heat flux bc key",
-        "surface-heat_flux_bc");
-  }
-
-  Key domain = Keys::getDomain(my_key_);
+    EvaluatorSecondaryMonotypeCV(plist) {
 
   // Set up my dependencies.
-  std::string domain_name = Keys::getDomain(my_key_);
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   // -- temperature
   temperature_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(temperature_key_);
+  dependencies_.insert(KeyTag{temperature_key_, tag});
 
   AMANZI_ASSERT(plist_.isSublist("soil heat flux bc parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("soil heat flux bc parameters");
@@ -45,7 +40,7 @@ SoilHeatFluxBCEvaluator::SoilHeatFluxBCEvaluator(
 
 SoilHeatFluxBCEvaluator::SoilHeatFluxBCEvaluator(
     const SoilHeatFluxBCEvaluator& other) :
-        SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
         SS(other.SS),
         alpha(other.alpha),
         E_a(other.E_a),
@@ -55,27 +50,27 @@ SoilHeatFluxBCEvaluator::SoilHeatFluxBCEvaluator(
         temperature_key_(other.temperature_key_){}
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 SoilHeatFluxBCEvaluator::Clone() const {
   return Teuchos::rcp(new SoilHeatFluxBCEvaluator(*this));
 }
 
-void SoilHeatFluxBCEvaluator::EvaluateField_(
-    const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void SoilHeatFluxBCEvaluator::Evaluate_(const State& S,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
 
   ice_cover_ = false; // first always assume that there is no ice
 
   // get temperature
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temperature_key_);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temperature_key_,tag);
 
-  for (CompositeVector::name_iterator comp=result->begin();
-      comp!=result->end(); ++comp) {
+  for (CompositeVector::name_iterator comp=result[0]->begin();
+      comp!=result[0]->end(); ++comp) {
 
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
-    int ncomp = result->size(*comp, false);
+    int ncomp = result[0]->size(*comp, false);
 
     for (int i=0; i!=ncomp; ++i) {
       result_v[0][i] = SS*(1.-alpha) + E_a - E_s - H - LE;
@@ -85,12 +80,13 @@ void SoilHeatFluxBCEvaluator::EvaluateField_(
 
 }
 
-void SoilHeatFluxBCEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
+void SoilHeatFluxBCEvaluator::EvaluatePartialDerivative_(const State& S,
+    const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result) {
+  Tag tag = my_keys_.front().second;
   std::cout<<"HEAT FLUX BC: Derivative not implemented yet!"<<wrt_key<<"\n";
   AMANZI_ASSERT(0); // not implemented, not yet needed
-  result->Scale(1.e-6); // convert to MJ
+  result[0]->Scale(1.e-6); // convert to MJ
 }
 
 } //namespace
