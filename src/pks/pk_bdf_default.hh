@@ -75,7 +75,7 @@ class PK_BDF_Default : public PK_BDF {
   // -- Choose a time step compatible with physics.
   virtual double get_dt() override;
 
-  virtual void set_dt(double dt_) override;
+  virtual void set_dt(double dt) override;
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
@@ -111,8 +111,8 @@ class PK_BDF_Default : public PK_BDF {
   virtual void ChangedSolution(const Tag& tag) = 0;
 
  protected: // data
-  // preconditioner assembly control
-  bool assemble_preconditioner_;
+  bool assemble_preconditioner_; // preconditioner assembly control
+  bool strongly_coupled_; // if we are coupled, no need to make a TI
 
   // timestep control
   double dt_;

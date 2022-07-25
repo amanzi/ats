@@ -23,20 +23,22 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 void PK_BDF_Default::Setup()
 {
-  // initial timestep
-  dt_ = plist_->get<double>("initial time step", 1.);
-  dt_ = plist_->get<double>("initial time step [s]", dt_);
-
   // preconditioner assembly
   assemble_preconditioner_ = plist_->get<bool>("assemble preconditioner", true);
+  strongly_coupled_ = plist_->get<bool>("strongly coupled PK", false);
 
-  if (!plist_->get<bool>("strongly coupled PK", false)) {
+
+  if (!strongly_coupled_) {
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    // -- check if continuation method
+
+    // check if continuation method and require continuation parameter
     // -- ETC Note this needs fixed if more than one continuation method used
     if (bdf_plist.isSublist("continuation parameters")) {
-      S_->Require<double>("continuation_parameter", Tags::DEFAULT, name_);
+      S_->Require<double>("continuation_parameter", Tag(name_), name_);
     }
+
+    // require data for checkpointing timestep size
+    S_->Require<double>("dt", Tag(name_), name_);
   }
 };
 
@@ -46,20 +48,25 @@ void PK_BDF_Default::Setup()
 // -----------------------------------------------------------------------------
 void PK_BDF_Default::Initialize()
 {
-  // set up the timestepping algorithm
-  if (!plist_->get<bool>("strongly coupled PK", false)) {
-    // -- instantiate time stepper
+  if (!strongly_coupled_) {
+    // initialize the timestep
+    double dt = plist_->get<double>("initial time step [s]", 1.);
+    S_->Assign("dt", Tag(name_), name_, dt);
+    S_->GetRecordW("dt", Tag(name_), name_).set_initialized();
+
+    // set up the timestepping algorithm
+    // -- construct the time integrator
+    //   Note, this is done here and not in setup because solution is not ready in setup
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    bdf_plist.set("initial time", S_->get_time());
     if (!bdf_plist.isSublist("verbose object"))
       bdf_plist.set("verbose object", plist_->sublist("verbose object"));
     time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector,TreeVectorSpace>(*this,
             bdf_plist, solution_));
 
-    // initialize continuation parameter if needed.
-    if (bdf_plist.isSublist("continuation parameters")) {
-      S_->GetW<double>("continuation_parameter", Tags::DEFAULT, name_) = 1.;
-      S_->GetRecordW("continuation_parameter", Tags::DEFAULT, name_).set_initialized();
+    // -- initialize continuation parameter if needed.
+    if (S_->HasRecord("continuation_parameter", Tag(name_))) {
+      S_->Assign("continuation_parameter", Tag(name_), name_, (double) 1.);
+      S_->GetRecordW("continuation_parameter", Tag(name_), name_).set_initialized();
     }
 
     // -- initialize time derivative
@@ -85,12 +92,20 @@ void PK_BDF_Default::ResetTimeStepper(double time)
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-double PK_BDF_Default::get_dt() { return dt_; }
+double PK_BDF_Default::get_dt() {
+  if (!strongly_coupled_)
+    return S_->Get<double>("dt", Tag(name_));
+  else
+    return -1.;
+}
 
-void PK_BDF_Default::set_dt(double dt) { dt_ = dt; }
+void PK_BDF_Default::set_dt(double dt) {
+  if (!strongly_coupled_)
+    S_->Assign("dt", Tag(name_), name_, dt);
+}
 
 // -- Commit any secondary (dependent) variables.
-void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag) \
+void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   if (tag == tag_next_) {
     double dt = t_new - t_old;
@@ -110,7 +125,7 @@ void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag) \
 // -----------------------------------------------------------------------------
 bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 {
-  double dt = t_new -t_old;
+  double dt = t_new - t_old;
   Teuchos::OSTab out = vo_->getOSTab();
 
   if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -122,7 +137,13 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
-  double dt_solver;
+  // Three dts:
+  // --  dt is the requested timestep size.  It must be less than or equal to...
+  // --  dt_internal is the max valid dt, and is set by physics/solvers
+  // --  dt_solver is what the solver wants to do
+  double dt_internal = S_->Get<double>("dt", Tag(name_));
+  AMANZI_ASSERT(dt <= dt_internal + 1.e-8); // roundoff
+  double dt_solver = -1;
   bool fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
 
   if (!fail) {
@@ -132,27 +153,28 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
       if (vo_->os_OK(Teuchos::VERB_LOW))
         *vo_->os() << "successful advance" << std::endl;
       // update the timestep size
-      if (dt_solver < dt_ && dt_solver >= dt) {
+      if (dt_solver < dt_internal && dt_solver >= dt) {
         // We took a smaller step than we recommended, and it worked fine (not
         // suprisingly).  Likely this was due to constraints from other PKs or
         // vis.  Do not reduce our recommendation.
       } else {
-        dt_ = dt_solver;
+        dt_internal = dt_solver;
       }
     } else {
       if (vo_->os_OK(Teuchos::VERB_LOW))
         *vo_->os() << "successful advance, but not valid" << std::endl;
-      time_stepper_->CommitSolution(dt_, solution_, valid);
-      dt_ = 0.5*dt_;
+      time_stepper_->CommitSolution(dt_internal, solution_, valid);
+      dt_internal = 0.5 * dt_internal;
       // when including Valid here, make fail = true refs #110
     }
   } else {
     if (vo_->os_OK(Teuchos::VERB_LOW))
       *vo_->os() << "unsuccessful advance" << std::endl;
     // take the decreased timestep size
-    dt_ = dt_solver;
+    dt_internal = dt_solver;
   }
 
+  S_->Assign("dt", Tag(name_), name_, dt_internal);
   return fail;
 };
 
@@ -160,7 +182,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 // update the continuation parameter
 void PK_BDF_Default::UpdateContinuationParameter(double lambda)
 {
-  S_->GetW<double>("continuation_parameter", Tags::DEFAULT, name()) = lambda;
+  S_->Assign("continuation_parameter", Tag(name_), name_, lambda);
   ChangedSolution();
 }
 

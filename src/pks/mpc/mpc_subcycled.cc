@@ -75,7 +75,7 @@ MPCSubcycled::Setup()
     S_->require_time(tag.first);
     S_->require_time(tag.second);
     S_->require_cycle(tag.second);
-    if (subcycling_[i]) S_->Require<double>("dt", tag.second, name());
+    if (subcycling_[i]) S_->Require<double>("dt", tag.first, name());
     ++i;
   }
   MPC<PK>::Setup();
@@ -88,7 +88,7 @@ MPCSubcycled::Initialize()
   int i = 0;
   for (const auto& tag : tags_) {
     if (subcycling_[i])
-      S_->GetRecordW("dt", tag.second, name()).set_initialized();
+      S_->GetRecordW("dt", tag.first, name()).set_initialized();
     ++i;
   }
   MPC<PK>::Initialize();
@@ -152,7 +152,7 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
     S_->set_time(tag_subcycle_current, t_old);
     while (!done) {
       dt_inner = std::min(dt_inner, t_new - t_inner);
-      S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
+      S_->Assign("dt", tag_subcycle_current, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
       bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
 
