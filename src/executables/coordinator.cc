@@ -267,10 +267,8 @@ void Coordinator::initialize()
           sublist_p->set("file name base", std::string("ats_vis_")+domain_name_base);
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
         vis->set_name(domain_name_base);
+        vis->set_domain_set(dset);
         vis->set_mesh(dset->get_referencing_parent());
-        for (const auto& subdomain : *dset) {
-          vis->set_subdomain_mesh(subdomain, S_->GetMesh(subdomain));
-        }
         vis->CreateFiles(false);
         visualization_.push_back(vis);
       }
