@@ -86,8 +86,16 @@ void
 SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
 {
   auto ds = S.GetDomainSet(source_domain_);
-  S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second)
-    .SetMesh(ds->get_referencing_parent());
+  auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dependencies_.front().first, dependencies_.front().second);
+  if (dep_fac.HasComponent("cell")) {
+    S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second)
+      .SetMesh(ds->get_referencing_parent())
+      ->AddComponent("cell", AmanziMesh::CELL, dep_fac.NumVectors("cell"));
+  }
+
+  if (S.GetRecordSet(dependencies_.front().first).subfieldnames()) {
+    S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(*S.GetRecordSet(dependencies_.front().first).subfieldnames());
+  }
 }
 
 
@@ -95,7 +103,11 @@ SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
 void
 SubgridAggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, {"cell",}, {AmanziMesh::CELL,}, {1,});
+  auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second);
+  if (fac.HasComponent("cell")) {
+    int num_vectors = fac.NumVectors("cell");
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, {"cell",}, {AmanziMesh::CELL,}, {num_vectors,});
+  }
 }
 
 

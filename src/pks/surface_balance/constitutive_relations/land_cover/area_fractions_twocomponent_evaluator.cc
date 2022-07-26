@@ -96,6 +96,15 @@ AreaFractionsTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 
+// custom EC used to set subfield names
+void
+AreaFractionsTwoComponentEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(
+    {"bare/water", "snow"});
+}
+
+
 void
 AreaFractionsTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
