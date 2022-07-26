@@ -70,11 +70,6 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_ << "\" does not have a referencing parent but must have one to aggregate.";
       Exceptions::amanzi_throw(msg);
     }
-    if (S.GetMesh(domain_) != ds->get_referencing_parent()) {
-      Errors::Message msg;
-      msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_ << "\" has a referencing parent, but it does not match the aggregate vector's domain, \"" << domain_ << "\"";
-      Exceptions::amanzi_throw(msg);
-    }
 
     for (const auto& subdomain : *ds) {
       dependencies_.insert(KeyTag{Keys::getKey(subdomain, var_key_), dep_tag});
@@ -82,6 +77,17 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
   }
 
   EvaluatorSecondaryMonotypeCV::EnsureEvaluators(S);
+}
+
+
+// Make sure that this vector is set on the referencing parent mesh of the
+// domain set.
+void
+SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  auto ds = S.GetDomainSet(source_domain_);
+  S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second)
+    .SetMesh(ds->get_referencing_parent());
 }
 
 
