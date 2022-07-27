@@ -142,7 +142,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   // --  dt_internal is the max valid dt, and is set by physics/solvers
   // --  dt_solver is what the solver wants to do
   double dt_internal = S_->Get<double>("dt", Tag(name_));
-  AMANZI_ASSERT(dt <= dt_internal + 1.e-8); // roundoff
+  AMANZI_ASSERT(dt <= dt_internal + 1.e-4); // roundoff can be large for big times
   double dt_solver = -1;
   bool fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
 
