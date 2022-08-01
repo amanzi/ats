@@ -217,8 +217,6 @@ void elm_ats_plist::plist_materials_reset(elm_data &elmdata) {
        layer3_plist_->set("Clapp Hornberger bsw [-]", bsw);
        layer3_plist_->set("residual saturation [-]", sr);
 
-
-
     }
     c++;
 

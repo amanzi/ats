@@ -308,6 +308,7 @@ void Richards::SetupRichardsFlow_()
 
   // -- source terms
   is_source_term_ = plist_->get<bool>("source term", false);
+  downreg_source_term_ = plist_->get<bool>("down-regulating source term", false);
   if (is_source_term_) {
     if (source_key_.empty())
       source_key_ = Keys::readKey(*plist_, domain_, "source", "source_sink");

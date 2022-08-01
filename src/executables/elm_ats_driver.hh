@@ -48,6 +48,7 @@ public:
 private:
 
   void col_depth(double *dz, double *depth);
+  double HfunctionSmooth(double x, double x_1, double x_0, bool derivative=false);
 
   std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
   Teuchos::RCP<Amanzi::State> S_;
@@ -59,6 +60,7 @@ private:
   Amanzi::Key sub_src_key_;
   Amanzi::Key srf_src_key_;
   Amanzi::Key pres_key_;
+  Amanzi::Key pc_key_;
   Amanzi::Key pd_key_;
   Amanzi::Key satl_key_;
   Amanzi::Key por_key_;
@@ -76,6 +78,8 @@ private:
   Amanzi::Key srfpk_key_;
   Amanzi::Key sub_pv_key_;
   Amanzi::Key srf_pv_key_;
+
+  Amanzi::Key srf_rain_key_, srf_pev_key_, srf_evp_key_;
 
   bool plist_visout_;
 

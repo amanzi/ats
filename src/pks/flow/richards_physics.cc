@@ -93,10 +93,26 @@ void Richards::AddSources_(const Tag& tag,
     const Epetra_MultiVector& cv =
       *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
 
+    // for cut-off source_term when cell sat could not be less anymore
+    const Epetra_MultiVector& satl =
+      *S_->Get<CompositeVector>(Keys::getKey(domain_, sat_key_), tag).ViewComponent("cell",false);
+
     // Add into residual
     unsigned int ncells = g_c.MyLength();
     for (unsigned int c=0; c!=ncells; ++c) {
+
+      if (downreg_source_term_) {
+        // too dry to have water extract out as source
+    	// (TODO) need to output down-regulated 'source_term'
+        double pcmax = 1.e9;
+        double satl_pcmax= wrms_->second[(*wrms_->first)[c]]->saturation(pcmax);
+        if (satl[0][c]<=(satl_pcmax+1.0e-5) and source1[0][c]<0.0) {
+          source1[0][c] = 0.0;
+        }
+      }
+
       g_c[0][c] -= source1[0][c] * cv[0][c];
+
     }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);

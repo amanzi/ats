@@ -221,6 +221,7 @@ void ELM_ATSDriver::initialize()
   S_->GetRecordW(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_).set_initialized();
   S_->GetW<Amanzi::CompositeVector>(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).PutScalar(0.);
   S_->GetRecordW(srf_src_key_, Amanzi::Tags::NEXT, srf_src_key_).set_initialized();
+
   S_->GetW<Amanzi::CompositeVector>("dz", Amanzi::Tags::NEXT, "dz").PutScalar(0.);
   S_->GetRecordW("dz", Amanzi::Tags::NEXT, "dz").set_initialized();
   S_->GetW<Amanzi::CompositeVector>("depth", Amanzi::Tags::NEXT, "depth").PutScalar(0.);
@@ -460,6 +461,43 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   Epetra_MultiVector& subsurf_ss = *S_->GetW<Amanzi::CompositeVector>(sub_src_key_, Amanzi::Tags::NEXT, sub_src_key_)
       .ViewComponent("cell", false);
 
+
+  // cell relative permeability [0-6.18?)
+  Amanzi::Key kr_key=Amanzi::Keys::getKey(domain_sub_,"relative_permeability");
+  S_->GetEvaluator(kr_key, Amanzi::Tags::NEXT).Update(*S_, kr_key);
+  const Epetra_MultiVector& kr =
+    *S_->Get<Amanzi::CompositeVector>(kr_key, Amanzi::Tags::NEXT).ViewComponent("cell",false);
+
+  // cell porosity [0-1.0]
+  Amanzi::Key poro_key=Amanzi::Keys::getKey(domain_sub_,"porosity");
+  S_->GetEvaluator(poro_key, Amanzi::Tags::NEXT).Update(*S_, poro_key);
+  const Epetra_MultiVector& poro =
+    *S_->Get<Amanzi::CompositeVector>(poro_key, Amanzi::Tags::NEXT).ViewComponent("cell",false);
+
+  // cell volume [m3]
+  Amanzi::Key cv_key=Amanzi::Keys::getKey(domain_sub_,"cell_volume");
+  S_->GetEvaluator(cv_key, Amanzi::Tags::NEXT).Update(*S_, cv_key);
+  const Epetra_MultiVector& cv =
+    *S_->Get<Amanzi::CompositeVector>(cv_key, Amanzi::Tags::NEXT).ViewComponent("cell",false);
+
+  Amanzi::Key cv1_key=Amanzi::Keys::getKey(domain_srf_,"cell_volume");
+  S_->GetEvaluator(cv1_key, Amanzi::Tags::NEXT).Update(*S_, cv1_key);    // this unit is in m2
+  const Epetra_MultiVector& cv1 =
+    *S_->Get<Amanzi::CompositeVector>(cv1_key, Amanzi::Tags::NEXT).ViewComponent("cell",false);
+
+  // cell water content: mols
+  S_->GetEvaluator(watl_key_, Amanzi::Tags::NEXT).Update(*S_, watl_key_);
+  const Epetra_MultiVector& watl = *S_->Get<Amanzi::CompositeVector>(watl_key_, Amanzi::Tags::NEXT)
+	      .ViewComponent("cell", false);
+
+  S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT).Update(*S_, satl_key_);
+  const Epetra_MultiVector& sat = *S_->Get<Amanzi::CompositeVector>(satl_key_, Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+  const Epetra_MultiVector& pc = *S_->Get<Amanzi::CompositeVector>("capillary_pressure_gas_liq", Amanzi::Tags::NEXT)
+      .ViewComponent("cell", false);
+
+  // ------------------------------------------------------------------
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
   AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
   AMANZI_ASSERT(*ncells == subsurf_ss.MyLength());
@@ -469,22 +507,30 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   // unit: mass-source/sink of kgH2O/m2/s - surface
   // unit: mass-source/sink of kgH2O/m3/s - subsurface
 
-  // scale root_transpiration and add to subsurface source
+  // scale potential infiltration, rain+snowmelt-ground evap, and add to surface source
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     double srf_mol_h20_kg = srf_mol_dens[0][col] / srf_mass_dens[0][col];
-    surf_ss[0][col] = soil_evaporation[col] * srf_mol_h20_kg;
-    surf_ss[0][col] += (soil_infiltration[col] * srf_mol_h20_kg);
+    surf_ss[0][col] = std::max(0.0, (soil_evaporation[col]+soil_infiltration[col])) * srf_mol_h20_kg;      // (+) moles/m2/s
 
-    // scale root_transpiration and add to subsurface source
+    // scale soil evap and root_transpiration, together add to subsurface source
     auto& col_iter = mesh_subsurf_->cells_of_column(col);
+    double net_soilevap = std::min(0.0, (soil_evaporation[col]+soil_infiltration[col])) * srf_mol_h20_kg;  // (-) moles/m2/s
+    net_soilevap *= (cv1[0][col_iter[0]]/cv[0][col_iter[0]]);    // convert to moles/s, and then to moles/m3/s for adding to top soil layer due to 'cv' unit differences
+
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       double sub_mol_h20_kg = sub_mol_dens[0][col_iter[i]] / sub_mass_dens[0][col_iter[i]];
+
       subsurf_ss[0][col_iter[i]] = root_transpiration[col*ncol_cells_+i] * sub_mol_h20_kg;
+      if (i==0){
+    	  subsurf_ss[0][col_iter[i]] += net_soilevap;
+      }
+
     }
   }
   // mark sources as changed
   ChangedEvaluatorPrimary(srf_src_key_, Amanzi::Tags::NEXT, *S_);
   ChangedEvaluatorPrimary(sub_src_key_, Amanzi::Tags::NEXT, *S_);
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------------
@@ -505,7 +551,6 @@ ELM_ATSDriver::get_waterstate(double *surface_pd, double *soil_pressure, double 
       .ViewComponent("cell", false);
 
   // cell water matric potential: -Pa
-  S_->GetEvaluator(watl_key_, Amanzi::Tags::NEXT).Update(*S_, "capillary_pressure_gas_liq");
   const Epetra_MultiVector& pc = *S_->Get<Amanzi::CompositeVector>("capillary_pressure_gas_liq", Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
 
@@ -641,6 +686,68 @@ void ELM_ATSDriver::col_depth(double *dz, double *depth) {
   }
 
 }
+
+
+double ELM_ATSDriver::HfunctionSmooth(double x, double x_1, double x_0, bool derivative) {
+  /*
+    Usage: H(x) = 1, dH(x)=0 @ x_1
+           H(x) = 0, dH(x)=0 @ x_0
+           and, dH(x) is smoothed and either positive or negative Heaveside function, with peak at ~ 3-quater point
+      So H(x) is monotonic.
+
+    How to tail-smooth a curve (e.g. f(x)) monotonically:
+         F(x) = f(x)*H(f), and dF(x) = f(x)*dH(x)+ df(x)*H(x),
+        From: x_cutoff1 - F(x)=f(x), dF(x)=df(x), i.e. exactly matching with f(x) @ x_cutoff1
+        To:   x_cutoff0 - F(x)=0, dF(x)=0.
+  */
+
+  double x_star;
+  double H = 1.0;
+  double dH= 0.0;
+
+  // real Heaveside function (step function)
+  if (std::abs(x_1-x_0)<1.e-50) {
+    if (x<x_1) {
+	  H = 0.0;  // if x<x_1, H=0; otherwise H=1
+    }else {
+	  H = 1.0;
+	}
+    dH = 0.0;
+
+
+  } else {
+  // smoothed H function
+
+    if (((x-x_0)/(x_1-x_0))<0.0){         // beyond 'x_0'
+      H  = 0.0;
+      dH = 0.0;
+
+    } else if (((x-x_0)/(x_1-x_0))>1.0){  // beyond 'x_1'
+      H  = 1.0;
+      dH = 0.0;
+
+    } else {
+
+      x_star  =  1.0 - (x-x_0)*(x-x_0)/(x_1-x_0)/(x_1-x_0);
+
+      H  = 1.0 - x_star*x_star;
+      // so it's a special quadratic polynomal function
+      // so, dH = -2*x_star*d(x_star), with d(x_star)=-2*(x-x_0)/(x_1-x_0)^2
+      //   and, due to 'x_star' ranging 0~1 and (x_1-x_0)^2 positive,
+      //        sign(dH) is upon 'x-x_0' only guaranted monotonic H curve
+      dH = 4.0 * x_star * (x-x_0)/(x_1-x_0)/(x_1-x_0);
+
+    }
+  }
+
+  if (derivative) {
+    return dH;
+  }else{
+    return H;
+  }
+
+}
+
 
 
 

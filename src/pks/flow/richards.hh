@@ -335,6 +335,7 @@ protected:
   bool explicit_source_;
   std::string clobber_policy_;
   bool clobber_boundary_flux_dir_;
+  bool downreg_source_term_;
 
   // coupling terms
   bool coupled_to_surface_via_head_; // surface-subsurface Dirichlet coupler
