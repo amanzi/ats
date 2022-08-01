@@ -1390,7 +1390,7 @@ void SedimentTransport_PK::ComputeAddSourceTerms(double tp, double dtp,
     double value = mesh_->cell_volume(c) * (Q_e[0][c] - Q_dt[0][c] - Q_ds[0][c]);
     tcc[0][c] += value * dtp;
     mass_sediment_source_ += value;
-    dz[0][c] +=(1./sediment_density_)*((Q_dt[0][c] + Q_ds[0][c])  + Q_db[0][c] - Q_e[0][c]) * dtp/ (1 - poro[0][c]);
+    dz[0][c] +=((1./sediment_density_)*((Q_dt[0][c] + Q_ds[0][c]) - Q_e[0][c]) + + Q_db[0][c] ) * dtp/ (1 - poro[0][c]);
   }
 
   

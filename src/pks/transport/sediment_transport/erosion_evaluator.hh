@@ -47,6 +47,7 @@ protected:
   double Qe_0_;
   double gamma_;
   double lambda_, umax_, xi_;
+  double Cf_;
 
   Key velocity_key_;
 
