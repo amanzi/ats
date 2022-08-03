@@ -158,7 +158,7 @@ void Transport_ATS::Setup()
 
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::CELL, num_components);
+    ->AddComponent("cell", AmanziMesh::CELL, num_components);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
   requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
 
