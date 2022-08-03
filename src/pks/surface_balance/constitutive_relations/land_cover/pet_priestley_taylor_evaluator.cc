@@ -245,8 +245,8 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
         fac->SetMesh(S->GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, limiter_nvecs_);
-      } else if (dep.first == one_minus_limiter_key_) {
-        fac.SetMesh(S.GetMesh(domain_))
+      } else if (dep_key == one_minus_limiter_key_) {
+        fac->SetMesh(S->GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, one_minus_limiter_nvecs_);
       } else {
