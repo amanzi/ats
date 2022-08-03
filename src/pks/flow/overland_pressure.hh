@@ -34,6 +34,10 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"overland conductivity evaluator`" ``[list]``
       See `Overland Conductivity Evaluator`_.
 
+    * `"barrier regions`" ``[Array(string)]`` **optional** List of regions that
+      include faces across which no lateral flow is permitted.  This is useful for
+      managed systems/features, e.g. dams or levees or similar.
+
     IF
 
     * `"source term`" ``[bool]`` **false** Is there a source term?
@@ -319,6 +323,7 @@ protected:
 
   // needed physical models
   Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
+  std::vector<std::string> barriers_;
 
   // factory registration
   static RegisteredPKFactory<OverlandPressureFlow> reg_;

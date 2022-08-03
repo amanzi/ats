@@ -104,6 +104,11 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
+
+  // barriers are faces on the surface mesh which do not allow lateral flow --
+  // useful in managed systems (dams, levees, etc)
+  Teuchos::Array<std::string> barrier_regs;
+  barriers_ = plist_->get<Teuchos::Array<std::string>>("barrier regions", barrier_regs).toVector();
 }
 
 
@@ -630,6 +635,20 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
     // -- upwind
     upwinding_->Update(*cond, *uw_cond, *S_);
     uw_cond->ScatterMasterToGhosted("face");
+
+    // barriers include dams and other surface flow restrictions
+    if (barriers_.size() != 0) {
+      Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face",false);
+
+      for (const auto& barrier_region : barriers_) {
+        AmanziMesh::Entity_ID_List barrier_faces;
+        mesh_->get_set_entities(barrier_region, AmanziMesh::Entity_kind::FACE,
+                AmanziMesh::Parallel_type::ALL, &barrier_faces);
+        for (AmanziMesh::Entity_ID f : barrier_faces) {
+          uw_cond_f[0][f] = 0.;
+        }
+      }
+    }
   }
 
   if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME))
