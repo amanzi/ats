@@ -132,16 +132,24 @@ RadiationBalanceEvaluator::Evaluate_(const State& S,
       double lw_atm_surf = Relations::BeersLaw(lw_in[0][c], lc.second.beers_k_lw, lai[0][c]);
       double lw_atm_can = lw_in[0][c] - lw_atm_surf;
 
+      // smooth between lai = 0 (no canopy = no outgoing longwave) to lai = 1
+      // (lai of 1 approximately indicates the entire grid cell is covered in
+      // leaf area?)
+      double lai_factor = lai[0][c] < 1. ? lai[0][c] : 1.;
+
       // black-body radiation for LW out
       double lw_surf = Relations::OutgoingLongwaveRadiation(temp_surf[0][c], emiss[0][c]);
       double lw_snow = Relations::OutgoingLongwaveRadiation(temp_snow[0][c], emiss[1][c]);
-      double lw_can = Relations::OutgoingLongwaveRadiation(temp_canopy[0][c],
+      double lw_can = lai_factor * Relations::OutgoingLongwaveRadiation(temp_canopy[0][c],
               lc.second.emissivity_canopy);
 
       rad_bal_surf[0][c] = (1-albedo[0][c])*sw_atm_surf + lw_atm_surf + lw_can - lw_surf;
       rad_bal_snow[0][c] = (1-albedo[1][c])*sw_atm_surf + lw_atm_surf + lw_can - lw_snow;
-      rad_bal_can[0][c] = (1-lc.second.albedo_canopy)*sw_atm_can + lw_atm_can
-        + area_frac[1][c]*lw_snow + area_frac[0][c]*lw_surf - 2*lw_can;
+      rad_bal_can[0][c] = (1-lc.second.albedo_canopy)*sw_atm_can
+        + lw_atm_can
+        + lai_factor * area_frac[1][c] * lw_snow
+        + lai_factor * area_frac[0][c] * lw_surf
+        - 2*lw_can;
     }
   }
 }
