@@ -21,7 +21,7 @@ Author: Ethan Coon (ecoon@lanl.gov)
 #include "AmanziTypes.hh"
 
 #include "GeometricModel.hh"
-#include "coordinator.hh"
+#include "ats_driver.hh"
 #include "State.hh"
 
 #include "errors.hh"
@@ -63,7 +63,7 @@ SimulationDriver::Run(const Teuchos::RCP<const Amanzi::Comm_type>& comm,
   ATS::Mesh::createMeshes(plist, comm, gm, *S);
 
   // create the top level Coordinator
-  ATS::Coordinator coordinator(plist, S, comm);
+  ATS::ATSDriver coordinator(plist, S, comm);
 
   // run the simulation
   coordinator.cycle_driver();

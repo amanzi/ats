@@ -64,12 +64,14 @@ include_evaluators_directories(LISTNAME SED_TRANSPORT_REG_INCLUDES)
 
 set(ats_src_files
   coordinator.cc
+  ats_driver.cc
   ats_mesh_factory.cc
   simulation_driver.cc
   )
 
 set(ats_inc_files
   coordinator.hh
+  ats_driver.hh
   ats_mesh_factory.hh
   simulation_driver.hh
   )

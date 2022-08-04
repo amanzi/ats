@@ -106,22 +106,18 @@ public:
   Coordinator(Teuchos::ParameterList& parameter_list,
               Teuchos::RCP<Amanzi::State>& S,
               Amanzi::Comm_ptr_type comm);
-              //              Amanzi::ObservationData& output_observations);
 
   // PK methods
-  void setup();
-  void initialize();
-  void finalize();
+  virtual void setup();
+  virtual void initialize();
+  virtual void finalize();
   void report_memory();
   bool advance();
   void visualize(bool force=false);
   void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);
 
-  // one stop shopping
-  void cycle_driver();
-
- private:
+ protected:
   void coordinator_init();
   void read_parameter_list();
 
