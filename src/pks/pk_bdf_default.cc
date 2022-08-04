@@ -60,6 +60,8 @@ void PK_BDF_Default::Initialize()
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
     if (!bdf_plist.isSublist("verbose object"))
       bdf_plist.set("verbose object", plist_->sublist("verbose object"));
+    if (!bdf_plist.sublist("verbose object").isParameter("name"))
+      bdf_plist.sublist("verbose object").set("name", name_ + "TI");
     time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector,TreeVectorSpace>(*this,
             bdf_plist, solution_));
 
@@ -144,37 +146,46 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   double dt_internal = S_->Get<double>("dt", Tag(name_));
   AMANZI_ASSERT(dt <= dt_internal + 1.e-4); // roundoff can be large for big times
   double dt_solver = -1;
-  bool fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
 
-  if (!fail) {
-    // check step validity
-    bool valid = ValidStep();
-    if (valid) {
-      if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "successful advance" << std::endl;
-      // update the timestep size
-      if (dt_solver < dt_internal && dt_solver >= dt) {
-        // We took a smaller step than we recommended, and it worked fine (not
-        // suprisingly).  Likely this was due to constraints from other PKs or
-        // vis.  Do not reduce our recommendation.
+  bool fail = false;
+  try {
+    fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
+
+    if (!fail) {
+      // check step validity
+      bool valid = ValidStep();
+      if (valid) {
+        if (vo_->os_OK(Teuchos::VERB_LOW))
+          *vo_->os() << "successful advance" << std::endl;
+        // update the timestep size
+        if (dt_solver < dt_internal && dt_solver >= dt) {
+          // We took a smaller step than we recommended, and it worked fine (not
+          // suprisingly).  Likely this was due to constraints from other PKs or
+          // vis.  Do not reduce our recommendation.
+        } else {
+          dt_internal = dt_solver;
+        }
       } else {
-        dt_internal = dt_solver;
+        if (vo_->os_OK(Teuchos::VERB_LOW))
+          *vo_->os() << "successful advance, but not valid" << std::endl;
+        time_stepper_->CommitSolution(dt_internal, solution_, valid);
+        dt_internal = 0.5 * dt_internal;
+        // when including Valid here, make fail = true refs #110
       }
     } else {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "successful advance, but not valid" << std::endl;
-      time_stepper_->CommitSolution(dt_internal, solution_, valid);
-      dt_internal = 0.5 * dt_internal;
-      // when including Valid here, make fail = true refs #110
+        *vo_->os() << "unsuccessful advance" << std::endl;
+      // take the decreased timestep size
+      dt_internal = dt_solver;
     }
-  } else {
-    if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << "unsuccessful advance" << std::endl;
-    // take the decreased timestep size
-    dt_internal = dt_solver;
-  }
 
-  S_->Assign("dt", Tag(name_), name_, dt_internal);
+    S_->Assign("dt", Tag(name_), name_, dt_internal);
+  } catch(Errors::TimeStepCrash) {
+    // inject the PK name into the crash message
+    Errors::TimeStepCrash msg;
+    msg << name_ << ": " << msg.what();
+    Exceptions::amanzi_throw(msg);
+  }
   return fail;
 };
 
