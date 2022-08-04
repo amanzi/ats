@@ -41,7 +41,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 
 #include "coordinator.hh"
 
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 namespace ATS {
 
@@ -307,7 +307,7 @@ void Coordinator::finalize()
 {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
-  WriteCheckpoint(*checkpoint_, comm_, *S_, true);
+  checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
   for (const auto& obs : observations_) obs->Flush();
@@ -560,7 +560,7 @@ void Coordinator::checkpoint(bool force)
   int cycle = S_->get_cycle();
   double time = S_->get_time();
   if (force || checkpoint_->DumpRequested(cycle, time)) {
-    WriteCheckpoint(*checkpoint_, comm_, *S_);
+    checkpoint_->Write(*S_);
   }
 }
 
@@ -637,7 +637,7 @@ void Coordinator::cycle_driver() {
     } // while not finished
 
 #if !DEBUG_MODE
-  } catch (Amanzi::Exceptions::Amanzi_exception &e) {
+  } catch (Exceptions::Amanzi_exception &e) {
     // write one more vis for help debugging
     S_->advance_cycle(Amanzi::Tags::NEXT);
     visualize(true); // force vis
@@ -645,12 +645,9 @@ void Coordinator::cycle_driver() {
     // flush observations to make sure they are saved
     for (const auto& obs : observations_) obs->Flush();
 
-    // catch errors to dump two checkpoints -- one as a "last good" checkpoint
-    // and one as a "debugging data" checkpoint.
-    checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
-    checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
+    // dump a post_mortem checkpoint file for debugging
+    checkpoint_->set_filebasename("post_mortem");
+    checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::POST_MORTEM);
     throw e;
   }
 #endif
