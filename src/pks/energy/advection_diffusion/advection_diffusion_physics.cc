@@ -52,11 +52,11 @@ void AdvectionDiffusion::AddAdvection_(const Teuchos::RCP<State> S,
           const Teuchos::RCP<CompositeVector> g, bool negate) {
 
   // set up the operator
-  Teuchos::RCP<const CompositeVector> mass_flux = S->GetFieldData("mass_flux");
+  Teuchos::RCP<const CompositeVector> water_flux = S->GetFieldData("water_flux");
   matrix_adv_->global_operator()->Init();
-  matrix_adv_->Setup(*mass_flux);
+  matrix_adv_->Setup(*water_flux);
   matrix_adv_->SetBCs(bc_, bc_);
-  matrix_adv_->UpdateMatrices(mass_flux.ptr());
+  matrix_adv_->UpdateMatrices(water_flux.ptr());
   matrix_adv_->ApplyBCs(false, true, false);
 
 

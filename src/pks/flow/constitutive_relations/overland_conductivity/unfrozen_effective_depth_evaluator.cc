@@ -12,38 +12,33 @@ namespace Amanzi {
 namespace Flow {
 
 UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
-
+    SecondaryVariableFieldEvaluator(plist)
+{
   Key domain = Keys::getDomain(my_key_);
-
-  depth_key_ = plist_.get<std::string>("depth key", Keys::getKey(domain,"ponded_depth"));
+  depth_key_ = Keys::readKey(plist_, domain, "depth", "ponded_depth");
   dependencies_.insert(depth_key_);
 
-  uf_key_ = plist_.get<std::string>("unfrozen fraction key", Keys::getKey(domain,"unfrozen_fraction"));
-  alpha_ = plist_.get<double>("ice retardation exponent [-]", 1.0);
+  uf_key_ = Keys::readKey(plist_, domain, "unfrozen fraction", "unfrozen_fraction");
   dependencies_.insert(uf_key_);
 
-  if (my_key_ == std::string("")) {
-    my_key_ = plist_.get<std::string>("unfrozen effective depth key",
-            "unfrozen_effective_depth");
-  }
-
+  alpha_ = plist_.get<double>("ice retardation exponent [-]", 1.0);
 }
 
 
 Teuchos::RCP<FieldEvaluator>
-UnfrozenEffectiveDepthEvaluator::Clone() const {
+UnfrozenEffectiveDepthEvaluator::Clone() const
+{
   return Teuchos::rcp(new UnfrozenEffectiveDepthEvaluator(*this));
 }
 
 
 // Required methods from SecondaryVariableFieldEvaluator
 void UnfrozenEffectiveDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
-
+        const Teuchos::Ptr<CompositeVector>& result)
+{
   Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
   Teuchos::RCP<const CompositeVector> uf = S->GetFieldData(uf_key_);
-  
+
   for (auto compname : *result) {
     auto& result_c = *result->ViewComponent(compname, false);
     const auto& depth_c = *depth->ViewComponent(compname, false);
@@ -58,8 +53,8 @@ void UnfrozenEffectiveDepthEvaluator::EvaluateField_(const Teuchos::Ptr<State>& 
 
 void UnfrozenEffectiveDepthEvaluator::EvaluateFieldPartialDerivative_(
     const Teuchos::Ptr<State>& S,
-    Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
-
+    Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+{
   Teuchos::RCP<const CompositeVector> depth = S->GetFieldData(depth_key_);
   Teuchos::RCP<const CompositeVector> uf = S->GetFieldData(uf_key_);
 
@@ -86,8 +81,6 @@ void UnfrozenEffectiveDepthEvaluator::EvaluateFieldPartialDerivative_(
   } else {
     AMANZI_ASSERT(0);
   }
-
-  
 }
 
 

@@ -16,16 +16,7 @@ ColumnSumEvaluator::ColumnSumEvaluator(Teuchos::ParameterList& plist)
     : SecondaryVariableFieldEvaluator(plist)
 {
   surf_domain_ = Keys::getDomain(my_key_);
-  if (surf_domain_ == "surface") {
-    domain_ = "";
-    domain_ = plist_.get<std::string>("column domain name", domain_);
-  } else if (Keys::starts_with(surf_domain_, "surface_")) {
-    domain_ = surf_domain_.substr(8, surf_domain_.size());
-    domain_ = plist_.get<std::string>("column domain name", domain_);
-  } else {
-    domain_ = plist_.get<std::string>("column domain name");
-  }
-
+  domain_ = Keys::readDomainHint(plist_, surf_domain_, "surface", "subsurface");
   dep_key_ = Keys::readKey(plist_, domain_, "summed", Keys::getKey(domain_, Keys::getVarName(my_key_)));
   dependencies_.insert(dep_key_);
 

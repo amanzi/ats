@@ -36,7 +36,8 @@ import configparser
 
 
 
-aliases = dict()
+aliases = {'surface-water_flux':['surface-mass_flux',],
+           'water_flux':['mass_flux',]}
 
 
 def get_git_hash(directory):
@@ -681,8 +682,9 @@ class RegressionTest(object):
                             pass
                         else:
                             for alias in my_aliases:
-                                if '.'.join([alias,]+key_split[1:]) in h5_gold.keys():
-                                    gold_matches.append(key)
+                                potential_alias = '.'.join([alias,]+key_split[1:])
+                                if potential_alias in h5_gold.keys():
+                                    gold_matches.append(potential_alias)
                                     found_match = True
                                     break
                         if not found_match:

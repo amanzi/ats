@@ -118,12 +118,12 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
   // update with advection terms
   if (implicit_advection_ && implicit_advection_in_pc_) {
-    Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetFieldData("mass_flux");
+    Teuchos::RCP<const CompositeVector> water_flux = S_next_->GetFieldData("water_flux");
     S_next_->GetFieldEvaluator(enthalpy_key_)
         ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
     Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetFieldData(Keys::getDerivKey(enthalpy_key_,key_));
-    preconditioner_adv_->Setup(*mass_flux);
-    preconditioner_adv_->UpdateMatrices(mass_flux.ptr(), dhdT.ptr());
+    preconditioner_adv_->Setup(*water_flux);
+    preconditioner_adv_->UpdateMatrices(water_flux.ptr(), dhdT.ptr());
     ApplyDirichletBCsToEnthalpy_(S_next_.ptr());
     preconditioner_adv_->ApplyBCs(false, true, false);
   }

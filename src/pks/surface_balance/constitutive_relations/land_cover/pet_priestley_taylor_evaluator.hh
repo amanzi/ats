@@ -17,15 +17,19 @@ Requires the following dependencies:
 .. _pet-priestley-taylor-evaluator-spec:
 .. admonition:: pet-priestley-taylor-evaluator-spec:
 
-   * `"include limiter`" ``[bool]`` If true, multiply potential ET by a limiter
-     to get an actual ET.
+   * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
+     a limiter to get an actual ET.
    * `"limiter number of dofs`" ``[int]`` **1** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides how many.
    * `"limiter dof`" ``[int]`` **0** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides which one to use.
-   * `"include 1 - limiter`" ``[bool]`` If true, multiply potential ET by
-     1 - a limiter (e.g. a limiter that partitions between two pools) to get
-     actual ET.
+   * `"include 1 - limiter`" ``[bool]`` **false** If true, multiply potential
+     ET by 1 - a limiter (e.g. a limiter that partitions between two pools) to
+     get actual ET.
+   * `"1 - limiter number of dofs`" ``[int]`` **1** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides how many.
+   * `"1 - limiter dof`" ``[int]`` **0** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides which one to use.
    * `"sublimate snow`" ``[bool]`` **false** If true, use latent heat of
       vaporization of snow, not water.
 
@@ -124,10 +128,9 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   Key one_minus_limiter_key_;
 
   double pt_alpha_;
-  bool limiter_;
-  int limiter_nvecs_;
-  int limiter_dof_;
-  bool one_minus_limiter_;
+  bool limiter_, one_minus_limiter_;
+  int limiter_nvecs_, one_minus_limiter_nvecs_;
+  int limiter_dof_, one_minus_limiter_dof_;
   bool compatible_;
 
   LandCoverMap land_cover_;

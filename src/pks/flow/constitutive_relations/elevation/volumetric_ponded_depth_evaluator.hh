@@ -33,15 +33,17 @@ class VolumetricPondedDepthEvaluator : public SecondaryVariableFieldEvaluator {
   VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist);
   VolumetricPondedDepthEvaluator(const VolumetricPondedDepthEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
     return Teuchos::rcp(new VolumetricPondedDepthEvaluator(*this));
   }
 
+  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
+
  protected:
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
+          const Teuchos::Ptr<CompositeVector>& result) override;
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
 
  protected:
   Key pd_key_;

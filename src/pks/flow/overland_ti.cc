@@ -181,7 +181,7 @@ void OverlandFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector>
     Teuchos::RCP<const CompositeVector> pres_elev = Teuchos::null;
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
     if (preconditioner_->RangeMap().HasComponent("face")) {
-      flux = S_next_->GetFieldData("surface-mass_flux", name_);
+      flux = S_next_->GetFieldData("surface-water_flux", name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     } else {
       S_next_->GetFieldEvaluator(Keys::getKey(domain_, "pres_elev"))->HasFieldChanged(S_next_.ptr(), name_);

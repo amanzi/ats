@@ -36,6 +36,7 @@ SubgridAggregateEvaluator::SubgridAggregateEvaluator(Teuchos::ParameterList& pli
     source_domain_ = Keys::getDomainSetName(source_domain_);
   }
   var_key_ = Keys::getVarName(my_key_);
+  nonlocal_dependencies_ = true; // by definition!
 }
 
 Teuchos::RCP<FieldEvaluator>

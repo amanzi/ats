@@ -258,13 +258,13 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   // update with advection terms
   if (is_advection_term_) {
     if (implicit_advection_ && implicit_advection_in_pc_) {
-      Teuchos::RCP<const CompositeVector> mass_flux = S_next_->GetFieldData(flux_key_);
+      Teuchos::RCP<const CompositeVector> water_flux = S_next_->GetFieldData(flux_key_);
       S_next_->GetFieldEvaluator(enthalpy_key_)
           ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
       Teuchos::RCP<const CompositeVector> dhdT = S_next_->GetFieldData(Keys::getDerivKey(enthalpy_key_, key_));
-      preconditioner_adv_->Setup(*mass_flux);
+      preconditioner_adv_->Setup(*water_flux);
       preconditioner_adv_->SetBCs(bc_adv_, bc_adv_);
-      preconditioner_adv_->UpdateMatrices(mass_flux.ptr(), dhdT.ptr());
+      preconditioner_adv_->UpdateMatrices(water_flux.ptr(), dhdT.ptr());
       preconditioner_adv_->ApplyBCs(false, true, false);
     }
   }
