@@ -36,7 +36,7 @@
 
 #include "ats_driver.hh"
 
-
+#define DEBUG_MODE 1
 
 namespace ATS {
 
