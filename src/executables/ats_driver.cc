@@ -40,6 +40,9 @@ License: see ATS_DIR/COPYRIGHT
 
 #include "ats_driver.hh"
 
+// won't run if DEBUG_MODE == false
+// error: 'Exceptions' in namespace 'Amanzi' does not name a type
+// 125   } catch (Amanzi::Exceptions::Amanzi_exception &e) {
 #define DEBUG_MODE 1
 
 namespace ATS {
