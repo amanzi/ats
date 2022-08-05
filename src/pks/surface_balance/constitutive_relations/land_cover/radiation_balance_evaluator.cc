@@ -73,7 +73,7 @@ RadiationBalanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
     land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-            {"beers_law_lw", "beers_law_sw", "emissivity_canopy", "albedo_canopy"});
+            {"beers_k_lw", "beers_k_sw", "emissivity_canopy", "albedo_canopy"});
 
     for (const auto& dep : dependencies_) {
       // dependencies on same mesh, but some have two
