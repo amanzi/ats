@@ -59,7 +59,7 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
   coordinator_init();
 
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm, "Coordinator", *coordinator_list_));
 };
 
 void Coordinator::coordinator_init()
@@ -78,7 +78,7 @@ void Coordinator::coordinator_init()
   const std::string &pk_name = pk_tree_list.name(pk_item);
 
   // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector());
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
 
   // create the pk
   Amanzi::PKFactory pk_factory;
@@ -187,9 +187,9 @@ void Coordinator::initialize()
   // -- load all other data
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
-    t0_ = S_->get_time(Amanzi::Tags::DEFAULT);
+    t0_ = S_->get_time();
+    cycle0_ = S_->get_cycle();
 
-    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
     S_->set_time(Amanzi::Tags::CURRENT, t0_);
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 

@@ -291,7 +291,9 @@ MPCWeakSubdomain::init_()
   PKFactory pk_factory;
   for (const auto& subdomain : *ds) {
     auto mesh = S_->GetMesh(subdomain);
-    // create the solution vector
+    // create the solution vector, noting that these are created on the
+    // communicator associated with the mesh of the subdomain, which may differ
+    // from the coupler's comm.
     Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->get_comm()));
     solution_->PushBack(pk_soln);
 

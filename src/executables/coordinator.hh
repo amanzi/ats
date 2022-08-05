@@ -106,7 +106,6 @@ public:
   Coordinator(Teuchos::ParameterList& parameter_list,
               Teuchos::RCP<Amanzi::State>& S,
               Amanzi::Comm_ptr_type comm);
-              //              Amanzi::ObservationData& output_observations);
 
   // PK methods
   void setup();

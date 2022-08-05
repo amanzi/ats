@@ -101,14 +101,22 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   void CopyStarToPrimary_Standard_Hybrid_();
 
   Tag get_ds_tag_next_(const std::string& subdomain) {
-    if (subcycling_[1])
-      return Tag{Keys::cleanName(tags_[1].second.get() + "_" + Keys::getDomainSetIndex(subdomain))};
-    else return Tag{tags_[1].second};
+    if (subcycling_[1]) {
+      AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
+              std::string::npos), tags_[1].second.get()));
+    } else {
+      return Tag{tags_[1].second};
+    }
   }
   Tag get_ds_tag_current_(const std::string& subdomain) {
-    if (subcycling_[1])
-      return Tag{Keys::cleanName(tags_[1].first.get() + "_" + Keys::getDomainSetIndex(subdomain))};
-    else return Tag{tags_[1].first};
+    if (subcycling_[1]) {
+      AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
+              std::string::npos), tags_[1].first.get()));
+    } else {
+      return Tag{tags_[1].first};
+    }
   }
 
 
