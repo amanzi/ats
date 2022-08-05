@@ -63,7 +63,7 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
 
   // create state.
-  S_ = Teuchos::rcp(new Amanzi::State(parameter_list.sublist("state")));
+  S_ = Teuchos::rcp(new Amanzi::State(parameter_list_->sublist("state")));
 
   coordinator_init();
 
