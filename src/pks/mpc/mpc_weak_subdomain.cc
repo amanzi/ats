@@ -240,7 +240,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
   comm_->SumAll(&n_throw, &n_throw_g, 1);
   if (n_throw > 0) {
     Exceptions::amanzi_throw(Errors::TimeStepCrash(throw_msg));
-  } else {
+  } else if (n_throw_g > 0) {
     Errors::TimeStepCrash msg;
     msg << "TimeStepCrash on another rank: nprocs failed = " << n_throw_g;
     Exceptions::amanzi_throw(msg);
