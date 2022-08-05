@@ -5,11 +5,13 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 
-Implementation for the Coordinator.  Coordinator is basically just a class to hold
-the cycle driver, which runs the overall, top level timestep loop.  It
-instantiates states, ensures they are initialized, and runs the timestep loop
-including Vis and restart/checkpoint dumps.  It contains one and only one PK
--- most likely this PK is an MPC of some type -- to do the actual work.
+Implementation for the Coordinator. Coordinator holds the functionality
+called by the cycle driver, which runs the overall, top level timestep loop.
+
+Coordinator instantiates states, ensures they are initialized, advances 
+timesteps, and writes vis and restart/checkpoint dumps. It contains one and
+only one PK -- most likely this PK is an MPC of some type -- to do the
+actual work.
 ------------------------------------------------------------------------- */
 
 #include <iostream>
@@ -17,6 +19,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include <sys/resource.h>
 #include "errors.hh"
 
+#include "Teuchos_ParameterList.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
@@ -31,6 +34,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
 #include "IO.hh"
+#include "GeometricModel.hh"
 #include "Checkpoint.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"
@@ -39,6 +43,8 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "PK_Factory.hh"
 #include "pk_helpers.hh"
 
+#include "ats_mesh_factory.hh"
+
 #include "coordinator.hh"
 
 #define DEBUG_MODE 1
@@ -46,10 +52,8 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 namespace ATS {
 
 Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
-                         Teuchos::RCP<Amanzi::State>& S,
                          Amanzi::Comm_ptr_type comm ) :
     parameter_list_(Teuchos::rcp(new Teuchos::ParameterList(parameter_list))),
-    S_(S),
     comm_(comm),
     restart_(false)
 {
@@ -57,6 +61,10 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
   setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
+
+  // create state.
+  S_ = Teuchos::rcp(new Amanzi::State(parameter_list.sublist("state")));
+
   coordinator_init();
 
   vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
@@ -64,6 +72,14 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
 
 void Coordinator::coordinator_init()
 {
+  // create the geometric model and regions
+  Teuchos::ParameterList reg_list = parameter_list_->sublist("regions");
+  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
+    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
+
+  // create and register meshes
+  ATS::Mesh::createMeshes(*parameter_list_, comm_, gm, *S_);
+
   coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
   read_parameter_list();
 

@@ -50,20 +50,20 @@ SimulationDriver::Run(const Teuchos::RCP<const Amanzi::Comm_type>& comm,
   }
 
   // create the geometric model and regions
-  Teuchos::ParameterList reg_params = plist.sublist("regions");
-  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
-    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_params, *comm) );
+  //Teuchos::ParameterList reg_params = plist.sublist("regions");
+  //Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
+  //Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_params, *comm) );
 
   // Create the state.
-  Teuchos::ParameterList state_plist = plist.sublist("state");
-  Teuchos::RCP<Amanzi::State> S = Teuchos::rcp(new Amanzi::State(state_plist));
+  //Teuchos::ParameterList state_plist = plist.sublist("state");
+  //Teuchos::RCP<Amanzi::State> S = Teuchos::rcp(new Amanzi::State(state_plist));
 
   // create and register meshes
   //ATS::createMeshes(plist.sublist("mesh"), comm, gm, *S);
-  ATS::Mesh::createMeshes(plist, comm, gm, *S);
+  //ATS::Mesh::createMeshes(plist, comm, gm, *S_);
 
   // create the top level Coordinator
-  ATS::ATSDriver coordinator(plist, S, comm);
+  ATS::ATSDriver coordinator(plist, comm);
 
   // run the simulation
   coordinator.cycle_driver();

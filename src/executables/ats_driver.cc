@@ -1,25 +1,26 @@
-//duration_
-//setup_timer_
-//restart_
-//S_
-//cycle_timer_
-//t1_
-//cycle1_
-//timer_
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/* -------------------------------------------------------------------------
+ATS
+
+License: see ATS_DIR/COPYRIGHT
+------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <unistd.h>
 #include <sys/resource.h>
-#include "errors.hh"
+#include <Epetra_MpiComm.h>
 
+#include "Teuchos_ParameterList.hpp"
+#include "Teuchos_CommandLineProcessor.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
+#include "VerboseObject.hh"
+
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
 
 #include "InputAnalysis.hh"
-
 #include "Units.hh"
 #include "CompositeVector.hh"
 #include "TimeStepManager.hh"
@@ -32,7 +33,10 @@
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
+
 #include "pk_helpers.hh"
+#include "exceptions.hh"
+#include "errors.hh"
 
 #include "ats_driver.hh"
 
@@ -41,14 +45,13 @@
 namespace ATS {
 
 ATSDriver::ATSDriver(Teuchos::ParameterList& parameter_list,
-                 Teuchos::RCP<Amanzi::State>& S,
-                 Amanzi::Comm_ptr_type comm)
-    : Coordinator(parameter_list, S, comm) {}
+                     Amanzi::Comm_ptr_type comm)
+    : Coordinator(parameter_list, comm) {}
 
 
 
 // -----------------------------------------------------------------------------
-// timestep loop
+// setup and initialize, then run until time >= duration_
 // -----------------------------------------------------------------------------
 void ATSDriver::cycle_driver() {
   // wallclock duration -- in seconds
@@ -145,6 +148,30 @@ void ATSDriver::cycle_driver() {
 
   finalize();
 } // cycle driver
+
+
+// -----------------------------------------------------------------------------
+// run simulation
+// -----------------------------------------------------------------------------
+int ATSDriver::run()
+{
+  Amanzi::VerboseObject vo("ATS Driver", *parameter_list_);
+  Teuchos::OSTab tab = vo.getOSTab();
+
+  // print header material
+  if (vo.os_OK(Teuchos::VERB_LOW)) {
+    // print parameter list
+    *vo.os() << "======================> dumping parameter list <======================" <<
+      std::endl;
+    Teuchos::writeParameterListToXmlOStream(*parameter_list_, *vo.os());
+    *vo.os() << "======================> done dumping parameter list. <================" <<
+      std::endl;
+  }
+
+  // run the simulation
+  cycle_driver();
+  return 0;
+}
 
 
 } // end namespace ATS

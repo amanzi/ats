@@ -66,14 +66,14 @@ set(ats_src_files
   coordinator.cc
   ats_driver.cc
   ats_mesh_factory.cc
-  simulation_driver.cc
+  #simulation_driver.cc
   )
 
 set(ats_inc_files
   coordinator.hh
   ats_driver.hh
   ats_mesh_factory.hh
-  simulation_driver.hh
+  #simulation_driver.hh
   )
 
 set(amanzi_link_libs
