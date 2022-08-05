@@ -30,6 +30,10 @@ RadiationBalanceEvaluator::RadiationBalanceEvaluator(Teuchos::ParameterList& pli
     domain_canopy_ = domain;
     domain_snow_ = Keys::readDomainHint(plist_, domain_canopy_, "canopy", "snow");
     domain_surf_ = Keys::readDomainHint(plist_, domain_canopy_, "canopy", "surface");
+  } else if (dtype == "snow") {
+    domain_snow_ = domain;
+    domain_canopy_ = Keys::readDomainHint(plist_, domain_snow_, "snow", "canopy");
+    domain_surf_ = Keys::readDomainHint(plist_, domain_snow_, "snow", "surface");
   } else {
     domain_surf_ = plist_.get<std::string>("surface domain name");
     domain_snow_ = plist_.get<std::string>("snow domain name");
