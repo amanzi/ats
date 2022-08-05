@@ -174,60 +174,77 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
   int my_pid = solution_->Comm()->MyPID();
 
   int i = 0;
-  for (const auto& subdomain : ds) {
-    if (vo_->os_OK(Teuchos::VERB_EXTREME))
-      *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
-
-    bool done = false;
-    double t_inner = t_old;
-
-    Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
-    Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
-
-    S_->set_time(tag_subcycle_current, t_old);
-    while (!done) {
-      double dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
-      S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
-      S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
+  int n_throw = 0;
+  std::string throw_msg;
+  try { // must catch non-collective throws for TimeStepCrash
+    for (const auto& subdomain : ds) {
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
-        *vo_->os() << "  step failed? " << fail_inner << std::endl;
-      bool valid_inner = sub_pks_[i]->ValidStep();
-      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-        *vo_->os() << "  step valid? " << valid_inner << std::endl;
-      }
+        *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
 
-      if (fail_inner || !valid_inner) {
-        sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
+      bool done = false;
+      double t_inner = t_old;
 
-        dt_inner = sub_pks_[i]->get_dt();
-        S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
+      Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
+      Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
 
+      S_->set_time(tag_subcycle_current, t_old);
+      while (!done) {
+        double dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
+        S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
+        S_->set_time(tag_subcycle_next, t_inner + dt_inner);
+        bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
+          *vo_->os() << "  step failed? " << fail_inner << std::endl;
+        bool valid_inner = sub_pks_[i]->ValidStep();
+        if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+          *vo_->os() << "  step valid? " << valid_inner << std::endl;
+        }
 
-      } else {
-        sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
-        t_inner += dt_inner;
-        if (std::abs(t_new - t_inner) < 1.e-10) done = true;
+        if (fail_inner || !valid_inner) {
+          sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
 
-        S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
-        S_->advance_cycle(tag_subcycle_next);
+          dt_inner = sub_pks_[i]->get_dt();
+          S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
-        dt_inner = sub_pks_[i]->get_dt();
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
+          if (vo_->os_OK(Teuchos::VERB_EXTREME))
+            *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
+
+        } else {
+          sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
+          t_inner += dt_inner;
+          if (std::abs(t_new - t_inner) < 1.e-10) done = true;
+
+          S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
+          S_->advance_cycle(tag_subcycle_next);
+
+          dt_inner = sub_pks_[i]->get_dt();
+          if (vo_->os_OK(Teuchos::VERB_EXTREME))
+            *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
+        }
+
+        if (dt_inner < subcycled_min_dt_) {
+          Errors::Message msg;
+          msg << "Subdomain " << subdomain << " on PID " << my_pid << " crashing timestep in subcycling: dt = " << dt_inner;
+          Exceptions::amanzi_throw(msg);
+        }
       }
-
-      if (dt_inner < subcycled_min_dt_) {
-        Errors::Message msg;
-        msg << "Subdomain " << subdomain << " on PID " << my_pid << " crashing timestep in subcycling: dt = " << dt_inner;
-        Exceptions::amanzi_throw(msg);
-      }
+      i++;
     }
-    i++;
+  } catch(Errors::TimeStepCrash& e) {
+    n_throw++;
+    throw_msg = e.what();
   }
 
+  // check for any other ranks throwing and, if so, throw ourselves so that all procs throw
+  int n_throw_g = 0;
+  comm_->SumAll(&n_throw, &n_throw_g, 1);
+  if (n_throw > 0) {
+    Exceptions::amanzi_throw(Errors::TimeStepCrash(throw_msg));
+  } else {
+    Errors::TimeStepCrash msg;
+    msg << "TimeStepCrash on another rank: nprocs failed = " << n_throw_g;
+    Exceptions::amanzi_throw(msg);
+  }
   return false;
 }
 
