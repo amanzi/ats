@@ -169,9 +169,6 @@ void Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
-  // calling CommitStep to set up copies as needed
-  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
-
   // initialize vertex coordinate data
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
@@ -201,13 +198,23 @@ void Coordinator::initialize()
     }
   }
 
+  // calling CommitStep to set up copies as needed.  Before we do this, we set
+  // the cycle to -1 to force, even on restart, the commit to set the history
+  // with this initial condition.  This probably will change when we get true
+  // restart capability where the history is saved in state.
+  S_->set_cycle(-1);
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+  S_->set_cycle(cycle0_);
+
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-  // commit the initial conditions.
+  // commit one more time, since some variables may have changed in the
+  // previous call (test this... maybe chemistry/transport variables?  Is this
+  // still necessary?  And do we need to set cycle to -1 here too? --ETC)
   pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
   // Write dependency graph.

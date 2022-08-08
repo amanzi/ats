@@ -38,7 +38,7 @@ void PK_BDF_Default::Setup()
     }
 
     // require data for checkpointing timestep size
-    S_->Require<double>("dt", Tag(name_), name_);
+    S_->Require<double>("dt_internal", Tag(name_), name_);
   }
 };
 
@@ -51,8 +51,8 @@ void PK_BDF_Default::Initialize()
   if (!strongly_coupled_) {
     // initialize the timestep
     double dt = plist_->get<double>("initial time step [s]", 1.);
-    S_->Assign("dt", Tag(name_), name_, dt);
-    S_->GetRecordW("dt", Tag(name_), name_).set_initialized();
+    S_->Assign("dt_internal", Tag(name_), name_, dt);
+    S_->GetRecordW("dt_internal", Tag(name_), name_).set_initialized();
 
     // set up the timestepping algorithm
     // -- construct the time integrator
@@ -96,14 +96,14 @@ void PK_BDF_Default::ResetTimeStepper(double time)
 // -----------------------------------------------------------------------------
 double PK_BDF_Default::get_dt() {
   if (!strongly_coupled_)
-    return S_->Get<double>("dt", Tag(name_));
+    return S_->Get<double>("dt_internal", Tag(name_));
   else
     return -1.;
 }
 
 void PK_BDF_Default::set_dt(double dt) {
   if (!strongly_coupled_)
-    S_->Assign("dt", Tag(name_), name_, dt);
+    S_->Assign("dt_internal", Tag(name_), name_, dt);
 }
 
 // -- Commit any secondary (dependent) variables.
@@ -143,7 +143,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   // --  dt is the requested timestep size.  It must be less than or equal to...
   // --  dt_internal is the max valid dt, and is set by physics/solvers
   // --  dt_solver is what the solver wants to do
-  double dt_internal = S_->Get<double>("dt", Tag(name_));
+  double dt_internal = S_->Get<double>("dt_internal", Tag(name_));
   AMANZI_ASSERT(dt <= dt_internal + 1.e-4); // roundoff can be large for big times
   double dt_solver = -1;
 
@@ -179,7 +179,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
       dt_internal = dt_solver;
     }
 
-    S_->Assign("dt", Tag(name_), name_, dt_internal);
+    S_->Assign("dt_internal", Tag(name_), name_, dt_internal);
   } catch(Errors::TimeStepCrash) {
     // inject the PK name into the crash message
     Errors::TimeStepCrash msg;
