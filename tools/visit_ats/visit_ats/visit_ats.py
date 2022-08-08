@@ -117,7 +117,7 @@ class VisItWindow:
                     if "exaggerate_vertical" == op.oname:
                         done = True
                 if not done:
-                    print "transforming plot %d..."%i
+                    print("transforming plot %d..."%i)
                     tr = v.TransformAttributes()
                     tr.doScale = 1
                     tr.scaleY = self.exaggeration
@@ -163,10 +163,10 @@ class VisItWindow:
 
         if "temperature" in display_name:
             display_name = display_name.replace("[K]", "[C]")
-            print "defining alias: %s = %s"%(display_name, varname)
+            print("defining alias: %s = %s"%(display_name, varname))
             v.DefineScalarExpression(display_name, "<%s> - 273.15"%varname)
         elif display_name != varname:
-            print "defining alias: %s = %s"%(display_name, varname)
+            print("defining alias: %s = %s"%(display_name, varname))
             v.DefineScalarExpression(display_name, '<'+varname+'>')
 
         v.AddPlot('Pseudocolor', display_name)
@@ -248,7 +248,7 @@ class VisItWindow:
         return plot
 
     def draw(self):
-        print "drawing window %d of dimension %d"%(self.i,self.dim)
+        print("drawing window %d of dimension %d"%(self.i,self.dim))
         v.SetActiveWindow(self.i)
         v.SetAnnotationAttributes(self.annot)
 
@@ -262,7 +262,7 @@ class VisItWindow:
                         sliced = True
 
                 if not sliced:
-                    print "slicing plot %d..."%i
+                    print("slicing plot %d..."%i)
                     v.SetActivePlots(i)
                     v.AddOperator("Slice")
                     sa = self._slice.toAttributes()
@@ -271,23 +271,23 @@ class VisItWindow:
                 
 
         if self.exaggeration is not None:
-            print "exaggerating..."
+            print("exaggerating...")
             self._exaggerateVertical()
 
         # set the plot options
         for i, plot in enumerate(self.plots):
-            print "setting plot options for plot %i..."%i
+            print("setting plot options for plot %i..."%i)
             v.SetActivePlots(i)
             v.SetPlotOptions(plot.patts)
         
         # set the view
-        print "setting the view..."
+        print("setting the view...")
         if self.dim == 2:
             v.SetView2D(self.view)
         else:
             v.SetView3D(self.view)
 
-        print "drawing..."
+        print("drawing...")
         v.DrawPlots()
             
    
