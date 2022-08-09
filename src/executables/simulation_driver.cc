@@ -62,6 +62,10 @@ SimulationDriver::Run(const Teuchos::RCP<const Amanzi::Comm_type>& comm,
   //ATS::createMeshes(plist.sublist("mesh"), comm, gm, *S);
   ATS::Mesh::createMeshes(plist, comm, gm, *S);
 
+  //
+  // build columns to allow indexing by column
+  S->GetMesh("domain")->build_columns();
+
   // create the top level Coordinator
   ATS::Coordinator coordinator(plist, S, comm);
 
