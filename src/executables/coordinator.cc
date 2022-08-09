@@ -198,13 +198,8 @@ void Coordinator::initialize()
     }
   }
 
-  // calling CommitStep to set up copies as needed.  Before we do this, we set
-  // the cycle to -1 to force, even on restart, the commit to set the history
-  // with this initial condition.  This probably will change when we get true
-  // restart capability where the history is saved in state.
-  S_->set_cycle(-1);
+  // calling CommitStep to set up copies as needed.
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
-  S_->set_cycle(cycle0_);
 
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();
