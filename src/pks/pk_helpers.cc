@@ -326,5 +326,24 @@ copyVectorToMeshCoordinates(const CompositeVector& vec,
   mesh.deform(node_ids, new_positions);
 }
 
+int commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global) {
+  MpiComm_type const* mpi_comm = dynamic_cast<const MpiComm_type*>(&comm);
+  const MPI_Comm& mpi_comm_raw = mpi_comm->Comm();
+  return MPI_Allreduce(&local, &global, 1, MPI_DOUBLE_INT, MPI_MAXLOC, mpi_comm_raw);
+}
+
+ValLoc maxValLoc(const Epetra_Vector& vec) {
+  ValLoc local{0.,0};
+  for (int i=0; i!=vec.MyLength(); ++i) {
+    if (vec[i] > local.value) {
+      local.value = vec[i];
+      local.gid = vec.Map().GID(i);
+    }
+  }
+  ValLoc global{0.,0};
+  int ierr = commMaxValLoc(vec.Comm(), local, global);
+  AMANZI_ASSERT(!ierr);
+  return global;
+}
 
 } // namespace Amanzi

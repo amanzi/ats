@@ -176,20 +176,20 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
   int i = 0;
   int n_throw = 0;
   std::string throw_msg;
-  try { // must catch non-collective throws for TimeStepCrash
-    for (const auto& subdomain : ds) {
+  for (const auto& subdomain : ds) {
+    double dt_inner = -1;
+    double t_inner = t_old;
+    try { // must catch non-collective throws for TimeStepCrash
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
 
       bool done = false;
-      double t_inner = t_old;
-
       Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
       Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
 
       S_->set_time(tag_subcycle_current, t_old);
       while (!done) {
-        double dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
+        dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
         S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
         S_->set_time(tag_subcycle_next, t_inner + dt_inner);
         bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
@@ -229,17 +229,21 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         }
       }
       i++;
+    } catch(Errors::TimeStepCrash& e) {
+      n_throw++;
+      throw_msg = e.what();
+      break;
     }
-  } catch(Errors::TimeStepCrash& e) {
-    n_throw++;
-    throw_msg = e.what();
   }
 
   // check for any other ranks throwing and, if so, throw ourselves so that all procs throw
   int n_throw_g = 0;
   comm_->SumAll(&n_throw, &n_throw_g, 1);
   if (n_throw > 0) {
-    Exceptions::amanzi_throw(Errors::TimeStepCrash(throw_msg));
+    // inject more information into the crash message
+    Errors::TimeStepCrash msg;
+    msg << throw_msg << "  on rank " << comm_->MyPID() << " of " << comm_->NumProc();
+    Exceptions::amanzi_throw(msg);
   } else if (n_throw_g > 0) {
     Errors::TimeStepCrash msg;
     msg << "TimeStepCrash on another rank: nprocs failed = " << n_throw_g;
@@ -247,7 +251,6 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
   }
   return false;
 }
-
 
 
 void

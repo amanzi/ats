@@ -180,10 +180,14 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
     }
 
     S_->Assign("dt_internal", Tag(name_), name_, dt_internal);
-  } catch(Errors::TimeStepCrash) {
-    // inject the PK name into the crash message
-    Errors::TimeStepCrash msg;
-    msg << name_ << ": " << msg.what();
+  } catch(Errors::TimeStepCrash& e) {
+    // inject more information into the crash message
+    std::stringstream msg_str;
+    msg_str << "TimeStepCrash in PK: \"" << name() << "\"" << std::endl
+            << "  at t = " << t_old << " with dt = " << dt << std::endl
+            << "  error message: " << std::endl << std::endl
+            << e.what() << std::endl << std::endl;
+    Errors::TimeStepCrash msg(msg_str.str());
     Exceptions::amanzi_throw(msg);
   }
   return fail;
