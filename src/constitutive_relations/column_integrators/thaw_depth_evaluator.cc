@@ -26,7 +26,7 @@ ParserThawDepth::ParserThawDepth(Teuchos::ParameterList& plist,
   Key cv_key = Keys::readKey(plist, domain_ss, "cell volume", "cell_volume");
   dependencies.insert(KeyTag{cv_key, tag});
 
-  Key cv_surf_key = Keys::readKey(plist, domain, "cell volume", "cell_volume");
+  Key cv_surf_key = Keys::readKey(plist, domain, "surface cell volume", "cell_volume");
   dependencies.insert(KeyTag{cv_surf_key, tag});
 }
 
