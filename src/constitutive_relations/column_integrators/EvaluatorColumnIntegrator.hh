@@ -142,6 +142,9 @@ EvaluatorColumnIntegrator<Parser,Integrator>::Evaluate_(const State& S,
     if (val[1] > 0.) res[0][col] = val[0] / val[1];
     else res[0][col] = val[0];
   }
+
+  // also potential for a coefficient...
+  res[0][col] *= integrator.coefficient(col);
 }
 
 
