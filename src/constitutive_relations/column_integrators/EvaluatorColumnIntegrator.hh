@@ -138,13 +138,12 @@ EvaluatorColumnIntegrator<Parser,Integrator>::Evaluate_(const State& S,
     }
 
     // val[1] is typically e.g. cell volume, but can be 0 to indicate no
-    // denominator.
-    if (val[1] > 0.) res[0][col] = val[0] / val[1];
-    else res[0][col] = val[0];
+    // denominator.  Coefficient provides a hook for column-wide multiples
+    // (e.g. 1/surface area).
+    if (val[1] > 0.) res[0][col] = integrator.coefficient(col) * val[0] / val[1];
+    else res[0][col] = integrator.coefficient(col) * val[0];
   }
 
-  // also potential for a coefficient...
-  res[0][col] *= integrator.coefficient(col);
 }
 
 
