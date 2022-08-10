@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
   std::string verbosity;
   clp.setOption("verbosity", &verbosity, "Default verbosity level: \"none\", \"low\", \"medium\", \"high\", \"extreme\".");
 
+  std::string writing_rank;
+  clp.setOption("write_on_rank", &writing_rank, "Rank on which to write VerboseObjects");
+
   clp.throwExceptions(false);
   clp.recogniseAllOptions(true);
 
@@ -142,6 +145,24 @@ int main(int argc, char *argv[])
       clp.printHelpMessage("ats", std::cerr);
     }
     return 1;
+  }
+
+  // parse the writing rank
+  if (writing_rank.empty()) {
+    // pass
+  } else {
+    int writing_rank_j;
+    try {
+      writing_rank_j = std::stoi(writing_rank);
+    } catch (std::invalid_argument& e) {
+      std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
+    }
+    if (writing_rank_j < 0) {
+      std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
+    }
+    Amanzi::VerboseObject::global_writing_rank = writing_rank_j;
   }
 
   // parse the input file and check validity
