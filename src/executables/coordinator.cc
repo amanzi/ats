@@ -201,6 +201,9 @@ void Coordinator::initialize()
     }
   }
 
+  // calling CommitStep to set up copies as needed.
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();

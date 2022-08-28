@@ -61,7 +61,7 @@ void PK_BDF_Default::Initialize()
     if (!bdf_plist.isSublist("verbose object"))
       bdf_plist.set("verbose object", plist_->sublist("verbose object"));
     time_stepper_ = Teuchos::rcp(new BDF1_TI<TreeVector,TreeVectorSpace>(*this,
-            bdf_plist, solution_));
+            bdf_plist, solution_, S_));
 
     // -- initialize continuation parameter if needed.
     if (S_->HasRecord("continuation_parameter", Tag(name_))) {
