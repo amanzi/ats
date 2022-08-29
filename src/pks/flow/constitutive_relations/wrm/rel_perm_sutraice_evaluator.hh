@@ -52,8 +52,8 @@ Some additional parameters are available.
 
 */
 
-#ifndef AMANZI_FLOWRELATIONS_REL_PERM_EVALUATOR_
-#define AMANZI_FLOWRELATIONS_REL_PERM_EVALUATOR_
+#ifndef AMANZI_FLOWRELATIONS_REL_PERM_SUTRAICE_EVALUATOR_
+#define AMANZI_FLOWRELATIONS_REL_PERM_SUTRAICE_EVALUATOR_
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
@@ -63,7 +63,7 @@ Some additional parameters are available.
 namespace Amanzi {
 namespace Flow {
 
-enum class BoundaryRelPerm {
+enum class BoundarySutraIceRelPerm {
   BOUNDARY_PRESSURE,
   INTERIOR_PRESSURE,
   HARMONIC_MEAN,
@@ -72,17 +72,17 @@ enum class BoundaryRelPerm {
   SURF_REL_PERM
 };
 
-class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
+class RelPermSutraIceEvaluator : public SecondaryVariableFieldEvaluator {
 
  public:
   // constructor format for all derived classes
   explicit
-  RelPermEvaluator(Teuchos::ParameterList& plist);
+  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist);
 
-  RelPermEvaluator(Teuchos::ParameterList& plist,
+  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist,
                    const Teuchos::RCP<WRMPartition>& wrms);
 
-  RelPermEvaluator(const RelPermEvaluator& other) = default;
+  RelPermSutraIceEvaluator(const RelPermSutraIceEvaluator& other) = default;
   virtual Teuchos::RCP<FieldEvaluator> Clone() const;
 
   virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
@@ -103,20 +103,21 @@ class RelPermEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<WRMPartition> wrms_;
   Key sat_key_;
   Key sat_gas_key_;
+  Key sat_ice_key_;
   Key dens_key_;
   Key visc_key_;
   Key surf_rel_perm_key_;
 
   bool is_dens_visc_;
   Key surf_domain_;
-  BoundaryRelPerm boundary_krel_;
+  BoundarySutraIceRelPerm boundary_krel_;
 
   double perm_scale_;
   double min_val_;
-  double beta_;
+  double omega_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RelPermEvaluator> factory_;
+  static Utils::RegisteredFactory<FieldEvaluator,RelPermSutraIceEvaluator> factory_;
 };
 
 } //namespace

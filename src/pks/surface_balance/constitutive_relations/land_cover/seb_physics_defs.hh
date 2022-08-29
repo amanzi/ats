@@ -46,8 +46,6 @@ struct ModelParams {
       density_air(1.275),       // [kg/m^3]
       density_freshsnow(100.),  // [kg/m^3]
       density_frost(200.),      // [kg/m^3]
-      density_snow_max(325.),   // [kg/m^3] // based on observations at Barrow, AK
-      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m K]
       thermalK_snow_exp(2),     // exponent in thermal conductivity of snow model [-]
       H_fusion(333500.0),       // Heat of fusion for melting snow -- [J/kg]
       H_sublimation(2834000.),  // Latent heat of sublimation ------- [J/kg]
@@ -56,17 +54,14 @@ struct ModelParams {
       Cv_water(4218.636),       // Specific heat of water ----------- [J/K kg]
       P_atm(101325.),           // atmospheric pressure ------------- [Pa]
       gravity(9.807),           // gravity [kg m / s^2]
-      evap_transition_width(100.), // transition on evaporation from surface to
+      evap_transition_width(100.) // transition on evaporation from surface to
                                    // evaporation from subsurface [m],
                                    // THIS IS DEPRECATED
-      Clapp_Horn_b(1.)          // Clapp and Hornberger "b" [-]
   {}
 
   ModelParams(Teuchos::ParameterList& plist) :
       ModelParams() {
-    thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
     thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
-    density_snow_max = plist.get<double>("max density of snow [kg m^-3]", density_snow_max);
     evap_transition_width = plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
   }
 
@@ -76,12 +71,9 @@ struct ModelParams {
   double density_air;
   double density_freshsnow;
   double density_frost;
-  double density_snow_max;
-  double thermalK_freshsnow;
   double thermalK_snow_exp;
   double H_fusion, H_sublimation, H_vaporization;
   double Cp_air, Cv_water;
-  double Clapp_Horn_b;
 
   // other parameters
   double evap_transition_width;
@@ -96,6 +88,7 @@ struct GroundProperties {
   double porosity;                      // [-]
   double density_w;                     // density [kg/m^3]
   double dz;                            // [m]
+  double clapp_horn_b;                  // [-]
   double albedo;                        // [-]
   double emissivity;                    // [-]
   double saturation_gas;                // [-]
@@ -114,9 +107,10 @@ struct GroundProperties {
       emissivity(NaN),
       saturation_gas(NaN),
       roughness(NaN),
+      clapp_horn_b(3),
       snow_death_rate(0.),
       unfrozen_fraction(0.),
-      water_transition_depth(0.02)
+      water_transition_depth(0.01)
   {}
 
   void UpdateVaporPressure();
@@ -131,6 +125,7 @@ struct SnowProperties {
   double albedo;                // [-]
   double emissivity;            // [-]
   double roughness;             // [m] surface roughness of a snow-covered domain
+  double thermalK_freshsnow;    // thermal conductivity of fresh snow [W/m K]
 
   SnowProperties() :
       height(NaN),
@@ -138,7 +133,8 @@ struct SnowProperties {
       temp(NaN),
       albedo(NaN),
       emissivity(NaN),
-      roughness(NaN)
+      roughness(NaN),
+      thermalK_freshsnow(NaN)
   {}
 };
 
@@ -147,6 +143,7 @@ struct SnowProperties {
 struct MetData {
   double Us;                    // wind speed, [m/s]
   double Z_Us;
+  double KB;
   double QswIn;                 // incoming short-wave radiation, [W/m^2]
   double QlwIn;                 // incoming longwave radiaton, [W/m^2]
   double Ps;                    // precip snow, [m (SWE)/s]
@@ -158,6 +155,7 @@ struct MetData {
   MetData() :
       Us(NaN),
       Z_Us(NaN),
+      KB(NaN),
       QswIn(NaN),
       QlwIn(NaN),
       Ps(NaN),
@@ -232,7 +230,7 @@ struct SurfaceParams {
   SurfaceParams() :
       a_tundra(0.135),           // [-] Grenfell and Perovich, (2004)
       a_water(0.1168),           // [-] Cogley J.G. (1979)
-      a_ice(0.44),              // [-] deteriorated ice, Grenfell and Perovich, (2004)
+      a_ice(0.44),              // [-] deteriorated ice, Grenfell and Perovich, (2004) 0.44
       e_snow(0.98),             // [-] emissivity for snow, From P. ReVelle (Thesis)
       e_tundra(0.92),           // [-] emissivity for tundra, From P. ReVelle
                                 //         (Thesis), Ling & Zhang, 2004
