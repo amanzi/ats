@@ -17,6 +17,7 @@ jobs:
       with:
         repository: amanzi/amanzi
         submodules: true
+        ref:        amanzi-1.3
     - name: Extract the branch name
       id: branch
       working-directory: Docker
@@ -46,7 +47,7 @@ jobs:
       id: docker
       working-directory: Docker
       run:
-        docker build --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
+        docker build --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg ats_regression_branch=ats-regression-tests-1.2 --build-arg amanzi_branch=amanzi-1.2 --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
     - name: Docker push
       working-directory: Docker
       run:
