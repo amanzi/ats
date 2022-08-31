@@ -264,14 +264,11 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   // latent heat
 //  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
-<<<<<<< HEAD
-  eb.fQe = LatentHeat(Dhe * Sqig, params.density_air, params.H_sublimation,
-                      met.vapor_pressure_air, vapor_pressure_skin, params.P_atm);
-=======
+
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
   eb.fQe = LatentHeat(Dhe_latent * Sqig, params.density_air, params.H_sublimation,
-                      vapor_pressure_air, vapor_pressure_skin, params.P_atm);
->>>>>>> gaob
+                      met.vapor_pressure_air, vapor_pressure_skin, params.P_atm);
+
 
   // conducted heat
   eb.fQc = ConductedHeatIfSnow(surf.temp, snow, params);
@@ -337,15 +334,11 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   // latent heat
 //  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-<<<<<<< HEAD
 
-  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
-  double coef = 1.0 / (Rsoil + 1.0/(Dhe*Sqig));
-=======
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
-  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_air, vapor_pressure_skin);
+  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0/(Dhe_latent*Sqig));
->>>>>>> gaob
+
 
   // positive is condensation
   eb.fQe = LatentHeat(coef, params.density_air,
