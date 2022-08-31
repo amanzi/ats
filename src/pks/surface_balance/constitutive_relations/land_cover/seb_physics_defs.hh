@@ -161,7 +161,7 @@ struct MetData {
       Ps(NaN),
       Pr(NaN),
       air_temp(NaN),
-      vapor_pressure_qir(NaN) {}
+      vapor_pressure_air(NaN) {}
 //      relative_humidity(NaN) {}
 };
 
