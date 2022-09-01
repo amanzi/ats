@@ -17,7 +17,7 @@
     DEPENDENCIES:
 
     * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
+    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
 
 */
 
@@ -40,7 +40,6 @@ LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
   vp_air_key_ = Keys::readKey(plist, domain, "vapor pressure air", "vapor_pressure_air");
   dependencies_.insert(vp_air_key_);
 
-//  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   scale_ = plist.get<double>("scaling factor [-]", 1.0);
 }
 

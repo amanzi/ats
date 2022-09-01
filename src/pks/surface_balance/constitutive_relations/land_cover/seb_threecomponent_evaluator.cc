@@ -108,8 +108,6 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   dependencies_.insert(met_lw_key_);
   met_air_temp_key_ = Keys::readKey(plist, domain_,"air temperature", "air_temperature");
   dependencies_.insert(met_air_temp_key_);
-//  met_rel_hum_key_ = Keys::readKey(plist, domain_,"relative humidity", "relative_humidity");
-//  dependencies_.insert(met_rel_hum_key_);
   met_vp_air_key_ = Keys::readKey(plist, domain_,"vapor pressure air", "vapor_pressure_air");
   dependencies_.insert(met_vp_air_key_);
   met_wind_speed_key_ = Keys::readKey(plist, domain_,"wind speed", "wind_speed");
@@ -158,25 +156,21 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   
 
   // parameters
-//  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
   AMANZI_ASSERT(wind_speed_ref_ht_ > 0.);
-  thermalK_freshsnow_ = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", 0.029);
-  KB_ = plist.get<double>("log ratio between z0m and z0h [-]", 0.);
 }
 
 void
 SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                              const std::vector<Teuchos::Ptr<CompositeVector> >& results)
 {
-  const Relations::ModelParams params;
+  const Relations::ModelParams params(plist_);
 
   // collect met data
   const auto& qSW_in = *S->GetFieldData(met_sw_key_)->ViewComponent("cell",false);
   const auto& qLW_in = *S->GetFieldData(met_lw_key_)->ViewComponent("cell",false);
   const auto& air_temp = *S->GetFieldData(met_air_temp_key_)->ViewComponent("cell",false);
-//  const auto& rel_hum = *S->GetFieldData(met_rel_hum_key_)->ViewComponent("cell",false);
   const auto& vp_air = *S->GetFieldData(met_vp_air_key_)->ViewComponent("cell",false);
   const auto& wind_speed = *S->GetFieldData(met_wind_speed_key_)->ViewComponent("cell",false);
   const auto& Prain = *S->GetFieldData(met_prain_key_)->ViewComponent("cell",false);
@@ -262,13 +256,11 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       // met data structure
       Relations::MetData met;
       met.Z_Us = wind_speed_ref_ht_;
-      met.KB = KB_;
       met.Us = std::max(wind_speed[0][c], min_wind_speed_);
       met.QswIn = qSW_in[0][c];
       met.QlwIn = qLW_in[0][c];
       met.air_temp = air_temp[0][c];
       met.vapor_pressure_air = vp_air[0][c];
-//      met.relative_humidity = std::max(rel_hum[0][c], min_rel_hum_);
       met.Pr = Prain[0][c];
 
       // bare ground column
@@ -441,7 +433,6 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         snow.emissivity = surf.emissivity;
         snow.roughness = lc.second.roughness_snow;
         
-        snow.thermalK_freshsnow = thermalK_freshsnow_;
 
         const Relations::EnergyBalance eb = Relations::UpdateEnergyBalanceWithSnow(surf, met, params, snow);
         const Relations::MassBalance mb = Relations::UpdateMassBalanceWithSnow(surf, params, eb);
@@ -494,8 +485,6 @@ SEBThreeComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
     vnames.push_back("air_temp");
     vecs.push_back(S->GetFieldData(met_air_temp_key_).ptr());
-//    vnames.push_back("rel_hum");
-//    vecs.push_back(S->GetFieldData(met_rel_hum_key_).ptr());
     vnames.push_back("vp_air");
     vecs.push_back(S->GetFieldData(met_vp_air_key_).ptr());
     vnames.push_back("precip_rain");

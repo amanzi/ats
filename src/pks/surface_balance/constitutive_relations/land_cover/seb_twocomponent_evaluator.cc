@@ -112,8 +112,6 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(met_lw_key_);
   met_air_temp_key_ = Keys::readKey(plist, domain_,"air temperature", "air_temperature");
   dependencies_.insert(met_air_temp_key_);
-//  met_rel_hum_key_ = Keys::readKey(plist, domain_,"relative humidity", "relative_humidity");
-//  dependencies_.insert(met_rel_hum_key_);
   met_vp_air_key_ = Keys::readKey(plist, domain_,"vapor pressure air", "vapor_pressure_air");
   dependencies_.insert(met_vp_air_key_);
   met_wind_speed_key_ = Keys::readKey(plist, domain_,"wind speed", "wind_speed");
@@ -162,7 +160,6 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(ss_pres_key_);
 
   // parameters
-  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
 }
@@ -178,7 +175,6 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   const auto& qSW_in = *S->GetFieldData(met_sw_key_)->ViewComponent("cell",false);
   const auto& qLW_in = *S->GetFieldData(met_lw_key_)->ViewComponent("cell",false);
   const auto& air_temp = *S->GetFieldData(met_air_temp_key_)->ViewComponent("cell",false);
-//  const auto& rel_hum = *S->GetFieldData(met_rel_hum_key_)->ViewComponent("cell",false);
   const auto& vp_air = *S->GetFieldData(met_vp_air_key_)->ViewComponent("cell",false);
   const auto& wind_speed = *S->GetFieldData(met_wind_speed_key_)->ViewComponent("cell",false);
   const auto& Prain = *S->GetFieldData(met_prain_key_)->ViewComponent("cell",false);
@@ -266,7 +262,6 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
       met.QlwIn = qLW_in[0][c];
       met.air_temp = air_temp[0][c];
       met.vapor_pressure_air = vp_air[0][c];
-//      met.relative_humidity = std::max(rel_hum[0][c], min_rel_hum_);
       met.Pr = Prain[0][c];
 
       // non-snow covered column
@@ -431,8 +426,6 @@ SEBTwoComponentEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     vecs.clear();
     vnames.push_back("air_temp");
     vecs.push_back(S->GetFieldData(met_air_temp_key_).ptr());
-//    vnames.push_back("rel_hum");
-//    vecs.push_back(S->GetFieldData(met_rel_hum_key_).ptr());
     vnames.push_back("vp_air");
     vecs.push_back(S->GetFieldData(met_vp_air_key_).ptr());
     vnames.push_back("precip_rain");

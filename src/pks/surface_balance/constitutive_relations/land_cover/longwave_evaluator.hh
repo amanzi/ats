@@ -17,7 +17,7 @@
     DEPENDENCIES:
 
     * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
+    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
 
 */
 

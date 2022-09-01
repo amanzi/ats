@@ -121,7 +121,6 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   Key evap_type_;
   Key air_temp_key_;
   Key surf_temp_key_;
-  Key vp_air_key_;
   Key elev_key_;
   Key rad_key_;
   Key limiter_key_;

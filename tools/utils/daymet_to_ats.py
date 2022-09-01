@@ -88,7 +88,7 @@ def daymet_to_ats(dat):
     dout['time [s]'] = np.arange(0, len(dat), 1)*86400.
     dout['air temperature [K]'] = 273.15 + mean_air_temp_c
     dout['incoming shortwave radiation [W m^-2]'] = dat['dayl_s']/86400*dat['srad_Wm2']
-    dout['vapor pressure [Pa]'] = dat['vp_Pa']
+    dout['vapor pressure air [Pa]'] = dat['vp_Pa']
 
     dout['precipitation rain [m s^-1]'] = np.where(mean_air_temp_c >= 0, precip_ms, 0)
     dout['precipitation snow [m SWE s^-1]'] = np.where(mean_air_temp_c < 0, precip_ms, 0)

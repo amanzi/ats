@@ -59,7 +59,6 @@ std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
 // ------------------------------------------------------------------------------------------
 double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air)
 {
-//  double vp_air_Pa = VaporPressureAir(air_temp, relative_humidity);
   double vp_air_hPa = vapor_pressure_air / 100;
   double e_air = std::pow(vp_air_hPa, air_temp / 2016.);
   e_air = 1.08 * (1 - std::exp(-e_air));
@@ -104,14 +103,7 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 
 double SaturatedVaporPressure(double temp)
 {
-  // Sat vap. press o/water Dingman D-7 (Bolton, 1980)
-  // *** (Bolton, 1980) Calculates vapor pressure in [KPa]  ****
-//  double tempC = temp - 273.15;
-//  double vp_mbar = 6.112 * std::exp(17.67 * tempC / (tempC + 243.5));
-  // convert to Pa
-//  return 1e2 * vp_mbar;
-
-  // August–Roche–Magnus formula, Pa
+  // Westermann (2016), August–Roche–Magnus formula, Pa
   double tempC = temp - 273.15;
   if (tempC > 0) {
     return 611 * std::exp(17.62 * tempC / (tempC + 243.12));
@@ -148,11 +140,6 @@ double SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
   return 0.622 * vp_sat / (params.P_atm - 0.378 * vp_sat);
 }
 
-
-//double VaporPressureAir(double air_temp, double relative_humidity)
-//{
-//  return SaturatedVaporPressure(air_temp) * relative_humidity;
-//}
 
 double VaporPressureGround(const GroundProperties& surf, const ModelParams& params)
 {
@@ -240,7 +227,7 @@ double ConductedHeatIfSnow(double ground_temp,
     // adjust for frost hoar
     density = 1. / ((0.90/density) + (0.10/150));
   }
-  double Ks = snow.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
+  double Ks = params.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
   return Ks * (snow.temp - ground_temp) / snow.height;
 }
 
@@ -257,12 +244,11 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQlwOut = OutgoingLongwaveRadiation(snow.temp, snow.emissivity);
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), met.KB);
+  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), params.KB);
   double Sqig = StabilityFunction(met.air_temp, snow.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, snow.temp);
 
   // latent heat
-//  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
 
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
@@ -327,12 +313,11 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   }
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, met.KB);
+  double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, params.KB);
   double Sqig = StabilityFunction(met.air_temp, surf.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe*Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
 
   // latent heat
-//  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = VaporPressureGround(surf, params);
 
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);

@@ -65,7 +65,7 @@ depressions due to gravity- and wind-driven redistributions, respectively.
     - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
     - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
     - `"air temperature`" **DOMAIN-air_temperature** [K]
-    - `"relative humidity`" **DOMAIN-relative_humidity** [-]
+    - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
     - `"wind speed`" **DOMAIN-wind_speed** [m s^-1]
     - `"precipitation rain`" **DOMAIN-precipitation_rain** [m s^-1]
     - `"precipitation snow`" **DOMAIN_SNOW-precipitation** [m_SWE s^-1]
@@ -141,7 +141,7 @@ class SEBThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   Key water_source_key_, energy_source_key_;
   Key ss_water_source_key_, ss_energy_source_key_;
   Key snow_source_key_, new_snow_key_;
-  Key met_sw_key_, met_lw_key_, met_air_temp_key_, met_vp_air_key_; //met_rel_hum_key_;
+  Key met_sw_key_, met_lw_key_, met_air_temp_key_, met_vp_air_key_;
   Key met_wind_speed_key_, met_prain_key_, met_psnow_key_;
   Key snow_depth_key_, snow_dens_key_, snow_death_rate_key_;
   Key ponded_depth_key_, unfrozen_fraction_key_;
@@ -159,11 +159,8 @@ class SEBThreeComponentEvaluator : public SecondaryVariablesFieldEvaluator {
   Key domain_ss_;
   Key domain_snow_;
 
-//  double min_rel_hum_;       // relative humidity of 0 causes problems -- large evaporation
   double min_wind_speed_;       // wind speed of 0, under this model, would have 0 latent or sensible heat?
   double wind_speed_ref_ht_;    // reference height of the met data
-  double KB_;
-  double thermalK_freshsnow_;
 
   LandCoverMap land_cover_;
 

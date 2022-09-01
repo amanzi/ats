@@ -62,9 +62,8 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 
 
 //
-// Partial pressure of water vapor in air, saturated.
-// After Dingman D-7 (Bolton, 1980).
-// In [kPa]
+// Westermann 2016, saturated vapor pressure over water/ice
+// In [Pa]
 // ------------------------------------------------------------------------------------------
 double SaturatedVaporPressure(double temp);
 
@@ -73,15 +72,9 @@ double SaturatedSpecificHumidityELM(double temp);
 
 
 //
-// Partial pressure of water vapor in air.
-// In [kPa]
-// ------------------------------------------------------------------------------------------
-//double VaporPressureAir(double air_temp, double relative_humidity);
-
-//
 // Partial pressure of water vapor in gaseous phase, in the soil.
 // After Ho & Webb 2006
-// In [kPa]
+// In [Pa]
 // ------------------------------------------------------------------------------------------
 double VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 

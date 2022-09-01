@@ -46,6 +46,7 @@ struct ModelParams {
       density_air(1.275),       // [kg/m^3]
       density_freshsnow(100.),  // [kg/m^3]
       density_frost(200.),      // [kg/m^3]
+      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m-K]
       thermalK_snow_exp(2),     // exponent in thermal conductivity of snow model [-]
       H_fusion(333500.0),       // Heat of fusion for melting snow -- [J/kg]
       H_sublimation(2834000.),  // Latent heat of sublimation ------- [J/kg]
@@ -54,15 +55,19 @@ struct ModelParams {
       Cv_water(4218.636),       // Specific heat of water ----------- [J/K kg]
       P_atm(101325.),           // atmospheric pressure ------------- [Pa]
       gravity(9.807),           // gravity [kg m / s^2]
-      evap_transition_width(100.) // transition on evaporation from surface to
+      evap_transition_width(100.), // transition on evaporation from surface to
                                    // evaporation from subsurface [m],
                                    // THIS IS DEPRECATED
+      KB(0.)
   {}
 
   ModelParams(Teuchos::ParameterList& plist) :
       ModelParams() {
+    thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
     thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
     evap_transition_width = plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
+
+    KB = plist.get<double>("log ratio between z0m and z0h [-]", KB);
   }
 
   // likely constants
@@ -72,8 +77,10 @@ struct ModelParams {
   double density_freshsnow;
   double density_frost;
   double thermalK_snow_exp;
+  double thermalK_freshsnow;
   double H_fusion, H_sublimation, H_vaporization;
   double Cp_air, Cv_water;
+  double KB;
 
   // other parameters
   double evap_transition_width;
@@ -125,7 +132,6 @@ struct SnowProperties {
   double albedo;                // [-]
   double emissivity;            // [-]
   double roughness;             // [m] surface roughness of a snow-covered domain
-  double thermalK_freshsnow;    // thermal conductivity of fresh snow [W/m K]
 
   SnowProperties() :
       height(NaN),
@@ -133,8 +139,7 @@ struct SnowProperties {
       temp(NaN),
       albedo(NaN),
       emissivity(NaN),
-      roughness(NaN),
-      thermalK_freshsnow(NaN)
+      roughness(NaN)
   {}
 };
 
@@ -143,26 +148,22 @@ struct SnowProperties {
 struct MetData {
   double Us;                    // wind speed, [m/s]
   double Z_Us;
-  double KB;
   double QswIn;                 // incoming short-wave radiation, [W/m^2]
   double QlwIn;                 // incoming longwave radiaton, [W/m^2]
   double Ps;                    // precip snow, [m (SWE)/s]
   double Pr;                    // precip rain, [m/s]
   double air_temp;              // air temperature [K]
   double vapor_pressure_air;    // vapor pressure air [Pa]
-//  double relative_humidity;     // relative humidity [-]
 
   MetData() :
       Us(NaN),
       Z_Us(NaN),
-      KB(NaN),
       QswIn(NaN),
       QlwIn(NaN),
       Ps(NaN),
       Pr(NaN),
       air_temp(NaN),
       vapor_pressure_air(NaN) {}
-//      relative_humidity(NaN) {}
 };
 
 
