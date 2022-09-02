@@ -144,8 +144,8 @@ SurfaceBalanceCLM::Setup(const Teuchos::Ptr<State>& S) {
   S->RequireField(Keys::getKey(domain_,"air_temperature"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator(Keys::getKey(domain_,"relative_humidity"));
-  S->RequireField(Keys::getKey(domain_,"relative_humidity"))->SetMesh(mesh_)
+  S->RequireFieldEvaluator(Keys::getKey(domain_,"vapor_pressure_air"));
+  S->RequireField(Keys::getKey(domain_,"vapor_pressure_air"))->SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S->RequireFieldEvaluator(Keys::getKey(domain_,"wind_speed"));
@@ -345,15 +345,15 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit) {
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& air_temp = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "air_temperature"))->ViewComponent("cell", false);
-  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "relative_humidity"))
+  S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "vapor_pressure_air"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
-  const Epetra_MultiVector& rel_hum = *S_inter_->GetFieldData(Keys::getKey(domain_,
-          "relative_humidity"))->ViewComponent("cell", false);
+  const Epetra_MultiVector& vp_air = *S_inter_->GetFieldData(Keys::getKey(domain_,
+          "vapor_pressure_air"))->ViewComponent("cell", false);
   S_inter_->GetFieldEvaluator(Keys::getKey(domain_, "wind_speed"))
       ->HasFieldChanged(S_inter_.ptr(), name_);
   const Epetra_MultiVector& wind_speed = *S_inter_->GetFieldData(Keys::getKey(domain_,
           "wind_speed"))->ViewComponent("cell", false);
-  ATS::CLM::set_met_data(qSW, qLW, pRain, pSnow, air_temp, rel_hum, wind_speed, patm);
+  ATS::CLM::set_met_data(qSW, qLW, pRain, pSnow, air_temp, vp_air, wind_speed, patm);
 
   // set the start time, endtime
   ATS::CLM::advance_time(S_inter_->cycle(), t_old, dt_); //units in seconds

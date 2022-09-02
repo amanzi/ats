@@ -55,7 +55,7 @@ std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
 
 
 //
-// Calculate longwave from air temp and relative humidity
+// Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
 double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air)
 {

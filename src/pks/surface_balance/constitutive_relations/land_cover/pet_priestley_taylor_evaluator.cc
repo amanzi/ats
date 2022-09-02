@@ -9,6 +9,7 @@
 
 #include "Key.hh"
 #include "pet_priestley_taylor_evaluator.hh"
+#include "seb_physics_funcs.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -43,9 +44,10 @@ double
 vaporPressureSlope(double temp_air)
 {
   // temperature conversion from K to C
-  double temp_c = (temp_air - 273.15);
-  double x = 17.26939*temp_c / (temp_c + 237.3);
-  return 4098 * (0.6108 * std::exp(x)) / std::pow(temp_c+237.3,2);
+//  double temp_c = (temp_air - 273.15);
+//  double x = 17.26939*temp_c / (temp_c + 237.3);
+//  return 4098 * (0.6108 * std::exp(x)) / std::pow(temp_c+237.3,2);
+  return 4098 * Relations::SaturatedVaporPressure(double temp_air) / std::pow(temp_air - 35.85,2);
 }
 
 double

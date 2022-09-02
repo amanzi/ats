@@ -29,7 +29,7 @@ double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rou
 
 
 //
-// Calculate longwave from air temp and relative humidity
+// Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
 double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air);
 

@@ -5,14 +5,13 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates incoming longwave radiation from rel humidity and air temperature.
+//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
 
 /*!
 
 .. _longwave_evaluator-spec:
 .. admonition:: longwave_evaluator-spec
 
-    * `"minimum relative humidity [-]`" ``[double]`` **0.1** Sets a minimum rel humidity, RH=0 breaks the model.
 
     DEPENDENCIES:
 

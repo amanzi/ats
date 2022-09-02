@@ -129,17 +129,17 @@ int set_et_controls(int beta_type, int veg_water_stress_type,
 
 int set_met_data(const Epetra_MultiVector& qSW, const Epetra_MultiVector& qLW,
                  const Epetra_MultiVector& pRain, const Epetra_MultiVector& pSnow,
-                 const Epetra_MultiVector& air_temp, const Epetra_MultiVector& rel_hum,
+                 const Epetra_MultiVector& air_temp, const Epetra_MultiVector& vp_air,
                  const Epetra_MultiVector& wind_u, double patm) {
   // MOVE the unit conversions here to ats_clm.F90 to be consistent with everything else FIXME
   Epetra_MultiVector precip(pRain);
   precip.Update(1000.,pSnow,1000.); // converts m/s --> mm/s 
   Epetra_MultiVector wind_y(wind_u);
   wind_y.PutScalar(0.);
-  Epetra_MultiVector patm_v(rel_hum);
+  Epetra_MultiVector patm_v(vp_air);
   patm_v.PutScalar(patm);
   
-  ats_to_clm_met_data(qSW[0], qLW[0], precip[0], air_temp[0], rel_hum[0], wind_u[0], wind_y[0], patm_v[0]);
+  ats_to_clm_met_data(qSW[0], qLW[0], precip[0], air_temp[0], vp_air[0], wind_u[0], wind_y[0], patm_v[0]);
   return 0;
 }
 

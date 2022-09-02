@@ -33,7 +33,7 @@ extern "C" {
   void ats_to_clm_pressure(double* pressure, double* patm);
   void ats_to_clm_tksat_from_porosity(double* porosity);
   void ats_to_clm_met_data(double* qSW, double* qLW, double* precip,
-                           double* air_temp, double* rel_hum,
+                           double* air_temp, double* vp_air,
                            double* wind_x, double* wind_y, double* patm);
 
   void ats_clm_zero_time(double* zero_year);

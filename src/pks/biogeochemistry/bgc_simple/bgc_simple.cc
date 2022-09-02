@@ -207,8 +207,8 @@ void BGCSimple::Setup(const Teuchos::Ptr<State>& S) {
   S->RequireField("surface-air_temperature")->SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-relative_humidity");
-  S->RequireField("surface-relative_humidity")->SetMesh(mesh_surf_)
+  S->RequireFieldEvaluator("surface-vapor_pressure_air");
+  S->RequireField("surface-vapor_pressure_air")->SetMesh(mesh_surf_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S->RequireFieldEvaluator("surface-wind_speed");
@@ -398,8 +398,8 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
   const Epetra_MultiVector& air_temp = *S_next_->GetFieldData("surface-air_temperature")
       ->ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-relative_humidity")->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& rel_hum = *S_next_->GetFieldData("surface-relative_humidity")
+  S_next_->GetFieldEvaluator("surface-vapor_pressure_air")->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& vp_air = *S_next_->GetFieldData("surface-vapor_pressure_air")
       ->ViewComponent("cell",false);
 
   S_next_->GetFieldEvaluator("surface-wind_speed")->HasFieldChanged(S_next_.ptr(), name_);
@@ -461,7 +461,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit) {
     met.tair = air_temp[0][col];
     met.windv = wind_speed[0][col];
     met.wind_ref_ht = wind_speed_ref_ht_;
-    met.relhum = rel_hum[0][col];
+    met.vp_air = vp_air[0][col];
     met.CO2a = co2[0][col];
     met.lat = lat_;
     sw_c = met.qSWin;

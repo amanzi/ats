@@ -215,13 +215,13 @@ int set_pressure(const Epetra_MultiVector& pressure, double patm);
 //   pRain      | Rainfall precipitation rate [m/s]
 //   pSnow      | Snowfall precipitation rate [m/s]
 //   air_temp   | Air temperature [K]
-//   rel_hum    | Relative humidity [-]
+//   vp_air     | Vapor pressure air [Pa]
 //   wind_u     | Windspeed velocity [m/s]
 //   p_atm      | Atmospheric pressure [Pa]
 //
 int set_met_data(const Epetra_MultiVector& qSW, const Epetra_MultiVector& qLW,
                  const Epetra_MultiVector& pRain, const Epetra_MultiVector& pSnow,
-                 const Epetra_MultiVector& air_temp, const Epetra_MultiVector& rel_hum,
+                 const Epetra_MultiVector& air_temp, const Epetra_MultiVector& vp_air,
                  const Epetra_MultiVector& wind_u, double p_atm);
 
 

@@ -23,9 +23,6 @@ the ground from the atmosphere.
      wind speed is measured.
    * `"minimum wind speed [m s^-1]`" ``[double]`` **1.0** Sets a floor on wind speed for
      potential wierd data.  Models have trouble with no wind.
-   * `"minimum relative humidity [-]`" ``[double]`` **1.0** Sets a floor on relative
-     humidity for potential wierd data.  Models have trouble with no
-     humidity.
 
    * `"save diagnostic data`" ``[bool]`` **false** Saves a suite of diagnostic variables to vis.
 
