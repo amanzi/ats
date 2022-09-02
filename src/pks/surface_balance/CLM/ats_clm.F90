@@ -325,7 +325,6 @@ contains
     
     ! local conversion to specific humidity [kg/kg]
     real(r8) :: spec_hum(host%ncolumns_g)
-    real(r8) :: qs, es, esdT, qsdT
     integer i
     
     do i=1,host%ncolumns_g

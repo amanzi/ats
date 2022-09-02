@@ -154,7 +154,7 @@ struct MetData {
   double Ps;                    // precip snow, [m (SWE)/s]
   double Pr;                    // precip rain, [m/s]
   double air_temp;              // air temperature [K]
-  double vapor_pressure_air;    // vapor pressure air [Pa]
+  double vp_air;                // vapor pressure air [Pa]
 
   MetData() :
       Us(NaN),
@@ -164,7 +164,7 @@ struct MetData {
       Ps(NaN),
       Pr(NaN),
       air_temp(NaN),
-      vapor_pressure_air(NaN) {}
+      vp_air(NaN) {}
 };
 
 

@@ -266,7 +266,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
       met.QswIn = qSW_in[0][c];
       met.QlwIn = qLW_in[0][c];
       met.air_temp = air_temp[0][c];
-      met.vapor_pressure_air = vp_air[0][c];
+      met.vp_air = vp_air[0][c];
       met.Pr = Prain[0][c];
 
       // bare ground column

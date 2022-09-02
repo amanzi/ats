@@ -341,11 +341,6 @@ void Photosynthesis0(double PARi, double LUE, double LER, double pressure, doubl
 
     double tleafold = tair;
 
-    double tairk = tair + 273.15;
-    double es, esdT, qs, qsdT;
-    QSat qsat;
-    qsat(tairk, pressure, &es, &esdT, &qs, &qsdT);
-
     // output
     double myA;
     double tleafnew = tair;
@@ -375,7 +370,8 @@ void Photosynthesis0(double PARi, double LUE, double LER, double pressure, doubl
       Vcmax = Vcmax25 * HighTLim(tleafnew) * std::pow(q10act, (0.1 * (tleafnew - 25.0)));
       double We = 0.5 * Vcmax;
 
-      double ei;
+      double ei, esdT, qs, qsdT;
+      QSat qsat;
       qsat(tleafk, pressure, &ei, &esdT, &qs, &qsdT);
       double cea = std::max(0.3 * ei, std::min(vp_air, ei));
 
