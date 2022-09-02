@@ -27,16 +27,30 @@ class EOSVaporInGas : public EOS {
 public:
   EOSVaporInGas(Teuchos::ParameterList& eos_plist);
 
-  double MassDensity(std::vector<double>& params) { AMANZI_ASSERT(0); return 0.0; }
-  double DMassDensityDT(std::vector<double>& params) { AMANZI_ASSERT(0); return 0.0; }
-  double DMassDensityDp(std::vector<double>& params) { AMANZI_ASSERT(0); return 0.0; }
+  double MassDensity(std::vector<double>& params) override { AMANZI_ASSERT(0); return 0.0; }
+  double DMassDensityDT(std::vector<double>& params) override { AMANZI_ASSERT(0); return 0.0; }
+  double DMassDensityDp(std::vector<double>& params) override { AMANZI_ASSERT(0); return 0.0; }
+  double DMassDensityDC(std::vector<double>& params) override { AMANZI_ASSERT(0); return 0.0; }
 
-  double MolarDensity(std::vector<double>& params);
-  double DMolarDensityDT(std::vector<double>& params);
-  double DMolarDensityDp(std::vector<double>& params);
+  double MolarDensity(std::vector<double>& params) override;
+  double DMolarDensityDT(std::vector<double>& params) override;
+  double DMolarDensityDp(std::vector<double>& params) override;
+  double DMolarDensityDC(std::vector<double>& params) override {
+    return 0.;
+  }
 
-  bool IsConstantMolarMass() { return false; }
-  double MolarMass() { AMANZI_ASSERT(0); return 0.0; }
+  virtual bool IsTemperature() override {
+    return gas_eos_->IsTemperature();
+  }
+  virtual bool IsPressure() override {
+    return gas_eos_->IsPressure();
+  }
+  virtual bool IsConcentration() override {
+    return gas_eos_->IsConcentration();
+  }
+
+  bool IsConstantMolarMass() override { return false; }
+  double MolarMass() override { AMANZI_ASSERT(0); return 0.0; }
 
 protected:
   virtual void InitializeFromPlist_();

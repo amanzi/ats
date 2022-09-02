@@ -1,9 +1,35 @@
 /*
-  Functions for calculating the snow / surface energy balance.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
 
-#ifndef SURFACEBALANCE_SEB_PHYSICS_FUNCS_HH_
-#define SURFACEBALANCE_SEB_PHYSICS_FUNCS_HH_
+/*
+  Functions for calculating the snow / surface energy balance.
+
+This formulation is based on Ling & Zhang 2004 which is tuned slightly toward
+Arctic/permafrost applications:
+
+- Ling, F., & Zhang, T. (2004). A numerical model for surface energy balance
+and thermal regime of the active layer and permafrost containing unfrozen
+water. Cold Regions Science and Technology, 38(1), 1-15.
+
+and is documented in Appendix B of Atchley et al 2015.
+
+- Atchley, A. L., Painter, S. L., Harp, D. R., Coon, E. T., Wilson, C. J.,
+  Liljedahl, A. K., & Romanovsky, V. E. (2015). Using field observations to
+  inform thermal hydrology models of permafrost dynamics with ATS
+  (v0. 83). Geoscientific Model Development, 8(9), 2701-2722.
+
+For evaporative fluxes in particular, the model is relatively sensitive to
+relative humidity and, to a lesser extent, wind speed (in forcing datasets) and
+to the roughness lengths (in parameters).
+
+*/
+
+#pragma once
 
 #include <cmath>
 #include <string>
@@ -66,7 +92,6 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 // In [Pa]
 // ------------------------------------------------------------------------------------------
 double SaturatedVaporPressure(double temp);
-
 double SaturatedVaporPressureELM(double temp);
 double SaturatedSpecificHumidityELM(double temp);
 
@@ -240,4 +265,4 @@ struct Tol_ {
 } // namespace
 } // namespace
 
-#endif
+

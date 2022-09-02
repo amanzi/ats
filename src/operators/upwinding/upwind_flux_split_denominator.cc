@@ -21,35 +21,33 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindFluxSplitDenominator::UpwindFluxSplitDenominator(std::string pkname,
-        std::string cell_coef,
-        std::string face_coef,
-        std::string flux,
-        double flux_eps,
-        std::string slope,
-        std::string manning_coef,
-        double slope_regularization) :
-    pkname_(pkname),
-    cell_coef_(cell_coef),
-    face_coef_(face_coef),
+UpwindFluxSplitDenominator::UpwindFluxSplitDenominator(const std::string& pkname,
+                           const Tag& tag,
+                           const std::string& flux,
+                           const std::string& slope,
+                           const std::string& manning_coef,
+                           double flux_eps,
+                           double slope_regularization)
+  : pkname_(pkname),
+    tag_(tag),
     flux_(flux),
-    flux_eps_(flux_eps),
     slope_(slope),
     manning_coef_(manning_coef),
+    flux_eps_(flux_eps),
     slope_regularization_(slope_regularization) {}
 
 
-void UpwindFluxSplitDenominator::Update(const Teuchos::Ptr<State>& S,
-                                        const Teuchos::Ptr<Debugger>& db) {
+void
+UpwindFluxSplitDenominator::Update(const CompositeVector& cells,
+        CompositeVector& faces,
+        const State& S,
+        const Teuchos::Ptr<Debugger>& db) const
+{
+  Teuchos::RCP<const CompositeVector> flux = S.GetPtr<CompositeVector>(flux_, tag_);
+  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_, tag_);
+  Teuchos::RCP<const CompositeVector> manning_coef = S.GetPtr<CompositeVector>(manning_coef_, tag_);
 
-  Teuchos::RCP<const CompositeVector> cell = S->GetFieldData(cell_coef_);
-  Teuchos::RCP<const CompositeVector> flux = S->GetFieldData(flux_);
-  Teuchos::RCP<CompositeVector> face = S->GetFieldData(face_coef_, pkname_);
-
-  Teuchos::RCP<const CompositeVector> slope = S->GetFieldData(slope_);
-  Teuchos::RCP<const CompositeVector> manning_coef = S->GetFieldData(manning_coef_);
-
-  CalculateCoefficientsOnFaces(*cell, *flux, *slope, *manning_coef, face.ptr(), db);
+  CalculateCoefficientsOnFaces(cells, *flux, *slope, *manning_coef, faces, db);
 };
 
 
@@ -58,13 +56,14 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
         const CompositeVector& flux,
         const CompositeVector& slope,
         const CompositeVector& manning_coef,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db) {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef->Mesh();
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const
+{
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef->HasComponent("cell")) {
-    face_coef->ViewComponent("cell",true)->PutScalar(1.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // communicate needed ghost values
@@ -74,7 +73,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
 
   // pull out vectors
   const Epetra_MultiVector& flux_v = *flux.ViewComponent("face",false);
-  Epetra_MultiVector& coef_faces = *face_coef->ViewComponent("face",false);
+  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face",false);
   const Epetra_MultiVector& coef_cells = *cell_coef.ViewComponent("cell",true);
   const Epetra_MultiVector& slope_v = *slope.ViewComponent("cell",false);
   const Epetra_MultiVector& manning_coef_v = *manning_coef.ViewComponent("cell",true);
@@ -82,9 +81,9 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
 
   // Identify upwind/downwind cells for each local face.  Note upwind/downwind
   // may be a ghost cell.
-  Epetra_IntVector upwind_cell(*face_coef->ComponentMap("face",true));
+  Epetra_IntVector upwind_cell(*face_coef.ComponentMap("face",true));
   upwind_cell.PutValue(-1);
-  Epetra_IntVector downwind_cell(*face_coef->ComponentMap("face",true));
+  Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face",true));
   downwind_cell.PutValue(-1);
 
   AmanziMesh::Entity_ID_List faces;
@@ -120,7 +119,7 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
   // These parameters may be key to a smooth convergence rate near zero flux.
   //  double flow_eps_factor = 1.;
   //  double min_flow_eps = 1.e-8;
-  int nfaces = face_coef->size("face",false);
+  int nfaces = face_coef.size("face",false);
   for (int f=0; f!=nfaces; ++f) {
     int uw = upwind_cell[f];
     int dw = downwind_cell[f];
@@ -211,14 +210,5 @@ void UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(
 };
 
 
-void
-UpwindFluxSplitDenominator::UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                                              std::string potential_key,
-                                              const CompositeVector& dconductivity,
-                                              const std::vector<int>& bc_markers,
-                                              const std::vector<double>& bc_values,
-                                              std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const {
-  AMANZI_ASSERT(0);
-}
 } //namespace
 } //namespace

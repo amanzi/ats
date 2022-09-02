@@ -111,7 +111,7 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
   get_nlevsclass(&nlevsclass_);
   
   // requirements: primary variable
-  S->RequireField(key_, name_)->SetMesh(mesh_surf_)
+  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
     ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);
 
   patchno_ = plist_->get<int>("number of patches", 1);
@@ -119,35 +119,35 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
 
   // met_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_met");
   // if (!S->HasField(met_decomp_key_)){
-  //   S->RequireField(met_decomp_key_, name_)->SetMesh(mesh_surf_)
+  //   S->Require<CompositeVector,CompositeVectorSpace>(met_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
   //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
   // }
 
   // cel_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_cel");
   // if (!S->HasField(cel_decomp_key_)){
-  //   S->RequireField(cel_decomp_key_, name_)->SetMesh(mesh_surf_)
+  //   S->Require<CompositeVector,CompositeVectorSpace>(cel_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
   //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
   // }
 
   // lig_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_lig");
   // if (!S->HasField(lig_decomp_key_)){
-  //   S->RequireField(lig_decomp_key_, name_)->SetMesh(mesh_surf_)
+  //   S->Require<CompositeVector,CompositeVectorSpace>(lig_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
   //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
   // }
 
 
   precip_key_ = Keys::getKey(domain_surf_,"precipitation_rain");
   if (!S->HasField(precip_key_)){    
-    S->RequireField(precip_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(precip_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(precip_key_);
+    S->RequireEvaluator(precip_key_);
   }
 
   air_temp_key_ = Keys::getKey(domain_surf_,"air_temperature");
   if (!S->HasField(air_temp_key_)){    
-    S->RequireField(air_temp_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(air_temp_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(air_temp_key_);
+    S->RequireEvaluator(air_temp_key_);
   }
 
   vp_air_key_ = Keys::getKey(domain_surf_,"vapor_pressure_air");
@@ -159,61 +159,61 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
 
   wind_key_ = Keys::getKey(domain_surf_,"wind");
   if (!S->HasField(wind_key_)){    
-    S->RequireField(wind_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(wind_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(wind_key_);
+    S->RequireEvaluator(wind_key_);
   }
 
   co2a_key_ = Keys::getKey(domain_surf_,"co2a");
   if (!S->HasField(co2a_key_)){    
-    S->RequireField(co2a_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(co2a_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(co2a_key_);
+    S->RequireEvaluator(co2a_key_);
   }
 
   longwave_key_ = Keys::getKey(domain_surf_,"longwave_radiation");
   if (!S->HasField(longwave_key_)){    
-    S->RequireField(longwave_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(longwave_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(longwave_key_);
+    S->RequireEvaluator(longwave_key_);
   }
 
   incident_rad_key_ = Keys::getKey(domain_surf_,"incident_radiation");
   if (!S->HasField(incident_rad_key_)){    
-    S->RequireField(incident_rad_key_, "state")->SetMesh(mesh_surf_)
+    S->Require<CompositeVector,CompositeVectorSpace>(incident_rad_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(incident_rad_key_);
+    S->RequireEvaluator(incident_rad_key_);
   }
   
   if (!surface_only_){
     poro_key_ = Keys::readKey(*plist_, "domain", "porosity", "base_porosity");
     if (!S->HasField(poro_key_)){    
-      S->RequireField(poro_key_, "state")->SetMesh(mesh_)
+      S->Require<CompositeVector,CompositeVectorSpace>(poro_key_, Tags::NEXT,  "state").SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(poro_key_);
+      S->RequireEvaluator(poro_key_);
     }
     soil_temp_key_ = Keys::getKey("domain","temperature");
     if (!S->HasField(soil_temp_key_)){    
-      S->RequireField(soil_temp_key_, "state")->SetMesh(mesh_)
+      S->Require<CompositeVector,CompositeVectorSpace>(soil_temp_key_, Tags::NEXT,  "state").SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(soil_temp_key_);
+      S->RequireEvaluator(soil_temp_key_);
     }    
     sat_key_ = Keys::readKey(*plist_, "domain", "saturation", "saturation_liquid");
     if (!S->HasField(sat_key_)){    
-      S->RequireField(sat_key_, "state")->SetMesh(mesh_)
+      S->Require<CompositeVector,CompositeVectorSpace>(sat_key_, Tags::NEXT,  "state").SetMesh(mesh_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(sat_key_);
+      S->RequireEvaluator(sat_key_);
     }        
     suc_key_ = Keys::readKey(*plist_, "domain", "suction", "suction_head");
     if (!S->HasField(suc_key_)){    
-      S->RequireField(suc_key_, "state")->SetMesh(mesh_)
+      S->Require<CompositeVector,CompositeVectorSpace>(suc_key_, Tags::NEXT,  "state").SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-      S->RequireFieldEvaluator(suc_key_);
+      S->RequireEvaluator(suc_key_);
     }            
 
   }
 
-  S->RequireScalar("atmospheric_pressure");
+  S->RequireScalar("atmospheric_pressure", Tags::DEFAULT);
   
 }
 
@@ -225,19 +225,19 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   ncells_owned_ = mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
   site_.resize(ncells_owned_);
 
-  t_photosynthesis_ = S->time();
-  t_site_dym_ = S->time();
+  t_photosynthesis_ = S->get_time();
+  t_site_dym_ = S->get_time();
   
   // if (!S->GetField(met_decomp_key_, name_)->initialized()){
-  //   S->GetFieldData(met_decomp_key_, name_)->PutScalar(0.0);
+  //   S->GetW<CompositeVector>(met_decomp_key_, name_).PutScalar(0.0);
   //   S->GetField(met_decomp_key_, name_)->set_initialized();
   // }
   // if (!S->GetField(cel_decomp_key_, name_)->initialized()){
-  //   S->GetFieldData(cel_decomp_key_, name_)->PutScalar(0.0);
+  //   S->GetW<CompositeVector>(cel_decomp_key_, name_).PutScalar(0.0);
   //   S->GetField(cel_decomp_key_, name_)->set_initialized();
   // }
   // if (!S->GetField(lig_decomp_key_, name_)->initialized()){
-  //   S->GetFieldData(lig_decomp_key_, name_)->PutScalar(0.0);
+  //   S->GetW<CompositeVector>(lig_decomp_key_, name_).PutScalar(0.0);
   //   S->GetField(lig_decomp_key_, name_)->set_initialized();
   // }    
 
@@ -295,8 +295,8 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   Teuchos::RCP<Epetra_SerialDenseVector> col_dz =
     Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
     
-  // S->GetFieldEvaluator(poro_key_)->HasFieldChanged(S, name_);
-  // const Epetra_Vector& poro = *(*S->GetFieldData(poro_key_)
+  // S->GetEvaluator(poro_key_)->HasFieldChanged(S, name_);
+  // const Epetra_Vector& poro = *(*S->GetPtr<CompositeVector>(poro_key_)
   //       			->ViewComponent("cell",false))(0);
 
 
@@ -324,7 +324,7 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
   /* Init cold start of FATES */
   init_coldstart(&clump_);
 
-  Epetra_MultiVector& biomass = *S->GetFieldData(key_, name_)->ViewComponent("cell", false);
+  Epetra_MultiVector& biomass = *S->GetW<CompositeVector>(key_, name_).ViewComponent("cell", false);
   double* data_ptr;
   int data_dim;
 
@@ -337,8 +337,8 @@ void FATES_PK::Initialize(const Teuchos::Ptr<State>& S){
 
 double FATES_PK::get_dt(){
 
-  dt_ = std::min(t_photosynthesis_ + dt_photosynthesis_ - S_inter_->time(), dt_photosynthesis_);
-  dt_ = std::min(t_site_dym_ +  dt_site_dym_ - S_inter_->time(), std::min(dt_, dt_site_dym_));
+  dt_ = std::min(t_photosynthesis_ + dt_photosynthesis_ - S_->get_time(tag_inter_), dt_photosynthesis_);
+  dt_ = std::min(t_site_dym_ +  dt_site_dym_ - S_->get_time(tag_inter_), std::min(dt_, dt_site_dym_));
 
   return dt_;
 
@@ -350,26 +350,26 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
   double dtime = t_new - t_old;
 
-  S_next_->GetFieldEvaluator(precip_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& precip_rain = *S_next_->GetFieldData(precip_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(precip_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& precip_rain = *S_next_->Get<CompositeVector>(precip_key_).ViewComponent("cell", false);
 
-  S_next_->GetFieldEvaluator(wind_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& wind = *S_next_->GetFieldData(wind_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(wind_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& wind = *S_next_->Get<CompositeVector>(wind_key_).ViewComponent("cell", false);
 
   S_next_->GetFieldEvaluator(vp_air_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& vp_air = *S_next_->GetFieldData(vp_air_key_)->ViewComponent("cell", false);
   
-  S_next_->GetFieldEvaluator(air_temp_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& air_temp = *S_next_->GetFieldData(air_temp_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(air_temp_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& air_temp = *S_next_->Get<CompositeVector>(air_temp_key_).ViewComponent("cell", false);
 
-  S_next_->GetFieldEvaluator(co2a_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& co2a = *S_next_->GetFieldData(co2a_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(co2a_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& co2a = *S_next_->Get<CompositeVector>(co2a_key_).ViewComponent("cell", false);
 
-  S_next_->GetFieldEvaluator(longwave_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& longwave_rad = *S_next_->GetFieldData(longwave_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(longwave_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& longwave_rad = *S_next_->Get<CompositeVector>(longwave_key_).ViewComponent("cell", false);
 
-  S_next_->GetFieldEvaluator(incident_rad_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& incident_rad = *S_next_->GetFieldData(incident_rad_key_)->ViewComponent("cell", false);
+  S_next_->GetEvaluator(incident_rad_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& incident_rad = *S_next_->Get<CompositeVector>(incident_rad_key_).ViewComponent("cell", false);
 
   
   bool run_photo = false;
@@ -392,22 +392,22 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       }else{
         
         if (S_next_->HasField(soil_temp_key_)){
-          S_next_->GetFieldEvaluator(soil_temp_key_)->HasFieldChanged(S_next_.ptr(), name_);
-          const Epetra_Vector& temp_vec = *(*S_next_->GetFieldData(soil_temp_key_)->ViewComponent("cell", false))(0);        
+          S_next_->GetEvaluator(soil_temp_key_)->HasFieldChanged(S_next_.ptr(), name_);
+          const Epetra_Vector& temp_vec = *(*S_next_->Get<CompositeVector>(soil_temp_key_).ViewComponent("cell", false))(0);        
           FieldToColumn_(c, temp_vec, t_soil_.data() + c*ncells_per_col_, ncells_per_col_);
         }
         
         
         if (S_next_->HasField(poro_key_)){
-          S_next_->GetFieldEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
-          const Epetra_Vector& poro_vec = *(*S_next_->GetFieldData(poro_key_)->ViewComponent("cell", false))(0);        
+          S_next_->GetEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
+          const Epetra_Vector& poro_vec = *(*S_next_->Get<CompositeVector>(poro_key_).ViewComponent("cell", false))(0);        
           FieldToColumn_(c, poro_vec, poro_.data() + c*ncells_per_col_, ncells_per_col_);
         }
         eff_poro_.assign(poro_.begin(), poro_.end());
 
         if (S_next_->HasField(sat_key_)){
-          S_next_->GetFieldEvaluator(sat_key_)->HasFieldChanged(S_next_.ptr(), name_);
-          const Epetra_Vector& sat_vec = *(*S_next_->GetFieldData(sat_key_)->ViewComponent("cell", false))(0);        
+          S_next_->GetEvaluator(sat_key_)->HasFieldChanged(S_next_.ptr(), name_);
+          const Epetra_Vector& sat_vec = *(*S_next_->Get<CompositeVector>(sat_key_).ViewComponent("cell", false))(0);        
           FieldToColumn_(c, sat_vec, vsm_.data() + c*ncells_per_col_, ncells_per_col_);
                    
         }else{
@@ -415,8 +415,8 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
         }
 
         if (S_next_->HasField(suc_key_)){          
-          S_next_->GetFieldEvaluator(suc_key_)->HasFieldChanged(S_next_.ptr(), name_);
-          const Epetra_Vector& suc_vec = *(*S_next_->GetFieldData(suc_key_)->ViewComponent("cell", false))(0);        
+          S_next_->GetEvaluator(suc_key_)->HasFieldChanged(S_next_.ptr(), name_);
+          const Epetra_Vector& suc_vec = *(*S_next_->Get<CompositeVector>(suc_key_).ViewComponent("cell", false))(0);        
           FieldToColumn_(c, suc_vec, suc_.data() + c*ncells_per_col_, ncells_per_col_);
           
         }else{
@@ -452,14 +452,14 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
     PhotoSynthesisInput photo_input;
     // calculate fractional day length
-    double t_days = S_inter_->time() / 86400.;
+    double t_days = S_->get_time(tag_inter_) / 86400.;
 
     int doy = std::floor(std::fmod(t_days, 365.25));
     if (doy == 0) doy = 365;
 
     int   radnum = 2; //number of radiation bands
     double jday; //julian days (1-365)
-    double patm = *S_next_->GetScalarData("atmospheric_pressure");
+    double patm = *S_next_->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
     QSat qsat;
     
 
@@ -540,8 +540,8 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       //   h2osoi_vol_col[0] = 0.5;
       // }else{
       //   h2osoi_vol_col.resize(ncells_per_col_);        
-      //   S_next_->GetFieldEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
-      //   const Epetra_Vector& poro_vec = *(*S_next_->GetFieldData(poro_key_)->ViewComponent("cell", false))(0);        
+      //   S_next_->GetEvaluator(poro_key_)->HasFieldChanged(S_next_.ptr(), name_);
+      //   const Epetra_Vector& poro_vec = *(*S_next_->Get<CompositeVector>(poro_key_).ViewComponent("cell", false))(0);        
       //   FieldToColumn_(c, poro_vec, h2osoi_vol_col.data(), ncells_per_col_);
       // }      
              
@@ -564,7 +564,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
 
 void FATES_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S){
 
-  Epetra_MultiVector& biomass = *S->GetFieldData(key_, name_)->ViewComponent("cell", false);
+  Epetra_MultiVector& biomass = *S->GetW<CompositeVector>(key_, name_).ViewComponent("cell", false);
   double* data_ptr;
   int data_dim;
 

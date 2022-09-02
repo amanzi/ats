@@ -17,20 +17,22 @@ namespace Energy {
 
 ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
     Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist) {
-  Key domain = Keys::getDomain(my_key_);
+    EvaluatorSecondaryMonotypeCV(plist)
+{
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  Tag tag = my_keys_.front().second;
 
   poro_key_ = Keys::readKey(plist_, domain, "porosity", "porosity");
-  dependencies_.insert(poro_key_);
+  dependencies_.insert(KeyTag{poro_key_, tag});
 
   temp_key_ = Keys::readKey(plist_, domain, "temperature", "temperature");
-  dependencies_.insert(temp_key_);
+  dependencies_.insert(KeyTag{temp_key_, tag});
 
   sat_key_ = Keys::readKey(plist_, domain, "saturation liquid", "saturation_liquid");
-  dependencies_.insert(sat_key_);
+  dependencies_.insert(KeyTag{sat_key_, tag});
 
   sat2_key_ = Keys::readKey(plist_, domain, "second saturation key", "saturation_ice");
-  dependencies_.insert(sat2_key_);
+  dependencies_.insert(KeyTag{sat2_key_, tag});
 
   AMANZI_ASSERT(plist_.isSublist("thermal conductivity parameters"));
   Teuchos::ParameterList tc_sublist = plist_.sublist("thermal conductivity parameters");
@@ -53,39 +55,34 @@ ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
 }
 
 
-ThermalConductivityThreePhaseEvaluator::ThermalConductivityThreePhaseEvaluator(
-    const ThermalConductivityThreePhaseEvaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
-    poro_key_(other.poro_key_),
-    temp_key_(other.temp_key_),
-    sat_key_(other.sat_key_),
-    sat2_key_(other.sat2_key_),
-    tcs_(other.tcs_) {}
-
-Teuchos::RCP<FieldEvaluator>
-ThermalConductivityThreePhaseEvaluator::Clone() const {
+Teuchos::RCP<Evaluator>
+ThermalConductivityThreePhaseEvaluator::Clone() const
+{
   return Teuchos::rcp(new ThermalConductivityThreePhaseEvaluator(*this));
 }
 
 
-void ThermalConductivityThreePhaseEvaluator::EvaluateField_(
-    const Teuchos::Ptr<State>& S,
-    const Teuchos::Ptr<CompositeVector>& result) {
-  // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> sat = S->GetFieldData(sat_key_);
-  Teuchos::RCP<const CompositeVector> sat2 = S->GetFieldData(sat2_key_);
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+void ThermalConductivityThreePhaseEvaluator::Evaluate_(
+    const State& S,
+    const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
-  for (CompositeVector::name_iterator comp = result->begin();
-       comp!=result->end(); ++comp) {
+  // pull out the dependencies
+  Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_, tag);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
+  Teuchos::RCP<const CompositeVector> sat2 = S.GetPtr<CompositeVector>(sat2_key_, tag);
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
+
+  for (CompositeVector::name_iterator comp = result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     AMANZI_ASSERT(*comp == "cell");
     const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp,false);
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
     const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp,false);
     const Epetra_MultiVector& sat2_v = *sat2->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
     for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin();
          lcv != tcs_.end(); ++lcv) {
@@ -109,28 +106,31 @@ void ThermalConductivityThreePhaseEvaluator::EvaluateField_(
       }
     }
   }
-  result->Scale(1.e-6); // convert to MJ
+  result[0]->Scale(1.e-6); // convert to MJ
 }
 
 
-void ThermalConductivityThreePhaseEvaluator::EvaluateFieldPartialDerivative_(
-    const Teuchos::Ptr<State>& S, Key wrt_key,
-    const Teuchos::Ptr<CompositeVector>& result) {
-  // pull out the dependencies
-  Teuchos::RCP<const CompositeVector> poro = S->GetFieldData(poro_key_);
-  Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(temp_key_);
-  Teuchos::RCP<const CompositeVector> sat = S->GetFieldData(sat_key_);
-  Teuchos::RCP<const CompositeVector> sat2 = S->GetFieldData(sat2_key_);
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result->Mesh();
+void ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
+    const State& S, const Key& wrt_key, const Tag& wrt_tag,
+    const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
-  for (CompositeVector::name_iterator comp = result->begin();
-       comp!=result->end(); ++comp) {
+  // pull out the dependencies
+  Teuchos::RCP<const CompositeVector> poro = S.GetPtr<CompositeVector>(poro_key_, tag);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
+  Teuchos::RCP<const CompositeVector> sat2 = S.GetPtr<CompositeVector>(sat2_key_, tag);
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
+
+  for (CompositeVector::name_iterator comp = result[0]->begin();
+       comp!=result[0]->end(); ++comp) {
     AMANZI_ASSERT(*comp == "cell");
     const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp,false);
     const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
     const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp,false);
     const Epetra_MultiVector& sat2_v = *sat2->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result->ViewComponent(*comp,false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
 
     if (wrt_key == poro_key_) {
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin();
@@ -154,7 +154,7 @@ void ThermalConductivityThreePhaseEvaluator::EvaluateFieldPartialDerivative_(
           Exceptions::amanzi_throw(message);
         }
       }
-      
+
     } else if (wrt_key == sat_key_) {
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin();
            lcv != tcs_.end(); ++lcv) {
@@ -223,17 +223,16 @@ void ThermalConductivityThreePhaseEvaluator::EvaluateFieldPartialDerivative_(
           Exceptions::amanzi_throw(message);
         }
       }
-      
+
     } else {
       AMANZI_ASSERT(false);
     }
   }
-    
-  result->Scale(1.e-6); // convert to MJ
 
-  Epetra_MultiVector& result_v = *result->ViewComponent("cell",false);
+  result[0]->Scale(1.e-6); // convert to MJ
+
+  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell",false);
 }
-
 
 } //namespace
 } //namespace

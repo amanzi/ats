@@ -5,7 +5,7 @@ ATS
 
 Authors: Ethan Coon (ecoon@lanl.gov)
 
-FieldEvaluator for water content.
+Evaluator for water content.
 
 INTERFROST's comparison uses a very odd compressibility term that doesn't
 quite fit into either compressible porosity or into a compressible density, so
@@ -20,31 +20,34 @@ it needs a special evaluator.
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class InterfrostWaterContent : public SecondaryVariableFieldEvaluator {
+class InterfrostWaterContent : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   InterfrostWaterContent(Teuchos::ParameterList& wc_plist);
+  InterfrostWaterContent(const InterfrostWaterContent& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   double beta_;
-  
+
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,InterfrostWaterContent> reg_;
+  static Utils::RegisteredFactory<Evaluator,InterfrostWaterContent> reg_;
 };
 
 } // namespace

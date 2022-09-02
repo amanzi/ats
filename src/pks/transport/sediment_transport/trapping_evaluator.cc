@@ -12,98 +12,84 @@
 namespace Amanzi {
 
 TrappingRateEvaluator :: TrappingRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+  EvaluatorSecondaryMonotypeCV(plist) {
 
-  Key domain_name = "surface";
-  
-  velocity_key_ = plist_.get<std::string>("velocity key",
-                                          Keys::getKey(domain_name,"velocity"));
-  
-  sediment_key_ =  plist_.get<std::string>("sediment key",
-                                           Keys::getKey(domain_name,"sediment"));
+  Tag tag = my_keys_.front().second;
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
 
-  ponded_depth_key_ =  plist_.get<std::string>("ponded depth key",
-                                           Keys::getKey(domain_name,"ponded_depth"));
+  velocity_key_ = Keys::readKey(plist_, domain_name, "velocity", "velocity");
 
-  biomass_key_ = Keys::getKey(domain_name, "biomass");
-  
+  // note, this is a proxy for velocity, which does not have an eval yet
+  Key pres_key = Keys::readKey(plist_, domain_name, "pressure", "pressure");
+  dependencies_.insert(KeyTag{pres_key, tag});
+
+  sediment_key_ = Keys::readKey(plist_, domain_name, "sediment", "sediment");
+  dependencies_.insert(KeyTag{sediment_key_, tag});
+
+  ponded_depth_key_ = Keys::readKey(plist_, domain_name, "ponded depth", "ponded_depth");
+  dependencies_.insert(KeyTag{ponded_depth_key_, tag});
+
+  biomass_key_ = Keys::readKey(plist_, domain_name, "biomass", "biomass");
+  dependencies_.insert(KeyTag{biomass_key_, tag});
+
+  // Please put units on all of these! --etc
   visc_ = plist_.get<double>("kinematic viscosity");
   d_p_ = plist_.get<double>("particle diameter");
   alpha_ = plist_.get<double>("alpha");
   beta_ = plist_.get<double>("beta");
   gamma_ = plist_.get<double>("gamma");
-  sediment_density_ = plist_.get<double>("sediment density [kg m^-3]");  
-    
-  dependencies_.insert("surface-pressure");
-  dependencies_.insert(sediment_key_);
-  dependencies_.insert(ponded_depth_key_);
-  dependencies_.insert(biomass_key_);
-    
+  sediment_density_ = plist_.get<double>("sediment density [kg m^-3]");
 }
 
-  
-TrappingRateEvaluator ::TrappingRateEvaluator (const TrappingRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other),
-  velocity_key_(other.velocity_key_),
-  sediment_key_(other.sediment_key_),
-  ponded_depth_key_(other.ponded_depth_key_)
+
+Teuchos::RCP<Evaluator>
+TrappingRateEvaluator::Clone() const
 {
-  visc_ = other.visc_;
-  d_p_ = other.d_p_;
-  alpha_ = other.alpha_;
-  gamma_ = other.gamma_;
-  beta_  = other.beta_;
-  sediment_density_ = other.sediment_density_;
-} 
-
-
-Teuchos::RCP<FieldEvaluator> TrappingRateEvaluator ::Clone() const {
-  return Teuchos::rcp(new TrappingRateEvaluator (*this));
+  return Teuchos::rcp(new TrappingRateEvaluator(*this));
 }
 
 
-void TrappingRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+void TrappingRateEvaluator::Evaluate_(const State& S,
+                                      const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
 
-  const Epetra_MultiVector& vel = *S->GetFieldData(velocity_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& tcc = *S->GetFieldData(sediment_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& depth = *S->GetFieldData(ponded_depth_key_)->ViewComponent("cell");
-  const Epetra_MultiVector& bio_n = *S->GetFieldData("surface-stem_density")->ViewComponent("cell");
-  const Epetra_MultiVector& bio_d = *S->GetFieldData("surface-stem_diameter")->ViewComponent("cell");
-  const Epetra_MultiVector& bio_h = *S->GetFieldData("surface-stem_height")->ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result->ViewComponent("cell");
-
+  const Epetra_MultiVector& vel = *S.Get<CompositeVector>(velocity_key_, tag).ViewComponent("cell");
+  const Epetra_MultiVector& tcc = *S.Get<CompositeVector>(sediment_key_, tag).ViewComponent("cell");
+  const Epetra_MultiVector& depth = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell");
+  const Epetra_MultiVector& bio_n = *S.Get<CompositeVector>("surface-stem_density", tag).ViewComponent("cell");
+  const Epetra_MultiVector& bio_d = *S.Get<CompositeVector>("surface-stem_diameter", tag).ViewComponent("cell");
+  const Epetra_MultiVector& bio_h = *S.Get<CompositeVector>("surface-stem_height", tag).ViewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
 
   result_c.PutScalar(0.);
-  
-  for (int c=0; c<result_c.MyLength(); c++){
 
-    for (int j=0; j<bio_n.NumVectors(); j++){
+  for (int c=0; c<result_c.MyLength(); c++) {
+    for (int j=0; j<bio_n.NumVectors(); j++) {
 
       double h_s = bio_h[j][c];
       double d_s = bio_d[j][c];
       double n_s = bio_n[j][c];
-    
+
       double u_abs = sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]);
       double eps;
-      if (d_s > 1e-12){
+      if (d_s > 1e-12) {
         eps = alpha_ * std::pow(u_abs*d_s/visc_, beta_) * std::pow(d_p_/d_s, gamma_);
-      }else{
+      } else {
         eps = 0.;
-      }      
+      }
 
       result_c[0][c] += sediment_density_ * tcc[0][c] * u_abs * eps * d_s * n_s * std::min(depth[0][c], h_s);
     }
   }
-      
-
 }
 
-void TrappingRateEvaluator::EvaluateFieldPartialDerivative_ (const Teuchos::Ptr<State>& S,
-                                                            Key wrt_key,
-                                                            const Teuchos::Ptr<CompositeVector>& result) {
-   AMANZI_ASSERT(0); 
+
+void TrappingRateEvaluator::EvaluatePartialDerivative_(const State& S,
+                                                      const Key& wrt_key, const Tag& wrt_tag,
+                                                      const std::vector<CompositeVector*>& result)
+{
+  AMANZI_ASSERT(0);
 }
-  
-  
+
 } // namespace

@@ -24,38 +24,36 @@
 #define AMANZI_SURFACE_BALANCE_LONGWAVE_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class LongwaveEvaluator : public SecondaryVariableFieldEvaluator {
+class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  LongwaveEvaluator(Teuchos::ParameterList& plist);
+  explicit LongwaveEvaluator(Teuchos::ParameterList& plist);
   LongwaveEvaluator(const LongwaveEvaluator& other) = default;
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new LongwaveEvaluator(*this));
   }
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) {
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
     Exceptions::amanzi_throw("NotImplemented: LongwaveEvaluator currently does not provide derivatives.");
   }
 
  protected:
-
   Key air_temp_key_, vp_air_key_;
   double scale_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LongwaveEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,LongwaveEvaluator> reg_;
 
 };
 

@@ -36,19 +36,20 @@ class PermafrostModel : public EWCModelBase {
 
  public:
   PermafrostModel() {}
+  virtual ~PermafrostModel() {};
 
-  virtual void InitializeModel(const Teuchos::Ptr<State>& S,
-                               Teuchos::ParameterList& plist);
-  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c);
-  virtual bool Freezing(double T, double p);
-  virtual int EvaluateSaturations(double T, double p,
-                                  double& s_gas, double& s_liq, double& s_ice);
+  virtual void InitializeModel(
+    const Teuchos::Ptr<State>& S, const Tag& tag, Teuchos::ParameterList& plist) override;
+  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
+  virtual bool Freezing(double T, double p) override;
+  virtual int EvaluateSaturations(
+    double T, double p, double& s_gas,double& s_liq, double& s_ice) override;
   
  protected:
   bool IsSetUp_();
 
   int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result);
+          AmanziGeometry::Point& result) override;
 
  protected:
   Teuchos::RCP<Flow::WRMPermafrostModelPartition> wrms_;
@@ -69,6 +70,7 @@ class PermafrostModel : public EWCModelBase {
   Teuchos::RCP<Flow::CompressiblePorosityLeijnseModelPartition> poro_leij_models_;
   Teuchos::RCP<Flow::CompressiblePorosityLeijnseModel> poro_leij_model_;
 
+  Tag tag_;
   double p_atm_;
   double poro_;
   double rho_rock_;

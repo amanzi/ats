@@ -47,7 +47,7 @@ Requires the following dependencies:
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -93,29 +93,25 @@ double latentHeatVaporization_snow(double temp_air);
 } // namespace PriestleyTaylor
 
 
-class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
+class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
+  explicit PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
   PETPriestleyTaylorEvaluator(const PETPriestleyTaylorEvaluator& other) = default;
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new PETPriestleyTaylorEvaluator(*this));
   }
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
+ protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
-
- protected:
-
   Key domain_;
   Key evap_type_;
   Key air_temp_key_;
@@ -134,7 +130,7 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PETPriestleyTaylorEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,PETPriestleyTaylorEvaluator> reg_;
 
 };
 

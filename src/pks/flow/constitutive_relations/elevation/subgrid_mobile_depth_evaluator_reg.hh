@@ -5,7 +5,7 @@ namespace Flow {
 namespace FlowRelations {
 
 // registry of method
-Utils::RegisteredFactory<FieldEvaluator,SubgridMobileDepthEvaluator> SubgridMobileDepthEvaluator::factory_("subgrid mobile depth");
+Utils::RegisteredFactory<Evaluator,SubgridMobileDepthEvaluator> SubgridMobileDepthEvaluator::factory_("subgrid mobile depth");
 
 }
 }

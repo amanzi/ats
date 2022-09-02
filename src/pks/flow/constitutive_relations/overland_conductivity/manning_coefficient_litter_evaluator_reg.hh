@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,ManningCoefficientLitterEvaluator> ManningCoefficientLitterEvaluator::reg_("manning coefficient with litter");
+Utils::RegisteredFactory<Evaluator,ManningCoefficientLitterEvaluator> ManningCoefficientLitterEvaluator::reg_("manning coefficient with litter");
 
 } //namespace
 } //namespace

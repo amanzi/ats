@@ -35,15 +35,10 @@ set(ats_surface_balance_src_files
   constitutive_relations/land_cover/radiation_balance_evaluator.cc
   constitutive_relations/land_cover/seb_twocomponent_evaluator.cc
   constitutive_relations/land_cover/seb_threecomponent_evaluator.cc
-  constitutive_relations/litter/interception_evaluator.cc
-  constitutive_relations/litter/latent_heat_evaluator.cc
-  constitutive_relations/litter/latent_heat_model.cc       
   constitutive_relations/litter/evaporative_flux_relaxation_evaluator.cc       
   constitutive_relations/litter/evaporative_flux_relaxation_model.cc
   constitutive_relations/litter/micropore_macropore_flux_evaluator.cc       
   constitutive_relations/litter/micropore_macropore_flux_model.cc       
-  constitutive_relations/litter/macropore_surface_flux_evaluator.cc       
-  constitutive_relations/litter/macropore_surface_flux_model.cc       
   surface_balance_base.cc
   surface_balance_implicit_subgrid.cc
 )
@@ -83,15 +78,10 @@ set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/radiation_balance_evaluator.hh
   constitutive_relations/land_cover/seb_twocomponent_evaluator.hh
   constitutive_relations/land_cover/seb_threecomponent_evaluator.hh
-  constitutive_relations/litter/interception_evaluator.hh
-  constitutive_relations/litter/latent_heat_evaluator.hh
-  constitutive_relations/litter/latent_heat_model.hh       
   constitutive_relations/litter/evaporative_flux_relaxation_evaluator.hh       
   constitutive_relations/litter/evaporative_flux_relaxation_model.hh
   constitutive_relations/litter/micropore_macropore_flux_evaluator.hh       
   constitutive_relations/litter/micropore_macropore_flux_model.hh       
-  constitutive_relations/litter/macropore_surface_flux_evaluator.hh       
-  constitutive_relations/litter/macropore_surface_flux_model.hh       
   surface_balance_base.hh
   surface_balance_implicit_subgrid.hh
 )  
@@ -139,25 +129,9 @@ register_evaluator_with_factory(
 )
 
 register_evaluator_with_factory(
-  HEADERFILE constitutive_relations/litter/interception_evaluator_reg.hh
-  LISTNAME ATS_SURFACE_BALANCE_REG
-)
-
-register_evaluator_with_factory(
-  HEADERFILE constitutive_relations/litter/latent_heat_evaluator_reg.hh
-  LISTNAME ATS_SURFACE_BALANCE_REG
-)
-
-register_evaluator_with_factory(
   HEADERFILE constitutive_relations/litter/micropore_macropore_flux_evaluator_reg.hh
   LISTNAME ATS_SURFACE_BALANCE_REG
 )
-
-register_evaluator_with_factory(
-  HEADERFILE constitutive_relations/litter/macropore_surface_flux_evaluator_reg.hh
-  LISTNAME ATS_SURFACE_BALANCE_REG
-)
-
 
 register_evaluator_with_factory(
   HEADERFILE constitutive_relations/litter/evaporative_flux_relaxation_evaluator_reg.hh
@@ -175,10 +149,12 @@ register_evaluator_with_factory(
   HEADERFILE surface_balance_base_reg.hh
   LISTNAME ATS_SURFACE_BALANCE_REG
 )
+
 register_evaluator_with_factory(
   HEADERFILE surface_balance_implicit_subgrid_reg.hh
   LISTNAME ATS_SURFACE_BALANCE_REG
 )
+
 generate_evaluators_registration_header(
   HEADERFILE ats_surface_balance_registration.hh
   LISTNAME   ATS_SURFACE_BALANCE_REG

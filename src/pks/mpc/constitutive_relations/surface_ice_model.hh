@@ -37,20 +37,18 @@ class SurfaceIceModel : public EWCModelBase {
 
  public:
   SurfaceIceModel() {}
-  virtual void InitializeModel(const Teuchos::Ptr<State>& S, Teuchos::ParameterList& plist);
-  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c);
+  virtual ~SurfaceIceModel() {};
+  virtual void InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag, Teuchos::ParameterList& plist) override;
+  virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
 
-  virtual bool Freezing(double T, double p) { return T < 273.15; }
-  virtual int EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) {
-    AMANZI_ASSERT(0);
-    return 1;
-  }
+  virtual bool Freezing(double T, double p) override;
+  virtual int EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) override;
 
  protected:
   bool IsSetUp_();
 
   int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result);
+          AmanziGeometry::Point& result) override;
 
  protected:
   Teuchos::RCP<Flow::IcyHeightModel> pd_;

@@ -24,8 +24,8 @@ namespace Amanzi {
 
 class MPCDelegateEWCSubsurface : public MPCDelegateEWC {
  public:
-  MPCDelegateEWCSubsurface(Teuchos::ParameterList& plist) :
-      MPCDelegateEWC(plist) {}  
+  MPCDelegateEWCSubsurface(Teuchos::ParameterList& plist,
+                           const Teuchos::RCP<State>& S);
 
  protected:
   virtual bool modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up);

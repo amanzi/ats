@@ -47,7 +47,7 @@ the larger, compressible value when used with the energy in the water.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -55,24 +55,24 @@ namespace Relations {
 
 class ThreePhaseEnergyModel;
 
-class ThreePhaseEnergyEvaluator : public SecondaryVariableFieldEvaluator {
+class ThreePhaseEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   ThreePhaseEnergyEvaluator(Teuchos::ParameterList& plist);
-  ThreePhaseEnergyEvaluator(const ThreePhaseEnergyEvaluator& other);
+  ThreePhaseEnergyEvaluator(const ThreePhaseEnergyEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<ThreePhaseEnergyModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
   Key phi_key_;
@@ -93,7 +93,7 @@ class ThreePhaseEnergyEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<ThreePhaseEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,ThreePhaseEnergyEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,ThreePhaseEnergyEvaluator> reg_;
 
 };
 

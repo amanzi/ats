@@ -47,7 +47,7 @@ TEST(ADVANCE_WITH_SIMPLE) {
   double T = 0.0;
 
   Teuchos::RCP<const CompositeVector> temp =
-    test.S1->GetFieldData("temperature");
+    test.S1->GetPtr<CompositeVector>("temperature");
 
   iter = 0;
   if (iter < 10) {

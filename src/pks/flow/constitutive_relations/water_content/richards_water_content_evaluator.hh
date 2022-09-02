@@ -29,7 +29,7 @@ Specified with evaluator type: `"richards water content`"
 #define AMANZI_FLOW_RICHARDS_WATER_CONTENT_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -37,26 +37,28 @@ namespace Relations {
 
 class RichardsWaterContentModel;
 
-class RichardsWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
+class RichardsWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   RichardsWaterContentEvaluator(Teuchos::ParameterList& plist);
-  RichardsWaterContentEvaluator(const RichardsWaterContentEvaluator& other);
+  RichardsWaterContentEvaluator(const RichardsWaterContentEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
   Teuchos::RCP<RichardsWaterContentModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key phi_key_;
   Key sl_key_;
   Key nl_key_;
@@ -65,7 +67,7 @@ class RichardsWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<RichardsWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RichardsWaterContentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,RichardsWaterContentEvaluator> reg_;
 
 };
 

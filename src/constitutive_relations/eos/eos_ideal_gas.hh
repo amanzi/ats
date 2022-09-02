@@ -22,20 +22,33 @@ namespace Relations {
 // Equation of State model
 class EOSIdealGas : public EOSConstantMolarMass {
 
-public:
+ public:
   explicit EOSIdealGas(Teuchos::ParameterList& eos_plist);
 
   virtual double MolarDensity(std::vector<double>& params) override;
   virtual double DMolarDensityDT(std::vector<double>& params) override;
   virtual double DMolarDensityDp(std::vector<double>& params) override;
+  virtual double DMolarDensityDC(std::vector<double>& params) override {
+    return 0.;
+  }
 
-protected:
+  virtual bool IsTemperature() override {
+    return true;
+  }
+  virtual bool IsPressure() override {
+    return true;
+  }
+  virtual bool IsConcentration() override {
+    return false;
+  }
+
+ protected:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList eos_plist_;
   double R_;
 
-private:
+ private:
   static Utils::RegisteredFactory<EOS,EOSIdealGas> factory_;
 };
 

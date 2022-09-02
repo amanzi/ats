@@ -2,7 +2,7 @@
 
 #
 #  ATS
-#    Flow PK class
+#    Energy PK class
 #
 
 # additional common components
@@ -69,6 +69,7 @@ add_amanzi_library(ats_energy
 
 #================================================
 # register evaluators/factories/pks
+
 register_evaluator_with_factory(
   HEADERFILE energy_surface_ice_reg.hh
   LISTNAME   ATS_ENERGY_PKS_REG

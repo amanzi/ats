@@ -12,60 +12,50 @@
 
 namespace Amanzi {
 
-OrganicMatterRateEvaluator :: OrganicMatterRateEvaluator(Teuchos::ParameterList& plist) :
-  SecondaryVariableFieldEvaluator(plist) {
+OrganicMatterRateEvaluator::OrganicMatterRateEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
+  Tag tag = my_keys_.front().second;
+  Key domain_name = Keys::getDomain(my_keys_.front().first);
 
-  Key domain_name = "surface";
-  
-  biomass_key_ = plist_.get<std::string>("biomass key", Keys::getKey(domain_name,"biomass"));
+  biomass_key_ = Keys::readKey(plist_, domain_name, "biomass", "biomass");
+  dependencies_.insert(KeyTag{biomass_key_, tag});
 
-  Bmax_ = plist_.get<double>("maximum biomass");
+  // please put units on all of these!  --etc
+  Bmax_ = 1.0 / plist_.get<double>("maximum biomass");
   Q_db0_ = plist_.get<double>("empirical coefficient");
- 
-   
-  dependencies_.insert(biomass_key_);
-    
-}
-
-  
-OrganicMatterRateEvaluator ::OrganicMatterRateEvaluator (const OrganicMatterRateEvaluator & other) :
-  SecondaryVariableFieldEvaluator(other) {
-
-  biomass_key_ = other.biomass_key_;
-  Bmax_ = other.Bmax_;
-  Q_db0_ = other.Q_db0_;
-
-} 
-
-
-Teuchos::RCP<FieldEvaluator> OrganicMatterRateEvaluator ::Clone() const {
-  return Teuchos::rcp(new OrganicMatterRateEvaluator (*this));
+  Q_on_Bmax_ = Q_db0_ / Bmax_;
 }
 
 
-void OrganicMatterRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result) {
+Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator::Clone() const
+{
+  return Teuchos::rcp(new OrganicMatterRateEvaluator(*this));
+}
 
-  const Epetra_MultiVector& bio = *S->GetFieldData(biomass_key_)->ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result->ViewComponent("cell");
+
+void OrganicMatterRateEvaluator::Evaluate_(const State& S,
+                                           const std::vector<CompositeVector*>& result)
+{
+  Tag tag = my_keys_.front().second;
+  const Epetra_MultiVector& bio = *S.Get<CompositeVector>(biomass_key_, tag).ViewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
 
   result_c.PutScalar(0.);
-  
-  for (int c=0; c<result_c.MyLength(); c++){
-    for (int j=0; j<bio.NumVectors(); j++){
-      result_c[0][c] +=  Q_db0_*bio[j][c]/Bmax_;
+  for (int c = 0; c < result_c.MyLength(); c++) {
+    for (int j = 0; j < bio.NumVectors(); j++) {
+      result_c[0][c] += Q_on_Bmax_ * bio[j][c];
     }
   }
-
- 
-
 }
 
-void OrganicMatterRateEvaluator::EvaluateFieldPartialDerivative_ (const Teuchos::Ptr<State>& S,
-                                                            Key wrt_key,
-                                                            const Teuchos::Ptr<CompositeVector>& result) {
-   AMANZI_ASSERT(0); 
+
+void OrganicMatterRateEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key, const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
+{
+   AMANZI_ASSERT(0);
 }
-  
-  
+
 } // namespace

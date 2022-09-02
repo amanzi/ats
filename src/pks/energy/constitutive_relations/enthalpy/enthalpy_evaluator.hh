@@ -5,7 +5,7 @@ ATS
 
 Authors: Ethan Coon (ecoon@lanl.gov)
 
-FieldEvaluator for enthalpy.
+Evaluator for enthalpy.
 ----------------------------------------------------------------------------- */
 
 
@@ -15,35 +15,36 @@ FieldEvaluator for enthalpy.
 #include "Teuchos_ParameterList.hpp"
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Energy {
 
-class EnthalpyEvaluator : public SecondaryVariableFieldEvaluator {
+class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   EnthalpyEvaluator(Teuchos::ParameterList& plist);
-  EnthalpyEvaluator(const EnthalpyEvaluator& other);
+  EnthalpyEvaluator(const EnthalpyEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
+ protected:
   Key pres_key_;
   Key dens_key_;
   Key ie_key_;
   bool include_work_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,EnthalpyEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,EnthalpyEvaluator> factory_;
 
 };
 

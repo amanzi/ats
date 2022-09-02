@@ -33,7 +33,7 @@ Specified with evaluator type: `"surface ice energy`"
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -41,24 +41,25 @@ namespace Relations {
 
 class SurfaceIceEnergyModel;
 
-class SurfaceIceEnergyEvaluator : public SecondaryVariableFieldEvaluator {
+class SurfaceIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   SurfaceIceEnergyEvaluator(Teuchos::ParameterList& plist);
-  SurfaceIceEnergyEvaluator(const SurfaceIceEnergyEvaluator& other);
+  SurfaceIceEnergyEvaluator(const SurfaceIceEnergyEvaluator& other) = default;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<SurfaceIceEnergyModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
   Key h_key_;
@@ -72,7 +73,7 @@ class SurfaceIceEnergyEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<SurfaceIceEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SurfaceIceEnergyEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,SurfaceIceEnergyEvaluator> reg_;
 
 };
 

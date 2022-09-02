@@ -3,7 +3,7 @@
 
   Generated via evaluator_generator with:
 Interfrost water content portion sl.
-    
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
@@ -11,7 +11,7 @@ Interfrost water content portion sl.
 #define AMANZI_FLOW_INTERFROST_DENERGY_DTEMPERATURE_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -19,26 +19,26 @@ namespace Relations {
 
 class InterfrostDenergyDtemperatureModel;
 
-class InterfrostDenergyDtemperatureEvaluator : public SecondaryVariableFieldEvaluator {
+class InterfrostDenergyDtemperatureEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   InterfrostDenergyDtemperatureEvaluator(Teuchos::ParameterList& plist);
-  InterfrostDenergyDtemperatureEvaluator(const InterfrostDenergyDtemperatureEvaluator& other);
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  InterfrostDenergyDtemperatureEvaluator(const InterfrostDenergyDtemperatureEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<InterfrostDenergyDtemperatureModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
   void InitializeFromPlist_();
 
+ protected:
   Key phi_key_;
   Key sl_key_;
   Key nl_key_;
@@ -50,7 +50,7 @@ class InterfrostDenergyDtemperatureEvaluator : public SecondaryVariableFieldEval
   Teuchos::RCP<InterfrostDenergyDtemperatureModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,InterfrostDenergyDtemperatureEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,InterfrostDenergyDtemperatureEvaluator> reg_;
 
 };
 

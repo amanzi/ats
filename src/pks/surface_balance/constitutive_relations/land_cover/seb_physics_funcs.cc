@@ -29,11 +29,11 @@ double CalcAlbedoSnow(double density_snow) {
   double AlSnow;
 //  432.23309912785146
   if (density_snow <= 432.23309912785146) {
-    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5) + 0.07;
+    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5);
   } else {
-    AlSnow = 0.6 - density_snow / 4600 + 0.07;
+    AlSnow = 0.6 - density_snow / 4600;
   }
-  return AlSnow - 0.07;
+  return AlSnow;
 }
 
 double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rough_snow)
@@ -319,7 +319,6 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0/(Dhe_latent*Sqig));

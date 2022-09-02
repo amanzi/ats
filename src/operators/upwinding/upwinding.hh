@@ -25,6 +25,7 @@ namespace Amanzi {
 // forward declaration
 class State;
 class Debugger;
+class CompositeVector;
 
 namespace Operators {
 
@@ -43,10 +44,13 @@ class Upwinding {
   virtual ~Upwinding() = default;
 
   virtual void
-  Update(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<Debugger>& db=Teuchos::null) = 0;
+  Update(const CompositeVector& data,
+         CompositeVector& uw_data,
+         const State& S,
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const = 0;
 
   virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
+  UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
@@ -55,9 +59,8 @@ class Upwinding {
     AMANZI_ASSERT(0);
   }
 
-  virtual std::string
-  CoefficientLocation() = 0;
-  
+  virtual std::string CoefficientLocation() const = 0;
+
 
 };
 

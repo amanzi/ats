@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -18,12 +18,10 @@ Globally implicit coupling solves all sub-PKs as a single system of equations.  
 
     - ``[mpc-spec]`` *Is a* MPC_.
     - ``[pk-bdf-default-spec]`` *Is a* `PK: BDF`_.
-    
+
 */
 
-
-#ifndef PKS_MPC_STRONG_MPC_HH_
-#define PKS_MPC_STRONG_MPC_HH_
+#pragma once
 
 #include <vector>
 
@@ -34,71 +32,67 @@ namespace Amanzi {
 
 // note this looks odd, but StrongMPC is both a MPC within a hierarchy of BDF
 // PKs, but it also IS a BDF PK itself, in that it implements the BDF
-// interface.
+// interface and can be implicitly integrated.
 template <class PK_t>
 class StrongMPC :  public MPC<PK_t>, public PK_BDF_Default {
 
-public:
+ public:
 
-  StrongMPC(Teuchos::ParameterList& FElist,
-            const Teuchos::RCP<Teuchos::ParameterList>& plist,
+  StrongMPC(Teuchos::ParameterList& pk_list,
+            const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
             const Teuchos::RCP<State>& S,
             const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~StrongMPC() {}
-
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  //
+  // These methods override methods in MPC<PK_t>
+  // -----------------------------------------------------------------------------
+  virtual void Setup() override;
+  virtual void Initialize() override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {
-    PK_BDF_Default::CommitStep(t_old, t_new, S);
-    MPC<PK_t>::CommitStep(t_old, t_new, S);
-  }
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
-  void set_states(const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<State>& S_inter,
-                  const Teuchos::RCP<State>& S_next);
-  
-  // StrongMPC is a BDFFnBase
+  //
+  // These methods override methods in PK_BDF_Default
+  // -----------------------------------------------------------------------------
+
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
   virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+          Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
 
   // -- enorm for the coupled system
   virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du);
+                       Teuchos::RCP<const TreeVector> du) override;
 
   // StrongMPC's preconditioner is, by default, just the block-diagonal
   // operator formed by placing the sub PK's preconditioners on the diagonal.
   // -- Apply preconditioner to u and returns the result in Pu.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // -- Update the preconditioner.
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Experimental approach -- calling this indicates that the time
   //    integration scheme is changing the value of the solution in
   //    state.
 
-  virtual void ChangedSolution(const Teuchos::Ptr<State>& S);
-
-  virtual void ChangedSolution();
+  virtual void ChangedSolution(const Tag& S) override;
+  virtual void ChangedSolution() override;
 
   // -- Admissibility of the solution.
-  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> u);
+  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> u) override;
 
   // -- Modify the predictor.
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
+          Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du);
+                       Teuchos::RCP<TreeVector> du) override;
 
 protected:
   using MPC<PK_t>::sub_pks_;
@@ -112,6 +106,10 @@ private:
 
 };
 
+//
+// Class implementation
+//
+
 // -----------------------------------------------------------------------------
 // Constructor
 // -----------------------------------------------------------------------------
@@ -122,8 +120,9 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<TreeVector>& soln) :
     PK(pk_tree, global_list, S, soln),
     MPC<PK_t>(pk_tree, global_list, S, soln),
-    PK_BDF_Default(pk_tree, global_list, S, soln) {
-  MPC<PK_t>::init_(S, soln->Comm());
+    PK_BDF_Default(pk_tree, global_list, S, soln)
+{
+  MPC<PK_t>::init_(soln->Comm());
 }
 
 
@@ -131,29 +130,21 @@ StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
 // Setup
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::Setup(const Teuchos::Ptr<State>& S) {
+void StrongMPC<PK_t>::Setup()
+{
   // push on a parameter to indicate that sub-pks need not assemble their
   // operators, as we will do that here (or above here)
-  Teuchos::Array<std::string> pk_order = plist_->get< Teuchos::Array<std::string> >("PKs order");
-  int npks = pk_order.size();
-  for (int i=0; i!=npks; ++i){
-    std::string name_i = pk_order[i];
-    if (pks_list_->isSublist(name_i)){
-      pks_list_->sublist(name_i).set("strongly coupled PK", true);
-    } else {
-      AMANZI_ASSERT(0);
-    }
+  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  for (const auto& pk_name : pk_order) {
+    pks_list_->sublist(pk_name).set("strongly coupled PK", true);
   }
 
-  MPC<PK_t>::Setup(S);
-  PK_BDF_Default::Setup(S);
+  MPC<PK_t>::Setup();
+  PK_BDF_Default::Setup();
 
   // Set the initial timestep as the min of the sub-pk sizes.
-  dt_ = 1.0e99;
-  for (typename MPC<PK_t>::SubPKList::iterator pk = MPC<PK_t>::sub_pks_.begin();
-       pk != MPC<PK_t>::sub_pks_.end(); ++pk) {
-    dt_ = std::min<double>(dt_, (*pk)->get_dt());
-  }
+  dt_ = std::numeric_limits<double>::max();
+  for (auto& pk : sub_pks_) dt_ = std::min(dt_, pk->get_dt());
 };
 
 
@@ -162,37 +153,51 @@ void StrongMPC<PK_t>::Setup(const Teuchos::Ptr<State>& S) {
 // initialize() methods.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::Initialize(const Teuchos::Ptr<State>& S) {
+void StrongMPC<PK_t>::Initialize()
+{
   // Just calls both subclass's initialize.  NOTE - order is important here --
   // MPC<PK_t> grabs the primary variables from each sub-PK and stuffs
   // them into the solution, which must be done prior to BDFBase initializing
   // the timestepper.
 
   // Initialize all sub PKs.
-  MPC<PK_t>::Initialize(S);
+  MPC<PK_t>::Initialize();
 
   // Initialize my timestepper.
-  PK_BDF_Default::Initialize(S);
+  PK_BDF_Default::Initialize();
 };
 
+
+
+// -----------------------------------------------------------------------------
+// Calls both parts
+// -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::set_states(const Teuchos::RCP<State>& S,
-                                 const Teuchos::RCP<State>& S_inter,
-                                 const Teuchos::RCP<State>& S_next){
-  MPC<PK_t>::set_states(S,S_inter,S_next);
-} 
+void StrongMPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
+{
+  MPC<PK_t>::CommitStep(t_old, t_new, tag);
+  PK_BDF_Default::CommitStep(t_old, t_new, tag);
+}
+
+template<class PK_t>
+void StrongMPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
+{
+  MPC<PK_t>::FailStep(t_old, t_new, tag);
+  //PK_BDF_Default::FailStep(t_old, t_new, tag);
+}
+
 
 // -----------------------------------------------------------------------------
 // Compute the non-linear functional g = g(t,u,udot).
 // -----------------------------------------------------------------------------
 template<class PK_t>
 void StrongMPC<PK_t>::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                    Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) {
-
-  Solution_to_State(*u_new, S_next_);
+                    Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g)
+{
+  Solution_to_State(*u_new, tag_next_);
 
   // loop over sub-PKs
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the old solution sub-vector
     Teuchos::RCP<TreeVector> pk_u_old(Teuchos::null);
     if (u_old != Teuchos::null) {
@@ -227,10 +232,11 @@ void StrongMPC<PK_t>::FunctionalResidual(double t_old, double t_new, Teuchos::RC
 // Applies preconditioner to u and returns the result in Pu.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-int StrongMPC<PK_t>::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
+int StrongMPC<PK_t>::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
+{
   // loop over sub-PKs
   int ierr = 0;
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
     if (pk_u == Teuchos::null) {
@@ -249,10 +255,6 @@ int StrongMPC<PK_t>::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuch
     int icur_err = sub_pks_[i]->ApplyPreconditioner(pk_u, pk_Pu);
     ierr += icur_err;
   }
-
-//   std::cout<<*(((Pu->SubVector("flow"))->Data())->ViewComponent("cell", false));
-//   cout<<"Exit from StrongMPC precon\n";
-//   exit(0);
   return ierr;
 };
 
@@ -263,11 +265,12 @@ int StrongMPC<PK_t>::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuch
 // -----------------------------------------------------------------------------
 template<class PK_t>
 double StrongMPC<PK_t>::ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                        Teuchos::RCP<const TreeVector> du){
+        Teuchos::RCP<const TreeVector> du)
+{
   double norm = 0.0;
 
   // loop over sub-PKs
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
     if (pk_u == Teuchos::null) {
@@ -294,12 +297,12 @@ double StrongMPC<PK_t>::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 // Update the preconditioner.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
-  
-  Solution_to_State(*up, S_next_);
+void StrongMPC<PK_t>::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
+{
+  Solution_to_State(*up, tag_next_);
 
   // loop over sub-PKs
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the up sub-vector
     Teuchos::RCP<const TreeVector> pk_up = up->SubVector(i);
     if (pk_up == Teuchos::null) {
@@ -318,36 +321,33 @@ void StrongMPC<PK_t>::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
 // scheme is changing the value of the solution in state.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::ChangedSolution(const Teuchos::Ptr<State>& S) {
+void StrongMPC<PK_t>::ChangedSolution(const Tag& tag)
+{
   // loop over sub-PKs
-  for (typename MPC<PK_t>::SubPKList::iterator pk = MPC<PK_t>::sub_pks_.begin();
-       pk != MPC<PK_t>::sub_pks_.end(); ++pk) {
-    (*pk)->ChangedSolution(S);
-  }
+  for (auto& pk : sub_pks_) pk->ChangedSolution(tag);
 };
 
-  
+
 // -----------------------------------------------------------------------------
 // Calling this indicates that the time integration scheme is changing
 // the value of the solution in state.
 // -----------------------------------------------------------------------------
 template<class PK_t>
-void StrongMPC<PK_t>::ChangedSolution() {
+void StrongMPC<PK_t>::ChangedSolution()
+{
   // loop over sub-PKs
-  for (typename MPC<PK_t>::SubPKList::iterator pk = MPC<PK_t>::sub_pks_.begin();
-       pk != MPC<PK_t>::sub_pks_.end(); ++pk) {
-    (*pk)->ChangedSolution();
-  }
+  for (auto& pk : sub_pks_) pk->ChangedSolution();
 };
 
 // -----------------------------------------------------------------------------
 // Check admissibility of each sub-pk
 // -----------------------------------------------------------------------------
 template<class PK_t>
-bool StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u) {
+bool StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u)
+{
   // First ensure each PK thinks we are admissible -- this will ensure
   // the residual can at least be evaluated.
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
     if (pk_u == Teuchos::null) {
@@ -374,10 +374,11 @@ bool StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u) {
 // -----------------------------------------------------------------------------
 template<class PK_t>
 bool StrongMPC<PK_t>::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-        Teuchos::RCP<TreeVector> u) {
+        Teuchos::RCP<TreeVector> u)
+{
   // loop over sub-PKs
   bool modified = false;
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u0 = u0->SubVector(i);
     Teuchos::RCP<TreeVector> pk_u = u->SubVector(i);
@@ -397,13 +398,14 @@ bool StrongMPC<PK_t>::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u
 // -----------------------------------------------------------------------------
 template<class PK_t>
 AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-    StrongMPC<PK_t>::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                                      Teuchos::RCP<const TreeVector> u,
-                                      Teuchos::RCP<TreeVector> du) {
+StrongMPC<PK_t>::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
+        Teuchos::RCP<const TreeVector> u,
+        Teuchos::RCP<TreeVector> du)
+{
   // loop over sub-PKs
-  AmanziSolvers::FnBaseDefs::ModifyCorrectionResult 
+  AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       modified = AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
-  for (unsigned int i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
     Teuchos::RCP<const TreeVector> pk_res = res->SubVector(i);
@@ -422,4 +424,4 @@ AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
 
 } // close namespace Amanzi
 
-#endif
+

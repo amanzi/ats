@@ -67,47 +67,38 @@ class PK_BDF_Default : public PK_BDF {
 
   // Default implementations of PK methods.
   // -- Setup
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
 
   // -- Initialize
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Initialize() override;
 
   // -- Choose a time step compatible with physics.
-  virtual double get_dt();
+  virtual double get_dt() override;
 
-  virtual void set_dt(double dt_);
+  virtual void set_dt(double dt) override;
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-
-  // virtual void Solution_to_State(const TreeVector& soln,
-  //                                const Teuchos::RCP<State>& S);
-  // virtual void Solution_to_State(TreeVector& soln,
-  //                                const Teuchos::RCP<State>& S);
-
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                        const Teuchos::RCP<State>& S_inter,
-                        const Teuchos::RCP<State>& S_next);
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // update the continuation parameter
-  virtual void UpdateContinuationParameter(double lambda);
+  virtual void UpdateContinuationParameter(double lambda) override;
 
   // -- Check the admissibility of a solution.
-  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) { return true; }
+  virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override { return true; }
 
   // -- Possibly modify the predictor that is going to be used as a
   //    starting value for the nonlinear solve in the time integrator.
   virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up,
-          Teuchos::RCP<TreeVector> u) { return false; }
+          Teuchos::RCP<TreeVector> u) override { return false; }
 
   // -- Possibly modify the correction before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du) {
+                       Teuchos::RCP<TreeVector> du) override {
     return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   }
 
@@ -116,12 +107,12 @@ class PK_BDF_Default : public PK_BDF {
   // experimental approach -- calling this indicates that the time
   // integration scheme is changing the value of the solution in
   // state.
-  virtual void ChangedSolution() = 0;
-  virtual void ChangedSolution(const Teuchos::Ptr<State>& S) = 0;
+  virtual void ChangedSolution() override = 0;
+  virtual void ChangedSolution(const Tag& tag) = 0;
 
  protected: // data
-  // preconditioner assembly control
-  bool assemble_preconditioner_;
+  bool assemble_preconditioner_; // preconditioner assembly control
+  bool strongly_coupled_; // if we are coupled, no need to make a TI
 
   // timestep control
   double dt_;

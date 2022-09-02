@@ -175,14 +175,14 @@ public:
 
   // EnergyBase is a PK
   // -- Setup data
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) override;
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override {}
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void CalculateDiagnostics(const Tag& tag) override {}
 
   // Default implementations of BDFFnBase methods.
   // -- Compute a norm on u-du and return the result.
@@ -218,40 +218,39 @@ public:
  protected:
   // These must be provided by the deriving PK.
   // -- setup the evaluators
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) = 0;
+  virtual void SetupPhysicalEvaluators_();
 
   // -- get enthalpy as a function of Dirichlet boundary data.  Note that this
   //    will get replaced by a better system when we get maps on the boundary
   //    faces.
-  virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
+  virtual void ApplyDirichletBCsToEnthalpy_(const Tag& tag);
 
   // -- Add any source terms into the residual.
-  virtual void AddSources_(const Teuchos::Ptr<State>& S,
-                           const Teuchos::Ptr<CompositeVector>& f);
-  virtual void AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h);
+  virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
+  virtual void AddSourcesToPrecon_(double h);
 
   // Standard methods
-  virtual void SetupEnergy_(const Teuchos::Ptr<State>& S);
+  virtual void SetupEnergy_();
 
   // Upwinding conductivities
-  virtual bool UpdateConductivityData_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdateConductivityDerivativeData_(const Teuchos::Ptr<State>& S);
+  virtual bool UpdateConductivityData_(const Tag& tag);
+  virtual bool UpdateConductivityDerivativeData_(const Tag& tag);
 
 
   // boundary condition members
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S);
+  virtual void ComputeBoundaryConditions_(const Tag& tag);
+  virtual void UpdateBoundaryConditions_(const Tag& tag);
 
   // physical methods
   // -- accumulation of energy
-  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& f);
+  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- advection of enthalpy
-  virtual void AddAdvection_(const Teuchos::Ptr<State>& S,
-                     const Teuchos::Ptr<CompositeVector>& f, bool negate);
+  virtual void AddAdvection_(const Tag& tag,
+        const Teuchos::Ptr<CompositeVector>& g, bool negate);
 
   // -- diffusion of temperature
-  virtual void ApplyDiffusion_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& f);
+  virtual void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
 
  protected:
   int niter_;
@@ -310,7 +309,6 @@ public:
   Key adv_energy_flux_key_;
   Key conductivity_key_;
   Key uw_conductivity_key_;
-  Key dconductivity_key_;
   Key duw_conductivity_key_;
   Key source_key_;
   Key ss_flux_key_;

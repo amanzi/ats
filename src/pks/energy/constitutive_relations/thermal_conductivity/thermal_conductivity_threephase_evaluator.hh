@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "thermal_conductivity_threephase.hh"
 
 namespace Amanzi {
@@ -17,7 +17,7 @@ namespace Energy {
 
 // Equation of State model
 class ThermalConductivityThreePhaseEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
 
@@ -25,18 +25,19 @@ class ThermalConductivityThreePhaseEvaluator :
 
   // constructor format for all derived classes
   ThermalConductivityThreePhaseEvaluator(Teuchos::ParameterList& plist);
-  ThermalConductivityThreePhaseEvaluator(const ThermalConductivityThreePhaseEvaluator& other);
+  ThermalConductivityThreePhaseEvaluator(const ThermalConductivityThreePhaseEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldModel
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
+  // Required methods from SecondaryVariableFieldModel
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
+ protected:
   std::vector<RegionModelPair> tcs_;
 
   // Keys for fields
@@ -45,6 +46,9 @@ class ThermalConductivityThreePhaseEvaluator :
   Key sat_key_;
   Key sat2_key_;
   Key temp_key_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator,ThermalConductivityThreePhaseEvaluator> factory_;
 };
 
 } // namespace

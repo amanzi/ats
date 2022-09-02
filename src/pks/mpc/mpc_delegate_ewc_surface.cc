@@ -16,6 +16,12 @@ energy/water-content space instead of temperature/pressure space.
 
 namespace Amanzi {
 
+MPCDelegateEWCSurface::MPCDelegateEWCSurface(
+                       Teuchos::ParameterList& plist,
+                       const Teuchos::RCP<State>& S) :
+  MPCDelegateEWC(plist, S)
+  { T_cutoff_ = plist_->get<double>("fully frozen temperature", 272.15); }
+
 bool MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up) {
   Teuchos::OSTab tab = vo_->getOSTab();
   // projected guesses for T and p
@@ -34,9 +40,9 @@ bool MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<T
   }
 
   // T, p at the previous step
-  const Epetra_MultiVector& T1 = *S_inter_->GetFieldData(temp_key_)
+  const Epetra_MultiVector& T1 = *S_->GetPtr<CompositeVector>(temp_key_, tag_current_)
       ->ViewComponent("cell",false);
-  const Epetra_MultiVector& p1 = *S_inter_->GetFieldData(pres_key_)
+  const Epetra_MultiVector& p1 = *S_->GetPtr<CompositeVector>(pres_key_, tag_current_)
       ->ViewComponent("cell",false);
 
   // Ensure the necessity of doing this... if max(pres_guess_c) < p_atm then there is no water anywhere.
@@ -47,20 +53,20 @@ bool MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<T
   }
   
   // project energy and water content
-  double dt_next = S_next_->time() - S_inter_->time();
-  double dt_prev = S_inter_->time() - time_prev2_;
+  double dt_next = S_->get_time(tag_next_) - S_->get_time(tag_current_);
+  double dt_prev = S_->get_time(tag_current_) - time_prev2_;
 
   // -- get wc and energy data
   const Epetra_MultiVector& wc0 = *wc_prev2_;
-  const Epetra_MultiVector& wc1 = *S_inter_->GetFieldData(wc_key_)
+  const Epetra_MultiVector& wc1 = *S_->GetPtr<CompositeVector>(wc_key_, tag_current_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& wc2 = *S_next_->GetFieldData(wc_key_, wc_key_)
+  Epetra_MultiVector& wc2 = *S_->GetPtrW<CompositeVector>(wc_key_, tag_next_, wc_key_)
       ->ViewComponent("cell",false);
 
   const Epetra_MultiVector& e0 = *e_prev2_;
-  const Epetra_MultiVector& e1 = *S_inter_->GetFieldData(e_key_)
+  const Epetra_MultiVector& e1 = *S_->GetPtr<CompositeVector>(e_key_, tag_current_)
       ->ViewComponent("cell",false);
-  Epetra_MultiVector& e2 = *S_next_->GetFieldData(e_key_, e_key_)
+  Epetra_MultiVector& e2 = *S_->GetPtrW<CompositeVector>(e_key_, tag_next_, e_key_)
       ->ViewComponent("cell",false);
 
   // -- project
@@ -71,7 +77,7 @@ bool MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<T
   e2.Update(dt_ratio, e1, 1. - dt_ratio);
 
   // -- extra data
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData(cv_key_)
+  const Epetra_MultiVector& cv = *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)
       ->ViewComponent("cell",false);
 
   int rank = mesh_->get_comm()->MyPID();
@@ -103,7 +109,7 @@ bool MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<T
                   << "   Extrap wc,e: " << wc2[0][c] << ", " << e2[0][c] << std::endl
                   << "   Extrap p,T: " << pres_guess_c[0][c] << ", " << T_guess << std::endl;
 
-    model_->UpdateModel(S_next_.ptr(), c);
+    model_->UpdateModel(S_.ptr(), c);
     ierr = model_->Evaluate(T_guess, pres_guess_c[0][c],
                             e_tmp, wc_tmp);
     AMANZI_ASSERT(!ierr);
@@ -191,13 +197,13 @@ void MPCDelegateEWCSurface::precon_ewc_(Teuchos::RCP<const TreeVector> u,
   Epetra_MultiVector& dT_std = *Pu->SubVector(1)->Data()->ViewComponent("cell",false);
 
   // additional data required
-  const Epetra_MultiVector& cv = *S_next_->GetFieldData("cell_volume")->ViewComponent("cell",false);
+  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>("cell_volume", tag_next_).ViewComponent("cell",false);
 
   // old values
-  const Epetra_MultiVector& p_old = *S_next_->GetFieldData(pres_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& T_old = *S_next_->GetFieldData(temp_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& wc_old = *S_next_->GetFieldData(wc_key_)->ViewComponent("cell",false);
-  const Epetra_MultiVector& e_old = *S_next_->GetFieldData(e_key_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& p_old = *S_->Get<CompositeVector>(pres_key_, tag_next_).ViewComponent("cell",false);
+  const Epetra_MultiVector& T_old = *S_->Get<CompositeVector>(temp_key_, tag_next_).ViewComponent("cell",false);
+  const Epetra_MultiVector& wc_old = *S_->Get<CompositeVector>(wc_key_, tag_next_).ViewComponent("cell",false);
+  const Epetra_MultiVector& e_old = *S_->Get<CompositeVector>(e_key_, tag_next_).ViewComponent("cell",false);
 
   // min change values... ewc is not useful near convergence
   double dT_min = 0.01;
@@ -221,7 +227,7 @@ void MPCDelegateEWCSurface::precon_ewc_(Teuchos::RCP<const TreeVector> u,
       *dcvo->os() << "Precon: sc = " << c << std::endl;
 
     // only do EWC if corrections are large, ie not clearly converging
-    model_->UpdateModel(S_next_.ptr(), c);
+    model_->UpdateModel(S_.ptr(), c);
     if (std::abs(dT_std[0][c]) > dT_min || std::abs(dp_std[0][c]) > dp_min) {
       if (-dT_std[0][c] < 0.) {  // decreasing, freezing
         if (dcvo != Teuchos::null && dcvo->os_OK(Teuchos::VERB_EXTREME))

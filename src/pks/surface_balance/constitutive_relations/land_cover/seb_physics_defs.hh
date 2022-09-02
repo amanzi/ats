@@ -62,7 +62,8 @@ struct ModelParams {
   {}
 
   ModelParams(Teuchos::ParameterList& plist) :
-      ModelParams() {
+      ModelParams()
+  {
     thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
     thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
     evap_transition_width = plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
@@ -76,8 +77,8 @@ struct ModelParams {
   double density_air;
   double density_freshsnow;
   double density_frost;
-  double thermalK_snow_exp;
   double thermalK_freshsnow;
+  double thermalK_snow_exp;
   double H_fusion, H_sublimation, H_vaporization;
   double Cp_air, Cv_water;
   double KB;

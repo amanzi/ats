@@ -4,19 +4,9 @@
 #    Constitutive relations for flow
 #
 
-file(GLOB_RECURSE registrations "./*_reg.hh" )
-foreach(reg_lcv IN LISTS registrations)
-  register_abs_evaluator_with_factory(HEADERFILE ${reg_lcv} LISTNAME ATS_FLOW_RELATIONS_REG)
-endforeach(reg_lcv)
-
-generate_evaluators_registration_header(
-  HEADERFILE ats_flow_relations_registration.hh
-  LISTNAME   ATS_FLOW_RELATIONS_REG
-  INSTALL    True
-  )
 
 # collect all sources
-list(APPEND subdirs elevation overland_conductivity porosity thaw_depth water_content wrm)
+list(APPEND subdirs elevation overland_conductivity porosity water_content wrm)
 set(ats_flow_relations_src_files "")
 set(ats_flow_relations_inc_files "")
 
@@ -28,6 +18,12 @@ foreach(lcv IN LISTS subdirs)
 
   file(GLOB subdir_incs "./${lcv}/*.hh")
   set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs})
+
+  file(GLOB registrations "./${lcv}/*_reg.hh" )
+  foreach(reg_lcv IN LISTS registrations)
+    register_abs_evaluator_with_factory(HEADERFILE ${reg_lcv} LISTNAME ATS_FLOW_RELATIONS_REG)
+  endforeach(reg_lcv)
+
 endforeach(lcv)
 
 set(ats_flow_relations_link_libs
@@ -48,3 +44,9 @@ add_amanzi_library(ats_flow_relations
                    HEADERS ${ats_flow_relations_inc_files}
 		   LINK_LIBS ${ats_flow_relations_link_libs})
 
+generate_evaluators_registration_header(
+    HEADERFILE ats_flow_relations_registration.hh
+    LISTNAME   ATS_FLOW_RELATIONS_REG
+    INSTALL    True
+    )
+                 

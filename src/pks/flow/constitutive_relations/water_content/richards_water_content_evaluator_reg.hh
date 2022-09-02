@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,RichardsWaterContentEvaluator> RichardsWaterContentEvaluator::reg_("richards water content");
+Utils::RegisteredFactory<Evaluator,RichardsWaterContentEvaluator> RichardsWaterContentEvaluator::reg_("richards water content");
 
 } //namespace
 } //namespace

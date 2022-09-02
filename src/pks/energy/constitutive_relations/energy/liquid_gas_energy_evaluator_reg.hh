@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Energy {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,LiquidGasEnergyEvaluator> LiquidGasEnergyEvaluator::reg_("liquid+gas energy");
+Utils::RegisteredFactory<Evaluator,LiquidGasEnergyEvaluator> LiquidGasEnergyEvaluator::reg_("liquid+gas energy");
 
 } //namespace
 } //namespace
