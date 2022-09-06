@@ -143,7 +143,7 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   // --  dt is the requested timestep size.  It must be less than or equal to...
   // --  dt_internal is the max valid dt, and is set by physics/solvers
   // --  dt_solver is what the solver wants to do
-  double dt_internal = S_->Get<double>("dt", Tag(name_));
+  double dt_internal = S_->Get<double>("dt_internal", Tag(name_));
 
   // Note, the fact that this is triggering an assertion on old old runs
   // indicates that there may be a long-standing bug in TimeStepController.
