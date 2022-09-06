@@ -13,14 +13,14 @@
 
 /*!
 
-ATS's top-level main accepts an XML list including a few required elements.
+ATS's top-level driver accepts an XML list including a few required elements.
 
 .. _main-spec:
 .. admonition:: main-spec
 
     * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
     * `"regions`" ``[region-typedsublist-spec-list]`` A list of Region_ objects.
-    * `"cycle driver`" ``[coordinator-spec]``  See Coordinator_.
+    * `"cycle driver`" ``[coordinator-spec]``  See below.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
     * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.
