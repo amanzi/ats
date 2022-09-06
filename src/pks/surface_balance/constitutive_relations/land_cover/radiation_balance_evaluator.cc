@@ -30,6 +30,10 @@ RadiationBalanceEvaluator::RadiationBalanceEvaluator(Teuchos::ParameterList& pli
     domain_canopy_ = domain;
     domain_snow_ = Keys::readDomainHint(plist_, domain_canopy_, "canopy", "snow");
     domain_surf_ = Keys::readDomainHint(plist_, domain_canopy_, "canopy", "surface");
+  } else if (dtype == "snow") {
+    domain_snow_ = domain;
+    domain_canopy_ = Keys::readDomainHint(plist_, domain_snow_, "snow", "canopy");
+    domain_surf_ = Keys::readDomainHint(plist_, domain_snow_, "snow", "surface");
   } else {
     domain_surf_ = plist_.get<std::string>("surface domain name");
     domain_snow_ = plist_.get<std::string>("snow domain name");
@@ -73,7 +77,7 @@ RadiationBalanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
     land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-            {"beers_law_lw", "beers_law_sw", "emissivity_canopy", "albedo_canopy"});
+            {"beers_k_lw", "beers_k_sw", "emissivity_canopy", "albedo_canopy"});
 
     for (const auto& dep : dependencies_) {
       // dependencies on same mesh, but some have two
