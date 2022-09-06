@@ -141,10 +141,6 @@ void StrongMPC<PK_t>::Setup()
 
   MPC<PK_t>::Setup();
   PK_BDF_Default::Setup();
-
-  // Set the initial timestep as the min of the sub-pk sizes.
-  dt_ = std::numeric_limits<double>::max();
-  for (auto& pk : sub_pks_) dt_ = std::min(dt_, pk->get_dt());
 };
 
 

@@ -14,15 +14,15 @@ else:
 from amanzi_xml.utils import search as asearch
 from amanzi_xml.utils import io as aio
 from amanzi_xml.utils import errors as aerrors
-from amanzi_xml.common import parameter
+from amanzi_xml.common import parameter, parameter_list
 
 def new_state(xml):
     """Converts manning coeficients from boundary face and cell back to just cell"""
     try:
-        state_evals = asearch.find_path(xml, ["state", "field evaluators"])
+        state_evals = asearch.find_path(xml, ["state", "field evaluators"], no_skip=True)
     except aerrors.MissingXMLError:
         try:
-            state_evals = asearch.find_path(xml, ["state", "evaluators"])
+            state_evals = asearch.find_path(xml, ["state", "evaluators"], no_skip=True)
         except aerrors.MissingXMLError:
             return
     else:
@@ -38,11 +38,100 @@ def new_state(xml):
 
     for eval_deps in asearch.findall_path(state_evals, ["evaluator dependencies"]):
         eval_deps.setName("dependencies")
-            
-def update(xml):
+
+def pk_initial_timestep(xml, has_orig=False):
+    """'initial time step' --> 'initial time step [s]'"""
+
+    def get_this_dt(pk_tree, pks):
+        """Finds dt in THIS list"""
+        pk_list = asearch.child_by_name(pks, pk_tree.getName())
+        init_ts = list(asearch.children_by_name(pk_list, "initial time step"))
+        init_ts_s = list(asearch.children_by_name(pk_list, "initial time step [s]"))
+        dt = -1
+        if len(init_ts_s) == 1:
+            dt = init_ts_s[0].getValue()
+            pk_list.remove(init_ts_s[0])
+            if len(init_ts) == 1:
+                pk_list.remove(init_ts[0])
+        elif len(init_ts) == 1:
+            dt = init_ts[0].getValue()
+            pk_list.remove(init_ts[0])
+        return dt
+
+    def get_dt(pk_tree, pks):
+        """Finds dt in any PK, if it exists, through recursion of children or local plist"""
+        dt = get_this_dt(pk_tree, pks)
+        if len(pk_tree) == 1:
+            # it is a leaf
+            return dt
+        elif dt > 0:
+            # not a leaf, but has a dt
+            return dt
+        else:
+            # not a leaf, recurse
+            dts = [get_dt(child, pks) for child in pk_tree if isinstance(child, parameter_list.ParameterList)]
+            if any(dt > 0 for dt in dts):
+                return min(dt for dt in dts if dt > 0)
+            else:
+                return -1
+
+    def generate_with_timestepper(pk_tree, pks):
+        """Generator over all PKs that have a time integrator list"""
+        for pk in pk_tree:
+            if isinstance(pk, parameter_list.ParameterList):
+                pk_list = asearch.child_by_name(pks, pk.getName())
+                try:
+                    ti = asearch.child_by_name(pk_list, "time integrator")
+                except aerrors.MissingXMLError:
+                    for pk_with_ti in generate_with_timestepper(pk, pks):
+                        yield pk_with_ti
+                else:
+                    yield pk
+
+    pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"], no_skip=True)
+    pks = asearch.find_path(xml, ['PKs',])
+
+    for pk in generate_with_timestepper(pk_tree, pks):
+        dt = get_dt(pk, pks)
+        if dt > 0:
+            pk_list = asearch.child_by_name(pks, pk.getName())
+            ti = asearch.child_by_name(pk_list, "time integrator")
+            ts_cont_type = asearch.child_by_name(ti, "timestep controller type").getValue()
+
+            ts_cont_pars = None
+            if has_orig and ts_cont_type == "from file":
+                # this has an orig file, and this is from file, so
+                # really we need to put the init dt in the old,
+                # original list.
+                for child in ti:
+                    child_name = child.getName()
+                    if child_name.startswith("timestep controller") \
+                       and child_name.endswith("parameters") \
+                       and child_name != "timestep controller from file parameters":
+                        ts_cont_pars = child
+            if ts_cont_pars is None:
+                ts_cont_pars = asearch.child_by_name(ti, "timestep controller "+ts_cont_type.strip()+" parameters")
+
+            try:
+                dt = asearch.child_by_name(ts_cont_pars, "initial time step [s]")
+            except aerrors.MissingXMLError:
+                ts_cont_pars.setParameter("initial time step [s]", 'double', float(dt))
+
+def top_cell_evals(xml):
+    evals = asearch.find_path(xml, ['state', 'evaluators'], no_skip=True)
+    for ev in evals:
+        ev_type = asearch.child_by_name(ev, 'evaluator type')
+        if ev_type.getValue() == 'surface top cell evaluator':
+            ev_type.setValue('surface from top cell evaluator')
+
+                
+def update(xml, has_orig=False):
     """generic update calls all needed things""" 
     new_state(xml)
+    pk_initial_timestep(xml, has_orig)
+    top_cell_evals(xml)
 
+    
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__)
@@ -53,6 +142,13 @@ if __name__ == "__main__":
     group.add_argument("-o", "--outfile", help="output filename")
 
     args = parser.parse_args()
+
+    # check for orig file
+    has_orig = False
+    if args.infile.endswith('.xml'):
+        orig_filename = args.infile[:-4]+"_orig.xml"
+        if os.path.isfile(orig_filename):
+            has_orig = True
 
     print("Converting file: %s"%args.infile)
     xml = aio.fromFile(args.infile, True)
