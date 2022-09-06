@@ -19,7 +19,7 @@
 
 #include "dbc.hh"
 #include "errors.hh"
-#include "simulation_driver.hh"
+#include "ats_driver.hh"
 
 // registration files
 #include "state_evaluators_registration.hh"
@@ -196,11 +196,11 @@ int main(int argc, char *argv[])
   if (!verbosity.empty())
     Amanzi::VerboseObject::global_default_level = opt_level;
 
-  // -- create simulator object and run
-  ATS::SimulationDriver simulator;
+  // create the top level driver and run simulation
+  ATS::ATSDriver driver(*plist, comm);
   int ret = 0;
   try {
-    ret = simulator.Run(comm, *plist);
+    ret = driver.run();
   } catch (std::string& s) {
     if (rank == 0) {
       std::cerr << "ERROR:" << std::endl
@@ -215,5 +215,4 @@ int main(int argc, char *argv[])
   }
   return ret;
 }
-
 

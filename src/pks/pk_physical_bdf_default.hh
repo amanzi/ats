@@ -81,8 +81,6 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
 
   virtual void Setup() override;
 
-  virtual void set_dt(double dt) override { dt_ = dt; }
-
   // initialize.  Note both BDFBase and PhysicalBase have initialize()
   // methods, so we need a unique overrider.
   virtual void Initialize() override;
