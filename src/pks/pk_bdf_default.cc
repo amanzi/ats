@@ -60,8 +60,8 @@ void PK_BDF_Default::Initialize()
             bdf_plist, solution_, S_));
 
     double dt_init = time_stepper_->initial_timestep();
-    S_->Assign("dt", Tag(name_), name_, dt_init);
-    S_->GetRecordW("dt", Tag(name_), name_).set_initialized();
+    S_->Assign("dt_internal", Tag(name_), name_, dt_init);
+    S_->GetRecordW("dt_internal", Tag(name_), name_).set_initialized();
 
     // -- initialize continuation parameter if needed.
     if (S_->HasRecord("continuation_parameter", Tag(name_))) {
