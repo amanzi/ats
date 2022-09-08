@@ -614,8 +614,11 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     if (land_cover_.size() == 0)
       land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-              {"roughness_snow", "roughness_ground",
-               "water_transition_depth", "dessicated_zone_thickness"});
+              {"roughness_snow",
+               "roughness_ground",
+               "water_transition_depth",
+               "dessicated_zone_thickness",
+               "clapp_horn_b"});
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;
