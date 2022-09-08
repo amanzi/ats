@@ -73,7 +73,7 @@ MultiplicativeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
     int i = 0;
     for (const auto& key : dependencies_) {
       const auto& dep_v = *(*S->GetFieldData(key)->ViewComponent(lcv_name, false))(dofs_[i]);
-      res_c.Multiply(1, res_c, dep_v, 0.);
+      res_c.Multiply(1, dep_v, res_c, 0.);
       i++;
     }
     if (positive_) {
@@ -99,7 +99,7 @@ MultiplicativeEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
     for (const auto& key : dependencies_) {
       if (key != wrt_key) {
         const auto& dep_v = *(*S->GetFieldData(key)->ViewComponent(lcv_name, false))(dofs_[i]);
-        res_c.Multiply(1, res_c, dep_v, 0.);
+        res_c.Multiply(1, dep_v, res_c, 0.);
         i++;
       }
     }

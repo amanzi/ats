@@ -245,6 +245,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
     S->RequireFieldEvaluator(water_src_key_);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+    
   }
 
   // require multiscale fields
@@ -487,6 +488,17 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
           }
           src->set_state(S_);
           srcs_.push_back(src);
+        } else if (src_type == "field") {
+          // domain couplings are special -- they always work on all components
+          Teuchos::RCP<TransportDomainFunction> src =
+              factory.Create(src_list, "field", AmanziMesh::CELL, Kxy);
+
+          for (int i = 0; i < component_names_.size(); i++) {
+            src->tcc_names().push_back(component_names_[i]);
+            src->tcc_index().push_back(i);
+          }
+          src->set_state(S_);
+          srcs_.push_back(src);          
         } else {
           Teuchos::RCP<TransportDomainFunction> src =
               factory.Create(src_list, "source function", AmanziMesh::CELL, Kxy);
