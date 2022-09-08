@@ -61,7 +61,6 @@ class MPCWeakSubdomain : public MPC<PK> {
   Comm_ptr_type comm_;
   bool subcycled_;
   double subcycled_target_dt_;
-  double subcycled_min_dt_;
   double cycle_dt_;
   Key ds_name_;
 

@@ -44,7 +44,6 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
   subcycled_ = plist_->template get<bool>("subcycle", false);
   if (subcycled_) {
     subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
-    subcycled_min_dt_ = plist_->template get<double>("minimum subcycled time step [s]", 1.e-4);
   }
 };
 
@@ -220,12 +219,6 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
           dt_inner = sub_pks_[i]->get_dt();
           if (vo_->os_OK(Teuchos::VERB_EXTREME))
             *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
-        }
-
-        if (dt_inner < subcycled_min_dt_) {
-          Errors::Message msg;
-          msg << "Subdomain " << subdomain << " on PID " << my_pid << " crashing timestep in subcycling: dt = " << dt_inner;
-          Exceptions::amanzi_throw(msg);
         }
       }
       i++;
