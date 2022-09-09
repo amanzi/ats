@@ -248,6 +248,25 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
     
   }
 
+
+  if (plist_->sublist("source terms").isSublist("component mass source")) {
+    Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
+
+    for (const auto& it : conc_sources_list) {
+      std::string name = it.first;
+      if (conc_sources_list.isSublist(name)) {
+        Teuchos::ParameterList& src_list = conc_sources_list.sublist(name);
+        std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
+        if ((src_type == "field")&&(src_list.isSublist("field"))){
+          trans_srs_key_ = src_list.sublist("field").get<std::string>("field key");
+          S->RequireField(water_src_key_, water_src_key_)->SetMesh(mesh_)->SetGhosted(true)
+            ->AddComponent("cell", AmanziMesh::CELL,  ncomponents);
+          S->RequireFieldEvaluator(trans_srs_key_);
+        }
+      }
+    }
+  }
+
   // require multiscale fields
   multiscale_porosity_ = false;
   if (multiscale_model == "dual porosity") {
