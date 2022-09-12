@@ -150,9 +150,7 @@ class VolumetricDeformation : public PK_Physical_Default {
     return dt_max_;
   }
 
-  virtual void set_dt(double dt) override {
-    dt_ = dt;
-  }
+  virtual void set_dt(double dt) override {}
 
  private:
 
@@ -188,7 +186,7 @@ class VolumetricDeformation : public PK_Physical_Default {
   double time_scale_, structural_vol_frac_;
 
   // PK timestep control
-  double dt_, dt_max_;
+  double dt_max_;
 
   // meshes
   Key domain_surf_, domain_surf_3d_;
