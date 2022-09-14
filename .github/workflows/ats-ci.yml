@@ -29,7 +29,6 @@ jobs:
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run:
-        echo "git branch --list ${{steps.branch.outputs.ATS_BRANCH}}";
         echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${{steps.branch.outputs.ATS_BRANCH}} | sed 's/.*refs\/heads\///')"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
