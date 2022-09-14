@@ -29,7 +29,7 @@ jobs:
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run:
-        echo "git branch --list ${{steps.branch.outputs.ATS_BRANCH}}"
+        echo "git branch --list ${{steps.branch.outputs.ATS_BRANCH}}";
         echo "::set-output name=AMANZI_BRANCH::$(git branch --list ${{steps.branch.outputs.ATS_BRANCH}} | sed 's/ *$//g')"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
@@ -37,8 +37,8 @@ jobs:
         echo "::set-output name=ATS_BRANCH_TAG::$(echo ${{steps.branch.outputs.ATS_BRANCH}} | sed -e 's/\//--/g')"
     - name: Output the branch name
       run:
-        echo "Amanzi branch = ${{steps.amanzi_branch.outputs.AMANZI_BRANCH}}"
-        echo "ATS branch = ${{steps.branch.outputs.ATS_BRANCH}}"
+        echo "Amanzi branch = ${{steps.amanzi_branch.outputs.AMANZI_BRANCH}}";
+        echo "ATS branch = ${{steps.branch.outputs.ATS_BRANCH}}";
         echo "Tag reference = ${{steps.tag.outputs.ATS_BRANCH_TAG}}"
     - name: Get TPLs version
       id: version 
