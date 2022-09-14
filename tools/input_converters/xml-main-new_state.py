@@ -124,13 +124,24 @@ def top_cell_evals(xml):
         if ev_type.getValue() == 'surface top cell evaluator':
             ev_type.setValue('surface from top cell evaluator')
 
+def density_units(xml):
+    """[kg/m^3] --> [kg m^-3] to be consistent with all other units in ATS"""
+    for d in asearch.findall_path(xml, ["molar mass [kg/mol]"]):
+        d.setName("molar mass [kg mol^-1]")
+    for d in asearch.findall_path(xml, ["molar mass [g/mol]"]):
+        d.setName("molar mass [g mol^-1]")
+    for d in asearch.findall_path(xml, ["density [kg/m^3]"]):
+        d.setName("density [kg m^-3]")
+    for d in asearch.findall_path(xml, ["density [mol/m^3]"]):
+        d.setName("density [mol m^-3]")
+            
                 
 def update(xml, has_orig=False):
     """generic update calls all needed things""" 
     new_state(xml)
     pk_initial_timestep(xml, has_orig)
     top_cell_evals(xml)
-
+    density_units(xml)
     
 if __name__ == "__main__":
     import argparse
