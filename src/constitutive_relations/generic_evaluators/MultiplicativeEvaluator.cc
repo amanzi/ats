@@ -66,20 +66,22 @@ MultiplicativeEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 {
 
   result->PutScalar(coef_);
-
+  
   for (auto lcv_name : *result) {
     // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
-    auto& res_c = *(*result->ViewComponent(lcv_name, false))(0);
+    auto& res_c = *result->ViewComponent(lcv_name, false);
     int i = 0;
     for (const auto& key : dependencies_) {
       const auto& dep_v = *(*S->GetFieldData(key)->ViewComponent(lcv_name, false))(dofs_[i]);
       res_c.Multiply(1, dep_v, res_c, 0.);
       i++;
     }
+    
     if (positive_) {
       for (int c=0; c!=res_c.MyLength(); ++c) {
-        res_c[c] = std::max(res_c[c], 0.);
-
+        for (int i=0; i!=res_c.NumVectors(); ++i){
+          res_c[i][c] = std::max(res_c[i][c], 0.);
+        }
       }
     }
   }
@@ -94,7 +96,7 @@ MultiplicativeEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
 
   for (auto lcv_name : *result) {
     // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
-    auto& res_c = *(*result->ViewComponent(lcv_name, false))(0);
+    auto& res_c = *result->ViewComponent(lcv_name, false);
     int i = 0;
     for (const auto& key : dependencies_) {
       if (key != wrt_key) {
@@ -103,9 +105,12 @@ MultiplicativeEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<Stat
         i++;
       }
     }
+    
     if (positive_) {
       for (int c=0; c!=res_c.MyLength(); ++c) {
-        res_c[c] = std::max(res_c[c], 0.);
+        for (int i=0; i!=res_c.NumVectors(); ++i){        
+          res_c[i][c] = std::max(res_c[i][c], 0.);
+        }
       }
     }
   }

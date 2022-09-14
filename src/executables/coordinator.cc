@@ -645,6 +645,9 @@ void Coordinator::cycle_driver() {
       S_->set_intermediate_time(S_->time());
 
       fail = advance(S_->time(), S_->time() + dt, dt);
+
+      WriteStateStatistics(*S_, *vo_);
+      
     } // while not finished
 
 #if !DEBUG_MODE

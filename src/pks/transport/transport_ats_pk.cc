@@ -259,7 +259,7 @@ void Transport_ATS::Setup(const Teuchos::Ptr<State>& S)
         std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
         if ((src_type == "field")&&(src_list.isSublist("field"))){
           trans_srs_key_ = src_list.sublist("field").get<std::string>("field key");
-          S->RequireField(water_src_key_, water_src_key_)->SetMesh(mesh_)->SetGhosted(true)
+          S->RequireField(trans_srs_key_, trans_srs_key_)->SetMesh(mesh_)->SetGhosted(true)
             ->AddComponent("cell", AmanziMesh::CELL,  ncomponents);
           S->RequireFieldEvaluator(trans_srs_key_);
         }
@@ -397,6 +397,8 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_bcs_list = plist_->sublist("boundary conditions").sublist("concentration");
 
+    std::cout<<"BC\n"<<conc_bcs_list<<"\n";
+    
     for (const auto& it : conc_bcs_list) {
       std::string name = it.first;
       if (conc_bcs_list.isSublist(name)) {
@@ -490,6 +492,8 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
 
+    std::cout <<"Source\n"<< conc_sources_list <<"\n";
+    
     for (const auto& it : conc_sources_list) {
       std::string name = it.first;
       if (conc_sources_list.isSublist(name)) {
@@ -516,7 +520,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
             src->tcc_names().push_back(component_names_[i]);
             src->tcc_index().push_back(i);
           }
-          src->set_state(S_);
+          src->set_state(S_next_);
           srcs_.push_back(src);          
         } else {
           Teuchos::RCP<TransportDomainFunction> src =
@@ -572,6 +576,7 @@ void Transport_ATS::Initialize(const Teuchos::Ptr<State>& S)
     *vo_->os() << vo_->color("green") << "Initalization of PK is complete."
                << vo_->reset() << std::endl << std::endl;
   }
+
 }
 
 
@@ -1670,6 +1675,12 @@ void Transport_ATS::ComputeAddSourceTerms(double tp, double dtp,
 {
   int num_vectors = cons_qty.NumVectors();
   int nsrcs = srcs_.size();
+
+  if (trans_srs_key_!=""){
+    if (S_next_->HasFieldEvaluator(trans_srs_key_)){
+      S_next_->GetFieldEvaluator(trans_srs_key_)->HasFieldChanged(S_next_.ptr(), trans_srs_key_);    
+    }
+  }
 
   for (int m = 0; m < nsrcs; m++) {
     double t0 = tp - dtp;

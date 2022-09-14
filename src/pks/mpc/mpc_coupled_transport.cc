@@ -81,7 +81,7 @@ void CoupledTransport_PK::Setup(const Teuchos::Ptr<State>& S)
   surf_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[surf_id_]);
   AMANZI_ASSERT(surf_pk_ != Teuchos::null);
 
-  //SetupCouplingConditions();
+  SetupCouplingConditions();
 }
 
 int CoupledTransport_PK::num_aqueous_component()
