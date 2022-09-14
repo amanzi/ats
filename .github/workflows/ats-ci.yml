@@ -21,15 +21,15 @@ jobs:
         repository: amanzi/amanzi
         ref: master
         submodules: true
-    - name: Extract the Amanzi branch name
-      id: amanzi_branch
-      run:
-        echo "::set-output name=AMANZI_BRANCH::$(echo master)"
     - name: Extract the ATS branch name
       id: branch
       working-directory: Docker
       run:
         echo "::set-output name=ATS_BRANCH::$(echo $GITHUB_REF | sed -e 's/refs\/heads\///')"
+    - name: Does Amanzi branch of the same name exist?
+      id: amanzi_branch
+      run:
+        echo "::set-output name=AMANZI_BRANCH::$(git branch --list ${{steps.branch.outputs.ATS_BRANCH}})"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run:
