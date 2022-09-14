@@ -25,11 +25,11 @@ jobs:
       id: branch
       working-directory: Docker
       run:
-        echo "::set-output name=ATS_BRANCH::$(echo $GITHUB_REF | sed -e 's/refs\/heads\///')"
+        echo "::set-output name=ATS_BRANCH::$GITHUB_REF_NAME"
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run:
-        echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${{steps.branch.outputs.ATS_BRANCH}} | sed 's/.*refs\/heads\///')"
+        echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run:
