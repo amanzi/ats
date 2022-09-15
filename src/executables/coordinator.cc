@@ -51,12 +51,16 @@ actual work.
 
 namespace ATS {
 
-Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
-                         Amanzi::Comm_ptr_type comm ) :
-    parameter_list_(Teuchos::rcp(new Teuchos::ParameterList(parameter_list))),
-    comm_(comm),
-    restart_(false)
+// this MUST be be called before using Coordinator
+void
+Coordinator::coordinator_init(Teuchos::ParameterList& parameter_list,
+                              Amanzi::Comm_ptr_type comm)
 {
+  // initialize plist and comm member variables from input args
+  parameter_list_ = Teuchos::rcp(new Teuchos::ParameterList(parameter_list));
+  comm_ = comm;
+  restart_ = false;
+
   // create and start the global timer
   timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
   setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
@@ -65,13 +69,6 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   // create state.
   S_ = Teuchos::rcp(new Amanzi::State(parameter_list_->sublist("state")));
 
-  coordinator_init();
-
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
-};
-
-void Coordinator::coordinator_init()
-{
   // create the geometric model and regions
   Teuchos::ParameterList reg_list = parameter_list_->sublist("regions");
   Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
@@ -135,6 +132,9 @@ void Coordinator::coordinator_init()
       analysis.OutputBCs();
     }
   }
+
+  // create verbose object
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
 
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());

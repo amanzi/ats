@@ -39,21 +39,22 @@ namespace ATS {
 class Coordinator {
 
 public:
-  Coordinator(Teuchos::ParameterList& parameter_list,
-              Amanzi::Comm_ptr_type comm);
+
+  Coordinator() {};
 
   // PK methods
   virtual void setup();
   virtual void initialize();
-  virtual void finalize();
+  void finalize();
   void report_memory();
-  bool advance();
+  virtual bool advance();
   void visualize(bool force=false);
   void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);
 
  protected:
-  void coordinator_init();
+  void coordinator_init(Teuchos::ParameterList& parameter_list,
+              Amanzi::Comm_ptr_type comm);
   void read_parameter_list();
 
   // PK container and factory

@@ -49,9 +49,7 @@ namespace ATS {
 
 ATSDriver::ATSDriver(Teuchos::ParameterList& parameter_list,
                      Amanzi::Comm_ptr_type comm)
-    : Coordinator(parameter_list, comm) {}
-
-
+    : Coordinator() { Coordinator::coordinator_init(parameter_list, comm); }
 
 // -----------------------------------------------------------------------------
 // setup and initialize, then run until time >= duration_
