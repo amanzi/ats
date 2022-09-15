@@ -56,7 +56,7 @@ SurfDistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
   double t0 = S->time();
   double dt = *S->GetScalarData("dt"); 
-  //  double t1 = S->final_time();
+
 
   Key sub_sink_key = "water_source";
   S->GetFieldEvaluator(sub_sink_key)->HasFieldChanged(S.ptr(), my_key_);

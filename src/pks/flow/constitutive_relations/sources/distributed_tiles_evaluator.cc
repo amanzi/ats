@@ -27,6 +27,10 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   domain_ = Keys::getDomain(my_key_);
 
   subsurface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
+  sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
+  factor_key_ = plist.get<std::string>("factor field key", "");
+  num_component_ = plist.get<int>("number of components", 1);
+    
   // surface_marks_key_ = Keys::readKey(plist, domain_surf_, "ditch marks", "ditch_marks");
   // surf_len_key_ = Keys::readKey(plist, domain_surf_, "ditch length", "ditch_length");
   
@@ -40,6 +44,7 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density", "molar_density_liquid");
   dependencies_.insert(pres_key_);
 
+  if (factor_key_ != "") dependencies_.insert(factor_key_);
   
   times_.resize(2);
   times_[0] = -1.0; times_[1] = -1.0;
@@ -72,7 +77,13 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   double total = 0.0;
   src_vec->PutScalar(0.0);
   sub_sink.PutScalar(0.0);
-  //std::cout<<sub_sink<<"\n";
+  int num_vectors = 1;
+
+  if (factor_key_!=""){
+    num_vectors = S->GetFieldData(factor_key_)->ViewComponent("cell",false)->NumVectors();
+    AMANZI_ASSERT(num_vectors != sub_sink.NumVectors());
+    AMANZI_ASSERT(num_vectors != num_component_);
+  }
 
   if (abs(dt) > 1e-13) {
     for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
@@ -80,9 +91,19 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         double val = std::min(p_enter_ - pres[0][c], 0.0)*dens[0][c]*k_;
         //val = 1e-6;
         //std::cout<<"sink val "<<" "<<val<<" "<< pres[0][c]<<"\n";
-        sub_sink[0][c] = val;
-        (*src_vec)[sub_marks[0][c] - 1] +=  + val * dt * cv[0][c];
-        total = total + val * dt * cv[0][c];
+
+        if (factor_key_!=""){
+          const auto& factor = *S->GetFieldData(factor_key_)->ViewComponent("cell", false);
+          for (int i=0; i<num_component_; ++i){
+            sub_sink[i][c] = factor[i][c] * val;
+            (*src_vec)[sub_marks[0][c] - 1 + i* num_ditches_] += factor[i][c] * val * dt * cv[0][c];
+            total = total + factor[i][c] * val * dt * cv[0][c];
+          }
+        }else{
+          sub_sink[0][c] = val;
+          (*src_vec)[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
+          total = total + val * dt * cv[0][c];
+        }
       }
     }
   }
@@ -134,9 +155,9 @@ DistributedTilesRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Pt
 void
 DistributedTilesRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
 
-  sources_key_ = Key("subdomain_sources");
+  //sources_key_ = Key("subdomain_sources");
   if (!S->HasField(sources_key_)){
-    S->RequireConstantVector(sources_key_, num_ditches_);
+    S->RequireConstantVector(sources_key_, num_ditches_ * num_component_);
     Teuchos::RCP<Field> field =  S->GetField(sources_key_, "state");
     Teuchos::RCP<Field_ConstantVector> cvfield =
       Teuchos::rcp_dynamic_cast<Field_ConstantVector>(field, true);
