@@ -58,6 +58,7 @@ actual work.
 namespace ATS {
 
 // this MUST be be called before using Coordinator
+<<<<<<< HEAD
 Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                          const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                          const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
@@ -73,6 +74,21 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
   vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm_, "ATS", *coordinator_list_));
   Teuchos::OSTab tab = vo_->getOSTab();
+=======
+void
+Coordinator::coordinator_init(Teuchos::ParameterList& parameter_list,
+                              Amanzi::Comm_ptr_type comm)
+{
+  // initialize plist and comm member variables from input args
+  parameter_list_ = Teuchos::rcp(new Teuchos::ParameterList(parameter_list));
+  comm_ = comm;
+  restart_ = false;
+
+  // create and start the global timer
+  timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
+  setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
+  cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
+>>>>>>> eada89b7 (replace Coordinator's constructor with default constructor and move initialization code to protected coordinator_init function)
 
   timers_["0: create mesh"] = Teuchos::TimeMonitor::getNewCounter("0: create mesh");
   timers_["1: create run"] = Teuchos::TimeMonitor::getNewCounter("1: create run");
@@ -85,11 +101,56 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   timers_["4d: checkpoint"] = Teuchos::TimeMonitor::getNewCounter("4d: checkpoint");
   timers_["5: finalize"] = Teuchos::TimeMonitor::getNewCounter("5: finalize");
 
+<<<<<<< HEAD
   // print header material
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "Writing input file ..." << std::endl << std::endl;
     Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
     *vo_->os() << "  ... completed." << std::endl;
+=======
+  // create the geometric model and regions
+  Teuchos::ParameterList reg_list = parameter_list_->sublist("regions");
+  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
+    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
+
+  // create and register meshes
+  ATS::Mesh::createMeshes(*parameter_list_, comm_, gm, *S_);
+
+  coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
+  read_parameter_list();
+
+  // create the top level PK
+  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(parameter_list_, "PKs");
+  Teuchos::ParameterList pk_tree_list = coordinator_list_->sublist("PK tree");
+  if (pk_tree_list.numParams() != 1) {
+    Errors::Message message("CycleDriver: PK tree list should contain exactly one root node list");
+    Exceptions::amanzi_throw(message);
+  }
+  Teuchos::ParameterList::ConstIterator pk_item = pk_tree_list.begin();
+  const std::string &pk_name = pk_tree_list.name(pk_item);
+
+  // create the solution
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector());
+
+  // create the pk
+  Amanzi::PKFactory pk_factory;
+  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, parameter_list_, S_, soln_);
+
+  // create the checkpointing
+  Teuchos::ParameterList& chkp_plist = parameter_list_->sublist("checkpoint");
+  checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(chkp_plist, *S_));
+
+  // create the observations
+  Teuchos::ParameterList& observation_plist = parameter_list_->sublist("observations");
+  for (auto& sublist : observation_plist) {
+    if (observation_plist.isSublist(sublist.first)) {
+      observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
+                observation_plist.sublist(sublist.first))));
+    } else {
+      Errors::Message msg("\"observations\" list must only include sublists.");
+      Exceptions::amanzi_throw(msg);
+    }
+>>>>>>> eada89b7 (replace Coordinator's constructor with default constructor and move initialization code to protected coordinator_init function)
   }
 
   // construct state, geometric model, meshes
@@ -117,6 +178,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     reportOneTimer_("0: create mesh");
   }
 
+<<<<<<< HEAD
 
   // create PKs, etc
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -257,6 +319,13 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("1: create run");
   }
+=======
+  // create verbose object
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
+
+  // create the time step manager
+  tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
+>>>>>>> eada89b7 (replace Coordinator's constructor with default constructor and move initialization code to protected coordinator_init function)
 }
 
 
