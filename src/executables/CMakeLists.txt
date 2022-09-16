@@ -40,7 +40,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
-include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/deform)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
@@ -208,19 +208,22 @@ if (APPLE AND BUILD_SHARED_LIBS)
   set_target_properties(elm_ats PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 endif()
 
-#add_amanzi_library(elm_ats_static
-#  STATIC
-#  SOURCE ${elm_ats_src_files}
-#  HEADERS ${elm_ats_inc_files}
-#  LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
-#if (APPLE AND BUILD_SHARED_LIBS)
-#  set_target_properties(elm_ats_static PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
-#endif()
+add_amanzi_executable(elm_ats_cc_test
+  SOURCE elm_ats_test.cc
+  LINK_LIBS elm_ats ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
+  OUTPUT_NAME elm_ats_cc_test
+  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
-#add_amanzi_executable(elm_ats_cc_test
-#  SOURCE elm_ats_main.cc
-#  LINK_LIBS elm_ats ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
-#  OUTPUT_NAME elm_ats_cc_test
-#  OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
-#add_subdirectory(fortran_test_driver)
+## build static lib for Fortran
+add_amanzi_library(elm_ats_static
+  STATIC
+  SOURCE ${elm_ats_src_files}
+  HEADERS ${elm_ats_inc_files}
+  LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
+if (APPLE AND BUILD_SHARED_LIBS)
+  set_target_properties(elm_ats_static PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+endif()
+
+## build Fortran test driver
+add_subdirectory(fortran_test_driver)
