@@ -1,4 +1,7 @@
 
+#ifndef ELM_ATS_API_HH_
+#define ELM_ATS_API_HH_
+
 #ifdef __cplusplus
 extern "C" {
     // opaque pointer
@@ -42,4 +45,7 @@ void ats_get_mesh_info(ELM_ATS_DRIVER ats, int *ncols_local, int *ncols_global, 
   double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon);
 #ifdef __cplusplus
 }
+#endif
+
+// include guard
 #endif

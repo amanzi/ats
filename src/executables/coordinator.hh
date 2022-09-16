@@ -43,11 +43,11 @@ public:
   Coordinator() {};
 
   // PK methods
-  virtual void setup();
+  void setup();
   virtual void initialize();
   virtual void finalize();
   void report_memory();
-  virtual bool advance();
+  bool advance();
   void visualize(bool force=false);
   void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);

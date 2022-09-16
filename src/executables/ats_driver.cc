@@ -134,9 +134,9 @@ void ATSDriver::cycle_driver() {
     // catch errors to dump two checkpoints -- one as a "last good" checkpoint
     // and one as a "debugging data" checkpoint.
     checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
+    WriteCheckpoint(*checkpoint_, comm_, *S_);
     checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
+    WriteCheckpoint(*checkpoint_, comm_, *S_);
     throw e;
   }
 #endif
