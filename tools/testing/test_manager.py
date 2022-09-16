@@ -1409,20 +1409,12 @@ def search_for_config_files(base_dir, config_file_list):
             if filename.endswith(".cfg") and os.path.isfile(os.path.join(root, filename)):
                 config_file_list.append(os.path.join(root, filename))
 
+
 def check_options(options):
     """
     Run some sanity checks on the commandline options.
     """
-    # prevent the user from updating regression output during a
-    # recursive search for config files
-    if hasattr(options, 'update'):
-        if options.update and config_list_includes_search(options):
-            raise RuntimeError("ERROR: cannot update gold regression files "
-                               "during a recursive search for config files.")
-
-        if options.update and options.new_tests:
-            raise RuntimeError("ERROR: cannot create new tests and update gold "
-                               "regression files at the same time.")
+    pass
 
 
 def check_for_docker_image(docker_image):
