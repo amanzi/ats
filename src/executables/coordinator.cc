@@ -646,7 +646,7 @@ void Coordinator::cycle_driver() {
 
       fail = advance(S_->time(), S_->time() + dt, dt);
 
-      WriteStateStatistics(*S_, *vo_);
+      //WriteStateStatistics(*S_, *vo_);
       
     } // while not finished
 

@@ -29,6 +29,8 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
   //  subsurface_marks_key_ = Keys::readKey(plist, domain_, "tile marks", "tile_marks");
   surface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
   surf_len_key_ = Keys::readKey(plist, domain_, "catchments_frac", "catchments_frac");
+  sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
+  coupling_domain_src_key_ = plist.get<std::string>("coupling domain source key", "water_source");
   
   num_ditches_ = plist.get<int>("number of ditches");
   implicit_ = plist.get<bool>("implicit drainage", true);
@@ -36,14 +38,7 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
   dependencies_.insert(surface_marks_key_);
   dependencies_.insert(surf_len_key_);
   dependencies_.insert("surface-pressure");
-
-  
-  // Q_.resize(2);
-  // for (int i=0; i<2; i++){
-  //   Q_[i] = Teuchos::rcp(new std::vector<double>);
-  //   Q_[i]->resize(num_ditches_);
-  // }
-  
+ 
   times_.resize(2);
   times_[0] = -1.0; times_[1] = -1.0;
 }
@@ -58,15 +53,14 @@ SurfDistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   double dt = *S->GetScalarData("dt"); 
 
 
-  Key sub_sink_key = "water_source";
-  S->GetFieldEvaluator(sub_sink_key)->HasFieldChanged(S.ptr(), my_key_);
+  S->GetFieldEvaluator(coupling_domain_src_key_)->HasFieldChanged(S.ptr(), my_key_);
+    
 
   Teuchos::RCP<Field> src_field =  S->GetField(sources_key_, "state");
   if (!implicit_){
     if (abs(t0 - times_[0]) > 1e-12) {
       src_field->SwitchCopies(Key("default"), Key("prev_timestep"));
       times_[0] = t0;
-      //times_[1] = t1;
     }
   }
       
@@ -105,7 +99,7 @@ SurfDistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
   //   total += surf_src[0][c]*cv[0][c];
   // }
-  // std::cout<<"Total source: field "<<total<<"\n";
+  // std::cout<<"Total source: field "<<my_key_<<" "<<total<<"\n";
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
@@ -121,7 +115,6 @@ SurfDistributedTilesRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos
 void
 SurfDistributedTilesRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
 
-  sources_key_ = Key("subdomain_sources");
   if (!S->HasField(sources_key_)){
     S->RequireConstantVector(sources_key_, num_ditches_);
     Teuchos::RCP<Field> field =  S->GetField(sources_key_, "state");
