@@ -78,16 +78,6 @@ void PK_BDF_Default::Initialize()
   }
 };
 
-void PK_BDF_Default::ResetTimeStepper(double time)
-{
-  // -- initialize time derivative
-  auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
-  solution_dot->PutScalar(0.0);
-
-  // -- set initial state
-  time_stepper_->SetInitialState(time, solution_, solution_dot);
-  return;
-}
 
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
@@ -109,12 +99,8 @@ void PK_BDF_Default::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   if (tag == tag_next_) {
     double dt = t_new - t_old;
-    if (time_stepper_ != Teuchos::null) {
-      if (dt <= 0) {
-        ResetTimeStepper(t_old);
-      } else {
-        time_stepper_->CommitSolution(dt, solution_, true);
-      }
+    if (time_stepper_ != Teuchos::null && dt > 0) {
+      time_stepper_->CommitSolution(dt, solution_, true);
     }
   }
 }

@@ -69,9 +69,7 @@ void ATSDriver::cycle_driver() {
 
   // get the intial timestep
   double dt = get_dt(false);
-  if (!restart_) {
-    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  }
+  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
 
   // visualization at IC
   visualize();

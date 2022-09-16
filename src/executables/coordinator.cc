@@ -185,6 +185,9 @@ void Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
+  // calling CommitStep to set up copies as needed.
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+
   // initialize vertex coordinate data
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
@@ -213,9 +216,6 @@ void Coordinator::initialize()
       }
     }
   }
-
-  // calling CommitStep to set up copies as needed.
-  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();

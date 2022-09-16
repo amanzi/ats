@@ -36,8 +36,10 @@ import configparser
 
 
 
-aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
-           'water_flux':['mass_flux','mass_flux_next']}
+_aliases = {'surface-water_flux':['surface-mass_flux','surface-mass_flux_next'],
+            'water_flux':['mass_flux','mass_flux_next'],
+            'saturation_liquid':['prev_saturation_liquid'],
+            }
 
 
 def get_git_hash(directory):
@@ -134,6 +136,7 @@ class RegressionTest(object):
         self._check_performance = False
         self._num_failed = 0
         self._test_name = None
+        self._new_checkpoint_files = False
 
         # docker goodies
         self._docker_executable = "docker"
@@ -241,10 +244,11 @@ class RegressionTest(object):
         fname_list2_tmp = sorted(glob.glob(os.path.join(dirname, self._file_prefix+"*", "*"+self._file_suffix)))
         fname_list2 = [f for f in fname_list2_tmp if 'checkpoint_final' not in f]
 
-        all_fnames = fname_list + fname_list2
-        #print(f'Files in {dirname}: {len(all_fnames)}')
-        #print(all_fnames)
-        return all_fnames
+        assert(len(fname_list) == 0 or len(fname_list2) == 0)
+        if len(fname_list2) > 0:
+            self._new_checkpoint_files = True
+
+        return fname_list + fname_list2
 
     def run(self, dry_run, status, testlog):
         """
@@ -648,54 +652,116 @@ class RegressionTest(object):
     def _compare(self, h5_current, h5_gold, status, testlog):
         """Check that output hdf5 file has not changed from the baseline.
         """
-        for key, tolerance in self._criteria.items():
-            if key == self._TIME and 'time' in h5_gold.attrs:
-                self._check_tolerance(h5_current.attrs['time'], h5_gold.attrs['time'],
-                                      self._TIME, tolerance, status, testlog)
+        def split_name(crit_name):
+            """Parse crit_name for name,tag,entity,dof"""
+            crit_split = crit_name.split('.')
+            name_tag = crit_split[0]
+            if len(crit_split) > 1:
+                entity = crit_split[1]
+            else:
+                entity = None
+
+            if len(crit_split) > 2:
+                dof = crit_split[2]
+            else:
+                dof = None
+
+            if '@' in name_tag:
+                name, tag = name_tag.split('@')
+            else:
+                name = name_tag
+                tag = None
+            return name, tag, entity, dof
+
+        def join_name(name, tag=None, entity=None, dof=None):
+            """Join split name back into single string"""
+            res = name
+            if tag is not None:
+                res = '@'.join((res, tag))
+            if entity is not None:
+                res = '.'.join((res, entity))
+            if dof is not None:
+                res = '.'.join((res, dof))
+            return res
+
+        def find_match(target, container):
+            """Custom search for split_name target in an iterable list of potential matches"""
+            matches = []
+            for k in container:
+                ks = split_name(k)
+                if target[0] == ks[0] and \
+                   (target[1] == None or target[1] == ks[1]) and \
+                   (target[2] == None or target[2] == ks[2]) and \
+                   (target[3] == None or target[3] == ks[3]):
+                    matches.append(k)
+                    
+            # filter out matches -- if a target without a tag is
+            # matched by a key without a tag, just check those and do
+            # NOT check keys that DO have a tag.
+            if crit[1] is None and any('@' not in k for k in matches):
+                matches = [k for k in matches if '@' not in k]
+
+            # if that failed to find any, try to ignore the tag
+            if len(matches) == 0 and target[1] is not None:
+                matches = find_match((target[0], None, target[2], target[3]), container)
+
+            # if that failed to find any, look for aliased versions
+            if len(matches) == 0 and target[0] in _aliases:
+                for alias in _aliases[target[0]]:
+                    matches = find_match((alias, target[1], target[2], target[3]), container)
+                    if len(matches) > 0:
+                        break
+
+            # lastly, look for old/dead suffixes
+            if len(matches) == 0 and target[3] is not None and not target[3].endswith(" conc"):
+                matches = find_match((target[0], target[1], target[2], target[3]+" conc"), container)
+
+            return matches
+                    
+
+        for crit_string, tolerance in self._criteria.items():
+            # if this is new-style checkpoint files, we have to check domain names
+            if self._new_checkpoint_files:
+                try:
+                    a_gold_key = list(h5_gold.keys())[0]
+                except IndexError:
+                    continue
+                
+                gold_domain_name = split_name(a_gold_key)[0].split('-')[0]
+                crit_domain_name = split_name(crit_string)[0].split('-')[0]
+                if gold_domain_name != crit_domain_name:
+                    continue
+            
+            if crit_string == self._TIME:
+                if 'time' in h5_current.attrs and 'time' in h5_gold.attrs:
+                    self._check_tolerance(h5_current.attrs['time'], h5_gold.attrs['time'],
+                                          self._TIME, tolerance, status, testlog)
 
             else:
-                # find all matches of this key
-                reg_matches = []
-                if len(key.split('.')) == 1:
-                    for k in h5_current.keys():
-                        if k.split('.')[0] == key:
-                            reg_matches.append(k)
-                elif len(key.split('.')) == 2:
-                    for k in h5_current.keys():
-                        if '.'.join(k.split('.')[0:2]) == key:
-                            reg_matches.append(k)
-                else:
-                    for k in h5_current.keys():
-                        if k == key:
-                            reg_matches.append(k)
+                # find all matches of this crit_string
+                crit = split_name(crit_string)
+                reg_matches = find_match(crit, h5_current.keys())
 
                 # find the corresponding matches from gold
                 gold_matches = []
-                for key in reg_matches:
-                    if key in h5_gold.keys():
-                        gold_matches.append(key)
+                for match in reg_matches:
+                    if match in h5_gold.keys():
+                        gold_matches.append(match)
                     else:
-                        found_match = False
-                        key_split = key.split('.')
-                        try:
-                            my_aliases = aliases[key_split[0]]
-                        except KeyError:
-                            pass
-                        else:
-                            for alias in my_aliases:
-                                potential_alias = '.'.join([alias,]+key_split[1:])
-                                if potential_alias in h5_gold.keys():
-                                    gold_matches.append(potential_alias)
-                                    found_match = True
-                                    break
-                        if not found_match:
+                        this_matches = find_match(split_name(match), h5_gold.keys())
+                        if len(this_matches) == 0 or len(this_matches) > 1:
                             status.fail = 1
-                            print("    FAIL: Cannot find {0} or aliased version in the regression.".format(key),
+                            print("    FAIL: Cannot find {0} or aliased version in the regression.".format(match),
                                   file=testlog)
                             return
+                        gold_matches.append(this_matches[0])
 
-                # we should not get here if this is not true
                 assert(len(gold_matches) == len(reg_matches))
+                if len(gold_matches) == 0:
+                    status.error = 1
+                    print("ERROR: Cannot find {0} or aliased version in the gold file -- "
+                          "bad criteria.".format(crit_string), file=testlog)
+                    return
 
                 for (g, r) in zip(gold_matches, reg_matches):
                     self._check_tolerance(h5_current[r][:], h5_gold[g][:], r, tolerance, status, testlog)
