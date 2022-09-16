@@ -12,15 +12,11 @@ get_mesh_info
 
 #pragma once
 
-#pragma once
-
+#include "Teuchos_RCP.hpp"
+#include "Mesh.hh"
+#include "MeshPartition.hh"
 #include "Key.hh"
 #include "coordinator.hh"
-
-
-namespace Amanzi {
-class State;
-};
 
 namespace ATS {
 
@@ -31,11 +27,14 @@ public:
   ELM_ATSDriver();
   ~ELM_ATSDriver() = default;
 
-  virtual void setup(MPI_Fint *f_comm, const char *input_filename);
-  virtual void initialize();
-  virtual void advance(double *dt);
+  // setup and advance are overloads of the setup and advance functions in the parent Coordinator class
+  // they have the same name, but the signatures are different, so they are not virtual functions
+  // and they do not override Coordinator's functions
+  void setup(MPI_Fint *f_comm, const char *input_filename);
+  virtual void initialize() override;
+  virtual void finalize() override;
+  void advance(double *dt);
   void advance_test();
-  virtual void finalize();
   void set_sources(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
     int *ncols, int *ncells);
   void get_waterstate(double *surface_pressure, double *soil_pressure, double *saturation,
@@ -46,11 +45,8 @@ private:
 
   void col_depth(double *dz, double *depth);
 
-  std::unique_ptr<ELM_ATSCoordinator> elm_coordinator_;
-  Teuchos::RCP<Amanzi::State> S_;
   Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh_subsurf_;
   Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh_surf_;
-
   Amanzi::Key domain_sub_;
   Amanzi::Key domain_srf_;
   Amanzi::Key sub_src_key_;
@@ -73,7 +69,6 @@ private:
 
 // include here temporarily during development
 // maybe place into AmanziComm.hh
-// or leave as local function
 #include "AmanziTypes.hh"
 #ifdef TRILINOS_TPETRA_STACK
 
