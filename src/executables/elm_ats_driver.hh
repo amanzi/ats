@@ -27,9 +27,10 @@ public:
   ELM_ATSDriver();
   ~ELM_ATSDriver() = default;
 
-  // setup and advance are overloads of the setup and advance functions in the parent Coordinator class
-  // they have the same name, but the signatures are different, so they are not virtual functions
-  // and they do not override Coordinator's functions
+  // setup and advance are overloads, but not overrides, of the
+  // setup and advance functions in the base Coordinator class
+  // they have the same name, but the signatures are different,
+  // so they aren't virtual and they don't override Coordinator
   void setup(MPI_Fint *f_comm, const char *input_filename);
   virtual void initialize() override;
   virtual void finalize() override;
