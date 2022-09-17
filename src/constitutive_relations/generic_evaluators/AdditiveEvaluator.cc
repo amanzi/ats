@@ -20,16 +20,21 @@ AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
   }
 
   for (const auto& dep : dependencies_) {
-    Key varname = Keys::getKey(dep.first, dep.second);
-    if (plist.isParameter(varname+" coefficient")) {
-      coefs_[varname] = plist.get<double>(varname+" coefficient");
-    } else if (plist.isParameter(dep.first+" coefficient")) {
-      coefs_[varname] = plist.get<double>(dep.first+" coefficient");
+    Key variable = dep.first;
+    Key variable_tag = Keys::getKey(dep.first, dep.second);
+    Key varname = Keys::getVarName(variable);
+    if (plist.isParameter(variable_tag+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable_tag+" coefficient");
+    } else if (plist.isParameter(variable+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable+" coefficient");
+    } else if (plist.isParameter(varname+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(varname+" coefficient");
     } else {
-      coefs_[varname] = 1.0;
+      coefs_[variable_tag] = 1.0;
     }
   }
   shift_ = plist.get<double>("constant shift", 0.);
+  positive_ = plist.get<bool>("enforce positivity", false);
 }
 
 
@@ -51,6 +56,13 @@ AdditiveEvaluator::Evaluate_(const State& S,
     double coef = coefs_[Keys::getKey(key_tag.first, key_tag.second)];
     result[0]->Update(coef, dep, 1.0);
   }
+
+  if (positive_) {
+    for (const auto& name : *result[0]) {
+      auto& res = *result[0]->ViewComponent(name, false);
+      for (int i=0; i!=res.MyLength(); ++i) res[0][i] = std::max(res[0][i], 0.);
+    }
+  }
 }
 
 void
@@ -58,6 +70,19 @@ AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
+
+  if (positive_) {
+    const auto& value = S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second);
+    for (const auto& name : *result[0]) {
+      auto& res = *result[0]->ViewComponent(name, false);
+      const auto& value_v = *value.ViewComponent(name, false);
+      for (int i=0; i!=res.MyLength(); ++i) {
+        if (value_v[0][i] == 0.0) {
+          res[0][i] = 0.;
+        }
+      }
+    }
+  }
 }
 
 

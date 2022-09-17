@@ -1,6 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-// Boundary conditions packaged for use by flow PKs.
-
 /*
   ATS is released under the three-clause BSD License. 
   The terms of use and "as is" disclaimer for this license are 

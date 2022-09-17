@@ -69,9 +69,7 @@ void ATSDriver::cycle_driver() {
 
   // get the intial timestep
   double dt = get_dt(false);
-  if (!restart_) {
-    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  }
+  S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
 
   // visualization at IC
   visualize();
@@ -125,7 +123,7 @@ void ATSDriver::cycle_driver() {
     } // while not finished
 
 #if !DEBUG_MODE
-  } catch (Amanzi::Exceptions::Amanzi_exception &e) {
+  } catch (Errors::TimeStepCrash &e) {
     // write one more vis for help debugging
     S_->advance_cycle(Amanzi::Tags::NEXT);
     visualize(true); // force vis
@@ -133,12 +131,9 @@ void ATSDriver::cycle_driver() {
     // flush observations to make sure they are saved
     for (const auto& obs : observations_) obs->Flush();
 
-    // catch errors to dump two checkpoints -- one as a "last good" checkpoint
-    // and one as a "debugging data" checkpoint.
-    checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
-    checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
+    // dump a post_mortem checkpoint file for debugging
+    checkpoint_->set_filebasename("post_mortem");
+    checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::POST_MORTEM);
     throw e;
   }
 #endif

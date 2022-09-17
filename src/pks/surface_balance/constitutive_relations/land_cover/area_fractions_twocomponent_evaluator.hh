@@ -60,7 +60,12 @@ class AreaFractionsTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
-  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+
+  // custom EC used to set subfield names
+  void EnsureCompatibility_Structure_(State& S) override;
+
+  // custom EC used because deps have 1 component not 2
+  void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,

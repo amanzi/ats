@@ -13,6 +13,8 @@
 .. admonition:: additive-evaluator-spec
    * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
 
+   * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
+     
    * `"DEPENDENCY coefficient`" ``[double]`` **1.0** A multiple for each dependency in
      the list below.
 
@@ -52,6 +54,7 @@ class AdditiveEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   std::map<Key, double> coefs_;
   double shift_;
+  bool positive_;
 
  private:
   static Utils::RegisteredFactory<Evaluator,AdditiveEvaluator> factory_;
