@@ -203,8 +203,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
   const auto& poro = *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell",false);
   const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell",false);
 
-
-
   // collect output vecs
   auto& water_source = *results[0]->ViewComponent("cell",false);
   auto& energy_source = *results[1]->ViewComponent("cell",false);
@@ -438,7 +436,6 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S,
         snow.albedo = surf.albedo;
         snow.emissivity = surf.emissivity;
         snow.roughness = lc.second.roughness_snow;
-        
 
         const Relations::EnergyBalance eb = Relations::UpdateEnergyBalanceWithSnow(surf, met, params, snow);
         const Relations::MassBalance mb = Relations::UpdateMassBalanceWithSnow(surf, params, eb);

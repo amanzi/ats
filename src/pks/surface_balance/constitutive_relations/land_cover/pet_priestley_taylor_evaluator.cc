@@ -43,11 +43,7 @@ psychrometricConstant(double lh_vap, double elev)
 double
 vaporPressureSlope(double temp_air)
 {
-  // temperature conversion from K to C
-//  double temp_c = (temp_air - 273.15);
-//  double x = 17.26939*temp_c / (temp_c + 237.3);
-//  return 4098 * (0.6108 * std::exp(x)) / std::pow(temp_c+237.3,2);
-  return 4098 * Relations::SaturatedVaporPressure(double temp_air) / std::pow(temp_air - 35.85,2);
+  return 4098 * Relations::SaturatedVaporPressure(temp_air) / std::pow(temp_air - 35.85,2);
 }
 
 double
@@ -118,7 +114,6 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
   const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
   const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).ViewComponent("cell", false);
-  const auto& rel_hum = *S.Get<CompositeVector>(rel_hum_key_, tag).ViewComponent("cell", false);
   const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
   const auto& rad = *S.Get<CompositeVector>(rad_key_, tag).ViewComponent("cell",false);
 

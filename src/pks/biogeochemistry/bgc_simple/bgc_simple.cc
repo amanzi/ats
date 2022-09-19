@@ -202,9 +202,9 @@ void BGCSimple::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-air_temperature", tag_next_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("surface-vapor_pressure_air");
-  S->RequireField("surface-vapor_pressure_air")->SetMesh(mesh_surf_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator("surface-vapor_pressure_air", tag_next_);
+  S_->Require<CompositeVector,CompositeVectorSpace>("surface-vapor_pressure_air", tag_next_)
+     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S_->RequireEvaluator("surface-wind_speed", tag_next_);
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-wind_speed", tag_next_)
@@ -370,9 +370,9 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   const Epetra_MultiVector& air_temp = *S_->Get<CompositeVector>("surface-air_temperature", tag_next_)
       .ViewComponent("cell",false);
 
-  S_next_->GetFieldEvaluator("surface-vapor_pressure_air")->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& vp_air = *S_next_->GetFieldData("surface-vapor_pressure_air")
-      ->ViewComponent("cell",false);
+  S_->GetEvaluator("surface-vapor_pressure_air", tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& vp_air = *S_->Get<CompositeVector>("surface-vapor_pressure_air", tag_next_)
+      .ViewComponent("cell",false);
 
   S_->GetEvaluator("surface-wind_speed", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& wind_speed = *S_->Get<CompositeVector>("surface-wind_speed", tag_next_)

@@ -162,7 +162,7 @@ double EvaporativeResistanceGround(const GroundProperties& surf,
         double vapor_pressure_ground)
 {
   // calculate evaporation prefactors
-  if (met.vapor_pressure_air > vapor_pressure_ground) { // condensation
+  if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
     return EvaporativeResistanceCoef(surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
@@ -253,7 +253,7 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
 
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
   eb.fQe = LatentHeat(Dhe_latent * Sqig, params.density_air, params.H_sublimation,
-                      met.vapor_pressure_air, vapor_pressure_skin, params.P_atm);
+                      met.vp_air, vapor_pressure_skin, params.P_atm);
 
 
   // conducted heat
@@ -327,7 +327,7 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   // positive is condensation
   eb.fQe = LatentHeat(coef, params.density_air,
 		      surf.unfrozen_fraction * params.H_vaporization + (1-surf.unfrozen_fraction) * params.H_sublimation,
-		      met.vapor_pressure_air, vapor_pressure_skin, params.P_atm);
+		      met.vp_air, vapor_pressure_skin, params.P_atm);
 
   // fQc is the energy balance -- this is not used in this branch (e.g. no snow
   // branch) but is kept here anyway for use by diagnostic variables
