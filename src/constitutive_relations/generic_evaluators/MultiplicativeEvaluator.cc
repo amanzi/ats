@@ -96,8 +96,12 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
       }
     }
     if (positive_) {
+      const auto& value_c = *S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second)
+        .ViewComponent(lcv_name, false);
       for (int c=0; c!=res_c.MyLength(); ++c) {
-        res_c[c] = std::max(res_c[c], 0.);
+        if (value_c[0][c] == 0) {
+          res_c[c] = 0.;
+        }
       }
     }
   }

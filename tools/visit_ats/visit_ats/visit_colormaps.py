@@ -13,7 +13,7 @@ def createTemperaturesColorMap(Tmin, Tmax, zero=0., name="temperature"):
     """Creates a ColorMap with warm colors above zero, and cold colors below."""
     # color control point format: (position, (r,g,b,a)) for (r,g,b,a) in [0,255]
     if name in _added_temps:
-        print "Already added a temperature color map of name %s"%name
+        print("Already added a temperature color map of name %s"%name)
         return
 
     if Tmin >= Tmax:
@@ -54,7 +54,7 @@ def createTemperaturesColorMap(Tmin, Tmax, zero=0., name="temperature"):
         cp.position = val[0]
         cp.colors = val[1]
         clist.AddControlPoints(cp)
-    print "Colormap Temp", name, [val[0] for val in cmap]
+    print("Colormap Temp", name, [val[0] for val in cmap])
 
     v.AddColorTable(name, clist)
     _added_temps.append(name)

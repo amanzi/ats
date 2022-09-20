@@ -45,6 +45,10 @@ class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   void EnsureEvaluators(State& S) override;
 
  protected:
+  // custom EC required to make sure that this vector is generated on the
+  // referencing mesh
+  void EnsureCompatibility_Structure_(State& S) override;
+
   // custom EC required to depend on cells of the subgrid mesh
   void EnsureCompatibility_ToDeps_(State& S) override;
 

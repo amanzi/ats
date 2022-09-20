@@ -29,10 +29,10 @@ VolumetricDeformation::VolumetricDeformation(Teuchos::ParameterList& pk_tree,
         const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist,  S, solution),
     PK_Physical_Default(pk_tree, glist,  S, solution),
-    surf_mesh_(Teuchos::null)
+    surf_mesh_(Teuchos::null),
+    deformed_this_step_(false)
 {
   dt_max_ = plist_->get<double>("max time step [s]", std::numeric_limits<double>::max());
-  dt_ = dt_max_;
 
   // The deformation mode describes how to calculate new cell volume from a
   // provided function and the old cell volume.

@@ -215,7 +215,6 @@ void Coordinator::initialize()
     }
   }
 
-
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();
@@ -482,6 +481,7 @@ Coordinator::get_dt(bool after_fail)
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
+
   // note, I believe this can go away (along with the input spec flag) once
   // amanzi/amanzi#685 is closed --etc
   if (subcycled_ts_) dt = std::min(dt, dt_pk);
@@ -582,6 +582,5 @@ void Coordinator::checkpoint(bool force)
     checkpoint_->Write(*S_);
   }
 }
-
 
 } // close namespace Amanzi

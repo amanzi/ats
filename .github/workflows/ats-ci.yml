@@ -21,22 +21,24 @@ jobs:
         repository: amanzi/amanzi
         ref: master
         submodules: true
-    - name: Extract the Amanzi branch name
-      id: amanzi_branch
-      run:
-        echo "::set-output name=AMANZI_BRANCH::$(echo master)"
     - name: Extract the ATS branch name
       id: branch
       working-directory: Docker
       run:
-        echo "::set-output name=ATS_BRANCH::$(echo $GITHUB_REF | sed -e 's/refs\/heads\///')"
+        echo "::set-output name=ATS_BRANCH::$GITHUB_REF_NAME"
+    - name: Does Amanzi branch of the same name exist?
+      id: amanzi_branch
+      run:
+        echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run:
         echo "::set-output name=ATS_BRANCH_TAG::$(echo ${{steps.branch.outputs.ATS_BRANCH}} | sed -e 's/\//--/g')"
     - name: Output the branch name
       run:
-        echo "Branch or Tag reference = ${{steps.branch.outputs.ATS_BRANCH}}"
+        echo "Amanzi branch = ${{steps.amanzi_branch.outputs.AMANZI_BRANCH}}";
+        echo "ATS branch = ${{steps.branch.outputs.ATS_BRANCH}}";
+        echo "Tag reference = ${{steps.tag.outputs.ATS_BRANCH_TAG}}"
     - name: Get TPLs version
       id: version 
       working-directory: Docker

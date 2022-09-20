@@ -49,19 +49,18 @@ class MPCWeakSubdomain : public MPC<PK> {
 
   Tag get_ds_tag_next_(const std::string& subdomain) {
     if (subcycled_)
-      return Tag(Keys::cleanName(tag_next_.get() + "_" + Keys::getDomainSetIndex(subdomain)));
+      return Tag(Keys::getKey(subdomain, tag_next_.get()));
     else return tag_next_;
   }
   Tag get_ds_tag_current_(const std::string& subdomain) {
     if (subcycled_)
-      return Tag(Keys::cleanName(tag_current_.get() + "_" + Keys::getDomainSetIndex(subdomain)));
+      return Tag(Keys::getKey(subdomain, tag_current_.get()));
     else return tag_current_;
   }
 
   Comm_ptr_type comm_;
   bool subcycled_;
   double subcycled_target_dt_;
-  double subcycled_min_dt_;
   double cycle_dt_;
   Key ds_name_;
 
