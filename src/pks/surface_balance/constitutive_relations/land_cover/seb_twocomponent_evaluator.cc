@@ -280,6 +280,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S,
         if (model_1p1_) surf.density_w = 1000.;
         else surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
 
@@ -349,6 +350,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S,
         if (model_1p1_) surf.density_w = 1000;
         else surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[1][c];
         surf.emissivity = emissivity[1][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
@@ -535,9 +537,12 @@ SEBTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     if (land_cover_.size() == 0)
       land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-              {"roughness_snow", "roughness_ground",
-               "water_transition_depth", "snow_transition_depth",
-               "dessicated_zone_thickness"});
+              {"roughness_snow",
+               "roughness_ground",
+               "water_transition_depth",
+               "snow_transition_depth",
+               "dessicated_zone_thickness",
+               "clapp_horn_b"});
 
     CompositeVectorSpace domain_fac;
     domain_fac.SetMesh(S.GetMesh(domain_))

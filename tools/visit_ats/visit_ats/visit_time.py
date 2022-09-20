@@ -48,7 +48,7 @@ def roundTime(time, round=None):
         tround = tprev
     else:
         tround = tnext
-    print "Rounding: %s to %s"%(time.strftime("%c"), tround.strftime("%c"))
+    print("Rounding: %s to %s"%(time.strftime("%c"), tround.strftime("%c")))
     return tround
 
 

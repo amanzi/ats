@@ -460,6 +460,7 @@ void OverlandPressureFlow::Initialize()
 
   // Initialize BC values
   ComputeBoundaryConditions_(tag_next_);
+  ChangedSolution(tag_next_);
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, name_).PutScalar(0.0);
@@ -472,7 +473,9 @@ void OverlandPressureFlow::Initialize()
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name_).PutScalar(0.);
   S_->GetRecordW(flux_dir_key_, tag_next_, name_).set_initialized();
+
   S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name_).PutScalar(0.);
+  changedEvaluatorPrimary(velocity_key_, Tags::NEXT, *S_);
   S_->GetRecordW(velocity_key_, Tags::NEXT, name_).set_initialized();
 };
 

@@ -62,14 +62,17 @@ class AreaFractionsThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV
   }
 
  protected:
-  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+  // custom EC used to set subfield names
+  void EnsureCompatibility_Structure_(State& S) override;
+
+  // custom EC used because deps have 1 component not 3
+  void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
-    
     result[0]->PutScalar(0.);
     //Errors::Message msg("NotImplemented: AreaFractionsThreeComponentEvaluator currently does not provide derivatives.");
     //Exceptions::amanzi_throw(msg);

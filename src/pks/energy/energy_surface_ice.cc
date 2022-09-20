@@ -225,7 +225,7 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
       *vo_->os() << "Adding advection to subsurface" << std::endl;
     }
-    db_->WriteVector("res (src post surf-subsurf adv)", g, false);
+    db_->WriteVector("res (s-s adv src)", g, false);
   }
 
   // -- conduction source
@@ -239,9 +239,8 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
     for (unsigned int c=0; c!=ncells; ++c) {
       g_c[0][c] -= e_source1[0][cells[0]];
     }
-    db_->WriteVector("res (src post surf-subsurf diff)", g, false);
+    db_->WriteVector("res (s-s adv src)", g, false);
   }
-
 }
 
 

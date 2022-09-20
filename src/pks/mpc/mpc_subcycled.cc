@@ -41,8 +41,7 @@ MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
   dts_.resize(sub_pks_.size(), -1);
 
   // min dt allowed in subcycling
-  max_dt_ = plist_->get<double>("subcycling target time step [s]", -1);
-  min_dt_ = plist_->get<double>("minimum subcycled time step [s]", 1.e-4);
+  target_dt_ = plist_->get<double>("subcycling target time step [s]", -1);
 }
 
 
@@ -101,7 +100,7 @@ MPCSubcycled::Initialize()
 double MPCSubcycled::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
-  if (max_dt_ > 0) dt = max_dt_;
+  if (target_dt_ > 0) dt = target_dt_;
 
   int i = 0;
   for (auto& pk : sub_pks_) {
@@ -183,12 +182,6 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
         dt_inner = sub_pks_[i]->get_dt();
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
-      }
-
-      if (dt_inner < min_dt_) {
-        Errors::Message msg;
-        msg << "SubPK " << sub_pks_[i]->name() << " crashing timestep in subcycling: dt = " << dt_inner;
-        Exceptions::amanzi_throw(msg);
       }
     }
 

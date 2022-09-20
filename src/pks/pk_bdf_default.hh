@@ -102,11 +102,8 @@ class PK_BDF_Default : public PK_BDF {
     return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   }
 
-  virtual void ResetTimeStepper(double time);
-
-  // experimental approach -- calling this indicates that the time
-  // integration scheme is changing the value of the solution in
-  // state.
+  // Calling this indicates that the time integration scheme is changing the
+  // value of the solution in state.
   virtual void ChangedSolution() override = 0;
   virtual void ChangedSolution(const Tag& tag) = 0;
 

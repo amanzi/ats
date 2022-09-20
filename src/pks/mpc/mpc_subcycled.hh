@@ -55,7 +55,7 @@ public:
   bool AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit);
 
   Teuchos::Array<int> subcycling_;
-  double dt_, min_dt_, max_dt_;
+  double dt_, target_dt_;
   std::vector<double> dts_;
   std::vector<std::pair<Tag,Tag>> tags_;
 

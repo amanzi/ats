@@ -677,13 +677,12 @@ Richards::ValidStep()
         ->ViewComponent("cell",false);
     Epetra_MultiVector dsl(sl_new);
     dsl.Update(-1., sl_old, 1.);
-    double change = 0.;
-    dsl.NormInf(&change);
+    auto change = maxValLoc(*dsl(0));
 
-    if (change > sat_change_limit_) {
+    if (change.value > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
         *vo_->os() << "Invalid time step, max sl change="
-                   << change << " > limit=" << sat_change_limit_ << std::endl;
+                   << change.value << " > limit=" << sat_change_limit_ << " at cell GID " << change.gid << std::endl;
       return false;
     }
   }
@@ -695,13 +694,12 @@ Richards::ValidStep()
         ->ViewComponent("cell",false);
     Epetra_MultiVector dsi(si_new);
     dsi.Update(-1., si_old, 1.);
-    double change = 0.;
-    dsi.NormInf(&change);
+    auto change = maxValLoc(*dsi(0));
 
-    if (change > sat_ice_change_limit_) {
+    if (change.value > sat_ice_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
         *vo_->os() << "Invalid time step, max si change="
-                   << change << " > limit=" << sat_ice_change_limit_ << std::endl;
+                   << change.value << " > limit=" << sat_ice_change_limit_ << " at cell GID " << change.gid << std::endl;
       return false;
     }
   }
