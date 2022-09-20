@@ -47,8 +47,6 @@ actual work.
 
 #include "coordinator.hh"
 
-#define DEBUG_MODE 1
-
 namespace ATS {
 
 // this MUST be be called before using Coordinator
@@ -91,7 +89,7 @@ Coordinator::coordinator_init(Teuchos::ParameterList& parameter_list,
   const std::string &pk_name = pk_tree_list.name(pk_item);
 
   // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector());
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
 
   // create the pk
   Amanzi::PKFactory pk_factory;
@@ -134,7 +132,7 @@ Coordinator::coordinator_init(Teuchos::ParameterList& parameter_list,
   }
 
   // create verbose object
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm_, "Coordinator", *coordinator_list_));
 
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
@@ -185,7 +183,7 @@ void Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
-  // calling CommitStep to set up copies as needed
+  // calling CommitStep to set up copies as needed.
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // initialize vertex coordinate data
@@ -203,9 +201,9 @@ void Coordinator::initialize()
   // -- load all other data
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
-    t0_ = S_->get_time(Amanzi::Tags::DEFAULT);
+    t0_ = S_->get_time();
+    cycle0_ = S_->get_cycle();
 
-    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
     S_->set_time(Amanzi::Tags::CURRENT, t0_);
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 
@@ -217,8 +215,6 @@ void Coordinator::initialize()
     }
   }
 
-  // calling CommitStep to set up copies as needed.
-  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // Final checks.
   //S_->CheckNotEvaluatedFieldsInitialized();
@@ -226,7 +222,9 @@ void Coordinator::initialize()
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-  // commit the initial conditions.
+  // commit one more time, since some variables may have changed in the
+  // previous call (test this... maybe chemistry/transport variables?  Is this
+  // still necessary?  And do we need to set cycle to -1 here too? --ETC)
   pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
   // Write dependency graph.
@@ -286,10 +284,8 @@ void Coordinator::initialize()
           sublist_p->set("file name base", std::string("ats_vis_")+domain_name_base);
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
         vis->set_name(domain_name_base);
+        vis->set_domain_set(dset);
         vis->set_mesh(dset->get_referencing_parent());
-        for (const auto& subdomain : *dset) {
-          vis->set_subdomain_mesh(subdomain, S_->GetMesh(subdomain));
-        }
         vis->CreateFiles(false);
         visualization_.push_back(vis);
       }
@@ -328,7 +324,7 @@ void Coordinator::finalize()
 {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
-  WriteCheckpoint(*checkpoint_, comm_, *S_, true);
+  checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
   for (const auto& obs : observations_) obs->Flush();
@@ -486,6 +482,8 @@ Coordinator::get_dt(bool after_fail)
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
+  // note, I believe this can go away (along with the input spec flag) once
+  // amanzi/amanzi#685 is closed --etc
   if (subcycled_ts_) dt = std::min(dt, dt_pk);
   return dt;
 }
@@ -581,7 +579,7 @@ void Coordinator::checkpoint(bool force)
   int cycle = S_->get_cycle();
   double time = S_->get_time();
   if (force || checkpoint_->DumpRequested(cycle, time)) {
-    WriteCheckpoint(*checkpoint_, comm_, *S_);
+    checkpoint_->Write(*S_);
   }
 }
 
