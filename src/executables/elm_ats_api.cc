@@ -76,6 +76,11 @@ void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pd, double *soil_pre
   return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
   ->get_waterstate(surface_pd, soil_pressure, soil_psi, sat_liq, sat_ice, ncols, ncells);
 }
+void ats_get_waterflux(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
+  double *root_transpiration, int *ncols, int *ncells) {
+  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+  ->get_waterflux(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
+}
 // call driver get_mesh_info()
 void ats_get_mesh_info(ELM_ATS_DRIVER ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
   double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon) {

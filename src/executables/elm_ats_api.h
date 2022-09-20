@@ -44,6 +44,8 @@ void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil
 // soil_pressure & saturation are 1D arrays array of length (ncells)
 void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure, double *soil_psi,
   double *sat_liq, double *sat_ice, int *ncols, int *ncells);
+void ats_get_waterflux(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
+  int *ncols, int *ncells);
 // call driver get_mesh_info()
 // ncols_local, ncols_global, and ncells_per_col are scalars
 // dz & depth are 1D arrays array of length (ncells) - these could likely only be ncells_per_col long

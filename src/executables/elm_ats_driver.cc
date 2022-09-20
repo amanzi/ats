@@ -68,6 +68,7 @@
 #include "boost/filesystem.hpp"
 
 #include "pk_helpers.hh"
+#include "wrm_evaluator.hh"
 
 namespace ATS {
 
@@ -497,6 +498,11 @@ ELM_ATSDriver::set_sources(double *soil_infiltration, double *soil_evaporation,
   const Epetra_MultiVector& pc = *S_->Get<Amanzi::CompositeVector>("capillary_pressure_gas_liq", Amanzi::Tags::NEXT)
       .ViewComponent("cell", false);
 
+  // -- get the WRM models
+  auto& wrm = S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT);
+  auto wrm_eval = dynamic_cast<Amanzi::Flow::WRMEvaluator*>(&wrm);
+  Teuchos::RCP<Amanzi::Flow::WRMPartition> wrms_ = wrm_eval->get_WRMs();
+
   // ------------------------------------------------------------------
   AMANZI_ASSERT(*ncols == ncolumns_ == surf_ss.MyLength());
   AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
@@ -595,6 +601,33 @@ ELM_ATSDriver::get_waterstate(double *surface_pd, double *soil_pressure, double 
 
       saturation_ice[col*ncol_cells_+i] = 0.0; // (TODO)
 
+    }
+  }
+
+}
+
+void
+ELM_ATSDriver::get_waterflux(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
+		int *ncols, int *ncells)
+{
+
+  S_->GetEvaluator(pd_key_, Amanzi::Tags::NEXT).Update(*S_, pd_key_);
+    const Epetra_MultiVector& pd = *S_->Get<Amanzi::CompositeVector>(pd_key_, Amanzi::Tags::NEXT)
+	      .ViewComponent("cell", false);
+  S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
+    const Epetra_MultiVector& pres = *S_->Get<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT)
+	      .ViewComponent("cell", false);
+
+  AMANZI_ASSERT(*ncols == ncolumns_ == pd.MyLength());
+  AMANZI_ASSERT(*ncells == ncolumns_ * ncol_cells_);
+  AMANZI_ASSERT(*ncells == pres.MyLength());
+
+  for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
+
+    auto& col_iter = mesh_subsurf_->cells_of_column(col);
+    for (std::size_t i=0; i!=col_iter.size(); ++i) {
+
+      //(TODO) get actual water fluxes from ATS to ELM
     }
   }
 

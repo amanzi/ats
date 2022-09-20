@@ -42,6 +42,8 @@ public:
 
   void get_waterstate(double *surface_pressure, double *soil_pressure, double *soil_psi,
     double *saturation, double *saturation_ice, int *ncols, int *ncells);
+  void get_waterflux(double *soil_infiltration, double *soil_evaporation, double *root_transpiration,
+	int *ncols, int *ncells);
   void get_mesh_info(int *ncols_local, int *ncols_global, int *ncells_per_col, double *dz,
     double *depth, double *elev, double *surf_area_m2, double *lat, double *lon);
 
