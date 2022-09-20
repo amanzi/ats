@@ -10,7 +10,6 @@
 #include "Teuchos_TimeMonitor.hpp"
 #include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
-#include "VerboseObject_objs.hh"
 #include "VerboseObject.hh"
 
 // registration files
@@ -84,7 +83,8 @@ ELM_ATSDriver::setup(MPI_Fint *f_comm, const char *infile)
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
 
   // instantiates much of Coordinator object
-  // it is very import that this is called
+  // it is very important that this is called
+  // before using Coordinator
   Coordinator:coordinator_init(*plist, comm);
 
   // -- set default verbosity level to no output
@@ -194,7 +194,7 @@ void ELM_ATSDriver::advance(double *dt)
     S_->advance_time(Amanzi::Tags::NEXT, dt_subcycle);
 
     // solve model for a single timestep
-    bool fail = Coordinator::advance();
+    fail = Coordinator::advance();
 
     if (fail) {
       // reset t_new
@@ -207,9 +207,9 @@ void ELM_ATSDriver::advance(double *dt)
       for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
       visualize();
       checkpoint(); // checkpoint with the new dt
-      }
+    }
 
-      dt_subcycle = get_dt(fail);
+    dt_subcycle = get_dt(fail);
   } // while
 
   if (fail) {
@@ -220,12 +220,9 @@ void ELM_ATSDriver::advance(double *dt)
     // flush observations to make sure they are saved
     for (const auto& obs : observations_) obs->Flush();
 
-    // catch errors to dump two checkpoints -- one as a "last good" checkpoint
-    // and one as a "debugging data" checkpoint.
-    checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(*checkpoint_, comm_, *S_);
-    checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(*checkpoint_, comm_, *S_);
+    // dump a post_mortem checkpoint file for debugging
+    checkpoint_->set_filebasename("post_mortem");
+    checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::POST_MORTEM);
 
     Errors::Message msg("ELM_ATSDriver: advance(dt) failed.");
     Exceptions::amanzi_throw(msg);
@@ -241,84 +238,6 @@ void ELM_ATSDriver::advance(double *dt)
   //S_->GetEvaluator(por_key_, Amanzi::Tags::NEXT).Update(*S_, por_key_);
   //const Epetra_MultiVector& poro = *S_->Get<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
 } // advance()
-
-
-
-
-
-//void ELM_ATSDriver::advance(double *dt)
-//{
-//  double dt_subcycle = *dt;
-//
-//  // should adapt this to use Coordinator::advance() to solve single steps
-//  //auto fail = Coordinator::advance(*dt);
-//  // start and end times for timestep
-//  double t_end = S_->get_time() + dt_subcycle;
-//
-//  bool fail = false;
-//  while (S_->get_time() < t_end && dt_subcycle > 0.0) {
-//
-//    // run model for a duration of dt
-//    // order is important
-//    // advance NEXT time tag
-//    S_->advance_time(Amanzi::Tags::NEXT, dt_subcycle);
-//    // get time from tags
-//    double t_old = S_->get_time(Amanzi::Tags::CURRENT);
-//    double t_new = S_->get_time(Amanzi::Tags::NEXT);
-//    // check that dt and time tags align
-//    AMANZI_ASSERT(std::abs((t_new - t_old) - dt_subcycle) < 1.e-4);
-//
-//    // advance pks
-//    fail = pk_->AdvanceStep(t_old, t_new, false);
-//    if (!fail) fail |= !pk_->ValidStep();
-//
-//    if (fail) {
-//
-//      // Failed the timestep.
-//      // Potentially write out failed timestep for debugging
-//      for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
-//
-//      // set as failed and revert timestamps
-//      pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
-//      // set NEXT = CURRENT to reset t_new
-//      S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
-//
-//    } else {
-//
-//      // commit the state, copying NEXT --> CURRENT
-//      pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
-//
-//      // set CURRENT = NEXT
-//      S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-//      // state advance_cycle - necessary??
-//      S_->advance_cycle();
-//
-//      // make observations, vis, and checkpoints
-//      for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-//      visualize();
-//      checkpoint(); // checkpoint with the new dt
-//    }
-//
-//    // get new dt and assign to State
-//    dt_subcycle = get_dt(fail);
-//    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt_subcycle);
-//  } // end while
-//
-//  if (fail) {
-//    Errors::Message msg("ELM_ATSDriver: advance(dt) failed.");
-//    Exceptions::amanzi_throw(msg);
-//  }
-//
-//  // update ATS->ELM data if necessary
-//  S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
-//  const Epetra_MultiVector& pres = *S_->Get<Amanzi::
-//    CompositeVector>(pres_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-//  S_->GetEvaluator(satl_key_, Amanzi::Tags::NEXT).Update(*S_, satl_key_);
-//  const Epetra_MultiVector& satl = *S_->Get<Amanzi::
-//    CompositeVector>(satl_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-//  //S_->GetEvaluator(por_key_, Amanzi::Tags::NEXT).Update(*S_, por_key_);
-//  //const Epetra_MultiVector& poro = *S_->Get<Amanzi::CompositeVector>(por_key_, Amanzi::Tags::NEXT).ViewComponent("cell", false);
-//}
 
 // simulates external timeloop with dt coming from calling model
 void ELM_ATSDriver::advance_test()
