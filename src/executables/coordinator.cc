@@ -211,7 +211,7 @@ void Coordinator::initialize()
 
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
-      if (S_->IsDeformableMesh(mesh->first)) {
+      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         Amanzi::DeformCheckpointMesh(*S_, mesh->first);
       }
     }
@@ -244,6 +244,9 @@ void Coordinator::initialize()
       // visualize standard domain
       auto mesh_p = S_->GetMesh(domain_name);
       auto sublist_p = Teuchos::sublist(vis_list, domain_name);
+      if (S_->IsDeformableMesh(domain_name) && !sublist_p->isParameter("dynamic mesh"))
+        sublist_p->set("dynamic mesh", true);
+
       if (!sublist_p->isParameter("file name base")) {
         if (domain_name.empty() || domain_name == "domain") {
           sublist_p->set<std::string>("file name base", std::string("ats_vis"));
