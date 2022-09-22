@@ -85,6 +85,9 @@ EnergyBase::EnergyBase(Teuchos::ParameterList& FElist,
   conductivity_key_ = Keys::readKey(*plist_, domain_, "thermal conductivity", "thermal_conductivity");
   uw_conductivity_key_ = Keys::readKey(*plist_, domain_, "upwinded thermal conductivity", "upwind_thermal_conductivity");
   uf_key_ = Keys::readKey(*plist_, domain_, "unfrozen fraction", "unfrozen_fraction");
+
+  if (S_->IsDeformableMesh(domain_))
+    deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 }
 
 
@@ -140,6 +143,9 @@ void EnergyBase::SetupEnergy_()
               tag_next_, key_, tag_next_);
     }
   }
+
+  // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
+  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // Set up Operators
   // -- boundary conditions

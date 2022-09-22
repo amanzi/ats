@@ -52,7 +52,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     modify_predictor_bc_flux_(false),
     modify_predictor_first_bc_flux_(false),
     upwind_from_prev_flux_(false),
-    dynamic_mesh_(false),
     clobber_boundary_flux_dir_(false),
     vapor_diffusion_(false),
     perm_scale_(1.),
@@ -82,6 +81,9 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
       "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
   capillary_pressure_liq_ice_key_ = Keys::readKey(*plist_, domain_, 
       "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
+
+  if (S_->IsDeformableMesh(domain_))
+    deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 }
 
 // -------------------------------------------------------------
@@ -145,6 +147,9 @@ void Richards::SetupRichardsFlow_()
     Errors::Message message("`permeability type` must be one of the following: \"scalar\", \"diagonal tensor\", \"full tensor\", or \"horizontal and vertical\".");
     Exceptions::amanzi_throw(message);
   }
+
+  // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
+  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // data allocation -- move to State!
   unsigned int c_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
@@ -481,9 +486,6 @@ void Richards::Initialize()
   // Initialize in the standard ways
   PK_PhysicalBDF_Default::Initialize();
 
-  // check whether this is a dynamic mesh problem
-  if (S_->IsDeformableMesh(domain_)) dynamic_mesh_ = true;
-
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
   S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, name_).PutScalar(1.0);
@@ -763,6 +765,8 @@ bool Richards::UpdatePermeabilityData_(const Tag& tag)
       Teuchos::RCP<CompositeVector> flux_dir = S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
       Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
+      if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" flux dir"))
+        face_matrix_diff_->SetTensorCoefficient(K_);
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
       face_matrix_diff_->ApplyBCs(true, true, true);

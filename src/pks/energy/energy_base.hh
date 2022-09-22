@@ -313,6 +313,7 @@ public:
   Key source_key_;
   Key ss_flux_key_;
   Key uf_key_;
+  Key deform_key_;
 };
 
 } // namespace Energy

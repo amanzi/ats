@@ -149,6 +149,10 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   UpdateBoundaryConditions_(tag_next_);
 
   // div K_e grad u
+  // force mass matrices to change
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
+    preconditioner_diff_->SetTensorCoefficient(Teuchos::null);
+
   UpdateConductivityData_(tag_next_);
   if (jacobian_) UpdateConductivityDerivativeData_(tag_next_);
 
