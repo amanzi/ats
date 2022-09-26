@@ -24,6 +24,7 @@
 #include "Explicit_TI_RK.hh"
 #include "Evaluator.hh"
 #include "Mesh.hh"
+#include "Mesh_Algorithms.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
@@ -1167,7 +1168,7 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // populating next state of concentrations
   tcc->ScatterMasterToGhosted("cell");
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
-  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);  
 
   // prepare conservative state in master and slave cells
   double mass_current = 0., tmp1, mass;
@@ -1256,6 +1257,12 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
             double tcc_flux = dt_ * u * values[i];
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_solutes_bc_[k] += tcc_flux;
+
+            if (tcc_tmp->HasComponent("boundary_face")) {
+              int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh_, f);
+              Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->ViewComponent("boundary_face",false);
+              tcc_tmp_bf[i][bf] =  values[i];
+            }
           }
         }
       }
