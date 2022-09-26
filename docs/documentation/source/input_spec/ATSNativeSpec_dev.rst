@@ -1355,36 +1355,36 @@ Solves Richards equation:
 .. admonition:: richards-spec
 
    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+   * "primary variable key" ``[string]`` The primary variable
+     associated with this PK, typically `"DOMAIN-pressure`" Note there
+     is no default -- this must be provided by the user.
+   * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal
+     flux.  See `Flow-specific Boundary Conditions`_.
+   * `"permeability type`" ``[string]`` **scalar** This controls the
+     number of values needed to specify the absolute permeability.
+     One of:
 
-   * `"primary variable key`" ``[string]`` The primary variable associated with
-      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
-      must be provided by the user.
+     - `"scalar`" Requires one scalar value.
+     - `"horizontal and vertical`" Requires two values, horizontal then vertical.
+     - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
+     - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
+       xy} or {xx,yy,zz,xy,xz,yz}.
 
-   * `"boundary conditions`" ``[list]`` Defaults to Neuman,
-      0 normal flux.  See `Flow-specific Boundary Conditions`_
-
-   * `"permeability type`" ``[string]`` **scalar** This controls the number of
-      values needed to specify the absolute permeability.  One of:
-
-      - `"scalar`" Requires one scalar value.
-      - `"horizontal and vertical`" Requires two values, horizontal then vertical.
-      - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
-      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
-
-   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
-      curve.  This needs to go away, and should get moved to State.
+   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+     retention curve.  This needs to go away, and should get moved to
+     State.
 
    IF
    * `"source term`" ``[bool]`` **false** Is there a source term?
 
    THEN
-   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
-      not set, as the default is good. ``[mol s^-1]``
-   * `"source term is differentiable`" ``[bool]`` **true** Can the source term
-      be differentiated with respect to the primary variable?
-   * `"explicit source term`" ``[bool]`` **false** Apply the source term from
-      the previous time step.
-   END
+   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
+     set, as the default is good. ``[mol s^-1]``
+   * `"source term is differentiable`" ``[bool]`` **true** Can the
+      source term be differentiated with respect to the primary
+      variable?
+   * `"explicit source term`" ``[bool]`` **false** Apply the source
+      term from the previous time step.  END
 
    Math and solver algorithm options:
 

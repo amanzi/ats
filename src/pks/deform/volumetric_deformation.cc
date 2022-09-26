@@ -672,6 +672,7 @@ void VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& ta
       copyMeshCoordinatesToVector(*surf3d_mesh_, S_->GetW<CompositeVector>(vertex_loc_surf3d_key_, tag_next, vertex_loc_surf3d_key_));
     }
   }
+  assign(cv_key_, tag_current, tag_next, *S_);
 }
 
 void VolumetricDeformation::FailStep(double t_old, double t_new, const Tag& tag)

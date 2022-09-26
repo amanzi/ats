@@ -285,10 +285,12 @@ class VisFile:
         polygons = matplotlib.collections.PolyCollection(self.polygon_coordinates, edgecolor=edgecolor, cmap=cmap, linewidths=linewidth)
         return polygons
     
-elem_type = {5:'QUAD',
+elem_type = {3:'POLYGON',
+             5:'QUAD',
              8:'PRISM',
              9:'HEX',
-             4:'TRIANGLE'
+             4:'TRIANGLE',
+             16:'POLYHEDRON'
              }
 
 def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
@@ -336,6 +338,10 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
             nnodes_per_elem = 4
         elif (etype == 'TRIANGLE'):
             nnodes_per_elem = 3
+        elif (etype == 'POLYHEDRAL'):
+            return meshXYZPolyhedron(dat, key)
+        elif (etype == 'POLYGON'):
+            return meshXYZPolygon(dat, key)
 
         if len(elem_conn) % (nnodes_per_elem + 1) != 0:
             raise ValueError('This reader only processes single-element-type meshes.')
@@ -347,6 +353,55 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
         raise ValueError('This reader only processes single-element-type meshes.')
     return etype, coords, conn
 
+
+def meshXYZPolyhedron(dat, key):
+    """Reads polyhedral mesh and just returns coordinates and conn info.  Note
+    this is not enough to be useful for a real mesh but at least does something 
+    for polyhedral meshes."""
+    # read faces
+    mesh = dat[key]['Mesh']
+    elem_conn = mesh['MixedElements'][:,0]
+
+    coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
+
+    conn = []
+    i = 0
+    while i < len(elem_conn):
+        nfaces = elem_conn[i]; i+=1
+        faces = []
+        for j in range(nfaces):
+            nnodes = elem_conn[i]; i+=1
+            fnodes = [elem_conn[k] for k in range(i, i+nnodes)]
+            i += nnodes
+            faces.append(fnodes)
+
+        conn.append(list(set(n for f in faces for n in f)))
+    return 'POLYHEDRAL', coords, conn
+
+
+def meshXYZPolygon(dat, key):
+    """Reads polygonal mesh and just returns coordinates and conn info."""
+    # read faces
+    mesh = dat[key]['Mesh']
+    elem_conn = mesh['MixedElements'][:,0]
+
+    coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
+
+    conn = []
+    i = 0
+    while i < len(elem_conn):
+        etype = elem_type[elem_conn[i]]; i+=1
+        if (etype == 'QUAD'):
+            nnodes = 4
+        elif (etype == 'TRIANGLE'):
+            nnodes = 3
+        elif (etype == 'POLYGON'):
+            nnodes = elem_conn[i]; i+=1
+
+        fnodes = [elem_conn[k] for k in range(i, i+nnodes)]
+        i += nnodes
+        conn.append(fnodes)
+    return 'POLYGON', coords, conn
 
 def meshElemPolygons(etype, coords, conn):
     """Given mesh info that is a bunch of HEXes, make polygons for 2D plotting."""

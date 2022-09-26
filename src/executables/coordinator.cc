@@ -582,8 +582,8 @@ void Coordinator::cycle_driver() {
   }
 
   // get the intial timestep
+  double dt = get_dt(false);
   if (!restart_) {
-    double dt = get_dt(false);
     S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
   }
 

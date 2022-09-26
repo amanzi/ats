@@ -162,23 +162,21 @@ void MPCPermafrostSplitFlux::Initialize()
       for (const auto& domain : *domain_set) {
         auto pkey = Keys::getKey(domain, p_lateral_flow_source_suffix_);
         Tag ds_tag_next = get_ds_tag_next_(domain);
-        auto p_owner = S_->GetRecord(pkey, ds_tag_next).owner();
-        S_->GetRecordW(pkey, ds_tag_next, p_owner).set_initialized();
+        S_->GetRecordW(pkey, ds_tag_next, name_).set_initialized();
 
         auto Tkey = Keys::getKey(domain, T_lateral_flow_source_suffix_);
-        auto T_owner = S_->GetRecord(Tkey, ds_tag_next).owner();
-        S_->GetRecordW(Tkey, ds_tag_next, T_owner).set_initialized();
+        S_->GetRecordW(Tkey, ds_tag_next, name_).set_initialized();
       }
     } else {
-      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_).set_initialized();
-      S_->GetRecordW(T_lateral_flow_source_, tags_[1].second, T_lateral_flow_source_).set_initialized();
+      S_->GetRecordW(p_lateral_flow_source_, tags_[1].second, name_).set_initialized();
+      S_->GetRecordW(T_lateral_flow_source_, tags_[1].second, name_).set_initialized();
     }
   }
 
   int i = 0;
   for (const auto& tag : tags_) {
     if (subcycling_[i])
-      S_->GetRecordW("dt", tag.second, name()).set_initialized();
+      S_->GetRecordW("dt", tag.first, name()).set_initialized();
     ++i;
   }
 }
@@ -389,7 +387,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Flux_()
 
   // mass
   // -- grab the data, difference
-  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
                 .ViewComponent("cell",false);
   q_div.Update(1.0/dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
@@ -405,7 +403,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Flux_()
 
   // energy
   // -- grab the data, difference
-  auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, T_lateral_flow_source_)
+  auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, name_)
                 .ViewComponent("cell",false);
   qE_div.Update(1.0/dt,
                *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
@@ -431,7 +429,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
 
   // mass
   // -- grab the data, difference
-  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
+  auto& q_div = *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, name_)
                 .ViewComponent("cell",false);
   q_div.Update(1.0/dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
@@ -444,7 +442,7 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
 
   // energy
   // -- grab the data, difference
-  auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, T_lateral_flow_source_)
+  auto& qE_div = *S_->GetW<CompositeVector>(T_lateral_flow_source_, tags_[1].second, name_)
                 .ViewComponent("cell",false);
   qE_div.Update(1.0/dt,
                *S_->Get<CompositeVector>(T_conserved_variable_star_, tag_next_).ViewComponent("cell",false),
@@ -626,13 +624,11 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Flux_()
   for (int c=0; c!=q_div.MyLength(); ++c) {
     Tag ds_tag_next = get_ds_tag_next_(*ds_iter);
     Key p_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
-    auto p_owner = S_->GetRecord(p_key, ds_tag_next).owner();
-    (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).ViewComponent("cell",false))[0][0] = q_div[0][c];
+    (*S_->GetW<CompositeVector>(p_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = q_div[0][c];
     changedEvaluatorPrimary(p_key, ds_tag_next, *S_);
 
     Key T_key = Keys::getKey(*ds_iter, T_lateral_flow_source_suffix_);
-    auto T_owner = S_->GetRecord(T_key, ds_tag_next).owner();
-    (*S_->GetW<CompositeVector>(T_key, ds_tag_next, T_owner).ViewComponent("cell",false))[0][0] = qE_div[0][c];
+    (*S_->GetW<CompositeVector>(T_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = qE_div[0][c];
     changedEvaluatorPrimary(T_key, ds_tag_next, *S_);
     ++ds_iter;
   }
@@ -687,8 +683,8 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
     if (p_star[0][c] > 101325. && q_div[0][c] < 0.) {
       // use the Dirichlet
       Key p_key = Keys::getKey(*ds_iter, p_primary_variable_suffix_);
-      auto p_owner = S_->GetRecord(p_key, tags_[c+1].first).owner();
-      auto& p = *S_->GetW<CompositeVector>(p_key, tags_[c+1].first, p_owner).ViewComponent("cell",false);
+      auto p_owner = S_->GetRecord(p_key, ds_tag_current).owner();
+      auto& p = *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).ViewComponent("cell",false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
@@ -703,13 +699,13 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
 
       Key p_sub_key = Keys::getKey(domain_sub_,
               Keys::getDomainSetIndex(*ds_iter), p_sub_primary_variable_suffix_);
-      auto p_sub_owner = S_->GetRecord(p_sub_key, tags_[c+1].first).owner();
-      CopySurfaceToSubsurface(S_->Get<CompositeVector>(p_key, tags_[c+1].first),
-              S_->GetW<CompositeVector>(p_sub_key, tags_[c+1].first, p_sub_owner));
+      auto p_sub_owner = S_->GetRecord(p_sub_key, ds_tag_current).owner();
+      CopySurfaceToSubsurface(S_->Get<CompositeVector>(p_key, ds_tag_current),
+              S_->GetW<CompositeVector>(p_sub_key, ds_tag_current, p_sub_owner));
 
       Key T_key = Keys::getKey(*ds_iter, T_primary_variable_suffix_);
-      auto T_owner = S_->GetRecord(T_key, tags_[c+1].first).owner();
-      auto& T = *S_->GetW<CompositeVector>(T_key, tags_[c+1].first, T_owner).ViewComponent("cell",false);
+      auto T_owner = S_->GetRecord(T_key, ds_tag_current).owner();
+      auto& T = *S_->GetW<CompositeVector>(T_key, ds_tag_current, T_owner).ViewComponent("cell",false);
       AMANZI_ASSERT(T.MyLength() == 1);
       T[0][0] = T_star[0][c];
 
@@ -724,29 +720,27 @@ MPCPermafrostSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
 
       Key T_sub_key = Keys::getKey(domain_sub_,
               Keys::getDomainSetIndex(*ds_iter), T_sub_primary_variable_suffix_);
-      auto T_sub_owner = S_->GetRecord(T_sub_key, tags_[c+1].first).owner();
-      CopySurfaceToSubsurface(S_->Get<CompositeVector>(T_key, tags_[c+1].first),
-              S_->GetW<CompositeVector>(T_sub_key, tags_[c+1].first, T_sub_owner));
+      auto T_sub_owner = S_->GetRecord(T_sub_key, ds_tag_current).owner();
+      CopySurfaceToSubsurface(S_->Get<CompositeVector>(T_key, ds_tag_current),
+              S_->GetW<CompositeVector>(T_sub_key, ds_tag_current, T_sub_owner));
 
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
-      (*S_->GetW<CompositeVector>(p_lf_key, ds_tag_next, p_lf_key).ViewComponent("cell",false))[0][0] = 0.;
+      (*S_->GetW<CompositeVector>(p_lf_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = 0.;
       changedEvaluatorPrimary(p_lf_key, ds_tag_next, *S_);
 
       Key T_lf_key = Keys::getKey(*ds_iter, T_lateral_flow_source_suffix_);
-      (*S_->GetW<CompositeVector>(T_lf_key, ds_tag_next, T_lf_key).ViewComponent("cell",false))[0][0] = 0.;
+      (*S_->GetW<CompositeVector>(T_lf_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = 0.;
       changedEvaluatorPrimary(T_lf_key, ds_tag_next, *S_);
 
     } else {
       // use flux
       Key p_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
-      auto p_owner = S_->GetRecord(p_key, ds_tag_next).owner();
-      (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).ViewComponent("cell",false))[0][0] = q_div[0][c];
+      (*S_->GetW<CompositeVector>(p_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = q_div[0][c];
       changedEvaluatorPrimary(p_key, ds_tag_next, *S_);
 
       Key T_key = Keys::getKey(*ds_iter, T_lateral_flow_source_suffix_);
-      auto T_owner = S_->GetRecord(T_key, ds_tag_next).owner();
-      (*S_->GetW<CompositeVector>(T_key, ds_tag_next, T_owner).ViewComponent("cell",false))[0][0] = qE_div[0][c];
+      (*S_->GetW<CompositeVector>(T_key, ds_tag_next, name_).ViewComponent("cell",false))[0][0] = qE_div[0][c];
       changedEvaluatorPrimary(T_key, ds_tag_next, *S_);
     }
     ++ds_iter;
