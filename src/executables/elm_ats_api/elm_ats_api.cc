@@ -7,48 +7,89 @@ extern "C"{
 #endif
 
 // allocate, call constructor and cast ptr to opaque ELM_ATS_DRIVER
-ELM_ATS_DRIVER ats_create() {
-  return reinterpret_cast<ELM_ATS_DRIVER>(new ATS::ELM_ATSDriver());
+ELM_ATS_DRIVER ats_create_c(MPI_Fint *f_comm, const char *input_filename) {
+  return reinterpret_cast<ELM_ATS_DRIVER>(ATS::createELM_ATSDriver(f_comm, input_filename));
 }
+
 // reinterpret as elm_ats_driver and delete (calls destructor)
-void ats_delete(ELM_ATS_DRIVER ats) {
+void ats_delete_c(ELM_ATS_DRIVER ats) {
   auto ats_ptr = reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
   ats_ptr->finalize();
   delete ats_ptr;
 }
+
 // call driver setup()
-void ats_setup(ELM_ATS_DRIVER ats, MPI_Fint *f_comm, const char *input_filename) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setup(f_comm, input_filename);
+void ats_setup_c(ELM_ATS_DRIVER ats) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setup();
 }
+
 // call driver initialize()
-void ats_initialize(ELM_ATS_DRIVER ats){
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize();
+void ats_initialize_c(ELM_ATS_DRIVER ats, double *t, double *patm, double *soilp) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize(*t, patm, soilp);
 }
+
 // call driver advance()
-void ats_advance(ELM_ATS_DRIVER ats, double *dt) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(dt);
+void ats_advance_c(ELM_ATS_DRIVER ats, double *dt) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(*dt);
 }
+
 // call driver advance_test()
-void ats_advance_test(ELM_ATS_DRIVER ats) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
+void ats_advance_test_c(ELM_ATS_DRIVER ats) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
 }
+
+void ats_set_soil_hydrologic_properties(ELM_ATS_DRIVER ats,
+        double *porosity,
+        double *hksat,
+        double *CH_bsw,
+        double *CH_smpsat,
+        double *CH_sr) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+    ->set_soil_hydrologic_properties(porosity, hksat, CH_bsw, CH_smpsat, CH_sr);
+}
+
 // call driver set_sources()
-void ats_set_sources(ELM_ATS_DRIVER ats, double *soil_infiltration, double *soil_evaporation,
-  double *root_transpiration, int *ncols, int *ncells) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->set_sources(soil_infiltration, soil_evaporation, root_transpiration, ncols, ncells);
+void ats_set_potential_sources_c(ELM_ATS_DRIVER ats,
+                     double const *soil_infiltration,
+                     double const *soil_evaporation,
+                     double const *transpiration) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+    ->set_potential_sources(soil_infiltration, soil_evaporation, transpiration);
 }
+
+void ats_get_actual_sources_c(ELM_ATS_DRIVER ats,
+                     double *soil_infiltration,
+                     double *soil_evaporation,
+                     double *transpiration) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+    ->get_actual_sources(soil_infiltration, soil_evaporation, transpiration);
+}
+
 // call driver get_waterstate()
-void ats_get_waterstate(ELM_ATS_DRIVER ats, double *surface_pressure, double *soil_pressure,
-  double *saturation, int *ncols, int *ncells) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->get_waterstate(surface_pressure, soil_pressure, saturation, ncols, ncells);
+void ats_get_waterstate_c(ELM_ATS_DRIVER ats,
+                          double *ponded_depth,
+                          double *soil_pressure,
+                          double *soil_pot,
+                          double *sat_liq,
+                          double *sat_ice) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+    ->get_waterstate(ponded_depth, soil_pressure, soil_pot, sat_liq, sat_ice);
 }
+
 // call driver get_mesh_info()
-void ats_get_mesh_info(ELM_ATS_DRIVER ats, int *ncols_local, int *ncols_global, int *ncells_per_col,
-  double *dz, double *depth, double *elev, double *surf_area_m2, double *lat, double *lon) {
-  return reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-  ->get_mesh_info(ncols_local, ncols_global,ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon);
+void ats_get_mesh_info_c(ELM_ATS_DRIVER ats,
+                         int *ncols_local,
+                         int *ncols_global,
+                         int *ncells_per_col,
+                         double *lat,
+                         double *lon,
+                         double *elev,
+                         double *surf_area,
+                         double *dz,
+                         double *depth) {
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
+    ->get_mesh_info(*ncols_local, *ncols_global, *ncells_per_col,
+                    lat, lon, elev, surf_area, dz, depth);
 }
 #ifdef __cplusplus
 }

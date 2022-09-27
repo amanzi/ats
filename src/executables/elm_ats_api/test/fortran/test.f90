@@ -45,11 +45,11 @@ program elm_test
     call MPI_INIT(ierror)
 
     ! create an ATS driver object
-    ats_driver = ats()
+    ats_driver = ats(MPI_COMM_WORLD, infile_name)
 
     ! call ATS methods
-    call ats_driver%setup(MPI_COMM_WORLD, infile_name)
-    call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
+    call ats_driver%setup()
+    call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, lat, lon, elev, surf_area_m2, dz)
     call ats_driver%initialize()
     call ats_driver%set_sources(infil, evap, tran, ncol, ncell)
     call ats_driver%advance_test()
