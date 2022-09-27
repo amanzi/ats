@@ -37,25 +37,23 @@ class UnstructuredObservations;
 namespace ATS {
 
 class Coordinator {
-
-public:
-
-  Coordinator() {};
+ public:
+  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
+              const Amanzi::Comm_ptr_type& comm);
 
   // PK methods
   void setup();
-  virtual void initialize();
-  virtual void finalize();
+  void initialize();
+  void finalize();
   void report_memory();
+
   bool advance();
   void visualize(bool force=false);
   void checkpoint(bool force=false);
   double get_dt(bool after_fail=false);
 
  protected:
-  void coordinator_init(Teuchos::ParameterList& parameter_list,
-              Amanzi::Comm_ptr_type comm);
-  void read_parameter_list();
+  void InitializeFromPlist_();
 
   // PK container and factory
   Teuchos::RCP<Amanzi::PK> pk_;
@@ -68,7 +66,7 @@ public:
   Teuchos::RCP<Amanzi::TimeStepManager> tsm_;
 
   // misc setup information
-  Teuchos::RCP<Teuchos::ParameterList> parameter_list_;
+  Teuchos::RCP<Teuchos::ParameterList> plist_;
   Teuchos::RCP<Teuchos::ParameterList> coordinator_list_;
 
   double t0_, t1_;
