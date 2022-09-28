@@ -1238,6 +1238,7 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     }
   }
 
+  Epetra_MultiVector *tcc_tmp_bf = nullptr;
   // loop over exterior boundary sets
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -1249,6 +1250,10 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
       int c2 = (*downwind_cell_)[f];
       int c1 = (*upwind_cell_)[f];
 
+      if (tcc_tmp->HasComponent("boundary_face")) {
+        tcc_tmp_bf = &(*tcc_tmp->ViewComponent("boundary_face", false));
+      }
+      
       double u = fabs((*flux_)[0][f]);
       if (c2 >= 0) {
         for (int i = 0; i < ncomp; i++) {
@@ -1258,10 +1263,9 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_solutes_bc_[k] += tcc_flux;
 
-            if (tcc_tmp->HasComponent("boundary_face")) {
+            if (tcc_tmp_bf) {
               int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh_, f);
-              Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->ViewComponent("boundary_face",false);
-              tcc_tmp_bf[i][bf] =  values[i];
+              (*tcc_tmp_bf)[i][bf] =  values[i];
             }
           }
         }
