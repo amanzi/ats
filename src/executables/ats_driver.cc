@@ -47,12 +47,6 @@ License: see ATS_DIR/COPYRIGHT
 
 namespace ATS {
 
-ATSDriver::ATSDriver(Teuchos::ParameterList& parameter_list,
-                     Amanzi::Comm_ptr_type comm)
-    : Coordinator(parameter_list, comm) {}
-
-
-
 // -----------------------------------------------------------------------------
 // setup and initialize, then run until time >= duration_
 // -----------------------------------------------------------------------------
@@ -153,7 +147,7 @@ void ATSDriver::cycle_driver() {
 // -----------------------------------------------------------------------------
 int ATSDriver::run()
 {
-  Amanzi::VerboseObject vo("ATS Driver", *parameter_list_);
+  Amanzi::VerboseObject vo("ATS Driver", *plist_);
   Teuchos::OSTab tab = vo.getOSTab();
 
   // print header material
@@ -161,7 +155,7 @@ int ATSDriver::run()
     // print parameter list
     *vo.os() << "======================> dumping parameter list <======================" <<
       std::endl;
-    Teuchos::writeParameterListToXmlOStream(*parameter_list_, *vo.os());
+    Teuchos::writeParameterListToXmlOStream(*plist_, *vo.os());
     *vo.os() << "======================> done dumping parameter list. <================" <<
       std::endl;
   }
