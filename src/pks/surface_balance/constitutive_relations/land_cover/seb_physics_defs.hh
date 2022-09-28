@@ -227,7 +227,6 @@ struct FluxBalance {
 struct SurfaceParams {
   double a_tundra, a_water, a_ice;      // albedos
   double e_snow, e_tundra, e_water, e_ice;     // emissivities
-  double Zsmooth, Zrough;      // roughness coefs
 
   SurfaceParams() :
       a_tundra(0.135),           // [-] Grenfell and Perovich, (2004)
@@ -237,9 +236,7 @@ struct SurfaceParams {
       e_tundra(0.92),           // [-] emissivity for tundra, From P. ReVelle
                                 //         (Thesis), Ling & Zhang, 2004
       e_water(0.995),           // [-] emissivity of water, EngineeringToolbox.com
-      e_ice(0.98),              // [-] emissivity of ice, EngineeringToolbox.com
-      Zsmooth(0.005),           // [m]? roughness coef of smooth
-      Zrough(0.03) {}           // [m]? roughness coef of rough
+      e_ice(0.98) {}              // [-] emissivity of ice, EngineeringToolbox.com
 };
 
 

@@ -58,10 +58,14 @@ SubgridDisaggregateEvaluator::EvaluatePartialDerivative_(const State& S,
 void
 SubgridDisaggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  CompositeVectorSpace fac;
-  fac.SetMesh(S.GetMesh(source_domain_))
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
+  auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second);
+  if (my_fac.HasComponent("cell")) {
+    int num_vectors = my_fac.NumVectors("cell");
+    CompositeVectorSpace fac;
+    fac.SetMesh(S.GetMesh(source_domain_))
+      ->AddComponent("cell", AmanziMesh::CELL, num_vectors);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
+  }
 }
 
 

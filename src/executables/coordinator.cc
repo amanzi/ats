@@ -5,11 +5,13 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 
-Implementation for the Coordinator.  Coordinator is basically just a class to hold
-the cycle driver, which runs the overall, top level timestep loop.  It
-instantiates states, ensures they are initialized, and runs the timestep loop
-including Vis and restart/checkpoint dumps.  It contains one and only one PK
--- most likely this PK is an MPC of some type -- to do the actual work.
+Implementation for the Coordinator. Coordinator holds the functionality
+called by the cycle driver, which runs the overall, top level timestep loop.
+
+Coordinator instantiates states, ensures they are initialized, advances 
+timesteps, and writes vis and restart/checkpoint dumps. It contains one and
+only one PK -- most likely this PK is an MPC of some type -- to do the
+actual work.
 ------------------------------------------------------------------------- */
 
 #include <iostream>
@@ -17,6 +19,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include <sys/resource.h>
 #include "errors.hh"
 
+#include "Teuchos_ParameterList.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
@@ -31,6 +34,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
 #include "IO.hh"
+#include "GeometricModel.hh"
 #include "Checkpoint.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"
@@ -39,17 +43,17 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "PK_Factory.hh"
 #include "pk_helpers.hh"
 
+#include "ats_mesh_factory.hh"
+
 #include "coordinator.hh"
 
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 namespace ATS {
 
 Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
-                         Teuchos::RCP<Amanzi::State>& S,
                          Amanzi::Comm_ptr_type comm ) :
     parameter_list_(Teuchos::rcp(new Teuchos::ParameterList(parameter_list))),
-    S_(S),
     comm_(comm),
     restart_(false)
 {
@@ -57,13 +61,25 @@ Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
   timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
   setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
   cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
+
+  // create state.
+  S_ = Teuchos::rcp(new Amanzi::State(parameter_list_->sublist("state")));
+
   coordinator_init();
 
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *coordinator_list_));
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm, "Coordinator", *coordinator_list_));
 };
 
 void Coordinator::coordinator_init()
 {
+  // create the geometric model and regions
+  Teuchos::ParameterList reg_list = parameter_list_->sublist("regions");
+  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
+    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
+
+  // create and register meshes
+  ATS::Mesh::createMeshes(*parameter_list_, comm_, gm, *S_);
+
   coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
   read_parameter_list();
 
@@ -78,7 +94,7 @@ void Coordinator::coordinator_init()
   const std::string &pk_name = pk_tree_list.name(pk_item);
 
   // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector());
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
 
   // create the pk
   Amanzi::PKFactory pk_factory;
@@ -169,7 +185,7 @@ void Coordinator::initialize()
   // Initialize the process kernels
   pk_->Initialize();
 
-  // calling CommitStep to set up copies as needed
+  // calling CommitStep to set up copies as needed.
   pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // initialize vertex coordinate data
@@ -187,15 +203,15 @@ void Coordinator::initialize()
   // -- load all other data
   if (restart_) {
     Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
-    t0_ = S_->get_time(Amanzi::Tags::DEFAULT);
+    t0_ = S_->get_time();
+    cycle0_ = S_->get_cycle();
 
-    cycle0_ = S_->Get<int>("cycle", Amanzi::Tags::DEFAULT);
     S_->set_time(Amanzi::Tags::CURRENT, t0_);
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
-      if (S_->IsDeformableMesh(mesh->first)) {
+      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         Amanzi::DeformCheckpointMesh(*S_, mesh->first);
       }
     }
@@ -207,7 +223,9 @@ void Coordinator::initialize()
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-  // commit the initial conditions.
+  // commit one more time, since some variables may have changed in the
+  // previous call (test this... maybe chemistry/transport variables?  Is this
+  // still necessary?  And do we need to set cycle to -1 here too? --ETC)
   pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
   // Write dependency graph.
@@ -226,6 +244,9 @@ void Coordinator::initialize()
       // visualize standard domain
       auto mesh_p = S_->GetMesh(domain_name);
       auto sublist_p = Teuchos::sublist(vis_list, domain_name);
+      if (S_->IsDeformableMesh(domain_name) && !sublist_p->isParameter("dynamic mesh"))
+        sublist_p->set("dynamic mesh", true);
+
       if (!sublist_p->isParameter("file name base")) {
         if (domain_name.empty() || domain_name == "domain") {
           sublist_p->set<std::string>("file name base", std::string("ats_vis"));
@@ -267,10 +288,8 @@ void Coordinator::initialize()
           sublist_p->set("file name base", std::string("ats_vis_")+domain_name_base);
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
         vis->set_name(domain_name_base);
+        vis->set_domain_set(dset);
         vis->set_mesh(dset->get_referencing_parent());
-        for (const auto& subdomain : *dset) {
-          vis->set_subdomain_mesh(subdomain, S_->GetMesh(subdomain));
-        }
         vis->CreateFiles(false);
         visualization_.push_back(vis);
       }
@@ -309,7 +328,7 @@ void Coordinator::finalize()
 {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
-  WriteCheckpoint(*checkpoint_, comm_, *S_, true);
+  checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
   for (const auto& obs : observations_) obs->Flush();
@@ -467,6 +486,9 @@ Coordinator::get_dt(bool after_fail)
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
+
+  // note, I believe this can go away (along with the input spec flag) once
+  // amanzi/amanzi#685 is closed --etc
   if (subcycled_ts_) dt = std::min(dt, dt_pk);
   return dt;
 }
@@ -562,109 +584,8 @@ void Coordinator::checkpoint(bool force)
   int cycle = S_->get_cycle();
   double time = S_->get_time();
   if (force || checkpoint_->DumpRequested(cycle, time)) {
-    WriteCheckpoint(*checkpoint_, comm_, *S_);
+    checkpoint_->Write(*S_);
   }
 }
-
-
-// -----------------------------------------------------------------------------
-// timestep loop
-// -----------------------------------------------------------------------------
-void Coordinator::cycle_driver() {
-  // wallclock duration -- in seconds
-  const double duration(duration_ * 3600);
-
-  // start at time t = t0 and initialize the state.
-  {
-    Teuchos::TimeMonitor monitor(*setup_timer_);
-    setup();
-    initialize();
-  }
-
-  // get the intial timestep
-  double dt = get_dt(false);
-  if (!restart_) {
-    S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-  }
-
-  // visualization at IC
-  visualize();
-  checkpoint();
-
-  // iterate process kernels
-  //
-  // Make sure times are set up correctly
-  AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT)
-                         - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
-  {
-    Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
-    double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
-#if !DEBUG_MODE
-  try {
-#endif
-
-    while (((t1_ < 0) || (S_->get_time() < t1_)) &&
-           ((cycle1_ == -1) || (S_->get_cycle() <= cycle1_)) &&
-           ((duration_ < 0) || (timer_->totalElapsedTime(true) < duration)) &&
-           (dt > 0.)) {
-      if (vo_->os_OK(Teuchos::VERB_LOW)) {
-        Teuchos::OSTab tab = vo_->getOSTab();
-        *vo_->os() << "======================================================================"
-                  << std::endl << std::endl;
-        *vo_->os() << "Cycle = " << S_->get_cycle();
-        *vo_->os() << ",  Time [days] = "<< std::setprecision(16) << S_->get_time() / (60*60*24);
-        *vo_->os() << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)  << std::endl;
-        *vo_->os() << "----------------------------------------------------------------------"
-                  << std::endl;
-      }
-
-      S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-      S_->advance_time(Amanzi::Tags::NEXT, dt);
-      bool fail = advance();
-
-      if (fail) {
-        // reset t_new
-        S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
-      } else {
-        S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-        S_->advance_cycle();
-
-        // make observations, vis, and checkpoints
-        for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-        visualize();
-        checkpoint(); // checkpoint with the new dt
-      }
-
-      dt = get_dt(fail);
-    } // while not finished
-
-#if !DEBUG_MODE
-  } catch (Amanzi::Exceptions::Amanzi_exception &e) {
-    // write one more vis for help debugging
-    S_->advance_cycle(Amanzi::Tags::NEXT);
-    visualize(true); // force vis
-
-    // flush observations to make sure they are saved
-    for (const auto& obs : observations_) obs->Flush();
-
-    // catch errors to dump two checkpoints -- one as a "last good" checkpoint
-    // and one as a "debugging data" checkpoint.
-    checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
-    checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), comm_, *S_);
-    throw e;
-  }
-#endif
-  }
-
-  // finalizing simulation
-  WriteStateStatistics(*S_, *vo_);
-  report_memory();
-  Teuchos::TimeMonitor::summarize(*vo_->os());
-
-  finalize();
-} // cycle driver
-
 
 } // close namespace Amanzi

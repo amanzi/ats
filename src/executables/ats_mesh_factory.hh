@@ -85,9 +85,9 @@ Example:
      <ParameterList name="domain">
        <Parameter name="mesh type" type="string" value="generate mesh"/>
        <ParameterList name="generate mesh parameters"/>
-         <Parameter name="number of cells" type="Array(int)" value="{{100, 1, 100}}"/>
-         <Parameter name="domain low coordinate" type="Array(double)" value="{{0.0, 0.0, 0.0}}" />
-         <Parameter name="domain high coordinate" type="Array(double)" value="{{100.0, 1.0, 10.0}}" />
+         <Parameter name="number of cells" type="Array(int)" value="{100, 1, 100}"/>
+         <Parameter name="domain low coordinate" type="Array(double)" value="{0.0, 0.0, 0.0}" />
+         <Parameter name="domain high coordinate" type="Array(double)" value="{100.0, 1.0, 10.0}" />
        </ParameterList>
      </ParameterList>   
    </ParameterList>   

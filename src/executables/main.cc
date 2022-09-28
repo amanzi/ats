@@ -19,7 +19,7 @@
 
 #include "dbc.hh"
 #include "errors.hh"
-#include "simulation_driver.hh"
+#include "ats_driver.hh"
 
 // registration files
 #include "state_evaluators_registration.hh"
@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
   std::string verbosity;
   clp.setOption("verbosity", &verbosity, "Default verbosity level: \"none\", \"low\", \"medium\", \"high\", \"extreme\".");
 
+  std::string writing_rank;
+  clp.setOption("write_on_rank", &writing_rank, "Rank on which to write VerboseObjects");
+
   clp.throwExceptions(false);
   clp.recogniseAllOptions(true);
 
@@ -144,6 +147,24 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  // parse the writing rank
+  if (writing_rank.empty()) {
+    // pass
+  } else {
+    int writing_rank_j;
+    try {
+      writing_rank_j = std::stoi(writing_rank);
+    } catch (std::invalid_argument& e) {
+      std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
+    }
+    if (writing_rank_j < 0) {
+      std::cerr << "ERROR: invalid writing rank \"" << writing_rank << "\"" << std::endl;
+      clp.printHelpMessage("ats", std::cerr);
+    }
+    Amanzi::VerboseObject::global_writing_rank = writing_rank_j;
+  }
+
   // parse the input file and check validity
   if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
   if (input_filename.empty()) {
@@ -175,11 +196,11 @@ int main(int argc, char *argv[])
   if (!verbosity.empty())
     Amanzi::VerboseObject::global_default_level = opt_level;
 
-  // -- create simulator object and run
-  ATS::SimulationDriver simulator;
+  // create the top level driver and run simulation
+  ATS::ATSDriver driver(*plist, comm);
   int ret = 0;
   try {
-    ret = simulator.Run(comm, *plist);
+    ret = driver.run();
   } catch (std::string& s) {
     if (rank == 0) {
       std::cerr << "ERROR:" << std::endl
@@ -194,5 +215,4 @@ int main(int argc, char *argv[])
   }
   return ret;
 }
-
 

@@ -106,6 +106,8 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(Teuchos::ParameterList&
   if (one_minus_limiter_) {
     one_minus_limiter_key_ = Keys::readKey(plist, domain_, "1 - limiter");
     dependencies_.insert(KeyTag{one_minus_limiter_key_, tag});
+    one_minus_limiter_nvecs_ = plist.get<int>("1 - limiter number of dofs", 1);
+    one_minus_limiter_dof_ = plist.get<int>("1 - limiter dof", 0);
   }
 }
 
@@ -182,12 +184,12 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S,
     const auto& limiter = *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
-    limiter.MaxValue(&limiter_max);
-    limiter.MinValue(&limiter_min);
+    limiter(one_minus_limiter_dof_)->MaxValue(&limiter_max);
+    limiter(one_minus_limiter_dof_)->MinValue(&limiter_min);
     AMANZI_ASSERT(limiter_max <= 1 + 1e-10);
     AMANZI_ASSERT(limiter_min >= -1e-10);
 #endif
-    res.Multiply(-1, limiter, res, 1);
+    res(0)->Multiply(-1, *limiter(one_minus_limiter_dof_), *res(0), 1);
   }
 }
 
@@ -212,11 +214,11 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
     const auto& limiter = *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
     const auto& evap_val = *S.Get<CompositeVector>(my_keys_.front().first, tag)
       .ViewComponent("cell", false);
-    auto& res_c = *result[0]->ViewComponent("cell", false);
-    res_c.ReciprocalMultiply(-1, limiter, evap_val, 0);
+    auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
+    res_c.ReciprocalMultiply(-1, *limiter(one_minus_limiter_dof_), *evap_val(0), 0);
     for (int c=0; c!=res_c.MyLength(); ++c) {
-      if (limiter[0][c] < 1.e-5) {
-        res_c[0][c] = 0.;
+      if (limiter[one_minus_limiter_dof_][c] < 1.e-5) {
+        res_c[c] = 0.;
       }
     }
   }
@@ -237,6 +239,10 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::CELL, limiter_nvecs_);
+      } else if (dep.first == one_minus_limiter_key_) {
+        fac.SetMesh(S.GetMesh(domain_))
+          ->SetGhosted()
+          ->AddComponent("cell", AmanziMesh::CELL, one_minus_limiter_nvecs_);
       } else {
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()

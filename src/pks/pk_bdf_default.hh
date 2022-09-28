@@ -20,7 +20,7 @@ PKs.
 .. _pk-bdf-default-spec:
 .. admonition:: pk-bdf-default-spec
 
-    * `"initial time step`" ``[double]`` **1.** Initial time step size [s]
+    * `"initial time step [s]`" ``[double]`` **1.** Initial time step size [s]
 
     * `"assemble preconditioner`" ``[bool]`` **true** A flag, typically not set
       by user but by an MPC.
@@ -102,11 +102,8 @@ class PK_BDF_Default : public PK_BDF {
     return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   }
 
-  virtual void ResetTimeStepper(double time);
-
-  // experimental approach -- calling this indicates that the time
-  // integration scheme is changing the value of the solution in
-  // state.
+  // Calling this indicates that the time integration scheme is changing the
+  // value of the solution in state.
   virtual void ChangedSolution() override = 0;
   virtual void ChangedSolution(const Tag& tag) = 0;
 
@@ -115,7 +112,6 @@ class PK_BDF_Default : public PK_BDF {
   bool strongly_coupled_; // if we are coupled, no need to make a TI
 
   // timestep control
-  double dt_;
   Teuchos::RCP<BDF1_TI<TreeVector, TreeVectorSpace> > time_stepper_;
 
   // timing

@@ -26,10 +26,11 @@ void Richards::ApplyDiffusion_(const Tag& tag,
         const Teuchos::Ptr<CompositeVector>& g)
 {
   // force mass matrices to change
-  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" matrix"))
+    matrix_diff_->SetTensorCoefficient(K_);
 
   // update the rel perm according to the scheme of choice
-  bool update = UpdatePermeabilityData_(tag);
+  UpdatePermeabilityData_(tag);
 
   // update the matrix
   matrix_->Init();

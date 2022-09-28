@@ -70,11 +70,6 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_ << "\" does not have a referencing parent but must have one to aggregate.";
       Exceptions::amanzi_throw(msg);
     }
-    if (S.GetMesh(domain_) != ds->get_referencing_parent()) {
-      Errors::Message msg;
-      msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_ << "\" has a referencing parent, but it does not match the aggregate vector's domain, \"" << domain_ << "\"";
-      Exceptions::amanzi_throw(msg);
-    }
 
     for (const auto& subdomain : *ds) {
       dependencies_.insert(KeyTag{Keys::getKey(subdomain, var_key_), dep_tag});
@@ -85,11 +80,34 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
 }
 
 
+// Make sure that this vector is set on the referencing parent mesh of the
+// domain set.
+void
+SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  auto ds = S.GetDomainSet(source_domain_);
+  auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dependencies_.front().first, dependencies_.front().second);
+  if (dep_fac.HasComponent("cell")) {
+    S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second)
+      .SetMesh(ds->get_referencing_parent())
+      ->AddComponent("cell", AmanziMesh::CELL, dep_fac.NumVectors("cell"));
+  }
+
+  if (S.GetRecordSet(dependencies_.front().first).subfieldnames()) {
+    S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(*S.GetRecordSet(dependencies_.front().first).subfieldnames());
+  }
+}
+
+
 // Implements custom EC to use dependencies from subgrid
 void
 SubgridAggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, {"cell",}, {AmanziMesh::CELL,}, {1,});
+  auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second);
+  if (fac.HasComponent("cell")) {
+    int num_vectors = fac.NumVectors("cell");
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, {"cell",}, {AmanziMesh::CELL,}, {num_vectors,});
+  }
 }
 
 

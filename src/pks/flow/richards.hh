@@ -400,9 +400,6 @@ protected:
   bool modify_predictor_first_bc_flux_;
   Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
 
-  // is this a dynamic mesh problem
-  bool dynamic_mesh_;
-
   // is vapor turned on
   bool vapor_diffusion_;
 
@@ -436,6 +433,7 @@ protected:
   Key sat_ice_key_;
   Key capillary_pressure_gas_liq_key_;
   Key capillary_pressure_liq_ice_key_;
+  Key deform_key_;
 
 private:
   // factory registration
