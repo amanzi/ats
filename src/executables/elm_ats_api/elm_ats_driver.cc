@@ -165,7 +165,7 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_subsurf_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
   requireAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", Amanzi::AmanziMesh::CELL, 1);
-  
+
   Coordinator::setup();
 }
 
@@ -177,9 +177,9 @@ void ELM_ATSDriver::initialize(double t,
   t0_ = t;
 
   // set initial conditions
-  auto& pres = *S_->GetW<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT, pres_key_)
+  auto& ats_pressure = *S_->GetW<Amanzi::CompositeVector>(pres_key_, Amanzi::Tags::NEXT, pres_key_)
     .ViewComponent("cell", false);
-  copySubsurf_(pres, pressure);
+  copyToSub_(ats_pressure, pressure);
   // -- unclear whether to set initialized.  Need it to be false so that
   //    initializing faces is done via DeriveFaceValuesFromCellValues(), but it
   //    may never get set to true in that case?
@@ -360,9 +360,9 @@ ELM_ATSDriver::get_actual_sources(double *soil_infiltration,
   // get sources
   const Epetra_MultiVector& infilt = *S_->GetW<Amanzi::CompositeVector>(infilt_key_, Amanzi::Tags::NEXT, infilt_key_)
       .ViewComponent("cell", false);
-  const Epetra_MultiVector& pot_evap = *S_->GetW<Amanzi::CompositeVector>(pot_evap_key_, Amanzi::Tags::NEXT, pot_evap_key_)
+  const Epetra_MultiVector& evap = *S_->GetW<Amanzi::CompositeVector>(evap_key_, Amanzi::Tags::NEXT, evap_key_)
       .ViewComponent("cell", false);
-  const Epetra_MultiVector& pot_trans = *S_->GetW<Amanzi::CompositeVector>(pot_trans_key_, Amanzi::Tags::NEXT, pot_trans_key_)
+  const Epetra_MultiVector& trans = *S_->GetW<Amanzi::CompositeVector>(trans_key_, Amanzi::Tags::NEXT, trans_key_)
       .ViewComponent("cell", false);
 
   // scale evaporation and infiltration and add to surface source
@@ -373,13 +373,13 @@ ELM_ATSDriver::get_actual_sources(double *soil_infiltration,
   for (Amanzi::AmanziMesh::Entity_ID col=0; col!=ncolumns_; ++col) {
     double surf_mol_h20_kg = surf_mol_dens[0][col] / surf_mass_dens[0][col];
     soil_infiltration[col] = infilt[0][col] / surf_mol_h20_kg;
-    soil_evaporation[col] = pot_evap[0][col] / surf_mol_h20_kg;
+    soil_evaporation[col] = evap[0][col] / surf_mol_h20_kg;
 
     // scale root_transpiration and add to subsurface source
     auto& col_iter = mesh_subsurf_->cells_of_column(col);
     for (std::size_t i=0; i!=col_iter.size(); ++i) {
       double subsurf_mol_h20_kg = subsurf_mol_dens[0][col_iter[i]] / subsurf_mass_dens[0][col_iter[i]];
-      root_transpiration[col*ncells_per_col_+i] = pot_trans[0][col_iter[i]] / subsurf_mol_h20_kg;
+      root_transpiration[col*ncells_per_col_+i] = trans[0][col_iter[i]] / subsurf_mol_h20_kg;
     }
   }
 }
@@ -437,17 +437,49 @@ void ELM_ATSDriver::get_mesh_info(int& ncols_local,
   ncells_per_col = ncells_per_col_;
 
   S_->GetEvaluator(elev_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
-  copySurf_(elev, *S_->Get<Amanzi::CompositeVector>(elev_key_, Amanzi::Tags::NEXT)
+  copyFromSurf_(elev, *S_->Get<Amanzi::CompositeVector>(elev_key_, Amanzi::Tags::NEXT)
             .ViewComponent("cell", false));
 
   S_->GetEvaluator(surf_cv_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
-  copySurf_(surface_area, *S_->Get<Amanzi::CompositeVector>(surf_cv_key_, Amanzi::Tags::NEXT)
+  copyFromSurf_(surface_area, *S_->Get<Amanzi::CompositeVector>(surf_cv_key_, Amanzi::Tags::NEXT)
             .ViewComponent("cell", false));
 
   // hard-coded Toledo OH for now...
-  copySurf_(lat, 41.65);
-  copySurf_(lon, -83.54);
+  for (int i = 0; i!=ncolumns_; ++i) {
+    lat[i] = 41.65;
+    lon[i] = -83.54;
+  }
 }
+
+
+void ELM_ATSDriver::copyToSurf_(Epetra_MultiVector& target, double const * source)
+{
+  for (int i=0; i!=ncolumns_; ++i) target[0][i] = source[i];
+}
+
+void ELM_ATSDriver::copyToSub_(Epetra_MultiVector& target, double const * source)
+{
+  for (int i=0; i!=ncolumns_; ++i) {
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      target[0][mesh_subsurf_->cells_of_column(i)[j]] = source[i*ncells_per_col_ + j];
+    }
+  }
+}
+
+void ELM_ATSDriver::copyFromSurf_(double* target, const Epetra_MultiVector& source)
+{
+  for (int i=0; i!=ncolumns_; ++i) target[i] = source[0][i];
+}
+
+void ELM_ATSDriver::copyFromSub_(double* target, const Epetra_MultiVector& source)
+{
+  for (int i=0; i!=ncolumns_; ++i) {
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      target[i*ncells_per_col_ + j] = source[0][mesh_subsurf_->cells_of_column(i)[j]];
+    }
+  }
+}
+
 
 
 } // namespace ATS
