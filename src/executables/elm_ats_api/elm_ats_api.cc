@@ -6,39 +6,39 @@
 extern "C"{
 #endif
 
-// allocate, call constructor and cast ptr to opaque ELM_ATS_DRIVER
-ELM_ATS_DRIVER ats_create_c(MPI_Fint *f_comm, const char *input_filename) {
-  return reinterpret_cast<ELM_ATS_DRIVER>(ATS::createELM_ATSDriver(f_comm, input_filename));
+// allocate, call constructor and cast ptr to opaque ELM_ATSDriver_ptr
+ELM_ATSDriver_ptr ats_create_c(MPI_Fint *f_comm, const char *input_filename) {
+  return reinterpret_cast<ELM_ATSDriver_ptr>(ATS::createELM_ATSDriver(f_comm, input_filename));
 }
 
 // reinterpret as elm_ats_driver and delete (calls destructor)
-void ats_delete_c(ELM_ATS_DRIVER ats) {
+void ats_delete_c(ELM_ATSDriver_ptr ats) {
   auto ats_ptr = reinterpret_cast<ATS::ELM_ATSDriver*>(ats);
   ats_ptr->finalize();
   delete ats_ptr;
 }
 
 // call driver setup()
-void ats_setup_c(ELM_ATS_DRIVER ats) {
+void ats_setup_c(ELM_ATSDriver_ptr ats) {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->setup();
 }
 
 // call driver initialize()
-void ats_initialize_c(ELM_ATS_DRIVER ats, double *t, double *patm, double *soilp) {
+void ats_initialize_c(ELM_ATSDriver_ptr ats, double *t, double *patm, double *soilp) {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize(*t, patm, soilp);
 }
 
 // call driver advance()
-void ats_advance_c(ELM_ATS_DRIVER ats, double *dt) {
+void ats_advance_c(ELM_ATSDriver_ptr ats, double *dt) {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance(*dt);
 }
 
 // call driver advance_test()
-void ats_advance_test_c(ELM_ATS_DRIVER ats) {
+void ats_advance_test_c(ELM_ATSDriver_ptr ats) {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->advance_test();
 }
 
-void ats_set_soil_hydrologic_properties(ELM_ATS_DRIVER ats,
+void ats_set_soil_hydrologic_properties(ELM_ATSDriver_ptr ats,
         double *porosity,
         double *hksat,
         double *CH_bsw,
@@ -49,7 +49,7 @@ void ats_set_soil_hydrologic_properties(ELM_ATS_DRIVER ats,
 }
 
 // call driver set_sources()
-void ats_set_potential_sources_c(ELM_ATS_DRIVER ats,
+void ats_set_potential_sources_c(ELM_ATSDriver_ptr ats,
                      double const *soil_infiltration,
                      double const *soil_evaporation,
                      double const *transpiration) {
@@ -57,7 +57,7 @@ void ats_set_potential_sources_c(ELM_ATS_DRIVER ats,
     ->set_potential_sources(soil_infiltration, soil_evaporation, transpiration);
 }
 
-void ats_get_actual_sources_c(ELM_ATS_DRIVER ats,
+void ats_get_actual_sources_c(ELM_ATSDriver_ptr ats,
                      double *soil_infiltration,
                      double *soil_evaporation,
                      double *transpiration) {
@@ -66,7 +66,7 @@ void ats_get_actual_sources_c(ELM_ATS_DRIVER ats,
 }
 
 // call driver get_waterstate()
-void ats_get_waterstate_c(ELM_ATS_DRIVER ats,
+void ats_get_waterstate_c(ELM_ATSDriver_ptr ats,
                           double *ponded_depth,
                           double *soil_pressure,
                           double *soil_pot,
@@ -77,7 +77,7 @@ void ats_get_waterstate_c(ELM_ATS_DRIVER ats,
 }
 
 // call driver get_mesh_info()
-void ats_get_mesh_info_c(ELM_ATS_DRIVER ats,
+void ats_get_mesh_info_c(ELM_ATSDriver_ptr ats,
                          int *ncols_local,
                          int *ncols_global,
                          int *ncells_per_col,
