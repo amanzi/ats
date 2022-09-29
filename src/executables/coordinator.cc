@@ -47,44 +47,34 @@ actual work.
 
 #include "coordinator.hh"
 
-#define DEBUG_MODE 0
-
 namespace ATS {
 
-Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
-                         Amanzi::Comm_ptr_type comm ) :
-    parameter_list_(Teuchos::rcp(new Teuchos::ParameterList(parameter_list))),
+// this MUST be be called before using Coordinator
+Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                         const Amanzi::Comm_ptr_type& comm)
+  : plist_(plist),
     comm_(comm),
-    restart_(false)
+    restart_(false),
+    timer_(Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true))),
+    setup_timer_(Teuchos::TimeMonitor::getNewCounter("setup")),
+    cycle_timer_(Teuchos::TimeMonitor::getNewCounter("cycle"))
 {
-  // create and start the global timer
-  timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
-  setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
-  cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
-
   // create state.
-  S_ = Teuchos::rcp(new Amanzi::State(parameter_list_->sublist("state")));
+  S_ = Teuchos::rcp(new Amanzi::State(plist_->sublist("state")));
 
-  coordinator_init();
-
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm, "Coordinator", *coordinator_list_));
-};
-
-void Coordinator::coordinator_init()
-{
   // create the geometric model and regions
-  Teuchos::ParameterList reg_list = parameter_list_->sublist("regions");
+  Teuchos::ParameterList reg_list = plist_->sublist("regions");
   Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
     Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
 
   // create and register meshes
-  ATS::Mesh::createMeshes(*parameter_list_, comm_, gm, *S_);
+  ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
 
-  coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
-  read_parameter_list();
+  coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
+  InitializeFromPlist_();
 
   // create the top level PK
-  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(parameter_list_, "PKs");
+  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(plist_, "PKs");
   Teuchos::ParameterList pk_tree_list = coordinator_list_->sublist("PK tree");
   if (pk_tree_list.numParams() != 1) {
     Errors::Message message("CycleDriver: PK tree list should contain exactly one root node list");
@@ -98,14 +88,14 @@ void Coordinator::coordinator_init()
 
   // create the pk
   Amanzi::PKFactory pk_factory;
-  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, parameter_list_, S_, soln_);
+  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, plist_, S_, soln_);
 
   // create the checkpointing
-  Teuchos::ParameterList& chkp_plist = parameter_list_->sublist("checkpoint");
+  Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
   checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(chkp_plist, *S_));
 
   // create the observations
-  Teuchos::ParameterList& observation_plist = parameter_list_->sublist("observations");
+  Teuchos::ParameterList& observation_plist = plist_->sublist("observations");
   for (auto& sublist : observation_plist) {
     if (observation_plist.isSublist(sublist.first)) {
       observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
@@ -128,13 +118,16 @@ void Coordinator::coordinator_init()
     }
 
     // writes region information
-    if (parameter_list_->isSublist("analysis")) {
+    if (plist_->isSublist("analysis")) {
       Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
-      analysis.Init(parameter_list_->sublist("analysis").sublist(mesh->first));
+      analysis.Init(plist_->sublist("analysis").sublist(mesh->first));
       analysis.RegionAnalysis();
       analysis.OutputBCs();
     }
   }
+
+  // create verbose object
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm_, "Coordinator", *coordinator_list_));
 
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
@@ -236,7 +229,7 @@ void Coordinator::initialize()
   WriteStateStatistics(*S_, *vo_);
 
   // Set up visualization
-  auto vis_list = Teuchos::sublist(parameter_list_,"visualization");
+  auto vis_list = Teuchos::sublist(plist_,"visualization");
   for (auto& entry : *vis_list) {
     std::string domain_name = entry.first;
 
@@ -423,7 +416,7 @@ Coordinator::report_memory()
 
 
 void
-Coordinator::read_parameter_list()
+Coordinator::InitializeFromPlist_()
 {
   Amanzi::Utils::Units units;
   t0_ = coordinator_list_->get<double>("start time");

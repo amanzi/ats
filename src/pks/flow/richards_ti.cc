@@ -132,10 +132,8 @@ void Richards::UpdatePreconditioner(double t,
     *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
-  if (dynamic_mesh_) {
-    matrix_diff_->SetTensorCoefficient(K_);
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
     preconditioner_diff_->SetTensorCoefficient(K_);
-  }
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_)/t > 1.e-4) {

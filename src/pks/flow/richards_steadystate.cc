@@ -39,8 +39,6 @@ void RichardsSteadyState::FunctionalResidual(double t_old,
   Solution_to_State(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->Data();
 
-  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
-
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
@@ -120,10 +118,8 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
   }
 
   // Recreate mass matrices
-  if (dynamic_mesh_) {
-    matrix_diff_->SetTensorCoefficient(K_);
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
     preconditioner_diff_->SetTensorCoefficient(K_);
-  }
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);

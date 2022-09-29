@@ -109,10 +109,7 @@ namespace ATS {
 class ATSDriver : public Coordinator {
 
 public:
-  ATSDriver(Teuchos::ParameterList& parameter_list,
-            Amanzi::Comm_ptr_type comm);
-
-  ~ATSDriver() = default;
+  using Coordinator::Coordinator;
 
   // methods
   void cycle_driver();

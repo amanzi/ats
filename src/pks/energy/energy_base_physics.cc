@@ -84,7 +84,12 @@ void EnergyBase::AddAdvection_(const Tag& tag,
 // -------------------------------------------------------------
 // Diffusion term, div K grad T
 // -------------------------------------------------------------
-void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g) {
+void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
+{
+  // force mass matrices to change
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" matrix"))
+    matrix_diff_->SetTensorCoefficient(Teuchos::null);
+
   // update the thermal conductivity
   UpdateConductivityData_(tag);
   auto cond = S_->GetPtrW<CompositeVector>(uw_conductivity_key_, tag, name_);
