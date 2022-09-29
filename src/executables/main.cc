@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     Amanzi::VerboseObject::global_default_level = opt_level;
 
   // create the top level driver and run simulation
-  ATS::ATSDriver driver(*plist, comm);
+  ATS::ATSDriver driver(plist, comm);
   int ret = 0;
   try {
     ret = driver.run();
