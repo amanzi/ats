@@ -52,7 +52,9 @@ Solves Richards equation:
      source term be differentiated with respect to the primary
      variable?
    * `"explicit source term`" ``[bool]`` **false** Apply the source
-     term from the previous time step.  END
+     term from the previous time step.
+
+   END
 
    Math and solver algorithm options:
 
@@ -126,8 +128,8 @@ Solves Richards equation:
      this limits an iterate's max pressure change to this value.  Not usually
      helpful.
 
-   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]``
-     **-1** If > 0, this limits an iterate's max pressure change
+   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+     If > 0, this limits an iterate's max pressure change
      to this value when they cross atmospheric pressure.  Not usually helpful.
 
    Discretization / operators / solver controls:
