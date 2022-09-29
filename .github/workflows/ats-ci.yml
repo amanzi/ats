@@ -30,6 +30,11 @@ jobs:
       id: amanzi_branch
       run:
         echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')"
+    - name: Does ats-regression-tests branch of the same name exist?
+      id: ats_tests_branch
+      working-directory: src/physics/ats/testing/ats-regression-tests
+      run:
+        echo "::set-output name=ATS_TESTS_BRANCH::$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')"
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run:
@@ -38,6 +43,7 @@ jobs:
       run:
         echo "Amanzi branch = ${{steps.amanzi_branch.outputs.AMANZI_BRANCH}}";
         echo "ATS branch = ${{steps.branch.outputs.ATS_BRANCH}}";
+        echo "ats-regression-tests branch = ${{steps.ats_tests_branch.outputs.ATS_TESTS_BRANCH}}";
         echo "Tag reference = ${{steps.tag.outputs.ATS_BRANCH_TAG}}"
     - name: Get TPLs version
       id: version 
@@ -56,7 +62,7 @@ jobs:
       id: docker
       working-directory: Docker
       run:
-        docker build --build-arg amanzi_branch=${{steps.amanzi_branch.outputs.AMANZI_BRANCH}} --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
+        docker build --build-arg amanzi_branch=${{steps.amanzi_branch.outputs.AMANZI_BRANCH}} --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg ats_tests_branch=${{steps.ats_tests_branch.outputs.ATS_TESTS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
     - name: Docker push
       working-directory: Docker
       run:
