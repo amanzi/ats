@@ -51,6 +51,12 @@ if (ENABLE_CLM)
     )
 endif()
 
+if (ENABLE_ELMKERNELS)
+  list(APPEND ats_surface_balance_src_files
+    ELMKernels/surface_balance_ELMKernels.cc
+    )
+endif()
+
 set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/seb_physics_defs.hh
   constitutive_relations/land_cover/seb_physics_funcs.hh
@@ -92,6 +98,12 @@ if (ENABLE_CLM)
     CLM/surface_balance_CLM.hh
     CLM/ats_clm_interface.hh
     CLM/ats_clm_interface_private.hh
+    )
+endif()
+
+if (ENABLE_ELMKERNELS)
+  list(APPEND ats_surface_balance_inc_files
+    ELMKernels/surface_balance_ELMKernels.hh
     )
 endif()
 
@@ -141,6 +153,13 @@ register_evaluator_with_factory(
 if (ENABLE_CLM)
   register_evaluator_with_factory(
     HEADERFILE CLM/surface_balance_CLM_reg.hh
+    LISTNAME ATS_SURFACE_BALANCE_REG
+    )
+endif()
+
+if (ENABLE_ELMKERNELS)
+  register_evaluator_with_factory(
+    HEADERFILE ELMKernels/surface_balance_ELMKernels_reg.hh
     LISTNAME ATS_SURFACE_BALANCE_REG
     )
 endif()
