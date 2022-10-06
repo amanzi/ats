@@ -64,7 +64,7 @@ class SurfDistributedTilesRateEvaluator : public SecondaryVariableFieldEvaluator
   std::vector<double> times_;
   // std::vector<Teuchos::RCP<  std::vector<double> > > Q_;
   
-  Key surface_marks_key_, surf_len_key_, sources_key_;
+  Key surface_marks_key_, surf_len_key_, sources_key_, coupling_domain_src_key_;
   Key domain_, domain_surf_;
   bool compatibility_checked_, implicit_;
   int num_ditches_;

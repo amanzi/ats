@@ -78,11 +78,12 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   src_vec->PutScalar(0.0);
   sub_sink.PutScalar(0.0);
   int num_vectors = 1;
+  int test = sub_sink.NumVectors();
 
   if (factor_key_!=""){
     num_vectors = S->GetFieldData(factor_key_)->ViewComponent("cell",false)->NumVectors();
-    AMANZI_ASSERT(num_vectors != sub_sink.NumVectors());
-    AMANZI_ASSERT(num_vectors != num_component_);
+    AMANZI_ASSERT(num_vectors == sub_sink.NumVectors());
+    AMANZI_ASSERT(num_vectors == num_component_);
   }
 
   if (abs(dt) > 1e-13) {
@@ -109,12 +110,12 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   }
   // std::cout <<"Sink vector\n";
   // std::cout << *src_vec<<"\n";
-  // std::cout<<"Total sink "<<total<<"\n";
+  //std::cout<<"Total sink "<<my_key_<<" "<<total<<"\n";
   // total = 0.;
   // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
   //   total += sub_sink[0][c] * cv[0][c];
   // }
-  // std::cout<<"Total sink field "<<total<<"\n";
+  // std::cout<<"Total sink field "<<my_key_<<" "<<total<<"\n";
 
   
   Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
