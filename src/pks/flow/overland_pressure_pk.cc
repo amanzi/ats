@@ -258,7 +258,8 @@ void OverlandPressureFlow::SetupOverlandFlow_()
 
     // require the derivative drel_perm/dp
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(cond_key_,
-            tag_next_, pd_key_, tag_next_);
+            tag_next_, pd_key_, tag_next_)
+      .SetGhosted();
     if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
       // MFD -- upwind required, require data
       duw_cond_key_ = Keys::getDerivKey(uw_cond_key_, pd_key_);
@@ -632,7 +633,6 @@ bool OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
 
     // -- upwind
     upwinding_->Update(*cond, *uw_cond, *S_);
-    uw_cond->ScatterMasterToGhosted("face");
   }
 
   if (update_perm && vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -664,9 +664,6 @@ bool OverlandPressureFlow::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
       // Then upwind.  This overwrites the boundary if upwinding says so.
       upwinding_dkdp_->Update(*dcond, *duw_cond, *S_);
-      duw_cond->ScatterMasterToGhosted("face");
-    } else {
-      dcond->ScatterMasterToGhosted("cell");
     }
   }
 

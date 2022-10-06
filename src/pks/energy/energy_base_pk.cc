@@ -233,7 +233,8 @@ void EnergyBase::SetupEnergy_()
 
     // require the derivative dcond/dp
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conductivity_key_,
-            tag_next_, key_, tag_next_);
+            tag_next_, key_, tag_next_)
+      .SetGhosted();
 
     if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
       // MFD or NLFV -- upwind required
@@ -291,7 +292,8 @@ void EnergyBase::SetupEnergy_()
         ->AddComponent("cell", AmanziMesh::CELL, 1)
         ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(enthalpy_key_,
-              tag_next_, key_, tag_next_);
+              tag_next_, key_, tag_next_)
+        .SetGhosted();
     } else {
       // -- enthalpy data, evaluator
       requireAtCurrent(enthalpy_key_, tag_current_, *S_)
