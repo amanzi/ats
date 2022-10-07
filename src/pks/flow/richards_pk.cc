@@ -273,7 +273,8 @@ void Richards::SetupRichardsFlow_()
 
     // require the derivative drel_perm/dp
     S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(coef_key_,
-            tag_next_, key_, tag_next_);
+            tag_next_, key_, tag_next_)
+      .SetGhosted();
     if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
       // MFD -- upwind required, require data
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
@@ -845,9 +846,6 @@ bool Richards::UpdatePermeabilityData_(const Tag& tag)
         }
       }
     }
-
-    if (uw_rel_perm->HasComponent("face"))
-      uw_rel_perm->ScatterMasterToGhosted("face");
   }
 
   // debugging
@@ -875,9 +873,6 @@ bool Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
       upwinding_deriv_->Update(drel_perm, duw_rel_perm, *S_);
-      duw_rel_perm.ScatterMasterToGhosted("face");
-    } else {
-      drel_perm.ScatterMasterToGhosted("cell");
     }
   }
 
