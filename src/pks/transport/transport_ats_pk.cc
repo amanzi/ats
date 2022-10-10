@@ -1239,6 +1239,10 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   }
 
   Epetra_MultiVector *tcc_tmp_bf = nullptr;
+  if (tcc_tmp->HasComponent("boundary_face")) {
+    tcc_tmp_bf = &(*tcc_tmp->ViewComponent("boundary_face", false));
+  }
+
   // loop over exterior boundary sets
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -1249,10 +1253,6 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
       std::vector<double>& values = it->second;
       int c2 = (*downwind_cell_)[f];
       int c1 = (*upwind_cell_)[f];
-
-      if (tcc_tmp->HasComponent("boundary_face")) {
-        tcc_tmp_bf = &(*tcc_tmp->ViewComponent("boundary_face", false));
-      }
       
       double u = fabs((*flux_)[0][f]);
       if (c2 >= 0) {
