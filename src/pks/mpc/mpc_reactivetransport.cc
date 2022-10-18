@@ -43,15 +43,19 @@ void MPCReactiveTransport::Setup()
   transport_pk_->Setup();
   chemistry_pk_->Setup();
 
+
   S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, "state")
     .SetMesh(S_->GetMesh(domain_))->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
   S_->RequireEvaluator(tcc_key_, tag_next_);
 
+
+  
   S_->Require<CompositeVector,CompositeVectorSpace>(mol_dens_key_, tag_next_)
     .SetMesh(S_->GetMesh(domain_))->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(mol_dens_key_, tag_next_);
+
 }
 
 void MPCReactiveTransport::cast_sub_pks_()

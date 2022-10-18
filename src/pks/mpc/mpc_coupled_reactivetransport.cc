@@ -52,12 +52,12 @@ void MPCCoupledReactiveTransport::Setup()
 
   S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, "state")
     .SetMesh(S_->GetMesh(domain_))->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
   S_->RequireEvaluator(tcc_key_, tag_next_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(tcc_surf_key_, tag_next_, "state")
     .SetMesh(S_->GetMesh(domain_surf_))->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_surf_->num_aqueous_components());
   S_->RequireEvaluator(tcc_surf_key_, tag_next_);
 
   S_->Require<CompositeVector,CompositeVectorSpace>(mol_dens_key_, tag_next_)

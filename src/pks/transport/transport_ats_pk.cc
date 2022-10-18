@@ -24,6 +24,7 @@
 #include "Explicit_TI_RK.hh"
 #include "Evaluator.hh"
 #include "Mesh.hh"
+#include "Mesh_Algorithms.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
@@ -158,7 +159,7 @@ void Transport_ATS::Setup()
 
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::CELL, num_components);
+    ->AddComponent("cell", AmanziMesh::CELL, num_components);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
   requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
 
@@ -1237,6 +1238,11 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     }
   }
 
+  Epetra_MultiVector *tcc_tmp_bf = nullptr;
+  if (tcc_tmp->HasComponent("boundary_face")) {
+    tcc_tmp_bf = &(*tcc_tmp->ViewComponent("boundary_face", false));
+  }
+
   // loop over exterior boundary sets
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -1244,6 +1250,9 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
       int f = it->first;
+      int bf = tcc_tmp_bf ?
+        AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh_, f) : -1;
+
       std::vector<double>& values = it->second;
       int c2 = (*downwind_cell_)[f];
       int c1 = (*upwind_cell_)[f];
@@ -1256,6 +1265,8 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
             double tcc_flux = dt_ * u * values[i];
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_solutes_bc_[k] += tcc_flux;
+
+            if (tcc_tmp_bf) (*tcc_tmp_bf)[i][bf] = values[i];
           }
         }
       }

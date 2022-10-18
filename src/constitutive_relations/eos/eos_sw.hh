@@ -32,10 +32,10 @@ class EOS_SW : public EOS {
   virtual double DMolarDensityDC(std::vector<double>& params) override;
 
   virtual bool IsTemperature() override {
-    return true;
+    return false;
   }
   virtual bool IsPressure() override {
-    return true;
+    return false;
   }
   virtual bool IsConcentration() override {
     return true;
