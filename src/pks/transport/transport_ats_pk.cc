@@ -1168,7 +1168,7 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // populating next state of concentrations
   tcc->ScatterMasterToGhosted("cell");
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell", true);
-  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);  
+  Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", true);
 
   // prepare conservative state in master and slave cells
   double mass_current = 0., tmp1, mass;
@@ -1250,10 +1250,13 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
     for (auto it = bcs_[m]->begin(); it != bcs_[m]->end(); ++it) {
       int f = it->first;
+      int bf = tcc_tmp_bf ?
+        AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh_, f) : -1;
+
       std::vector<double>& values = it->second;
       int c2 = (*downwind_cell_)[f];
       int c1 = (*upwind_cell_)[f];
-      
+
       double u = fabs((*flux_)[0][f]);
       if (c2 >= 0) {
         for (int i = 0; i < ncomp; i++) {
@@ -1263,10 +1266,7 @@ void Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_solutes_bc_[k] += tcc_flux;
 
-            if (tcc_tmp_bf) {
-              int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh_, f);
-              (*tcc_tmp_bf)[i][bf] =  values[i];
-            }
+            if (tcc_tmp_bf) (*tcc_tmp_bf)[i][bf] = values[i];
           }
         }
       }
