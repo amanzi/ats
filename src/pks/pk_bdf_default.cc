@@ -131,9 +131,8 @@ bool PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // Note, the fact that this is triggering an assertion on old old runs
   // indicates that there may be a long-standing bug in TimeStepController.
-  // See Ticket amanzi#685.  So for now, we turn this off to get tests to pass.
-  // --ETC
-  //AMANZI_ASSERT(dt <= dt_internal + 1.e-8); // roundoff
+  // See Ticket amanzi#685.  --ETC
+  AMANZI_ASSERT(dt <= dt_internal + 1.e-8); // roundoff
 
   double dt_solver = -1;
 

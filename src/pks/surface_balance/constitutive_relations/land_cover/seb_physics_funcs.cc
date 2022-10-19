@@ -114,7 +114,7 @@ double SaturatedVaporPressure(double temp)
 
 double SaturatedVaporPressureELM(double temp)
 {
-  // Saturated vapor pressure in [KPa] from CLM technical note
+  // Saturated vapor pressure in [kPa] from CLM technical note
   double T = temp - 273.15;
   double coef_w[9] = {6.1123516, 5.03109514e-1, 1.88369801e-2, 4.20547422e-4, 6.14396778e-6,
     6.02780717e-8, 3.87940929e-10, 1.49436277e-12, 2.62655803e-15};
@@ -131,7 +131,7 @@ double SaturatedVaporPressureELM(double temp)
     Tn *= T;
   }
   // convert to Pa
-  return 1e-3 * res;
+  return 1e3 * res;
 }
 
 double SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
