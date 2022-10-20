@@ -202,9 +202,9 @@ void BGCSimple::Setup()
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-air_temperature", tag_next_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->RequireEvaluator("surface-relative_humidity", tag_next_);
-  S_->Require<CompositeVector,CompositeVectorSpace>("surface-relative_humidity", tag_next_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireEvaluator("surface-vapor_pressure_air", tag_next_);
+  S_->Require<CompositeVector,CompositeVectorSpace>("surface-vapor_pressure_air", tag_next_)
+     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S_->RequireEvaluator("surface-wind_speed", tag_next_);
   S_->Require<CompositeVector,CompositeVectorSpace>("surface-wind_speed", tag_next_)
@@ -370,8 +370,8 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   const Epetra_MultiVector& air_temp = *S_->Get<CompositeVector>("surface-air_temperature", tag_next_)
       .ViewComponent("cell",false);
 
-  S_->GetEvaluator("surface-relative_humidity", tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& rel_hum = *S_->Get<CompositeVector>("surface-relative_humidity", tag_next_)
+  S_->GetEvaluator("surface-vapor_pressure_air", tag_next_).Update(*S_, name_);
+  const Epetra_MultiVector& vp_air = *S_->Get<CompositeVector>("surface-vapor_pressure_air", tag_next_)
       .ViewComponent("cell",false);
 
   S_->GetEvaluator("surface-wind_speed", tag_next_).Update(*S_, name_);
@@ -429,7 +429,7 @@ bool BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
     met.tair = air_temp[0][col];
     met.windv = wind_speed[0][col];
     met.wind_ref_ht = wind_speed_ref_ht_;
-    met.relhum = rel_hum[0][col];
+    met.vp_air = vp_air[0][col];
     met.CO2a = co2[0][col];
     met.lat = lat_;
     sw_c = met.qSWin;

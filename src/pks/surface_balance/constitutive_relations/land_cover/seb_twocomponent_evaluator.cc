@@ -103,8 +103,8 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(KeyTag{met_lw_key_, tag});
   met_air_temp_key_ = Keys::readKey(plist, domain_,"air temperature", "air_temperature");
   dependencies_.insert(KeyTag{met_air_temp_key_, tag});
-  met_rel_hum_key_ = Keys::readKey(plist, domain_,"relative humidity", "relative_humidity");
-  dependencies_.insert(KeyTag{met_rel_hum_key_, tag});
+  met_vp_air_key_ = Keys::readKey(plist, domain_,"vapor pressure air", "vapor_pressure_air");
+  dependencies_.insert(KeyTag{met_vp_air_key_, tag});
   met_wind_speed_key_ = Keys::readKey(plist, domain_,"wind speed", "wind_speed");
   dependencies_.insert(KeyTag{met_wind_speed_key_, tag});
   met_prain_key_ = Keys::readKey(plist, domain_,"precipitation rain", "precipitation_rain");
@@ -151,7 +151,6 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(KeyTag{ss_pres_key_, tag});
 
   // parameters
-  min_rel_hum_ = plist.get<double>("minimum relative humidity [-]", 0.1);
   min_wind_speed_ = plist.get<double>("minimum wind speed [m s^-1]", 1.0);
   wind_speed_ref_ht_ = plist.get<double>("wind speed reference height [m]", 2.0);
   AMANZI_ASSERT(wind_speed_ref_ht_ > 0.);
@@ -169,7 +168,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S,
   const auto& qSW_in = *S.Get<CompositeVector>(met_sw_key_, tag).ViewComponent("cell",false);
   const auto& qLW_in = *S.Get<CompositeVector>(met_lw_key_, tag).ViewComponent("cell",false);
   const auto& air_temp = *S.Get<CompositeVector>(met_air_temp_key_, tag).ViewComponent("cell",false);
-  const auto& rel_hum = *S.Get<CompositeVector>(met_rel_hum_key_, tag).ViewComponent("cell",false);
+  const auto& vp_air = *S.Get<CompositeVector>(met_vp_air_key_, tag).ViewComponent("cell",false);
   const auto& wind_speed = *S.Get<CompositeVector>(met_wind_speed_key_, tag).ViewComponent("cell",false);
   const auto& Prain = *S.Get<CompositeVector>(met_prain_key_, tag).ViewComponent("cell",false);
   const auto& Psnow = *S.Get<CompositeVector>(met_psnow_key_, tag).ViewComponent("cell",false);
@@ -255,7 +254,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S,
       met.QswIn = qSW_in[0][c];
       met.QlwIn = qLW_in[0][c];
       met.air_temp = air_temp[0][c];
-      met.relative_humidity = std::max(rel_hum[0][c], min_rel_hum_);
+      met.vp_air = vp_air[0][c];
       met.Pr = Prain[0][c];
 
       // non-snow covered column
@@ -422,8 +421,8 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S,
     vecs.clear();
     vnames.push_back("air_temp");
     vecs.push_back(S.GetPtr<CompositeVector>(met_air_temp_key_, tag).ptr());
-    vnames.push_back("rel_hum");
-    vecs.push_back(S.GetPtr<CompositeVector>(met_rel_hum_key_, tag).ptr());
+    vnames.push_back("vp_air");
+    vecs.push_back(S.GetPtr<CompositeVector>(met_vp_air_key_, tag).ptr());
     vnames.push_back("precip_rain");
     vecs.push_back(S.GetPtr<CompositeVector>(met_prain_key_, tag).ptr());
     vnames.push_back("precip_snow");

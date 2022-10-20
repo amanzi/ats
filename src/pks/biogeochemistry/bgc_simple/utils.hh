@@ -22,7 +22,7 @@ struct MetData {
   double tair;
   double windv;
   double wind_ref_ht;
-  double relhum;
+  double vp_air;
   double CO2a;
   double lat;
 };

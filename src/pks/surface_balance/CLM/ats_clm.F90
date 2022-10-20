@@ -307,31 +307,29 @@ contains
   !   pRain      | Rainfall precipitation rate [m/s]
   !   pSnow      | Snowfall precipitation rate [m/s]
   !   air_temp   | Air temperature [K]
-  !   rel_hum    | Relative humidity [-]
+  !   vp_air     | Vapor presure air [Pa]
   !   wind_u     | Windspeed velocity [m/s]
   !   p_atm      | Atmospheric pressure [Pa]
   !
   subroutine ats_to_clm_met_data(eflx_swin, eflx_lwin, precip, &
-       air_temp, rel_hum, wind_x, wind_y, patm) bind(C)
+       air_temp, vp_air, wind_x, wind_y, patm) bind(C)
     implicit none
     real(r8),intent(in) :: eflx_swin(host%ncolumns_g) ! shortwave incoming radiation [W/m^2]
     real(r8),intent(in) :: eflx_lwin(host%ncolumns_g) ! longwave incoming radiation [W/m^2]
     real(r8),intent(in) :: precip(host%ncolumns_g) ! precipitation rate [mm/s]
     real(r8),intent(in) :: air_temp(host%ncolumns_g) ! air temperature [K]
-    real(r8),intent(in) :: rel_hum(host%ncolumns_g) ! relative humidity [-]
+    real(r8),intent(in) :: vp_air(host%ncolumns_g) ! vapor pressure air [Pa]
     real(r8),intent(in) :: wind_x(host%ncolumns_g) ! wind speed, eastward direction [m/s]
     real(r8),intent(in) :: wind_y(host%ncolumns_g) ! wind speed, northward direction [m/s]
     real(r8),intent(in) :: patm(host%ncolumns_g) ! atmospheric pressure [Pa]
     
     ! local conversion to specific humidity [kg/kg]
     real(r8) :: spec_hum(host%ncolumns_g)
-    real(r8) :: qs, es, esdT, qsdT
     integer i
     
     do i=1,host%ncolumns_g
        ! convert to specific humidity
-       call clm1d_qsadv(air_temp(i), patm, es, esdT, qs, qsdT)
-       spec_hum(i) = rel_hum(i) * qs
+       spec_hum(i) = 0.622 * vp_air(i) / (patm(i) - 0.378 * vp_air(i))
     end do
 
     call host_to_clm_met_data(host, eflx_swin, eflx_lwin, precip, &

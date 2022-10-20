@@ -74,7 +74,7 @@ public:
   Key met_sw_key_;
   Key met_lw_key_;
   Key met_air_temp_key_;
-  Key met_rel_hum_key_;
+  Key met_vp_air_key_;
   Key met_wind_speed_key_;
   Key met_prain_key_;
   Key met_psnow_key_;

@@ -131,7 +131,7 @@ namespace BGC {
     Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_, mesh_domain_;
     Key domain_surf_;
     Key trans_key_;
-    Key precip_key_, air_temp_key_, humidity_key_, wind_key_, co2a_key_;
+    Key precip_key_, air_temp_key_, vp_air_key_, wind_key_, co2a_key_;
     Key poro_key_, sat_key_, suc_key_, soil_temp_key_;
     Key met_decomp_key_, cel_decomp_key_, lig_decomp_key_;
     Key longwave_key_, incident_rad_key_;

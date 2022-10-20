@@ -68,7 +68,7 @@ SurfaceBalanceCLM::SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
   met_sw_key_ = Keys::readKey(*plist_, domain_,"incoming shortwave radiation", "incoming_shortwave_radiation");
   met_lw_key_ = Keys::readKey(*plist_, domain_,"incoming longwave radiation", "incoming_longwave_radiation");
   met_air_temp_key_ = Keys::readKey(*plist_, domain_,"air temperature", "air_temperature");
-  met_rel_hum_key_ = Keys::readKey(*plist_, domain_,"relative humidity", "relative_humidity");
+  met_vp_air_key_ = Keys::readKey(*plist_, domain_,"vapor pressure air", "vapor_pressure_air");
   met_wind_speed_key_ = Keys::readKey(*plist_, domain_,"wind speed", "wind_speed");
   met_prain_key_ = Keys::readKey(*plist_, domain_,"precipitation rain", "precipitation_rain");
   met_psnow_key_ = Keys::readKey(*plist_, domain_snow_,"precipitation snow", "precipitation");
@@ -187,8 +187,8 @@ SurfaceBalanceCLM::SetupDependencies_(const Tag& tag)
   S_->Require<CompositeVector,CompositeVectorSpace>(met_air_temp_key_, tag)
     .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  S_->RequireEvaluator(met_rel_hum_key_, tag);
-  S_->Require<CompositeVector,CompositeVectorSpace>(met_rel_hum_key_, tag)
+  S_->RequireEvaluator(met_vp_air_key_, tag);
+  S_->Require<CompositeVector,CompositeVectorSpace>(met_vp_air_key_, tag)
     .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   S_->RequireEvaluator(met_wind_speed_key_, tag);
@@ -372,8 +372,8 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit)
   const Epetra_MultiVector& met_lw = *S_->Get<CompositeVector>(met_lw_key_, tag).ViewComponent("cell", false);
   S_->GetEvaluator(met_air_temp_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& met_air_temp = *S_->Get<CompositeVector>(met_air_temp_key_, tag).ViewComponent("cell", false);
-  S_->GetEvaluator(met_rel_hum_key_, tag).Update(*S_, name_);
-  const Epetra_MultiVector& met_rel_hum = *S_->Get<CompositeVector>(met_rel_hum_key_, tag).ViewComponent("cell", false);
+  S_->GetEvaluator(met_vp_air_key_, tag).Update(*S_, name_);
+  const Epetra_MultiVector& met_vp_air = *S_->Get<CompositeVector>(met_vp_air_key_, tag).ViewComponent("cell", false);
   S_->GetEvaluator(met_wind_speed_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& met_wind_speed = *S_->Get<CompositeVector>(met_wind_speed_key_, tag).ViewComponent("cell", false);
   S_->GetEvaluator(met_prain_key_, tag).Update(*S_, name_);
@@ -381,7 +381,7 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(met_psnow_key_, tag).Update(*S_, name_);
   const Epetra_MultiVector& met_psnow = *S_->Get<CompositeVector>(met_psnow_key_, tag).ViewComponent("cell", false);
 
-  ATS::CLM::set_met_data(met_sw, met_lw, met_prain, met_psnow, met_air_temp, met_rel_hum, met_wind_speed, patm);
+  ATS::CLM::set_met_data(met_sw, met_lw, met_prain, met_psnow, met_air_temp, met_vp_air, met_wind_speed, patm);
 
   // set the start time, endtime
   ATS::CLM::advance_time(S_->get_cycle(tag), t_old, dt); // units in seconds
