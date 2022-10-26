@@ -836,7 +836,7 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
       int c = cells[0];
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
-      values[f] = std::sqrt(gz) * std::pow(h_c[0][c], 1.5) * nliq_c[0][c];
+      values[f] = std::sqrt(9.81) * std::pow(h_c[0][c], 1.5) * nliq_c[0][c];
     }
   }
 

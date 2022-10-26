@@ -58,7 +58,8 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     jacobian_(false),
     jacobian_lag_(0),
     iter_(0),
-    iter_counter_time_(0.)
+    iter_counter_time_(0.),
+    fixed_kr_(false)
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
@@ -749,6 +750,7 @@ bool Richards::UpdatePermeabilityData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
+  if (fixed_kr_) return false;
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
   bool update_perm = S_->GetEvaluator(coef_key_, tag)
@@ -861,6 +863,7 @@ bool Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability derivatives?";
+  if (fixed_kr_) return false;
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
   if (update_perm) {
