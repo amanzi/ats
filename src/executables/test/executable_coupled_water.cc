@@ -120,378 +120,378 @@ struct CoupledWaterProblem {
 };
 
 
-// SUITE(EXECUTABLE_COUPLED_WATER) {
-
-// TEST_FIXTURE(CoupledWaterProblem, CONSTRUCT) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Construction" << std::endl
-//             << "============================================================" << std::endl;
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water1.xml");
-//   init();
-// };
-
-
-// //
-// // This test fixes the viscosity of water at very large, effectively turning
-// // off Darcy flux and thereby testing the preconditioner's accumulation term
-// // only.
-// //
-// TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER1_ACCUMULATION) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Precon1: Accumulation" << std::endl
-//             << "============================================================" << std::endl;
-//   double eps = .001;
-//   Entity_ID c = 1;
-
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water1.xml");
-//   Teuchos::Array<int> dc(1); dc[0] = c;
-//   plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
-//   init();
-
-
-//   // evaluate residual
-//   std::cout << "EVALUATING RES: BASE" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res);
-//   pk->ErrorNorm(soln, res);
-
-//   // update the preconditioner
-//   pk->UpdatePreconditioner(8640, soln, 8640);
-
-//   // Now perturb and eval residual again
-//   // -- PC1: change a cell value
-//   CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-//   (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
-//   soln->Update(1, *dsoln, 1);
-
-//   // -- mark pressure as changed
-//   pk->ChangedSolutionPK(Tags::NEXT);
-
-//   // -- evaluate the residual again
-//   std::cout << std::endl
-//             << "EVALUATING RES: PERTURBED" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
-//   pk->ErrorNorm(soln, res2);
-
-//   // Compute r(p + dp) - r(p) ~= J * dp
-//   // -- diff residuals
-//   res2->Update(-1, *res, 1.);
-
-//   // -- apply the PC
-//   std::cout << std::endl
-//             << "APPLY PC" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   res->PutScalar(0.);
-//   pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
-//   CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
-//                           *res->SubVector(1)->Data());
-
-
-//   pk_richards->debugger()->WriteVector("dres", res2->SubVector(0)->Data().ptr());
-//   pk_richards->debugger()->WriteVector("Jdp", res->SubVector(0)->Data().ptr());
-
-//   // -- subtract J dp
-//   double norm;
-//   res->Update(-1/eps, *res2, 1./eps);
-//   res->NormInf(&norm);
-//   CHECK_CLOSE(0., norm, 1.e-3);
-// };
-
-
-// //
-// // This test fixes the water content at 1, thereby turning off accumulation and
-// // testing diffusion only, with no Jacobian terms and no gravity.
-// //
-// TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER2_DIFFUSION_NO_GRAVITY) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Precon2: Diffusion 0 Gravity" << std::endl
-//             << "============================================================" << std::endl;
-//   double eps = .0001;
-//   Entity_ID c = 1;
-
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water2.xml");
-//   Teuchos::Array<int> dc(1); dc[0] = c;
-//   plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
-//   init();
-
-//   // evaluate residual
-//   std::cout << "EVALUATING RES: BASE" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res);
-//   pk->ErrorNorm(soln, res);
-
-//   // update the preconditioner
-//   pk->UpdatePreconditioner(8640, soln, 8640);
-
-//   // Now perturb and eval residual again
-//   // -- PC1: change a cell value
-//   CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-//   (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
-//   soln->Update(1, *dsoln, 1);
-
-//   // -- mark pressure as changed
-//   pk->ChangedSolutionPK(Tags::NEXT);
-
-//   // -- fix krel to not include the effect of dkr/dp
-//   pk_richards->set_fixed_kr();
-
-//   // -- evaluate the residual again
-//   std::cout << std::endl
-//             << "EVALUATING RES: PERTURBED" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
-//   pk->ErrorNorm(soln, res2);
-
-//   // Compute r(p + dp) - r(p) ~= J * dp
-//   // -- diff residuals
-//   res2->Update(-1, *res, 1.);
-
-//   // -- apply the PC
-//   std::cout << std::endl
-//             << "APPLY PC" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   res->PutScalar(0.);
-//   pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
-//   CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
-//                           *res->SubVector(1)->Data());
-
-
-//   pk_richards->debugger()->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
-//   pk_richards->debugger()->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
-
-//   // -- subtract J dp
-//   double norm;
-//   res->Update(-1/eps, *res2, 1./eps);
-//   res->NormInf(&norm);
-//   CHECK_CLOSE(0., norm, 1.e-3);
-// };
-
-
-// //
-// // This test fixes the water content at 1, thereby turning off accumulation and
-// // testing diffusion only, with no Jacobian terms and no gravity.
-// //
-// TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER3_DIFFUSION_WITH_GRAVITY) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Precon3: Diffusion With Gravity" << std::endl
-//             << "============================================================" << std::endl;
-//   double eps = .0001;
-//   Entity_ID c = 1;
-
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
-//   Teuchos::Array<int> dc(1); dc[0] = c;
-//   plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
-//   init();
-
-//   auto db = pk_richards->debugger();
-
-//   // evaluate residual
-//   std::cout << "EVALUATING RES: BASE" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res);
-
-
-//   // update the preconditioner
-//   pk->UpdatePreconditioner(8640, soln, 8640);
-
-//   // Now perturb and eval residual again
-//   // -- PC1: change a cell value
-//   CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-//   (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
-//   soln->Update(1, *dsoln, 1);
-
-//   // -- mark pressure as changed
-//   pk->ChangedSolutionPK(Tags::NEXT);
-
-//   // -- fix krel to not include the effect of dkr/dp
-//   pk_richards->set_fixed_kr();
-
-//   // -- evaluate the residual again
-//   std::cout << std::endl
-//             << "EVALUATING RES: PERTURBED" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res2);
-
-//   // Compute r(p + dp) - r(p) ~= J * dp
-//   // -- diff residuals
-//   res2->Update(-1, *res, 1.);
-
-//   // -- apply the PC
-//   std::cout << std::endl
-//             << "APPLY PC" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   res->PutScalar(0.);
-//   pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
-//   CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
-//                           *res->SubVector(1)->Data());
-
-
-//   db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
-//   db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
-
-//   // -- subtract J dp
-//   double norm;
-//   res->Update(-1/eps, *res2, 1./eps);
-//   res->NormInf(&norm);
-//   CHECK_CLOSE(0., norm, 1.e-3);
-// };
-
-
-// //
-// // This test fixes the water content at 1, thereby turning off accumulation and
-// // testing diffusion only, with no Jacobian terms and no gravity.
-// //
-// TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER4_DIFFUSION_WITH_GRAVITY_SURF) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Precon3: Diffusion With Gravity (CELL at top of domain)" << std::endl
-//             << "============================================================" << std::endl;
-//   double eps = .0001;
-//   Entity_ID c = 0;
-
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
-//   Teuchos::Array<int> dc(1); dc[0] = c;
-//   plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
-//   init();
-
-//   auto db = pk_richards->debugger();
-
-//   // evaluate residual
-//   std::cout << "EVALUATING RES: BASE" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res);
-
-
-//   // update the preconditioner
-//   pk->UpdatePreconditioner(8640, soln, 8640);
-
-//   // Now perturb and eval residual again
-//   // -- PC1: change a cell value
-//   CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-//   (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
-//   soln->Update(1, *dsoln, 1);
-
-//   // -- mark pressure as changed
-//   pk->ChangedSolutionPK(Tags::NEXT);
-
-//   // -- fix krel to not include the effect of dkr/dp
-//   pk_richards->set_fixed_kr();
-
-//   // -- evaluate the residual again
-//   std::cout << std::endl
-//             << "EVALUATING RES: PERTURBED" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res2);
-
-//   // Compute r(p + dp) - r(p) ~= J * dp
-//   // -- diff residuals
-//   res2->Update(-1, *res, 1.);
-
-//   // -- apply the PC
-//   std::cout << std::endl
-//             << "APPLY PC" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   res->PutScalar(0.);
-//   pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
-
-//   db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
-//   db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
-
-//   // -- subtract J dp
-//   double norm;
-//   res->Update(-1/eps, *res2, 1./eps);
-//   res->NormInf(&norm);
-//   CHECK_CLOSE(0., norm, 1.e-3);
-//   if (norm > 1.e-3) {
-//     std::cout << "res(p + dp) - res(p) - J(dp):" << std::endl;
-//     res->Print(std::cout);
-//   }
-// };
-
-// //
-// // This test fixes the water content at 1, thereby turning off accumulation and
-// // testing diffusion only, with no Jacobian terms and no gravity.
-// //
-// TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER4_DIFFUSION_WITH_GRAVITY_SURF_FACE) {
-//   std::cout << std::endl << std::endl
-//             << "CoupledWaterProblem Precon3: Diffusion With Gravity (surface face)" << std::endl
-//             << "============================================================" << std::endl;
-//   double eps = .0001;
-//   Entity_ID f = 0;
-
-//   plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
-//   Teuchos::Array<int> df(1); df[0] = f;
-//   plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug faces", df);
-//   init();
-
-//   auto db = pk_richards->debugger();
-
-//   // evaluate residual
-//   std::cout << "EVALUATING RES: BASE" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res);
-
-
-//   // update the preconditioner
-//   pk->UpdatePreconditioner(8640, soln, 8640);
-
-//   // Now perturb and eval residual again
-//   // -- PC1: change a cell value
-//   CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-//   (*dsoln->SubVector(0)->Data()->ViewComponent("face", false))[0][f] = eps;
-//   soln->Update(1, *dsoln, 1);
-//   CopySubsurfaceToSurface(*soln->SubVector(0)->Data(),
-//                           *soln->SubVector(1)->Data());
-
-//   // -- mark pressure as changed
-//   pk->ChangedSolutionPK(Tags::NEXT);
-
-//   // -- fix krel to not include the effect of dkr/dp
-//   pk_richards->set_fixed_kr();
-
-//   // -- evaluate the residual again
-//   std::cout << std::endl
-//             << "EVALUATING RES: PERTURBED" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
-//   db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
-//   pk->ErrorNorm(soln, res2);
-
-//   // Compute r(p + dp) - r(p) ~= J * dp
-//   // -- diff residuals
-//   res2->Update(-1, *res, 1.);
-
-//   // -- apply the PC
-//   std::cout << std::endl
-//             << "APPLY PC" << std::endl
-//             << "--------------------------------------------------" << std::endl;
-//   res->PutScalar(0.);
-//   pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
-
-//   db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
-//   db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
-
-//   // -- subtract J dp
-//   double norm;
-//   res->Update(-1/eps, *res2, 1./eps);
-//   res->NormInf(&norm);
-//   CHECK_CLOSE(0., norm, 1.e-3);
-//   if (norm > 1.e-3) {
-//     std::cout << "res(p + dp) - res(p) - J(dp):" << std::endl;
-//     res->Print(std::cout);
-//   }
-// };
-
-
-
-// }
+SUITE(EXECUTABLE_COUPLED_WATER) {
+
+TEST_FIXTURE(CoupledWaterProblem, CONSTRUCT) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Construction" << std::endl
+            << "============================================================" << std::endl;
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water1.xml");
+  init();
+};
+
+
+//
+// This test fixes the viscosity of water at very large, effectively turning
+// off Darcy flux and thereby testing the preconditioner's accumulation term
+// only.
+//
+TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER1_ACCUMULATION) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Precon1: Accumulation" << std::endl
+            << "============================================================" << std::endl;
+  double eps = .001;
+  Entity_ID c = 1;
+
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water1.xml");
+  Teuchos::Array<int> dc(1); dc[0] = c;
+  plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
+  init();
+
+
+  // evaluate residual
+  std::cout << "EVALUATING RES: BASE" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res);
+  pk->ErrorNorm(soln, res);
+
+  // update the preconditioner
+  pk->UpdatePreconditioner(8640, soln, 8640);
+
+  // Now perturb and eval residual again
+  // -- PC1: change a cell value
+  CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
+  (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+  soln->Update(1, *dsoln, 1);
+
+  // -- mark pressure as changed
+  pk->ChangedSolutionPK(Tags::NEXT);
+
+  // -- evaluate the residual again
+  std::cout << std::endl
+            << "EVALUATING RES: PERTURBED" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
+  pk->ErrorNorm(soln, res2);
+
+  // Compute r(p + dp) - r(p) ~= J * dp
+  // -- diff residuals
+  res2->Update(-1, *res, 1.);
+
+  // -- apply the PC
+  std::cout << std::endl
+            << "APPLY PC" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  res->PutScalar(0.);
+  pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
+  CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
+                          *res->SubVector(1)->Data());
+
+
+  pk_richards->debugger()->WriteVector("dres", res2->SubVector(0)->Data().ptr());
+  pk_richards->debugger()->WriteVector("Jdp", res->SubVector(0)->Data().ptr());
+
+  // -- subtract J dp
+  double norm;
+  res->Update(-1/eps, *res2, 1./eps);
+  res->NormInf(&norm);
+  CHECK_CLOSE(0., norm, 1.e-3);
+};
+
+
+//
+// This test fixes the water content at 1, thereby turning off accumulation and
+// testing diffusion only, with no Jacobian terms and no gravity.
+//
+TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER2_DIFFUSION_NO_GRAVITY) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Precon2: Diffusion 0 Gravity" << std::endl
+            << "============================================================" << std::endl;
+  double eps = .0001;
+  Entity_ID c = 1;
+
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water2.xml");
+  Teuchos::Array<int> dc(1); dc[0] = c;
+  plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
+  init();
+
+  // evaluate residual
+  std::cout << "EVALUATING RES: BASE" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res);
+  pk->ErrorNorm(soln, res);
+
+  // update the preconditioner
+  pk->UpdatePreconditioner(8640, soln, 8640);
+
+  // Now perturb and eval residual again
+  // -- PC1: change a cell value
+  CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
+  (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+  soln->Update(1, *dsoln, 1);
+
+  // -- mark pressure as changed
+  pk->ChangedSolutionPK(Tags::NEXT);
+
+  // -- fix krel to not include the effect of dkr/dp
+  pk_richards->set_fixed_kr();
+
+  // -- evaluate the residual again
+  std::cout << std::endl
+            << "EVALUATING RES: PERTURBED" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
+  pk->ErrorNorm(soln, res2);
+
+  // Compute r(p + dp) - r(p) ~= J * dp
+  // -- diff residuals
+  res2->Update(-1, *res, 1.);
+
+  // -- apply the PC
+  std::cout << std::endl
+            << "APPLY PC" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  res->PutScalar(0.);
+  pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
+  CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
+                          *res->SubVector(1)->Data());
+
+
+  pk_richards->debugger()->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
+  pk_richards->debugger()->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
+
+  // -- subtract J dp
+  double norm;
+  res->Update(-1/eps, *res2, 1./eps);
+  res->NormInf(&norm);
+  CHECK_CLOSE(0., norm, 1.e-3);
+};
+
+
+//
+// This test fixes the water content at 1, thereby turning off accumulation and
+// testing diffusion only, with no Jacobian terms and no gravity.
+//
+TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER3_DIFFUSION_WITH_GRAVITY) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Precon3: Diffusion With Gravity" << std::endl
+            << "============================================================" << std::endl;
+  double eps = .0001;
+  Entity_ID c = 1;
+
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
+  Teuchos::Array<int> dc(1); dc[0] = c;
+  plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
+  init();
+
+  auto db = pk_richards->debugger();
+
+  // evaluate residual
+  std::cout << "EVALUATING RES: BASE" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res);
+
+
+  // update the preconditioner
+  pk->UpdatePreconditioner(8640, soln, 8640);
+
+  // Now perturb and eval residual again
+  // -- PC1: change a cell value
+  CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
+  (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+  soln->Update(1, *dsoln, 1);
+
+  // -- mark pressure as changed
+  pk->ChangedSolutionPK(Tags::NEXT);
+
+  // -- fix krel to not include the effect of dkr/dp
+  pk_richards->set_fixed_kr();
+
+  // -- evaluate the residual again
+  std::cout << std::endl
+            << "EVALUATING RES: PERTURBED" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res2);
+
+  // Compute r(p + dp) - r(p) ~= J * dp
+  // -- diff residuals
+  res2->Update(-1, *res, 1.);
+
+  // -- apply the PC
+  std::cout << std::endl
+            << "APPLY PC" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  res->PutScalar(0.);
+  pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
+  CopySubsurfaceToSurface(*res->SubVector(0)->Data(),
+                          *res->SubVector(1)->Data());
+
+
+  db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
+  db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
+
+  // -- subtract J dp
+  double norm;
+  res->Update(-1/eps, *res2, 1./eps);
+  res->NormInf(&norm);
+  CHECK_CLOSE(0., norm, 1.e-3);
+};
+
+
+//
+// This test fixes the water content at 1, thereby turning off accumulation and
+// testing diffusion only, with no Jacobian terms and no gravity.
+//
+TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER4_DIFFUSION_WITH_GRAVITY_SURF) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Precon3: Diffusion With Gravity (CELL at top of domain)" << std::endl
+            << "============================================================" << std::endl;
+  double eps = .0001;
+  Entity_ID c = 0;
+
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
+  Teuchos::Array<int> dc(1); dc[0] = c;
+  plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug cells", dc);
+  init();
+
+  auto db = pk_richards->debugger();
+
+  // evaluate residual
+  std::cout << "EVALUATING RES: BASE" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res);
+
+
+  // update the preconditioner
+  pk->UpdatePreconditioner(8640, soln, 8640);
+
+  // Now perturb and eval residual again
+  // -- PC1: change a cell value
+  CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
+  (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+  soln->Update(1, *dsoln, 1);
+
+  // -- mark pressure as changed
+  pk->ChangedSolutionPK(Tags::NEXT);
+
+  // -- fix krel to not include the effect of dkr/dp
+  pk_richards->set_fixed_kr();
+
+  // -- evaluate the residual again
+  std::cout << std::endl
+            << "EVALUATING RES: PERTURBED" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res2);
+
+  // Compute r(p + dp) - r(p) ~= J * dp
+  // -- diff residuals
+  res2->Update(-1, *res, 1.);
+
+  // -- apply the PC
+  std::cout << std::endl
+            << "APPLY PC" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  res->PutScalar(0.);
+  pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
+
+  db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
+  db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
+
+  // -- subtract J dp
+  double norm;
+  res->Update(-1/eps, *res2, 1./eps);
+  res->NormInf(&norm);
+  CHECK_CLOSE(0., norm, 1.e-3);
+  if (norm > 1.e-3) {
+    std::cout << "res(p + dp) - res(p) - J(dp):" << std::endl;
+    res->Print(std::cout);
+  }
+};
+
+//
+// This test fixes the water content at 1, thereby turning off accumulation and
+// testing diffusion only, with no Jacobian terms and no gravity.
+//
+TEST_FIXTURE(CoupledWaterProblem, PRECONDITIONER4_DIFFUSION_WITH_GRAVITY_SURF_FACE) {
+  std::cout << std::endl << std::endl
+            << "CoupledWaterProblem Precon3: Diffusion With Gravity (surface face)" << std::endl
+            << "============================================================" << std::endl;
+  double eps = .0001;
+  Entity_ID f = 0;
+
+  plist = Teuchos::getParametersFromXmlFile("test/executable_coupled_water3.xml");
+  Teuchos::Array<int> df(1); df[0] = f;
+  plist->sublist("PKs").sublist("subsurface flow").set<Teuchos::Array<int>>("debug faces", df);
+  init();
+
+  auto db = pk_richards->debugger();
+
+  // evaluate residual
+  std::cout << "EVALUATING RES: BASE" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res);
+
+
+  // update the preconditioner
+  pk->UpdatePreconditioner(8640, soln, 8640);
+
+  // Now perturb and eval residual again
+  // -- PC1: change a cell value
+  CHECK_EQUAL(5*25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
+  (*dsoln->SubVector(0)->Data()->ViewComponent("face", false))[0][f] = eps;
+  soln->Update(1, *dsoln, 1);
+  CopySubsurfaceToSurface(*soln->SubVector(0)->Data(),
+                          *soln->SubVector(1)->Data());
+
+  // -- mark pressure as changed
+  pk->ChangedSolutionPK(Tags::NEXT);
+
+  // -- fix krel to not include the effect of dkr/dp
+  pk_richards->set_fixed_kr();
+
+  // -- evaluate the residual again
+  std::cout << std::endl
+            << "EVALUATING RES: PERTURBED" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  pk->FunctionalResidual(0., 8640, soln_old, soln, res2);
+  db->WriteVector("mat_diff rhs", pk_richards->get_operator()->rhs().ptr(), true);
+  pk->ErrorNorm(soln, res2);
+
+  // Compute r(p + dp) - r(p) ~= J * dp
+  // -- diff residuals
+  res2->Update(-1, *res, 1.);
+
+  // -- apply the PC
+  std::cout << std::endl
+            << "APPLY PC" << std::endl
+            << "--------------------------------------------------" << std::endl;
+  res->PutScalar(0.);
+  pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
+
+  db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
+  db->WriteVector("Jdp", res->SubVector(0)->Data().ptr(), true);
+
+  // -- subtract J dp
+  double norm;
+  res->Update(-1/eps, *res2, 1./eps);
+  res->NormInf(&norm);
+  CHECK_CLOSE(0., norm, 1.e-3);
+  if (norm > 1.e-3) {
+    std::cout << "res(p + dp) - res(p) - J(dp):" << std::endl;
+    res->Print(std::cout);
+  }
+};
+
+
+
+}
