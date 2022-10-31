@@ -333,6 +333,28 @@ MPCCoupledWater::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
       AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
 }
 
+
+double
+MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u,
+                           Teuchos::RCP<const TreeVector> res)
+{
+  // move the surface face residual onto the surface cell.
+  auto res2 = Teuchos::rcp(new TreeVector(*res, INIT_MODE_COPY));
+  auto& res_face = *res2->SubVector(0)->Data()->ViewComponent("face", false);
+  auto& res_surf_cell = *res2->SubVector(1)->Data()->ViewComponent("cell", false);
+  const auto& u_surf_cell = *u->SubVector(1)->Data()->ViewComponent("cell", false);
+  double p_atm = S_->Get<double>("atmospheric_pressure", Tags::NEXT);
+  for (int c=0; c!=u_surf_cell.MyLength(); ++c) {
+    if (u_surf_cell[0][c] > p_atm) {
+      auto f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, c);
+      res_surf_cell[0][c] = res_face[0][f];
+      res_face[0][f] = 0.;
+    }
+  }
+  return StrongMPC<PK_PhysicalBDF_Default>::ErrorNorm(u,res2);
+}
+
+
 // void
 // MPCCoupledWater::UpdateConsistentFaceCorrectionWater_(const Teuchos::RCP<const TreeVector>& u,
 //         const Teuchos::RCP<TreeVector>& Pu) {
