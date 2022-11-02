@@ -40,7 +40,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
-include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/deform)
 include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
@@ -177,3 +177,11 @@ add_amanzi_executable(ats
   OUTPUT_NAME ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
+
+# set this here for now
+# add option to bootstrap before completion
+set (BUILD_ELM_ATS_API true)
+if (BUILD_ELM_ATS_API)
+  message("building elm_ats api")
+  add_subdirectory(elm_ats_api)
+endif()
