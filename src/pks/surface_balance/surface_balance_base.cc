@@ -65,8 +65,10 @@ SurfaceBalanceBase::Setup()
       requireAtNext(source_key_, tag_next_, *S_)
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-      if (is_source_differentiable_ && !source_finite_difference_ &&
-      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+      if (is_source_differentiable_ && !source_finite_difference_
+          // this cannot work in general yet, see amanzi/ats#167
+          //&& S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)
+          ) {
         S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_, tag_next_,
                 key_, tag_next_);
       }
