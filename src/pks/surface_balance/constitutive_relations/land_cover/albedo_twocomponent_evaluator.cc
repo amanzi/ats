@@ -111,6 +111,14 @@ AlbedoTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
         const std::vector<CompositeVector*>& results) {}
 
 
+// custom EC used to set subfield names
+void
+AlbedoTwoComponentEvaluator::EnsureCompatibility_Structure_(State& S)
+{
+  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(
+    {"bare_or_water", "snow"});
+}
+
 void
 AlbedoTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
@@ -119,20 +127,18 @@ AlbedoTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
     land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
             {"emissivity_ground", "albedo_ground"});
 
-  CompositeVectorSpace domain_fac;
-  domain_fac.SetMesh(S.GetMesh(domain_))
-      ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  CompositeVectorSpace domain_fac_snow;
-  domain_fac_snow.SetMesh(S.GetMesh(domain_snow_))
-      ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  CompositeVectorSpace domain_fac_owned;
-  domain_fac_owned.SetMesh(S.GetMesh(domain_))
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 2);
+  for (auto dep : dependencies_) {
+    auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
+    if (Keys::getDomain(dep.first) == domain_snow_) {
+      fac.SetMesh(S.GetMesh(domain_snow_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    } else {
+      fac.SetMesh(S.GetMesh(domain_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+    }
+  }
 }
 
 }  // namespace Relations
