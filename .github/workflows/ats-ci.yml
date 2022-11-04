@@ -20,7 +20,7 @@ jobs:
       with:
         repository: amanzi/amanzi
         ref: master
-        submodules: true
+        submodules: recursive
     - name: Extract the ATS branch name
       id: branch
       working-directory: Docker
