@@ -149,7 +149,40 @@ def rh_to_vp(xml):
             warnings.warn("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
             ev.setName("surface-vapor_pressure_air")
             y_header.setValue("vapor pressure air [Pa]")
-        
+
+
+def pk_flow_reactive_transport(xml):
+    pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"], no_skip=True)
+    for pk_type_in_tree in asearch.findall_path(pk_tree, ["PK type"]):
+        if pk_type_in_tree.getValue() == "flow reactive transport":
+            pk_type_in_tree.setValue("subcycling MPC")
+
+    for pk in asearch.find_path(xml, ["PKs"], no_skip=True):
+        pk_type = asearch.child_by_name(pk, "PK type")
+        if pk_type.getValue() == "flow reactive transport":
+            pk_type.setValue("subcycling MPC")
+            try:
+                pk.pop("master PK index")
+            except asearch.MissingXMLError:
+                pass
+            else:
+                pk.setParameter("subcycle", "Array(int)", [0,1])
+
+    for pk in asearch.find_path(xml, ["PKs"], no_skip=True):
+        pk_type = asearch.child_by_name(pk, "PK type")
+        if pk_type.getValue() == "transport ATS":
+            try:
+                tests = asearch.child_by_name(pk, "enable internal tests")
+            except aerrors.MissingXMLError:
+                pass
+            else:
+                if tests.getValue() == "yes":
+                    pk.pop("enable internal tests")
+                    pk.setParameter("enable internal tests", "bool", True)
+                elif tests.getValue() == "no":
+                    pk.pop("enable internal tests")
+                    pk.setParameter("enable internal tests", "bool", False)
+            
                 
 def update(xml, has_orig=False):
     """generic update calls all needed things""" 
@@ -158,6 +191,8 @@ def update(xml, has_orig=False):
     top_cell_evals(xml)
     density_units(xml)
     rh_to_vp(xml)
+    pk_flow_reactive_transport(xml)
+    
     
 if __name__ == "__main__":
     import argparse

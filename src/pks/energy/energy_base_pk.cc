@@ -141,7 +141,13 @@ void EnergyBase::SetupEnergy_()
       //&& S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
       // require derivative of source
       S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(source_key_,
-              tag_next_, key_, tag_next_);
+              tag_next_, key_, tag_next_)
+        .SetMesh(mesh_)
+        ->AddComponent("cell", AmanziMesh::CELL, 1);
+      // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
+      // The mesh should get set by the evaluator, but when
+      // the evaluator isn't actually differentiable, it
+      // doesn't get done.
     }
   }
 
