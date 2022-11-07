@@ -56,8 +56,8 @@ void Transport_ATS::CalculateDispersionTensor_(
     for (int k = 0; k < dim; ++k) velocity[k] = poly(k + 1);
     D_[c] = mdm_->second[(*mdm_->first)[c]]->mech_dispersion(
         velocity, axi_symmetry_[c], saturation[0][c], porosity[0][c]);
-    //double mol_den = mol_density[0][c];
-    //D_[c] *= mol_den;
+    double mol_den = mol_density[0][c];
+    D_[c] *= mol_den;
   }
 }
 
@@ -86,15 +86,11 @@ void Transport_ATS::CalculateDiffusionTensor_(
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
         for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c];
-          double mol_den = mol_density[0][*c];
-          D_[*c] *= mol_den;
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c] * mol_density[0][*c];
         }
       } else if (phase == TRANSPORT_PHASE_GAS) {
         for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]);
-          double mol_den = mol_density[0][*c];
-          D_[*c] *= mol_den;
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]) * mol_density[0][*c];
         }
       }
 
