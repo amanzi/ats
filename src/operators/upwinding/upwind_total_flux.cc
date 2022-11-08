@@ -30,32 +30,30 @@ UpwindTotalFlux::UpwindTotalFlux(const std::string& pkname,
     flux_(flux),
     flux_eps_(flux_eps) {};
 
+
 void
 UpwindTotalFlux::Update(const CompositeVector& cells,
                         CompositeVector& faces,
                         const State& S,
                         const Teuchos::Ptr<Debugger>& db) const
 {
-  // Teuchos::RCP<const CompositeVector> flux = S.GetPtr<CompositeVector>(flux_, tag_);
-  // CalculateCoefficientsOnFaces(cells, "cell", *flux, faces, db);
+  Teuchos::RCP<const CompositeVector> flux = S.GetPtr<CompositeVector>(flux_, tag_);
+  CalculateCoefficientsOnFaces(cells, "cell", *flux, faces, "face",  db);
+};
+
+void
+UpwindTotalFlux::Update(const CompositeVector& cells,
+                        const std::string cell_component,
+                        CompositeVector& faces,
+                        const std::string face_component,
+                        const State& S,
+                        const Teuchos::Ptr<Debugger>& db) const
+{
+  Teuchos::RCP<const CompositeVector> flux = S.GetPtr<CompositeVector>(flux_, tag_);
+  CalculateCoefficientsOnFaces(cells, cell_component, *flux, faces, face_component,  db);
 };
 
 
-void UpwindTotalFlux::Update(const State& S,
-                             const std::string cell_key,
-                             const std::string cell_component,
-                             const std::string face_key,
-                             const std::string face_component,
-                             const Teuchos::Ptr<Debugger>& db) const{
-
-  // Teuchos::RCP<const CompositeVector> cell = S.GetPtr(cell_key, tag_);
-  // Teuchos::RCP<const CompositeVector> flux = S.GetPtr,(flux_, tag_);
-  // Teuchos::RCP<CompositeVector> face = S->GetPtr(face_key, tag_, pkname_);
-  // CalculateCoefficientsOnFaces(*cell,cell_component,*flux, *face, face_component,db);
-
-};
-
-  
 void UpwindTotalFlux::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const std::string cell_component,
@@ -67,8 +65,8 @@ void UpwindTotalFlux::CalculateCoefficientsOnFaces(
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent(cell_component)) {
-    face_coef.ViewComponent(cell_component,true)->PutScalar(1.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // communicate needed ghost values
@@ -89,23 +87,20 @@ void UpwindTotalFlux::CalculateCoefficientsOnFaces(
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> fdirs;
   int nfaces_local = flux.size("face",false);
-  bool has_cells = face_coef.HasComponent("cell");
 
+  bool has_cells = face_coef.HasComponent("cell");
   Teuchos::RCP<Epetra_MultiVector> face_cell_coef;
   if (has_cells)
     face_cell_coef = face_coef.ViewComponent("cell", true);
 
-  int ncells = cell_coef.size("cell",true);
-
+  int ncells = cell_coef.size(cell_component,true);
   for (int c=0; c!=ncells; ++c) {
     mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
 
     for (unsigned int n=0; n!=faces.size(); ++n) {
       int f = faces[n];
 
-
       if (has_cells) (*face_cell_coef)[0][c] = coef_cells[0][c];
-
 
       if (f < nfaces_local) {
         if (flux_v[0][f] * fdirs[n] > 0) {
@@ -130,8 +125,8 @@ void UpwindTotalFlux::CalculateCoefficientsOnFaces(
   //  double flow_eps_factor = 1.;
   //  double min_flow_eps = 1.e-8;
   double coefs[2];
-  int nfaces = face_coef.size(face_component, false);
 
+  int nfaces = face_coef.size(face_component,false);
   for (int f=0; f!=nfaces; ++f) {
     int uw = upwind_cell[f];
     int dw = downwind_cell[f];

@@ -25,7 +25,6 @@ UpwindGravityFlux:: UpwindGravityFlux(const std::string& pkname,
     tag_(tag),
     K_(K) {};
 
-
 void
 UpwindGravityFlux::Update(const CompositeVector& cells,
                           CompositeVector& faces,
@@ -34,7 +33,18 @@ UpwindGravityFlux::Update(const CompositeVector& cells,
 {
   const auto& g_vec = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   CalculateCoefficientsOnFaces(cells, "cell", g_vec, faces, "face");
-
+};
+  
+void
+UpwindGravityFlux::Update(const CompositeVector& cells,
+                          const std::string cell_component,
+                          CompositeVector& faces,
+                          const std::string face_component,
+                          const State& S,
+                          const Teuchos::Ptr<Debugger>& db) const
+{
+  const auto& g_vec = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  CalculateCoefficientsOnFaces(cells, cell_component, g_vec, faces, face_component);
 };
 
 
@@ -45,7 +55,6 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
         CompositeVector& face_coef,
         const std::string face_component) const
 {
-
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> dirs;
   double flow_eps = 1.e-10;
@@ -53,10 +62,9 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
-  if (face_coef.HasComponent(cell_component)) {
-    face_coef.ViewComponent(cell_component,true)->PutScalar(1.0);
-
+  face_coef.ViewComponent(face_component,true)->PutScalar(0.0);
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
 
   // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
@@ -70,6 +78,7 @@ void UpwindGravityFlux::CalculateCoefficientsOnFaces(
 
   Epetra_MultiVector& face_coef_v = *face_coef.ViewComponent(face_component,true);
   const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent(cell_component,true);
+
 
   for (unsigned int c=0; c!=cell_coef.size(cell_component, true); ++c) {
     mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
