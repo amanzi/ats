@@ -58,7 +58,8 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     jacobian_(false),
     jacobian_lag_(0),
     iter_(0),
-    iter_counter_time_(0.)
+    iter_counter_time_(0.),
+    fixed_kr_(false)
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
@@ -82,26 +83,19 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   capillary_pressure_liq_ice_key_ = Keys::readKey(*plist_, domain_, 
       "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
 
-  // set up an additional primary variable evaluator for flux
-  // Teuchos::ParameterList& pv_sublist = S->GetEvaluatorList(flux_key_);
-  // pv_sublist.set("field evaluator type", "primary variable");
-
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 }
-
 
 // -------------------------------------------------------------
 // Setup data
 // -------------------------------------------------------------
 void Richards::Setup()
 {
-
   PK_PhysicalBDF_Default::Setup();
   SetupRichardsFlow_();
   SetupDiscretization_();
   SetupPhysicalEvaluators_();
-
 };
 
 
@@ -191,8 +185,9 @@ void Richards::SetupRichardsFlow_()
     upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
     Krel_method_ = Operators::UPWIND_METHOD_CENTERED;
   } else if (method_name == "upwind with Darcy flux") {
+    double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
     upwinding_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-            tag_next_, flux_dir_key_, 1.e-5));
+            tag_next_, flux_dir_key_, flux_eps));
     Krel_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
   } else if (method_name == "arithmetic mean") {
     upwinding_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
@@ -205,7 +200,13 @@ void Richards::SetupRichardsFlow_()
     Exceptions::amanzi_throw(message);
   }
 
-  // require the data on appropriate locations
+}
+
+
+void Richards::SetupDiscretization_()
+{
+
+    // require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
   if (coef_location == "upwind: face") {
     S_->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, tag_next_,  name_).SetMesh(mesh_)
@@ -219,9 +220,28 @@ void Richards::SetupRichardsFlow_()
   }
   S_->GetRecordW(uw_coef_key_, tag_next_, name_).set_io_vis(false);
 
+  // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
   mfd_plist.set("nonlinear coefficient", coef_location);
   mfd_plist.set("gravity", true);
+
+  Operators::PDE_DiffusionFactory opfactory;
+  matrix_diff_ = opfactory.CreateWithGravity(mfd_plist, mesh_, bc_);
+  matrix_ = matrix_diff_->global_operator();
+
+  // -- create the operator, data for flux directions
+  Teuchos::ParameterList face_diff_list(mfd_plist);
+  face_diff_list.set("nonlinear coefficient", "none");
+  face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_, bc_);
+
+  S_->Require<CompositeVector,CompositeVectorSpace>(flux_dir_key_, tag_next_,  name_)
+    .SetMesh(mesh_)->SetGhosted()
+    ->SetComponent("face", AmanziMesh::FACE, 1);
+
+  // -- create the operators for the preconditioner
+  //    diffusion
+  // NOTE: Can this be a clone of the primary operator? --etc
+  //      get the discretiation type
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
   mfd_pc_plist.set("nonlinear coefficient", coef_location);
   mfd_pc_plist.set("gravity", true);
@@ -250,12 +270,10 @@ void Richards::SetupRichardsFlow_()
     mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
   }
 
-
-  Operators::PDE_DiffusionFactory opfactory;
+  //    create the operator
   preconditioner_diff_ = opfactory.CreateWithGravity(mfd_pc_plist, mesh_, bc_);
   preconditioner_ = preconditioner_diff_->global_operator();
 
-  /*******************************************/
   //    If using approximate Jacobian for the preconditioner, we also need
   //    derivative information.  For now this means upwinding the derivative.
   jacobian_ = mfd_pc_plist.get<std::string>("Newton correction", "none") != "none";
@@ -272,41 +290,26 @@ void Richards::SetupRichardsFlow_()
       S_->Require<CompositeVector,CompositeVectorSpace>(duw_coef_key_, tag_next_,  name_)
         .SetMesh(mesh_)->SetGhosted()
         ->SetComponent("face", AmanziMesh::FACE, 1);
+
+      // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
+      double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
       upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-              tag_next_, flux_dir_key_, 1.e-8));
+              tag_next_, flux_dir_key_, 1.e-3 * flux_eps));
     } else {
       // FV -- no upwinding of derivative
       duw_coef_key_ = std::string();
     }
   }
 
-  // -- flux is managed here as a primary variable
-  // S->RequireField(flux_key_, name_)->SetMesh(mesh_)->SetGhosted()
-  //                               ->SetComponent("face", AmanziMesh::FACE, 1);
-  // S->RequireFieldEvaluator(flux_key_);
+  // -- accumulation terms
+  Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
+  acc_pc_plist.set<std::string>("entity kind", "cell");
+  preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
-  // -- also need a velocity, but only for vis/diagnostics
-  // S->RequireField(velocity_key_, name_)->SetMesh(mesh_)->SetGhosted()
-  //                               ->SetComponent("cell", AmanziMesh::CELL, 3);  
-    
-  // Globalization and other timestep control flags
-  // -- predictors
-  modify_predictor_with_consistent_faces_ =
-    plist_->get<bool>("modify predictor with consistent faces", false);
-  modify_predictor_bc_flux_ =
-    plist_->get<bool>("modify predictor for flux BCs", false);
-  modify_predictor_first_bc_flux_ =
-    plist_->get<bool>("modify predictor for initial flux BCs", false);
-  modify_predictor_wc_ =
-    plist_->get<bool>("modify predictor via water content", false);
-
-  // -- correctors
-  p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
-  patm_limit_ = plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
-
-  // -- valid step controls
-  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
-  sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+  // // -- vapor diffusion terms
+  // vapor_diffusion_ = plist_->get<bool>("include vapor diffusion", false);
+  // if (vapor_diffusion_){
+  //   AMANZI_ASSERT(0); // untested!
 
   //   // Create the vapor diffusion vectors
   //   S_->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_pressure", tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
@@ -316,41 +319,10 @@ void Richards::SetupRichardsFlow_()
   //   S_->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_temperature", tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
   //     ->SetComponent("cell", AmanziMesh::CELL, 1);
   //   S_->GetRecordW("vapor_diffusion_temperature",name_)->set_io_vis(true);
-}
 
-
-void Richards::SetupDiscretization_(){
-
-  // -- create the operators for the preconditioner
-  //    diffusion
-  // NOTE: Can this be a clone of the primary operator? --etc
-  //      get the discretiation type
-  
-  // -- require the data on appropriate locations
-  std::string coef_location = upwinding_->CoefficientLocation();
-
-  // -- create the forward operator for the diffusion term
-  Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
-  mfd_plist.set("nonlinear coefficient", coef_location);
-  mfd_plist.set("gravity", true);
-
-  Operators::PDE_DiffusionFactory opfactory;
-  matrix_diff_ = opfactory.CreateWithGravity(mfd_plist, mesh_, bc_);
-  matrix_ = matrix_diff_->global_operator();
-
-  // -- create the operator, data for flux directions
-  Teuchos::ParameterList face_diff_list(mfd_plist);
-  face_diff_list.set("nonlinear coefficient", "none");
-  face_matrix_diff_ = opfactory.CreateWithGravity(face_diff_list, mesh_, bc_);
-
-  S_->Require<CompositeVector,CompositeVectorSpace>(flux_dir_key_, tag_next_,  name_)
-    .SetMesh(mesh_)->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
-  
-  // -- accumulation terms
-  Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
-  acc_pc_plist.set<std::string>("entity kind", "cell");
-  preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
+  //   // operator for the vapor diffusion terms
+  //   matrix_vapor_ = Operators::CreateMatrixMFD(mfd_plist, mesh_);
+  // }
 
   // -- source terms
   is_source_term_ = plist_->get<bool>("source term", false);
@@ -370,6 +342,7 @@ void Richards::SetupDiscretization_(){
               tag_next_, key_, tag_next_);
     }
   }
+
 
   // coupling to the surface
   // -- coupling done by a Neumann condition
@@ -421,7 +394,26 @@ void Richards::SetupDiscretization_(){
     .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 3);
 
+  // Globalization and other timestep control flags
+  // -- predictors
+  modify_predictor_with_consistent_faces_ =
+    plist_->get<bool>("modify predictor with consistent faces", false);
+  modify_predictor_bc_flux_ =
+    plist_->get<bool>("modify predictor for flux BCs", false);
+  modify_predictor_first_bc_flux_ =
+    plist_->get<bool>("modify predictor for initial flux BCs", false);
+  modify_predictor_wc_ =
+    plist_->get<bool>("modify predictor via water content", false);
 
+  // -- correctors
+  p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
+  patm_limit_ = plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
+
+  // -- valid step controls
+  sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
+  sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+
+  
 }
 
 // -------------------------------------------------------------
@@ -498,7 +490,6 @@ void Richards::SetupPhysicalEvaluators_()
 }
 
   
-
 // -------------------------------------------------------------
 // Initialize PK
 // -------------------------------------------------------------
@@ -674,6 +665,7 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable
   PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
@@ -683,8 +675,6 @@ void Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
     assign(sat_ice_key_, tag_current, tag_next, *S_);
   }
 };
-
-
 
 
 // -----------------------------------------------------------------------------
@@ -773,6 +763,7 @@ bool Richards::UpdatePermeabilityData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
+  if (fixed_kr_) return false;
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
   bool update_perm = S_->GetEvaluator(coef_key_, tag)
@@ -885,6 +876,7 @@ bool Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability derivatives?";
+  if (fixed_kr_) return false;
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
   if (update_perm) {

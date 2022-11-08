@@ -52,7 +52,7 @@ set(ats_flow_inc_files
   overland.hh
   icy_overland.hh
   snow_distribution.hh
-#  preferential.hh
+  preferential.hh
   )
 
 

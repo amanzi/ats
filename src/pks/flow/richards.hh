@@ -282,9 +282,10 @@ public:
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
-  // recompute flux field
-  //virtual void UpdateFlux(const Teuchos::RCP<State>& S);
-
+  // methods used only for testing
+  void set_fixed_kr(bool fixed=true) { fixed_kr_ = fixed; }
+  Teuchos::RCP<Operators::Operator> get_operator() { return matrix_; }
+  
 protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_();
@@ -339,9 +340,6 @@ protected:
 
   // void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
-  // -- access methods
-  virtual Teuchos::RCP<Operators::Operator>
-  my_operator(const Operators::OperatorType& type) override {return matrix_;}
 
   
 protected:
@@ -444,6 +442,14 @@ protected:
   Key capillary_pressure_liq_ice_key_;
   Key deform_key_;
 
+  // debugging control
+  bool fixed_kr_;
+
+  // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override {return matrix_;}
+
+  
 private:
   // factory registration
   static RegisteredPKFactory<Richards> reg_;
