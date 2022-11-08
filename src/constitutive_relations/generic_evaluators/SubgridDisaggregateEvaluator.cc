@@ -2,25 +2,12 @@
 //! SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
-
-/*!
-
- * `"source domain name`" ``[string]`` Domain name of the source mesh.
-
-ONE OF:
-* `"field suffix`" ``[string]`` Set the suffix of the variable
-OR
-* `"field key`" ``[string]`` **DOMAIN-FIELD_SUFFIX** 
-
-  
- */
 
 #include "SubgridDisaggregateEvaluator.hh"
 
@@ -28,73 +15,56 @@ namespace Amanzi {
 namespace Relations {
 
 SubgridDisaggregateEvaluator::SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
-  domain_ = Keys::getDomainSetName(my_key_);
+  Key domain = Keys::getDomain(my_keys_.front().first);
+  domain_index_ = domain;
+  domain_set_ = Keys::getDomainSetName(domain);
   source_domain_ = plist_.get<std::string>("source domain name");
-  if (Keys::isDomainSet(source_domain_)) { // strip the :*
-    source_domain_ = Keys::getDomainSetName(source_domain_);
-  }
-  source_key_ = Keys::readKey(plist_, source_domain_, "field", Keys::getVarName(my_key_));
+  Key var_key = Keys::getVarName(my_keys_.front().first);
+  source_key_ = Keys::readKey(plist_, source_domain_, "field", var_key);
+
+  auto tag = my_keys_.front().second;
+  dependencies_.insert(KeyTag{source_key_, tag});
 }
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 SubgridDisaggregateEvaluator::Clone() const
 {
   return Teuchos::rcp(new SubgridDisaggregateEvaluator(*this));
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
-SubgridDisaggregateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+SubgridDisaggregateEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  auto ds = S->GetDomainSet(domain_);
-  ds->DoExport(Keys::getDomain(my_key_),
-               *S->GetFieldData(source_key_)->ViewComponent("cell", false),
-               *result->ViewComponent("cell", false));
+  auto tag = my_keys_.front().second;
+  auto ds = S.GetDomainSet(domain_set_);
+  ds->DoExport(domain_index_,
+               *S.Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false),
+               *result[0]->ViewComponent("cell", false));
 }
 
 void
-SubgridDisaggregateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+SubgridDisaggregateEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  result->PutScalar(1.);
+  result[0]->PutScalar(1.);
 }
 
 
+// Implements custom EC to use dependencies from subgrid
 void
-SubgridDisaggregateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S)
+SubgridDisaggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  if (dependencies_.size() == 0) {
-    dependencies_.insert(source_key_);
-
-    auto ds = S->GetDomainSet(domain_);
-    if (ds->get_referencing_parent() == Teuchos::null) {
-      Errors::Message msg;
-      msg << "SubgridDisaggregateEvaluator: DomainSet \"" << domain_ << "\" does not have a referencing parent but must have one to disaggregate.";
-      Exceptions::amanzi_throw(msg);
-    }
-    if (S->GetMesh(source_domain_) != ds->get_referencing_parent()) {
-      Errors::Message msg;
-      msg << "SubgridDisaggregateEvaluator: DomainSet \"" << domain_ << "\" has a referencing parent, but it does not match the aggregate vector's domain, \"" << source_domain_ << "\"";
-      Exceptions::amanzi_throw(msg);
-    }
-
-    auto my_fac = S->RequireField(my_key_, my_key_);
-    my_fac->SetMesh(S->GetMesh(Keys::getDomain(my_key_)))
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-
-    // Check plist for vis or checkpointing control.
-    bool io_my_key = plist_.get<bool>("visualize", true);
-    S->GetField(my_key_, my_key_)->set_io_vis(io_my_key);
-    bool checkpoint_my_key = plist_.get<bool>("checkpoint", false);
-    S->GetField(my_key_, my_key_)->set_io_checkpoint(checkpoint_my_key);
-
-    S->RequireField(source_key_)
-      ->SetMesh(S->GetMesh(source_domain_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireFieldEvaluator(source_key_)->EnsureCompatibility(S);
+  auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second);
+  if (my_fac.HasComponent("cell")) {
+    int num_vectors = my_fac.NumVectors("cell");
+    CompositeVectorSpace fac;
+    fac.SetMesh(S.GetMesh(source_domain_))
+      ->AddComponent("cell", AmanziMesh::CELL, num_vectors);
+    EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
   }
 }
 

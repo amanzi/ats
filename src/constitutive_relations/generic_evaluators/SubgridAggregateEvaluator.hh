@@ -2,13 +2,12 @@
 //! SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.
 
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ahmad Jan (jana@ornl.gov)
 */
-
 
 /*!
 
@@ -27,12 +26,12 @@
 #define AMANZI_RELATIONS_SUBGRID_AGGREGATOR_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-class SubgridAggregateEvaluator : public SecondaryVariableFieldEvaluator {
+class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
@@ -40,29 +39,33 @@ class SubgridAggregateEvaluator : public SecondaryVariableFieldEvaluator {
   SubgridAggregateEvaluator(Teuchos::ParameterList& plist);
 
   SubgridAggregateEvaluator(const SubgridAggregateEvaluator& other) = default;
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
-  void
-  EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  // custom EnsureEvaluators required to fill dependencies correctly.
+  void EnsureEvaluators(State& S) override;
 
  protected:
-  
-  // Required methods from SecondaryVariableFieldEvaluator
-  void EvaluateField_(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<CompositeVector>& result);
-  void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // custom EC required to make sure that this vector is generated on the
+  // referencing mesh
+  void EnsureCompatibility_Structure_(State& S) override;
 
+  // custom EC required to depend on cells of the subgrid mesh
+  void EnsureCompatibility_ToDeps_(State& S) override;
 
-  
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  void Evaluate_(const State& S,
+                      const std::vector<CompositeVector*>& result) override;
+  void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
  protected:
   Key source_domain_;
   Key domain_;
   Key var_key_;
-  Key source_key_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,SubgridAggregateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,SubgridAggregateEvaluator> factory_;
 };
 
 } // namespace

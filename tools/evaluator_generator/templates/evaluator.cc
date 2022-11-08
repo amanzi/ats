@@ -13,7 +13,7 @@ namespace Relations {{
 
 // Constructor from ParameterList
 {evalClassName}Evaluator::{evalClassName}Evaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {{
   Teuchos::ParameterList& sublist = plist_.sublist("{evalName} parameters");
   model_ = Teuchos::rcp(new {evalClassName}Model(sublist));
@@ -23,13 +23,13 @@ namespace Relations {{
 
 // Copy constructor
 {evalClassName}Evaluator::{evalClassName}Evaluator(const {evalClassName}Evaluator& other) :
-    SecondaryVariableFieldEvaluator(other),
+    EvaluatorSecondaryMonotypeCV(other),
 {keyCopyConstructorList}    
     model_(other.model_) {{}}
 
 
 // Virtual copy constructor
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 {evalClassName}Evaluator::Clone() const
 {{
   return Teuchos::rcp(new {evalClassName}Evaluator(*this));

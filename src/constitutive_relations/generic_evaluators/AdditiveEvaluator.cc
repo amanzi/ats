@@ -10,61 +10,79 @@ namespace Amanzi {
 namespace Relations {
 
 AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist)
+    EvaluatorSecondaryMonotypeCV(plist)
 {
-  Teuchos::Array<std::string> names;
-  if (!plist.isParameter("evaluator dependencies")) {
-    if (plist.isParameter("evaluator dependency suffixes")) {
-      names = plist_.get<Teuchos::Array<std::string> >("evaluator dependency suffixes");
-      Key domain = Keys::getDomain(my_key_);
-      for (auto name : names) {
-        Key varname = Keys::getKey(domain, name);
-        dependencies_.insert(varname);
-        Key pname = name + std::string(" coefficient");
-        coefs_[varname] = plist.get<double>(pname, 1.0);
-      }
-    } else {
-      Errors::Message msg;
-      msg << "AdditiveEvaluator for: \"" << my_key_ << "\" has no dependencies.";
-      Exceptions::amanzi_throw(msg);
-    }
-  } else {
-    names = plist.get<Teuchos::Array<std::string> >("evaluator dependencies");
-    for (auto name : names) {
-      Key pname = name + std::string(" coefficient");
-      coefs_[name] = plist.get<double>(pname, 1.0);
-    }
+  if (dependencies_.size() == 0) {
+    Errors::Message message;
+    message << "AdditiveEvaluator: for " << my_keys_[0].first
+                << " was provided no dependencies";
+    throw(message);
   }
 
+  for (const auto& dep : dependencies_) {
+    Key variable = dep.first;
+    Key variable_tag = Keys::getKey(dep.first, dep.second);
+    Key varname = Keys::getVarName(variable);
+    if (plist.isParameter(variable_tag+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable_tag+" coefficient");
+    } else if (plist.isParameter(variable+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable+" coefficient");
+    } else if (plist.isParameter(varname+" coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(varname+" coefficient");
+    } else {
+      coefs_[variable_tag] = 1.0;
+    }
+  }
   shift_ = plist.get<double>("constant shift", 0.);
+  positive_ = plist.get<bool>("enforce positivity", false);
 }
 
 
-Teuchos::RCP<FieldEvaluator>
+Teuchos::RCP<Evaluator>
 AdditiveEvaluator::Clone() const
 {
   return Teuchos::rcp(new AdditiveEvaluator(*this));
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
+// Required methods from EvaluatorSecondaryMonotypeCV
 void
-AdditiveEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-        const Teuchos::Ptr<CompositeVector>& result)
+AdditiveEvaluator::Evaluate_(const State& S,
+        const std::vector<CompositeVector*>& result)
 {
-  result->PutScalar(shift_);
+  result[0]->PutScalar(shift_);
 
-  for (std::map<Key, double>::const_iterator it=coefs_.begin();
-       it!=coefs_.end(); ++it) {
-    Teuchos::RCP<const CompositeVector> dep = S->GetFieldData(it->first);
-    result->Update(it->second, *dep, 1.0);
+  for (const auto& key_tag : dependencies_) {
+    const CompositeVector& dep = S.Get<CompositeVector>(key_tag.first, key_tag.second);
+    double coef = coefs_[Keys::getKey(key_tag.first, key_tag.second)];
+    result[0]->Update(coef, dep, 1.0);
+  }
+
+  if (positive_) {
+    for (const auto& name : *result[0]) {
+      auto& res = *result[0]->ViewComponent(name, false);
+      for (int i=0; i!=res.MyLength(); ++i) res[0][i] = std::max(res[0][i], 0.);
+    }
   }
 }
 
 void
-AdditiveEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-        Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
+        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  result->PutScalar(coefs_[wrt_key]);
+  result[0]->PutScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
+
+  if (positive_) {
+    const auto& value = S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second);
+    for (const auto& name : *result[0]) {
+      auto& res = *result[0]->ViewComponent(name, false);
+      const auto& value_v = *value.ViewComponent(name, false);
+      for (int i=0; i!=res.MyLength(); ++i) {
+        if (value_v[0][i] == 0.0) {
+          res[0][i] = 0.;
+        }
+      }
+    }
+  }
 }
 
 

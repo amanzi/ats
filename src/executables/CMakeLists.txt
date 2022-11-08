@@ -31,16 +31,17 @@ include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
 
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
-#include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
-#include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
+include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
+include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
+include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
@@ -62,15 +63,15 @@ include_evaluators_directories(LISTNAME ATS_MPC_REG_INCLUDES)
 include_evaluators_directories(LISTNAME SED_TRANSPORT_REG_INCLUDES)
 
 set(ats_src_files
-  coordinator.cc
   ats_mesh_factory.cc
-  simulation_driver.cc
+  coordinator.cc
+  ats_driver.cc
   )
 
 set(ats_inc_files
-  coordinator.hh
   ats_mesh_factory.hh
-  simulation_driver.hh
+  coordinator.hh
+  ats_driver.hh
   )
 
 set(amanzi_link_libs
@@ -96,18 +97,19 @@ set(amanzi_link_libs
   mesh_mstk
   mesh_logical
   chemistry_pk
-  mpc_tree
+  #mpc_tree
   transport
   )
   
 set(ats_link_libs
   ats_operators
   ats_generic_evals
+  ats_column_integrator
   ats_surf_subsurf
   ats_eos
   ats_pks
   ats_transport
-  ats_sed_transport  
+  #ats_sed_transport  
   ats_energy
   ats_energy_relations
   ats_flow
@@ -118,6 +120,7 @@ set(ats_link_libs
   ats_mpc
   ats_mpc_relations
   )
+
 
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
@@ -160,7 +163,7 @@ if (BUILD_TESTS)
   add_amanzi_test(executable_mesh_factory executable_mesh_factory
            KIND int
            SOURCE test/Main.cc test/executable_mesh_factory.cc
-           LINK_LIBS ats_executable  ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+           LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
 
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
   add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)

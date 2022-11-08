@@ -20,14 +20,15 @@ namespace Relations {
 
 
 DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
-    SecondaryVariableFieldEvaluator(plist),
+    EvaluatorSecondaryMonotypeCV(plist),
     compatibility_checked_(false)
 {
 
-  domain_ = Keys::getDomain(my_key_);
+  domain_ = Keys::getDomain(my_keys_.front().first);
+  auto tag = my_keys_.front().second;
 
   subsurface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
-  sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
+  dist_sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
   factor_key_ = plist.get<std::string>("factor field key", "");
   num_component_ = plist.get<int>("number of components", 1);
     
@@ -39,54 +40,60 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   k_ = plist.get<double>("tile permeability");
   implicit_ = plist.get<bool>("implicit drainage", true);
 
-  dependencies_.insert(subsurface_marks_key_);
+  dependencies_.insert(KeyTag{subsurface_marks_key_, tag});
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
+  dependencies_.insert(KeyTag{pres_key_, tag});
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density", "molar_density_liquid");
-  dependencies_.insert(pres_key_);
+  dependencies_.insert(KeyTag{mol_dens_key_, tag});
 
-  if (factor_key_ != "") dependencies_.insert(factor_key_);
+  if (factor_key_ != "") dependencies_.insert(KeyTag{factor_key_, tag});
   
-  times_.resize(2);
-  times_[0] = -1.0; times_[1] = -1.0;
+  // times_.resize(2);
+  // times_[0] = -1.0; times_[1] = -1.0;
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
 void
-DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
-                 const Teuchos::Ptr<CompositeVector>& result)
+DistributedTilesRateEvaluator::Evaluate_(const State& S,
+                                         const std::vector<CompositeVector*>& result)
 {
 
-  double t0 = S->time();
-  double dt = *S->GetScalarData("dt");
-  //  double t1 = S->final_time();
+  auto tag = my_keys_.front().second;
+  // double t0 = S->time();
+  double dt = S.Get<double>("dt", tag);
+  // //  double t1 = S->final_time();
 
-  Teuchos::RCP<Field> src_field =  S->GetField(sources_key_, "state");
 
-  const auto& pres = *S->GetFieldData(pres_key_)->ViewComponent("cell", false);
-  const auto& dens = *S->GetFieldData(mol_dens_key_)->ViewComponent("cell", false);
-  const auto& cv =
-      *S->GetFieldData(Keys::getKey(domain_,"cell_volume"))->ViewComponent("cell",false);
-  const auto& sub_marks = *S->GetFieldData(subsurface_marks_key_)->ViewComponent("cell", false);
+  const auto& pres = *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
+  const auto& dens = *S.GetPtr<CompositeVector>(mol_dens_key_, tag)->ViewComponent("cell", false);
   
-  auto& sub_sink = *result->ViewComponent("cell",false);
+  const auto& cv =
+    *S.GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag)->ViewComponent("cell",false);
+  const auto& sub_marks = *S.GetPtr<CompositeVector>(subsurface_marks_key_, tag)->ViewComponent("cell", false);
+  
+  auto& sub_sink = *result[0]->ViewComponent("cell",false);
   sub_sink.PutScalar(0);
   
   AmanziMesh::Entity_ID ncells = sub_marks.MyLength();
-  Teuchos::RCP<Epetra_Vector> src_vec = src_field->GetConstantVectorData();
+  //auto src_vec = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state");
 
   double total = 0.0;
-  src_vec->PutScalar(0.0);
+  //src_vec->PutScalar(0.0);
   sub_sink.PutScalar(0.0);
   int num_vectors = 1;
   int test = sub_sink.NumVectors();
 
   if (factor_key_!=""){
-    num_vectors = S->GetFieldData(factor_key_)->ViewComponent("cell",false)->NumVectors();
+    num_vectors = S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell",false)->NumVectors();
     AMANZI_ASSERT(num_vectors == sub_sink.NumVectors());
     AMANZI_ASSERT(num_vectors == num_component_);
   }
 
   if (abs(dt) > 1e-13) {
+    const Epetra_MultiVector *factor = nullptr;
+    if (factor_key_!=""){
+      factor = &(*(S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)));
+    }
     for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
       if (sub_marks[0][c] > 0) {
         double val = std::min(p_enter_ - pres[0][c], 0.0)*dens[0][c]*k_;
@@ -94,15 +101,14 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         //std::cout<<"sink val "<<" "<<val<<" "<< pres[0][c]<<"\n";
 
         if (factor_key_!=""){
-          const auto& factor = *S->GetFieldData(factor_key_)->ViewComponent("cell", false);
           for (int i=0; i<num_component_; ++i){
-            sub_sink[i][c] = factor[i][c] * val;
-            (*src_vec)[sub_marks[0][c] - 1 + i* num_ditches_] += factor[i][c] * val * dt * cv[0][c];
-            total = total + factor[i][c] * val * dt * cv[0][c];
+            sub_sink[i][c] = (*factor)[i][c] * val;
+            //(*src_vec)[sub_marks[0][c] - 1 + i* num_ditches_] += factor[i][c] * val * dt * cv[0][c];
+            total = total + (*factor)[i][c] * val * dt * cv[0][c];
           }
         }else{
           sub_sink[0][c] = val;
-          (*src_vec)[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
+          //(*src_vec)[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
           total = total + val * dt * cv[0][c];
         }
       }
@@ -118,14 +124,14 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   // std::cout<<"Total sink field "<<my_key_<<" "<<total<<"\n";
 
   
-  Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
-  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  const MPI_Comm& comm = mpi_comm_p->Comm();
+  // Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
+  // Teuchos::RCP<const MpiComm_type> mpi_comm_p =
+  //   Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
+  // const MPI_Comm& comm = mpi_comm_p->Comm();
 
-  double *src_vec_ptr;
-  src_vec -> ExtractView(&src_vec_ptr);
-  MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
+  // double *src_vec_ptr;
+  // src_vec -> ExtractView(&src_vec_ptr);
+  // MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
 
 
   //std::cout <<"After MPI_Allreduce\n";
@@ -145,36 +151,26 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
 
 // Required methods from SecondaryVariableFieldEvaluator
 void
-DistributedTilesRateEvaluator::EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-                     Key wrt_key, const Teuchos::Ptr<CompositeVector>& result)
+DistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
+    const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-
-  result->PutScalar(0.0);
-  
+  //result->PutScalar(0.0);
 }
 
 void
-DistributedTilesRateEvaluator::EnsureCompatibility(const Teuchos::Ptr<State>& S) {
+DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
-  //sources_key_ = Key("subdomain_sources");
-  if (!S->HasField(sources_key_)){
-    S->RequireConstantVector(sources_key_, num_ditches_ * num_component_);
-    Teuchos::RCP<Field> field =  S->GetField(sources_key_, "state");
-    Teuchos::RCP<Field_ConstantVector> cvfield =
-      Teuchos::rcp_dynamic_cast<Field_ConstantVector>(field, true);
-    cvfield->CreateData();
+  auto tag = my_keys_.front().second;
+  if (!S.HasRecord(dist_sources_key_, tag)){
+    S.Require<Epetra_Vector, Epetra_Vector_Factory>(dist_sources_key_, tag, my_keys_.front().first).set_size(num_ditches_);
+    dist_src_vec_ = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, my_keys_.front().first);
 
-    field->GetConstantVectorData()->PutScalar(0.0);
-    field->set_initialized();
-
-    if (!implicit_) {
-      Key prev_step("prev_timestep");
-      field->RequireCopy(prev_step);
-    }
+    dist_src_vec_->PutScalar(0.0);
+    S.GetRecordW(dist_sources_key_, tag, my_keys_.front().first).set_initialized();
   }
   
-  SecondaryVariableFieldEvaluator::EnsureCompatibility(S);
-  S->GetField(my_key_, my_key_)->set_io_vis();
+  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
+  
 }
 
 void

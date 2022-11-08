@@ -46,7 +46,7 @@ Note that this ignores energy in the gas phase.
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -54,24 +54,25 @@ namespace Relations {
 
 class LiquidIceEnergyModel;
 
-class LiquidIceEnergyEvaluator : public SecondaryVariableFieldEvaluator {
+class LiquidIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   LiquidIceEnergyEvaluator(Teuchos::ParameterList& plist);
   LiquidIceEnergyEvaluator(const LiquidIceEnergyEvaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<LiquidIceEnergyModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
   Key phi_key_;
@@ -89,7 +90,7 @@ class LiquidIceEnergyEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<LiquidIceEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LiquidIceEnergyEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,LiquidIceEnergyEvaluator> reg_;
 
 };
 

@@ -5,11 +5,13 @@ ATS
 License: see $ATS_DIR/COPYRIGHT
 Author: Ethan Coon
 
-Implementation for the Coordinator.  Coordinator is basically just a class to hold
-the cycle driver, which runs the overall, top level timestep loop.  It
-instantiates states, ensures they are initialized, and runs the timestep loop
-including Vis and restart/checkpoint dumps.  It contains one and only one PK
--- most likely this PK is an MPC of some type -- to do the actual work.
+Implementation for the Coordinator. Coordinator holds the functionality
+called by the cycle driver, which runs the overall, top level timestep loop.
+
+Coordinator instantiates states, ensures they are initialized, advances 
+timesteps, and writes vis and restart/checkpoint dumps. It contains one and
+only one PK -- most likely this PK is an MPC of some type -- to do the
+actual work.
 ------------------------------------------------------------------------- */
 
 #include <iostream>
@@ -17,6 +19,7 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include <sys/resource.h>
 #include "errors.hh"
 
+#include "Teuchos_ParameterList.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_TimeMonitor.hpp"
@@ -26,47 +29,53 @@ including Vis and restart/checkpoint dumps.  It contains one and only one PK
 #include "InputAnalysis.hh"
 
 #include "Units.hh"
-
+#include "CompositeVector.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
+#include "IO.hh"
+#include "GeometricModel.hh"
 #include "Checkpoint.hh"
-#include "MeshInfo.hh"
+//#include "MeshInfo.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
+#include "pk_helpers.hh"
+
+#include "ats_mesh_factory.hh"
 
 #include "coordinator.hh"
 
-#define DEBUG_MODE 1
-
 namespace ATS {
 
-Coordinator::Coordinator(Teuchos::ParameterList& parameter_list,
-                         Teuchos::RCP<Amanzi::State>& S,
-                         Amanzi::Comm_ptr_type comm ) :
-    parameter_list_(Teuchos::rcp(new Teuchos::ParameterList(parameter_list))),
-    S_(S),
+// this MUST be be called before using Coordinator
+Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                         const Amanzi::Comm_ptr_type& comm)
+  : plist_(plist),
     comm_(comm),
-    restart_(false) {
+    restart_(false),
+    timer_(Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true))),
+    setup_timer_(Teuchos::TimeMonitor::getNewCounter("setup")),
+    cycle_timer_(Teuchos::TimeMonitor::getNewCounter("cycle"))
+{
+  // create state.
+  S_ = Teuchos::rcp(new Amanzi::State(plist_->sublist("state")));
 
-  // create and start the global timer
-  timer_ = Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true));
-  setup_timer_ = Teuchos::TimeMonitor::getNewCounter("setup");
-  cycle_timer_ = Teuchos::TimeMonitor::getNewCounter("cycle");
-  coordinator_init();
+  // create the geometric model and regions
+  Teuchos::ParameterList reg_list = plist_->sublist("regions");
+  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
+    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
 
-  vo_ = Teuchos::rcp(new Amanzi::VerboseObject("Coordinator", *parameter_list_));
-};
+  // create and register meshes
+  ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
 
-void Coordinator::coordinator_init() {
-  coordinator_list_ = Teuchos::sublist(parameter_list_, "cycle driver");
-  read_parameter_list();
+  coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
+  InitializeFromPlist_();
 
   // create the top level PK
-  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(parameter_list_, "PKs");
+  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(plist_, "PKs");
   Teuchos::ParameterList pk_tree_list = coordinator_list_->sublist("PK tree");
   if (pk_tree_list.numParams() != 1) {
     Errors::Message message("CycleDriver: PK tree list should contain exactly one root node list");
@@ -76,18 +85,18 @@ void Coordinator::coordinator_init() {
   const std::string &pk_name = pk_tree_list.name(pk_item);
 
   // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector());
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
 
   // create the pk
   Amanzi::PKFactory pk_factory;
-  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, parameter_list_, S_, soln_);
+  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, plist_, S_, soln_);
 
   // create the checkpointing
-  Teuchos::ParameterList& chkp_plist = parameter_list_->sublist("checkpoint");
+  Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
   checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(chkp_plist, *S_));
 
   // create the observations
-  Teuchos::ParameterList& observation_plist = parameter_list_->sublist("observations");
+  Teuchos::ParameterList& observation_plist = plist_->sublist("observations");
   for (auto& sublist : observation_plist) {
     if (observation_plist.isSublist(sublist.first)) {
       observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
@@ -98,109 +107,112 @@ void Coordinator::coordinator_init() {
     }
   }
 
-  // check whether meshes are deformable, and if so require a nodal position
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
 
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
-      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
-      S_->RequireField(node_key)->SetMesh(mesh->second.first)->SetGhosted()
-          ->AddComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
+      Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
+      S_->Require<Amanzi::CompositeVector,Amanzi::CompositeVectorSpace>(
+        node_key, Amanzi::Tags::NEXT, node_key)
+        .SetMesh(mesh->second.first)->SetGhosted()
+        ->SetComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
     }
 
     // writes region information
-    if (parameter_list_->isSublist("analysis")) {
+    if (plist_->isSublist("analysis")) {
       Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
-      analysis.Init(parameter_list_->sublist("analysis").sublist(mesh->first));
+      analysis.Init(plist_->sublist("analysis").sublist(mesh->first));
       analysis.RegionAnalysis();
       analysis.OutputBCs();
     }
 
-    std::string plist_name = "mesh info " + mesh->first;
-    // in the case of just a domain mesh, we want to allow no name.
-    if ((mesh->first == "domain") && !parameter_list_->isSublist(plist_name)) {
-      plist_name = "mesh info";
-    }
-    if (parameter_list_->isSublist(plist_name)) {
-      auto& mesh_info_list = parameter_list_->sublist(plist_name);
-      Teuchos::RCP<Amanzi::MeshInfo> mesh_info = Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
-      mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
-    }
+    // std::string plist_name = "mesh info " + mesh->first;
+    // // in the case of just a domain mesh, we want to allow no name.
+    // if ((mesh->first == "domain") && !parameter_list_->isSublist(plist_name)) {
+    //   plist_name = "mesh info";
+    // }
+    // if (parameter_list_->isSublist(plist_name)) {
+    //   auto& mesh_info_list = parameter_list_->sublist(plist_name);
+    //   Teuchos::RCP<Amanzi::MeshInfo> mesh_info = Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
+    //   mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
+    // }
   }
+
+  // create verbose object
+  vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm_, "Coordinator", *coordinator_list_));
 
   // create the time step manager
   tsm_ = Teuchos::rcp(new Amanzi::TimeStepManager());
 }
 
-void Coordinator::setup() {
-  // Set up the states, creating all data structures.
-  S_->set_time(t0_);
-  S_->set_cycle(cycle0_);
-  S_->RequireScalar("dt", "coordinator");
+void Coordinator::setup()
+{
+  // common constants
+  S_->Require<double>("atmospheric_pressure",
+                      Amanzi::Tags::DEFAULT, "coordinator");
+  S_->Require<Amanzi::AmanziGeometry::Point>("gravity",
+          Amanzi::Tags::DEFAULT, "coordinator");
 
-  // everyone uses these
-  S_->RequireScalar("atmospheric_pressure", "coordinator");
-  S_->RequireGravity();
+  // needed other times
+  S_->require_time(Amanzi::Tags::CURRENT);
+  S_->require_time(Amanzi::Tags::NEXT);
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
-  pk_->Setup(S_.ptr());
+  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+  pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
 }
 
-double Coordinator::initialize() {
+void Coordinator::initialize()
+{
   Teuchos::OSTab tab = vo_->getOSTab();
   int size = comm_->NumProc();
   int rank = comm_->MyPID();
 
+  S_->set_time(Amanzi::Tags::CURRENT, t0_);
+  S_->set_time(Amanzi::Tags::NEXT, t0_);
+  S_->set_cycle(cycle0_);
+
   // Restart from checkpoint part 1:
   //  - get the time prior to initializing anything else
   if (restart_) {
-    S_->set_time(Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_));
+    double t_restart = Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_);
+    S_->set_time(Amanzi::Tags::CURRENT, t_restart);
+    S_->set_time(Amanzi::Tags::NEXT, t_restart);
+    t0_ = t_restart;
   }
 
   // Initialize the state
-  *S_->GetScalarData("dt", "coordinator") = 0.;
-  S_->GetField("dt","coordinator")->set_initialized();
   S_->InitializeFields();
 
-  // save vertex coordinates.  Note that, if this vector isn't used by any
-  // other PKs/evaluators, the nodal coordinates won't change.
+  // Initialize the process kernels
+  pk_->Initialize();
+
+  // calling CommitStep to set up copies as needed.
+  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+
+  // initialize vertex coordinate data
   for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
        mesh!=S_->mesh_end(); ++mesh) {
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
-      auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
-      // this could either be State or a later owning PK
-      auto owner = S_->GetField(node_key)->owner();
-      // collect the old coordinates
-      Epetra_MultiVector& vc = *S_->GetFieldData(node_key, owner)
-        ->ViewComponent("node", true);
-
-      std::vector<int> node_ids(vc.MyLength());
-      Amanzi::AmanziGeometry::Point_List old_positions(vc.MyLength());
-      for (int n=0; n!=vc.MyLength(); ++n) {
-        Amanzi::AmanziGeometry::Point node_coord;
-        mesh->second.first->node_get_coordinates(n, &node_coord);
-        vc[0][n] = node_coord[0];
-        vc[1][n] = node_coord[1];
-        if (mesh->second.first->space_dimension() == 3)
-          vc[2][n] = node_coord[2];
-      }
-      S_->GetField(node_key, owner)->set_initialized();
+      Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
+      copyMeshCoordinatesToVector(*mesh->second.first,
+              S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
+      S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
     }
   }
 
-  // Initialize the process kernels
-  pk_->Initialize(S_.ptr());
-
   // Restart from checkpoint part 2:
   // -- load all other data
-  double dt_restart = -1;
   if (restart_) {
-    dt_restart = Amanzi::ReadCheckpoint(*S_, restart_filename_);
-    t0_ = S_->time();
-    cycle0_ = S_->cycle();
+    Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
+    t0_ = S_->get_time();
+    cycle0_ = S_->get_cycle();
+
+    S_->set_time(Amanzi::Tags::CURRENT, t0_);
+    S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
@@ -211,13 +223,15 @@ double Coordinator::initialize() {
   }
 
   // Final checks.
-  S_->CheckNotEvaluatedFieldsInitialized();
+  //S_->CheckNotEvaluatedFieldsInitialized();
   S_->InitializeEvaluators();
   S_->InitializeFieldCopies();
   S_->CheckAllFieldsInitialized();
 
-  // commit the initial conditions.
-  pk_->CommitStep(S_->time(), S_->time(), S_);
+  // commit one more time, since some variables may have changed in the
+  // previous call (test this... maybe chemistry/transport variables?  Is this
+  // still necessary?  And do we need to set cycle to -1 here too? --ETC)
+  pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
   // Write dependency graph.
   S_->WriteDependencyGraph();
@@ -227,7 +241,7 @@ double Coordinator::initialize() {
   WriteStateStatistics(*S_, *vo_);
 
   // Set up visualization
-  auto vis_list = Teuchos::sublist(parameter_list_,"visualization");
+  auto vis_list = Teuchos::sublist(plist_,"visualization");
   for (auto& entry : *vis_list) {
     std::string domain_name = entry.first;
 
@@ -251,7 +265,6 @@ double Coordinator::initialize() {
       vis->set_name(domain_name);
       vis->set_mesh(mesh_p);
       vis->CreateFiles(false);
-
       visualization_.push_back(vis);
 
     } else if (Amanzi::Keys::isDomainSet(domain_name)) {
@@ -277,10 +290,8 @@ double Coordinator::initialize() {
           sublist_p->set("file name base", std::string("ats_vis_")+domain_name_base);
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
         vis->set_name(domain_name_base);
+        vis->set_domain_set(dset);
         vis->set_mesh(dset->get_referencing_parent());
-        for (const auto& subdomain : *dset) {
-          vis->set_subdomain_mesh(subdomain, S_->GetMesh(subdomain));
-        }
         vis->CreateFiles(false);
         visualization_.push_back(vis);
       }
@@ -289,9 +300,6 @@ double Coordinator::initialize() {
 
   // make observations at time 0
   for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-
-  S_->set_time(t0_); // in case steady state solve changed this
-  S_->set_cycle(cycle0_);
 
   // set up the TSM
   // -- register visualization times
@@ -313,40 +321,25 @@ double Coordinator::initialize() {
     pause_times.RegisterWithTimeStepManager(tsm_.ptr());
   }
 
-  // Create an intermediate state that will store the updated solution until
-  // we know it has succeeded.
-  S_next_ = Teuchos::rcp(new Amanzi::State(*S_));
-  *S_next_ = *S_;
-  if (subcycled_ts_) {
-    S_inter_ = Teuchos::rcp(new Amanzi::State(*S_));
-    *S_inter_ = *S_;
-  } else {
-    S_inter_ = S_;
-  }
-
-  // set the states in the PKs Passing null for S_ allows for safer subcycling
-  // -- PKs can't use it, so it is guaranteed to be pristinely the old
-  // timestep.  This code is useful for testing that PKs don't use S.
-  // pk_->set_states(Teuchos::null, S_inter_, S_next_);
-
-  // That said, S is required to be valid, since it is valid for all time
-  // (e.g. from construction), whereas S_inter and S_next are only valid after
-  // set_states() is called.  This allows for standard interfaces.
-  pk_->set_states(S_, S_inter_, S_next_);
-  return dt_restart;
+  // -- advance cycle to 0 and begin
+  if (S_->get_cycle() == -1) S_->advance_cycle();
 }
 
-void Coordinator::finalize() {
+
+void Coordinator::finalize()
+{
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
-  pk_->CalculateDiagnostics(S_next_);
-  checkpoint_->Write(*S_next_, 0.0, true);
+  pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
+  checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
   for (const auto& obs : observations_) obs->Flush();
 }
 
 
-double rss_usage() { // return ru_maxrss in MBytes
+double
+rss_usage()
+{ // return ru_maxrss in MBytes
 #if (defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__) || defined(__MACH__))
   struct rusage usage;
   getrusage(RUSAGE_SELF, &usage);
@@ -361,10 +354,11 @@ double rss_usage() { // return ru_maxrss in MBytes
 }
 
 
-void Coordinator::report_memory() {
+void
+Coordinator::report_memory()
+{
   // report the memory high water mark (using ru_maxrss)
   // this should be called at the very end of a simulation
-  Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     double global_ncells(0.0);
     double local_ncells(0.0);
@@ -393,45 +387,49 @@ void Coordinator::report_memory() {
     comm_->MinAll(&mem,&min_mem,1);
     comm_->MaxAll(&mem,&max_mem,1);
 
-    *vo_->os() << "======================================================================" << std::endl
-               << "All meshes combined have " << global_ncells << " cells." << std::endl
-               << "Memory usage (high water mark):" << std::endl
-               << std::fixed << std::setprecision(1)
-               << "  Maximum per core:   " << std::setw(7) << max_mem
-               << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
-               << " Bytes" << std::endl
-               << "  Minimum per core:   " << std::setw(7) << min_mem
-               << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
-               << " Bytes" << std::endl
-               << "  Total:              " << std::setw(7) << total_mem
-               << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
-               << " Bytes" << std::endl;
+    Teuchos::OSTab tab = vo_->getOSTab();
+    *vo_->os() << "======================================================================" << std::endl;
+    *vo_->os() << "All meshes combined have " << global_ncells << " cells." << std::endl;
+    *vo_->os() << "Memory usage (high water mark):" << std::endl;
+    *vo_->os() << std::fixed << std::setprecision(1);
+    *vo_->os() << "  Maximum per core:   " << std::setw(7) << max_mem
+          << " MBytes,  maximum per cell: " << std::setw(7) << max_percell*1024*1024
+          << " Bytes" << std::endl;
+    *vo_->os() << "  Minimum per core:   " << std::setw(7) << min_mem
+          << " MBytes,  minimum per cell: " << std::setw(7) << min_percell*1024*1024
+         << " Bytes" << std::endl;
+    *vo_->os() << "  Total:              " << std::setw(7) << total_mem
+          << " MBytes,  total per cell:   " << std::setw(7) << total_mem/global_ncells*1024*1024
+          << " Bytes" << std::endl;
   }
 
 
-  double doubles_count(0.0);
-  for (Amanzi::State::field_iterator field=S_->field_begin(); field!=S_->field_end(); ++field) {
-    doubles_count += static_cast<double>(field->second->GetLocalElementCount());
-  }
-  double global_doubles_count(0.0);
-  double min_doubles_count(0.0);
-  double max_doubles_count(0.0);
-  comm_->SumAll(&doubles_count,&global_doubles_count,1);
-  comm_->MinAll(&doubles_count,&min_doubles_count,1);
-  comm_->MaxAll(&doubles_count,&max_doubles_count,1);
+  // double doubles_count(0.0);
+  // for (Amanzi::State::data_iterator field=S_->data_begin(); field!=S_->data_end(); ++field) {
+  //   doubles_count += static_cast<double>(field->second->GetLocalElementCount());
+  // }
+  // double global_doubles_count(0.0);
+  // double min_doubles_count(0.0);
+  // double max_doubles_count(0.0);
+  // comm_->SumAll(&doubles_count,&global_doubles_count,1);
+  // comm_->MinAll(&doubles_count,&min_doubles_count,1);
+  // comm_->MaxAll(&doubles_count,&max_doubles_count,1);
 
-  *vo_->os() << "Doubles allocated in state fields " << std::endl
-             << "  Maximum per core:   " << std::setw(7)
-             << max_doubles_count*8/1024/1024 << " MBytes" << std::endl
-             << "  Minimum per core:   " << std::setw(7)
-             << min_doubles_count*8/1024/1024 << " MBytes" << std::endl
-             << "  Total:              " << std::setw(7)
-             << global_doubles_count*8/1024/1024 << " MBytes" << std::endl;
+  // Teuchos::OSTab tab = vo_->getOSTab();
+  // *vo_->os() << "Doubles allocated in state fields " << std::endl;
+  // *vo_->os() << "  Maximum per core:   " << std::setw(7)
+  //            << max_doubles_count*8/1024/1024 << " MBytes" << std::endl;
+  // *vo_->os() << "  Minimum per core:   " << std::setw(7)
+  //            << min_doubles_count*8/1024/1024 << " MBytes" << std::endl;
+  // *vo_->os() << "  Total:              " << std::setw(7)
+  //            << global_doubles_count*8/1024/1024 << " MBytes" << std::endl;
 }
 
 
 
-void Coordinator::read_parameter_list() {
+void
+Coordinator::InitializeFromPlist_()
+{
   Amanzi::Utils::Units units;
   t0_ = coordinator_list_->get<double>("start time");
   std::string t0_units = coordinator_list_->get<std::string>("start time units", "s");
@@ -454,7 +452,7 @@ void Coordinator::read_parameter_list() {
 
   max_dt_ = coordinator_list_->get<double>("max time step size [s]", 1.0e99);
   min_dt_ = coordinator_list_->get<double>("min time step size [s]", 1.0e-12);
-  cycle0_ = coordinator_list_->get<int>("start cycle",0);
+  cycle0_ = coordinator_list_->get<int>("start cycle",-1);
   cycle1_ = coordinator_list_->get<int>("end cycle",-1);
   duration_ = coordinator_list_->get<double>("wallclock duration [hrs]", -1.0);
   subcycled_ts_ = coordinator_list_->get<bool>("subcycled timestep", false);
@@ -469,7 +467,9 @@ void Coordinator::read_parameter_list() {
 // -----------------------------------------------------------------------------
 // acquire the chosen timestep size
 // -----------------------------------------------------------------------------
-double Coordinator::get_dt(bool after_fail) {
+double
+Coordinator::get_dt(bool after_fail)
+{
   // get the physical step size
   double dt = pk_->get_dt();
   double dt_pk = dt;
@@ -487,55 +487,48 @@ double Coordinator::get_dt(bool after_fail) {
   }
 
   // ask the step manager if this step is ok
-  dt = tsm_->TimeStep(S_next_->time(), dt, after_fail);
+  dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
+
+  // note, I believe this can go away (along with the input spec flag) once
+  // amanzi/amanzi#685 is closed --etc
   if (subcycled_ts_) dt = std::min(dt, dt_pk);
   return dt;
 }
 
 
-bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
-  double dt = t_new - t_old;
+bool
+Coordinator::advance()
+{
+  double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
+  double t_old = S_->get_time(Amanzi::Tags::CURRENT);
+  double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
-  S_next_->advance_time(dt);
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  fail |= !pk_->ValidStep();
+  if (!fail) fail |= !pk_->ValidStep();
 
-  // advance the iteration count and timestep size
-  S_next_->advance_cycle();
+  // write state post-advance, if extreme
+  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
 
   if (!fail) {
-    // commit the state
-    pk_->CommitStep(t_old, t_new, S_next_);
-
-    // make observations, vis, and checkpoints
-    for (const auto& obs : observations_) obs->MakeObservations(S_next_.ptr());
-    visualize();
-    dt_next = get_dt(fail);
-    checkpoint(dt_next); // checkpoint with the new dt
-
-    // we're done with this time step, copy the state
-    *S_ = *S_next_;
-    *S_inter_ = *S_next_;
-
-    if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << vo_->color("good") << "successful cycle" << vo_->reset() << std::endl;
+    // commit the state, copying NEXT --> CURRENT
+    pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
 
   } else {
     // Failed the timestep.
     // Potentially write out failed timestep for debugging
-    for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_next_);
+    for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
 
-    // The timestep sizes have been updated, so copy back old soln and try again.
-    *S_next_ = *S_;
-    *S_inter_ = *S_;
+    // copy from old time into new time to reset the timestep
+    pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
 
     // check whether meshes are deformable, and if so, recover the old coordinates
     for (Amanzi::State::mesh_iterator mesh=S_->mesh_begin();
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         // collect the old coordinates
-        auto node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinate");
-        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetFieldData(node_key);
+        Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_cooordinates");
+        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec =
+          S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
 
@@ -555,128 +548,47 @@ bool Coordinator::advance(double t_old, double t_new, double& dt_next) {
         mesh->second.first->deform(node_ids, old_positions, false, &final_positions);
       }
     }
-    dt_next = get_dt(fail);
-
-    if (vo_->os_OK(Teuchos::VERB_LOW))
-      *vo_->os() << vo_->color("bad") << "failed cycle" << vo_->reset() << std::endl;
   }
+  // write state one extreme, post-commit/fail
+  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
+
   return fail;
 }
 
-void Coordinator::visualize(bool force) {
+
+void Coordinator::visualize(bool force)
+{
   // write visualization if requested
   bool dump = force;
+  int cycle = S_->get_cycle();
+  double time = S_->get_time();
+
   if (!dump) {
     for (const auto& vis : visualization_) {
-      if (vis->DumpRequested(S_next_->cycle(), S_next_->time())) {
-        dump = true;
-      }
+      dump |= vis->DumpRequested(cycle, time);
     }
   }
 
   if (dump) {
-    pk_->CalculateDiagnostics(S_next_);
+    pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
   }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(S_next_->cycle(), S_next_->time())) {
-      WriteVis(*vis, *S_next_);
+    if (force || vis->DumpRequested(cycle, time)) {
+      WriteVis(*vis, *S_);
     }
   }
 }
 
-void Coordinator::checkpoint(double dt, bool force) {
-  if (force || checkpoint_->DumpRequested(S_next_->cycle(), S_next_->time())) {
-    checkpoint_->Write(*S_next_, dt);
+
+void Coordinator::checkpoint(bool force)
+{
+  int cycle = S_->get_cycle();
+  double time = S_->get_time();
+  if (force || checkpoint_->DumpRequested(cycle, time)) {
+    checkpoint_->Write(*S_);
   }
 }
-
-
-// -----------------------------------------------------------------------------
-// timestep loop
-// -----------------------------------------------------------------------------
-void Coordinator::cycle_driver() {
-  // wallclock duration -- in seconds
-  const double duration(duration_ * 3600);
-
-  // start at time t = t0 and initialize the state.
-  double dt_restart = -1;
-  {
-    Teuchos::TimeMonitor monitor(*setup_timer_);
-    setup();
-    dt_restart = initialize();
-  }
-
-  // get the intial timestep
-  double dt = dt_restart > 0 ? dt_restart : get_dt(false);
-
-  // visualization at IC
-  visualize();
-  checkpoint(dt);
-
-  // iterate process kernels
-  {
-    Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
-#if !DEBUG_MODE
-  try {
-#endif
-    bool fail = false;
-    while ((S_->time() < t1_) &&
-           ((cycle1_ == -1) || (S_->cycle() <= cycle1_)) &&
-           (duration_ < 0 || timer_->totalElapsedTime(true) < duration) &&
-           dt > 0.) {
-      if (vo_->os_OK(Teuchos::VERB_LOW)) {
-        *vo_->os() << "======================================================================"
-                   << std::endl << std::endl
-                   << vo_->color("good") << "Cycle = " << S_->cycle()
-                   << ",  Time [days] = "<< std::setprecision(16) << S_->time() / (60*60*24)
-                   << ",  dt [days] = " << std::setprecision(16) << dt / (60*60*24)
-                   << vo_->reset() << std::endl
-                   << "----------------------------------------------------------------------"
-                   << std::endl;
-      }
-
-      *S_->GetScalarData("dt", "coordinator") = dt;
-      *S_inter_->GetScalarData("dt", "coordinator") = dt;
-      *S_next_->GetScalarData("dt", "coordinator") = dt;
-
-      S_->set_initial_time(S_->time());
-      S_->set_final_time(S_->time() + dt);
-      S_->set_intermediate_time(S_->time());
-
-      fail = advance(S_->time(), S_->time() + dt, dt);
-
-      //WriteStateStatistics(*S_, *vo_);
-      
-    } // while not finished
-
-#if !DEBUG_MODE
-  } catch (Amanzi::Exceptions::Amanzi_exception &e) {
-    // write one more vis for help debugging
-    S_next_->advance_cycle();
-    visualize(true); // force vis
-
-    // flush observations to make sure they are saved
-    for (const auto& obs : observations_) obs->Flush();
-
-    // catch errors to dump two checkpoints -- one as a "last good" checkpoint
-    // and one as a "debugging data" checkpoint.
-    checkpoint_->set_filebasename("last_good_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), *S_, dt);
-    checkpoint_->set_filebasename("error_checkpoint");
-    WriteCheckpoint(checkpoint_.ptr(), *S_next_, dt);
-    throw e;
-  }
-#endif
-  }
-
-  // finalizing simulation
-  WriteStateStatistics(*S_, *vo_);
-  report_memory();
-  Teuchos::TimeMonitor::summarize(*vo_->os());
-
-  finalize();
-} // cycle driver
 
 
 } // close namespace Amanzi

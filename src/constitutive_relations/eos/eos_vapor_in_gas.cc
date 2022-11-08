@@ -31,7 +31,6 @@ double EOSVaporInGas::DMolarDensityDp(std::vector<double>& params) {
 };
 
 
-
 void EOSVaporInGas::InitializeFromPlist_() {
   Teuchos::ParameterList gas_eos_plist = eos_plist_.sublist("gas EOS parameters");
   EOSFactory eos_factory;

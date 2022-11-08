@@ -28,11 +28,11 @@ namespace Amanzi {
 void TestSnowDist::setup(const Teuchos::Ptr<State>& S) {
   PKPhysicalBase::setup(S);
 
-  S->RequireField(key_, name_)->SetMesh(S->GetMesh("surface"))
+  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(S->GetMesh("surface"))
           ->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireFieldEvaluator("precipitation_snow");
-  S->RequireField("precipitation_snow")->SetMesh(S->GetMesh("surface"))
+  S->RequireEvaluator("precipitation_snow");
+  S->Require<CompositeVector,CompositeVectorSpace>("precipitation_snow", Tags::NEXT).SetMesh(S->GetMesh("surface"))
       ->AddComponent("cell", AmanziMesh::CELL,1);
 };
 
@@ -40,20 +40,20 @@ void TestSnowDist::setup(const Teuchos::Ptr<State>& S) {
 bool TestSnowDist::advance(double dt) {
 
   if (sink_type_ == "factor") {
-    S_next_->GetFieldData("snow_depth",name_)->Scale(sink_value_);
+    S_next_->GetW<CompositeVector>("snow_depth",name_).Scale(sink_value_);
   } else if (sink_type_ == "constant") {
-    Epetra_MultiVector& sd = *S_next_->GetFieldData("snow_depth",name_)->ViewComponent("cell",false);
+    Epetra_MultiVector& sd = *S_next_->GetW<CompositeVector>("snow_depth",name_).ViewComponent("cell",false);
     for (int c=0; c!=sd.MyLength(); ++c) {
       sd[0][c] -= 10*dt*sink_value_;
       sd[0][c] = std::max(0.,sd[0][c]);
     }
   }
     
-  S_next_->GetFieldEvaluator("precipitation_snow")->HasFieldChanged(S_next_.ptr(), name_);
-  S_next_->GetFieldData("snow_depth", name_)
-    ->Update(10.*dt, *S_next_->GetFieldData("precipitation_snow"), 1.); // factor of 10 for SWE-to-snow ht conversion
+  S_next_->GetEvaluator("precipitation_snow")->HasFieldChanged(S_next_.ptr(), name_);
+  S_next_->GetPtrW<CompositeVector>("snow_depth", name_)
+    ->Update(10.*dt, *S_next_->GetPtr<CompositeVector>("precipitation_snow"), 1.); // factor of 10 for SWE-to-snow ht conversion
 
-  solution_evaluator_->SetFieldAsChanged(S_next_.ptr());
+  solution_evaluator_->SetChanged(S_next_.ptr());
   return false;
 };
 

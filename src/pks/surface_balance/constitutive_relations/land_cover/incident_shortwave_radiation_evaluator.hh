@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Author: Ethan Coon (ecoon@lanl.gov)
@@ -29,7 +29,7 @@ https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radi
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -37,26 +37,25 @@ namespace Relations {
 
 class IncidentShortwaveRadiationModel;
 
-class IncidentShortwaveRadiationEvaluator : public SecondaryVariableFieldEvaluator {
+class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist);
-  IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other);
+  explicit IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist);
+  IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
 
   Teuchos::RCP<IncidentShortwaveRadiationModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
   void InitializeFromPlist_();
 
+ protected:
   Key slope_key_;
   Key aspect_key_;
   Key qSWin_key_;
@@ -64,7 +63,7 @@ class IncidentShortwaveRadiationEvaluator : public SecondaryVariableFieldEvaluat
   Teuchos::RCP<IncidentShortwaveRadiationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,IncidentShortwaveRadiationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,IncidentShortwaveRadiationEvaluator> reg_;
 
 };
 

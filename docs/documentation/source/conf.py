@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'ATS'
-copyright = '2020, jointly shared by contributor institutions'
+copyright = '202X, jointly shared by contributor institutions'
 author = 'Ethan Coon'
 
 # The short X.Y version
-version = '1.0'
+version = '1.2'
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '1.2'
 
 
 # -- General configuration ---------------------------------------------------

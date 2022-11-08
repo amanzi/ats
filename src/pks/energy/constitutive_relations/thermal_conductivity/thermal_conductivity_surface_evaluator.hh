@@ -10,26 +10,29 @@
 #ifndef AMANZI_ENERGY_RELATIONS_TC_SURFACE_EVALUATOR_HH_
 #define AMANZI_ENERGY_RELATIONS_TC_SURFACE_EVALUATOR_HH_
 
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
+#include "Factory.hh"
 
 namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivitySurfaceEvaluator :
-    public SecondaryVariableFieldEvaluator {
+    public EvaluatorSecondaryMonotypeCV {
 
  public:
   // constructor format for all derived classes
   ThermalConductivitySurfaceEvaluator(Teuchos::ParameterList& plist);
-  ThermalConductivitySurfaceEvaluator(const ThermalConductivitySurfaceEvaluator& other);
+  ThermalConductivitySurfaceEvaluator(const ThermalConductivitySurfaceEvaluator& other) = default;
 
-  Teuchos::RCP<FieldEvaluator> Clone() const;
+  Teuchos::RCP<Evaluator> Clone() const override;
 
+ protected:
   // Required methods from SecondaryVariableFieldModel
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // dependencies
@@ -39,6 +42,9 @@ class ThermalConductivitySurfaceEvaluator :
   double K_liq_;
   double K_ice_;
   double min_K_;
+
+ private:
+  static Utils::RegisteredFactory<Evaluator,ThermalConductivitySurfaceEvaluator> factory_;
 };
 
 } // namespace

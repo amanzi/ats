@@ -1,6 +1,6 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -14,6 +14,14 @@
 This process kernel provides for going from a cell volumetric change to an
 updated unstructured mesh, and can be coupled sequentially with flow to solve
 problems of flow in a subsiding porous media.
+
+Note that this PK is slaved to the flow PK.  This PK must be advanced first,
+and be weakly coupled to the flow PK (or an MPC that advances the flow PK), and
+the timestep of this PK must match that of the flow PK (e.g. do not try to
+subcyle one or the other).  This uses a rather hacky, unconventional use of
+time tags, where we use saturations and porosities at the NEXT time, but ASSUME
+they are actually the values of the CURRENT time.  This saves having to stash a
+copy of these variables at the CURRENT time, which would otherwise not be used.
 
 Note that all deformation here is vertical, and we assume that the subsurface
 mesh is **perfectly columnar** and that the "build columns" parameter has been
@@ -106,6 +114,7 @@ values from the old time.
 #include "PK.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_default.hh"
+#include "pk_helpers.hh"
 //#include "MatrixVolumetricDeformation.hh"
 
 namespace Amanzi {
@@ -116,26 +125,23 @@ class VolumetricDeformation : public PK_Physical_Default {
  public:
 
   VolumetricDeformation(Teuchos::ParameterList& pk_tree,
-                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                        const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
                         const Teuchos::RCP<State>& S,
                         const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~VolumetricDeformation() = default;
-
   // ConstantTemperature is a PK
   // -- Setup data
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
-    override {}
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override {}
+  virtual void CalculateDiagnostics(const Tag& tag) override {}
 
   // -- advance via one of a few methods
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
@@ -144,13 +150,11 @@ class VolumetricDeformation : public PK_Physical_Default {
     return dt_max_;
   }
 
-  virtual void set_dt(double dt) override {
-    dt_ = dt;
-  }
+  virtual void set_dt(double dt) override {}
 
  private:
 
-  // strategy for calculating nodal deformation from cell volume change
+  // strategy for calculating nodal deformation given change in cell volume
   enum DeformStrategy {
     DEFORM_STRATEGY_GLOBAL_OPTIMIZATION,
     DEFORM_STRATEGY_MSTK,
@@ -158,7 +162,7 @@ class VolumetricDeformation : public PK_Physical_Default {
   };
   DeformStrategy strategy_;
 
-  // function describing d(cv)/dT
+  // strategy for calculating change in cell volume
   enum DeformMode {
     DEFORM_MODE_DVDT,
     DEFORM_MODE_SATURATION,
@@ -167,17 +171,22 @@ class VolumetricDeformation : public PK_Physical_Default {
   DeformMode deform_mode_;
   double overpressured_limit_;
 
+  // region that may deform
   std::string deform_region_;
-  // DEFORM_MODE_DVDT
+
+  // parameters for DEFORM_MODE_DVDT
   Teuchos::RCP<Functions::CompositeVectorFunction> deform_func_;
 
-  // DEFORM_MODE_SATURATION
+  // parameters for DEFORM_MODE_SATURATION
+  double min_porosity_;
+  double deform_scaling_;
   double min_S_liq_;
 
-  // DEFORM_MODE_STRUCTURAL
+  // parameters for DEFORM_MODE_STRUCTURAL
   double time_scale_, structural_vol_frac_;
 
-  double dt_, dt_max_;
+  // PK timestep control
+  double dt_max_;
 
   // meshes
   Key domain_surf_, domain_surf_3d_;
@@ -191,8 +200,9 @@ class VolumetricDeformation : public PK_Physical_Default {
   Key sat_liq_key_, sat_gas_key_, sat_ice_key_;
   Key cv_key_, del_cv_key_;
   Key poro_key_;
-  Key vertex_loc_key_, vertex_loc_surf_key_, vertex_loc_surf3d_key_;
+  Key vertex_loc_key_, vertex_loc_surf3d_key_;
   Key nodal_dz_key_, face_above_dz_key_;
+  bool deformed_this_step_;
 
   // factory registration
   static RegisteredPKFactory<VolumetricDeformation> reg_;

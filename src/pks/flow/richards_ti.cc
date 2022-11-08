@@ -1,14 +1,11 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-A base two-phase, thermal Richard's equation with water vapor.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
-
-#include "Epetra_FECrsMatrix.h"
-#include "EpetraExt_RowMatrixOut.h"
-#include "boost/math/special_functions/fpclassify.hpp"
 
 #include "Op.hh"
 #include "richards.hh"
@@ -24,76 +21,71 @@ void Richards::FunctionalResidual(double t_old,
                    double t_new,
                    Teuchos::RCP<TreeVector> u_old,
                    Teuchos::RCP<TreeVector> u_new,
-                   Teuchos::RCP<TreeVector> g) {
+                   Teuchos::RCP<TreeVector> g)
+{
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
   double h = t_new - t_old;
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
 
-  //--  AMANZI_ASSERT(std::abs(S_inter_->time() - t_old) < 1.e-4*h);
-  //-- AMANZI_ASSERT(std::abs(S_next_->time() - t_new) < 1.e-4*h);
+  // zero out residual
+  Teuchos::RCP<CompositeVector> res = g->Data();
+  res->PutScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
-  Solution_to_State(*u_new, S_next_);
+  Solution_to_State(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->Data();
-
-  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
                << " t1 = " << t_new << " h = " << h << std::endl;
 
-  // dump u_old, u_new
+  // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames;
-  vnames.push_back("p_old"); vnames.push_back("p_new");
-  std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_inter_->GetFieldData(key_).ptr()); vecs.push_back(u.ptr());
+  std::vector<std::string> vnames{"p_old", "p_new"};
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
+  vecs.emplace_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
-  ComputeBoundaryConditions_(S_next_.ptr());
-  UpdateBoundaryConditions_(S_next_.ptr());
+  ComputeBoundaryConditions_(tag_next_);
+  UpdateBoundaryConditions_(tag_next_);
   db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
-  // zero out residual
-  Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
-
   // diffusion term, treated implicitly
-  ApplyDiffusion_(S_next_.ptr(), res.ptr());
-  // if (vapor_diffusion_) AddVaporDiffusionResidual_(S_next_.ptr(), res.ptr());
+  ApplyDiffusion_(tag_next_, res.ptr());
+  // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
-  // dump s_old, s_new
-  vnames[0] = "sl_old"; vnames[1] = "sl_new";
-  vecs[0] = S_inter_->GetFieldData(sat_key_).ptr();
-  vecs[1] = S_next_->GetFieldData(sat_key_).ptr();
+  // more debugging -- write diffusion/flux variables to screen
+  vnames = {"sl_old", "sl_new"};
+  vecs = {S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr(),
+          S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr()};
 
-  if (S_next_->HasField(sat_ice_key_)) {
-    vnames.push_back("si_old");
-    vnames.push_back("si_new");
-    vecs.push_back(S_inter_->GetFieldData(Keys::getKey(domain_,"saturation_ice")).ptr());
-    vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"saturation_ice")).ptr());
+  if (S_->HasRecordSet(sat_ice_key_)) {
+    vnames.emplace_back("si_old");
+    vnames.emplace_back("si_new");
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
   }
-  vnames.push_back("wc_old");
-  vnames.push_back("wc_new");
-  vecs.push_back(S_inter_->GetFieldData(conserved_key_).ptr());
-  vecs.push_back(S_next_->GetFieldData(conserved_key_).ptr());
-  vnames.push_back("poro");
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"porosity")).ptr());
-  vnames.push_back("perm_K");
-  vecs.push_back(S_next_->GetFieldData(Keys::getKey(domain_,"permeability")).ptr());
-  vnames.push_back("k_rel");
-  vecs.push_back(S_next_->GetFieldData(coef_key_).ptr());
-  vnames.push_back("wind");
-  vecs.push_back(S_next_->GetFieldData(flux_dir_key_).ptr());
-  vnames.push_back("uw_k_rel");
-  vecs.push_back(S_next_->GetFieldData(uw_coef_key_).ptr());
-  vnames.push_back("flux");
-  vecs.push_back(S_next_->GetFieldData(flux_key_).ptr());
-  db_->WriteVectors(vnames,vecs,true);
 
+  vnames.emplace_back("poro");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
+  vnames.emplace_back("perm_K");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"permeability"), tag_next_).ptr());
+  vnames.emplace_back("k_rel");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
+  vnames.emplace_back("wind");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
+  vnames.emplace_back("uw_k_rel");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
+  vnames.emplace_back("flux");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
+
+  db_->WriteVectors(vnames,vecs,true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 
   // accumulation term
@@ -103,9 +95,9 @@ void Richards::FunctionalResidual(double t_old,
   // source term
   if (is_source_term_) {
     if (explicit_source_) {
-      AddSources_(S_inter_.ptr(), res.ptr());
+      AddSources_(tag_current_, res.ptr());
     } else {
-      AddSources_(S_next_.ptr(), res.ptr());
+      AddSources_(tag_next_, res.ptr());
     }
     db_->WriteVector("res (src)", res.ptr(), false);
   }
@@ -114,18 +106,18 @@ void Richards::FunctionalResidual(double t_old,
 // -----------------------------------------------------------------------------
 // Apply the preconditioner to u and return the result in Pu.
 // -----------------------------------------------------------------------------
-int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) {
+int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+        Teuchos::RCP<TreeVector> Pu)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon application:" << std::endl;
 
-  db_->WriteVector("p_res", u->Data().ptr(), true);
-
   // Apply the preconditioner
+  db_->WriteVector("p_res", u->Data().ptr(), true);
   int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
-
   db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
-  
+
   return (ierr > 0) ? 0 : 1;
 };
 
@@ -133,83 +125,84 @@ int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP
 // -----------------------------------------------------------------------------
 // Update the preconditioner at time t and u = up
 // -----------------------------------------------------------------------------
-void Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) {
+void Richards::UpdatePreconditioner(double t,
+        Teuchos::RCP<const TreeVector> up, double h)
+{
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
-  if (dynamic_mesh_) {
-    matrix_diff_->SetTensorCoefficient(K_);
+  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
     preconditioner_diff_->SetTensorCoefficient(K_);
-  }
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_)/t > 1.e-4) {
     iter_ = 0;
     iter_counter_time_ = t;
   }
-  AMANZI_ASSERT(std::abs(S_next_->time() - t) <= 1.e-4*t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, S_next_);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
-  UpdatePermeabilityData_(S_next_.ptr());
-  if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(S_next_.ptr());
+  UpdatePermeabilityData_(tag_next_);
+  if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(tag_next_);
 
   // update boundary conditions
-  ComputeBoundaryConditions_(S_next_.ptr());
-  UpdateBoundaryConditions_(S_next_.ptr());
+  ComputeBoundaryConditions_(tag_next_);
+  UpdateBoundaryConditions_(tag_next_);
 
-  Teuchos::RCP<const CompositeVector> rel_perm =
-      S_next_->GetFieldData(uw_coef_key_);
-
-  // Update the preconditioner with darcy and gravity fluxes
-  preconditioner_->Init();
-
-  // gravity fluxes
-  S_next_->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
+  // fill local matrices
+  // -- gravity fluxes
+  S_->GetEvaluator(mass_dens_key_, tag_next_).Update(*S_, name_);
+  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
   preconditioner_diff_->SetDensity(rho);
 
-  // jacobian term
+  // -- jacobian term
   Teuchos::RCP<const CompositeVector> dkrdp = Teuchos::null;
   if (jacobian_ && iter_ >= jacobian_lag_) {
     if (!duw_coef_key_.empty()) {
-      dkrdp = S_next_->GetFieldData(duw_coef_key_);
+      dkrdp = S_->GetPtr<CompositeVector>(duw_coef_key_, tag_next_);
     } else {
-      dkrdp = S_next_->GetFieldData(dcoef_key_);
+      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_,
+              key_, tag_next_);
     }
   }
 
-  // create local matrices
+  // -- primary term
+  Teuchos::RCP<const CompositeVector> rel_perm =
+    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
+
+  // -- local matries, primary term
+  preconditioner_->Init();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
-  if (jacobian_ && iter_ >= jacobian_lag_) {// && preconditioner_->RangeMap().HasComponent("face")) {
-    Teuchos::RCP<CompositeVector> flux = S_next_->GetFieldData(flux_key_, name_);
+  // -- local matries, Jacobian term
+  if (jacobian_ && iter_ >= jacobian_lag_) {
+    Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
     preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
   }
 
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives
-  S_next_->GetFieldEvaluator(conserved_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
+  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_,
+          key_, tag_next_);
 
   // -- get the accumulation deriv
-  Key dwc_dp_key = Keys::getDerivKey(conserved_key_, key_);
-  Teuchos::RCP<const CompositeVector> dwc_dp = S_next_->GetFieldData(dwc_dp_key);
-
+  Teuchos::RCP<const CompositeVector> dwc_dp =
+    S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_,
+            key_, tag_next_);
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
 
-  // -- update the cell-cell block  CompositeVector du(S_next_->GetFieldData(dwc_dp_key)->Map());
+  // -- update the cell-cell block
   preconditioner_acc_->AddAccumulationTerm(*dwc_dp, h, "cell", false);
 
   // -- update preconditioner with source term derivatives if needed
-  AddSourcesToPrecon_(S_next_.ptr(), h);
-  
+  AddSourcesToPrecon_(h);
 
   // increment the iterator count
   iter_++;

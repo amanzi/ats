@@ -46,8 +46,7 @@ struct ModelParams {
       density_air(1.275),       // [kg/m^3]
       density_freshsnow(100.),  // [kg/m^3]
       density_frost(200.),      // [kg/m^3]
-      density_snow_max(325.),   // [kg/m^3] // based on observations at Barrow, AK
-      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m K]
+      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m-K]
       thermalK_snow_exp(2),     // exponent in thermal conductivity of snow model [-]
       H_fusion(333500.0),       // Heat of fusion for melting snow -- [J/kg]
       H_sublimation(2834000.),  // Latent heat of sublimation ------- [J/kg]
@@ -59,15 +58,17 @@ struct ModelParams {
       evap_transition_width(100.), // transition on evaporation from surface to
                                    // evaporation from subsurface [m],
                                    // THIS IS DEPRECATED
-      Clapp_Horn_b(1.)          // Clapp and Hornberger "b" [-]
+      KB(0.)
   {}
 
   ModelParams(Teuchos::ParameterList& plist) :
-      ModelParams() {
+      ModelParams()
+  {
     thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
     thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
-    density_snow_max = plist.get<double>("max density of snow [kg m^-3]", density_snow_max);
     evap_transition_width = plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
+
+    KB = plist.get<double>("log ratio between z0m and z0h [-]", KB);
   }
 
   // likely constants
@@ -76,12 +77,11 @@ struct ModelParams {
   double density_air;
   double density_freshsnow;
   double density_frost;
-  double density_snow_max;
   double thermalK_freshsnow;
   double thermalK_snow_exp;
   double H_fusion, H_sublimation, H_vaporization;
   double Cp_air, Cv_water;
-  double Clapp_Horn_b;
+  double KB;
 
   // other parameters
   double evap_transition_width;
@@ -96,6 +96,7 @@ struct GroundProperties {
   double porosity;                      // [-]
   double density_w;                     // density [kg/m^3]
   double dz;                            // [m]
+  double clapp_horn_b;                  // [-]
   double albedo;                        // [-]
   double emissivity;                    // [-]
   double saturation_gas;                // [-]
@@ -114,9 +115,10 @@ struct GroundProperties {
       emissivity(NaN),
       saturation_gas(NaN),
       roughness(NaN),
+      clapp_horn_b(3),
       snow_death_rate(0.),
       unfrozen_fraction(0.),
-      water_transition_depth(0.02)
+      water_transition_depth(0.01)
   {}
 
   void UpdateVaporPressure();
@@ -225,19 +227,16 @@ struct FluxBalance {
 struct SurfaceParams {
   double a_tundra, a_water, a_ice;      // albedos
   double e_snow, e_tundra, e_water, e_ice;     // emissivities
-  double Zsmooth, Zrough;      // roughness coefs
 
   SurfaceParams() :
       a_tundra(0.135),           // [-] Grenfell and Perovich, (2004)
       a_water(0.1168),           // [-] Cogley J.G. (1979)
-      a_ice(0.44),              // [-] deteriorated ice, Grenfell and Perovich, (2004)
+      a_ice(0.44),              // [-] deteriorated ice, Grenfell and Perovich, (2004) 0.44
       e_snow(0.98),             // [-] emissivity for snow, From P. ReVelle (Thesis)
       e_tundra(0.92),           // [-] emissivity for tundra, From P. ReVelle
                                 //         (Thesis), Ling & Zhang, 2004
       e_water(0.995),           // [-] emissivity of water, EngineeringToolbox.com
-      e_ice(0.98),              // [-] emissivity of ice, EngineeringToolbox.com
-      Zsmooth(0.005),           // [m]? roughness coef of smooth
-      Zrough(0.03) {}           // [m]? roughness coef of rough
+      e_ice(0.98) {}              // [-] emissivity of ice, EngineeringToolbox.com
 };
 
 

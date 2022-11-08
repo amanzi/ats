@@ -79,26 +79,19 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
     PK_Physical_Default(pk_tree, glist, S, solution)
   {}
 
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next) override;
-
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
-
-  virtual void set_dt(double dt) override { dt_ = dt; }
+  virtual void Setup() override;
 
   // initialize.  Note both BDFBase and PhysicalBase have initialize()
   // methods, so we need a unique overrider.
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
 
   // Default preconditioner is Picard
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override {
-    *Pu = *u;
-    return 0;
-  }
+  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+          Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner, default does nothing
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override {}
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
+          double h) override {}
 
   // Default implementations of BDFFnBase methods.
   // -- Compute a norm on u-du and return the result.
@@ -109,13 +102,15 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
     return PK_Physical_Default::ValidStep() && PK_BDF_Default::ValidStep();
   }
 
+  // -- Commit any secondary (dependent) variables.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
+
   // -- Experimental approach -- calling this indicates that the time
   //    integration scheme is changing the value of the solution in
   //    state.
-
-  virtual void ChangedSolution(const Teuchos::Ptr<State>& S) override;
-
-  virtual void ChangedSolution() override;
+  virtual void ChangedSolution(const Tag& tag) override;
+  virtual void ChangedSolution() override { return ChangedSolution(tag_next_); }
 
   // PC operator access
   Teuchos::RCP<Operators::Operator> preconditioner() { return preconditioner_; }

@@ -29,40 +29,30 @@ class UpwindGravityFlux : public Upwinding {
 
 public:
 
-  UpwindGravityFlux(std::string pkname,
-                    std::string cell_coef,
-                    std::string face_coef,
+  UpwindGravityFlux(const std::string& pkname,
+                    const Tag& tag,
                     const Teuchos::RCP<std::vector<WhetStone::Tensor> > K);
 
-  virtual
-  void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
 
-  virtual
-  void Update(const Teuchos::Ptr<State>& S,
-              const std::string cell_key,
-              const std::string cell_component,
-              const std::string face_key,
-              const std::string face_component,              
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   virtual
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const std::string cell_component,
-        const Epetra_Vector& gravity,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const std::string face_component);
+        const AmanziGeometry::Point& gravity,
+        CompositeVector& face_coef,
+        const std::string face_component) const;
 
   virtual std::string
-  CoefficientLocation() override { return "upwind: face"; }
+  CoefficientLocation() const override { return "upwind: face"; }
 
-private:
-
+ private:
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
-
+  Tag tag_;
   Teuchos::RCP<std::vector<WhetStone::Tensor> > K_;
 };
 

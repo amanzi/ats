@@ -25,7 +25,7 @@ class UpwindElevationStabilized : public Upwinding {
 public:
 
   UpwindElevationStabilized(const std::string& pkname,
-                            const std::string& face_coef,
+                            const Tag& tag,
                             const std::string& slope,
                             const std::string& manning_coef,
                             const std::string& ponded_depth,
@@ -34,9 +34,10 @@ public:
                             double slope_regularization,
                             double manning_exp);
 
-  virtual void Update(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null);
-
+  virtual void Update(const CompositeVector& cells,
+                      CompositeVector& faces,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& slope,
@@ -44,24 +45,15 @@ public:
         const CompositeVector& ponded_depth,
         const CompositeVector& elevation,
         const CompositeVector& density,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db);
-
-  virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                    const std::string& potential_key,
-                    const CompositeVector& dconductivity,
-                    const std::vector<int>& bc_markers,
-                    const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
+  CoefficientLocation() const override { return "upwind: face"; }
 
 private:
-
+  Tag tag_;
   std::string pkname_;
-  std::string face_coef_;
   std::string slope_;
   std::string manning_coef_;
   std::string ponded_depth_;

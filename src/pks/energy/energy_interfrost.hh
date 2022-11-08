@@ -36,11 +36,11 @@ public:
   
   // -- accumulation term
   virtual void UpdatePreconditioner(double t,
-          Teuchos::RCP<const TreeVector> up, double h);
+          Teuchos::RCP<const TreeVector> up, double h) override;
 
  protected:
-  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& f);
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& f) override;
+  virtual void SetupPhysicalEvaluators_() override;
 
 private:
   static RegisteredPKFactory<InterfrostEnergy> reg_;

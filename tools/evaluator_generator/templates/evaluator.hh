@@ -11,7 +11,7 @@
 #define AMANZI_{namespaceCaps}_{evalNameCaps}_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {{
 namespace {namespace} {{
@@ -19,16 +19,16 @@ namespace Relations {{
 
 class {evalClassName}Model;
 
-class {evalClassName}Evaluator : public SecondaryVariableFieldEvaluator {{
+class {evalClassName}Evaluator : public EvaluatorSecondaryMonotypeCV {{
 
  public:
   explicit
   {evalClassName}Evaluator(Teuchos::ParameterList& plist);
   {evalClassName}Evaluator(const {evalClassName}Evaluator& other);
 
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
+  virtual Teuchos::RCP<Evaluator> Clone() const;
 
-  // Required methods from SecondaryVariableFieldEvaluator
+  // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
           const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -44,7 +44,7 @@ class {evalClassName}Evaluator : public SecondaryVariableFieldEvaluator {{
   Teuchos::RCP<{evalClassName}Model> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,{evalClassName}Evaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,{evalClassName}Evaluator> reg_;
 
 }};
 

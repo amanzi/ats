@@ -12,6 +12,7 @@
 #include "surface_ice_model.hh"
 #include "energy_base.hh"
 #include "advection.hh"
+#include "pk_helpers.hh"
 
 #include "mpc_permafrost.hh"
 
@@ -27,12 +28,11 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   // tweak the sub-PK parameter lists
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string> >("PKs order");
 
-  domain_subsurf_ = domain_name_;
-  if (domain_subsurf_ == "domain" || domain_subsurf_ == "") {
-    domain_surf_ = plist_->get<std::string>("surface domain name", "surface");
-  } else {
-    domain_surf_ = plist_->get<std::string>("surface domain name", "surface_"+domain_subsurf_);
-  }
+  //domain_subsurf_ = domain_name_;
+  //domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
+
+  domain_subsurf_ = pks_list_->sublist(names[0]).get<std::string>("domain name", "domain");
+  domain_surf_ = pks_list_->sublist(names[2]).get<std::string>("domain name", "surface");
 
   // propagate domain information down to delegates
   if (plist_->isSublist("surface ewc delegate"))
@@ -43,8 +43,6 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   // exchange flux keys and evaluators
   mass_exchange_key_ = Keys::readKey(*plist_, domain_surf_, "mass exchange flux", "surface_subsurface_flux");
   energy_exchange_key_ = Keys::readKey(*plist_, domain_surf_, "energy exchange flux", "surface_subsurface_energy_flux");
-  S->FEList().sublist(mass_exchange_key_).set("field evaluator type", "primary variable");
-  S->FEList().sublist(energy_exchange_key_).set("field evaluator type", "primary variable");
 
   surf_temp_key_ = Keys::readKey(*plist_, domain_surf_, "surface temperature", "temperature");
   surf_pres_key_ = Keys::readKey(*plist_, domain_surf_, "surface pressure", "pressure");
@@ -54,13 +52,13 @@ MPCPermafrost::MPCPermafrost(Teuchos::ParameterList& pk_tree,
   surf_kr_key_ = Keys::readKey(*plist_, domain_surf_, "overland conductivity", "overland_conductivity");
   surf_kr_uw_key_ = Keys::readKey(*plist_, domain_surf_, "upwind overland conductivity", "upwind_overland_conductivity");
   surf_potential_key_ = Keys::readKey(*plist_, domain_surf_, "surface potential", "pres_elev");
-  surf_pd_bar_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth, negative", "ponded_depth_bar");
+  surf_pd_key_ = Keys::readKey(*plist_, domain_surf_, "ponded depth", "ponded_depth");
   surf_water_flux_key_ = Keys::readKey(*plist_, domain_surf_, "surface water flux", "water_flux");
 }
 
 
 void
-MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
+MPCPermafrost::Setup() {
   Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string> >("PKs order");
   // -- turn on coupling
   pks_list_->sublist(names[0]).set("coupled to surface via flux", true);
@@ -76,8 +74,8 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
   pks_list_->sublist(names[3]).sublist("accumulation preconditioner").set("surface operator", true);
 
   // grab the meshes
-  surf_mesh_ = S->GetMesh(domain_surf_);
-  domain_mesh_ = S->GetMesh(domain_subsurf_);
+  surf_mesh_ = S_->GetMesh(domain_surf_);
+  domain_mesh_ = S_->GetMesh(domain_subsurf_);
 
   // alias the PKs for easier reference
   domain_flow_pk_ = sub_pks_[0];
@@ -116,22 +114,25 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
 
   // call the subsurface setup, which calls the sub-pk's setups and sets up
   // the subsurface block operator
-  MPCSubsurface::Setup(S);
+  MPCSubsurface::Setup();
 
   // require the coupling fields, claim ownership
-  S->RequireField(mass_exchange_key_, name_)
-      ->SetMesh(surf_mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-  Teuchos::RCP<FieldEvaluator> fe = S->RequireFieldEvaluator(mass_exchange_key_);
-  mass_exchange_pvfe_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe);
-  AMANZI_ASSERT(mass_exchange_pvfe_.get());
+  requireAtNext(mass_exchange_key_, tag_next_, *S_, mass_exchange_key_)
+    .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(energy_exchange_key_, tag_next_, *S_, energy_exchange_key_)
+    .SetMesh(surf_mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
 
-  S->RequireField(energy_exchange_key_, name_)
-      ->SetMesh(surf_mesh_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
-  fe = S->RequireFieldEvaluator(energy_exchange_key_);
-  energy_exchange_pvfe_ = Teuchos::rcp_dynamic_cast<PrimaryVariableFieldEvaluator>(fe);
-  AMANZI_ASSERT(energy_exchange_pvfe_.get());
+  // require in case the PK did not do so already
+  requireAtNext(surf_pd_key_, tag_next_, *S_)
+    .SetMesh(surf_mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtCurrent(surf_pd_key_, tag_current_, *S_, surf_pd_key_);
+
+  // require surface derivatives
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_e_key_,
+            tag_next_, surf_pres_key_, tag_next_);
+
+  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_wc_key_,
+            tag_next_, surf_temp_key_, tag_next_);
 
   if (precon_type_ != PRECON_NONE) {
     // Add the (diagonal) surface blocks into the subsurface blocks.
@@ -185,6 +186,10 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
         Operators::PDE_DiffusionFactory opfactory;
         ddivq_dT_ = opfactory.Create(divq_plist, surf_mesh_);
         dWC_dT_block_->OpPushBack(ddivq_dT_->jacobian_op());
+
+        // require surface krdT
+        S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(surf_kr_key_,
+            tag_next_, surf_temp_key_, tag_next_);
       }
 
       // -- ALWAYS ZERO!
@@ -216,7 +221,8 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
   // set up the water delegate
   if (plist_->isSublist("water delegate")) {
     Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
-    water_ = Teuchos::rcp(new MPCDelegateWater(water_list, domain_subsurf_));
+    water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_subsurf_));
+    water_->set_tags(tag_current_, tag_next_);
     water_->set_indices(0,2,1,3);
     water_->set_db(surf_db_);
   }
@@ -283,39 +289,55 @@ MPCPermafrost::Setup(const Teuchos::Ptr<State>& S) {
   //   surf_ewc_->set_model(model);
   //   surf_ewc_->setup(S);
   // }
+
+  // create the EWC delegate
+  if (plist_->isSublist("surface ewc delegate")) {
+    Teuchos::RCP<Teuchos::ParameterList> surf_ewc_list = Teuchos::sublist(plist_, "surface ewc delegate");
+    surf_ewc_list->set("PK name", name_);
+    surf_ewc_list->set("domain name", domain_surf_);
+    surf_ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
+    surf_ewc_->set_tags(tag_current_, tag_next_);
+    Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
+    surf_ewc_->set_model(model);
+    surf_ewc_->setup();
+  }
 }
 
 void
-MPCPermafrost::Initialize(const Teuchos::Ptr<State>& S)
+MPCPermafrost::Initialize()
 {
   // initialize coupling terms
-  S->GetFieldData(mass_exchange_key_, name_)->PutScalar(0.);
-  S->GetField(mass_exchange_key_, name_)->set_initialized();
-  S->GetFieldData(energy_exchange_key_, name_)->PutScalar(0.);
-  S->GetField(energy_exchange_key_, name_)->set_initialized();
+  S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)->PutScalar(0.0);
+  S_->GetRecordW(mass_exchange_key_, tag_next_, mass_exchange_key_).set_initialized();
+  changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
+
+  S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)->PutScalar(0.0);
+  S_->GetRecordW(energy_exchange_key_, tag_next_, energy_exchange_key_).set_initialized();
+  changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Initialize all sub PKs.
-  MPCSubsurface::Initialize(S);
+  MPCSubsurface::Initialize();
 
   // ensure continuity of ICs... surface takes precedence if it was initialized
-  if (S->GetField(surf_pres_key_)->initialized()) {
-    CopySurfaceToSubsurface(*S->GetFieldData(surf_pres_key_, surf_flow_pk_->name()),
-                            S->GetFieldData(pres_key_, domain_flow_pk_->name()).ptr());
+  if (S_->GetRecord(surf_pres_key_, tag_next_).initialized()) {
+
+    CopySurfaceToSubsurface(S_->Get<CompositeVector>(surf_pres_key_, tag_next_),
+                            S_->GetW<CompositeVector>(pres_key_, tag_next_, domain_flow_pk_->name()));
   } else {
-    CopySubsurfaceToSurface(*S->GetFieldData(pres_key_, domain_flow_pk_->name()),
-                            S->GetFieldData(surf_pres_key_, surf_flow_pk_->name()).ptr());
-    S->GetField(surf_pres_key_, surf_flow_pk_->name())->set_initialized();
+    CopySubsurfaceToSurface(S_->Get<CompositeVector>(pres_key_, tag_next_),
+                            S_->GetW<CompositeVector>(surf_pres_key_, tag_next_, surf_flow_pk_->name()));
+    S_->GetRecordW(surf_pres_key_, tag_next_, surf_flow_pk_->name()).set_initialized();
   }
-  if (S->GetField(surf_temp_key_)->initialized()) {
-    CopySurfaceToSubsurface(*S->GetFieldData(surf_temp_key_, surf_energy_pk_->name()),
-                            S->GetFieldData(temp_key_, domain_energy_pk_->name()).ptr());
+  if (S_->GetRecord(surf_temp_key_, tag_next_).initialized()) {
+    CopySurfaceToSubsurface(S_->Get<CompositeVector>(surf_temp_key_, tag_next_),
+                            S_->GetW<CompositeVector>(temp_key_, tag_next_, domain_energy_pk_->name()));
   } else {
-    CopySubsurfaceToSurface(*S->GetFieldData(temp_key_, domain_energy_pk_->name()),
-                            S->GetFieldData(surf_temp_key_, surf_energy_pk_->name()).ptr());
-    S->GetField(surf_temp_key_, surf_energy_pk_->name())->set_initialized();
+    CopySubsurfaceToSurface(S_->Get<CompositeVector>(temp_key_, tag_next_),
+                            S_->GetW<CompositeVector>(surf_temp_key_, tag_next_, surf_energy_pk_->name()));
+    S_->GetRecordW(surf_temp_key_, tag_next_, surf_energy_pk_->name()).set_initialized();
   }
 
-  if (surf_ewc_ != Teuchos::null) surf_ewc_->initialize(S);
+  if (surf_ewc_ != Teuchos::null) surf_ewc_->initialize();
 
   if (ddivq_dT_ != Teuchos::null) {
     ddivq_dT_->SetBCs(sub_pks_[2]->BCs(), sub_pks_[3]->BCs());
@@ -325,23 +347,22 @@ MPCPermafrost::Initialize(const Teuchos::Ptr<State>& S)
 
 
 void
-MPCPermafrost::set_states(const Teuchos::RCP<State>& S,
-                           const Teuchos::RCP<State>& S_inter,
-                           const Teuchos::RCP<State>& S_next)
+MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
 {
-  MPCSubsurface::set_states(S,S_inter,S_next);
-  if (water_.get()) water_->set_states(S,S_inter,S_next);
-  if (surf_ewc_ != Teuchos::null) surf_ewc_->set_states(S,S_inter,S_next);
+  MPCSubsurface::set_tags(tag_current, tag_next);
+  if (water_.get()) water_->set_tags(tag_current, tag_next);
+  if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
 }
 
 
-void MPCPermafrost::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
+void MPCPermafrost::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  MPCSubsurface::CommitStep(t_old, t_new, S);
   if (surf_ewc_ != Teuchos::null) {
     double dt = t_new - t_old;
-    surf_ewc_->commit_state(dt,S);
+    surf_ewc_->commit_state();
   }
+  S_->Assign(surf_pd_key_, tag_current_, tag_next_);
+  MPCSubsurface::CommitStep(t_old, t_new, tag);
 }
 
 
@@ -351,7 +372,7 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
                            Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g)
 {
   // propagate updated info into state
-  Solution_to_State(*u_new, S_next_);
+  Solution_to_State(*u_new, tag_next_);
 
   // Evaluate the surface flow residual
   surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(2),
@@ -359,9 +380,10 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
 
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
-  Epetra_MultiVector& source = *S_next_->GetFieldData(mass_exchange_key_, name_)->ViewComponent("cell",false);
+  Epetra_MultiVector& source = *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)
+    .ViewComponent("cell",false);
   source = *g->SubVector(2)->Data()->ViewComponent("cell",false);
-  mass_exchange_pvfe_->SetFieldAsChanged(S_next_.ptr());
+  changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface residual, which uses this flux as a Neumann BC.
   domain_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0),
@@ -378,9 +400,9 @@ MPCPermafrost::FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeV
   // The residual of the surface energy equation provides the diffusive energy
   // flux from subsurface to surface.
   Epetra_MultiVector& esource =
-      *S_next_->GetFieldData(energy_exchange_key_, name_)->ViewComponent("cell",false);
+    *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_).ViewComponent("cell",false);
   esource = *g->SubVector(3)->Data()->ViewComponent("cell",false);
-  energy_exchange_pvfe_->SetFieldAsChanged(S_next_.ptr());
+  changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface energy residual.
   domain_energy_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
@@ -441,9 +463,9 @@ int MPCPermafrost::ApplyPreconditioner(Teuchos::RCP<const TreeVector> r,
 
   // Copy subsurface face corrections to surface cell corrections
   CopySubsurfaceToSurface(*Pr->SubVector(0)->Data(),
-                          Pr->SubVector(2)->Data().ptr());
+                          *Pr->SubVector(2)->Data());
   CopySubsurfaceToSurface(*Pr->SubVector(1)->Data(),
-                          Pr->SubVector(3)->Data().ptr());
+                          *Pr->SubVector(3)->Data());
 
   // dump to screen
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
@@ -476,19 +498,18 @@ MPCPermafrost::UpdatePreconditioner(double t,
   // -- dkr/dT
   if (ddivq_dT_ != Teuchos::null) {
     // -- update and upwind d kr / dT
-    S_next_->GetFieldEvaluator(surf_kr_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), name_, surf_temp_key_);
+    S_->GetEvaluator(surf_kr_key_, tag_next_)
+      .UpdateDerivative(*S_, name_, surf_temp_key_, tag_next_);
     Teuchos::RCP<const CompositeVector> dkrdT =
-      S_next_->GetFieldData(Keys::getDerivKey(surf_kr_key_, surf_temp_key_));
+      S_->GetDerivativePtr<CompositeVector>(surf_kr_key_, tag_next_, surf_temp_key_, tag_next_);
     Teuchos::RCP<const CompositeVector> kr_uw =
-      S_next_->GetFieldData(surf_kr_uw_key_);
+      S_->GetPtr<CompositeVector>(surf_kr_uw_key_, tag_next_);
     Teuchos::RCP<const CompositeVector> flux =
-      S_next_->GetFieldData(surf_water_flux_key_);
+      S_->GetPtr<CompositeVector>(surf_water_flux_key_, tag_next_);
 
-    S_next_->GetFieldEvaluator(surf_potential_key_)
-      ->HasFieldChanged(S_next_.ptr(), name_);
+    S_->GetEvaluator(surf_potential_key_, tag_next_).Update(*S_, name_);
     Teuchos::RCP<const CompositeVector> pres_elev =
-      S_next_->GetFieldData(surf_potential_key_);
+      S_->GetPtr<CompositeVector>(surf_potential_key_, tag_next_);
 
     // form the operator
     ddivq_dT_->SetScalarCoefficient(kr_uw, dkrdT);
@@ -499,10 +520,10 @@ MPCPermafrost::UpdatePreconditioner(double t,
 
   if (precon_type_ != PRECON_NO_FLOW_COUPLING) {
     // -- surface dE_dp
-    S_next_->GetFieldEvaluator(surf_e_key_)
-      ->HasFieldDerivativeChanged(S_next_.ptr(), name_, surf_pres_key_);
+    S_->GetEvaluator(surf_e_key_, tag_next_)
+      .UpdateDerivative(*S_, name_, surf_pres_key_, tag_next_);
     Teuchos::RCP<const CompositeVector> dEdp =
-      S_next_->GetFieldData(Keys::getDerivKey(surf_e_key_, surf_pres_key_));
+      S_->GetDerivativePtr<CompositeVector>(surf_e_key_, tag_next_, surf_pres_key_, tag_next_);
     dE_dp_surf_->AddAccumulationTerm(*dEdp, h, "cell", false);
 
     // write for debugging
@@ -524,7 +545,7 @@ MPCPermafrost::UpdatePreconditioner(double t,
     preconditioner_->AssembleMatrix();
 
     std::stringstream filename;
-    filename << "FullyCoupled_PC_" << S_next_->cycle() << "_" << update_pcs_ << ".txt";
+    filename << "FullyCoupled_PC_" << S_->Get<int>("cycle", tag_next_) << "_" << update_pcs_ << ".txt";
     EpetraExt::RowMatrixToMatlabFile(filename.str().c_str(), *preconditioner_->A());
     // Errors::Message msg("MPC_Permafrost: Dumped preconditioner as ");
     // msg << filename.str();
@@ -541,19 +562,6 @@ MPCPermafrost::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
         Teuchos::RCP<TreeVector> u) {
   Teuchos::OSTab tab = vo_->getOSTab();
   bool modified = false;
-
-  // HACK to allow for predictor use in subcycling, but then trash the history
-  // if operator splitting coupler has overwritten our OLD time's value
-  S_next_->GetFieldEvaluator(Keys::getKey(domain_subsurf_, "water_content"))
-    ->HasFieldChanged(S_next_.ptr(), name_);
-  if (S_inter_->GetFieldEvaluator(Keys::getKey(domain_subsurf_, "water_content"))
-      ->HasFieldChanged(S_inter_.ptr(), name_)) {
-    *u = *u0;
-    ChangedSolution();
-    S_next_->GetFieldEvaluator(Keys::getKey(domain_subsurf_, "water_content"))
-      ->HasFieldChanged(S_next_.ptr(), name_);
-    return false; // intentionally lieing -- true here triggers another call of ChangedSolution() which we want to avoid
-  }
 
   // write predictor
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
@@ -628,10 +636,10 @@ MPCPermafrost::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
   // Copy consistent faces to surface
   if (modified) {
     //S_next_->GetFieldEvaluator(Keys::getKey(domain_surf_,"relative_permeability"))->HasFieldChanged(S_next_.ptr(),name_);
-    Teuchos::RCP<const CompositeVector> h_prev = S_inter_->GetFieldData(Keys::getKey(domain_surf_,"ponded_depth"));
+    Teuchos::RCP<const CompositeVector> h_prev = S_->GetPtr<CompositeVector>(surf_pd_key_, tag_current_);
 
-    MergeSubsurfaceAndSurfacePressure(*h_prev, u->SubVector(0)->Data().ptr(), u->SubVector(2)->Data().ptr());
-    CopySubsurfaceToSurface(*u->SubVector(1)->Data(), u->SubVector(3)->Data().ptr());
+    MergeSubsurfaceAndSurfacePressure(*h_prev, *u->SubVector(0)->Data(), *u->SubVector(2)->Data());
+    CopySubsurfaceToSurface(*u->SubVector(1)->Data(), *u->SubVector(3)->Data());
 
   }
 
@@ -669,8 +677,8 @@ MPCPermafrost::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
 
   // -- copy surf --> sub
   //  if (newly_modified) {
-  CopySurfaceToSubsurface(*u->SubVector(2)->Data(), u->SubVector(0)->Data().ptr());
-  CopySurfaceToSubsurface(*u->SubVector(3)->Data(), u->SubVector(1)->Data().ptr());
+  CopySurfaceToSubsurface(*u->SubVector(2)->Data(), *u->SubVector(0)->Data());
+  CopySurfaceToSubsurface(*u->SubVector(3)->Data(), *u->SubVector(1)->Data());
   //  }
 
   // Calculate consistent surface faces
@@ -712,9 +720,9 @@ MPCPermafrost::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> r,
       StrongMPC<PK_PhysicalBDF_Default>::ModifyCorrection(h,r,u,du);
   if (pk_modified) {
     CopySurfaceToSubsurface(*du->SubVector(2)->Data(),
-                            du->SubVector(0)->Data().ptr());
+                            *du->SubVector(0)->Data());
     CopySurfaceToSubsurface(*du->SubVector(3)->Data(),
-                            du->SubVector(1)->Data().ptr());
+                            *du->SubVector(1)->Data());
   }
 
   // modify correction using water approaches
@@ -739,7 +747,7 @@ MPCPermafrost::ModifyCorrection(double h, Teuchos::RCP<const TreeVector> r,
   if (modified) {
     // Copy subsurface face corrections to surface cell corrections
     CopySubsurfaceToSurface(*du->SubVector(0)->Data(),
-                            du->SubVector(2)->Data().ptr());
+                            *du->SubVector(2)->Data());
   }
 
   // dump modified correction to screen

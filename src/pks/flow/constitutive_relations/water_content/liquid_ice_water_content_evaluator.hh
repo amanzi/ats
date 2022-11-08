@@ -32,7 +32,7 @@ Specified with evaluator type: `"liquid+ice water content`"
 #define AMANZI_FLOW_LIQUID_ICE_WATER_CONTENT_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -40,26 +40,27 @@ namespace Relations {
 
 class LiquidIceWaterContentModel;
 
-class LiquidIceWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
+class LiquidIceWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
   explicit
   LiquidIceWaterContentEvaluator(Teuchos::ParameterList& plist);
-  LiquidIceWaterContentEvaluator(const LiquidIceWaterContentEvaluator& other);
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  LiquidIceWaterContentEvaluator(const LiquidIceWaterContentEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<LiquidIceWaterContentModel> get_model() { return model_; }
 
  protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag,
+          const std::vector<CompositeVector*>& result) override;
+
   void InitializeFromPlist_();
 
+ protected:
   Key phi_key_;
   Key sl_key_;
   Key nl_key_;
@@ -70,7 +71,7 @@ class LiquidIceWaterContentEvaluator : public SecondaryVariableFieldEvaluator {
   Teuchos::RCP<LiquidIceWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,LiquidIceWaterContentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,LiquidIceWaterContentEvaluator> reg_;
 
 };
 

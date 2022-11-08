@@ -30,14 +30,15 @@ set(ats_flow_src_files
   overland_pressure_pk.cc
   overland_pressure_physics.cc
   overland_pressure_ti.cc
-  overland_pk.cc
-  overland_physics.cc
-  overland_ti.cc
+#  overland_pk.cc
+#  overland_physics.cc
+#  overland_ti.cc
   icy_overland.cc
-  snow_distribution_pk.cc
-  snow_distribution_physics.cc
-  snow_distribution_ti.cc
-  preferential_pk.cc
+#  snow_distribution_pk.cc
+#  snow_distribution_physics.cc
+#  snow_distribution_ti.cc
+#  preferential_pk.cc
+
   )
 
 set(ats_flow_inc_files
@@ -51,7 +52,7 @@ set(ats_flow_inc_files
   overland.hh
   icy_overland.hh
   snow_distribution.hh
-  preferential.hh
+#  preferential.hh
   )
 
 
@@ -104,30 +105,30 @@ register_evaluator_with_factory(
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
-register_evaluator_with_factory(
-  HEADERFILE overland_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE overland_pk_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
 register_evaluator_with_factory(
   HEADERFILE overland_pressure_pk_reg.hh
   LISTNAME   ATS_FLOW_PKS_REG
   )
 
-register_evaluator_with_factory(
-  HEADERFILE icy_overland_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+ register_evaluator_with_factory(
+   HEADERFILE icy_overland_reg.hh
+   LISTNAME   ATS_FLOW_PKS_REG
+   )
 
-register_evaluator_with_factory(
-  HEADERFILE snow_distribution_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+# register_evaluator_with_factory(
+#   HEADERFILE snow_distribution_reg.hh
+#   LISTNAME   ATS_FLOW_PKS_REG
+#   )
 
-register_evaluator_with_factory(
-  HEADERFILE preferential_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
+#register_evaluator_with_factory(
+#  HEADERFILE preferential_pk_reg.hh
+#  LISTNAME   ATS_FLOW_PKS_REG
+#  )
 
 generate_evaluators_registration_header(
   HEADERFILE ats_flow_pks_registration.hh

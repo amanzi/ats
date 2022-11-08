@@ -7,12 +7,12 @@
 #ifndef AMANZI_BIOMASS_EVALUATOR
 #define AMANZI_BIOMASS_EVALUATOR
 
-#include "secondary_variables_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 
-  class BiomassEvaluator : public SecondaryVariablesFieldEvaluator {
+  class BiomassEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   public:
 
@@ -20,12 +20,12 @@ namespace Amanzi {
     BiomassEvaluator(Teuchos::ParameterList& plist);
     BiomassEvaluator(const BiomassEvaluator& other);
 
-    virtual Teuchos::RCP<FieldEvaluator> Clone() const override;
+    virtual Teuchos::RCP<Evaluator> Clone() const override;
 
     virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request) override;
 
   protected:
-    // Required methods from SecondaryVariableFieldEvaluator
+    // Required methods from EvaluatorSecondaryMonotypeCV
     virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
                                 const std::vector<Teuchos::Ptr<CompositeVector> >& results) override;
     virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
@@ -46,7 +46,7 @@ namespace Amanzi {
 
  private:
   
-  static Utils::RegisteredFactory<FieldEvaluator,BiomassEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator,BiomassEvaluator> factory_;
   };
 
 } // namespace

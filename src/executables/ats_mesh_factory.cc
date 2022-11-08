@@ -73,7 +73,7 @@ createMeshFromFile(const std::string& mesh_name,
     if (mesh_plist.isParameter("build columns from set")) {
       std::string regionname = mesh_plist.get<std::string>("build columns from set");
       mesh->build_columns(regionname);
-    } else if (mesh_plist.get("build columns", false)) {
+    } else if (mesh_plist.get("build columns", true)) {
       mesh->build_columns();
     }
 

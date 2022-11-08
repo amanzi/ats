@@ -26,34 +26,37 @@ class UpwindTotalFlux : public Upwinding {
 
 public:
 
-  UpwindTotalFlux(std::string pkname,
-                  std::string cell_coef,
-                  std::string face_coef,
-                  std::string flux,
+  UpwindTotalFlux(const std::string& pkname,
+                  const Tag& tag,
+                  const std::string& flux,
                   double flux_epsilon);
 
-  virtual void Update(const Teuchos::Ptr<State>& S,
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
+  virtual void
+  Update(const CompositeVector& data,
+         CompositeVector& uw_data,
+         const State& S,
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
-  virtual
-  void Update(const Teuchos::Ptr<State>& S,
-              const std::string cell_key,
-              const std::string cell_component,
-              const std::string face_key,
-              const std::string face_component,              
-              const Teuchos::Ptr<Debugger>& db=Teuchos::null) override;
+  virtual void
+  Update(const State& S,
+         const std::string cell_key,
+         const std::string cell_component,
+         const std::string face_key,
+         const std::string face_component,
+         const Teuchos::Ptr<Debugger>& db) const;
+
 
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const std::string cell_component,
         const CompositeVector& flux,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
+        CompositeVector& face_coef,
         const std::string face_component,
-        const Teuchos::Ptr<Debugger>& db);
+        const Teuchos::Ptr<Debugger>& db) const;
 
   virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
+  UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
@@ -61,13 +64,11 @@ public:
                     std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
 
   virtual std::string
-  CoefficientLocation() override { return "upwind: face"; }
-  
-private:
+  CoefficientLocation() const override { return "upwind: face"; }
 
+ private:
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
+  Tag tag_;
   std::string flux_;
   double flux_eps_;
 };

@@ -17,15 +17,19 @@ Requires the following dependencies:
 .. _pet-priestley-taylor-evaluator-spec:
 .. admonition:: pet-priestley-taylor-evaluator-spec:
 
-   * `"include limiter`" ``[bool]`` If true, multiply potential ET by a limiter
-     to get an actual ET.
+   * `"include limiter`" ``[bool]`` **false** If true, multiply potential ET by
+     a limiter to get an actual ET.
    * `"limiter number of dofs`" ``[int]`` **1** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides how many.
    * `"limiter dof`" ``[int]`` **0** Area fractions are often used
      as limiters, and these have multiple dofs.  This provides which one to use.
-   * `"include 1 - limiter`" ``[bool]`` If true, multiply potential ET by
-     1 - a limiter (e.g. a limiter that partitions between two pools) to get
-     actual ET.
+   * `"include 1 - limiter`" ``[bool]`` **false** If true, multiply potential
+     ET by 1 - a limiter (e.g. a limiter that partitions between two pools) to
+     get actual ET.
+   * `"1 - limiter number of dofs`" ``[int]`` **1** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides how many.
+   * `"1 - limiter dof`" ``[int]`` **0** Area fractions are often used
+     as limiters, and these have multiple dofs.  This provides which one to use.
    * `"sublimate snow`" ``[bool]`` **false** If true, use latent heat of
       vaporization of snow, not water.
 
@@ -44,7 +48,7 @@ Requires the following dependencies:
 #pragma once
 
 #include "Factory.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "LandCover.hh"
 
 namespace Amanzi {
@@ -90,29 +94,25 @@ double latentHeatVaporization_snow(double temp_air);
 } // namespace PriestleyTaylor
 
 
-class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
+class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  public:
-  explicit
-  PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
+  explicit PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
   PETPriestleyTaylorEvaluator(const PETPriestleyTaylorEvaluator& other) = default;
-
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override {
     return Teuchos::rcp(new PETPriestleyTaylorEvaluator(*this));
   }
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result) override;
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result) override;
+ protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S,
+          const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
 
  protected:
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S) override;
-
- protected:
-
   Key domain_;
   Key evap_type_;
   Key air_temp_key_;
@@ -124,16 +124,15 @@ class PETPriestleyTaylorEvaluator : public SecondaryVariableFieldEvaluator {
   Key one_minus_limiter_key_;
 
   double pt_alpha_;
-  bool limiter_;
-  int limiter_nvecs_;
-  int limiter_dof_;
-  bool one_minus_limiter_;
+  bool limiter_, one_minus_limiter_;
+  int limiter_nvecs_, one_minus_limiter_nvecs_;
+  int limiter_dof_, one_minus_limiter_dof_;
   bool compatible_;
 
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,PETPriestleyTaylorEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator,PETPriestleyTaylorEvaluator> reg_;
 
 };
 

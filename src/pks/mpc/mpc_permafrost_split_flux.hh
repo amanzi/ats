@@ -55,34 +55,20 @@ Note that this can be used with either a 3D subsurface solve, by setting the
      (pass the divergence of fluxes as a source), or `"hybrid`" a mixture of
      the two that seems the most robust.
 
-   IF
-   * `"subcycle subdomains`" ``[bool]`` **false** If true, subcycle surface_star
-     system.  Typically this is paired with the `"subcycle subdomains`"
-     option in the DomainSetMPC for columns in the ISM.
-
-   THEN
-   * `"subcycling target time step [s]`" ``[double]`` Step size to target or
-     subcycling.  Note that this may be adjusted to meet events, etc.
-
-   * `"minimum subcycled time step [s]`" ``[double]`` **1e-4** Errors out if
-     any subdomain solve fails below this step size (throwing time-step crash
-     error).
-
    INCLUDES:
    - ``[mpc-spec]`` *Is an* MPC_.
+   - ``[mpc-subcycled-spec]`` *Is a* MPCSubcycled_
 
 */
 
-#ifndef PKS_MPC_PERMAFROST_SPLIT_FLUX_HH_
-#define PKS_MPC_PERMAFROST_SPLIT_FLUX_HH_
+#pragma once
 
 #include "PK.hh"
-#include "mpc.hh"
-#include "primary_variable_field_evaluator.hh"
+#include "mpc_subcycled.hh"
 
 namespace Amanzi {
 
-class MPCPermafrostSplitFlux : public MPC<PK> {
+class MPCPermafrostSplitFlux : public MPCSubcycled {
 
  public:
   MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
@@ -90,43 +76,48 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
           const Teuchos::RCP<State>& S,
           const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
-  virtual ~MPCPermafrostSplitFlux() = default;
-
   // PK methods
   // -- initialize in reverse order
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
+  virtual void Setup() override;
 
   // -- advance each sub pk dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
-
-  virtual double get_dt() override;
-  virtual void set_dt(double dt) override;
-
-  virtual void CommitStep(double t_old, double t_new,
-                          const Teuchos::RCP<State>& S) override;
-  virtual bool ValidStep() override;
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-  bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
-  bool AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit);
 
-  void CopyPrimaryToStar_(const Teuchos::Ptr<const State>& S,
-          const Teuchos::Ptr<State>& S_star);
-  void CopyStarToPrimary_(double dt);
+  void CopyPrimaryToStar_();
+  void CopyStarToPrimary_();
 
-  void CopyPrimaryToStar_DomainSet_(const Teuchos::Ptr<const State>& S,
-          const Teuchos::Ptr<State>& S_star);
-  void CopyStarToPrimary_DomainSet_Pressure_(double dt);
-  void CopyStarToPrimary_DomainSet_Flux_(double dt);
-  void CopyStarToPrimary_DomainSet_Hybrid_(double dt);
+  void CopyPrimaryToStar_DomainSet_();
+  void CopyStarToPrimary_DomainSet_Pressure_();
+  void CopyStarToPrimary_DomainSet_Flux_();
+  void CopyStarToPrimary_DomainSet_Hybrid_();
 
-  void CopyPrimaryToStar_Standard_(const Teuchos::Ptr<const State>& S,
-          const Teuchos::Ptr<State>& S_star);
-  void CopyStarToPrimary_Standard_Pressure_(double dt);
-  void CopyStarToPrimary_Standard_Flux_(double dt);
-  void CopyStarToPrimary_Standard_Hybrid_(double dt);
+  void CopyPrimaryToStar_Standard_();
+  void CopyStarToPrimary_Standard_Pressure_();
+  void CopyStarToPrimary_Standard_Flux_();
+  void CopyStarToPrimary_Standard_Hybrid_();
+
+  Tag get_ds_tag_next_(const std::string& subdomain) {
+    if (subcycling_[1]) {
+      AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
+              std::string::npos), tags_[1].second.get()));
+    } else {
+      return Tag{tags_[1].second};
+    }
+  }
+  Tag get_ds_tag_current_(const std::string& subdomain) {
+    if (subcycling_[1]) {
+      AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
+              std::string::npos), tags_[1].first.get()));
+    } else {
+      return Tag{tags_[1].first};
+    }
+  }
 
 
  protected:
@@ -135,6 +126,8 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
   Key p_sub_primary_variable_;
   Key p_sub_primary_variable_suffix_;
   Key p_primary_variable_star_;
+  Key p_conserved_variable_;
+  Key p_conserved_variable_suffix_;
   Key p_conserved_variable_star_;
   Key p_lateral_flow_source_;
   Key p_lateral_flow_source_suffix_;
@@ -144,6 +137,8 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
   Key T_sub_primary_variable_;
   Key T_sub_primary_variable_suffix_;
   Key T_primary_variable_star_;
+  Key T_conserved_variable_;
+  Key T_conserved_variable_suffix_;
   Key T_conserved_variable_star_;
   Key T_lateral_flow_source_;
   Key T_lateral_flow_source_suffix_;
@@ -159,16 +154,6 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
   std::string coupling_;
 
   bool is_domain_set_;
-  bool subcycled_;
-  double subcycled_target_dt_;
-  double subcycled_min_dt_;
-  double cycle_dt_;
-
-  // note, only one of these set will be used, the pointers or the vectors
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> p_eval_pvfe_;
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> T_eval_pvfe_;
-  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator>> p_eval_pvfes_;
-  std::vector<Teuchos::RCP<PrimaryVariableFieldEvaluator>> T_eval_pvfes_;
 
  private:
   // factory registration
@@ -177,4 +162,4 @@ class MPCPermafrostSplitFlux : public MPC<PK> {
 
 } // close namespace Amanzi
 
-#endif
+

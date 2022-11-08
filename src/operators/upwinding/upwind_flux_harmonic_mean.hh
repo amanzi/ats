@@ -26,38 +26,38 @@ class UpwindFluxHarmonicMean : public Upwinding {
 
 public:
 
-  UpwindFluxHarmonicMean(std::string pkname,
-                         std::string cell_coef,
-                         std::string face_coef,
-                         std::string flux,
+  UpwindFluxHarmonicMean(const std::string& pkname,
+                         const Tag& tag,
+                         const Key& flux,
                          double flux_epsilon);
-  
-  virtual void Update(const Teuchos::Ptr<State>& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null);
+
+  virtual void Update(const CompositeVector& cell_coef,
+                      CompositeVector& face_coef,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
         const CompositeVector& flux,
-        const Teuchos::Ptr<CompositeVector>& face_coef,
-        const Teuchos::Ptr<Debugger>& db);
+        CompositeVector& face_coef,
+        const Teuchos::Ptr<Debugger>& db) const;
 
   virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S, 
+  UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,
                     const CompositeVector& dconductivity,
                     const std::vector<int>& bc_markers,
                     const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const;
+                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
 
   virtual std::string
-  CoefficientLocation() { return "upwind: face"; }
-  
+  CoefficientLocation() const override { return "upwind: face"; }
+
 private:
 
+  Tag tag_;
   std::string pkname_;
-  std::string cell_coef_;
-  std::string face_coef_;
-  std::string flux_;
+  Key flux_;
   double flux_eps_;
 };
 

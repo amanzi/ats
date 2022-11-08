@@ -20,137 +20,149 @@ Solves Richards equation:
    * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
 
    * `"primary variable key`" ``[string]`` The primary variable associated with
-      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
-      must be provided by the user.
+     this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+     must be provided by the user.
 
-   * `"boundary conditions`" ``[list]`` Defaults to Neuman,
-      0 normal flux.  See `Flow-specific Boundary Conditions`_
+   * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal
+     flux.  See `Flow-specific Boundary Conditions`_
 
-   * `"permeability type`" ``[string]`` **scalar** This controls the number of
-      values needed to specify the absolute permeability.  One of:
+   * `"permeability type`" ``[string]`` **scalar** This controls the
+     number of values needed to specify the absolute permeability.
+     One of:
 
-      - `"scalar`" Requires one scalar value.
-      - `"horizontal and vertical`" Requires two values, horizontal then vertical.
-      - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy, zz}
-      - `"full tensor`". (Note symmetry is required.)  Either {xx, yy, xy} or {xx,yy,zz,xy,xz,yz}.
+     - `"scalar`" Requires one scalar value.
+     - `"horizontal and vertical`" Requires two values, horizontal
+       then vertical.
+     - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy,
+       zz}
+     - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
+       xy} or {xx,yy,zz,xy,xz,yz}.
 
-   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water retention
-      curve.  This needs to go away, and should get moved to State.
+   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+     retention curve.  This needs to go away, and should get moved to
+     State.
 
    IF
    * `"source term`" ``[bool]`` **false** Is there a source term?
 
    THEN
-   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
-      not set, as the default is good. ``[mol s^-1]``
-   * `"source term is differentiable`" ``[bool]`` **true** Can the source term
-      be differentiated with respect to the primary variable?
-   * `"explicit source term`" ``[bool]`` **false** Apply the source term from
-      the previous time step.
-   END
+   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
+     set, as the default is good. ``[mol s^-1]``
+   * `"source term is differentiable`" ``[bool]`` **true** Can the
+     source term be differentiated with respect to the primary
+     variable?
+   * `"explicit source term`" ``[bool]`` **false** Apply the source
+     term from the previous time step.  END
 
    Math and solver algorithm options:
 
-   * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
-      see PDE_Diffusion_.
+   * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion
+     operator, see PDE_Diffusion_.
 
-   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
-      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
-      is only needed to set Jacobian options, as all others probably should
-      match those in `"diffusion`", and default to those values.
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]``
+     **optional** The inverse of the diffusion operator.  See
+     PDE_Diffusion_.  Typically this is only needed to set Jacobian
+     options, as all others probably should match those in
+     `"diffusion`", and default to those values.
 
    * `"surface rel perm strategy`" ``[string]`` **none** Approach for
-      specifying the relative permeabiilty on the surface face.  `"clobber`" is
-      frequently used for cases where a surface rel perm will be provided.  One
-      of:
+     specifying the relative permeabiilty on the surface face.
+     `"clobber`" is frequently used for cases where a surface rel
+     perm will be provided.  One of:
 
-      - `"none`" : use the upwind direction to determine whether to use the
-        boundary face or internal cell
-      - `"clobber`" : always use the boundary face rel perm
-      - `"max`" : use the max of the boundary face and internal cell values
-      - `"unsaturated`" : Uses the boundary face when the internal cell is not
-        saturated.
+     - `"none`" : use the upwind direction to determine whether to
+       use the boundary face or internal cell
+     - `"clobber`" : always use the boundary face rel perm
+     - `"max`" : use the max of the boundary face and internal cell
+       values
+     - `"unsaturated`" : Uses the boundary face when the internal
+       cell is not saturated.
 
-   * `"relative permeability method`" ``[string]`` **upwind with Darcy flux**
-      Relative permeability is defined on cells, but must be calculated on
-      faces to multiply a flux.  There are several methods commonly used.  Note
-      these can significantly change answers -- you don't want to change these
-      unless you know what they mena.  One of:
+   * `"relative permeability method`" ``[string]`` **upwind with Darcy
+     flux** Relative permeability is defined on cells, but must be
+     calculated on faces to multiply a flux.  There are several
+     methods commonly used.  Note these can significantly change
+     answers -- you don't want to change these unless you know what
+     they mean.  One of:
 
-      - `"upwind with Darcy flux`" First-order upwind method that is most common
-      - `"upwind with gravity`" Upwinds according to the gravitational flux direction
-      - `"cell centered`" This corresponds to the harmonic mean, and is most
-        accurate if the problem is always wet, but has issues when it is dry.
-      - `"arithmetic mean`" Face value is the mean of the neighboring cells.
-        Not a good method.
+     - `"upwind with Darcy flux`" First-order upwind method that is
+       most common
+     - `"upwind with gravity`" Upwinds according to the gravitational
+       flux direction
+     - `"cell centered`" This corresponds to the harmonic mean, and is
+        most accurate if the problem is always wet, but has issues
+        when it is dry.
+     - `"arithmetic mean`" Face value is the mean of the neighboring
+        cells.  Not a good method.
 
    Globalization and other process-based hacks:
 
    * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
-      face+cell diffusion discretization, this modifies the predictor to make
-      sure that faces, which are a DAE, are consistent with the predicted cells
-      (i.e. face fluxes from each sides match).
+     face+cell diffusion discretization, this modifies the predictor to make
+     sure that faces, which are a DAE, are consistent with the predicted cells
+     (i.e. face fluxes from each sides match).
 
    * `"modify predictor for flux BCs`" ``[bool]`` **false** Infiltration into
-      dry ground can be hard on solvers -- this tries to do the local nonlinear
-      problem to ensure that face pressures are consistent with the
-      prescribed flux in a predictor.
+     dry ground can be hard on solvers -- this tries to do the local nonlinear
+     problem to ensure that face pressures are consistent with the
+     prescribed flux in a predictor.
 
    * `"modify predictor via water content`" ``[bool]`` **false** Modifies the
-      predictor using the method of Krabbenhoft [??] paper.  Effectively does a
-      change of variables, extrapolating not in pressure but in water content,
-      then takes the smaller of the two extrapolants.
+     predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+     change of variables, extrapolating not in pressure but in water content,
+     then takes the smaller of the two extrapolants.
 
    * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
-      Rejects timesteps whose max saturation change is greater than this value.
-      This can be useful to ensure temporally resolved solutions.  Usually a
-      good value is 0.1 or 0.2.
+     Rejects timesteps whose max saturation change is greater than this value.
+     This can be useful to ensure temporally resolved solutions.  Usually a
+     good value is 0.1 or 0.2.
 
    * `"max valid change in ice saturation in a time step [-]`" ``[double]``
-      **-1** Rejects timesteps whose max ice saturation change is greater than
-      this value.  This can be useful to ensure temporally resolved solutions.
-      Usually a good value is 0.1 or 0.2.
+     **-1** Rejects timesteps whose max ice saturation change is greater than
+     this value.  This can be useful to ensure temporally resolved solutions.
+     Usually a good value is 0.1 or 0.2.
 
    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
-      this limits an iterate's max pressure change to this value.  Not usually
-      helpful.
+     this limits an iterate's max pressure change to this value.  Not usually
+     helpful.
 
    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]``
-      **-1** If > 0, this limits an iterate's max pressure change
-      to this value when they cross atmospheric pressure.  Not usually helpful.
+     **-1** If > 0, this limits an iterate's max pressure change
+     to this value when they cross atmospheric pressure.  Not usually helpful.
 
    Discretization / operators / solver controls:
 
    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
-      The inverse of the accumulation operator.  See PDE_Accumulation_.
-      Typically not provided by users, as defaults are correct.
+     The inverse of the accumulation operator.  See PDE_Accumulation_.
+     Typically not provided by users, as defaults are correct.
 
    * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``
 
    * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
-      face unknowns on discretizations that are cell-only (e.g. FV).  This can
-      be useful for surface flow or other wierd boundary conditions.  Usually
-      provided by MPCs that need them.
+     face unknowns on discretizations that are cell-only (e.g. FV).  This can
+     be useful for surface flow or other wierd boundary conditions.  Usually
+     provided by MPCs that need them.
 
    Physics control:
 
    * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
-      :math:`sqrt(K)` is about right.  This rescales things to stop from
-      multiplying by small numbers (permeability) and then by large number
-      (:math:`\rho / \mu`).
+     :math:`sqrt(K)` is about right.  This rescales things to stop from
+     multiplying by small numbers (permeability) and then by large number
+     (:math:`\rho / \mu`).
 
    IF
    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
-      surface boundary conditions from an exchange flux.  Note, if this is a
-      coupled problem, it is probably set by the MPC.  No need for a user to
-      set it.
+     surface boundary conditions from an exchange flux.  Note, if this is a
+     coupled problem, it is probably set by the MPC.  No need for a user to
+     set it.
 
    THEN
    * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
    END
 
    * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
-      surface boundary conditions from the surface pressure (Dirichlet).
+     surface boundary conditions from the surface pressure (Dirichlet).
 
 */
 
@@ -209,6 +221,7 @@ Solves Richards equation:
 #include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
+#include "EvaluatorPrimary.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
 #include "PK_Factory.hh"
@@ -219,7 +232,6 @@ namespace Amanzi {
 // forward declarations
 class MPCSubsurface;
 class PredictorDelegateBCFlux;
-class PrimaryVariableFieldEvaluator;
 namespace WhetStone { class Tensor; }
 
 namespace Flow {
@@ -233,25 +245,22 @@ public:
            const Teuchos::RCP<State>& S,
            const Teuchos::RCP<TreeVector>& solution);
 
-  // Virtual destructor
   virtual ~Richards() {}
 
-  // virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {CalculateDiagnostics(S);};
-
-  // -- Setup data.
-  virtual void Setup(const Teuchos::Ptr<State>& S) override;
+  // -- Set requirements of data and evaluators
+  virtual void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize(const Teuchos::Ptr<State>& S) override;
+  virtual void Initialize() override;
 
-  // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) override;
+  // -- Finalize a step as successful at the given tag.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
-  // -- limit changes in a valid time step
+  // -- Is the previous step valid
   virtual bool ValidStep() override;
 
   // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) override;
+  virtual void CalculateDiagnostics(const Tag& tag) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
@@ -274,34 +283,34 @@ public:
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   // recompute flux field
-  virtual void UpdateFlux(const Teuchos::RCP<State>& S);
+  //virtual void UpdateFlux(const Teuchos::RCP<State>& S);
 
 protected:
   // Create of physical evaluators.
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
-  virtual void SetupRichardsFlow_(const Teuchos::Ptr<State>& S);
-  virtual void SetupDiscretization_(const Teuchos::Ptr<State>& S);
-
+  virtual void SetupPhysicalEvaluators_();
+  virtual void SetupRichardsFlow_();
+  virtual void SetupDiscretization_();
+  
   // boundary condition members
-  void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S, bool kr=true);
+  void ComputeBoundaryConditions_(const Tag& tag);
+  virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr=true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual void SetAbsolutePermeabilityTensor_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S);
-  virtual bool UpdatePermeabilityDerivativeData_(const Teuchos::Ptr<State>& S);
+  virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
+  virtual bool UpdatePermeabilityData_(const Tag& tag);
+  virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
 
-  virtual void UpdateVelocity_(const Teuchos::Ptr<State>& S);
-  virtual void InitializeHydrostatic_(const Teuchos::Ptr<State>& S);
+  virtual void UpdateVelocity_(const Tag& tag);
+  virtual void InitializeHydrostatic_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
-  virtual void ApplyDiffusion_(const Teuchos::Ptr<State>& S,
+  virtual void ApplyDiffusion_(const Tag& tag,
           const Teuchos::Ptr<CompositeVector>& g);
 
-  // virtual void AddVaporDiffusionResidual_(const Teuchos::Ptr<State>& S,
+  // virtual void AddVaporDiffusionResidual_(const Tag& tag,
   //         const Teuchos::Ptr<CompositeVector>& g);
-  // virtual void ComputeVaporDiffusionCoef(const Teuchos::Ptr<State>& S,
+  // virtual void ComputeVaporDiffusionCoef(const Tag& tag,
   //                                        Teuchos::RCP<CompositeVector>& vapor_diff,
   //                                        std::string var_name);
 
@@ -309,9 +318,9 @@ protected:
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- Add any source terms into the residual.
-  virtual void AddSources_(const Teuchos::Ptr<State>& S,
+  virtual void AddSources_(const Tag& tag,
                            const Teuchos::Ptr<CompositeVector>& f);
-  virtual void AddSourcesToPrecon_(const Teuchos::Ptr<State>& S, double h);
+  virtual void AddSourcesToPrecon_(double h);
 
   // Nonlinear version of CalculateConsistentFaces()
   // virtual void CalculateConsistentFacesForInfiltration_(
@@ -328,7 +337,7 @@ protected:
                        Teuchos::RCP<const TreeVector> u,
                        Teuchos::RCP<TreeVector> du) override;
 
-  void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
+  // void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
 
   // -- access methods
   virtual Teuchos::RCP<Operators::Operator>
@@ -400,9 +409,6 @@ protected:
   bool modify_predictor_first_bc_flux_;
   Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
 
-  // is this a dynamic mesh problem
-  bool dynamic_mesh_;
-
   // is vapor turned on
   bool vapor_diffusion_;
 
@@ -423,7 +429,7 @@ protected:
   Key mass_dens_key_;
   Key molar_dens_key_;
   Key perm_key_;
-  Key coef_key_, dcoef_key_;
+  Key coef_key_;
   Key uw_coef_key_, duw_coef_key_;
   Key flux_key_;
   Key flux_dir_key_;
@@ -434,9 +440,9 @@ protected:
   Key sat_key_;
   Key sat_gas_key_;
   Key sat_ice_key_;
-
-  // evaluator for flux, which is needed by other pks
-  Teuchos::RCP<PrimaryVariableFieldEvaluator> flux_pvfe_;
+  Key capillary_pressure_gas_liq_key_;
+  Key capillary_pressure_liq_ice_key_;
+  Key deform_key_;
 
 private:
   // factory registration

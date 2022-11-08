@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<FieldEvaluator,DistributedTilesRateEvaluator> DistributedTilesRateEvaluator::reg_("distributed tiles");
+Utils::RegisteredFactory<Evaluator,DistributedTilesRateEvaluator> DistributedTilesRateEvaluator::reg_("distributed tiles");
 
 } //namespace
 } //namespace
