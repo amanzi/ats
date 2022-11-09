@@ -150,11 +150,11 @@ void FATES_PK::Setup(const Teuchos::Ptr<State>& S){
     S->RequireEvaluator(air_temp_key_);
   }
 
-  humidity_key_ = Keys::getKey(domain_surf_,"relative_humidity");
-  if (!S->HasField(humidity_key_)){    
-    S->Require<CompositeVector,CompositeVectorSpace>(humidity_key_, Tags::NEXT,  "state").SetMesh(mesh_surf_)
+  vp_air_key_ = Keys::getKey(domain_surf_,"vapor_pressure_air");
+  if (!S->HasField(vp_air_key_)){    
+    S->RequireField(vp_air_key_, "state")->SetMesh(mesh_surf_)
       ->SetComponent("cell", AmanziMesh::CELL, 1);
-    S->RequireEvaluator(humidity_key_);
+    S->RequireFieldEvaluator(vp_air_key_);
   }
 
   wind_key_ = Keys::getKey(domain_surf_,"wind");
@@ -356,8 +356,8 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
   S_next_->GetEvaluator(wind_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& wind = *S_next_->Get<CompositeVector>(wind_key_).ViewComponent("cell", false);
 
-  S_next_->GetEvaluator(humidity_key_)->HasFieldChanged(S_next_.ptr(), name_);
-  const Epetra_MultiVector& humidity = *S_next_->Get<CompositeVector>(humidity_key_).ViewComponent("cell", false);
+  S_next_->GetFieldEvaluator(vp_air_key_)->HasFieldChanged(S_next_.ptr(), name_);
+  const Epetra_MultiVector& vp_air = *S_next_->GetFieldData(vp_air_key_)->ViewComponent("cell", false);
   
   S_next_->GetEvaluator(air_temp_key_)->HasFieldChanged(S_next_.ptr(), name_);
   const Epetra_MultiVector& air_temp = *S_next_->Get<CompositeVector>(air_temp_key_).ViewComponent("cell", false);
@@ -482,7 +482,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
     photo_input.esat_tv = es;               // Saturated vapor pressure in leaves (Pa)
     //photo_input.esat_tv = 2300.;
 
-    photo_input.eair = humidity[0][0] * es;                  // Air water vapor pressure (Pa)
+    photo_input.eair = vp_air[0][0];                  // Air water vapor pressure (Pa)
     //photo_input.eair = 2000.;
 
     double o2a = 209460.0;
@@ -532,7 +532,7 @@ bool FATES_PK::AdvanceStep(double t_old, double t_new, bool reinit){
       site_[c].temp_veg24_patch = air_temp[0][c];
       prec24_patch[0] = precip_rain[0][c];
       wind24_patch[0] = wind[0][c];
-      rh24_patch[0] = humidity[0][c];
+      rh24_patch[0] = vp_air[0][c] / es;
 
 
       // if (surface_only_){

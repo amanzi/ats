@@ -6,6 +6,13 @@ from matplotlib import pyplot as plt
 def print_headers():
     print("cycle, time, dt, iteration count, wallclock avg (s)")
 
+def parse_line(line):
+    sline = line.split()
+    cyc = int(sline[4][:-1])
+    time = float(sline[8][:-1])
+    dt = float(sline[12])
+    return cyc, time, dt
+    
 def parse_logfile(fid, wallclock=False):
     """Reads a file, and returns a list of good and bad timesteps.
 
@@ -17,16 +24,17 @@ def parse_logfile(fid, wallclock=False):
 
     # find number of "cycles"
     total_cycles = 0
-    for line in fid:
+    for i, line in enumerate(fid):
         if "Cycle =" in line:
-            sline = line.split()
-            cyc = int(sline[4][:-1])
-            time = float(sline[8][:-1])
-            dt = float(sline[12])
-
-            if len(data) > 0 and data[-1][0] == cyc:
-                faildata.append(data.pop())
-            data.append([cyc,time,dt])
+            try:
+                cyc, time, dt = parse_line(line)
+            except:
+                print(f"  Failed parsing line {i}.  Continuing, but there may be missing data.")
+                continue
+            else:
+                if len(data) > 0 and data[-1][0] == cyc:
+                    faildata.append(data.pop())
+                data.append([cyc,time,dt])
 
     ngood = len(data)
     nbad = len(faildata)
@@ -68,8 +76,6 @@ def parse_logfile_subcycle_pk(fid, pk_name, wallclock=False):
     print(f"  bad timesteps = {nbad}")
     return np.array(data), np.array(faildata)
     
-
-
 def get_axs():
     """Gets a figure and list of axes for plotting."""
     return plt.subplots(1,2)

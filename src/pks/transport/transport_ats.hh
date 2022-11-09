@@ -60,20 +60,11 @@ The advection-diffusion equation for component *i* in the surface may be written
 
     Source terms:
 
-    * `"source terms`" [list] Provides solute source.
-       * `"component mass source`" [list]  Defines solute source injection rate.
-          * `"spatial distribution method`" [string] One of:
-             - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
-             - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
-
-       * `"geochemical`" [list]  Defines a source by setting solute concentration for all components (in moles/L) and an injection
-           rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
-
-           - `"geochemical conditions`" [Array(string)] List of geochemical constraints providing concentration for solute injection.
+    * `"source terms`" [transport-source-spec-list] Provides solute source.
 
     Physical model and assumptions:
 
-    * `"physical models and assumptions`" [list] Defines material properties.
+    * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
 
       * `"effective transport porosity`" [bool] If *true*, effective transport porosity
       will be used by dispersive-diffusive fluxes instead of total porosity.
@@ -179,62 +170,75 @@ The advection-diffusion equation for component *i* in the surface may be written
 
    * `"region`" ``[Array(string)]`` Defines geometric regions for material SOIL.
 
-   * `"model`" ``[string]`` **scalar** Defines dispersivity model.  Valid:
-      `"scalar`", `"Bear`", `"Burnett-Frind`", or `"Lichtner-Kelkar-Robinson`".
+   * `"model`" ``[string]`` **scalar** Defines dispersivity model.  One of:
 
-   * `"parameters for MODEL`" [list] where `"MODEL`" is the model name.
+     - `"scalar`" : scalar dispersivity
+     - `"Bear`" : dispersion split into along- and across- velocity
+     - `"Burnett-Frind`"
+     - `"Lichtner-Kelkar-Robinson`"
+
+   * `"parameters for MODEL`" ``[list]`` where `"MODEL`" is the model name.
 
    IF model == scalar
-
+  
    ONE OF
 
-   * `"alpha`" [double] defines dispersivity in all directions, [m].
+   * `"alpha`" ``[double]`` defines dispersivity in all directions, [m].
 
    OR
 
-   * `"dispersion coefficient`" [double] defines dispersion coefficient [m^2 s^-1].
+   * `"dispersion coefficient`" ``[double]`` defines dispersion coefficient [m^2 s^-1].
 
    END
 
    ELSE IF model == Bear
 
-   * `"alpha_l`" [double] defines dispersion in the direction of Darcy velocity, [m].
-   * `"alpha_t`" [double] defines dispersion in the orthogonal direction, [m].
+   * `"alpha_l`" ``[double]`` defines dispersion in the direction of Darcy velocity, [m].
+   * `"alpha_t`" ``[double]`` defines dispersion in the orthogonal direction, [m].
 
    ELSE IF model == Burnett-Frind
 
-   * `"alphaL`" [double] defines the longitudinal dispersion in the direction
+   * `"alphaL`" ``[double]`` defines the longitudinal dispersion in the direction
      of Darcy velocity, [m].
-   * `"alpha_th`" [double] Defines the transverse dispersion in the horizonla
+   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizonal
      direction orthogonal directions, [m].
-   * `"alpha_tv`" [double] Defines dispersion in the orthogonal directions,
-      [m].  When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in
-      the direction of the Darcy velocity.  This and the above parameters must
-      be defined for `"Burnett-Frind`" and `"Lichtner-Kelkar-Robinson`" models.
+   * `"alpha_tv`" ``[double]`` Defines dispersion in the orthogonal directions,
+     [m].  When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in
+     the direction of the Darcy velocity.
 
-   ELSE IF model == `"Lichtner-Kelker-Robinson`"
+   ELSE IF model == Lichtner-Kelker-Robinson
 
-   * `"alpha_lh`" [double] defines the longitudinal dispersion in the
-      horizontal direction, [m].
-
-   * `"alpha_lv`" [double] Defines the longitudinal dispersion in the vertical
-      direction, [m].  When `"alpha_lh`" equals to `"alpha_lv`", we obtain
-      dispersion in the direction of the Darcy velocity.
-
-   * `"alpha_th`" [double] Defines the transverse dispersion in the horizontal
-      direction orthogonal directions, [m].
-
-   * `"alpha_tv" [double] Defines dispersion in the orthogonal directions.
-      When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the
-      direction of the Darcy velocity.
+   * `"alpha_lh`" ``[double]`` defines the longitudinal dispersion in the
+     horizontal direction, [m].
+   * `"alpha_lv`" ``[double]`` Defines the longitudinal dispersion in the vertical
+     direction, [m].  When `"alpha_lh`" equals to `"alpha_lv`", we obtain
+     dispersion in the direction of the Darcy velocity.
+   * `"alpha_th`" ``[double]`` Defines the transverse dispersion in the horizontal
+     direction orthogonal directions, [m].
+   * `"alpha_tv" ``[double]`` Defines dispersion in the orthogonal directions.
+     When `"alpha_th`" equals to `"alpha_tv`", we obtain dispersion in the
+     direction of the Darcy velocity.
 
    END
 
-   * `"aqueous tortuosity`" [double] Defines tortuosity for calculating
+   * `"aqueous tortuosity`" ``[double]`` Defines tortuosity for calculating
       diffusivity of liquid solutes, [-].
 
-   * `"gaseous tortuosity`" [double] Defines tortuosity for calculating
+   * `"gaseous tortuosity`" ``[double]`` Defines tortuosity for calculating
       diffusivity of gas solutes, [-].
+
+
+.. _transport-source-spec:
+.. admonition:: transport-source-spec
+   * `"component mass source`" [list]  Defines solute source injection rate.
+     * `"spatial distribution method`" [string] One of:
+       - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
+       - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
+
+     * `"geochemical`" [list]  Defines a source by setting solute concentration for all components (in moles/L) and an injection
+       rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
+
+       - `"geochemical conditions`" [Array(string)] List of geochemical constraints providing concentration for solute injection.
 
 */
 

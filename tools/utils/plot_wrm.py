@@ -245,7 +245,7 @@ if __name__ == "__main__":
         except:
             raise argparse.ArgumentTypeError("Wilting point limiter must be parameters  (pc_open, pc_closed, label)")
         else:
-            return label, WiltingPointLimiter(pc_open, pc_closed)
+            return label, WiltingPointLimiter(p_open, p_closed)
 
         
     parser.add_argument('--wrm', type=option_to_wrm, action='append', help='WRM parameters, "alpha n sr [label [smoothing_interval_sat]]"')
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     else:
         for (label,wrm), color in zip(args.wrm, color_list):
             plot(wrm, ax, color, y_units=args.y_units, label=label)
-        for (label,wp), color in zip(args.wrm, color_list[len(args.wrm):]):
+        for (label,wp), color in zip(args.wp, color_list[len(args.wrm):]):
             plot(wp, ax, color, y_units=args.y_units, label=label)
     ax.legend()
     plt.show()

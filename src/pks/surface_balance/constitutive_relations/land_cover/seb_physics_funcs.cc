@@ -55,12 +55,11 @@ std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
 
 
 //
-// Calculate longwave from air temp and relative humidity
+// Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
-double IncomingLongwaveRadiation(double air_temp, double relative_humidity)
+double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air)
 {
-  double vp_air_Pa = VaporPressureAir(air_temp, relative_humidity);
-  double vp_air_hPa = vp_air_Pa / 100;
+  double vp_air_hPa = vapor_pressure_air / 100;
   double e_air = std::pow(vp_air_hPa, air_temp / 2016.);
   e_air = 1.08 * (1 - std::exp(-e_air));
   double longwave = e_air * c_stephan_boltzmann * std::pow(air_temp,4);
@@ -104,17 +103,18 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 
 double SaturatedVaporPressure(double temp)
 {
-  // Sat vap. press o/water Dingman D-7 (Bolton, 1980)
-  // *** (Bolton, 1980) Calculates vapor pressure in [KPa]  ****
+  // Westermann (2016), August–Roche–Magnus formula, Pa
   double tempC = temp - 273.15;
-  double vp_mbar = 6.112 * std::exp(17.67 * tempC / (tempC + 243.5));
-  // convert to Pa
-  return 1e2 * vp_mbar;
+  if (tempC > 0) {
+    return 611 * std::exp(17.62 * tempC / (tempC + 243.12));
+  } else {
+    return 611 * std::exp(22.46 * tempC / (tempC + 272.62));
+  }
 }
 
 double SaturatedVaporPressureELM(double temp)
 {
-  // Saturated vapor pressure in [KPa] from CLM technical note
+  // Saturated vapor pressure in [kPa] from CLM technical note
   double T = temp - 273.15;
   double coef_w[9] = {6.1123516, 5.03109514e-1, 1.88369801e-2, 4.20547422e-4, 6.14396778e-6,
     6.02780717e-8, 3.87940929e-10, 1.49436277e-12, 2.62655803e-15};
@@ -131,7 +131,7 @@ double SaturatedVaporPressureELM(double temp)
     Tn *= T;
   }
   // convert to Pa
-  return 1e-3 * res;
+  return 1e3 * res;
 }
 
 double SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
@@ -140,11 +140,6 @@ double SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
   return 0.622 * vp_sat / (params.P_atm - 0.378 * vp_sat);
 }
 
-
-double VaporPressureAir(double air_temp, double relative_humidity)
-{
-  return SaturatedVaporPressure(air_temp) * relative_humidity;
-}
 
 double VaporPressureGround(const GroundProperties& surf, const ModelParams& params)
 {
@@ -164,10 +159,10 @@ double VaporPressureGround(const GroundProperties& surf, const ModelParams& para
 double EvaporativeResistanceGround(const GroundProperties& surf,
         const MetData& met,
         const ModelParams& params,
-        double vapor_pressure_air, double vapor_pressure_ground)
+        double vapor_pressure_ground)
 {
   // calculate evaporation prefactors
-  if (vapor_pressure_air > vapor_pressure_ground) { // condensation
+  if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
     return EvaporativeResistanceCoef(surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
@@ -254,11 +249,12 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, snow.temp);
 
   // latent heat
-  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
+
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
   eb.fQe = LatentHeat(Dhe_latent * Sqig, params.density_air, params.H_sublimation,
-                      vapor_pressure_air, vapor_pressure_skin, params.P_atm);
+                      met.vp_air, vapor_pressure_skin, params.P_atm);
+
 
   // conducted heat
   eb.fQc = ConductedHeatIfSnow(surf.temp, snow, params);
@@ -289,6 +285,7 @@ EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
     eb.error = eb.fQm;
     eb.fQm = 0.;
   }
+
   return eb;
 }
 
@@ -321,16 +318,16 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   eb.fQh = SensibleHeat(Dhe*Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
 
   // latent heat
-  double vapor_pressure_air = VaporPressureAir(met.air_temp, met.relative_humidity);
   double vapor_pressure_skin = VaporPressureGround(surf, params);
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
-  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_air, vapor_pressure_skin);
+  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0/(Dhe_latent*Sqig));
+
 
   // positive is condensation
   eb.fQe = LatentHeat(coef, params.density_air,
 		      surf.unfrozen_fraction * params.H_vaporization + (1-surf.unfrozen_fraction) * params.H_sublimation,
-		      vapor_pressure_air, vapor_pressure_skin, params.P_atm);
+		      met.vp_air, vapor_pressure_skin, params.P_atm);
 
   // fQc is the energy balance -- this is not used in this branch (e.g. no snow
   // branch) but is kept here anyway for use by diagnostic variables

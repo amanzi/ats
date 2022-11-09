@@ -14,10 +14,11 @@ Sakagucki and Zeng 2009 equations 9 and 10.
 
 Requires two parameters,
 
-* `"dessicated zone thickness [m]`" Thickness over which vapor must diffuse
+
+* `"dessicated zone thickness [m]`" ``[double]`` Thickness over which vapor must diffuse
   when the soil is dry.
 
-* `"Clapp and Hornberger b [-]`" Exponent of the Clapp & Hornberger curve for
+* `"Clapp and Hornberger b [-]`" ``[double]`` Exponent of the Clapp & Hornberger curve for
   the top layer of soil.  Nominally this could probably be pulled from van
   Genuchten curves that we typically use, but it doesn't appear to be the most
   important parameter.

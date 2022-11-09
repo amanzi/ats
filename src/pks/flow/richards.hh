@@ -52,7 +52,9 @@ Solves Richards equation:
      source term be differentiated with respect to the primary
      variable?
    * `"explicit source term`" ``[bool]`` **false** Apply the source
-     term from the previous time step.  END
+     term from the previous time step.
+
+   END
 
    Math and solver algorithm options:
 
@@ -126,8 +128,8 @@ Solves Richards equation:
      this limits an iterate's max pressure change to this value.  Not usually
      helpful.
 
-   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]``
-     **-1** If > 0, this limits an iterate's max pressure change
+   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+     If > 0, this limits an iterate's max pressure change
      to this value when they cross atmospheric pressure.  Not usually helpful.
 
    Discretization / operators / solver controls:
@@ -282,7 +284,11 @@ public:
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
-protected:
+  // methods used only for testing
+  Teuchos::RCP<Operators::Operator> get_operator() { return matrix_; }
+  void set_fixed_kr(bool fixed=true) { fixed_kr_ = fixed; }
+
+ protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_();
   virtual void SetupRichardsFlow_();
@@ -333,9 +339,7 @@ protected:
                        Teuchos::RCP<const TreeVector> u,
                        Teuchos::RCP<TreeVector> du) override;
 
-  // void  ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p);
-
-protected:
+ protected:
   // control switches
   Operators::UpwindMethod Krel_method_;
   bool infiltrate_only_if_unfrozen_;
@@ -435,7 +439,10 @@ protected:
   Key capillary_pressure_liq_ice_key_;
   Key deform_key_;
 
-private:
+  // debugging control
+  bool fixed_kr_;
+
+ private:
   // factory registration
   static RegisteredPKFactory<Richards> reg_;
 

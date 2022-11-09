@@ -20,33 +20,37 @@ jobs:
       with:
         repository: amanzi/amanzi
         ref: master
-        submodules: true
+        submodules: recursive
     - name: Extract the ATS branch name
       id: branch
       working-directory: Docker
-      run:
-        echo "::set-output name=ATS_BRANCH::$GITHUB_REF_NAME"
+      run: |
+        echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
-      run:
-        echo "::set-output name=AMANZI_BRANCH::$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')"
+      run: |
+        echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+    - name: Does ats-regression-tests branch of the same name exist?
+      id: ats_tests_branch
+      working-directory: src/physics/ats/testing/ats-regression-tests
+      run: |
+        echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
-      run:
-        echo "::set-output name=ATS_BRANCH_TAG::$(echo ${{steps.branch.outputs.ATS_BRANCH}} | sed -e 's/\//--/g')"
-    - name: Output the branch name
-      run:
-        echo "Amanzi branch = ${{steps.amanzi_branch.outputs.AMANZI_BRANCH}}";
-        echo "ATS branch = ${{steps.branch.outputs.ATS_BRANCH}}";
-        echo "Tag reference = ${{steps.tag.outputs.ATS_BRANCH_TAG}}"
+      run: |
+        echo "ATS_BRANCH_TAG=$(echo ${{env.ATS_BRANCH}} | sed -e 's/\//--/g')" >> $GITHUB_ENV
     - name: Get TPLs version
       id: version 
       working-directory: Docker
-      run:
-        echo "::set-output name=AMANZI_TPLS_VER::$(./get_tpls_version.sh)"
-    - name: Output the TPLs version
-      run:
-        echo "TPLs version = ${{steps.version.outputs.AMANZI_TPLS_VER}}"
+      run: |
+        echo "AMANZI_TPLS_VER=$(./get_tpls_version.sh)" >> $GITHUB_ENV
+    - name: Print out environment
+      run: |
+        echo "Amanzi branch = ${{env.AMANZI_BRANCH}}";
+        echo "ATS branch = ${{env.ATS_BRANCH}}";
+        echo "ats-regression-tests branch = ${{env.ATS_TESTS_BRANCH}}";
+        echo "Tag reference = ${{env.ATS_BRANCH_TAG}}"
+        echo "TPLs version = ${{env.AMANZI_TPLS_VER}}"
     - name: Login to Docker Hub
       uses: docker/login-action@v1
       with:
@@ -56,14 +60,14 @@ jobs:
       id: docker
       working-directory: Docker
       run:
-        docker build --build-arg amanzi_branch=${{steps.amanzi_branch.outputs.AMANZI_BRANCH}} --build-arg ats_branch=${{steps.branch.outputs.ATS_BRANCH}} --build-arg amanzi_tpls_ver=${{steps.version.outputs.AMANZI_TPLS_VER}} -t metsi/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
+        docker build --build-arg amanzi_branch=${{env.AMANZI_BRANCH}} --build-arg ats_branch=${{env.ATS_BRANCH}} --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} --build-arg amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}} -t metsi/ats:${{env.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
     - name: Docker push
       working-directory: Docker
       run:
-        docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest
+        docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest
     - name: Run tests
       id: tests
       working-directory: Docker
       run:
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{steps.tag.outputs.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
+        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
         

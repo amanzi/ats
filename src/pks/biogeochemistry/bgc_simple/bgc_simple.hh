@@ -70,7 +70,7 @@ that build_columns in the subsurface Mesh_ spec has been supplied.
   - `"surface-cell_volume`" `[m^2]`
   - `"surface-incoming shortwave radiation`" `[W m^-2]`
   - `"surface-air_temperature`" `[K]`
-  - `"surface-relative_humidity`" `[-]`
+  - `"surface-vapor_pressure_air`" `[Pa]`
   - `"surface-wind_speed`" `[m s^-1]`
   - `"surface-co2_concentration`" `[ppm]`
 

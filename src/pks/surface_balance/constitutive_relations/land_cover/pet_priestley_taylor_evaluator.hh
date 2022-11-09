@@ -37,7 +37,6 @@ Requires the following dependencies:
    - `"air temperature`" **DOMAIN-air_temperature** Air temp, in [K]
    - `"surface temperature`" **DOMAIN-temperature** Ground or leaf temp, in [K].  Note this may be the
       same as air temperature.
-   - `"relative humidity`" **DOMAIN-relative_humidity** [-]
    - `"elevation`" **DOMAIN-elevation** Elevation [m]
    - `"net radiation`" **DOMAIN-net_radiation** [W m^-2] Net radiation balance, positive to the ground.
    - `"limiter`" [-] See `"include limiter`" above.
@@ -117,7 +116,6 @@ class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key evap_type_;
   Key air_temp_key_;
   Key surf_temp_key_;
-  Key rel_hum_key_;
   Key elev_key_;
   Key rad_key_;
   Key limiter_key_;

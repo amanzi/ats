@@ -55,9 +55,9 @@ double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rou
 
 
 //
-// Calculate longwave from air temp and relative humidity
+// Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
-double IncomingLongwaveRadiation(double air_temp, double relative_humidity);
+double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air);
 
 //
 // Calculates incoming shortwave and longwave radiation incident on surface
@@ -88,9 +88,8 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 
 
 //
-// Partial pressure of water vapor in air, saturated.
-// After Dingman D-7 (Bolton, 1980).
-// Return values in [Pa]
+// Westermann 2016, saturated vapor pressure over water/ice
+// In [Pa]
 // ------------------------------------------------------------------------------------------
 double SaturatedVaporPressure(double temp);
 double SaturatedVaporPressureELM(double temp);
@@ -98,15 +97,9 @@ double SaturatedSpecificHumidityELM(double temp);
 
 
 //
-// Partial pressure of water vapor in air.
-// Return values in [Pa]
-// ------------------------------------------------------------------------------------------
-double VaporPressureAir(double air_temp, double relative_humidity);
-
-//
 // Partial pressure of water vapor in gaseous phase, in the soil.
 // After Ho & Webb 2006
-// Return values in [Pa]
+// In [Pa]
 // ------------------------------------------------------------------------------------------
 double VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 
@@ -118,7 +111,7 @@ double VaporPressureGround(const GroundProperties& surf, const ModelParams& para
 double EvaporativeResistanceGround(const GroundProperties& surf,
         const MetData& met,
         const ModelParams& params,
-        double vapor_pressure_air, double vapor_pressure_ground);
+        double vapor_pressure_ground);
 
 double EvaporativeResistanceCoef(double saturation_gas,
         double porosity, double dessicated_zone_thickness, double Clapp_Horn_b);

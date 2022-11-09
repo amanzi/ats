@@ -514,7 +514,7 @@ Coordinator::advance()
          mesh!=S_->mesh_end(); ++mesh) {
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         // collect the old coordinates
-        Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_cooordinates");
+        Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
         Teuchos::RCP<const Amanzi::CompositeVector> vc_vec =
           S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
         vc_vec->ScatterMasterToGhosted();

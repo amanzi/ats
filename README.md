@@ -32,4 +32,16 @@ Please see the [LICENSE](https://github.com/amanzi/ats/blob/master/LICENSE) and 
 Citation
 --------
 
-E.T. Coon, M. Berndt, A. Jan, D. Svyatsky, A.L. Atchley, E. Kikinzon, D.R. Harp, G. Manzini, E. Shelef, K. Lipnikov, R. Garimella, C. Xu, J.D. Moulton, S. Karra, S.L. Painter, E. Jafarov, and S. Molins. 2020. Advanced Terrestrial Simulator. U.S. Department of Energy, USA. Version 1.0. DOI: 10.11578/dc.20190911.1
+In all works, please cite the code:
+
+E.T. Coon, M. Berndt, A. Jan, D. Svyatsky, A.L. Atchley, E. Kikinzon, D.R. Harp, G. Manzini, E. Shelef, K. Lipnikov, R. Garimella, C. Xu, J.D. Moulton, S. Karra, S.L. Painter, E. Jafarov, and S. Molins. 2020. Advanced Terrestrial Simulator. U.S. Department of Energy, USA. Version 1.0. [DOI](https://doi.org/10.11578/dc.20190911.1)
+
+Additionally, consider citing one or more of the below, depending upon the application space:
+
+**Watershed Hydrology:** Coon, Ethan T., et al. "Coupling surface flow and subsurface flow in complex soil structures using mimetic finite differences." Advances in Water Resources 144 (2020): 103701. [DOI](https://doi.org/10.1016/j.advwatres.2020.103701)
+
+**Arctic Hydrology:** Painter, Scott L., et al. "Integrated surface/subsurface permafrost thermal hydrology: Model formulation and proof‐of‐concept simulations." Water Resources Research 52.8 (2016): 6062-6077. [DOI](https://doi.org/10.1002/2015WR018427)
+
+**Reactive Transport:**  Painter, Scott L., et al. "Integrated surface/subsurface permafrost thermal hydrology: Model formulation and proof‐of‐concept simulations." Water Resources Research 52.8 (2016): 6062-6077. [DOI](https://doi.org/10.1029/2022WR032074)
+
+**Multiphysics Modeling:** Coon, Ethan T., J. David Moulton, and Scott L. Painter. "Managing complexity in simulations of land surface and near-surface processes." Environmental modelling & software 78 (2016): 134-149. [DOI](https://doi.org/10.1016/j.envsoft.2015.12.017)

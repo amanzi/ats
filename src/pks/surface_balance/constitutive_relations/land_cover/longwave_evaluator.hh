@@ -5,19 +5,18 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates incoming longwave radiation from rel humidity and air temperature.
+//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
 
 /*!
 
 .. _longwave_evaluator-spec:
 .. admonition:: longwave_evaluator-spec
 
-    * `"minimum relative humidity [-]`" ``[double]`` **0.1** Sets a minimum rel humidity, RH=0 breaks the model.
 
     DEPENDENCIES:
 
     * `"air temperature key`" ``[string]`` **DOMAIN-air_temperature**
-    * `"relative humidity key`" ``[string]`` **DOMAIN-relative_humidity**
+    * `"vapor pressure air key`" ``[string]`` **DOMAIN-vapor_pressure_air**
 
 */
 
@@ -50,8 +49,8 @@ class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
-  Key air_temp_key_, rel_hum_key_;
-  double min_rel_hum_, scale_;
+  Key air_temp_key_, vp_air_key_;
+  double scale_;
 
  private:
   static Utils::RegisteredFactory<Evaluator,LongwaveEvaluator> reg_;

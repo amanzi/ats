@@ -67,8 +67,8 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
       this limits an iterate's max pressure change to this value.  Not usually
       helpful.
 
-    * `"limit correction to pressure change when crossing atmospheric [Pa]`"
-      ``[double]`` **-1** If > 0, this limits an iterate's max pressure change
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+      If > 0, this limits an iterate's max pressure change
       to this value when they cross atmospheric pressure.  Not usually helpful.
 
     * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all

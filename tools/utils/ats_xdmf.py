@@ -192,8 +192,8 @@ class VisFile:
         """
         if self.domain and '-' not in vname:
             vname = self.domain + '-' + vname
-        if '.' not in vname:
-            vname = vname + '.cell.0'
+        # if '.' not in vname:
+        #     vname = vname + '.cell.0'
         return vname
 
     def _get(self, vname, cycle):
