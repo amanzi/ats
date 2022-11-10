@@ -105,6 +105,7 @@ SurfDistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
     S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state")->PutScalar(0.0);
     S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
+    S.GetRecordW(dist_sources_key_, tag, "state").set_io_vis(false);
   }
 
   dist_src_vec_ = S.GetPtr<Epetra_Vector>(dist_sources_key_, tag);

@@ -161,12 +161,14 @@ DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)){
     S.Require<Epetra_Vector, Epetra_Vector_Factory>(dist_sources_key_, tag, "state").set_size(num_ditches_);
-    S.GetRecordSetW(dist_sources_key_).CreateData();    
+    S.GetRecordSetW(dist_sources_key_).CreateData();
+    S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
+    S.GetRecordW(dist_sources_key_, tag, "state").set_io_vis(false);
   }
 
   dist_src_vec_ = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state");
   dist_src_vec_->PutScalar(0.0);
-  S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
+
   
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
   
