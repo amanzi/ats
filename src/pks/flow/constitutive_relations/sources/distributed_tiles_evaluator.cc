@@ -75,10 +75,9 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
   sub_sink.PutScalar(0);
   
   AmanziMesh::Entity_ID ncells = sub_marks.MyLength();
-  //auto src_vec = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state");
 
   double total = 0.0;
-  //src_vec->PutScalar(0.0);
+  dist_src_vec_->PutScalar(0.0);
   sub_sink.PutScalar(0.0);
   int num_vectors = 1;
   int test = sub_sink.NumVectors();
@@ -103,35 +102,35 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
         if (factor_key_!=""){
           for (int i=0; i<num_component_; ++i){
             sub_sink[i][c] = (*factor)[i][c] * val;
-            //(*src_vec)[sub_marks[0][c] - 1 + i* num_ditches_] += factor[i][c] * val * dt * cv[0][c];
+            (*dist_src_vec_)[sub_marks[0][c] - 1 + i* num_ditches_] += (*factor)[i][c] * val * dt * cv[0][c];
             total = total + (*factor)[i][c] * val * dt * cv[0][c];
           }
         }else{
           sub_sink[0][c] = val;
-          //(*src_vec)[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
+          (*dist_src_vec_)[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
           total = total + val * dt * cv[0][c];
         }
       }
     }
   }
   // std::cout <<"Sink vector\n";
-  // std::cout << *src_vec<<"\n";
+  // std::cout << *dist_src_vec_<<"\n";
   //std::cout<<"Total sink "<<my_key_<<" "<<total<<"\n";
   // total = 0.;
   // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
   //   total += sub_sink[0][c] * cv[0][c];
   // }
-  // std::cout<<"Total sink field "<<my_key_<<" "<<total<<"\n";
+  // std::cout<<"Total sink field "<<" "<<total<<"\n";
 
   
-  // Teuchos::RCP<const Comm_type> comm_p = S->GetMesh(domain_)->get_comm();
-  // Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-  //   Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  // const MPI_Comm& comm = mpi_comm_p->Comm();
+  Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->get_comm();
+  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
+    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
+  const MPI_Comm& comm = mpi_comm_p->Comm();
 
-  // double *src_vec_ptr;
-  // src_vec -> ExtractView(&src_vec_ptr);
-  // MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
+  double *src_vec_ptr;
+  dist_src_vec_ -> ExtractView(&src_vec_ptr);
+  MPI_Allreduce(MPI_IN_PLACE, src_vec_ptr, num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
 
 
   //std::cout <<"After MPI_Allreduce\n";
@@ -154,7 +153,7 @@ void
 DistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
     const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-  //result->PutScalar(0.0);
+  result[0]->PutScalar(0.0);
 }
 
 void
@@ -162,12 +161,15 @@ DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)){
-    S.Require<Epetra_Vector, Epetra_Vector_Factory>(dist_sources_key_, tag, my_keys_.front().first).set_size(num_ditches_);
-    dist_src_vec_ = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, my_keys_.front().first);
-
-    dist_src_vec_->PutScalar(0.0);
-    S.GetRecordW(dist_sources_key_, tag, my_keys_.front().first).set_initialized();
+    S.Require<Epetra_Vector, Epetra_Vector_Factory>(dist_sources_key_, tag, "state").set_size(num_ditches_);
+    S.GetRecordSetW(dist_sources_key_).CreateData();    
   }
+
+  dist_src_vec_ = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state");
+  dist_src_vec_->PutScalar(0.0);
+  S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
+  S.GetRecordW(dist_sources_key_, tag, "state").set_vis_io(false);
+
   
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
   

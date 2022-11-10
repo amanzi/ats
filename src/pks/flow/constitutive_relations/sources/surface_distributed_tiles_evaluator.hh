@@ -32,6 +32,7 @@ Allows the following parameters:
 #define AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
 
 #include "Factory.hh"
+#include "Epetra_Vector_Factory.hh"
 #include "EvaluatorSecondaryMonotype.hh" 
 
 namespace Amanzi {
@@ -67,6 +68,7 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_, domain_surf_;
   bool compatibility_checked_, implicit_;
   int num_ditches_;
+  Teuchos::RCP<const Epetra_Vector> dist_src_vec_;
   
  private:
   static Utils::RegisteredFactory<Evaluator,SurfDistributedTilesRateEvaluator> reg_;

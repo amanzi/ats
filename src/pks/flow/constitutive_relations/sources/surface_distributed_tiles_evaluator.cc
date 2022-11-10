@@ -65,37 +65,24 @@ SurfDistributedTilesRateEvaluator::Evaluate_(const State& S,
   const auto& cv =
     *S.GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag)->ViewComponent("cell",false);  
   auto& surf_src = *result[0]->ViewComponent("cell",false);
-  
-  auto dist_src_vec = S.GetPtr<Epetra_Vector>(dist_sources_key_, tag);
-                                            
-  // if (implicit_){
-  //   src_vec = src_field->GetConstantVectorData();
-  // }else{
-  //   src_vec = src_field->GetCopy("prev_timestep")->GetConstantVectorData();
-  // }
-  
-  //std::cout << "Surface source\n"<< *src_vec<<"\n";
+  //std::cout << "Surface source\n"<< *dist_src_vec_<<"\n";
 
   double total = 0.0;
-  double frac_len = 0.0;
   
   AmanziMesh::Entity_ID ncells = surf_marks.MyLength();
   for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
     if ((surf_marks[0][c] > 0) && (dt>1e-14)) {
-      surf_src[0][c] = -(*dist_src_vec)[surf_marks[0][c] - 1]*len_frac[0][c]/(cv[0][c]*dt) ;
-      //surf_src[0][c] = 0.0;
-      if (surf_marks[0][c]==1) frac_len += len_frac[0][c];
-        
-      total += -(*dist_src_vec)[surf_marks[0][c]-1]*len_frac[0][c];
+      surf_src[0][c] = -(*dist_src_vec_)[surf_marks[0][c] - 1]*len_frac[0][c]/(cv[0][c]*dt) ;
+      //total += -(*dist_src_vec)[surf_marks[0][c]-1]*len_frac[0][c];
     }
   }
   
-  // std::cout<< "Total source: "<<total<<" "<<frac_len<<"\n";
+  //std::cout<< "Total source: "<<total<<"\n";
   // total = 0.0;
   // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
   //   total += surf_src[0][c]*cv[0][c];
   // }
-  // std::cout<<"Total source: field "<<my_key_<<" "<<total<<"\n";
+  // std::cout<<"Total source: field  "<<total<<"\n";
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
@@ -113,20 +100,15 @@ SurfDistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)){    
-  //   S->RequireConstantVector(dist_sources_key_, num_ditches_);
-  //   Teuchos::RCP<Field> field =  S->GetField(dist_sources_key_, "state");
-  //   Teuchos::RCP<Field_ConstantVector> cvfield =
-  //     Teuchos::rcp_dynamic_cast<Field_ConstantVector>(field, true);
-  //   cvfield->CreateData();
+    S.Require<Epetra_Vector, Epetra_Vector_Factory>(dist_sources_key_, tag, "state").set_size(num_ditches_);
+    S.GetRecordSetW(dist_sources_key_).CreateData();    
 
-  //   field->GetConstantVectorData()->PutScalar(0.0);
-  //   field->set_initialized();
-    
-  //   Key prev_step("prev_timestep");
-  //   field->RequireCopy(prev_step);
+    S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state")->PutScalar(0.0);
+    S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
   }
 
-
+  dist_src_vec_ = S.GetPtr<Epetra_Vector>(dist_sources_key_, tag);
+  
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
 
   
