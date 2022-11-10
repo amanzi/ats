@@ -53,11 +53,14 @@ void Transport_ATS::CalculateDispersionTensor_(
     }
     mfd3d.L2Cell(c, flux, flux, NULL, poly);
 
+    // note that while this is called velocity, it is actually a vector-valued,
+    // cell-centered water mass flux.  There is no division by density.  That
+    // means the factor of density should not be required here? --ETC
     for (int k = 0; k < dim; ++k) velocity[k] = poly(k + 1);
     D_[c] = mdm_->second[(*mdm_->first)[c]]->mech_dispersion(
         velocity, axi_symmetry_[c], saturation[0][c], porosity[0][c]);
-    double mol_den = mol_density[0][c];
-    D_[c] *= mol_den;
+    // double mol_den = mol_density[0][c];
+    // D_[c] *= mol_den;
   }
 }
 
