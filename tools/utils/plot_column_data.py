@@ -155,6 +155,34 @@ def plot_subsurface(vis, col, ax, label, color=None, cmap=None):
 
             ax.plot(data[i,:], z, form, color=cm(time), label=mylabel)
 
+def animate_subsurface(vis, varnames, ax, label, colors=None):
+    if type(colors) is str:
+        colors = [colors,]
+    elif colors is None:
+        colors = [None,]*len(varnames)
+
+    z = vis.centroids[:,2]
+
+    formats = ['-', '--', '-.']
+
+    datas = []
+    lines = []
+    for varname, color, form in zip(varnames, colors, formats):
+        data = vis.getArray(varname)
+        assert(len(data.shape) == 2)
+        assert(data.shape[1] == len(vis.centroids))
+
+        datas.append(data)
+        lines.extend(ax.plot([], [], form, color=color, label=label))
+
+    def animate(frm):
+        for d, l in zip(datas, lines):
+            l.set_data(d[frm,:], z)
+
+        return lines
+
+    return animate
+
 def plot_surface(vis, col, ax, label, color):
     formats = ['-', '--', '-.']
 

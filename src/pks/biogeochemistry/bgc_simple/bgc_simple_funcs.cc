@@ -27,7 +27,7 @@ namespace BGC {
   // qSWin [W/m^2]
   // tair [K]
   // met.windv [m/s]
-  // met.relhum [-]
+  // met.vp_air [Pa]
   // met.CO2a [ppm]
   // SoilTArr [K] (soil temperature)
   // SoilWPArr [Pa] (water pressure)
@@ -227,10 +227,10 @@ namespace BGC {
 	    relRad   = PARi/PAR;
 	    relCLNCa = 0.1802 * std::log(relRad)+1.0; //see Ali et al 2015
 	    relCLNCa = std::max(0.2,relCLNCa);
-	    relCLNCa = std:: min(1.0,relCLNCa);
+	    relCLNCa = std::min(1.0,relCLNCa);
 	    Vcmax25i = Vcmax25 * relCLNCa;
 	    Photosynthesis(PARi, pft.LUE, pft.LER, p_atm,
-			   met.windv,double(met.tair - 273.15), met.relhum, met.CO2a, pft.mp, Vcmax25i,
+			   met.windv,double(met.tair - 273.15), met.vp_air, met.CO2a, pft.mp, Vcmax25i,
 			   &psn, &tleaf, &leafresp,&ET);
 	    psn *= Btran;
 	    ET  *= Btran; 
@@ -276,7 +276,7 @@ namespace BGC {
         Vcmax25i = Vcmax25;
 
         Photosynthesis(PARi, pft.LUE, pft.LER, p_atm,
-                       met.windv,double(met.tair - 273.15), met.relhum, met.CO2a, pft.mp, Vcmax25i,
+                       met.windv,double(met.tair - 273.15), met.vp_air, met.CO2a, pft.mp, Vcmax25i,
                        &psn, &tleaf, &leafresp, &ET);
 
         if(met.tair<273.15) leafresp = leafresp/10.0; //winter hypbernation

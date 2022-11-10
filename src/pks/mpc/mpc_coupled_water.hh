@@ -76,6 +76,11 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
       ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
                        Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du) override;
 
+  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<const TreeVector> res) override;
+
+  Teuchos::RCP<Operators::Operator> preconditioner() { return precon_; }
+
  protected:
   // void
   // UpdateConsistentFaceCorrectionWater_(const Teuchos::RCP<const TreeVector>& u,

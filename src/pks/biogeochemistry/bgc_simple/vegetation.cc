@@ -134,7 +134,7 @@ double HighTLim(double tleaf) {
 // This function calculate the net photosynthetic rate based on Farquhar
 // model, with updated leaf temperature based on energy balances, fixed the bugs with non-convergence for dry conditions
 void Photosynthesis(double PARi, double LUE, double LER, double pressure, double windv,
-                    double tair, double relh, double CO2a, double mp, double Vcmax25,
+                    double tair, double vp_air, double CO2a, double mp, double Vcmax25,
                     double* A, double* tleaf, double* Resp,double* ET)
 {
   if (tair <= 0. || PARi <= 0.) {
@@ -177,7 +177,6 @@ void Photosynthesis(double PARi, double LUE, double LER, double pressure, double
     double es, esdT, qs, qsdT;
     QSat qsat;
     qsat(tairk, pressure, &es, &esdT, &qs, &qsdT);
-    double ea = es * relh;
 
     // output
     double myA;
@@ -220,7 +219,7 @@ void Photosynthesis(double PARi, double LUE, double LER, double pressure, double
 
       double ei;
       qsat(tleafk, pressure, &ei, &esdT, &qs, &qsdT);
-      double cea = std::max(0.3 * ei, std::min(ea, ei));
+      double cea = std::max(0.3 * ei, std::min(vp_air, ei));
 
       // converge ci?
       double ci = 0.7 * co2c;
@@ -279,7 +278,7 @@ void Photosynthesis(double PARi, double LUE, double LER, double pressure, double
       
       myA = (1.0 - theta_cj) * std::max(Wc, Wj) + theta_cj * std::min(Wc, Wj); //use this instead of the quadratic to avoid values not in the range of wc and wj  
       double lamda = (2501000 - 2400 * tleafnew) * 14.0 / 1000 * 1.0 / 1000000; // J/kg to J/mol to J/umol;
-      myET =  gs_mol * gb_mol / (gb_mol + gs_mol) * std::max(0.0, ei - ea) / pressure; //unit: umol H20/m2 leaf/s
+      myET =  gs_mol * gb_mol / (gb_mol + gs_mol) * std::max(0.0, ei - vp_air) / pressure; //unit: umol H20/m2 leaf/s
       tleafnew = tair + 1 / 38.4 * (ARAD - (lamda * myET));
      
       // check convergence criteria
@@ -302,7 +301,7 @@ void Photosynthesis(double PARi, double LUE, double LER, double pressure, double
 // This function calculate the net photosynthetic rate based on Farquhar
 // model, with updated leaf temperature based on energy balances
 void Photosynthesis0(double PARi, double LUE, double LER, double pressure, double windv,
-                    double tair, double relh, double CO2a, double mp, double Vcmax25,
+                    double tair, double vp_air, double CO2a, double mp, double Vcmax25,
                     double* A, double* tleaf, double* Resp,double* ET)
 {
   if (tair <= 0. || PARi <= 0.) {
@@ -342,12 +341,6 @@ void Photosynthesis0(double PARi, double LUE, double LER, double pressure, doubl
 
     double tleafold = tair;
 
-    double tairk = tair + 273.15;
-    double es, esdT, qs, qsdT;
-    QSat qsat;
-    qsat(tairk, pressure, &es, &esdT, &qs, &qsdT);
-    double ea = es * relh;
-
     // output
     double myA;
     double tleafnew = tair;
@@ -377,9 +370,10 @@ void Photosynthesis0(double PARi, double LUE, double LER, double pressure, doubl
       Vcmax = Vcmax25 * HighTLim(tleafnew) * std::pow(q10act, (0.1 * (tleafnew - 25.0)));
       double We = 0.5 * Vcmax;
 
-      double ei;
+      double ei, esdT, qs, qsdT;
+      QSat qsat;
       qsat(tleafk, pressure, &ei, &esdT, &qs, &qsdT);
-      double cea = std::max(0.3 * ei, std::min(ea, ei));
+      double cea = std::max(0.3 * ei, std::min(vp_air, ei));
 
       // converge ci?
       double ci = 0.7 * co2c;
@@ -427,7 +421,7 @@ void Photosynthesis0(double PARi, double LUE, double LER, double pressure, doubl
       }
 
       double lamda = (2501000 - 2400 * tleafnew) * 14.0 / 1000 * 1.0 / 1000000; // J/kg to J/mol to J/umol;
-      myET =  1.0 / (rs + rb) * std::max(0.0, ei - ea) / pressure; //unit: umol H20/m2 leaf/s
+      myET =  1.0 / (rs + rb) * std::max(0.0, ei - vp_air) / pressure; //unit: umol H20/m2 leaf/s
       tleafnew = tair + 1 / 38.4 * (ARAD - lamda * myET);
      
       // check convergence criteria

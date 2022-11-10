@@ -87,10 +87,15 @@ void MPCSubsurface::Setup()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(rho_key_, tag_next_);
 
+  // see amanzi/ats#167
+  // if (S_->GetEvaluator(e_key_, tag_next_).IsDifferentiableWRT(*S_, pres_key_, tag_next_)) {
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(e_key_,
-      tag_next_, pres_key_, tag_next_, e_key_);
+          tag_next_, pres_key_, tag_next_, e_key_);
+  // }
+  // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
   S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(wc_key_,
       tag_next_, temp_key_, tag_next_, wc_key_);
+  // }
 
   // Get the sub-blocks from the sub-PK's preconditioners.
   Teuchos::RCP<Operators::Operator> pcA = sub_pks_[0]->preconditioner();
@@ -178,12 +183,15 @@ void MPCSubsurface::Setup()
     }
 
     // -- derivatives of water content with respect to temperature
+    // see amanzi/ats#167
+    // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
     if (dWC_dT_block_ == Teuchos::null) {
       dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
       dWC_dT_block_ = dWC_dT_->global_operator();
     } else {
       dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dWC_dT_block_));
     }
+    // }
 
     // Create the block for derivatives of energy conservation with respect to pressure
     // -- derivatives of thermal conductivity with respect to pressure
@@ -310,12 +318,15 @@ void MPCSubsurface::Setup()
     }
 
     // -- derivatives of energy with respect to pressure
+    // see amanzi/ats#167
+    // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
     if (dE_dp_block_ == Teuchos::null) {
       dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
       dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
     }
+    // }
 
     AMANZI_ASSERT(dWC_dT_block_ != Teuchos::null);
     AMANZI_ASSERT(dE_dp_block_ != Teuchos::null);
@@ -324,8 +335,6 @@ void MPCSubsurface::Setup()
 
     // set up sparsity structure
     preconditioner_->set_inverse_parameters(plist_->sublist("inverse"));
-
-
   }
 
   // create the EWC delegate
@@ -346,6 +355,7 @@ void MPCSubsurface::Setup()
     ewc_->setup();
   }
 }
+
 
 void MPCSubsurface::Initialize()
 {
@@ -496,11 +506,13 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     }
 
     // -- dWC/dT diagonal term
-    S_->GetEvaluator(wc_key_, tag_next_)
+    Teuchos::RCP<const CompositeVector> dWC_dT = Teuchos::null;
+    if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
+      S_->GetEvaluator(wc_key_, tag_next_)
         .UpdateDerivative(*S_, name_, temp_key_, tag_next_);
-    Teuchos::RCP<const CompositeVector> dWC_dT =
-      S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_);
-    dWC_dT_->AddAccumulationTerm(*dWC_dT, h, "cell", false);
+      dWC_dT = S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_);
+      dWC_dT_->AddAccumulationTerm(*dWC_dT, h, "cell", false);
+    }
 
     // dE / dp block
     // -- d Kappa / dp
@@ -631,18 +643,26 @@ void MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
     }
 
     // -- dE/dp diagonal term
-    S_->GetEvaluator(e_key_, tag_next_)
+    Teuchos::RCP<const CompositeVector> dE_dp = Teuchos::null;
+    if (S_->GetEvaluator(e_key_, tag_next_).IsDifferentiableWRT(*S_, pres_key_, tag_next_)) {
+      S_->GetEvaluator(e_key_, tag_next_)
         .UpdateDerivative(*S_, name_, pres_key_, tag_next_);
-    Teuchos::RCP<const CompositeVector> dE_dp =
-      S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_);
-    dE_dp_->AddAccumulationTerm(*dE_dp, h, "cell", false);
+      dE_dp = S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_);
+      dE_dp_->AddAccumulationTerm(*dE_dp, h, "cell", false);
+    }
 
     // write for debugging
     std::vector<std::string> vnames;
-    vnames.push_back("  dwc_dT"); vnames.push_back("  de_dp");
     std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-    vecs.push_back(dWC_dT.ptr()); vecs.push_back(dE_dp.ptr());
-    db_->WriteVectors(vnames, vecs, false);
+    if (dWC_dT != Teuchos::null) {
+      vnames.push_back("  dwc_dT");
+      vecs.push_back(dWC_dT.ptr());
+    }
+    if (dE_dp != Teuchos::null) {
+      vnames.push_back("  de_dp");
+      vecs.push_back(dE_dp.ptr());
+    }
+    if (vecs.size() > 0) db_->WriteVectors(vnames, vecs, false);
   }
 
   if (precon_type_ == PRECON_EWC) {
