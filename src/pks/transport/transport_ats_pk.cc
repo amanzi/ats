@@ -403,8 +403,6 @@ void Transport_ATS::Initialize()
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_bcs_list = plist_->sublist("boundary conditions").sublist("concentration");
 
-    std::cout<<"BC\n"<<conc_bcs_list<<"\n";
-    
     for (const auto& it : conc_bcs_list) {
       std::string name = it.first;
       if (conc_bcs_list.isSublist(name)) {
@@ -501,8 +499,6 @@ void Transport_ATS::Initialize()
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
 
-    std::cout <<"Source\n"<< conc_sources_list <<"\n";
-    
     for (const auto& it : conc_sources_list) {
       std::string name = it.first;
       if (conc_sources_list.isSublist(name)) {
