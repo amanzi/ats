@@ -1,5 +1,8 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+
+  Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow 
+
   License: see $ATS_DIR/COPYRIGHT
   Author: 
 */
@@ -39,9 +42,6 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
   dependencies_.insert(KeyTag{surf_len_key_, tag});
   dependencies_.insert(KeyTag{update_key, tag});
  
-  // times_.resize(2);
-  // times_[0] = -1.0; times_[1] = -1.0;
-  
 }
 
 // Required methods from SecondaryVariableFieldEvaluator

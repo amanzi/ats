@@ -1,7 +1,10 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+
+  Evaluates water/solute sinks which represent distributed tiles in subsurface 
+  
   License: see $ATS_DIR/COPYRIGHT
-  Author: 
+  Author: Daniil Svyatsky (dasvyat@lanl.gov) 
 */
 
 /*!
@@ -32,8 +35,6 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   factor_key_ = plist.get<std::string>("factor field key", "");
   num_component_ = plist.get<int>("number of components", 1);
     
-  // surface_marks_key_ = Keys::readKey(plist, domain_surf_, "ditch marks", "ditch_marks");
-  // surf_len_key_ = Keys::readKey(plist, domain_surf_, "ditch length", "ditch_length");
   
   num_ditches_ = plist.get<int>("number of ditches");
   p_enter_ = plist.get<double>("entering pressure", 101325);
@@ -48,8 +49,6 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
 
   if (factor_key_ != "") dependencies_.insert(KeyTag{factor_key_, tag});
   
-  // times_.resize(2);
-  // times_[0] = -1.0; times_[1] = -1.0;
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
@@ -168,8 +167,6 @@ DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
   dist_src_vec_ = S.GetPtrW<Epetra_Vector>(dist_sources_key_, tag, "state");
   dist_src_vec_->PutScalar(0.0);
   S.GetRecordW(dist_sources_key_, tag, "state").set_initialized();
-  S.GetRecordW(dist_sources_key_, tag, "state").set_vis_io(false);
-
   
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
   
