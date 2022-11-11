@@ -37,7 +37,7 @@ set(ats_flow_src_files
 #  snow_distribution_pk.cc
 #  snow_distribution_physics.cc
 #  snow_distribution_ti.cc
-#  preferential_pk.cc
+  preferential_pk.cc
 
   )
 

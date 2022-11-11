@@ -388,26 +388,25 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
 
-  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetFieldData(coef_key_);
-  Teuchos::RCP<const CompositeVector> rel_perm_grav = S_->GetFieldData(coef_grav_key_);
-  bool update_perm = S_->GetFieldEvaluator(coef_key_)
-      ->HasFieldChanged(S, name_);
-  update_perm |= S_->GetFieldEvaluator(coef_grav_key_)
-      ->HasFieldChanged(S, name_);
+  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
+  Teuchos::RCP<const CompositeVector> rel_perm_grav = S_->GetPtr<CompositeVector>(coef_grav_key_, tag);
+  bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
+  update_perm |= S_->GetEvaluator(coef_grav_key_, tag).Update(*S_, name_);
 
   // requirements due to the upwinding method
   if (Krel_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
-    bool update_dir = S_->GetFieldEvaluator(mass_dens_key_)
-        ->HasFieldChanged(S, name_);
-    update_dir |= S_->GetFieldEvaluator(key_)->HasFieldChanged(S, name_);
+    bool update_dir = S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
+    update_dir |= S_->GetEvaluator(key_, tag).Update(*S_, name_);
 
     if (update_dir) {
       // update the direction of the flux -- note this is NOT the flux
-      Teuchos::RCP<const CompositeVector> rho = S_->GetFieldData(mass_dens_key_);
-      Teuchos::RCP<CompositeVector> flux_dir = S_->GetFieldData(flux_dir_key_, name_);
-      Teuchos::RCP<const CompositeVector> pres = S_->GetFieldData(key_);
+      Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
+      Teuchos::RCP<CompositeVector> flux_dir = S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
+      Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
-
+      if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" flux dir"))
+        face_matrix_diff_->SetTensorCoefficient(K_);
+      
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
       //if (!pres->HasComponent("face"))
@@ -436,12 +435,12 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
         }
       }
     }
-
+      
     update_perm |= update_dir;
   }
 
   if (update_perm) {
-    Teuchos::RCP<CompositeVector> uw_rel_perm = S_->GetFieldData(uw_coef_key_, name_);
+    Teuchos::RCP<CompositeVector> uw_rel_perm = S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
 
     // // Move rel perm on boundary_faces into uw_rel_perm on faces
     const Epetra_Import& vandelay = mesh_->exterior_face_importer();
@@ -456,8 +455,8 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
     uw_rel_perm_grav.Export(rel_perm_grav_bf, vandelay, Insert);
     
     // Upwind, only overwriting boundary faces if the wind says to do so.
-    upwinding_->Update(S, coef_key_, "cell", uw_coef_key_, "face");
-    upwinding_->Update(S, coef_grav_key_, "cell", uw_coef_key_, "grav");
+    upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "face", *S_);
+    upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "grav", *S_);
 
     // Epetra_MultiVector& test_face = *uw_rel_perm->ViewComponent("face",false);
     // Epetra_MultiVector& test_grav = *uw_rel_perm->ViewComponent("grav",false);
@@ -489,7 +488,7 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
-      const Epetra_MultiVector& pres = *S_->GetFieldData(key_)->ViewComponent("cell",false);
+      const Epetra_MultiVector& pres = *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell",false);
       const auto& fmap = mesh_->face_map(true);
       const auto& bfmap = mesh_->exterior_face_map(true);
       for (int bf=0; bf!=rel_perm_bf.MyLength(); ++bf) {
@@ -541,25 +540,26 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability derivatives?";
 
-  bool update_perm = S_->GetFieldEvaluator(coef_key_)->HasFieldDerivativeChanged(S, name_, key_);
-  update_perm |= S_->GetFieldEvaluator(coef_grav_key_)->HasFieldDerivativeChanged(S, name_, key_);
-  Teuchos::RCP<const CompositeVector> drel_perm = S_->GetFieldData(dcoef_key_);
-  Teuchos::RCP<const CompositeVector> drel_grav_perm = S_->GetFieldData(dcoef_grav_key_);
-  
+  bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);  
+  update_perm |= S_->GetEvaluator(coef_grav_key_, tag).UpdateDerivative(*S_, name_, key_, tag);;  
   if (update_perm) {
+
+    const CompositeVector& drel_perm = S_->GetDerivative<CompositeVector>(coef_key_, tag, key_, tag);
+    const CompositeVector& drel_grav_perm = S_->GetDerivative<CompositeVector>(coef_grav_key_, tag, key_, tag);
+
     if (!duw_coef_key_.empty()) {
-      Teuchos::RCP<CompositeVector> duw_rel_perm = S_->GetFieldData(duw_coef_key_, name_);
-      duw_rel_perm->PutScalar(0.);
+      CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, name_);
+      duw_rel_perm.PutScalar(0.);
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
-      upwinding_deriv_->Update(S, dcoef_key_, "cell", duw_coef_key_, "face");
-      upwinding_deriv_->Update(S, dcoef_grav_key_, "cell", duw_coef_key_, "grav");
+      upwinding_deriv_->Update(drel_perm, "cell", duw_rel_perm, "face", *S_);
+      upwinding_deriv_->Update(drel_grav_perm, "cell", duw_rel_perm, "grav", *S_);
 
-      duw_rel_perm->ScatterMasterToGhosted("face");
-      duw_rel_perm->ScatterMasterToGhosted("grav");
+      duw_rel_perm.ScatterMasterToGhosted("face");
+      duw_rel_perm.ScatterMasterToGhosted("grav");
     } else {
-      drel_perm->ScatterMasterToGhosted("cell");
-      drel_grav_perm->ScatterMasterToGhosted("cell");
+      drel_perm.ScatterMasterToGhosted("cell");
+      drel_grav_perm.ScatterMasterToGhosted("cell");
     }
   }
 
