@@ -305,25 +305,37 @@ void Preferential::SetupPhysicalEvaluators_() {
   //   wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
   //   wrm_plist.set("field evaluator type", "WRM");
   // }
+    if (plist_->isSublist("water retention evaluator")) {
+    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
+    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
+    wrm_plist.set("evaluator type", "WRM");
+  }
+  if (!S_->HasEvaluator(coef_key_, tag_next_) &&
+      (S_->GetEvaluatorList(coef_key_).numParams() == 0)) {
+    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
+    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
+    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
+  }
+
+
+    // -- Water retention evaluators for gravity term
+  // This deals with deprecated location for the WRM list (in the PK).  Move it
+  // if (plist_->isSublist("water retention evaluator for gravity term")) {
+  //   auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
+  //   wrm_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
+  //   wrm_plist.set("field evaluator type", "WRM");
+  // }
 
   if (plist_->isSublist("water retention evaluator for gravity term")) {
     auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
     wrm_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
-    wrm_plist.set("field evaluator type", "WRM");
+    wrm_plist.set("evaluator type", "WRM");
   }
-
-  if (!S_->HasEvaluator(coef_key_, tag_next_)
-      && (S_->GetEvaluatorList(coef_key_).numParams() == 0)) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(plist_->sublist("water retention evaluator"));
-    kr_plist.set("field evaluator type", "WRM rel perm");
-  }
-  
-  if (!S_->HasEvaluator(coef_grav_key_, tag_next_)
-      && (S_->GetEvaluatorList(coef_grav_key_).numParams() == 0)) {
+  if (!S_->HasEvaluator(coef_grav_key_, tag_next_) &&
+      (S_->GetEvaluatorList(coef_grav_key_).numParams() == 0)) {
     Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_grav_key_);
-    kr_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
-    kr_plist.set("field evaluator type", "WRM rel perm");
+    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
+    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
   }
   
   // -- saturation
