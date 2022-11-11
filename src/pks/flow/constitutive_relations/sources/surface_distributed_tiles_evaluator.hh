@@ -56,12 +56,12 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>&  result) override;
   
-  virtual void EnsureCompatibility_Structure_(State& S) override; 
+  virtual void EnsureCompatibility_ToDeps_(State& S) override; 
   
 
  protected:
 
-  void InitializeFromPlist_();
+  //void InitializeFromPlist_();
   
   std::vector<double> times_;  
   Key surface_marks_key_, surf_len_key_, dist_sources_key_;

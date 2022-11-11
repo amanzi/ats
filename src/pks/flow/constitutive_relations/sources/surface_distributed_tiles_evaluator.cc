@@ -33,7 +33,7 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
   surface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
   surf_len_key_ = Keys::readKey(plist, domain_, "catchments_frac", "catchments_frac");
   dist_sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
-  Key update_key = plist.get<std::string>("update key", "surface-pressure");
+  Key update_key = plist.get<std::string>("update key", "water_source");
   
   num_ditches_ = plist.get<int>("number of ditches");
   implicit_ = plist.get<bool>("implicit drainage", true);
@@ -51,15 +51,7 @@ SurfDistributedTilesRateEvaluator::Evaluate_(const State& S,
 {
   auto tag = my_keys_.front().second; 
   double dt = S.Get<double>("dt", tag); 
-    
-  // Teuchos::RCP<Field> src_field =  S->GetField(dist_sources_key_, "state");
-  // if (!implicit_){
-  //   if (abs(t0 - times_[0]) > 1e-12) {
-  //     src_field->SwitchCopies(Key("default"), Key("prev_timestep"));
-  //     times_[0] = t0;
-  //   }
-  // }
-      
+          
   const auto& surf_marks = *S.GetPtr<CompositeVector>(surface_marks_key_, tag)->ViewComponent("cell", false);
   const auto& len_frac = *S.GetPtr<CompositeVector>(surf_len_key_, tag)->ViewComponent("cell", false);
   const auto& cv =
@@ -77,12 +69,12 @@ SurfDistributedTilesRateEvaluator::Evaluate_(const State& S,
     }
   }
   
-  //std::cout<< "Total source: "<<total<<"\n";
-  // total = 0.0;
-  // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
-  //   total += surf_src[0][c]*cv[0][c];
-  // }
-  // std::cout<<"Total source: field  "<<total<<"\n";
+  //  std::cout<< "Total source: "<<total<<"\n";
+  total = 0.0;
+  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+    total += surf_src[0][c]*cv[0][c];
+  }
+  std::cout<<"Total source: field  "<<total<<"\n";
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
@@ -96,7 +88,7 @@ SurfDistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 void
-SurfDistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
+SurfDistributedTilesRateEvaluator::EnsureCompatibility_ToDeps_(State& S) {
 
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)){    
@@ -110,14 +102,7 @@ SurfDistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
   dist_src_vec_ = S.GetPtr<Epetra_Vector>(dist_sources_key_, tag);
   
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
-
   
-}
-
-void
-SurfDistributedTilesRateEvaluator::InitializeFromPlist_() {
-
 }
 
 

@@ -60,12 +60,12 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>&  result) override;
-  virtual void EnsureCompatibility_Structure_(State& S) override;
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
   
 
  protected:
 
-  void InitializeFromPlist_();
+  //void InitializeFromPlist_();
   
   std::vector<double> times_;
   

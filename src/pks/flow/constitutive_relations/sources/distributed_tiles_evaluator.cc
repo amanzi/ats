@@ -115,11 +115,11 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
   // std::cout <<"Sink vector\n";
   // std::cout << *dist_src_vec_<<"\n";
   //std::cout<<"Total sink "<<my_key_<<" "<<total<<"\n";
-  // total = 0.;
-  // for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
-  //   total += sub_sink[0][c] * cv[0][c];
-  // }
-  // std::cout<<"Total sink field "<<" "<<total<<"\n";
+  total = 0.;
+  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+    total += sub_sink[0][c] * cv[0][c];
+  }
+  std::cout<<"Total sink field "<<" "<<total<<"\n";
 
   
   Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->get_comm();
@@ -156,7 +156,7 @@ DistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 void
-DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
+DistributedTilesRateEvaluator::EnsureCompatibility_ToDeps_(State& S) {
 
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)){
@@ -171,13 +171,6 @@ DistributedTilesRateEvaluator::EnsureCompatibility_Structure_(State& S) {
 
   
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_Structure_(S);
-  
-}
-
-void
-DistributedTilesRateEvaluator::InitializeFromPlist_() {
-
-  
   
 }
 
