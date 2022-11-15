@@ -64,9 +64,12 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
   auto& sub_sink = *result[0]->ViewComponent("cell",false);
   sub_sink.PutScalar(0);
 
-  // NOTE: this is a hack for now -- in the future this should be made one of my keys --ETC
+  // NOTE: this is a hack for now -- in the future this should be made one of
+  // my keys, but it would require that this eval was not a
+  // EvaluatorSecondaryMonotype --ETC
   State* S_nc = const_cast<State*>(&S);
   auto& dist_src_vec = S_nc->GetW<Teuchos::Array<double>>(dist_sources_key_, tag, dist_sources_key_);
+  for (int lcv=0; lcv!=num_ditches_; ++lcv) dist_src_vec[lcv] = 0.;
 
   AmanziMesh::Entity_ID ncells = sub_sink.MyLength();
   double total = 0.0;

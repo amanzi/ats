@@ -31,8 +31,15 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
 
   surface_marks_key_ = Keys::readKey(plist, domain_, "catchments_id", "catchments_id");
   surf_len_key_ = Keys::readKey(plist, domain_, "catchments_frac", "catchments_frac");
-  dist_sources_key_ = plist.get<std::string>("accumulated source key", "subdomain_sources");
-  Key update_key = plist.get<std::string>("update key", "water_source");
+
+  auto domain_subsurf = Keys::readDomainHint(plist, domain_, "surface", "domain");
+  dist_sources_key_ = Keys::readKey(plist, domain_subsurf, "accumulated source key", "subdomain_sources");
+
+  // note: this key is required to be dependent upon the DistTilesEval, because
+  // this eval does not currently depend upon the dist_sources vector.  This
+  // should get fixed to actually be dependent, but then this eval would need
+  // to not be a EvaluatorSecondaryMonotype. --ETC
+  Key update_key = Keys::readKey(plist, domain_subsurf, "update", "water_source");
 
   num_ditches_ = plist.get<int>("number of ditches");
   implicit_ = plist.get<bool>("implicit drainage", true);
