@@ -124,7 +124,7 @@ Example:
 
 Neumann (fix level flux) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
+Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^-1], in the outward normal direction on boundaries.
 
 Example:
 
@@ -141,7 +141,7 @@ Example:
             </ParameterList>
             <ParameterList name="velocity">
                <ParameterList name="function-constant">
-                 <Parameter name="value" type="double" value="-25"/>
+                 <Parameter name="value" type="double" value="2.5"/>
                </ParameterList>
             </ParameterList>            
           </ParameterList>
