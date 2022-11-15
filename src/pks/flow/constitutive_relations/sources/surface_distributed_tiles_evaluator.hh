@@ -5,35 +5,32 @@
 */
 
 //!
-//! 
-//! 
 /*!
 
 Requires the following dependencies:
 
-* 
-* 
+*
+*
 
 Allows the following parameters:
 
-* 
-    
+*
 
-* 
-  
 
-* 
+*
+
+
+*
 
 .. note:
-  
+
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
 #define AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "Epetra_Vector_Factory.hh"
-#include "EvaluatorSecondaryMonotype.hh" 
+#include "EvaluatorSecondaryMonotype.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -50,26 +47,22 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SurfDistributedTilesRateEvaluator(*this));
   }
 
+ protected:
   // Required methods from EvaluatorSecondaryMonotype
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>&  result) override;
-  
-  virtual void EnsureCompatibility_ToDeps_(State& S) override; 
-  
+
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:
-
-  //void InitializeFromPlist_();
-  
-  std::vector<double> times_;  
+  std::vector<double> times_;
   Key surface_marks_key_, surf_len_key_, dist_sources_key_;
   Key domain_, domain_surf_;
   bool compatibility_checked_, implicit_;
   int num_ditches_;
-  Teuchos::RCP<const Epetra_Vector> dist_src_vec_;
-  
+
  private:
   static Utils::RegisteredFactory<Evaluator,SurfDistributedTilesRateEvaluator> reg_;
 
