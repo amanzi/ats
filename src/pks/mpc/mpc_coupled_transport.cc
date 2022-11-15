@@ -63,7 +63,6 @@ int MPCCoupledTransport::get_num_aqueous_component()
 
 void MPCCoupledTransport::SetupCouplingConditions_()
 {
-
   Key domain_ss = pks_list_->sublist(name_ss_).get<std::string>("domain name", "domain");
   Key domain_surf = pks_list_->sublist(name_surf_).get<std::string>("domain name", "surface");
 
