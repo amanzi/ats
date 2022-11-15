@@ -205,8 +205,7 @@ void Richards::SetupRichardsFlow_()
 
 void Richards::SetupDiscretization_()
 {
-
-    // require the data on appropriate locations
+  // require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
   if (coef_location == "upwind: face") {
     S_->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, tag_next_,  name_).SetMesh(mesh_)
@@ -412,8 +411,6 @@ void Richards::SetupDiscretization_()
   // -- valid step controls
   sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
   sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
-
-  
 }
 
 // -------------------------------------------------------------

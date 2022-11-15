@@ -100,13 +100,8 @@ void Richards::AddSources_(const Tag& tag,
       g_c[0][c] -= source1[0][c] * cv[0][c];
     }
 
-    if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-      *vo_->os() << "Adding external source term" << std::endl;
-      db_->WriteVector("  Q_ext", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
-      db_->WriteVector("     cv", S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ptr(), false);
-    }  
-    db_->WriteVector("res (src)", g, false);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
+    db_->WriteVector("res (src)", g, false);
   }
 }
 

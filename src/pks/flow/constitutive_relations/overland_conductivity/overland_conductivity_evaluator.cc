@@ -68,7 +68,6 @@ OverlandConductivityEvaluator::Clone() const
 void OverlandConductivityEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
   Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
@@ -118,7 +117,6 @@ void OverlandConductivityEvaluator::Evaluate_(const State& S,
       const Epetra_MultiVector& dens_v = *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp,false);
       for (int i=0; i!=ncomp; ++i) result_v[0][i] *= dens_v[0][i];
     }
-    
   }
 }
 

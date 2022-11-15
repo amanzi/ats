@@ -71,7 +71,6 @@ void Richards::FunctionalResidual(double t_old,
     vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
     vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
   }
-
   vnames.emplace_back("poro");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
   vnames.emplace_back("perm_K");
@@ -84,7 +83,6 @@ void Richards::FunctionalResidual(double t_old,
   vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
   vnames.emplace_back("flux");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
-
   db_->WriteVectors(vnames,vecs,true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 

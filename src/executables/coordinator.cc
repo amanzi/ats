@@ -36,7 +36,6 @@ actual work.
 #include "IO.hh"
 #include "GeometricModel.hh"
 #include "Checkpoint.hh"
-//#include "MeshInfo.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"
 #include "PK.hh"
@@ -125,17 +124,6 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       analysis.RegionAnalysis();
       analysis.OutputBCs();
     }
-
-    // std::string plist_name = "mesh info " + mesh->first;
-    // // in the case of just a domain mesh, we want to allow no name.
-    // if ((mesh->first == "domain") && !parameter_list_->isSublist(plist_name)) {
-    //   plist_name = "mesh info";
-    // }
-    // if (parameter_list_->isSublist(plist_name)) {
-    //   auto& mesh_info_list = parameter_list_->sublist(plist_name);
-    //   Teuchos::RCP<Amanzi::MeshInfo> mesh_info = Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
-    //   mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
-    // }
   }
 
   // create verbose object
@@ -589,6 +577,5 @@ void Coordinator::checkpoint(bool force)
     checkpoint_->Write(*S_);
   }
 }
-
 
 } // close namespace Amanzi
