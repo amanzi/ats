@@ -254,27 +254,21 @@ public:
   // Virtual destructor
   virtual ~Preferential() {}
 
-  // -- Setup data.
-  virtual void Setup() override;
-
-
-protected:
+ protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_() override;
-  virtual void SetupPreferentialFlow_();
+  virtual void RequireNonlinearCoefficient_(const Key& key, const std::string& loc) override;
 
-  // // boundary condition members
-  // void ComputeBoundaryConditions_(const Teuchos::Ptr<State>& S);
-
-  // // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
+  // Builds tensor K, along with faced-based Krel if needed by the rel-perm method
   virtual bool UpdatePermeabilityData_(const Tag& tag) override;
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag) override;
 
 
-protected:
-   Key coef_grav_key_, dcoef_grav_key_; 
-  
-private:
+ protected:
+  Key coef_grav_key_;
+  Key dcoef_grav_key_;
+
+ private:
   // factory registration
   static RegisteredPKFactory<Preferential> reg_;
 

@@ -292,8 +292,9 @@ public:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_();
   virtual void SetupRichardsFlow_();
-  virtual void SetupDiscretization_();
-  
+  // customization of upwinding
+  virtual void RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location);
+
   // boundary condition members
   void ComputeBoundaryConditions_(const Tag& tag);
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr=true);
@@ -341,7 +342,6 @@ public:
                        Teuchos::RCP<TreeVector> du) override;
 
  protected:
-
   // control switches
   Operators::UpwindMethod Krel_method_;
   bool infiltrate_only_if_unfrozen_;
