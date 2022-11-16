@@ -146,7 +146,8 @@ if (APPLE AND BUILD_SHARED_LIBS)
   set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 endif()			  
 
-if (BUILD_TESTS)
+if (BUILD_TESTS) 
+
   # Add UnitTest includes
   include_directories(${UnitTest_INCLUDE_DIRS})
   include_directories(${EXECUTABLE_SOURCE_DIR})
@@ -160,14 +161,19 @@ if (BUILD_TESTS)
     file(COPY ${DataFiles} DESTINATION ${EXECUTABLE_BINARY_DIR}/test/)
   endif()
 
+  # test for ats mesh factory
   add_amanzi_test(executable_mesh_factory executable_mesh_factory
            KIND int
            SOURCE test/Main.cc test/executable_mesh_factory.cc
            LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
-
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
   add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
 
+  # test for coupled water preconditioners
+  add_amanzi_test(executable_coupled_water executable_coupled_water
+    KIND int
+    SOURCE test/Main.cc test/executable_coupled_water.cc
+    LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
 
 endif()
 

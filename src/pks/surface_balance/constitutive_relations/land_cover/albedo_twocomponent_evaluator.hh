@@ -57,6 +57,10 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   }
 
  protected:
+  // custom EC used to set subfield names
+  virtual void EnsureCompatibility_Structure_(State& S) override;
+
+  // custom EC used because deps have 1 component not 2
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV

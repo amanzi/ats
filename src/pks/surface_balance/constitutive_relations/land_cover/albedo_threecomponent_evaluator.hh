@@ -55,9 +55,13 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new AlbedoThreeComponentEvaluator(*this));
   }
 
+ protected:
+  // custom EC used to set subfield names
+  virtual void EnsureCompatibility_Structure_(State& S) override;
+
+  // custom EC used because deps have 1 component not 3
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
- protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& results) override;

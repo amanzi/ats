@@ -19,6 +19,7 @@ Process kernel for energy equation for overland flow.
 #include "EvaluatorPrimary.hh"
 #include "Op.hh"
 
+#include "pk_helpers.hh"
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {
@@ -39,6 +40,8 @@ EnergySurfaceIce::EnergySurfaceIce(Teuchos::ParameterList& FElist,
 {
   if(!plist_->isParameter("conserved quantity key suffix"))
     plist_->set("conserved quantity key suffix", "energy");
+
+  domain_ss_ = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
 }
 
 
@@ -56,6 +59,7 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_()
     tcm_plist.setParameters(plist_->sublist("thermal conductivity evaluator"));
     tcm_plist.set("evaluator type", "surface thermal conductivity");
   }
+  EnergyBase::SetupPhysicalEvaluators_();
 
   // -- coupling to subsurface
   coupled_to_subsurface_via_temp_ =
@@ -70,6 +74,18 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_()
 
     S_->Require<CompositeVector,CompositeVectorSpace>(key_ss, tag_next_)
       .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+    // -- ensure enthalpy exists at the new time
+    requireAtNext(enthalpy_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+    // -- and on the subsurface
+    requireAtNext(Keys::getKey(domain_ss_,"enthalpy"), tag_next_, *S_)
+      .SetMesh(S_->GetMesh(domain_ss_))
+      ->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
   }
 
   if (coupled_to_subsurface_via_temp_) {
@@ -78,8 +94,6 @@ void EnergySurfaceIce::SetupPhysicalEvaluators_()
         .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
     S_->RequireEvaluator("surface_subsurface_energy_flux", tag_next_);
   }
-
-  EnergyBase::SetupPhysicalEvaluators_();
 }
 
 
@@ -107,8 +121,7 @@ void EnergySurfaceIce::Initialize() {
       Teuchos::RCP<CompositeVector> surf_temp_cv = S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
       Epetra_MultiVector& surf_temp = *surf_temp_cv->ViewComponent("cell",false);
 
-      Key domain_ss = Keys::readDomainHint(*plist_, domain_, "surface", "subsurface");
-      Key key_ss = Keys::readKey(*plist_, domain_ss, "subsurface temperature", "temperature");
+      Key key_ss = Keys::readKey(*plist_, domain_ss_, "subsurface temperature", "temperature");
 
       Teuchos::RCP<const CompositeVector> subsurf_temp = S_->GetPtr<CompositeVector>(key_ss, tag_next_);
       auto ncells_surface = mesh_->num_entities(AmanziMesh::CELL,AmanziMesh::Parallel_type::OWNED);
@@ -176,17 +189,7 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
   // -- two parts -- conduction and advection
   // -- advection source
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_) {
-
-    // FIXME -- remove this in favor of adding Keys::readDomainHint calls!
-    Key domain_ss;
-    if (Keys::starts_with(domain_, "surface")  && domain_.find("column") != std::string::npos) {
-      domain_ss = plist_->get<std::string>("subsurface domain name",
-              domain_.substr(8,domain_.size()));
-    } else {
-      domain_ss = plist_->get<std::string>("subsurface domain name", "domain");
-    }
-
-    S_->GetEvaluator(Keys::getKey(domain_ss,"enthalpy"), tag).Update(*S_, name_);
+    S_->GetEvaluator(Keys::getKey(domain_ss_,"enthalpy"), tag).Update(*S_, name_);
     S_->GetEvaluator(enthalpy_key_, tag).Update(*S_, name_);
 
     // -- advection source
@@ -197,7 +200,7 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
     const Epetra_MultiVector& enth_surf =
       *S_->Get<CompositeVector>(enthalpy_key_, tag).ViewComponent("cell",false);
     const Epetra_MultiVector& enth_subsurf =
-      *S_->Get<CompositeVector>(Keys::getKey(domain_ss,"enthalpy"), tag).ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(Keys::getKey(domain_ss_,"enthalpy"), tag).ViewComponent("cell",false);
 
     // not needed?
     const Epetra_MultiVector& pd =
@@ -205,6 +208,7 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
 
     AmanziMesh::Entity_ID_List cells;
     unsigned int ncells = g_c.MyLength();
+    const auto& mesh_ss = *S_->GetMesh(domain_ss_);
     for (unsigned int c=0; c!=ncells; ++c) {
       double flux = source1[0][c]; // NOTE: this flux is in mol/s
 
@@ -212,7 +216,7 @@ void EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeV
       if (flux > 0.) { // exfiltration
         // get the subsurface's enthalpy
         AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
-        S_->GetMesh(domain_ss)->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        mesh_ss.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
 
         AMANZI_ASSERT(cells.size() == 1);
         g_c[0][c] -= flux * enth_subsurf[0][cells[0]];

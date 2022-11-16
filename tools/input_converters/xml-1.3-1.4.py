@@ -124,6 +124,7 @@ def top_cell_evals(xml):
         if ev_type.getValue() == 'surface top cell evaluator':
             ev_type.setValue('surface from top cell evaluator')
 
+
 def density_units(xml):
     """[kg/m^3] --> [kg m^-3] to be consistent with all other units in ATS"""
     for d in asearch.findall_path(xml, ["molar mass [kg/mol]"]):
@@ -134,6 +135,53 @@ def density_units(xml):
         d.setName("density [kg m^-3]")
     for d in asearch.findall_path(xml, ["density [mol/m^3]"]):
         d.setName("density [mol m^-3]")
+
+
+def rh_to_vp(xml):
+    """Converts relative humidity to vapor pressure."""
+    import warnings
+    for ev in asearch.findall_path(xml, ["state", "evaluators", "surface-relative_humidity"], no_skip=True):
+        try:
+            y_header = asearch.find_path(ev, ["function", "domain", "function", "function-tabular", "y header"], no_skip=True)
+        except aerrors.MissingXMLError:
+            warnings.warn("Unable to update relative_humidity --> vapor_pressure_air: this must be done manually.")
+        else:
+            warnings.warn("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
+            ev.setName("surface-vapor_pressure_air")
+            y_header.setValue("vapor pressure air [Pa]")
+
+
+def pk_flow_reactive_transport(xml):
+    pk_tree = asearch.find_path(xml, ["cycle driver", "PK tree"], no_skip=True)
+    for pk_type_in_tree in asearch.findall_path(pk_tree, ["PK type"]):
+        if pk_type_in_tree.getValue() == "flow reactive transport":
+            pk_type_in_tree.setValue("subcycling MPC")
+
+    for pk in asearch.find_path(xml, ["PKs"], no_skip=True):
+        pk_type = asearch.child_by_name(pk, "PK type")
+        if pk_type.getValue() == "flow reactive transport":
+            pk_type.setValue("subcycling MPC")
+            try:
+                pk.pop("master PK index")
+            except asearch.MissingXMLError:
+                pass
+            else:
+                pk.setParameter("subcycle", "Array(int)", [0,1])
+
+    for pk in asearch.find_path(xml, ["PKs"], no_skip=True):
+        pk_type = asearch.child_by_name(pk, "PK type")
+        if pk_type.getValue() == "transport ATS":
+            try:
+                tests = asearch.child_by_name(pk, "enable internal tests")
+            except aerrors.MissingXMLError:
+                pass
+            else:
+                if tests.getValue() == "yes":
+                    pk.pop("enable internal tests")
+                    pk.setParameter("enable internal tests", "bool", True)
+                elif tests.getValue() == "no":
+                    pk.pop("enable internal tests")
+                    pk.setParameter("enable internal tests", "bool", False)
             
                 
 def update(xml, has_orig=False):
@@ -142,6 +190,9 @@ def update(xml, has_orig=False):
     pk_initial_timestep(xml, has_orig)
     top_cell_evals(xml)
     density_units(xml)
+    rh_to_vp(xml)
+    pk_flow_reactive_transport(xml)
+    
     
 if __name__ == "__main__":
     import argparse

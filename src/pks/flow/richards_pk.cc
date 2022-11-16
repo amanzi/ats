@@ -58,7 +58,8 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     jacobian_(false),
     jacobian_lag_(0),
     iter_(0),
-    iter_counter_time_(0.)
+    iter_counter_time_(0.),
+    fixed_kr_(false)
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
@@ -183,8 +184,9 @@ void Richards::SetupRichardsFlow_()
     upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
     Krel_method_ = Operators::UPWIND_METHOD_CENTERED;
   } else if (method_name == "upwind with Darcy flux") {
+    double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
     upwinding_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-            tag_next_, flux_dir_key_, 1.e-5));
+            tag_next_, flux_dir_key_, flux_eps));
     Krel_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
   } else if (method_name == "arithmetic mean") {
     upwinding_ = Teuchos::rcp(new Operators::UpwindArithmeticMean(name_,
@@ -281,8 +283,11 @@ void Richards::SetupRichardsFlow_()
       S_->Require<CompositeVector,CompositeVectorSpace>(duw_coef_key_, tag_next_,  name_)
         .SetMesh(mesh_)->SetGhosted()
         ->SetComponent("face", AmanziMesh::FACE, 1);
+
+      // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
+      double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
       upwinding_deriv_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-              tag_next_, flux_dir_key_, 1.e-8));
+              tag_next_, flux_dir_key_, 1.e-3 * flux_eps));
     } else {
       // FV -- no upwinding of derivative
       duw_coef_key_ = std::string();
@@ -749,6 +754,7 @@ bool Richards::UpdatePermeabilityData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability?";
+  if (fixed_kr_) return false;
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
   bool update_perm = S_->GetEvaluator(coef_key_, tag)
@@ -861,6 +867,7 @@ bool Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
     *vo_->os() << "  Updating permeability derivatives?";
+  if (fixed_kr_) return false;
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
   if (update_perm) {
