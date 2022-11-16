@@ -92,8 +92,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   VerboseObject::global_default_level = Teuchos::VERB_NONE;
 
   // domains names
-  domain_subsurf_ = Keys::readDomain(*plist_, "domain");
-  domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
+  domain_subsurf_ = Keys::readDomain(*plist_, "domain", "domain");
+  domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "domain", "surface");
 
   // keys for fields in mesh info
   // lat_key_ = Keys::readKey(*plist_, domain_surf_, "latitude", "latitude");
