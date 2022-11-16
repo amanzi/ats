@@ -20,7 +20,7 @@ respectively, K is some measure of an absolute permeability, :math:`\Gamma [-]`
 is the exchange coefficient, :math:`\delta [m]` is a unit of distance
 characterizing the typical distance between pore, and :math:`k_r` is the
 relative permeability, which is upwinded based on the larger of the two
-pressures, 'n_l' is molar density liquid 
+pressures, 'n_l' is molar density liquid
 
 Note that the expected domain for this is the micropore domain, but may be
 changed on the input line.
@@ -42,7 +42,7 @@ changed on the input line.
    * `"micropore relative permeability`" **relative_permeability**
    * `"macropore relative permeability`" **MACROPORE_DOMAIN-relative_permeability**
    * `"permeability`" **permeability**
-   * `"micropore molar density liquid`" **molar_density_liquid** 
+   * `"micropore molar density liquid`" **molar_density_liquid**
 
 */
 
@@ -64,17 +64,6 @@ MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(Teuchos::Parame
 }
 
 
-// Copy constructor
-// MicroporeMacroporeFluxEvaluator::MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other) :
-//     EvaluatorSecondaryMonotypeCV(other),
-//     pm_key_(other.pm_key_),
-//     pM_key_(other.pM_key_),
-//     krM_key_(other.krM_key_),
-//     krm_key_(other.krm_key_),
-//     K_key_(other.K_key_),
-//     den_key_(other.den_key_),
-//     model_(other.model_) {}
-
 // Virtual copy constructor
 Teuchos::RCP<Evaluator>
 MicroporeMacroporeFluxEvaluator::Clone() const
@@ -88,12 +77,11 @@ void
 MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
-
   //Key micro_domain = Keys::getDomain(my_key_);
   Key micro_domain = plist_.get<std::string>("micropore domain name", "domain");
   Key macro_domain = plist_.get<std::string>("macropore domain name", "macropore");
   auto tag = my_keys_.front().second;
-  
+
   // - pull Keys from plist
   // dependency: micropore_pressure
   pm_key_ = Keys::readKey(plist_, micro_domain, "micropore pressure", "pressure");
@@ -109,13 +97,11 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{krM_key_, tag});
   // dependency: micropore_absolute_permeability
 
-  K_key_ = Keys::readKey(plist_, macro_domain, "macropore absolute permeability", "permeability");  
+  K_key_ = Keys::readKey(plist_, macro_domain, "macropore absolute permeability", "permeability");
   dependencies_.insert(KeyTag{K_key_, tag});
   // dependency: micropore_molar_density_liquid
   den_key_ = Keys::readKey(plist_, micro_domain, "micropore molar density liquid", "molar_density_liquid");
   dependencies_.insert(KeyTag{den_key_, tag});
-    
-
 }
 
 
@@ -123,7 +109,6 @@ void
 MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-
   auto tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pm = S.GetPtr<CompositeVector>(pm_key_, tag);
   Teuchos::RCP<const CompositeVector> pM = S.GetPtr<CompositeVector>(pM_key_, tag);
@@ -131,10 +116,10 @@ MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> krm = S.GetPtr<CompositeVector>(krm_key_, tag);
   Teuchos::RCP<const CompositeVector> K = S.GetPtr<CompositeVector>(K_key_, tag);
   Teuchos::RCP<const CompositeVector> den = S.GetPtr<CompositeVector>(den_key_, tag);
-  
+
   for (CompositeVector::name_iterator comp=result[0]->begin();
        comp!=result[0]->end(); ++comp) {
-    
+
     const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
     const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
     const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
@@ -155,7 +140,6 @@ void
 MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
 {
-
   auto tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pm = S.GetPtr<CompositeVector>(pm_key_, tag);
   Teuchos::RCP<const CompositeVector> pM = S.GetPtr<CompositeVector>(pM_key_, tag);
