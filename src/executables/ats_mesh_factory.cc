@@ -49,7 +49,6 @@ createMeshFromFile(const std::string& mesh_name,
   // partitioner
   std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
   mesh_factory_plist->sublist("unstructured").sublist("expert").set("partitioner", partitioner);
-  mesh_factory_plist->sublist("unstructured").sublist("expert").set("contiguous global ids", false);
 
   // vo
   if (mesh_plist.isSublist("verbose object"))
