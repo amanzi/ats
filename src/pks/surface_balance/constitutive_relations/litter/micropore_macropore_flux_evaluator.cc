@@ -77,9 +77,8 @@ void
 MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies
-  //Key micro_domain = Keys::getDomain(my_key_);
-  Key micro_domain = plist_.get<std::string>("micropore domain name", "domain");
-  Key macro_domain = plist_.get<std::string>("macropore domain name", "macropore");
+  Key micro_domain = Keys::getDomain(my_keys_.front().first);
+  Key macro_domain = Keys::readDomainHint(plist_, micro_domain, "micropore", "macropore");
   auto tag = my_keys_.front().second;
 
   // - pull Keys from plist
