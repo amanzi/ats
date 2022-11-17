@@ -286,10 +286,10 @@ void Transport_ATS::Setup()
         Teuchos::ParameterList& src_list = conc_sources_list.sublist(name);
         std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
         if ((src_type == "field")&&(src_list.isSublist("field"))){
-          trans_srs_key_ = src_list.sublist("field").get<std::string>("field key");
-          requireAtNext(trans_srs_key_, Tags::NEXT, *S_).SetMesh(mesh_)->SetGhosted(true)
+          solute_src_key_ = src_list.sublist("field").get<std::string>("field key");
+          requireAtNext(solute_src_key_, Tags::NEXT, *S_).SetMesh(mesh_)->SetGhosted(true)
             ->AddComponent("cell", AmanziMesh::CELL,  num_components);
-	  S_->Require<CompositeVector,CompositeVectorSpace>(trans_srs_key_, tag_next_, trans_srs_key_);
+	  S_->Require<CompositeVector,CompositeVectorSpace>(solute_src_key_, tag_next_, solute_src_key_);
         }
       }
     }
@@ -1551,12 +1551,6 @@ void Transport_ATS::ComputeAddSourceTerms(double tp, double dtp,
 {
   int num_vectors = cons_qty.NumVectors();
   int nsrcs = srcs_.size();
-
-  if (trans_srs_key_!=""){
-    if (S_->HasEvaluator(trans_srs_key_, Tags::NEXT)) {
-      S_->GetEvaluator(trans_srs_key_, Tags::NEXT).Update(*S_, trans_srs_key_);
-    }
-  }
 
   for (int m = 0; m < nsrcs; m++) {
     double t0 = tp - dtp;
