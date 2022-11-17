@@ -86,7 +86,6 @@ SurfDistributedTilesRateEvaluator::EnsureCompatibility(State& S)
   if (!S.HasRecord(dist_sources_key_, tag)) {
     S.Require<Teuchos::Array<double>>(num_ditches_, dist_sources_key_, tag);
   }
-  //EvaluatorSecondary::EnsureCompatibility(S);
 
   S.Require<CompositeVector,CompositeVectorSpace>(key, tag, key)
     .SetMesh(S.GetMesh(domain_))

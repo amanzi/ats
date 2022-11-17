@@ -23,7 +23,7 @@ namespace Relations {
 
 
 DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist),
+    EvaluatorSecondary(plist),
     compatibility_checked_(false)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
@@ -48,12 +48,12 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   if (factor_key_ != "") dependencies_.insert(KeyTag{factor_key_, tag});
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
 void
-DistributedTilesRateEvaluator::Evaluate_(const State& S,
-                                         const std::vector<CompositeVector*>& result)
+DistributedTilesRateEvaluator::Update_(State& S)
 {
-  auto tag = my_keys_.front().second;
+  auto key_tag = my_keys_.front();
+  auto tag = key_tag.second;
+
   double dt = S.Get<double>("dt", tag);
 
   const auto& pres = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
@@ -61,14 +61,14 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
   const auto& cv = *S.Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
   const auto& sub_marks = *S.Get<CompositeVector>(subsurface_marks_key_, tag).ViewComponent("cell", false);
 
-  auto& sub_sink = *result[0]->ViewComponent("cell",false);
+  auto& sub_sink = *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).ViewComponent("cell",false);
   sub_sink.PutScalar(0);
 
   // NOTE: this is a hack for now -- in the future this should be made one of
   // my keys, but it would require that this eval was not a
   // EvaluatorSecondaryMonotype --ETC
-  State* S_nc = const_cast<State*>(&S);
-  auto& dist_src_vec = S_nc->GetW<Teuchos::Array<double>>(dist_sources_key_, tag, dist_sources_key_);
+  //State* S_nc = const_cast<State*>(&S);
+  auto& dist_src_vec = S.GetW<Teuchos::Array<double>>(dist_sources_key_, tag, dist_sources_key_);
   for (int lcv=0; lcv!=num_ditches_; ++lcv) dist_src_vec[lcv] = 0.;
 
   AmanziMesh::Entity_ID ncells = sub_sink.MyLength();
@@ -118,22 +118,25 @@ DistributedTilesRateEvaluator::Evaluate_(const State& S,
   MPI_Allreduce(MPI_IN_PLACE, &dist_src_vec.front(), num_ditches_, MPI_DOUBLE, MPI_SUM, comm);
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
 void
-DistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
-    const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+DistributedTilesRateEvaluator::EnsureCompatibility(State& S)
 {
-  result[0]->PutScalar(0.0);
-}
-
-void
-DistributedTilesRateEvaluator::EnsureCompatibility_ToDeps_(State& S)
-{
+  Key key = my_keys_.front().first;
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)) {
     S.Require<Teuchos::Array<double>>(num_ditches_, dist_sources_key_, tag, dist_sources_key_);
   }
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
+
+  S.Require<CompositeVector,CompositeVectorSpace>(key, tag, key)
+    .SetMesh(S.GetMesh(domain_))
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  
+  // For dependencies, all we really care is whether there is an evaluator or
+  // not.  We do not use the data at all.
+  for (const auto& dep : dependencies_) {
+    S.RequireEvaluator(dep.first, dep.second);
+  }
+  
 }
 
 

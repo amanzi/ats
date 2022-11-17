@@ -35,13 +35,13 @@ Allows the following parameters:
 
 
 #include "Factory.hh"
-#include "EvaluatorSecondaryMonotype.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class DistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
+class DistributedTilesRateEvaluator : public EvaluatorSecondary {
 
  public:
   explicit
@@ -51,16 +51,14 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new DistributedTilesRateEvaluator(*this));
   }
 
+  virtual void EnsureCompatibility(State& S) override;
+  
  protected:
-  // Required methods from EvaluatorSecondaryMonotype
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
-  virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>&  result) override;
-  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+  // Required methods from EvaluatorSecondary
+  virtual void Update_(State& S) override;
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
 
- protected:
-  std::vector<double> times_;
+
   Key domain_, domain_surf_;
 
   Key subsurface_marks_key_;
