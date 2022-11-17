@@ -23,7 +23,7 @@ namespace Relations {
 
 
 SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
-  EvaluatorSecondaryMonotypeCV(plist),
+  EvaluatorSecondary(plist),
   compatibility_checked_(false)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
@@ -51,17 +51,17 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
 
 // Required methods from SecondaryVariableFieldEvaluator
 void
-SurfDistributedTilesRateEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+SurfDistributedTilesRateEvaluator::Update_(State& S)
 {
-  auto tag = my_keys_.front().second;
+  auto key_tag = my_keys_.front();
+  auto tag = key_tag.second;
   double dt = S.Get<double>("dt", tag);
 
   const auto& surf_marks = *S.Get<CompositeVector>(surface_marks_key_, tag).ViewComponent("cell", false);
   const auto& len_frac = *S.Get<CompositeVector>(surf_len_key_, tag).ViewComponent("cell", false);
   const auto& cv = *S.Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
   const auto& dist_src_vec = S.Get<Teuchos::Array<double>>(dist_sources_key_, tag);
-  auto& surf_src = *result[0]->ViewComponent("cell",false);
+  auto& surf_src = *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).ViewComponent("cell"); 
 
   double total = 0.0;
 
@@ -78,22 +78,26 @@ SurfDistributedTilesRateEvaluator::Evaluate_(const State& S,
   }
 }
 
-// Required methods from SecondaryVariableFieldEvaluator
 void
-SurfDistributedTilesRateEvaluator::EvaluatePartialDerivative_(const State& S,
-    const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+SurfDistributedTilesRateEvaluator::EnsureCompatibility(State& S)
 {
-  result[0]->PutScalar(0.0);
-}
-
-void
-SurfDistributedTilesRateEvaluator::EnsureCompatibility_ToDeps_(State& S)
-{
+  Key key = my_keys_.front().first;
   auto tag = my_keys_.front().second;
   if (!S.HasRecord(dist_sources_key_, tag)) {
     S.Require<Teuchos::Array<double>>(num_ditches_, dist_sources_key_, tag);
   }
-  EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
+  //EvaluatorSecondary::EnsureCompatibility(S);
+
+  S.Require<CompositeVector,CompositeVectorSpace>(key, tag, key)
+    .SetMesh(S.GetMesh(domain_))
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  
+  // For dependencies, all we really care is whether there is an evaluator or
+  // not.  We do not use the data at all.
+  for (const auto& dep : dependencies_) {
+    S.RequireEvaluator(dep.first, dep.second);
+  }
+  
 }
 
 } //namespace

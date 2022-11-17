@@ -30,13 +30,13 @@ Allows the following parameters:
 #define AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
 
 #include "Factory.hh"
-#include "EvaluatorSecondaryMonotype.hh"
+#include "EvaluatorSecondary.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class SurfDistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
+class SurfDistributedTilesRateEvaluator : public EvaluatorSecondary {
 
  public:
   explicit
@@ -47,17 +47,13 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondaryMonotypeCV {
     return Teuchos::rcp(new SurfDistributedTilesRateEvaluator(*this));
   }
 
- protected:
-  // Required methods from EvaluatorSecondaryMonotype
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
-  virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>&  result) override;
-
-  virtual void EnsureCompatibility_ToDeps_(State& S) override;
+  virtual void EnsureCompatibility(State& S) override;
 
  protected:
-  std::vector<double> times_;
+
+  virtual void Update_(State& S) override ;
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
+  
   Key surface_marks_key_, surf_len_key_, dist_sources_key_;
   Key domain_, domain_surf_;
   bool compatibility_checked_, implicit_;
