@@ -7,16 +7,27 @@
 */
 //! Simulation control from ELM.
 
-/*
-ELM-ATS driver:
-Provides ATS functionality to an external caller like ELM
-contains:
-setup
-initialize
-advance
-set_sources
-get_waterstate
-get_mesh_info
+/*!
+
+The expected order of evaluation is:
+
+..code::
+
+   ELM_ATSDriver ats;
+   ats.setup();
+   ats.get_mesh_info();
+   ats.set_soil_parameters();
+   ats.set_veg_parameters();
+   ats.initialize();
+
+   for (step) {
+     ats.set_soil_properties();
+     ats.set_veg_properties();
+     ats.advance();
+     ats.get_water_state();
+     ats.get_water_fluxes();
+   }
+
 */
 
 #pragma once
@@ -31,86 +42,112 @@ get_mesh_info
 
 namespace ATS {
 
+using namespace Amanzi;
+
 class ELM_ATSDriver : public Coordinator {
 
 public:
 
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                const Amanzi::Comm_ptr_type& comm);
+                const Comm_ptr_type& comm,
+                int npfts = 17);
 
-  void setup();
-  void initialize(double t, double *p_atm, double *pressure);
   void finalize();
-
-  // Note advance is an overload here
-  void advance(double dt);
+  void advance(double dt, bool checkpoint, bool vis);
   void advance_test();
 
   void get_mesh_info(int& ncols_local,
                      int& ncols_global,
-                     int& ncells_per_col,
-                     double *lat,
-                     double *lon,
-                     double *elev,
-                     double *surf_area,
-                     double *dz,
-                     double *depth);
+                     double * const lat,
+                     double * const lon,
+                     double * const elev,
+                     double * const surf_area,
+                     int * const pft,
+                     int& nlevgrnd,
+                     double * const depth);
 
-  // set material properties
-  void set_soil_hydrologic_properties(double* porosity,
-          double* hydraulic_conductivity,
-          double* clapp_horn_b,
-          double* clapp_horn_smpsat,
-          double* clapp_horn_sr);
+  void setup();
+  void initialize(double t,
+                  double const * const p_atm,
+                  double const * const pressure);
 
-  void set_potential_sources(double const *soil_infiltration,
-                             double const *soil_evaporation,
-                             double const *root_transpiration);
+  void set_soil_hydrologic_parameters(double const * const base_porosity,
+          double const * const hydraulic_conductivity,
+          double const * const clapp_horn_b,
+          double const * const clapp_horn_smpsat,
+          double const * const clapp_horn_sr);
+  void set_veg_parameters(double const * const mafic_potential_full_turgor,
+          double const * const mafic_potential_wilt_point);
+  void set_hydrologic_properties(double const * const effective_porosity);
+  void set_veg_properties(double const * const rooting_fraction);
+  void set_potential_sources(double const * const surface_infiltration,
+                             double const * const surface_evaporation,
+                             double const * const subsurface_transpiration);
 
-  void get_actual_sources(double *soil_infiltration,
-                          double *soil_evaporation,
-                          double *root_transpiration);
+  void get_waterstate(double * const surface_ponded_depth,
+                      double * const soil_pressure,
+                      double * const soil_psi,
+                      double * const sat_liq,
+                      double * const sat_ice);
 
-  void get_waterstate(double *ponded_depth,
-                      double *soil_pressure,
-                      double *soil_pot,
-                      double *sat_liq,
-                      double *sat_ice);
+  void get_water_fluxes(double * const soil_infiltration,
+                        double * const evaporation,
+                        double * const transpiration,
+                        double * const net_subsurface_fluxes,
+                        double * const net_runon);
 
  private:
-  void copyToSurf_(Epetra_MultiVector& target, double const * source);
-  void copyToSub_(Epetra_MultiVector& target, double const * source);
-  void copyFromSurf_(double* target, const Epetra_MultiVector& source);
-  void copyFromSub_(double* target, const Epetra_MultiVector& source);
+  void copyToSurf_(double const * const in, const Key& key);
+  void copyToSub_(double const * const in, const Key& key);
+  void copyFromSurf_(double * const out, const Key& key) const;
+  void copyFromSub_(double * const out, const Key& key) const;
+
+  void initZero_(const Key& key);
 
  private:
-  Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh_subsurf_;
-  Teuchos::RCP<const Amanzi::AmanziMesh::Mesh> mesh_surf_;
-  Amanzi::Key domain_subsurf_;
-  Amanzi::Key domain_surf_;
+  int ncolumns_;
+  int ncells_per_col_;
+  int npfts_;
 
-  Amanzi::Key infilt_key_;
-  Amanzi::Key pot_evap_key_;
-  Amanzi::Key pot_trans_key_;
-  Amanzi::Key evap_key_;
-  Amanzi::Key trans_key_;
+  Key domain_subsurf_;
+  Key domain_surf_;
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh_subsurf_;
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh_surf_;
 
-  Amanzi::Key pd_key_;
-  Amanzi::Key pres_key_;
-  Amanzi::Key satl_key_;
+  Key lat_key_;
+  Key lon_key_;
+  Key elev_key_;
 
-  Amanzi::Key poro_key_;
-  Amanzi::Key perm_key_;
-  Amanzi::Key elev_key_;
-  Amanzi::Key surf_cv_key_;
+  Key base_poro_key_;
+  Key perm_key_;
+  // Key ch_b_key_;
+  // Key ch_smpsat_key_;
+  // Key ch_sr_key_;
 
-  Amanzi::Key surf_mol_dens_key_;
-  Amanzi::Key surf_mass_dens_key_;
-  Amanzi::Key subsurf_mol_dens_key_;
-  Amanzi::Key subsurf_mass_dens_key_;
+  // Key poro_key_;
+  Key root_frac_key_;
 
-  int ncolumns_{0};
-  int ncells_per_col_{0};
+  Key pot_evap_key_;
+  Key pot_trans_key_;
+  Key pot_infilt_key_;
+
+  Key pd_key_;
+  Key pres_key_;
+  Key pc_key_;
+  Key sat_liq_key_;
+  Key sat_ice_key_;
+
+  Key infilt_key_;
+  Key trans_key_;
+  Key evap_key_;
+
+  Key surf_mol_dens_key_;
+  Key surf_mass_dens_key_;
+  Key subsurf_mol_dens_key_;
+  Key subsurf_mass_dens_key_;
+
+  Key surf_cv_key_;
+  Key cv_key_;
 };
 
 
@@ -118,7 +155,7 @@ public:
 // Nonmember constructor/factory reads file, converts comm to the right type.
 //
 ELM_ATSDriver*
-createELM_ATSDriver(MPI_Fint *f_comm, const char *infile);
+createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts=17);
 
 } // namespace ATS
 
