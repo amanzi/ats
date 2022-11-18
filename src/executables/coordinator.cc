@@ -59,7 +59,6 @@ namespace ATS {
 
 // this MUST be be called before using Coordinator
 Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-<<<<<<< HEAD
                          const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
                          const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
                          const Amanzi::Comm_ptr_type& comm)
@@ -91,61 +90,6 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     *vo_->os() << "Writing input file ..." << std::endl << std::endl;
     Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
     *vo_->os() << "  ... completed." << std::endl;
-=======
-                         const Amanzi::Comm_ptr_type& comm)
-  : plist_(plist),
-    comm_(comm),
-    restart_(false),
-    timer_(Teuchos::rcp(new Teuchos::Time("wallclock_monitor",true))),
-    setup_timer_(Teuchos::TimeMonitor::getNewCounter("setup")),
-    cycle_timer_(Teuchos::TimeMonitor::getNewCounter("cycle"))
-{
-  // create state.
-  S_ = Teuchos::rcp(new Amanzi::State(plist_->sublist("state")));
-
-  // create the geometric model and regions
-  Teuchos::ParameterList reg_list = plist_->sublist("regions");
-  Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
-    Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_) );
-
-  // create and register meshes
-  ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
-
-  coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
-  InitializeFromPlist_();
-
-  // create the top level PK
-  Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(plist_, "PKs");
-  Teuchos::ParameterList pk_tree_list = coordinator_list_->sublist("PK tree");
-  if (pk_tree_list.numParams() != 1) {
-    Errors::Message message("CycleDriver: PK tree list should contain exactly one root node list");
-    Exceptions::amanzi_throw(message);
-  }
-  Teuchos::ParameterList::ConstIterator pk_item = pk_tree_list.begin();
-  const std::string &pk_name = pk_tree_list.name(pk_item);
-
-  // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
-
-  // create the pk
-  Amanzi::PKFactory pk_factory;
-  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, plist_, S_, soln_);
-
-  // create the checkpointing
-  Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
-  checkpoint_ = Teuchos::rcp(new Amanzi::Checkpoint(chkp_plist, *S_));
-
-  // create the observations
-  Teuchos::ParameterList& observation_plist = plist_->sublist("observations");
-  for (auto& sublist : observation_plist) {
-    if (observation_plist.isSublist(sublist.first)) {
-      observations_.emplace_back(Teuchos::rcp(new Amanzi::UnstructuredObservations(
-                observation_plist.sublist(sublist.first))));
-    } else {
-      Errors::Message msg("\"observations\" list must only include sublists.");
-      Exceptions::amanzi_throw(msg);
-    }
->>>>>>> b68126c2 (a few changes to the ELM API.  Work in progress with ELM)
   }
 
   // construct state, geometric model, meshes
@@ -165,22 +109,12 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel> gm =
       Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_));
 
-<<<<<<< HEAD
     // create and register meshes
     ATS::Mesh::createMeshes(plist_, comm_, gm, *S_);
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
     reportOneTimer_("0: create mesh");
-=======
-    // writes region information
-    if (plist_->isSublist("analysis")) {
-      Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
-      analysis.Init(plist_->sublist("analysis").sublist(mesh->first));
-      analysis.RegionAnalysis();
-      analysis.OutputBCs();
-    }
->>>>>>> b68126c2 (a few changes to the ELM API.  Work in progress with ELM)
   }
 
 
@@ -418,97 +352,6 @@ Coordinator::initialize()
   // still necessary?  And do we need to set cycle to -1 here too? --ETC)
   pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
-<<<<<<< HEAD
-=======
-  // Write dependency graph.
-  S_->WriteDependencyGraph();
-  S_->InitializeIOFlags();
-
-  // Check final initialization
-  WriteStateStatistics(*S_, *vo_);
-
-  // Set up visualization
-  auto vis_list = Teuchos::sublist(plist_,"visualization");
-  for (auto& entry : *vis_list) {
-    std::string domain_name = entry.first;
-
-    if (S_->HasMesh(domain_name)) {
-      // visualize standard domain
-      auto mesh_p = S_->GetMesh(domain_name);
-      auto sublist_p = Teuchos::sublist(vis_list, domain_name);
-      if (!sublist_p->isParameter("file name base")) {
-        if (domain_name.empty() || domain_name == "domain") {
-          sublist_p->set<std::string>("file name base", std::string("ats_vis"));
-        } else {
-          sublist_p->set<std::string>("file name base", std::string("ats_vis_")+domain_name);
-        }
-      }
-
-      if (S_->HasMesh(domain_name+"_3d") && sublist_p->get<bool>("visualize on 3D mesh", true))
-        mesh_p = S_->GetMesh(domain_name+"_3d");
-
-      // vis successful timesteps
-      auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p));
-      vis->set_name(domain_name);
-      vis->set_mesh(mesh_p);
-      vis->CreateFiles(false);
-      visualization_.push_back(vis);
-
-    } else if (Amanzi::Keys::isDomainSet(domain_name)) {
-      // visualize domain set
-      const auto& dset = S_->GetDomainSet(Amanzi::Keys::getDomainSetName(domain_name));
-      auto sublist_p = Teuchos::sublist(vis_list, domain_name);
-
-      if (sublist_p->get("visualize individually", false)) {
-        // visualize each subdomain
-        for (const auto& subdomain : *dset) {
-          Teuchos::ParameterList sublist = vis_list->sublist(subdomain);
-          sublist.set<std::string>("file name base", std::string("ats_vis_")+subdomain);
-          auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist));
-          vis->set_name(subdomain);
-          vis->set_mesh(S_->GetMesh(subdomain));
-          vis->CreateFiles(false);
-          visualization_.push_back(vis);
-        }
-      } else {
-        // visualize collectively
-        auto domain_name_base = Amanzi::Keys::getDomainSetName(domain_name);
-        if (!sublist_p->isParameter("file name base"))
-          sublist_p->set("file name base", std::string("ats_vis_")+domain_name_base);
-        auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
-        vis->set_name(domain_name_base);
-        vis->set_domain_set(dset);
-        vis->set_mesh(dset->get_referencing_parent());
-        vis->CreateFiles(false);
-        visualization_.push_back(vis);
-      }
-    }
-  }
-
-  // make observations at time 0
-  for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
-
-  // set up the TSM
-  // -- register visualization times
-  for (const auto& vis : visualization_) vis->RegisterWithTimeStepManager(tsm_.ptr());
-
-  // -- register checkpoint times
-  checkpoint_->RegisterWithTimeStepManager(tsm_.ptr());
-
-  // -- register observation times
-  for (const auto& obs : observations_) obs->RegisterWithTimeStepManager(tsm_.ptr());
-
-  // -- register the final time
-  tsm_->RegisterTimeEvent(t1_);
-
-  // -- register any intermediate requested times
-  if (coordinator_list_->isSublist("required times")) {
-    Teuchos::ParameterList& sublist = coordinator_list_->sublist("required times");
-    Amanzi::IOEvent pause_times(sublist);
-    pause_times.RegisterWithTimeStepManager(tsm_.ptr());
-  }
-
->>>>>>> b68126c2 (a few changes to the ELM API.  Work in progress with ELM)
   // -- advance cycle to 0 and begin
   if (S_->get_cycle() == -1) S_->advance_cycle();
 }
@@ -622,11 +465,7 @@ Coordinator::report_memory()
 
 
 void
-<<<<<<< HEAD
 Coordinator::initializeFromPlist_()
-=======
-Coordinator::InitializeFromPlist_()
->>>>>>> b68126c2 (a few changes to the ELM API.  Work in progress with ELM)
 {
   Amanzi::Utils::Units units;
   t0_ = coordinator_list_->get<double>("start time");
@@ -686,10 +525,6 @@ Coordinator::get_dt(bool after_fail)
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
-<<<<<<< HEAD
-
-=======
->>>>>>> 5e59a11c (update to be inline with recent Amanzi and ATS changes)
   // note, I believe this can go away (along with the input spec flag) once
   // amanzi/amanzi#685 is closed --etc
   if (subcycled_ts_) dt = std::min(dt, dt_pk);

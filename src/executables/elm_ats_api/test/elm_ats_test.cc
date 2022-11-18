@@ -126,6 +126,7 @@ int main(int argc, char *argv[])
   std::vector<double> soil_pot(m);
   std::vector<double> satl(m);
   std::vector<double> sati(m);
+  std::vector<int> pft_i(m);
 
   // dummy fortran comm
   MPI_Fint comm = 0;
@@ -133,7 +134,7 @@ int main(int argc, char *argv[])
   // test driver directly
   auto driver = std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
   driver->setup();
-  driver->get_mesh_info(ncols_local, ncols_global, ncells_per_col, lat.data(), lon.data(), elev.data(), surf_area_m2.data(), dz.data(), depth.data());
+  driver->get_mesh_info(ncols_local, ncols_global, lat.data(), lon.data(), elev.data(), surf_area_m2.data(), pft_i.data(), ncells_per_col, depth.data());
   driver->initialize(time, air_pres.data(), soil_pres.data());
   driver->set_potential_sources(soil_infil.data(), soil_evap.data(), root_tran.data());
   driver->advance_test();
@@ -143,8 +144,8 @@ int main(int argc, char *argv[])
   // test api
   auto driver_api = ats_create_c(&comm, input_filename.data());
   ats_setup_c(driver_api);
-  ats_get_mesh_info_c(driver_api, &ncols_local, &ncols_global, &ncells_per_col, lat.data(), lon.data(),
-                      elev.data(), surf_area_m2.data(), dz.data(), depth.data());
+  ats_get_mesh_info_c(driver_api, &ncols_local, &ncols_global, lat.data(), lon.data(),
+                      elev.data(), surf_area_m2.data(), pft_i.data(), &ncells_per_col, depth.data());
   ats_initialize_c(driver_api, &time, air_pres.data(), soil_pres.data());
   ats_set_potential_sources_c(driver_api, soil_infil.data(), soil_evap.data(), root_tran.data());
   ats_advance_test_c(driver_api);
