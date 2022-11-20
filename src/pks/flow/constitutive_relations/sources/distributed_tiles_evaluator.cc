@@ -39,6 +39,9 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   k_ = plist.get<double>("tile permeability");
   implicit_ = plist.get<bool>("implicit drainage", true);
 
+  my_keys_.emplace_back(KeyTag{dist_sources_key_, Tag{tag}});
+
+  
   dependencies_.insert(KeyTag{subsurface_marks_key_, tag});
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   dependencies_.insert(KeyTag{pres_key_, tag});
