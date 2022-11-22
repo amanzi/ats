@@ -45,8 +45,8 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
   double manhole_radius_;
   double energy_losses_coeff_; //at manhole
   double H_max_; //max height of pipe (considering a rectangular cross section)
-  double gravity_; //how to say this is an array? std vectors?
   double H_; //surface elevation relative to the pipe flow hydraulic head
+//we also need some array of cells that says in what cell the manhole is
 
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;

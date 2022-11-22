@@ -18,15 +18,12 @@ namespace Flow {
 PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-  M_ = plist_.get<double>("molar mass", 0.0180153);
-  bar_ = plist_.get<bool>("allow negative water content", false);
-  rollover_ = plist_.get<double>("water content rollover", 0.);
 
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
   energy_losses_coeff_ = plist.get<double>("energy losses coeff", 0.1);
   H_max_ = plist.get<double>("pipe max height", 0.1);
-  gravity_ = plist.get<double>("gravity", 9.81);//TODO this needs to be converted to an array
   H_ = plist.get<double>("bed flume height", 0.478);
+// need to get an input array with info on where the manhole is
 
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
@@ -51,39 +48,36 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 {
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
+
+//change these two to what we need, let's call then hp and h for now
+//////
   const Epetra_MultiVector& pres = *S.GetPtr<CompositeVector>(pres_key_, tag)
       ->ViewComponent("cell",false);
 
   const Epetra_MultiVector& cv = *S.GetPtr<CompositeVector>(cv_key_, tag)
       ->ViewComponent("cell",false);
+/////
 
-  const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];  // check this
+  //do we also have pi somewhere? let's assume we do
 
+  //let's assume res for us is also defined on the cells
   int ncells = res.MyLength();
-  if (bar_) {
-    for (int c=0; c!=ncells; ++c) {
-      res[0][c] = cv[0][c] * (pres[0][c] - p_atm) / (gz * M_);
-    }
-  } else if (rollover_ > 0.) {
-    for (int c=0; c!=ncells; ++c) {
-      double dp = pres[0][c] - p_atm;
-      double dp_eff = dp < 0. ? 0. :
-          dp < rollover_ ?
-            dp*dp/(2*rollover_) :
-            dp - rollover_/2.;
-      res[0][c] = cv[0][c] * dp_eff / (gz * M_);
-    }
-  } else {
-    for (int c=0; c!=ncells; ++c) {
-      res[0][c] = pres[0][c] < p_atm ? 0. :
-          cv[0][c] * (pres[0][c] - p_atm) / (gz * M_);
-    }
+// we need a characteristic function to apply the source term ONLY where the manhole is
+  for (int c=0; c!=ncells; ++c) {
+       if (hp < H_) {
+          res[0][c] = - 4.0 / 3.0 * energy_losses_coeff_ * pi * manhole_radius * sqrt(2.0 * gz) * pow(h[c],3.0/2.0); 
+       } else if (H_ < hp[c] && hp < (H_ + h[c]) ){
+          res[0][c] = - energy_losses_coeff_ * pi * manhole_radius * manhole_radius * sqrt(2.0 * gz) * sqrt(h[c] + H_ - hp[c]);   
+       } else if (hp > (H_ + h[c])) {
+          res[0][c] = energy_losses_coeff_ * pi * manhole_radius * manhole_radius * sqrt(2.0 * gz) * sqrt(hp[c] - H_ - h[c]);
+       }
   }
+
 }
 
-
+// do we need a derivative?
 void OverlandPressureWaterContentEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
