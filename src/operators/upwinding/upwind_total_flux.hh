@@ -51,7 +51,7 @@ public:
         CompositeVector& face_coef,
         const std::string face_component,
         const Teuchos::Ptr<Debugger>& db) const;
-  
+
   virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,

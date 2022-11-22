@@ -36,12 +36,10 @@ class UpwindArithmeticMean : public Upwinding {
                       const State& S,
                       const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
-  
-  void CalculateCoefficientsOnFaces(
-        const CompositeVector& cell_coef,
-        const std::string cell_component, 
-        CompositeVector& face_coef,
-        const std::string face_component) const;
+  void CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
+          const std::string cell_component,
+          CompositeVector& face_coef,
+          const std::string face_component) const;
 
   virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S,

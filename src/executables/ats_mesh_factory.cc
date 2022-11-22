@@ -45,7 +45,7 @@ createMeshFromFile(const std::string& mesh_name,
 {
   Teuchos::ParameterList& mesh_file_plist = mesh_plist.sublist("read mesh file parameters");
   auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
-  
+
   // partitioner
   std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
   mesh_factory_plist->sublist("unstructured").sublist("expert").set("partitioner", partitioner);

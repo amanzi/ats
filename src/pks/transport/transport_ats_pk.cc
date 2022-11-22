@@ -585,7 +585,6 @@ void Transport_ATS::Initialize()
 
   // ETC BEGIN HACKING
   StableTimeStep();
-
 }
 
 
@@ -595,31 +594,6 @@ void Transport_ATS::Initialize()
 void Transport_ATS::InitializeFields_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-
-  // // set popular default values when flow PK is off
-  // if (S_->HasRecord(saturation_key_, tag_next_)) {
-  //   if (S_->GetRecordSet(saturation_key_, tag_next_).owner() == name_) {
-  //     if (!S_->GetRecord(saturation_key_, tag_next_).initialized()) {
-  //       S_->GetW<CompositeVector>(saturation_key_, tag_next_, name_).PutScalar(1.0);
-  //       S_->GetRecordW(saturation_key_, tag_next_, name_).set_initialized();
-
-  //       if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-  //         *vo_->os() << "initialized saturation_liquid to value 1.0" << std::endl;
-  //     }
-  //     S_->Assign(saturation_key_, tag_current_, tag_next_);
-  //     S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
-
-  //   } else {
-  //     if (S_->GetRecord(saturation_key_, tag_current_).owner() == name_) {
-  //       if (!S_->GetRecord(saturation_key_, tag_current_).initialized()) {
-  //         S_->Assign(saturation_key_, tag_current_, tag_next_);
-  //         S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
-  //         if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-  //           *vo_->os() << "initialized prev_saturation_liquid from saturation" << std::endl;
-  //       }
-  //     }
-  //   }
-  // }
 
   InitializeFieldFromField_(tcc_matrix_key_, tag_next_, tcc_key_, tag_next_, false, false);
   S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).PutScalar(0.0);

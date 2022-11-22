@@ -95,7 +95,6 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   krM_key_ = Keys::readKey(plist_, macro_domain, "macropore relative permeability", "relative_permeability");
   dependencies_.insert(KeyTag{krM_key_, tag});
   // dependency: micropore_absolute_permeability
-
   K_key_ = Keys::readKey(plist_, macro_domain, "macropore absolute permeability", "permeability");
   dependencies_.insert(KeyTag{K_key_, tag});
   // dependency: micropore_molar_density_liquid
@@ -118,7 +117,6 @@ MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
 
   for (CompositeVector::name_iterator comp=result[0]->begin();
        comp!=result[0]->end(); ++comp) {
-
     const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
     const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
     const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);

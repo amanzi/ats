@@ -36,12 +36,12 @@ changed on the input line.
 
    KEYS:
 
-   * `"micropore pressure`" **pressure**
-   * `"macropore pressure`" **MACROPORE_DOMAIN-pressure**
-   * `"micropore relative permeability`" **relative_permeability**
-   * `"macropore relative permeability`" **MACROPORE_DOMAIN-relative_permeability**
-   * `"permeability`" **permeability**
-   * `"micropore molar density liquid`" **molar_density_liquid**
+   - `"micropore pressure`" **pressure**
+   - `"macropore pressure`" **MACROPORE_DOMAIN-pressure**
+   - `"micropore relative permeability`" **relative_permeability**
+   - `"macropore relative permeability`" **MACROPORE_DOMAIN-relative_permeability**
+   - `"permeability`" **permeability**
+   - `"micropore molar density liquid`" **molar_density_liquid**
 
 */
 

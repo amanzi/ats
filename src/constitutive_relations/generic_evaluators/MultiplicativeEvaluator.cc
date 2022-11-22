@@ -14,13 +14,11 @@ namespace Relations {
 MultiplicativeEvaluator::MultiplicativeEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-
   if (dependencies_.size() == 0) {
     Errors::Message message;
     message << "MultiplicativeEvaluator: for " << my_keys_[0].first
                 << " was provided no dependencies";
     throw(message);
-
   }
 
   // deals with Multiplying e.g. area fractions.  Note that 90% of
@@ -56,7 +54,6 @@ void
 MultiplicativeEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-
   AMANZI_ASSERT(dependencies_.size() >= 1);
   result[0]->PutScalar(coef_);
 
@@ -86,8 +83,6 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
 {
-
-
   result[0]->PutScalar(coef_);
 
   for (const auto& lcv_name : *result[0]) {
@@ -102,19 +97,18 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
         i++;
       }
     }
-    
+
     if (positive_) {
       const auto& value_c = *S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second)
         .ViewComponent(lcv_name, false);
       for (int c=0; c!=res_c.MyLength(); ++c) {
-	for (int i=0; i!=res_c.NumVectors(); ++i){ 
-	  if (value_c[i][c] == 0) {
-	    res_c[i][c] = 0.;
-	  }
+        for (int i=0; i!=res_c.NumVectors(); ++i){ 
+          if (value_c[i][c] == 0) {
+            res_c[i][c] = 0.;
+          }
         }
       }
     }
-    
   }
 }
 
@@ -156,10 +150,8 @@ MultiplicativeEvaluator::EnsureCompatibility_ToDeps_(State& S)
     }
 
   } else {
-
     // the standard ensure is better
     return EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S);
-
   }
 }
 
