@@ -77,7 +77,7 @@ void ats_initialize_c(ELM_ATSDriver_ptr ats,
 }
 
 
-void ats_set_soil_hydrologic_parameters(ELM_ATSDriver_ptr ats,
+void ats_set_soil_hydrologic_parameters_c(ELM_ATSDriver_ptr ats,
         double const * const base_porosity,
         double const * const hydraulic_conductivity,
         double const * const clapp_horn_b,
@@ -99,11 +99,11 @@ void ats_set_veg_parameters_c(ELM_ATSDriver_ptr ats,
 }
 
 
-void ats_set_hydrologic_properties_c(ELM_ATSDriver_ptr ats,
+void ats_set_soil_hydrologic_properties_c(ELM_ATSDriver_ptr ats,
         double const * const effective_porosity)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->set_hydrologic_properties(effective_porosity);
+    ->set_soil_hydrologic_properties(effective_porosity);
 }
 
 
