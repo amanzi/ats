@@ -88,7 +88,7 @@ void ats_set_veg_parameters_c(ELM_ATSDriver_ptr ats,
 // Called prior to timestep advance
 // -----------------------------------------------------------------------------
 // set hydrologic properties, non-constant in time
-void ats_set_hydrologic_properties_c(ELM_ATSDriver_ptr ats,
+void ats_set_soil_hydrologic_properties_c(ELM_ATSDriver_ptr ats,
         double const * const effective_porosity);
 
 // set veg properties, non-constant in time

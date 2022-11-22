@@ -385,7 +385,7 @@ void ELM_ATSDriver::set_veg_parameters(double const * const mafic_potential_full
 }
 
 
-void ELM_ATSDriver::set_hydrologic_properties(double const * const effective_porosity)
+void ELM_ATSDriver::set_soil_hydrologic_properties(double const * const effective_porosity)
 {
   // this isn't well defined -- pass for now --etc
 }

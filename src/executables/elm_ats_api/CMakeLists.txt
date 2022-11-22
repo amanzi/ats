@@ -36,11 +36,11 @@ if (APPLE AND BUILD_SHARED_LIBS)
   set_target_properties(elm_ats PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 endif()
 
-## build static lib
-add_amanzi_library(elm_ats_static
-  STATIC
-  SOURCE ${elm_ats_src_files}
-  HEADERS ${elm_ats_inc_files}
-  LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
+# ## build static lib
+# add_amanzi_library(elm_ats_static
+#   STATIC
+#   SOURCE ${elm_ats_src_files}
+#   HEADERS ${elm_ats_inc_files}
+#   LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
 
 add_subdirectory(test)

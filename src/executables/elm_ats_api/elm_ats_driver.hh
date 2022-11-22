@@ -78,7 +78,7 @@ public:
           double const * const clapp_horn_sr);
   void set_veg_parameters(double const * const mafic_potential_full_turgor,
           double const * const mafic_potential_wilt_point);
-  void set_hydrologic_properties(double const * const effective_porosity);
+  void set_soil_hydrologic_properties(double const * const effective_porosity);
   void set_veg_properties(double const * const rooting_fraction);
   void set_potential_sources(double const * const surface_infiltration,
                              double const * const surface_evaporation,
