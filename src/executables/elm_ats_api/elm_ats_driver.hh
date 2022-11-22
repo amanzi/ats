@@ -97,14 +97,16 @@ public:
                         double * const net_runon);
 
  private:
-  void copyToSurf_(double const * const in, const Key& key);
-  void copyToSub_(double const * const in, const Key& key);
+  void copyToSurf_(double const * const in, const Key& key, Key owner="");
+  void copyToSub_(double const * const in, const Key& key, Key owner="");
   void copyFromSurf_(double * const out, const Key& key) const;
   void copyFromSub_(double * const out, const Key& key) const;
 
   void initZero_(const Key& key);
 
  private:
+  Teuchos::RCP<Teuchos::ParameterList> elm_list_;
+
   int ncolumns_;
   int ncells_per_col_;
   int npfts_;
