@@ -42,6 +42,6 @@ Additionally, consider citing one or more of the below, depending upon the appli
 
 **Arctic Hydrology:** Painter, Scott L., et al. "Integrated surface/subsurface permafrost thermal hydrology: Model formulation and proof‐of‐concept simulations." Water Resources Research 52.8 (2016): 6062-6077. [DOI](https://doi.org/10.1002/2015WR018427)
 
-**Reactive Transport:**  Painter, Scott L., et al. "Integrated surface/subsurface permafrost thermal hydrology: Model formulation and proof‐of‐concept simulations." Water Resources Research 52.8 (2016): 6062-6077. [DOI](https://doi.org/10.1029/2022WR032074)
+**Reactive Transport:**  Molins, Sergi, et al. "A Multicomponent Reactive Transport Model for Integrated Surface‐Subsurface Hydrology Problems." Water Resources Research 58.8 (2022): e2022WR032074. [DOI](https://doi.org/10.1029/2022WR032074)
 
 **Multiphysics Modeling:** Coon, Ethan T., J. David Moulton, and Scott L. Painter. "Managing complexity in simulations of land surface and near-surface processes." Environmental modelling & software 78 (2016): 134-149. [DOI](https://doi.org/10.1016/j.envsoft.2015.12.017)
