@@ -54,10 +54,10 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   dependencies_.insert(KeyTag{mol_dens_key_, tag});
 
   // other parameters
-  num_components_ = plist.get<int>("number of components", 1);
-  k_ = plist.get<double>("tile permeability [m^2]");
   num_ditches_ = plist.get<int>("number of ditches");
-  p_enter_ = plist.get<double>("entering pressure", 101325);
+  k_ = plist.get<double>("tile permeability [m^2]");
+  num_components_ = plist.get<int>("number of components", 1);
+  p_enter_ = plist.get<double>("entering pressure [Pa]", 101325);
 }
 
 void
