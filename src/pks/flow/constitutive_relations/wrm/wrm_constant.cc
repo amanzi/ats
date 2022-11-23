@@ -38,18 +38,15 @@ double WRMConstant::k_relative(double s) {
  * D Relative permeability / D capillary pressure pc.
  ****************************************************************** */
 double WRMConstant::d_k_relative(double s) {
-  
   return 0.;
 }
 
 
 /* ******************************************************************
- * Saturation formula 
+ * Saturation formula
  ****************************************************************** */
 double WRMConstant::saturation(double pc) {
-
   return sr_;
-        
 }
 
 
@@ -57,7 +54,6 @@ double WRMConstant::saturation(double pc) {
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
 double WRMConstant::d_saturation(double pc) {
-  
   return 0.;
 }
 
@@ -66,7 +62,7 @@ double WRMConstant::d_saturation(double pc) {
  ****************************************************************** */
 double WRMConstant::capillaryPressure(double s) {
   AMANZI_ASSERT(0);
-
+  return 0;
 }
 
 
@@ -75,18 +71,17 @@ double WRMConstant::capillaryPressure(double s) {
  ****************************************************************** */
 double WRMConstant::d_capillaryPressure(double s) {
   AMANZI_ASSERT(0);
+  return 0;
 }
 
 
 void WRMConstant::InitializeFromPlist_() {
-      
   a_ = plist_.get<double>("constant value [-]", 1.0);
   sr_ = plist_.get<double>("residual saturation [-]", 1.0);
-  
 };
 
 
 
 }  // namespace
 }  // namespace
- 
+

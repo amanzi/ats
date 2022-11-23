@@ -1,28 +1,20 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
   License: see $ATS_DIR/COPYRIGHT
   Author: Daniil Svyatsky (dasvyat@lanl.gov)
 */
-
-//!
+//!  Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
 /*!
 
-Requires the following dependencies:
+.. _surface-distributed-tiles-spec:
+.. admonition:: surface-distributed-tiles-spec
 
-*
-*
+   * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
 
-Allows the following parameters:
-
-*
-
-
-*
-
-
-*
-
-.. note:
+   KEYS:
+   - `"accumulated source`" **SUBSURFACE_DOMAIN-accumulated_source** Source to the ditch from the tile.
+   - `"catchment ID`" **DOMAIN-catchments_id** ID indicating which ditch a given cell drains to.
+   - `"catchment fraction`" **DOMAIN-catchments_id** 1/dL, the fraction describing the length scale used in connecting the pipe to the ditch.
+   - `"cell volume`"
 
 */
 
@@ -50,13 +42,16 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondary {
   virtual void EnsureCompatibility(State& S) override;
 
  protected:
-
   virtual void Update_(State& S) override ;
   virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
-  
-  Key surface_marks_key_, surf_len_key_, dist_sources_key_;
-  Key domain_, domain_surf_;
-  bool compatibility_checked_, implicit_;
+
+ protected:
+  Key domain_;
+  Key catch_id_key_;
+  Key catch_frac_key_;
+  Key acc_sources_key_;
+  Key cv_key_;
+
   int num_ditches_;
 
  private:

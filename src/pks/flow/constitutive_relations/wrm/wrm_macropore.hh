@@ -1,12 +1,30 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! WRMVanGenuchten : water retention model using van Genuchten's parameterization
-
 /*
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
-
 */
+//! Macropore water retention model.
+
+/*!
+
+An exponential model basd on the equations of... (document me!)
+
+.. math::
+  ...
+
+
+.. _WRM-macropore-spec
+.. admonition:: WRM-macropore-spec
+
+   * `"region`" ``[string]`` Region to which this applies
+   * `"macropore exponent a [-]`" ``[double]`` The exponent alpha above.
+   * `"residual saturation [-]`" ``[double]`` Limit at pc = inf
+   * `"smoothing parameter [Pa]`" ``[double]`` **10** Exponential smoothing factor dP above.
+   * `"water entry pressure [Pa]`" ``[double]`` Entry pressure Pwe above.
+
+ */
+
+
 
 #ifndef ATS_FLOWRELATIONS_WRM_MACROPORE_
 #define ATS_FLOWRELATIONS_WRM_MACROPORE_

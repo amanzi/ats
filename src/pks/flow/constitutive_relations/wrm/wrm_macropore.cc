@@ -1,14 +1,13 @@
 /*
   This is the flow component of the Amanzi code.
   License: BSD
-  Authors: Scott Painter 
+  Authors: Scott Painter
   Daniil Svyatsky
 */
 
 #include <cmath>
 #include "dbc.hh"
 #include "errors.hh"
-#include "Spline.hh"
 
 #include "wrm_macropore.hh"
 
@@ -50,10 +49,9 @@ double WRMMacropore::d_k_relative(double s) {
 
 
 /* ******************************************************************
- * Saturation formula 
+ * Saturation formula
  ****************************************************************** */
 double WRMMacropore::saturation(double pc) {
-
   if (pc <= 0){
     return 1.0;
   }else if ((pc > 0)&&(pc < Pwe_)){
@@ -61,7 +59,7 @@ double WRMMacropore::saturation(double pc) {
   } else{
     return sr_*std::exp((Pwe_ - pc)/dP_);
   }
-        
+
 }
 
 
@@ -69,7 +67,6 @@ double WRMMacropore::saturation(double pc) {
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
 double WRMMacropore::d_saturation(double pc) {
-
   if (pc <= 0){
     return 0.0;
   }else if ((pc > 0)&&(pc < Pwe_)){
@@ -99,16 +96,14 @@ double WRMMacropore::d_capillaryPressure(double s) {
 
 
 void WRMMacropore::InitializeFromPlist_() {
-      
   a_ = plist_.get<double>("macropore exponent a [-]");
   sr_ = plist_.get<double>("residual saturation [-]");
-  dP_ = plist_.get<double>("smoothing parameter [-]", 10);
+  dP_ = plist_.get<double>("smoothing parameter [Pa]", 10);
   Pwe_ = plist_.get<double>("water entry pressure [Pa]");
-  
 };
 
 
 
 }  // namespace
 }  // namespace
- 
+

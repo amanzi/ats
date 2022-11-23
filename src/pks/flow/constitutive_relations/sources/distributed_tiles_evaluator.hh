@@ -1,28 +1,28 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
   License: see $ATS_DIR/COPYRIGHT
   Author: Daniil Svyatsky (dasvyat@lanl.gov)
 */
-//!
+//!  Evaluates water/solute source which represent effect of distributed subsurface tiles.
 
 /*!
 
-Requires the following dependencies:
+Distributed, subsurface sources due to tile drains.
 
-*
-*
+.. _distributed-tiles-spec:
+.. admonition:: distributed-tiles-spec
 
-Allows the following parameters:
+   * `"number of ditches`" ``[int]`` Number of ditches, corresponding to the number of unique IDs.
+   * `"tile permeability [m^2]`" ``[double]`` Permeability of the tile/pipe connecting soil to ditch.
+   * `"number of components`" ``[int]`` **1** Number of components in the source/sink pair.
+   * `"entering pressure [Pa]`" ``[double]`` **101325** Pressure required to enter the tile drain.
 
-*
-
-
-*
-
-
-*
-
-.. note:
+   KEYS:
+   - `"accumulated source`" **DOMAIN-accumulated_source** Source to the ditch from the tile.
+   - `"distributed source`" **DOMAIN-distributed_source** Source to the soil from the tile (likely negative, sink).
+   - `"catchment ID`" **DOMAIN-catchments_id** ID indicating which ditch a given cell drains to.
+   - `"pressure`"
+   - `"molar density liquid`"
+   - `"factor field`" **NO FACTOR** Scalar factor?
 
 */
 
@@ -52,27 +52,29 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
   }
 
   virtual void EnsureCompatibility(State& S) override;
-  
+
  protected:
   // Required methods from EvaluatorSecondary
   virtual void Update_(State& S) override;
   virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
 
+ protected:
+  Key domain_;
 
-  Key domain_, domain_surf_;
-
-  Key subsurface_marks_key_;
+  // my keys
   Key dist_sources_key_;
+  Key acc_sources_key_;
+
+  // my dependencies
+  Key catch_id_key_;
   Key pres_key_;
   Key mol_dens_key_;
   Key factor_key_;
 
-  bool compatibility_checked_, implicit_;
-
   double p_enter_;
   double k_;
   int num_ditches_;
-  int num_component_;
+  int num_components_;
 
  private:
   static Utils::RegisteredFactory<Evaluator,DistributedTilesRateEvaluator> reg_;

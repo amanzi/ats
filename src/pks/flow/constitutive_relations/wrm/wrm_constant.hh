@@ -1,12 +1,33 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! WRMVanGenuchten : water retention model using van Genuchten's parameterization
-
 /*
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
 */
+//! Constant water retention model.
+
+/*!
+
+A constant-valued WRM.
+
+.. _WRM-constant-spec
+.. admonition:: WRM-constant-spec
+
+    * `"region`" ``[string]`` Region to which this applies
+    * `"constant value [-]`" ``[double]`` **1.0** Constant relative permeability value.
+    * `"residual saturation [-]`" ``[double]`` **1.0**  Constant saturation value.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="moss" type="ParameterList">
+      <Parameter name="region" type="string" value="moss" />
+      <Parameter name="WRM type" type="string" value="constant" />
+    </ParameterList>
+
+
+ */
 
 #ifndef ATS_FLOWRELATIONS_WRM_CONSTANT_
 #define ATS_FLOWRELATIONS_WRM_CONSTANT_
@@ -33,8 +54,6 @@ public:
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
-  //double suction_head(double saturation);
-  //double d_suction_head(double saturation);
 
  private:
   void InitializeFromPlist_();
@@ -43,14 +62,6 @@ public:
 
   double a_;
   double sr_;
-
-  // int function_;
-  // double s0_;  // regularization threshold in saturation
-  // Amanzi::Utils::Spline fit_kr_;
-
-  // double pc0_;
-  // Amanzi::Utils::Spline fit_s_;
-
 
   static Utils::RegisteredFactory<WRM,WRMConstant> factory_;
 };
