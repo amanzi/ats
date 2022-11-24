@@ -46,43 +46,49 @@ MicroporeMacroporeFluxModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 double
 MicroporeMacroporeFluxModel::MicroporeMacroporeFlux(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * K * (pm > pM ? krm : krM);
+  //double C = gamma_ / delta_ * (pm > pM ? krm : krM);
+  double dp = 0.001*999.5*9.81;
+  double val = (pm - pM)/dp;
+  
+  double C = gamma_*(krm/(1+exp(-val)) + krM/(1+exp(val)));
+
   return C * (pM - pm);
 }
 
 double
 MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporePressure(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * K * (pm > pM ? krm : krM);
+  double C = gamma_ / delta_ * (pm > pM ? krm : krM);
   return -C;
 }
 
 double
 MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDPressure(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * K * (pm > pM ? krm : krM);
+  double C = gamma_ / delta_ * (pm > pM ? krm : krM);
   return C;
 }
 
 double
 MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDRelativePermeability(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * K * (pm > pM ? 0. : 1.);
+  double C = gamma_ / delta_ * (pm > pM ? 0. : 1.);
   return C * (pM - pm);
 }
 
 double
 MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeRelativePermeability(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * K * (pm > pM ? 1. : 0.);
+  double C = gamma_ / delta_ * (pm > pM ? 1. : 0.);
   return C * (pM - pm);
 }
 
 double
 MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(double pm, double pM, double krM, double krm, double K) const
 {
-  double C = gamma_ / delta_ * (pm > pM ? krm : krM);
-  return C * (pM - pm);
+  // double C = gamma_ / delta_ * (pm > pM ? krm : krM);
+  // return C * (pM - pm);
+  return 0.;
 }
 
 } //namespace

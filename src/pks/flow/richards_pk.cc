@@ -85,6 +85,23 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
+
+  // all manipulation of evaluator lists should happen in constructors (pre-setup)
+  // -- WRM: This deals with deprecated location for the WRM list (in the PK).
+  if (plist_->isSublist("water retention evaluator")) {
+    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
+    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
+    wrm_plist.set("evaluator type", "WRM");
+  }
+  if (S_->GetEvaluatorList(coef_key_).numParams() == 0) {
+    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
+    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
+    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
+  }
+
+  // scaling for permeability for better "nondimensionalization"
+  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
+  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
 }
 
 // -------------------------------------------------------------
@@ -126,9 +143,6 @@ void Richards::SetupRichardsFlow_()
   bc_rho_water_ = bc_plist.get<double>("hydrostatic water density [kg m^-3]",1000.);
 
   // -- linear tensor coefficients
-  // scaling for permeability
-  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
-
   // permeability type - scalar or tensor?
   Teuchos::ParameterList& perm_list = S_->GetEvaluatorList(perm_key_);
   std::string perm_type = perm_list.get<std::string>("permeability type", "scalar");
@@ -201,17 +215,7 @@ void Richards::SetupRichardsFlow_()
 
   // require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
-  if (coef_location == "upwind: face") {
-    S_->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, tag_next_,  name_).SetMesh(mesh_)
-        ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-  } else if (coef_location == "standard: cell") {
-    S_->Require<CompositeVector,CompositeVectorSpace>(uw_coef_key_, tag_next_,  name_).SetMesh(mesh_)
-        ->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
-  } else {
-    Errors::Message message("Unknown upwind coefficient location in Richards flow.");
-    Exceptions::amanzi_throw(message);
-  }
-  S_->GetRecordW(uw_coef_key_, tag_next_, name_).set_io_vis(false);
+  RequireNonlinearCoefficient_(uw_coef_key_, coef_location);
 
   // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
@@ -280,9 +284,9 @@ void Richards::SetupRichardsFlow_()
     if (mfd_pc_plist.get<std::string>("discretization primary") != "fv: default"){
       // MFD -- upwind required, require data
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
-      S_->Require<CompositeVector,CompositeVectorSpace>(duw_coef_key_, tag_next_,  name_)
-        .SetMesh(mesh_)->SetGhosted()
-        ->SetComponent("face", AmanziMesh::FACE, 1);
+
+      // note this is always done on faces using total flux upwinding
+      RequireNonlinearCoefficient_(duw_coef_key_, "upwind: face");
 
       // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
       double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
@@ -406,7 +410,6 @@ void Richards::SetupRichardsFlow_()
   sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
 }
 
-
 // -------------------------------------------------------------
 // Create the physical evaluators for water content, water
 // retention, rel perm, etc, that are specific to Richards.
@@ -414,7 +417,6 @@ void Richards::SetupRichardsFlow_()
 void Richards::SetupPhysicalEvaluators_()
 {
   // -- Absolute permeability.
-  //       For now, we assume scalar permeability.  This will change.
   requireAtNext(perm_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
@@ -430,20 +432,6 @@ void Richards::SetupPhysicalEvaluators_()
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- Water retention evaluators
-  // This deals with deprecated location for the WRM list (in the PK).  Move it
-  // to state.
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "WRM");
-  }
-  if (!S_->HasEvaluator(coef_key_, tag_next_) &&
-      (S_->GetEvaluatorList(coef_key_).numParams() == 0)) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
-
   // -- saturation
   requireAtNext(sat_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
@@ -457,12 +445,10 @@ void Richards::SetupPhysicalEvaluators_()
   requireAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // -- rel perm
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
   requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-
 
   // -- get the WRM models
   auto wrm_eval = dynamic_cast<Flow::WRMEvaluator*>(&wrm);
@@ -478,6 +464,28 @@ void Richards::SetupPhysicalEvaluators_()
   requireAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
+}
+
+
+// -------------------------------------------------------------
+// Helper function and customization point for upwinded coefs.
+// -------------------------------------------------------------
+void
+Richards::RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location)
+{
+  if (coef_location == "upwind: face") {
+    S_->Require<CompositeVector,CompositeVectorSpace>(key, tag_next_,  name_)
+      .SetMesh(mesh_)
+      ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
+  } else if (coef_location == "standard: cell") {
+    S_->Require<CompositeVector,CompositeVectorSpace>(key, tag_next_,  name_)
+      .SetMesh(mesh_)
+      ->SetGhosted()->SetComponent("cell", AmanziMesh::CELL, 1);
+  } else {
+    Errors::Message message("Unknown upwind coefficient location in Richards flow.");
+    Exceptions::amanzi_throw(message);
+  }
+  S_->GetRecordW(key, tag_next_, name_).set_io_vis(false);
 }
 
 

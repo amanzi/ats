@@ -457,7 +457,7 @@ protected:
   Key molar_density_key_;
   Key solid_residue_mass_key_;
   Key water_content_key_;
-  Key water_src_key_;
+  Key water_src_key_, solute_src_key_;
   bool has_water_src_key_;
   bool water_src_in_meters_;
   Key geochem_src_factor_key_;

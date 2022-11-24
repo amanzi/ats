@@ -273,6 +273,26 @@ void Transport_ATS::Setup()
       .SetMesh(mesh_)->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+    
+  }
+
+
+  if (plist_->sublist("source terms").isSublist("component mass source")) {
+    Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
+
+    for (const auto& it : conc_sources_list) {
+      std::string name = it.first;
+      if (conc_sources_list.isSublist(name)) {
+        Teuchos::ParameterList& src_list = conc_sources_list.sublist(name);
+        std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
+        if ((src_type == "field")&&(src_list.isSublist("field"))){
+          solute_src_key_ = src_list.sublist("field").get<std::string>("field key");
+          requireAtNext(solute_src_key_, Tags::NEXT, *S_).SetMesh(mesh_)->SetGhosted(true)
+            ->AddComponent("cell", AmanziMesh::CELL,  num_components);
+	  S_->Require<CompositeVector,CompositeVectorSpace>(solute_src_key_, tag_next_, solute_src_key_);
+        }
+      }
+    }
   }
 
   // // alias to next for subcycled cases -- revisit this in state subcycling
@@ -496,6 +516,17 @@ void Transport_ATS::Initialize()
           }
           src->set_state(S_);
           srcs_.push_back(src);
+        } else if (src_type == "field") {
+          // domain couplings are special -- they always work on all components
+          Teuchos::RCP<TransportDomainFunction> src =
+              factory.Create(src_list, "field", AmanziMesh::CELL, Kxy);
+
+          for (int i = 0; i < component_names_.size(); i++) {
+            src->tcc_names().push_back(component_names_[i]);
+            src->tcc_index().push_back(i);
+          }
+          src->set_state(S_);
+          srcs_.push_back(src);          
         } else {
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> src =
@@ -563,31 +594,6 @@ void Transport_ATS::Initialize()
 void Transport_ATS::InitializeFields_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-
-  // // set popular default values when flow PK is off
-  // if (S_->HasRecord(saturation_key_, tag_next_)) {
-  //   if (S_->GetRecordSet(saturation_key_, tag_next_).owner() == name_) {
-  //     if (!S_->GetRecord(saturation_key_, tag_next_).initialized()) {
-  //       S_->GetW<CompositeVector>(saturation_key_, tag_next_, name_).PutScalar(1.0);
-  //       S_->GetRecordW(saturation_key_, tag_next_, name_).set_initialized();
-
-  //       if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-  //         *vo_->os() << "initialized saturation_liquid to value 1.0" << std::endl;
-  //     }
-  //     S_->Assign(saturation_key_, tag_current_, tag_next_);
-  //     S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
-
-  //   } else {
-  //     if (S_->GetRecord(saturation_key_, tag_current_).owner() == name_) {
-  //       if (!S_->GetRecord(saturation_key_, tag_current_).initialized()) {
-  //         S_->Assign(saturation_key_, tag_current_, tag_next_);
-  //         S_->GetRecordW(saturation_key_, tag_current_, name_).set_initialized();
-  //         if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-  //           *vo_->os() << "initialized prev_saturation_liquid from saturation" << std::endl;
-  //       }
-  //     }
-  //   }
-  // }
 
   InitializeFieldFromField_(tcc_matrix_key_, tag_next_, tcc_key_, tag_next_, false, false);
   S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).PutScalar(0.0);

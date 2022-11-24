@@ -37,11 +37,20 @@ public:
                       CompositeVector& faces,
                       const State& S,
                       const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
+  
+  virtual void Update(const CompositeVector& cells,
+                      const std::string cell_component,
+                      CompositeVector& faces,
+                      const std::string face_component,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
 
   void CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
+        const std::string cell_component,
         const AmanziGeometry::Point& gravity,
-        CompositeVector& face_coef) const;
+        CompositeVector& face_coef,
+        const std::string face_component) const;
 
   virtual std::string
   CoefficientLocation() const override { return "upwind: face"; }

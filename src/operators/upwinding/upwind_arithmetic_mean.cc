@@ -26,19 +26,31 @@ void UpwindArithmeticMean::Update(const CompositeVector& cells,
         const State& S,
         const Teuchos::Ptr<Debugger>& db) const
 {
-  CalculateCoefficientsOnFaces(cells, faces);
+  CalculateCoefficientsOnFaces(cells, "cell", faces, "face");
 };
 
+void UpwindArithmeticMean::Update(const CompositeVector& cells,
+                                  const std::string cell_component,
+                                  CompositeVector& faces,
+                                  const std::string face_component,
+                                  const State& S,
+                                  const Teuchos::Ptr<Debugger>& db) const
+{
+  CalculateCoefficientsOnFaces(cells, cell_component, faces, face_component);
+};
 
+  
 void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
         const CompositeVector& cell_coef,
-        CompositeVector& face_coef) const
+        const std::string cell_component,
+        CompositeVector& face_coef,
+        const std::string face_component) const
 {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   AmanziMesh::Entity_ID_List faces;
 
   // initialize the face coefficients
-  face_coef.ViewComponent("face",true)->PutScalar(0.0);
+  face_coef.ViewComponent(face_component,true)->PutScalar(0.0);
   if (face_coef.HasComponent("cell")) {
     face_coef.ViewComponent("cell",true)->PutScalar(1.0);
   }
@@ -50,12 +62,12 @@ void UpwindArithmeticMean::CalculateCoefficientsOnFaces(
   // communicate the resulting face coeficients.
 
   // communicate ghosted cells
-  cell_coef.ScatterMasterToGhosted("cell");
+  cell_coef.ScatterMasterToGhosted(cell_component);
 
-  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent("face",true);
-  const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell",true);
+  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent(face_component,true);
+  const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent(cell_component,true);
 
-  int c_used = cell_coef.size("cell", true);
+  int c_used = cell_coef.size(cell_component, true);
   for (int c=0; c!=c_used; ++c) {
     mesh->cell_get_faces(c, &faces);
 

@@ -50,6 +50,16 @@ class Upwinding {
          const Teuchos::Ptr<Debugger>& db=Teuchos::null) const = 0;
 
   virtual void
+  Update(const CompositeVector& cells,
+         const std::string cell_component,
+         CompositeVector& faces,
+         const std::string face_component,
+         const State& S,
+         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const{
+    AMANZI_ASSERT(0);
+  }
+  
+  virtual void
   UpdateDerivatives(const Teuchos::Ptr<State>& S,
                     std::string potential_key,
                     const CompositeVector& dconductivity,

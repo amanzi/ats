@@ -101,6 +101,7 @@ void Richards::AddSources_(const Tag& tag,
     }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
+    db_->WriteVector("res (src)", g, false);
   }
 }
 

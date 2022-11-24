@@ -1,11 +1,18 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  PCLiquidEvaluator is the interface between state/data and the model, an EOS.
-
   License: BSD
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+//! Capillary pressure for gas on a liquid.
+
+/*!
+
+.. _pc-liquid-evaluator-spec
+.. admonition:: pc-liquid-evaluator-spec
+   KEYS:
+   - `"pressure`" **DOMAIN-pressure**
+
+*/
+
 
 #ifndef AMANZI_RELATIONS_PC_LIQUID_EVALUATOR_HH_
 #define AMANZI_RELATIONS_PC_LIQUID_EVALUATOR_HH_

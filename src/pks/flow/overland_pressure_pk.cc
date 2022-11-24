@@ -688,6 +688,9 @@ void OverlandPressureFlow::ComputeBoundaryConditions_(const Tag& tag)
   bc_critical_depth_->Compute(S_->get_time(tag));
   bc_dynamic_->Compute(S_->get_time(tag));
   bc_tidal_->Compute(S_->get_time(tag));
+  bc_level_flux_lvl_->Compute(S_->get_time(tag));
+  bc_level_flux_vel_->Compute(S_->get_time(tag));
+  
 }
 
 
@@ -805,17 +808,24 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     values[f] = bc.second;
   }
 
-  AMANZI_ASSERT(bc_level_flux_lvl_->size()==bc_level_flux_vel_->size());
+  if (bc_level_flux_lvl_->size() > 0) {
+    AMANZI_ASSERT(bc_level_flux_lvl_->size()==bc_level_flux_vel_->size());
+    const Epetra_MultiVector& nliq_c = *S_->GetPtr<CompositeVector>(molar_dens_key_, tag)
+       ->ViewComponent("cell");
 
-  for (auto bc_lvl=bc_level_flux_lvl_->begin(), bc_vel=bc_level_flux_vel_->begin();
-       bc_lvl != bc_level_flux_lvl_->end(); ++bc_lvl, ++bc_vel){
+    for (auto bc_lvl=bc_level_flux_lvl_->begin(), bc_vel=bc_level_flux_vel_->begin();
+         bc_lvl != bc_level_flux_lvl_->end(); ++bc_lvl, ++bc_vel) {
+      int f = bc_lvl->first;
+      AmanziMesh::Entity_ID_List cells;
+      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      int c = cells[0];
 
-    int f = bc_lvl->first;
-    markers[f] = Operators::OPERATOR_BC_NEUMANN;
-    double val = bc_lvl->second;
-    if (elevation[0][f] > val) values[f] = 0;
-    else {
-      values[f] = val * bc_vel->second;
+      markers[f] = Operators::OPERATOR_BC_NEUMANN;
+      double val = bc_lvl->second;
+      if (elevation[0][f] > val) values[f] = 0;
+      else {
+        values[f] = (val - elevation[0][f]) * nliq_c[0][c] * bc_vel->second;
+      }
     }
   }
 
@@ -828,7 +838,6 @@ void OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     const Epetra_MultiVector& nliq_c = *S_->GetPtr<CompositeVector>(molar_dens_key_, tag)
                                        ->ViewComponent("cell");
     double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
-
     for (const auto& bc : *bc_critical_depth_) {
       int f = bc.first;
       AmanziMesh::Entity_ID_List cells;
