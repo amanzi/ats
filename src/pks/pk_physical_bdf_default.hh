@@ -66,17 +66,15 @@ code, so usually are not supplied by the user.
 
 namespace Amanzi {
 
-class PK_PhysicalBDF_Default : public PK_BDF_Default,
-                               public PK_Physical_Default {
-
+class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default {
  public:
   PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
-                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                          const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<TreeVector>& solution):
-    PK(pk_tree, glist, S, solution),
-    PK_BDF_Default(pk_tree, glist, S, solution),
-    PK_Physical_Default(pk_tree, glist, S, solution)
+                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                         const Teuchos::RCP<State>& S,
+                         const Teuchos::RCP<TreeVector>& solution)
+    : PK(pk_tree, glist, S, solution),
+      PK_BDF_Default(pk_tree, glist, S, solution),
+      PK_Physical_Default(pk_tree, glist, S, solution)
   {}
 
   virtual void Setup() override;
@@ -86,19 +84,20 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
   virtual void Initialize() override;
 
   // Default preconditioner is Picard
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-          Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner, default does nothing
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
-          double h) override {}
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override
+  {}
 
   // Default implementations of BDFFnBase methods.
   // -- Compute a norm on u-du and return the result.
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du) override;
+  virtual double
+  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
-  virtual bool ValidStep() override {
+  virtual bool ValidStep() override
+  {
     return PK_Physical_Default::ValidStep() && PK_BDF_Default::ValidStep();
   }
 
@@ -131,10 +130,9 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default,
   Key conserved_key_;
   Key cell_vol_key_;
   double atol_, rtol_, fluxtol_;
-
 };
 
 
-} // namespace
+} // namespace Amanzi
 
 #endif

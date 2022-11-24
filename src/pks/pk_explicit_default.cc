@@ -20,7 +20,9 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Setup() {
+void
+PK_Explicit_Default::Setup()
+{
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
 };
@@ -29,7 +31,9 @@ void PK_Explicit_Default::Setup() {
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Initialize() {
+void
+PK_Explicit_Default::Initialize()
+{
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
     // -- instantiate time stepper
@@ -45,7 +49,9 @@ void PK_Explicit_Default::Initialize() {
 // -----------------------------------------------------------------------------
 // Advance from state S to state S_next at time S.time + dt.
 // -----------------------------------------------------------------------------
-bool PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
+bool
+PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit)
+{
   double dt = t_new - t_old;
 
   Teuchos::OSTab out = vo_->getOSTab();
@@ -64,4 +70,4 @@ bool PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
 };
 
 
-} // namespace
+} // namespace Amanzi

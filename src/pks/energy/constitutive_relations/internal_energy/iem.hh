@@ -20,8 +20,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEM {
-
-public:
+ public:
   virtual ~IEM() {}
 
   // IEM(Teuchos::ParameterList& plist);
@@ -30,7 +29,7 @@ public:
   virtual double DInternalEnergyDT(double temp) = 0;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

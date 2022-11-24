@@ -5,8 +5,9 @@ namespace Flow {
 namespace FlowRelations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,FractionalConductanceEvaluator> FractionalConductanceEvaluator::factory_("fractional conductance");
+Utils::RegisteredFactory<Evaluator, FractionalConductanceEvaluator>
+  FractionalConductanceEvaluator::factory_("fractional conductance");
 
-}
-}
-}
+} // namespace FlowRelations
+} // namespace Flow
+} // namespace Amanzi

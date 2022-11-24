@@ -24,13 +24,12 @@ namespace Amanzi {
 namespace TestPKs {
 
 class DivGradTest : public PKPhysicalBase {
-
-public:
+ public:
   DivGradTest(const Teuchos::RCP<Teuchos::ParameterList>& plist,
               Teuchos::ParameterList& FElist,
-              const Teuchos::RCP<TreeVector>& solution) :
-      PKDefaultBase(plist, FElist, solution),
-      PKPhysicalBase(plist, FElist, solution) {
+              const Teuchos::RCP<TreeVector>& solution)
+    : PKDefaultBase(plist, FElist, solution), PKPhysicalBase(plist, FElist, solution)
+  {
     // set a few parameters before setup
     plist_->set("solution key", "solution");
   }
@@ -55,13 +54,13 @@ public:
 
   virtual double get_dt() { return 1.e99; }
 
-protected:
+ protected:
   // boundary condition members
   virtual void UpdateBoundaryConditions_();
   virtual void ApplyBoundaryConditions_(const Teuchos::RCP<CompositeVector>& pres);
   virtual bool TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres);
 
-protected:
+ protected:
   // mathematical operators
   Teuchos::RCP<Operators::MatrixMFD> matrix_;
 
@@ -76,7 +75,7 @@ protected:
   static RegisteredPKFactory_ATS<DivGradTest> reg_;
 };
 
-}  // namespace
-}  // namespace Amanzi
+} // namespace TestPKs
+} // namespace Amanzi
 
 #endif

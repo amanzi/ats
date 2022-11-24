@@ -48,8 +48,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMQuadratic : public IEM {
-
-public:
+ public:
   explicit IEMQuadratic(Teuchos::ParameterList& plist);
 
   bool IsMolarBasis() { return molar_basis_; }
@@ -57,7 +56,7 @@ public:
   double InternalEnergy(double temp);
   double DInternalEnergyDT(double temp);
 
-private:
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -68,13 +67,12 @@ private:
   double T0_; // units: K
   bool molar_basis_;
 
-private:
+ private:
   // iem factor registration
-  static Utils::RegisteredFactory<IEM,IEMQuadratic> factory_;
-
+  static Utils::RegisteredFactory<IEM, IEMQuadratic> factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

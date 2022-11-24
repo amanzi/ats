@@ -66,14 +66,11 @@ namespace Amanzi {
 namespace Flow {
 
 class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist);
+  explicit RelPermSutraIceEvaluator(Teuchos::ParameterList& plist);
 
-  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<WRMPartition>& wrms);
+  RelPermSutraIceEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
 
   RelPermSutraIceEvaluator(const RelPermSutraIceEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -81,15 +78,14 @@ class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
-
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -111,10 +107,10 @@ class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
   double omega_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RelPermSutraIceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, RelPermSutraIceEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

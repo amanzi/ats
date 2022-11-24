@@ -1,1 +1,1 @@
-  Key {var}_key_;
+Key{ var } _key_;

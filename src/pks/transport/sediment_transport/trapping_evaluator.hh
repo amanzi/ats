@@ -17,20 +17,19 @@
 namespace Amanzi {
 
 class TrappingRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  TrappingRateEvaluator(Teuchos::ParameterList& plist);
+  explicit TrappingRateEvaluator(Teuchos::ParameterList& plist);
 
   TrappingRateEvaluator(const TrappingRateEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   double visc_, d_p_, alpha_, beta_, gamma_;
 
@@ -40,7 +39,7 @@ class TrappingRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key biomass_key_;
   double sediment_density_;
 
-  static Utils::RegisteredFactory<Evaluator,TrappingRateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, TrappingRateEvaluator> factory_;
 };
 
-} //namespace
+} // namespace Amanzi

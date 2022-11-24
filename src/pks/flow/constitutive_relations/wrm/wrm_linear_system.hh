@@ -32,17 +32,19 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMLinearSystem : public WRM {
-
-public:
+ public:
   explicit WRMLinearSystem(Teuchos::ParameterList& plist);
 
   // required methods from the base class
   virtual double k_relative(double pc) { return 1.0; }
   virtual double d_k_relative(double pc) { return 0.0; }
-  virtual double saturation(double pc) { return sat_at_zero_pc_ + alpha_*pc; }
+  virtual double saturation(double pc) { return sat_at_zero_pc_ + alpha_ * pc; }
   virtual double d_saturation(double pc) { return alpha_; }
-  virtual double capillaryPressure(double saturation) { return (saturation-sat_at_zero_pc_)/alpha_; }
-  virtual double d_capillaryPressure(double saturation) { return 1./alpha_; }
+  virtual double capillaryPressure(double saturation)
+  {
+    return (saturation - sat_at_zero_pc_) / alpha_;
+  }
+  virtual double d_capillaryPressure(double saturation) { return 1. / alpha_; }
   virtual double residualSaturation() { return 0.0; }
 
  private:
@@ -52,10 +54,10 @@ public:
   double alpha_;
   double sat_at_zero_pc_;
 
-  static Utils::RegisteredFactory<WRM,WRMLinearSystem> factory_;
+  static Utils::RegisteredFactory<WRM, WRMLinearSystem> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

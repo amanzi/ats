@@ -83,11 +83,10 @@ DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.
 namespace Amanzi {
 
 class BCFactory {
-
-public:
-  BCFactory(const Teuchos::RCP<const AmanziMesh::Mesh> &mesh,
-                const Teuchos::ParameterList& plist)
-     : mesh_(mesh), plist_(plist) {}
+ public:
+  BCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh, const Teuchos::ParameterList& plist)
+    : mesh_(mesh), plist_(plist)
+  {}
 
   Teuchos::RCP<Functions::BoundaryFunction>
   CreateWithFunction(const std::string& list_name, const std::string& function_name) const;
@@ -101,20 +100,19 @@ public:
   bool CheckExplicitFlag(const std::string& list_name);
 
  private:
-
   void ProcessListWithFunction_(const Teuchos::ParameterList&,
-          const std::string& function_name,
-          const Teuchos::RCP<Functions::BoundaryFunction>&) const;
+                                const std::string& function_name,
+                                const Teuchos::RCP<Functions::BoundaryFunction>&) const;
 
   void ProcessListWithoutFunction_(const Teuchos::ParameterList&,
-          const Teuchos::RCP<Functions::BoundaryFunction>&) const;
+                                   const Teuchos::RCP<Functions::BoundaryFunction>&) const;
 
   void ProcessSpecWithFunction_(const Teuchos::ParameterList&,
-          const std::string& function_name,
-          const Teuchos::RCP<Functions::BoundaryFunction>&) const;
+                                const std::string& function_name,
+                                const Teuchos::RCP<Functions::BoundaryFunction>&) const;
 
   void ProcessSpecWithoutFunction_(const Teuchos::ParameterList&,
-          const Teuchos::RCP<Functions::BoundaryFunction>&) const;
+                                   const Teuchos::RCP<Functions::BoundaryFunction>&) const;
 
   void ProcessSpecWithFunctionRegions_(const Teuchos::ParameterList& list,
                                        const std::string& function_name,
@@ -126,6 +124,6 @@ public:
   Teuchos::ParameterList plist_;
 };
 
-}  // namespace
+} // namespace Amanzi
 
 #endif // AMANZI_BC_FACTORY_HH_

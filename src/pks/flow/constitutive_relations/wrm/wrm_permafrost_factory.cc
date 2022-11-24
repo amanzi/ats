@@ -14,14 +14,15 @@ namespace Amanzi {
 namespace Flow {
 
 // method for instantiating WRM implementations
-Teuchos::RCP<WRMPermafrostModel> WRMPermafrostFactory::createWRMPermafrostModel(
-    Teuchos::ParameterList& plist, const Teuchos::RCP<WRM>& wrm) {
+Teuchos::RCP<WRMPermafrostModel>
+WRMPermafrostFactory::createWRMPermafrostModel(Teuchos::ParameterList& plist,
+                                               const Teuchos::RCP<WRM>& wrm)
+{
   std::string model_typename = plist.get<std::string>("permafrost WRM type");
   Teuchos::RCP<WRMPermafrostModel> model = Teuchos::rcp(CreateInstance(model_typename, plist));
   model->set_WRM(wrm);
   return model;
 };
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

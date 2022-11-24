@@ -10,7 +10,6 @@
 #include "thermal_conductivity_threephase_factory.hh"
 
 // explicity instantitate the static data of Factory<EOS>
-template<> 
-Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityThreePhase>::map_type* 
-Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityThreePhase>::map_;
-
+template <>
+Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityThreePhase>::map_type*
+  Amanzi::Utils::Factory<Amanzi::Energy::ThermalConductivityThreePhase>::map_;

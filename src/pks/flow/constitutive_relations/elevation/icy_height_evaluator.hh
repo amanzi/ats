@@ -18,11 +18,9 @@ namespace Flow {
 class IcyHeightModel;
 
 class IcyHeightEvaluator : public HeightEvaluator {
-
  public:
   // constructor format for all derived classes
-  explicit
-  IcyHeightEvaluator(Teuchos::ParameterList& plist);
+  explicit IcyHeightEvaluator(Teuchos::ParameterList& plist);
   IcyHeightEvaluator(const IcyHeightEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -32,11 +30,11 @@ class IcyHeightEvaluator : public HeightEvaluator {
   void InitializeFromPlist_();
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key dens_ice_key_;
@@ -44,11 +42,10 @@ class IcyHeightEvaluator : public HeightEvaluator {
   Teuchos::RCP<IcyHeightModel> icy_model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,IcyHeightEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, IcyHeightEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

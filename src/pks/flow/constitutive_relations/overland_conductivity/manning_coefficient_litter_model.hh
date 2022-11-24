@@ -15,24 +15,20 @@ namespace Flow {
 namespace Relations {
 
 class ManningCoefficientLitterModel {
-
  public:
-  virtual
-  ~ManningCoefficientLitterModel() {}
-  
-  virtual
-  double ManningCoefficient(double litter_depth, double ponded_depth) const = 0;
+  virtual ~ManningCoefficientLitterModel() {}
 
-  virtual
-  double DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const = 0;
+  virtual double ManningCoefficient(double litter_depth, double ponded_depth) const = 0;
 
-  virtual
-  double DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const = 0;
-  
+  virtual double
+  DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const = 0;
+
+  virtual double
+  DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const = 0;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

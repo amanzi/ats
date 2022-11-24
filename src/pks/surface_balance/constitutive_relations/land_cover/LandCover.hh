@@ -171,31 +171,32 @@ struct LandCover {
 
   // transition thickness between snow and bare ground
   // likely this is a property of the understory veg
-  double snow_transition_depth; // [m]
+  double snow_transition_depth;  // [m]
   double water_transition_depth; // [m]
 
   // soil properties controlling evaporation
   double dessicated_zone_thickness; // [m] Thickness over which vapor must diffuse
-      //  when the soil is dry.
-  double clapp_horn_b; // [-] exponent of the WRM, Clapp & Hornberger eqn 1
-  double roughness_ground; // [m] Fetch length for latent/sensible heat fluxes.
-  double roughness_snow; // [m] Fetch length for latent/sensible heat fluxes.
+                                    //  when the soil is dry.
+  double clapp_horn_b;              // [-] exponent of the WRM, Clapp & Hornberger eqn 1
+  double roughness_ground;          // [m] Fetch length for latent/sensible heat fluxes.
+  double roughness_snow;            // [m] Fetch length for latent/sensible heat fluxes.
 };
 
 // this one includes error checking for NaNs
 using LandCoverMap = std::map<std::string, LandCover>;
-LandCoverMap getLandCover(Teuchos::ParameterList& plist,
-                          const std::vector<std::string>& required_pars);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars);
 
 namespace Impl {
 
-void checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
-LandCoverMap getLandCover(Teuchos::ParameterList& plist);
+void
+checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist);
 
 
 } // namespace Impl
 
 
 } // namespace SurfaceBalance
-} // namespace ATS
-
+} // namespace Amanzi

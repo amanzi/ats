@@ -1,1 +1,4 @@
-      const Epetra_MultiVector& {var}_v = *{var}->ViewComponent(*comp, false);
+const Epetra_MultiVector& { var } _v = *
+{
+  var
+  } -> ViewComponent(*comp, false);

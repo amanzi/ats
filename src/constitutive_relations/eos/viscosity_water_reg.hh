@@ -18,7 +18,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<ViscosityRelation,ViscosityWater> ViscosityWater::factory_("liquid water");
+Utils::RegisteredFactory<ViscosityRelation, ViscosityWater>
+  ViscosityWater::factory_("liquid water");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

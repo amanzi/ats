@@ -9,7 +9,7 @@
 namespace Amanzi {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,BiomassEvaluator> BiomassEvaluator::factory_("biomass");
+Utils::RegisteredFactory<Evaluator, BiomassEvaluator> BiomassEvaluator::factory_("biomass");
 
 
-} // namespace
+} // namespace Amanzi

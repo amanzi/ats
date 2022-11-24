@@ -22,7 +22,6 @@ static const double NaN = std::numeric_limits<double>::signaling_NaN();
 static const double NaN = std::numeric_limits<double>::quiet_NaN();
 #endif
 
-} // namespace
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

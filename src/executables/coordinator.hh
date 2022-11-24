@@ -31,15 +31,14 @@ class TreeVector;
 class PK;
 class PK_ATS;
 class UnstructuredObservations;
-};
+}; // namespace Amanzi
 
 
 namespace ATS {
 
 class Coordinator {
  public:
-  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-              const Amanzi::Comm_ptr_type& comm);
+  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist, const Amanzi::Comm_ptr_type& comm);
 
   // PK methods
   void setup();
@@ -48,9 +47,9 @@ class Coordinator {
   void report_memory();
 
   bool advance();
-  void visualize(bool force=false);
-  void checkpoint(bool force=false);
-  double get_dt(bool after_fail=false);
+  void visualize(bool force = false);
+  void checkpoint(bool force = false);
+  double get_dt(bool after_fail = false);
 
  protected:
   void InitializeFromPlist_();
@@ -77,8 +76,8 @@ class Coordinator {
   Amanzi::Comm_ptr_type comm_;
 
   // vis and checkpointing
-  std::vector<Teuchos::RCP<Amanzi::Visualization> > visualization_;
-  std::vector<Teuchos::RCP<Amanzi::Visualization> > failed_visualization_;
+  std::vector<Teuchos::RCP<Amanzi::Visualization>> visualization_;
+  std::vector<Teuchos::RCP<Amanzi::Visualization>> failed_visualization_;
   Teuchos::RCP<Amanzi::Checkpoint> checkpoint_;
   bool restart_;
   std::string restart_filename_;
@@ -98,7 +97,6 @@ class Coordinator {
 };
 
 
-
-} // close namespace ATS
+} // namespace ATS
 
 #endif

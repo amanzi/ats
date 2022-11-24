@@ -16,8 +16,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,ExtractionEvaluator> ExtractionEvaluator::reg_("extraction evaluator");
+Utils::RegisteredFactory<Evaluator, ExtractionEvaluator>
+  ExtractionEvaluator::reg_("extraction evaluator");
 
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Amanzi

@@ -28,9 +28,9 @@ namespace Amanzi {
 class MPCCoupledReactiveTransport : public WeakMPC {
  public:
   MPCCoupledReactiveTransport(Teuchos::ParameterList& pk_tree,
-               const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-               const Teuchos::RCP<State>& S,
-               const Teuchos::RCP<TreeVector>& soln);
+                              const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                              const Teuchos::RCP<State>& S,
+                              const Teuchos::RCP<TreeVector>& soln);
 
   // PK methods
   virtual double get_dt() override;
@@ -63,5 +63,4 @@ class MPCCoupledReactiveTransport : public WeakMPC {
   static RegisteredPKFactory<MPCCoupledReactiveTransport> reg_;
 };
 
-}  // namespace Amanzi
-
+} // namespace Amanzi

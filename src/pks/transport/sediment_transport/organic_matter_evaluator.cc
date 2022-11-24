@@ -19,7 +19,7 @@ OrganicMatterRateEvaluator::OrganicMatterRateEvaluator(Teuchos::ParameterList& p
   Key domain_name = Keys::getDomain(my_keys_.front().first);
 
   biomass_key_ = Keys::readKey(plist_, domain_name, "biomass", "biomass");
-  dependencies_.insert(KeyTag{biomass_key_, tag});
+  dependencies_.insert(KeyTag{ biomass_key_, tag });
 
   // please put units on all of these!  --etc
   Bmax_ = 1.0 / plist_.get<double>("maximum biomass");
@@ -28,14 +28,15 @@ OrganicMatterRateEvaluator::OrganicMatterRateEvaluator(Teuchos::ParameterList& p
 }
 
 
-Teuchos::RCP<Evaluator> OrganicMatterRateEvaluator::Clone() const
+Teuchos::RCP<Evaluator>
+OrganicMatterRateEvaluator::Clone() const
 {
   return Teuchos::rcp(new OrganicMatterRateEvaluator(*this));
 }
 
 
-void OrganicMatterRateEvaluator::Evaluate_(const State& S,
-                                           const std::vector<CompositeVector*>& result)
+void
+OrganicMatterRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& bio = *S.Get<CompositeVector>(biomass_key_, tag).ViewComponent("cell");
@@ -43,19 +44,18 @@ void OrganicMatterRateEvaluator::Evaluate_(const State& S,
 
   result_c.PutScalar(0.);
   for (int c = 0; c < result_c.MyLength(); c++) {
-    for (int j = 0; j < bio.NumVectors(); j++) {
-      result_c[0][c] += Q_on_Bmax_ * bio[j][c];
-    }
+    for (int j = 0; j < bio.NumVectors(); j++) { result_c[0][c] += Q_on_Bmax_ * bio[j][c]; }
   }
 }
 
 
-void OrganicMatterRateEvaluator::EvaluatePartialDerivative_(
-  const State& S,
-  const Key& wrt_key, const Tag& wrt_tag,
-  const std::vector<CompositeVector*>& result)
+void
+OrganicMatterRateEvaluator::EvaluatePartialDerivative_(const State& S,
+                                                       const Key& wrt_key,
+                                                       const Tag& wrt_tag,
+                                                       const std::vector<CompositeVector*>& result)
 {
-   AMANZI_ASSERT(0);
+  AMANZI_ASSERT(0);
 }
 
-} // namespace
+} // namespace Amanzi

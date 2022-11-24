@@ -76,9 +76,9 @@ namespace CLM {
 //   startcode  | 1 if new run, 2 if restart (not currently supported?)
 //   rank       | rank (for logging purposes only)
 //   verbosity  | 0 (None) - 1 (Low) - 2 (High) - 3 (Extreme)
-//   
-int init(int ncells, int ncolumns, int startcode,
-         int rank, int verbosity);
+//
+int
+init(int ncells, int ncolumns, int startcode, int rank, int verbosity);
 
 
 //
@@ -92,8 +92,9 @@ int init(int ncells, int ncolumns, int startcode,
 //              |  but I would have thought this was assumed to be given
 //              |  by incoming radiation.  So what incoming met data
 //              |  temporal resolution does CLM expect? --etc
-//   
-int set_zero_time(double zero_time);
+//
+int
+set_zero_time(double zero_time);
 
 //
 // Sets the initial, assumed uniform, state.
@@ -101,8 +102,9 @@ int set_zero_time(double zero_time);
 // Input:
 //   temperature| Soil, snow, and water temperature [K]
 //   snow depth | Initial snow depth [m]
-//   
-int set_initial_state(double temperature, double snow_depth);
+//
+int
+set_initial_state(double temperature, double snow_depth);
 
 
 //
@@ -119,17 +121,20 @@ int set_initial_state(double temperature, double snow_depth);
 //              |  Array of shape [ncolumns, NUM_LC_CLASSES]
 //              |  Note only the dominant land type is used, as maxt is
 //              |  hard-coded 1 and this assumption is used in a few places in drv.
-//   
-int set_ground_properties(double* latlon,
-        const Epetra_MultiVector& sand, const Epetra_MultiVector& clay,
-        const std::vector<int>& color_index,
-        double* fractional_ground);
+//
+int
+set_ground_properties(double* latlon,
+                      const Epetra_MultiVector& sand,
+                      const Epetra_MultiVector& clay,
+                      const std::vector<int>& color_index,
+                      double* fractional_ground);
 
 //
 // Begin setup. Sets the tiles and pushes info from driver into grid/tile
 // ------------------------------------------------------------------
-//   
-int setup_begin();
+//
+int
+setup_begin();
 
 
 //
@@ -138,7 +143,8 @@ int setup_begin();
 // Input:
 //   dz         | vector of cell dz [m]  Size ncells.
 //
-int set_dz(const Epetra_MultiVector& dz);
+int
+set_dz(const Epetra_MultiVector& dz);
 
 
 //
@@ -152,16 +158,20 @@ int set_dz(const Epetra_MultiVector& dz);
 //   field_capacity     | ??
 //   res_sat            | residual saturation [-]
 //                      |  make this variable across columns?  cells? FIXME
-//              
-int set_et_controls(int beta_type, int veg_water_stress_type,
-                    double wilting_point, double field_capacity,
-                    double res_sat);    
+//
+int
+set_et_controls(int beta_type,
+                int veg_water_stress_type,
+                double wilting_point,
+                double field_capacity,
+                double res_sat);
 
 //
 // End setup. Pushes grid, tile, drv info into clm1d column instances.
 // ------------------------------------------------------------------
-//   
-int setup_end();
+//
+int
+setup_end();
 
 
 //
@@ -171,7 +181,8 @@ int setup_end();
 //   porosity   | [-]  Size ncells.
 //   saturation | [-]  Size ncells.
 //
-int set_wc(const Epetra_MultiVector& porosity, const Epetra_MultiVector& saturation);
+int
+set_wc(const Epetra_MultiVector& porosity, const Epetra_MultiVector& saturation);
 
 
 //
@@ -182,9 +193,10 @@ int set_wc(const Epetra_MultiVector& porosity, const Epetra_MultiVector& saturat
 //   variation due to compressibility only.
 //
 // Input:
-//   porosity   | [-]  Size ncells.  
+//   porosity   | [-]  Size ncells.
 //
-int set_tksat_from_porosity(const Epetra_MultiVector& porosity);
+int
+set_tksat_from_porosity(const Epetra_MultiVector& porosity);
 
 
 //
@@ -197,7 +209,8 @@ int set_tksat_from_porosity(const Epetra_MultiVector& porosity);
 //              |  isn't obvious that this is a good idea in cases of
 //              |  frozen water?  FIXME
 //
-int set_pressure(const Epetra_MultiVector& pressure, double patm);
+int
+set_pressure(const Epetra_MultiVector& pressure, double patm);
 
 
 //
@@ -219,10 +232,15 @@ int set_pressure(const Epetra_MultiVector& pressure, double patm);
 //   wind_u     | Windspeed velocity [m/s]
 //   p_atm      | Atmospheric pressure [Pa]
 //
-int set_met_data(const Epetra_MultiVector& qSW, const Epetra_MultiVector& qLW,
-                 const Epetra_MultiVector& pRain, const Epetra_MultiVector& pSnow,
-                 const Epetra_MultiVector& air_temp, const Epetra_MultiVector& vp_air,
-                 const Epetra_MultiVector& wind_u, double p_atm);
+int
+set_met_data(const Epetra_MultiVector& qSW,
+             const Epetra_MultiVector& qLW,
+             const Epetra_MultiVector& pRain,
+             const Epetra_MultiVector& pSnow,
+             const Epetra_MultiVector& air_temp,
+             const Epetra_MultiVector& vp_air,
+             const Epetra_MultiVector& wind_u,
+             double p_atm);
 
 
 //
@@ -232,7 +250,8 @@ int set_met_data(const Epetra_MultiVector& qSW, const Epetra_MultiVector& qLW,
 //   step       | integer cycle number (logging only?)
 //   time       | time at start of step (relative to zero time) [s]
 //   dt         | step size [s]
-int advance_time(int step, double time, double dt);
+int
+advance_time(int step, double time, double dt);
 
 
 //
@@ -242,7 +261,8 @@ int advance_time(int step, double time, double dt);
 //   qW_surf    | water source/sink surface (sign?) [m/s] Size ncolumns.
 //   qW_subsurf | water source/sink surface (sign?) [1/s] Size ncells.
 //
-int get_total_mass_fluxes(Epetra_MultiVector& qW_surf, Epetra_MultiVector& qW_subsurf);
+int
+get_total_mass_fluxes(Epetra_MultiVector& qW_surf, Epetra_MultiVector& qW_subsurf);
 
 
 //
@@ -258,10 +278,16 @@ int get_total_mass_fluxes(Epetra_MultiVector& qW_surf, Epetra_MultiVector& qW_su
 //
 // The total variant includes canopy latent and sensible heat terms.  The
 // ground variant does not.
-int get_total_energy_fluxes(Epetra_MultiVector& latent_heat, Epetra_MultiVector& sensible_heat,
-                             Epetra_MultiVector& lw_out, Epetra_MultiVector& conducted_e);
-int get_ground_energy_fluxes(Epetra_MultiVector& latent_heat, Epetra_MultiVector& sensible_heat,
-                             Epetra_MultiVector& lw_out, Epetra_MultiVector& conducted_e);
+int
+get_total_energy_fluxes(Epetra_MultiVector& latent_heat,
+                        Epetra_MultiVector& sensible_heat,
+                        Epetra_MultiVector& lw_out,
+                        Epetra_MultiVector& conducted_e);
+int
+get_ground_energy_fluxes(Epetra_MultiVector& latent_heat,
+                         Epetra_MultiVector& sensible_heat,
+                         Epetra_MultiVector& lw_out,
+                         Epetra_MultiVector& conducted_e);
 
 //
 // Mass fluxes for mass balance and diagnostics/visualization
@@ -280,11 +306,17 @@ int get_ground_energy_fluxes(Epetra_MultiVector& latent_heat, Epetra_MultiVector
 //   irrigation_flag    | ???
 //   tran_soil          | Transpiration distributed to soil via rooting curve [1/s] (Size ncells)
 //
-int get_mass_fluxes(Epetra_MultiVector& evap_total, Epetra_MultiVector& evap_ground,
-                     Epetra_MultiVector& evap_soil, Epetra_MultiVector& evap_canopy,
-                     Epetra_MultiVector& tran_veg, Epetra_MultiVector& influx,
-                     Epetra_MultiVector& irrigation, Epetra_MultiVector& inst_irrigation,
-                     Epetra_MultiVector& irrigation_flag, Epetra_MultiVector& tran_soil);
+int
+get_mass_fluxes(Epetra_MultiVector& evap_total,
+                Epetra_MultiVector& evap_ground,
+                Epetra_MultiVector& evap_soil,
+                Epetra_MultiVector& evap_canopy,
+                Epetra_MultiVector& tran_veg,
+                Epetra_MultiVector& influx,
+                Epetra_MultiVector& irrigation,
+                Epetra_MultiVector& inst_irrigation,
+                Epetra_MultiVector& irrigation_flag,
+                Epetra_MultiVector& tran_soil);
 
 
 //
@@ -301,20 +333,17 @@ int get_mass_fluxes(Epetra_MultiVector& evap_total, Epetra_MultiVector& evap_gro
 //   T_veg              | Leaf temperature [K]
 //   T_soil             | Soil temperature [K]  (size ncells)
 //
-int get_diagnostics(Epetra_MultiVector& swe, Epetra_MultiVector& snow_depth,
-                     Epetra_MultiVector& canopy_storage, Epetra_MultiVector& Tskin,
-                     Epetra_MultiVector& Tveg, Epetra_MultiVector& Tsoil);
-
-
-
-
-
-
-    
+int
+get_diagnostics(Epetra_MultiVector& swe,
+                Epetra_MultiVector& snow_depth,
+                Epetra_MultiVector& canopy_storage,
+                Epetra_MultiVector& Tskin,
+                Epetra_MultiVector& Tveg,
+                Epetra_MultiVector& Tsoil);
 
 
 } // namespace CLM
 } // namespace ATS
-  
+
 
 #endif

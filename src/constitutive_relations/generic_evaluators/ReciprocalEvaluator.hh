@@ -14,22 +14,20 @@ namespace Amanzi {
 namespace Relations {
 
 class ReciprocalEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  ReciprocalEvaluator(Teuchos::ParameterList& plist);
+  explicit ReciprocalEvaluator(Teuchos::ParameterList& plist);
   ReciprocalEvaluator(const ReciprocalEvaluator& other) = default;
 
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  void Evaluate_(const State& S,
-                 const std::vector<CompositeVector*>& result) override;
+  void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag,
+                                  const std::vector<CompositeVector*>& result) override;
 
  protected:
   double coef_;
@@ -37,11 +35,10 @@ class ReciprocalEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key reciprocal_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ReciprocalEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ReciprocalEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif
-

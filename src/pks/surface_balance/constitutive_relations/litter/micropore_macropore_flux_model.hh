@@ -24,31 +24,42 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class MicroporeMacroporeFluxModel {
-
  public:
-  explicit
-  MicroporeMacroporeFluxModel(Teuchos::ParameterList& plist);
+  explicit MicroporeMacroporeFluxModel(Teuchos::ParameterList& plist);
 
   double MicroporeMacroporeFlux(double pm, double pM, double krM, double krm, double K) const;
 
-  double DMicroporeMacroporeFluxDMicroporePressure(double pm, double pM, double krM, double krm, double K) const;
-  double DMicroporeMacroporeFluxDPressure(double pm, double pM, double krM, double krm, double K) const;
-  double DMicroporeMacroporeFluxDRelativePermeability(double pm, double pM, double krM, double krm, double K) const;
-  double DMicroporeMacroporeFluxDMicroporeRelativePermeability(double pm, double pM, double krM, double krm, double K) const;
-  double DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(double pm, double pM, double krM, double krm, double K) const;
+  double DMicroporeMacroporeFluxDMicroporePressure(double pm,
+                                                   double pM,
+                                                   double krM,
+                                                   double krm,
+                                                   double K) const;
+  double
+  DMicroporeMacroporeFluxDPressure(double pm, double pM, double krM, double krm, double K) const;
+  double DMicroporeMacroporeFluxDRelativePermeability(double pm,
+                                                      double pM,
+                                                      double krM,
+                                                      double krm,
+                                                      double K) const;
+  double DMicroporeMacroporeFluxDMicroporeRelativePermeability(double pm,
+                                                               double pM,
+                                                               double krM,
+                                                               double krm,
+                                                               double K) const;
+  double DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(double pm,
+                                                               double pM,
+                                                               double krM,
+                                                               double krm,
+                                                               double K) const;
 
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double gamma_;
   double delta_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

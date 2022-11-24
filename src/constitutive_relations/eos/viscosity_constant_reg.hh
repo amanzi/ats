@@ -16,8 +16,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<ViscosityRelation,ViscosityConstant>
-ViscosityConstant::factory_("constant");
+Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant>
+  ViscosityConstant::factory_("constant");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

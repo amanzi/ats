@@ -10,7 +10,6 @@
 #include "wrm_permafrost_factory.hh"
 
 // explicity instantitate the static data of Factory<WRM>
-template<> 
-Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_type* 
-Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_;
-
+template <>
+Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_type*
+  Amanzi::Utils::Factory<Amanzi::Flow::WRMPermafrostModel>::map_;

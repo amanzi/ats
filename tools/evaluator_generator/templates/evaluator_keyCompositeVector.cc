@@ -1,1 +1,1 @@
-Teuchos::RCP<const CompositeVector> {var} = S->GetFieldData({var}_key_);
+Teuchos::RCP<const CompositeVector>{ var } = S->GetFieldData({ var } _key_);

@@ -20,7 +20,8 @@ namespace Transport {
 /* *******************************************************************
 * Re-partition components between liquid and gas phases.
 ******************************************************************* */
-void Transport_ATS::PrepareAirWaterPartitioning_()
+void
+Transport_ATS::PrepareAirWaterPartitioning_()
 {
   henry_law_ = true;
   for (int i = 0; i < num_gaseous; i++) {
@@ -44,7 +45,8 @@ void Transport_ATS::PrepareAirWaterPartitioning_()
   if (henry_law_) {
     Teuchos::Array<double> empty;
     kH_ = plist_->sublist("molecular diffusion")
-        .get<Teuchos::Array<double> >("air-water partitioning coefficient", empty).toVector();
+            .get<Teuchos::Array<double>>("air-water partitioning coefficient", empty)
+            .toVector();
   } else {
     air_water_map_.clear();
   }
@@ -54,7 +56,8 @@ void Transport_ATS::PrepareAirWaterPartitioning_()
 /* *******************************************************************
 * Re-partition components between liquid and gas phases.
 ******************************************************************* */
-void Transport_ATS::MakeAirWaterPartitioning_()
+void
+Transport_ATS::MakeAirWaterPartitioning_()
 {
   Epetra_MultiVector& tcc_c = *tcc_tmp->ViewComponent("cell", false);
   const Epetra_MultiVector& sat_l = *ws_;
@@ -72,7 +75,5 @@ void Transport_ATS::MakeAirWaterPartitioning_()
   }
 }
 
-}  // namespace Transport
-}  // namespace Amanzi
-
-
+} // namespace Transport
+} // namespace Amanzi

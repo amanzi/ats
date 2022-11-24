@@ -30,10 +30,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class InterceptionFractionModel {
-
  public:
-  explicit
-  InterceptionFractionModel(Teuchos::ParameterList& plist);
+  explicit InterceptionFractionModel(Teuchos::ParameterList& plist);
 
   double InterceptionFraction(double ai) const;
 
@@ -43,11 +41,9 @@ class InterceptionFractionModel {
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double alpha_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

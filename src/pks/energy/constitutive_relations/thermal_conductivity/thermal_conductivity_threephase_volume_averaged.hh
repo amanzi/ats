@@ -39,7 +39,6 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseVolumeAveraged : public ThermalConductivityThreePhase {
-
  public:
   ThermalConductivityThreePhaseVolumeAveraged(Teuchos::ParameterList& plist);
 
@@ -57,10 +56,9 @@ class ThermalConductivityThreePhaseVolumeAveraged : public ThermalConductivityTh
 
  private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhaseVolumeAveraged> factory_;
+                                  ThermalConductivityThreePhaseVolumeAveraged>
+    factory_;
 };
 
 } // namespace Energy
 } // namespace Amanzi
-
-

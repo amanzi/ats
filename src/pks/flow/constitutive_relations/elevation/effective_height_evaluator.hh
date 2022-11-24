@@ -19,11 +19,9 @@ namespace Flow {
 class EffectiveHeightModel;
 
 class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  EffectiveHeightEvaluator(Teuchos::ParameterList& plist);
+  explicit EffectiveHeightEvaluator(Teuchos::ParameterList& plist);
   EffectiveHeightEvaluator(const EffectiveHeightEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -31,12 +29,12 @@ class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<EffectiveHeightModel> get_Model() { return model_; }
 
  protected:
-
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key height_key_;
@@ -44,11 +42,10 @@ class EffectiveHeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<EffectiveHeightModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EffectiveHeightEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, EffectiveHeightEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

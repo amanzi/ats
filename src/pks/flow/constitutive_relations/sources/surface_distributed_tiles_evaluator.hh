@@ -29,21 +29,20 @@ namespace Flow {
 namespace Relations {
 
 class SurfDistributedTilesRateEvaluator : public EvaluatorSecondary {
-
  public:
-  explicit
-  SurfDistributedTilesRateEvaluator(Teuchos::ParameterList& plist);
+  explicit SurfDistributedTilesRateEvaluator(Teuchos::ParameterList& plist);
   SurfDistributedTilesRateEvaluator(const SurfDistributedTilesRateEvaluator& other) = default;
 
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new SurfDistributedTilesRateEvaluator(*this));
   }
 
   virtual void EnsureCompatibility(State& S) override;
 
  protected:
-  virtual void Update_(State& S) override ;
-  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
+  virtual void Update_(State& S) override;
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override{};
 
  protected:
   Key domain_;
@@ -55,11 +54,10 @@ class SurfDistributedTilesRateEvaluator : public EvaluatorSecondary {
   int num_ditches_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SurfDistributedTilesRateEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, SurfDistributedTilesRateEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 #endif

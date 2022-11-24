@@ -107,14 +107,12 @@ class State;
 namespace ATS {
 
 class ATSDriver : public Coordinator {
-
-public:
+ public:
   using Coordinator::Coordinator;
 
   // methods
   void cycle_driver();
   int run();
-
 };
 
 } // namespace ATS

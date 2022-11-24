@@ -20,19 +20,14 @@ namespace Amanzi {
 namespace BGC {
 
 class SoilCarbon {
-
  public:
+  SoilCarbon(const Teuchos::RCP<const SoilCarbonParameters> params_)
+    : params(params_), SOM(params_->nPools), nPools(params_->nPools)
+  {}
 
-  SoilCarbon(const Teuchos::RCP<const SoilCarbonParameters> params_) :
-      params(params_),
-      SOM(params_->nPools),
-      nPools(params_->nPools) {}
-
-  SoilCarbon(const Teuchos::RCP<const SoilCarbonParameters> params_,
-             double * som) :
-      params(params_),
-      SOM(View, som, params_->nPools),
-      nPools(params_->nPools) {}
+  SoilCarbon(const Teuchos::RCP<const SoilCarbonParameters> params_, double* som)
+    : params(params_), SOM(View, som, params_->nPools), nPools(params_->nPools)
+  {}
 
  public:
   int nPools;
@@ -40,12 +35,12 @@ class SoilCarbon {
   Teuchos::RCP<const SoilCarbonParameters> params;
 
  private:
-  SoilCarbon(const SoilCarbon& other); // not implemented
+  SoilCarbon(const SoilCarbon& other);            // not implemented
   SoilCarbon& operator=(const SoilCarbon& other); // not implemented
 };
 
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

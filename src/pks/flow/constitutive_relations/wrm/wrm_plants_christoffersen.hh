@@ -26,8 +26,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMPlantChristoffersen : public WRM {
-
-public:
+ public:
   explicit WRMPlantChristoffersen(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -40,12 +39,12 @@ public:
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
 
-  double operator()(const double &s) {
+  double operator()(const double& s)
+  {
     return potentialLinear(s) - (potentialSol(s) + potentialP(s));
   }
 
  private:
-
   void InitializeFromPlist_();
 
   /*
@@ -55,7 +54,7 @@ public:
   double alpha_;
   double sr_;  // van Genuchten residual saturation
   */
-  
+
   double potential(double s);
   double potentialLinear(double s);
   double potentialSol(double s);
@@ -80,27 +79,24 @@ public:
   double scap_;
   double psitlp_;
   double mcap_;
-  double mcapstar_; 
+  double mcapstar_;
   double scapfttrans_;
   double psicapfttrans_;
 
 
-
   struct Tol_ {
     Tol_(double eps) : eps_(eps) {}
-    bool operator()(const double& a, const double& b) const {
-        return std::abs(a - b) <= eps_;
-    }
+    bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
     double eps_;
   };
   int function_;
-  double pc0_;  // regularization threshold (usually 0 to 500 Pa)
-  double a_, b_, factor_dSdPc_;  // frequently used constant
+  double pc0_;                  // regularization threshold (usually 0 to 500 Pa)
+  double a_, b_, factor_dSdPc_; // frequently used constant
 
-  static Utils::RegisteredFactory<WRM,WRMPlantChristoffersen> factory_;
+  static Utils::RegisteredFactory<WRM, WRMPlantChristoffersen> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

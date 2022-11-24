@@ -41,13 +41,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityTwoPhasePetersLidard : public ThermalConductivityTwoPhase {
-
-public:
+ public:
   ThermalConductivityTwoPhasePetersLidard(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -59,13 +58,13 @@ private:
   double k_gas_;
   double d_;
 
-private:
+ private:
   static Utils::RegisteredFactory<ThermalConductivityTwoPhase,
-                                  ThermalConductivityTwoPhasePetersLidard> factory_;
-
+                                  ThermalConductivityTwoPhasePetersLidard>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

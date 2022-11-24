@@ -12,8 +12,8 @@ namespace Flow {
 namespace Relations {
 
 
-DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondary(plist)
+DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondary(plist)
 {
   // my_keys are for distributed subsurface source, accumulated catchment-wide
   // source.  Order matters, so we must figure out which we were given and
@@ -34,24 +34,24 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
         << "or the \"distributed source key\".  Please provide this name in the input spec.";
     Exceptions::amanzi_throw(msg);
   }
-  my_keys_.emplace_back(KeyTag{acc_sources_key_, tag});
-  my_keys_.emplace_back(KeyTag{dist_sources_key_, tag});
+  my_keys_.emplace_back(KeyTag{ acc_sources_key_, tag });
+  my_keys_.emplace_back(KeyTag{ dist_sources_key_, tag });
 
   // dependencies
   catch_id_key_ = Keys::readKey(plist, domain_, "catchment ID", "catchments_id");
-  dependencies_.insert(KeyTag{catch_id_key_, tag});
+  dependencies_.insert(KeyTag{ catch_id_key_, tag });
 
   factor_key_ = Keys::readKey(plist, domain_, "factor field", "NOT_PROVIDED");
   if (factor_key_ == Keys::getKey(domain_, "NOT_PROVIDED")) {
     factor_key_ = "";
   } else {
-    dependencies_.insert(KeyTag{factor_key_, tag});
+    dependencies_.insert(KeyTag{ factor_key_, tag });
   }
 
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
-  dependencies_.insert(KeyTag{pres_key_, tag});
+  dependencies_.insert(KeyTag{ pres_key_, tag });
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
-  dependencies_.insert(KeyTag{mol_dens_key_, tag});
+  dependencies_.insert(KeyTag{ mol_dens_key_, tag });
 
   // other parameters
   num_ditches_ = plist.get<int>("number of ditches");
@@ -69,44 +69,48 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
   const auto& pres = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
   const auto& dens = *S.Get<CompositeVector>(mol_dens_key_, tag).ViewComponent("cell", false);
-  const auto& cv = *S.Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
+  const auto& cv =
+    *S.Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag).ViewComponent("cell", false);
   const auto& sub_marks = *S.Get<CompositeVector>(catch_id_key_, tag).ViewComponent("cell", false);
 
-  auto& sub_sink = *S.GetW<CompositeVector>(dist_sources_key_, tag, dist_sources_key_).ViewComponent("cell",false);
+  auto& sub_sink = *S.GetW<CompositeVector>(dist_sources_key_, tag, dist_sources_key_)
+                      .ViewComponent("cell", false);
   sub_sink.PutScalar(0);
 
   auto& acc_src_vec = S.GetW<Teuchos::Array<double>>(acc_sources_key_, tag, acc_sources_key_);
-  for (int lcv=0; lcv!=num_ditches_; ++lcv) acc_src_vec[lcv] = 0.;
+  for (int lcv = 0; lcv != num_ditches_; ++lcv) acc_src_vec[lcv] = 0.;
 
   AmanziMesh::Entity_ID ncells = sub_sink.MyLength();
   double total = 0.0;
   int num_vectors = 1;
 
   if (!factor_key_.empty()) {
-    num_vectors = S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell",false)->NumVectors();
+    num_vectors =
+      S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)->NumVectors();
     AMANZI_ASSERT(num_vectors == sub_sink.NumVectors());
     AMANZI_ASSERT(num_vectors == num_components_);
   }
 
   if (std::abs(dt) > 1e-13) {
-    const Epetra_MultiVector *factor = nullptr;
+    const Epetra_MultiVector* factor = nullptr;
     if (!factor_key_.empty()) {
       factor = &(*(S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)));
     }
 
-    for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+    for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
       if (sub_marks[0][c] > 0) {
         double val = std::min(p_enter_ - pres[0][c], 0.0) * dens[0][c] * k_;
 
         if (!factor_key_.empty()) {
-          for (int i=0; i<num_components_; ++i) {
+          for (int i = 0; i < num_components_; ++i) {
             sub_sink[i][c] = (*factor)[i][c] * val;
-            acc_src_vec[sub_marks[0][c] - 1 + i* num_ditches_] += (*factor)[i][c] * val * dt * cv[0][c];
+            acc_src_vec[sub_marks[0][c] - 1 + i * num_ditches_] +=
+              (*factor)[i][c] * val * dt * cv[0][c];
             total = total + (*factor)[i][c] * val * dt * cv[0][c];
           }
         } else {
           sub_sink[0][c] = val;
-          acc_src_vec[sub_marks[0][c] - 1] +=  val * dt * cv[0][c];
+          acc_src_vec[sub_marks[0][c] - 1] += val * dt * cv[0][c];
           total = total + val * dt * cv[0][c];
         }
       }
@@ -114,9 +118,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
   }
 
   total = 0.;
-  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
-    total += sub_sink[0][c] * cv[0][c];
-  }
+  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) { total += sub_sink[0][c] * cv[0][c]; }
 
   Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->get_comm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
@@ -132,19 +134,15 @@ DistributedTilesRateEvaluator::EnsureCompatibility(State& S)
   if (!S.HasRecord(acc_sources_key_, tag)) {
     S.Require<Teuchos::Array<double>>(num_ditches_, acc_sources_key_, tag, acc_sources_key_);
   }
-  S.Require<CompositeVector,CompositeVectorSpace>(dist_sources_key_, tag, dist_sources_key_)
+  S.Require<CompositeVector, CompositeVectorSpace>(dist_sources_key_, tag, dist_sources_key_)
     .SetMesh(S.GetMesh(domain_))
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Cop-out -- ensure not fully implemented for this evaluator.  FIXME --ETC
-  for (const auto& dep : dependencies_) {
-    S.RequireEvaluator(dep.first, dep.second);
-  }
+  for (const auto& dep : dependencies_) { S.RequireEvaluator(dep.first, dep.second); }
 }
 
 
-
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

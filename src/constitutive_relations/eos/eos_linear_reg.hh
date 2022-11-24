@@ -16,7 +16,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSLinear> EOSLinear::factory_("linear");
+Utils::RegisteredFactory<EOS, EOSLinear> EOSLinear::factory_("linear");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

@@ -11,7 +11,7 @@
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<WRM,WRMVanGenuchten> WRMVanGenuchten::factory_("van Genuchten");
+Utils::RegisteredFactory<WRM, WRMVanGenuchten> WRMVanGenuchten::factory_("van Genuchten");
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi

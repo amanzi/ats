@@ -15,34 +15,37 @@ namespace Amanzi {
 namespace Flow {
 
 class EffectiveHeightModel {
-public:
-  explicit
-  EffectiveHeightModel(Teuchos::ParameterList& plist) : plist_(plist) {
+ public:
+  explicit EffectiveHeightModel(Teuchos::ParameterList& plist) : plist_(plist)
+  {
     InitializeFromPList_();
   }
 
-  double EffectiveHeight(double h) {
+  double EffectiveHeight(double h)
+  {
     if (h <= 0.) {
       return 0.;
     } else if (h >= smoothing_width_) {
-      return h - 0.5*smoothing_width_;
+      return h - 0.5 * smoothing_width_;
     } else {
-      return 0.5*h - 0.5*std::sin(h / smoothing_width_ * pi_) * smoothing_width_ / pi_;
+      return 0.5 * h - 0.5 * std::sin(h / smoothing_width_ * pi_) * smoothing_width_ / pi_;
     }
   }
 
-  double DEffectiveHeightDHeight(double h) {
+  double DEffectiveHeightDHeight(double h)
+  {
     if (h <= 0.) {
       return 0.;
     } else if (h >= smoothing_width_) {
       return 1.;
     } else {
-      return 0.5 - 0.5*std::cos(h / smoothing_width_ * pi_);
+      return 0.5 - 0.5 * std::cos(h / smoothing_width_ * pi_);
     }
   }
 
-protected:
-  void InitializeFromPList_() {
+ protected:
+  void InitializeFromPList_()
+  {
     smoothing_width_ = plist_.get<double>("smoothing width [m]", 0.01);
     pi_ = 4 * std::atan(1.0);
   }
@@ -52,7 +55,7 @@ protected:
   double pi_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

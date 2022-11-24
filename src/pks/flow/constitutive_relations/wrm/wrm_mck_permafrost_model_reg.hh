@@ -12,7 +12,8 @@ namespace Flow {
 
 
 // registry of method
-Utils::RegisteredFactory<WRMPermafrostModel,WRMMCKPermafrostModel> WRMMCKPermafrostModel::factory_("mck permafrost model");
+Utils::RegisteredFactory<WRMPermafrostModel, WRMMCKPermafrostModel>
+  WRMMCKPermafrostModel::factory_("mck permafrost model");
 
 } // namespace Flow
-} // namespace Flow
+} // namespace Amanzi

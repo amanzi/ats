@@ -35,13 +35,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseSutraHacked : public ThermalConductivityThreePhase {
-
-public:
+ public:
   ThermalConductivityThreePhaseSutraHacked(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -51,13 +50,13 @@ private:
   double k_mushy_;
   double sr_;
 
-private:
+ private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhaseSutraHacked> factory_;
-
+                                  ThermalConductivityThreePhaseSutraHacked>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

@@ -4,7 +4,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,HeightEvaluator> HeightEvaluator::factory_("ponded depth");
+Utils::RegisteredFactory<Evaluator, HeightEvaluator> HeightEvaluator::factory_("ponded depth");
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

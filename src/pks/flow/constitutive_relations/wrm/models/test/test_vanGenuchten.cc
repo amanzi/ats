@@ -3,7 +3,8 @@
 
 #include "wrm_van_genuchten.hh"
 
-TEST(vanGenuchten) {
+TEST(vanGenuchten)
+{
   using namespace Amanzi::Flow;
 
   double m = 0.5;
@@ -25,7 +26,8 @@ TEST(vanGenuchten) {
   // check k_relative for s = 0.5
   double se = (0.5 - sr) / (1.0 - sr);
   CHECK_CLOSE(vG.k_relative(0.5),
-              sqrt(se) * std::pow(1.0 - std::pow(1.0 - std::pow(se, 1.0/m), m), 2.0), 1e-15);
+              sqrt(se) * std::pow(1.0 - std::pow(1.0 - std::pow(se, 1.0 / m), m), 2.0),
+              1e-15);
 
   // check saturation for p = 2*p_atm
   pc = -p_atm;
@@ -34,7 +36,8 @@ TEST(vanGenuchten) {
   // check saturation for p = 0
   pc = p_atm;
   CHECK_CLOSE(vG.saturation(pc),
-              std::pow(1.0 + std::pow(alpha * pc, 1.0/ (1.0-m)), -m) * (1.0-sr) + sr, 1e-15);
+              std::pow(1.0 + std::pow(alpha * pc, 1.0 / (1.0 - m)), -m) * (1.0 - sr) + sr,
+              1e-15);
 
   // check derivative of saturation(p) at p=2*p_atm
   pc = -p_atm;
@@ -43,19 +46,19 @@ TEST(vanGenuchten) {
   // check derivative of saturation(p) at p=0
   pc = p_atm;
   CHECK_CLOSE(vG.d_saturation(pc),
-              (1.0-sr)*(-m)*std::pow(1.0+std::pow(alpha*pc,1.0/(1.0-m)),-m-1.0)
-              *alpha*std::pow(alpha*pc,m/(1.0-m))/(1.0-m),1e-15);
+              (1.0 - sr) * (-m) * std::pow(1.0 + std::pow(alpha * pc, 1.0 / (1.0 - m)), -m - 1.0) *
+                alpha * std::pow(alpha * pc, m / (1.0 - m)) / (1.0 - m),
+              1e-15);
 
   // check capillary pressure at p = 2*p_atm
   pc = -p_atm;
-  CHECK_CLOSE(vG.capillaryPressure( vG.saturation(pc) ), 0., 1e-15);
+  CHECK_CLOSE(vG.capillaryPressure(vG.saturation(pc)), 0., 1e-15);
 
   // check capillary pressure at p = 0.
   pc = p_atm;
-  CHECK_CLOSE(vG.capillaryPressure( vG.saturation(pc) ), pc, 1e-2);
+  CHECK_CLOSE(vG.capillaryPressure(vG.saturation(pc)), pc, 1e-2);
 
   // check d_capillaryPressure at p = 0
   pc = p_atm;
-  CHECK_CLOSE(vG.d_capillaryPressure( vG.saturation(pc) ),
-              1.0 / vG.d_saturation(pc), 1.);
+  CHECK_CLOSE(vG.d_capillaryPressure(vG.saturation(pc)), 1.0 / vG.d_saturation(pc), 1.);
 }

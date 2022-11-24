@@ -18,13 +18,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityTwoPhase {
-
-public:
+ public:
   virtual ~ThermalConductivityTwoPhase() {}
   virtual double ThermalConductivity(double porosity, double sat_liq) = 0;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

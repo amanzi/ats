@@ -55,13 +55,11 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 class ImplicitSubgrid : public SurfaceBalanceBase {
-
-public:
-
+ public:
   ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
-                         const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                         const Teuchos::RCP<State>& S,
-                         const Teuchos::RCP<TreeVector>& solution);
+                  const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                  const Teuchos::RCP<State>& S,
+                  const Teuchos::RCP<TreeVector>& solution);
 
   // main methods
   // -- Setup data.
@@ -70,20 +68,25 @@ public:
   // -- Initialize owned (dependent) variables.
   virtual void Initialize() override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
   // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new,  const Tag& tag) override;
-  virtual void FailStep(double t_old, double t_new,  const Tag& tag) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
   Key snow_dens_key_;
@@ -92,16 +95,16 @@ public:
   Key snow_source_key_;
   Key snow_death_rate_key_;
   Key area_frac_key_;
-  
+
   double density_snow_max_;
-  
+
 
  private:
   // factory registration
   static RegisteredPKFactory<ImplicitSubgrid> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

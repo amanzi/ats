@@ -16,5 +16,5 @@ namespace Relations {
 
 Utils::RegisteredFactory<EOS, EOS_SW> EOS_SW::factory_("salt water");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

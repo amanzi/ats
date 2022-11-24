@@ -15,9 +15,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityTwoPhase,
-                         ThermalConductivityTwoPhasePetersLidard>
-        ThermalConductivityTwoPhasePetersLidard::factory_("two-phase Peters-Lidard");
+Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhasePetersLidard>
+  ThermalConductivityTwoPhasePetersLidard::factory_("two-phase Peters-Lidard");
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

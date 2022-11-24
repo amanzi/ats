@@ -12,7 +12,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,ReciprocalEvaluator> ReciprocalEvaluator::factory_("reciprocal evaluator");
+Utils::RegisteredFactory<Evaluator, ReciprocalEvaluator>
+  ReciprocalEvaluator::factory_("reciprocal evaluator");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

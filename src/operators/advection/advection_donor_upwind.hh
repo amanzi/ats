@@ -24,17 +24,15 @@ namespace Amanzi {
 namespace Operators {
 
 class AdvectionDonorUpwind : public Advection {
-
-public:
-
+ public:
   AdvectionDonorUpwind(Teuchos::ParameterList& advect_plist,
                        const Teuchos::RCP<const AmanziMesh::Mesh> mesh);
 
   virtual void set_flux(const Teuchos::RCP<const CompositeVector>& flux);
-  virtual void Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
-                     bool include_bc_fluxes=true);
+  virtual void
+  Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux, bool include_bc_fluxes = true);
 
-private:
+ private:
   void IdentifyUpwindCells_();
 
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;

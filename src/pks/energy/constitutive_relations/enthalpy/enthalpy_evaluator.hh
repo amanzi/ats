@@ -21,21 +21,19 @@ namespace Amanzi {
 namespace Energy {
 
 class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  EnthalpyEvaluator(Teuchos::ParameterList& plist);
+  explicit EnthalpyEvaluator(Teuchos::ParameterList& plist);
   EnthalpyEvaluator(const EnthalpyEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key pres_key_;
@@ -44,11 +42,10 @@ class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool include_work_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EnthalpyEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, EnthalpyEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

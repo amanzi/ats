@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,TopCellsSurfaceEvaluator> TopCellsSurfaceEvaluator::reg_("top cell from surface evaluator");
+Utils::RegisteredFactory<Evaluator, TopCellsSurfaceEvaluator>
+  TopCellsSurfaceEvaluator::reg_("top cell from surface evaluator");
 
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Amanzi

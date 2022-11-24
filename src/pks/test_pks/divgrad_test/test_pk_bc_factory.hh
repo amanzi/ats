@@ -18,23 +18,24 @@ namespace Amanzi {
 namespace TestPKs {
 
 class TestPKBCFactory : public BCFactory {
+ public:
+  TestPKBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
+                  const Teuchos::ParameterList& plist)
+    : BCFactory(mesh, plist)
+  {}
 
-public:
-  TestPKBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh> &mesh,
-                  const Teuchos::ParameterList& plist) : 
-	BCFactory(mesh,plist) {}
-
-  Teuchos::RCP<Functions::BoundaryFunction> CreateDirichlet() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateDirichlet() const
+  {
     return CreateWithFunction("dirichlet", "boundary data");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateNeumann() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateNeumann() const
+  {
     return CreateWithFunction("neumann", "outward flux");
   }
-
 };
 
-}  // namespace
-}  // namespace
+} // namespace TestPKs
+} // namespace Amanzi
 
 #endif // AMANZI_FLOW_BC_FACTORY_HH_

@@ -18,4 +18,4 @@ namespace Amanzi {
 
 RegisteredPKFactory<MPCSubcycled> MPCSubcycled::reg_("subcycling MPC");
 
-} // namespace
+} // namespace Amanzi

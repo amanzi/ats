@@ -9,7 +9,8 @@
 #include "eos_factory.hh"
 #include "eos.hh"
 
-int main( int argc, char *argv[] )
+int
+main(int argc, char* argv[])
 {
   Teuchos::GlobalMPISession mpiSession(&argc, &argv);
 

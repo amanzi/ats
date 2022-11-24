@@ -31,17 +31,16 @@ class UpwindCellCentered : public Upwinding {
   virtual void Update(const CompositeVector& cells,
                       CompositeVector& faces,
                       const State& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const override;
 
-  virtual std::string
-  CoefficientLocation() const override { return "standard: cell"; }
+  virtual std::string CoefficientLocation() const override { return "standard: cell"; }
 
-private:
+ private:
   std::string pkname_;
   Tag tag_;
 };
 
-} // namespace
-} // namespace
+} // namespace Operators
+} // namespace Amanzi
 
 #endif

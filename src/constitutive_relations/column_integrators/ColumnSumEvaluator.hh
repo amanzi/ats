@@ -59,8 +59,8 @@ struct ParserColumnSum {
 class IntegratorColumnSum {
  public:
   IntegratorColumnSum(Teuchos::ParameterList& plist,
-                std::vector<const Epetra_MultiVector*>& deps,
-                const AmanziMesh::Mesh* mesh);
+                      std::vector<const Epetra_MultiVector*>& deps,
+                      const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
   double coefficient(AmanziMesh::Entity_ID col);
 
@@ -73,13 +73,13 @@ class IntegratorColumnSum {
   const Epetra_MultiVector* cv_;
   const Epetra_MultiVector* surf_cv_;
   const Epetra_MultiVector* dens_;
-
 };
 
 } // namespace Impl
 
-using ColumnSumEvaluator = EvaluatorColumnIntegrator<Impl::ParserColumnSum,Impl::IntegratorColumnSum>;
+using ColumnSumEvaluator =
+  EvaluatorColumnIntegrator<Impl::ParserColumnSum, Impl::IntegratorColumnSum>;
 
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi

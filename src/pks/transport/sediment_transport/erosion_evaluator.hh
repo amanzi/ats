@@ -19,27 +19,26 @@
 namespace Amanzi {
 
 class ErosionRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit ErosionRateEvaluator(Teuchos::ParameterList& plist);
   ErosionRateEvaluator(const ErosionRateEvaluator& other);
   Teuchos::RCP<Evaluator> Clone() const override;
-  
+
   // virtual void EvaluateElevationAndSlope_(const Teuchos::Ptr<State>& S,
   //         const std::vector<Teuchos::Ptr<CompositeVector> >& results) = 0;
   // virtual bool HasFieldChanged(const Teuchos::Ptr<State>& S, Key request);
   // virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S){};
 
-protected:
-
-    // Required methods from EvaluatorSecondaryMonotypeCV
-
-  protected:
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+
+ protected:
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   double tau_e_;
   double Qe_0_;
@@ -49,10 +48,9 @@ protected:
 
   Key velocity_key_;
 
-  static Utils::RegisteredFactory<Evaluator,ErosionRateEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, ErosionRateEvaluator> factory_;
 };
 
-} //namespace
+} // namespace Amanzi
 
 #endif

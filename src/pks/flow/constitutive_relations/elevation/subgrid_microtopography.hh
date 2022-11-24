@@ -24,8 +24,8 @@ volumetricDepth(double depth, double del_max, double del_ex)
   } else if (depth > del_max) {
     return depth - del_ex;
   } else {
-    return std::pow(depth/del_max, 2) * (2*del_max - 3*del_ex)
-      + std::pow(depth/del_max,3) * (2*del_ex - del_max);
+    return std::pow(depth / del_max, 2) * (2 * del_max - 3 * del_ex) +
+           std::pow(depth / del_max, 3) * (2 * del_ex - del_max);
   }
 }
 
@@ -37,18 +37,18 @@ dVolumetricDepth_dDepth(double depth, double del_max, double del_ex)
   } else if (depth > del_max) {
     return 1.;
   } else {
-    return 2 * depth/del_max * (2*del_max - 3*del_ex) / del_max
-      + 3 * std::pow(depth/del_max,2) * (2*del_ex - del_max) / del_max;
+    return 2 * depth / del_max * (2 * del_max - 3 * del_ex) / del_max +
+           3 * std::pow(depth / del_max, 2) * (2 * del_ex - del_max) / del_max;
   }
 }
 
 inline bool
 validParameters(double del_max, double del_ex)
 {
-  return (2*del_max >= 3*del_ex) && (2*del_ex >= del_max);
+  return (2 * del_max >= 3 * del_ex) && (2 * del_ex >= del_max);
 }
 
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace Microtopography
+} // namespace Flow
+} // namespace Amanzi

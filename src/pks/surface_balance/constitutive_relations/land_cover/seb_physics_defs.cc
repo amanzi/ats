@@ -12,8 +12,9 @@ namespace SurfaceBalance {
 namespace Relations {
 
 
-Partition Partitioner::CalcPartition(double ht_snow,
-        double ht_pond, double unfrozen_fraction) const {
+Partition
+Partitioner::CalcPartition(double ht_snow, double ht_pond, double unfrozen_fraction) const
+{
   Partition part;
 
   if (ht_snow > snow_pen) {
@@ -24,7 +25,7 @@ Partition Partitioner::CalcPartition(double ht_snow,
     part.perIce = 0.;
 
   } else {
-    part.perSnow = std::pow(ht_snow/snow_pen, 2);
+    part.perSnow = std::pow(ht_snow / snow_pen, 2);
     double remainder = 1. - part.perSnow;
 
     if (ht_pond > water_pen) {
@@ -43,7 +44,6 @@ Partition Partitioner::CalcPartition(double ht_snow,
 }
 
 
-
-} // namespace
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

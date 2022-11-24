@@ -20,13 +20,12 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMPermafrostFactory : public Utils::Factory<WRMPermafrostModel> {
-
-public:
-  Teuchos::RCP<WRMPermafrostModel> createWRMPermafrostModel(Teuchos::ParameterList& plist,
-          const Teuchos::RCP<WRM>& wrm);
+ public:
+  Teuchos::RCP<WRMPermafrostModel>
+  createWRMPermafrostModel(Teuchos::ParameterList& plist, const Teuchos::RCP<WRM>& wrm);
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

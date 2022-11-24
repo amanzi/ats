@@ -15,32 +15,72 @@ namespace Flow {
 namespace Relations {
 
 class InterfrostDenergyDtemperatureModel {
-
  public:
-  explicit
-  InterfrostDenergyDtemperatureModel(Teuchos::ParameterList& plist);
+  explicit InterfrostDenergyDtemperatureModel(Teuchos::ParameterList& plist);
 
-  double DEnergyDTCoef(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
+  double
+  DEnergyDTCoef(double phi, double sl, double nl, double si, double ni, double rhos, double T)
+    const;
 
-  double DDEnergyDTCoefDPorosity(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDSaturationLiquid(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDMolarDensityLiquid(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDSaturationIce(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDMolarDensityIce(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDDensityRock(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  double DDEnergyDTCoefDTemperature(double phi, double sl, double nl, double si, double ni, double rhos, double T) const;
-  
+  double DDEnergyDTCoefDPorosity(double phi,
+                                 double sl,
+                                 double nl,
+                                 double si,
+                                 double ni,
+                                 double rhos,
+                                 double T) const;
+  double DDEnergyDTCoefDSaturationLiquid(double phi,
+                                         double sl,
+                                         double nl,
+                                         double si,
+                                         double ni,
+                                         double rhos,
+                                         double T) const;
+  double DDEnergyDTCoefDMolarDensityLiquid(double phi,
+                                           double sl,
+                                           double nl,
+                                           double si,
+                                           double ni,
+                                           double rhos,
+                                           double T) const;
+  double DDEnergyDTCoefDSaturationIce(double phi,
+                                      double sl,
+                                      double nl,
+                                      double si,
+                                      double ni,
+                                      double rhos,
+                                      double T) const;
+  double DDEnergyDTCoefDMolarDensityIce(double phi,
+                                        double sl,
+                                        double nl,
+                                        double si,
+                                        double ni,
+                                        double rhos,
+                                        double T) const;
+  double DDEnergyDTCoefDDensityRock(double phi,
+                                    double sl,
+                                    double nl,
+                                    double si,
+                                    double ni,
+                                    double rhos,
+                                    double T) const;
+  double DDEnergyDTCoefDTemperature(double phi,
+                                    double sl,
+                                    double nl,
+                                    double si,
+                                    double ni,
+                                    double rhos,
+                                    double T) const;
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double W_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

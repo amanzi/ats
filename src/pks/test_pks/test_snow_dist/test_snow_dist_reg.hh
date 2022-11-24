@@ -13,4 +13,4 @@ namespace Amanzi {
 
 RegisteredPKFactory_ATS<TestSnowDist> TestSnowDist::reg_("snow distribution test");
 
-} // namespace
+} // namespace Amanzi

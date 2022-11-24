@@ -14,12 +14,12 @@ namespace Flow {
 
 // Non-member factory
 Teuchos::RCP<CompressiblePorosityModelPartition>
-createCompressiblePorosityModelPartition(Teuchos::ParameterList& plist) {
+createCompressiblePorosityModelPartition(Teuchos::ParameterList& plist)
+{
   CompressiblePorosityModelList mlist;
   std::vector<std::string> region_list;
 
-  for (Teuchos::ParameterList::ConstIterator lcv=plist.begin();
-       lcv!=plist.end(); ++lcv) {
+  for (Teuchos::ParameterList::ConstIterator lcv = plist.begin(); lcv != plist.end(); ++lcv) {
     std::string name = lcv->first;
     if (plist.isSublist(name)) {
       Teuchos::ParameterList sublist = plist.sublist(name);
@@ -31,10 +31,10 @@ createCompressiblePorosityModelPartition(Teuchos::ParameterList& plist) {
   }
 
   Teuchos::RCP<Functions::MeshPartition> part =
-      Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL,region_list));
+    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL, region_list));
 
   return Teuchos::rcp(new CompressiblePorosityModelPartition(part, mlist));
 }
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

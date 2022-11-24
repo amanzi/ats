@@ -44,54 +44,77 @@ MicroporeMacroporeFluxModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 
 // main method
 double
-MicroporeMacroporeFluxModel::MicroporeMacroporeFlux(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::MicroporeMacroporeFlux(double pm,
+                                                    double pM,
+                                                    double krM,
+                                                    double krm,
+                                                    double K) const
 {
   //double C = gamma_ / delta_ * (pm > pM ? krm : krM);
-  double dp = 0.001*999.5*9.81;
-  double val = (pm - pM)/dp;
-  
-  double C = gamma_*(krm/(1+exp(-val)) + krM/(1+exp(val)));
+  double dp = 0.001 * 999.5 * 9.81;
+  double val = (pm - pM) / dp;
+
+  double C = gamma_ * (krm / (1 + exp(-val)) + krM / (1 + exp(val)));
 
   return C * (pM - pm);
 }
 
 double
-MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporePressure(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporePressure(double pm,
+                                                                       double pM,
+                                                                       double krM,
+                                                                       double krm,
+                                                                       double K) const
 {
   double C = gamma_ / delta_ * (pm > pM ? krm : krM);
   return -C;
 }
 
 double
-MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDPressure(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDPressure(double pm,
+                                                              double pM,
+                                                              double krM,
+                                                              double krm,
+                                                              double K) const
 {
   double C = gamma_ / delta_ * (pm > pM ? krm : krM);
   return C;
 }
 
 double
-MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDRelativePermeability(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDRelativePermeability(double pm,
+                                                                          double pM,
+                                                                          double krM,
+                                                                          double krm,
+                                                                          double K) const
 {
   double C = gamma_ / delta_ * (pm > pM ? 0. : 1.);
   return C * (pM - pm);
 }
 
 double
-MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeRelativePermeability(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeRelativePermeability(double pm,
+                                                                                   double pM,
+                                                                                   double krM,
+                                                                                   double krm,
+                                                                                   double K) const
 {
   double C = gamma_ / delta_ * (pm > pM ? 1. : 0.);
   return C * (pM - pm);
 }
 
 double
-MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(double pm, double pM, double krM, double krm, double K) const
+MicroporeMacroporeFluxModel::DMicroporeMacroporeFluxDMicroporeAbsolutePermeability(double pm,
+                                                                                   double pM,
+                                                                                   double krM,
+                                                                                   double krm,
+                                                                                   double K) const
 {
   // double C = gamma_ / delta_ * (pm > pM ? krm : krM);
   // return C * (pM - pm);
   return 0.;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -46,20 +46,18 @@ namespace Amanzi {
 namespace Flow {
 
 class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist);
+  explicit SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist);
   SnowSkinPotentialEvaluator(const SnowSkinPotentialEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  private:
   Key precip_key_;
@@ -69,11 +67,10 @@ class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
   double factor_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SnowSkinPotentialEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, SnowSkinPotentialEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

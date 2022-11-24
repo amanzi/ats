@@ -20,12 +20,11 @@ namespace Amanzi {
 namespace Relations {
 
 class ViscosityRelationFactory : public Utils::Factory<ViscosityRelation> {
-
-public:
+ public:
   Teuchos::RCP<ViscosityRelation> createViscosity(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

@@ -92,9 +92,7 @@ namespace Amanzi {
 class EWCModel;
 
 class MPCDelegateEWC {
-
  public:
-
   MPCDelegateEWC(Teuchos::ParameterList& plist, const Teuchos::RCP<State>& S);
   virtual ~MPCDelegateEWC() = default;
 
@@ -110,11 +108,9 @@ class MPCDelegateEWC {
 
  protected:
   virtual bool modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up) = 0;
-  virtual void precon_ewc_(Teuchos::RCP<const TreeVector> u,
-                           Teuchos::RCP<TreeVector> Pu) = 0;
+  virtual void precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) = 0;
 
   virtual void update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, double h);
-
 
 
  protected:
@@ -130,11 +126,7 @@ class MPCDelegateEWC {
   // model
   Teuchos::RCP<EWCModel> model_;
 
-  enum PredictorType {
-    PREDICTOR_NONE = 0,
-    PREDICTOR_EWC,
-    PREDICTOR_SMART_EWC
-  };
+  enum PredictorType { PREDICTOR_NONE = 0, PREDICTOR_EWC, PREDICTOR_SMART_EWC };
 
   enum PreconditionerType {
     PRECON_NONE = 0,
@@ -163,9 +155,8 @@ class MPCDelegateEWC {
   Key e_key_;
   Key wc_key_;
   Key cv_key_;
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

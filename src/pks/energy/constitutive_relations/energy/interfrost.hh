@@ -22,15 +22,14 @@ namespace Amanzi {
 namespace Energy {
 
 class Interfrost : public ThreePhase {
-
-public:
-
+ public:
   Interfrost(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,
              const Teuchos::RCP<State>& S,
-             const Teuchos::RCP<TreeVector>& solution) :
-    //PKDefaultBase(plist, FElist, solution),
-      ThreePhase(FElist, plist, S, solution) {
+             const Teuchos::RCP<TreeVector>& solution)
+    : //PKDefaultBase(plist, FElist, solution),
+      ThreePhase(FElist, plist, S, solution)
+  {
     plist_ = plist;
     solution_ = solution;
   }
@@ -38,15 +37,15 @@ public:
 
   // Virtual destructor
   virtual ~Interfrost() {}
-  
+
  protected:
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& f);
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
 
-private:
+ private:
   static RegisteredPKFactory_ATS<Interfrost> reg_;
 
-  friend  class MPCCoupledFlowEnergy;
+  friend class MPCCoupledFlowEnergy;
 };
 
 } // namespace Energy

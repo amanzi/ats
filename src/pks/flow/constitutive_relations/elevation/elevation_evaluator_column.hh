@@ -68,16 +68,14 @@ namespace Amanzi {
 namespace Flow {
 
 class ColumnElevationEvaluator : public ElevationEvaluator {
-
  public:
-  explicit
-  ColumnElevationEvaluator(Teuchos::ParameterList& plist);
+  explicit ColumnElevationEvaluator(Teuchos::ParameterList& plist);
   ColumnElevationEvaluator(const ColumnElevationEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void EvaluateElevationAndSlope_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void
+  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   // Custom EnsureCompatibility fills dependencies based on domain set.
   virtual void EnsureEvaluators(State& S) override;
@@ -87,14 +85,14 @@ class ColumnElevationEvaluator : public ElevationEvaluator {
 
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ColumnElevationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, ColumnElevationEvaluator> reg_;
 
   Key base_poro_suffix_;
   Key surface_domain_;
   Key dset_name_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

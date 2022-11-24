@@ -11,8 +11,8 @@
 namespace Amanzi {
 namespace Energy {
 
-Utils::RegisteredFactory<Evaluator,IEMEvaluator> IEMEvaluator::factory_("iem");
+Utils::RegisteredFactory<Evaluator, IEMEvaluator> IEMEvaluator::factory_("iem");
 
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi

@@ -52,10 +52,8 @@ namespace Relations {
 class RichardsEnergyModel;
 
 class RichardsEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  RichardsEnergyEvaluator(Teuchos::ParameterList& plist);
+  explicit RichardsEnergyEvaluator(Teuchos::ParameterList& plist);
   RichardsEnergyEvaluator(const RichardsEnergyEvaluator& other);
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -64,11 +62,11 @@ class RichardsEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -84,10 +82,9 @@ class RichardsEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<RichardsEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RichardsEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, RichardsEnergyEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

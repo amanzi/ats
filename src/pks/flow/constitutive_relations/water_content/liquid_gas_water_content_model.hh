@@ -15,32 +15,71 @@ namespace Flow {
 namespace Relations {
 
 class LiquidGasWaterContentModel {
-
  public:
-  explicit
-  LiquidGasWaterContentModel(Teuchos::ParameterList& plist);
+  explicit LiquidGasWaterContentModel(Teuchos::ParameterList& plist);
 
-  double WaterContent(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
+  double
+  WaterContent(double phi, double sl, double nl, double sg, double ng, double omega, double cv)
+    const;
 
-  double DWaterContentDPorosity(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDSaturationLiquid(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDSaturationGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDMolarDensityGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDMolFracGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  double DWaterContentDCellVolume(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const;
-  
+  double DWaterContentDPorosity(double phi,
+                                double sl,
+                                double nl,
+                                double sg,
+                                double ng,
+                                double omega,
+                                double cv) const;
+  double DWaterContentDSaturationLiquid(double phi,
+                                        double sl,
+                                        double nl,
+                                        double sg,
+                                        double ng,
+                                        double omega,
+                                        double cv) const;
+  double DWaterContentDMolarDensityLiquid(double phi,
+                                          double sl,
+                                          double nl,
+                                          double sg,
+                                          double ng,
+                                          double omega,
+                                          double cv) const;
+  double DWaterContentDSaturationGas(double phi,
+                                     double sl,
+                                     double nl,
+                                     double sg,
+                                     double ng,
+                                     double omega,
+                                     double cv) const;
+  double DWaterContentDMolarDensityGas(double phi,
+                                       double sl,
+                                       double nl,
+                                       double sg,
+                                       double ng,
+                                       double omega,
+                                       double cv) const;
+  double DWaterContentDMolFracGas(double phi,
+                                  double sl,
+                                  double nl,
+                                  double sg,
+                                  double ng,
+                                  double omega,
+                                  double cv) const;
+  double DWaterContentDCellVolume(double phi,
+                                  double sl,
+                                  double nl,
+                                  double sg,
+                                  double ng,
+                                  double omega,
+                                  double cv) const;
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
-
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

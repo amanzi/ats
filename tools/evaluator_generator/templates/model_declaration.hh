@@ -1,1 +1,1 @@
-  double {myMethod}({myMethodDeclarationArgs}) const;
+double{ myMethod }({ myMethodDeclarationArgs }) const;

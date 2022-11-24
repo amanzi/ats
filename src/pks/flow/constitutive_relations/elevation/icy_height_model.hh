@@ -16,43 +16,42 @@ namespace Flow {
 
 class IcyHeightModel {
  public:
-  explicit
-  IcyHeightModel(Teuchos::ParameterList& plist) : plist_(plist) {}
+  explicit IcyHeightModel(Teuchos::ParameterList& plist) : plist_(plist) {}
 
-  double Height(double pres, double eta, double rhol, double rhoi,
-                double p_atm, double g_z) {
-    return (pres - p_atm) / ((eta*rhol + (1.-eta)*rhoi)* g_z);
+  double Height(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  {
+    return (pres - p_atm) / ((eta * rhol + (1. - eta) * rhoi) * g_z);
   }
 
-  double DHeightDPressure(double pres, double eta, double rhol, double rhoi,
-                          double p_atm, double g_z) {
-    return 1. / ((eta*rhol + (1.-eta)*rhoi)* g_z);
+  double
+  DHeightDPressure(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  {
+    return 1. / ((eta * rhol + (1. - eta) * rhoi) * g_z);
   }
 
-  double DHeightDRho_l(double pres, double eta, double rhol, double rhoi,
-                       double p_atm, double g_z) {
-    double denom = ((eta*rhol + (1.0-eta)*rhoi) * g_z);
+  double DHeightDRho_l(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  {
+    double denom = ((eta * rhol + (1.0 - eta) * rhoi) * g_z);
     return -(pres - p_atm) / (denom * denom) * g_z * eta;
   }
 
-  double DHeightDRho_i(double pres, double eta, double rhol, double rhoi,
-                       double p_atm, double g_z) {
-    double denom = ((eta*rhol + (1.0-eta)*rhoi) * g_z);
+  double DHeightDRho_i(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  {
+    double denom = ((eta * rhol + (1.0 - eta) * rhoi) * g_z);
     return -(pres - p_atm) / (denom * denom) * g_z * (1. - eta);
   }
 
-  double DHeightDEta(double pres, double eta, double rhol, double rhoi,
-                     double p_atm, double g_z) {
-    double denom = ((eta*rhol + (1.0-eta)*rhoi) * g_z);
+  double DHeightDEta(double pres, double eta, double rhol, double rhoi, double p_atm, double g_z)
+  {
+    double denom = ((eta * rhol + (1.0 - eta) * rhoi) * g_z);
     return -(pres - p_atm) / (denom * denom) * g_z * (rhol - rhoi);
   }
 
  protected:
   Teuchos::ParameterList plist_;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

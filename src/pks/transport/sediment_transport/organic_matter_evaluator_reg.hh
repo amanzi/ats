@@ -12,6 +12,7 @@
 namespace Amanzi {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,OrganicMatterRateEvaluator > OrganicMatterRateEvaluator ::factory_("organic matter rate");
+Utils::RegisteredFactory<Evaluator, OrganicMatterRateEvaluator>
+  OrganicMatterRateEvaluator ::factory_("organic matter rate");
 
-} // namespace
+} // namespace Amanzi

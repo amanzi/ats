@@ -16,26 +16,24 @@ namespace Amanzi {
 namespace Energy {
 
 // Equation of State model
-class ThermalConductivityThreePhaseEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class ThermalConductivityThreePhaseEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-
-  typedef std::pair<std::string,Teuchos::RCP<ThermalConductivityThreePhase> > RegionModelPair;
+  typedef std::pair<std::string, Teuchos::RCP<ThermalConductivityThreePhase>> RegionModelPair;
 
   // constructor format for all derived classes
   ThermalConductivityThreePhaseEvaluator(Teuchos::ParameterList& plist);
-  ThermalConductivityThreePhaseEvaluator(const ThermalConductivityThreePhaseEvaluator& other) = default;
+  ThermalConductivityThreePhaseEvaluator(const ThermalConductivityThreePhaseEvaluator& other) =
+    default;
 
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from SecondaryVariableFieldModel
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::vector<RegionModelPair> tcs_;
@@ -48,9 +46,8 @@ class ThermalConductivityThreePhaseEvaluator :
   Key temp_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThermalConductivityThreePhaseEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ThermalConductivityThreePhaseEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
-
+} // namespace Energy
+} // namespace Amanzi

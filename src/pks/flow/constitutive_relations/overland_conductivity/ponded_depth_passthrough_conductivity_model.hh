@@ -16,20 +16,19 @@ namespace Amanzi {
 namespace Flow {
 
 class PondedDepthPassthroughConductivityModel : public OverlandConductivityModel {
-public:
-  explicit
-  PondedDepthPassthroughConductivityModel(Teuchos::ParameterList& plist);
+ public:
+  explicit PondedDepthPassthroughConductivityModel(Teuchos::ParameterList& plist);
 
   virtual double Conductivity(double depth, double slope, double coef);
 
   virtual double DConductivityDDepth(double depth, double slope, double coef);
 
-protected:
+ protected:
   Teuchos::ParameterList plist_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 
 #endif

@@ -38,10 +38,8 @@ namespace Relations {
 class RichardsWaterContentModel;
 
 class RichardsWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  RichardsWaterContentEvaluator(Teuchos::ParameterList& plist);
+  explicit RichardsWaterContentEvaluator(Teuchos::ParameterList& plist);
   RichardsWaterContentEvaluator(const RichardsWaterContentEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -50,11 +48,11 @@ class RichardsWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -67,12 +65,11 @@ class RichardsWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<RichardsWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RichardsWaterContentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, RichardsWaterContentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

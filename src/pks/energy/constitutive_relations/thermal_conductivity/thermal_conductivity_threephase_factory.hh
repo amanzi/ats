@@ -20,12 +20,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseFactory : public Utils::Factory<ThermalConductivityThreePhase> {
-
-public:
-  Teuchos::RCP<ThermalConductivityThreePhase> createThermalConductivityModel(Teuchos::ParameterList& plist);
+ public:
+  Teuchos::RCP<ThermalConductivityThreePhase>
+  createThermalConductivityModel(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

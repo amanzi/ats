@@ -35,7 +35,6 @@ namespace Amanzi {
 namespace Relations {
 
 class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
   explicit SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist);
@@ -47,11 +46,11 @@ class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  void Evaluate_(const State& S,
-                      const std::vector<CompositeVector*>& result) override;
+  void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag,
+                                  const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key source_domain_;
@@ -60,11 +59,10 @@ class SubgridDisaggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key source_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SubgridDisaggregateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, SubgridDisaggregateEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif
-

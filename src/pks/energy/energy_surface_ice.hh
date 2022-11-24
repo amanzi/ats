@@ -67,8 +67,7 @@ class EnergySurfaceIce : public EnergyBase {
   //    faces.
   //  virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
 
-  virtual void AddSources_(const Tag& tag,
-                           const Teuchos::Ptr<CompositeVector>& f) override;
+  virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& f) override;
   virtual void AddSourcesToPrecon_(double h) override;
 
  protected:
@@ -88,7 +87,6 @@ class EnergySurfaceIce : public EnergyBase {
  private:
   // factory registration
   static RegisteredPKFactory<EnergySurfaceIce> reg_;
-
 };
 
 } // namespace Energy

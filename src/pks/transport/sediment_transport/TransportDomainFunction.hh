@@ -32,15 +32,15 @@ namespace SedimentTransport {
 
 class TransportDomainFunction {
  public:
-  TransportDomainFunction() : domain_volume_(-1.0) {};
-  TransportDomainFunction(const Teuchos::ParameterList& plist) : domain_volume_(-1.0) {};
-  ~TransportDomainFunction() {};
+  TransportDomainFunction() : domain_volume_(-1.0){};
+  TransportDomainFunction(const Teuchos::ParameterList& plist) : domain_volume_(-1.0){};
+  ~TransportDomainFunction(){};
 
   // source term on time interval (t0, t1]
   virtual void Compute(double t0, double t1) { AMANZI_ASSERT(false); }
 
   // model name
-  virtual std::string name() const { return "undefined"; } 
+  virtual std::string name() const { return "undefined"; }
 
   // access
   // -- volume of the regions
@@ -50,31 +50,30 @@ class TransportDomainFunction {
 
   std::vector<std::string>& tcc_names() { return tcc_names_; }
   std::vector<int>& tcc_index() { return tcc_index_; }
-  virtual void set_state(const Teuchos::RCP<State>& S) {S_ = S;}
+  virtual void set_state(const Teuchos::RCP<State>& S) { S_ = S; }
 
   // iterator methods
-  typedef std::map<int, std::vector<double> >::iterator Iterator;
+  typedef std::map<int, std::vector<double>>::iterator Iterator;
   Iterator begin() { return value_.begin(); }
   Iterator end() { return value_.end(); }
-  std::map<int, std::vector<double> >::size_type size() { return value_.size(); }
-  
- // derivatives
-  const std::map<int, double>& linear_term() const { return linear_term_; }
-  
-protected:
+  std::map<int, std::vector<double>>::size_type size() { return value_.size(); }
 
+  // derivatives
+  const std::map<int, double>& linear_term() const { return linear_term_; }
+
+ protected:
   double domain_volume_;
-  std::map<int, std::vector<double> > value_;  // tcc values on boundary faces
+  std::map<int, std::vector<double>> value_; // tcc values on boundary faces
   std::string keyword_;
   Teuchos::RCP<const State> S_;
 
-  std::map<int, double> linear_term_;  // linearized term, e.g. [mol / s] for sources
-  
-  std::vector<std::string> tcc_names_;  // list of component names
-  std::vector<int> tcc_index_;  // index of component in the global list
+  std::map<int, double> linear_term_; // linearized term, e.g. [mol / s] for sources
+
+  std::vector<std::string> tcc_names_; // list of component names
+  std::vector<int> tcc_index_;         // index of component in the global list
 };
 
-}  // namespace SedimentTransport
-}  // namespace Amanzi
+} // namespace SedimentTransport
+} // namespace Amanzi
 
 #endif

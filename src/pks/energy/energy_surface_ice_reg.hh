@@ -16,5 +16,5 @@ namespace Energy {
 
 RegisteredPKFactory<EnergySurfaceIce> EnergySurfaceIce::reg_("surface energy");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

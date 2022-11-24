@@ -31,7 +31,6 @@ namespace Relations {
 class EvaporativeFluxRelaxationModel;
 
 class EvaporativeFluxRelaxationEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit EvaporativeFluxRelaxationEvaluator(Teuchos::ParameterList& plist);
   EvaporativeFluxRelaxationEvaluator(const EvaporativeFluxRelaxationEvaluator& other) = default;
@@ -41,15 +40,15 @@ class EvaporativeFluxRelaxationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
  protected:
-
   Key wc_key_;
   Key rho_key_;
   Key thickness_key_;
@@ -58,12 +57,11 @@ class EvaporativeFluxRelaxationEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<EvaporativeFluxRelaxationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EvaporativeFluxRelaxationEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, EvaporativeFluxRelaxationEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

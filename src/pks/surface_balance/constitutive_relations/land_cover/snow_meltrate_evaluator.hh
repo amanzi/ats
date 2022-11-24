@@ -50,11 +50,11 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit SnowMeltRateEvaluator(Teuchos::ParameterList& plist);
   SnowMeltRateEvaluator(const SnowMeltRateEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new SnowMeltRateEvaluator(*this));
   }
 
@@ -62,11 +62,11 @@ class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key temp_key_;
@@ -81,11 +81,9 @@ class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SnowMeltRateEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

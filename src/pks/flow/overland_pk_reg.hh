@@ -14,6 +14,5 @@ namespace Flow {
 RegisteredPKFactory<OverlandFlow> OverlandFlow::reg_("overland flow");
 
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

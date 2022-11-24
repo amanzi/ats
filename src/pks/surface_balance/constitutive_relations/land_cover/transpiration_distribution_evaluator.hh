@@ -90,7 +90,6 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
@@ -98,11 +97,11 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -128,9 +127,9 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<Function> limiter_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,TranspirationDistributionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

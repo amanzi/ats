@@ -4,8 +4,9 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,InterfrostDthetaDpressureEvaluator> InterfrostDthetaDpressureEvaluator::reg_("interfrost dtheta_dpressure");
+Utils::RegisteredFactory<Evaluator, InterfrostDthetaDpressureEvaluator>
+  InterfrostDthetaDpressureEvaluator::reg_("interfrost dtheta_dpressure");
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

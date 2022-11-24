@@ -32,21 +32,21 @@ the mesh.
 namespace Amanzi {
 namespace Flow {
 
-typedef std::vector<Teuchos::RCP<WRM> > WRMList;
+typedef std::vector<Teuchos::RCP<WRM>> WRMList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMList> WRMPartition;
 
-typedef std::vector<Teuchos::RCP<WRMPermafrostModel> > WRMPermafrostModelList;
-typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMPermafrostModelList> WRMPermafrostModelPartition;
+typedef std::vector<Teuchos::RCP<WRMPermafrostModel>> WRMPermafrostModelList;
+typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMPermafrostModelList>
+  WRMPermafrostModelPartition;
 
 // Non-member factory
 Teuchos::RCP<WRMPartition>
 createWRMPartition(Teuchos::ParameterList& plist);
 
 Teuchos::RCP<WRMPermafrostModelPartition>
-createWRMPermafrostModelPartition(Teuchos::ParameterList& plist,
-        Teuchos::RCP<WRMPartition>& wrms);
+createWRMPermafrostModelPartition(Teuchos::ParameterList& plist, Teuchos::RCP<WRMPartition>& wrms);
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

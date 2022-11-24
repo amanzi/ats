@@ -30,10 +30,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class RootingDepthFractionModel {
-
  public:
-  explicit
-  RootingDepthFractionModel(const LandCover& lc);
+  explicit RootingDepthFractionModel(const LandCover& lc);
 
   double RootingDepthFraction(double z) const;
 
@@ -41,10 +39,8 @@ class RootingDepthFractionModel {
 
  protected:
   const LandCover& lc_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

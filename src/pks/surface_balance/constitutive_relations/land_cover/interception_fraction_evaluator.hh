@@ -46,7 +46,6 @@ namespace Relations {
 class InterceptionFractionModel;
 
 class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit InterceptionFractionEvaluator(Teuchos::ParameterList& plist);
   InterceptionFractionEvaluator(const InterceptionFractionEvaluator& other) = default;
@@ -56,11 +55,11 @@ class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
   void InitializeFromPlist_();
 
@@ -78,11 +77,9 @@ class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<InterceptionFractionModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterceptionFractionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, InterceptionFractionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

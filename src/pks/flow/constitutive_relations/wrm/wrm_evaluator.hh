@@ -42,13 +42,10 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  WRMEvaluator(Teuchos::ParameterList& plist);
-  WRMEvaluator(Teuchos::ParameterList& plist,
-               const Teuchos::RCP<WRMPartition>& wrms);
+  explicit WRMEvaluator(Teuchos::ParameterList& plist);
+  WRMEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
   WRMEvaluator(const WRMEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -58,13 +55,14 @@ class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
   void InitializeFromPlist_();
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 
@@ -74,12 +72,11 @@ class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key cap_pres_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,WRMEvaluator> factory_;
-  static Utils::RegisteredFactory<Evaluator,WRMEvaluator> factory2_;
-
+  static Utils::RegisteredFactory<Evaluator, WRMEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, WRMEvaluator> factory2_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

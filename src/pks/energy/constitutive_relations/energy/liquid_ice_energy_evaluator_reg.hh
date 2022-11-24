@@ -4,8 +4,9 @@ namespace Amanzi {
 namespace Energy {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,LiquidIceEnergyEvaluator> LiquidIceEnergyEvaluator::reg_("liquid+ice energy");
+Utils::RegisteredFactory<Evaluator, LiquidIceEnergyEvaluator>
+  LiquidIceEnergyEvaluator::reg_("liquid+ice energy");
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

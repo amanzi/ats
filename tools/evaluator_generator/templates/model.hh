@@ -7,34 +7,43 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#ifndef AMANZI_{namespaceCaps}_{evalNameCaps}_MODEL_HH_
-#define AMANZI_{namespaceCaps}_{evalNameCaps}_MODEL_HH_
+#ifndef AMANZI_{ namespaceCaps } _{ evalNameCaps } _MODEL_HH_
+#define AMANZI_ { namespaceCaps } _{ evalNameCaps } _MODEL_HH_
 
-namespace Amanzi {{
-namespace {namespace} {{
-namespace Relations {{
+namespace Amanzi {
+{
+  namespace {namespace}
+  {
+    {
+      namespace Relations {
+      {
+        class {
+          evalClassName
+        } Model{ {
 
-class {evalClassName}Model {{
+          public : explicit { evalClassName } Model(Teuchos::ParameterList & plist);
 
- public:
-  explicit
-  {evalClassName}Model(Teuchos::ParameterList& plist);
+        { modelMethodDeclaration }
 
-{modelMethodDeclaration}
+        {
+          modelDerivDeclarationList
+        }
 
-{modelDerivDeclarationList}
-  
- protected:
-  void InitializeFromPlist_(Teuchos::ParameterList& plist);
+       protected:
+        void InitializeFromPlist_(Teuchos::ParameterList & plist);
 
- protected:
+       protected:
+        {
+          paramDeclarationList
+        }
 
-{paramDeclarationList}
-
-}};
-
-}} //namespace
-}} //namespace
-}} //namespace
+      }  // namespace Relations
+      }; // namespace Relations
+    }
+  } // namespace }
+} // namespace Amanzi
+} // namespace Amanzi
+}
+} //namespace
 
 #endif

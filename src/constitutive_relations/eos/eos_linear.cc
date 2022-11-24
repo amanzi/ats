@@ -15,12 +15,14 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSLinear::EOSLinear(Teuchos::ParameterList& eos_plist) :
-    eos_plist_(eos_plist) {
+EOSLinear::EOSLinear(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
+{
   InitializeFromPlist_();
 };
 
-void EOSLinear::InitializeFromPlist_() {
+void
+EOSLinear::InitializeFromPlist_()
+{
   // defaults to water
   if (eos_plist_.isParameter("molar mass [kg/mol]")) {
     M_ = eos_plist_.get<double>("molar mass [kg/mol]");
@@ -37,5 +39,5 @@ void EOSLinear::InitializeFromPlist_() {
   beta_ = eos_plist_.get<double>("compressibility [1/Pa]");
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

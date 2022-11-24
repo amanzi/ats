@@ -22,9 +22,7 @@ class CompositeVector;
 namespace Operators {
 
 class UpwindFluxFOCont : public Upwinding {
-
-public:
-
+ public:
   UpwindFluxFOCont(const std::string& pkname,
                    const Tag& tag,
                    const Key& flux,
@@ -34,26 +32,22 @@ public:
                    double slope_regularization,
                    double manning_exp);
 
-  virtual void
-  Update(const CompositeVector& data,
-         CompositeVector& uw_data,
-         const State& S,
-         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
+  virtual void Update(const CompositeVector& data,
+                      CompositeVector& uw_data,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const override;
 
-  void CalculateCoefficientsOnFaces(
-        const CompositeVector& cell_coef,
-        const CompositeVector& flux,
-        const CompositeVector& slope,
-        const CompositeVector& manning_coef,
-        const CompositeVector& elevation,
-        CompositeVector& face_coef,
-        const Teuchos::Ptr<Debugger>& db) const;
+  void CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
+                                    const CompositeVector& flux,
+                                    const CompositeVector& slope,
+                                    const CompositeVector& manning_coef,
+                                    const CompositeVector& elevation,
+                                    CompositeVector& face_coef,
+                                    const Teuchos::Ptr<Debugger>& db) const;
 
-  virtual std::string
-  CoefficientLocation() const override { return "upwind: face"; }
+  virtual std::string CoefficientLocation() const override { return "upwind: face"; }
 
-private:
-
+ private:
   std::string pkname_;
   Tag tag_;
   std::string flux_;
@@ -64,7 +58,7 @@ private:
   double manning_exp_;
 };
 
-} // namespace
-} // namespace
+} // namespace Operators
+} // namespace Amanzi
 
 #endif

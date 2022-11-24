@@ -14,5 +14,5 @@ namespace TestPKs {
 
 RegisteredPKFactory_ATS<DivGradTest> DivGradTest::reg_("div-grad operator test");
 
-} // namespace
-} // namespace
+} // namespace TestPKs
+} // namespace Amanzi

@@ -22,10 +22,9 @@ class SurfaceRelPermModel {
   virtual double SurfaceRelPerm(double uf, double h) = 0;
   virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) = 0;
   virtual double DSurfaceRelPermDPondedDepth(double uf, double h) = 0;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -21,11 +21,10 @@ namespace Amanzi {
 namespace Operators {
 
 class Advection {
-
-public:
-  Advection(Teuchos::ParameterList& advect_plist,
-            const Teuchos::RCP<const AmanziMesh::Mesh> mesh) :
-    advect_plist_(advect_plist), mesh_(mesh) {}
+ public:
+  Advection(Teuchos::ParameterList& advect_plist, const Teuchos::RCP<const AmanziMesh::Mesh> mesh)
+    : advect_plist_(advect_plist), mesh_(mesh)
+  {}
   virtual ~Advection() = default;
 
   Teuchos::RCP<const CompositeVector> flux() const { return flux_; }
@@ -37,9 +36,9 @@ public:
   Teuchos::RCP<CompositeVector> field() { return field_; }
 
   virtual void Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
-                     bool include_bc_fluxes=true) = 0;
+                     bool include_bc_fluxes = true) = 0;
 
-protected:
+ protected:
   unsigned int num_dofs_;
   Teuchos::RCP<const CompositeVector> flux_;
   Teuchos::RCP<CompositeVector> field_;

@@ -46,8 +46,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMLinear : public IEM {
-
-public:
+ public:
   explicit IEMLinear(Teuchos::ParameterList& plist);
 
   bool IsMolarBasis() { return molar_basis_; }
@@ -55,23 +54,22 @@ public:
   double InternalEnergy(double temp);
   double DInternalEnergyDT(double temp) { return Cv_; }
 
-private:
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
 
-  double Cv_; // units: MJ/({mol/kg}-K)
+  double Cv_;    // units: MJ/({mol/kg}-K)
   double T_ref_; // units: K
   bool molar_basis_;
   double L_;
 
-private:
+ private:
   // iem factor registration
-  static Utils::RegisteredFactory<IEM,IEMLinear> factory_;
-
+  static Utils::RegisteredFactory<IEM, IEMLinear> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

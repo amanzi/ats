@@ -44,10 +44,8 @@ namespace Relations {
 class ThreePhaseWaterContentModel;
 
 class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ThreePhaseWaterContentEvaluator(Teuchos::ParameterList& plist);
+  explicit ThreePhaseWaterContentEvaluator(Teuchos::ParameterList& plist);
   ThreePhaseWaterContentEvaluator(const ThreePhaseWaterContentEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -57,11 +55,11 @@ class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -79,12 +77,11 @@ class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<ThreePhaseWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThreePhaseWaterContentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ThreePhaseWaterContentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

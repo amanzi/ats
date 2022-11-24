@@ -19,7 +19,6 @@ namespace Flow {
 class SurfaceRelPermModel;
 
 class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   SurfaceRelPermEvaluator(Teuchos::ParameterList& plist);
   SurfaceRelPermEvaluator(const SurfaceRelPermEvaluator& other) = default;
@@ -29,10 +28,11 @@ class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Teuchos::RCP<SurfaceRelPermModel> model_;
@@ -40,14 +40,11 @@ class SurfaceRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key uf_key_;
   Key h_key_;
 
-private:
-  static Utils::RegisteredFactory<Evaluator,SurfaceRelPermEvaluator> fac_;
-
-
+ private:
+  static Utils::RegisteredFactory<Evaluator, SurfaceRelPermEvaluator> fac_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif
-

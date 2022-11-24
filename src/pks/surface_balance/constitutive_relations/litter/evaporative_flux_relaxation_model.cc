@@ -46,28 +46,33 @@ EvaporativeFluxRelaxationModel::InitializeFromPlist_(Teuchos::ParameterList& pli
 double
 EvaporativeFluxRelaxationModel::EvaporativeFlux(double wc, double rho, double L) const
 {
-  return wc / (wc_sat_ * L * rho)  / tau_;
+  return wc / (wc_sat_ * L * rho) / tau_;
 }
 
 double
-EvaporativeFluxRelaxationModel::DEvaporativeFluxDLitterWaterContent(double wc, double rho, double L) const
+EvaporativeFluxRelaxationModel::DEvaporativeFluxDLitterWaterContent(double wc,
+                                                                    double rho,
+                                                                    double L) const
 {
-  return 1.0 / (wc_sat_ * L * rho)  / tau_;
+  return 1.0 / (wc_sat_ * L * rho) / tau_;
 }
 
 double
-EvaporativeFluxRelaxationModel::DEvaporativeFluxDSurfaceMolarDensityLiquid(double wc, double rho, double L) const
+EvaporativeFluxRelaxationModel::DEvaporativeFluxDSurfaceMolarDensityLiquid(double wc,
+                                                                           double rho,
+                                                                           double L) const
 {
-  return -wc / (wc_sat_ * L * rho)  / tau_ / rho;
+  return -wc / (wc_sat_ * L * rho) / tau_ / rho;
 }
 
 double
-EvaporativeFluxRelaxationModel::DEvaporativeFluxDLitterThickness(double wc, double rho, double L) const
+EvaporativeFluxRelaxationModel::DEvaporativeFluxDLitterThickness(double wc,
+                                                                 double rho,
+                                                                 double L) const
 {
-  return -wc / (wc_sat_ * L * rho)  / tau_ / L;
+  return -wc / (wc_sat_ * L * rho) / tau_ / L;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

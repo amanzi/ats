@@ -38,15 +38,17 @@ namespace Amanzi {
 
 #define DEBUG_FLAG 0
 
-void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
-                                      const Tag& tag,
-                                      Teuchos::ParameterList& plist) {
+void
+PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
+                                 const Tag& tag,
+                                 Teuchos::ParameterList& plist)
+{
   tag_ = tag;
   // these are not yet initialized
   rho_rock_ = -1.;
   p_atm_ = -1.e12;
 
-  Key temp =  plist.get<std::string>("temperature key", "");
+  Key temp = plist.get<std::string>("temperature key", "");
   domain = Keys::getDomain(temp);
 
   if (!domain.empty()) {
@@ -58,7 +60,8 @@ void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
   Key liq_dens_key = Keys::readKey(plist, domain, "molar density liquid", "molar_density_liquid");
   Key ice_dens_key = Keys::readKey(plist, domain, "molar density ice", "molar_density_ice");
   Key gas_dens_key = Keys::readKey(plist, domain, "molar density gas", "molar_density_gas");
-  Key iem_liq_key = Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
+  Key iem_liq_key =
+    Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
   Key iem_ice_key = Keys::readKey(plist, domain, "internal energy ice", "internal_energy_ice");
   Key iem_gas_key = Keys::readKey(plist, domain, "internal energy gas", "internal_energy_gas");
   Key iem_rock_key = Keys::readKey(plist, domain, "internal energy rock", "internal_energy_rock");
@@ -136,27 +139,29 @@ void PermafrostModel::InitializeModel(const Teuchos::Ptr<State>& S,
   // -- porosity
   poro_leij_ = plist.get<bool>("porosity leijnse model", false);
   auto& poro_eval = S->RequireEvaluator(Keys::getKey(domain, "porosity"), tag);
-  if(!poro_leij_){
+  if (!poro_leij_) {
     auto poro_me = dynamic_cast<Flow::CompressiblePorosityEvaluator*>(&poro_eval);
     AMANZI_ASSERT(poro_me != nullptr);
     poro_models_ = poro_me->get_Models();
-  }
-  else{
+  } else {
     auto poro_me = dynamic_cast<Flow::CompressiblePorosityLeijnseEvaluator*>(&poro_eval);
     AMANZI_ASSERT(poro_me != nullptr);
     poro_leij_models_ = poro_me->get_Models();
   }
-
 }
 
 
-void PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
+void
+PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c)
+{
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), tag_).ViewComponent("cell"))[0][c];
-  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), tag_).ViewComponent("cell"))[0][c];
+  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "density_rock"), tag_)
+                  .ViewComponent("cell"))[0][c];
+  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "base_porosity"), tag_)
+              .ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
-  if(!poro_leij_)
+  if (!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
   else
     poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
@@ -164,12 +169,13 @@ void PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   AMANZI_ASSERT(IsSetUp_());
 }
 
-bool PermafrostModel::IsSetUp_() {
+bool
+PermafrostModel::IsSetUp_()
+{
   if (wrm_ == Teuchos::null) return false;
   if (!poro_leij_) {
     if (poro_model_ == Teuchos::null) return false;
-  }
-  else {
+  } else {
     if (poro_leij_model_ == Teuchos::null) return false;
   }
   if (liquid_eos_ == Teuchos::null) return false;
@@ -189,11 +195,12 @@ bool PermafrostModel::IsSetUp_() {
 
 
 bool
-PermafrostModel::Freezing(double T, double p) {
+PermafrostModel::Freezing(double T, double p)
+{
   double eff_p = std::max(p_atm_, p);
   std::vector<double> eos_param(2);
 
-  double pc_l = pc_l_->CapillaryPressure(p,p_atm_);
+  double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
   double pc_i;
   if (pc_i_->IsMolarBasis()) {
     eos_param[0] = T;
@@ -207,11 +214,17 @@ PermafrostModel::Freezing(double T, double p) {
     pc_i = pc_i_->CapillaryPressure(T, mass_rho_l);
   }
 
-  return wrm_->freezing(T,pc_l,pc_i);
+  return wrm_->freezing(T, pc_l, pc_i);
 }
 
 
-int PermafrostModel::EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) {
+int
+PermafrostModel::EvaluateSaturations(double T,
+                                     double p,
+                                     double& s_gas,
+                                     double& s_liq,
+                                     double& s_ice)
+{
   int ierr = 0;
   std::vector<double> eos_param(2);
   try {
@@ -238,15 +251,15 @@ int PermafrostModel::EvaluateSaturations(double T, double p, double& s_gas, doub
     s_ice = sats[2];
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
-int PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result) {
+int
+PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result)
+{
   if (T < 100.0 || T > 373.0) {
     return 1; // invalid temperature
   }
@@ -269,7 +282,7 @@ int PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGe
     double rho_i = ice_eos_->MolarDensity(eos_param);
     double rho_g = gas_eos_->MolarDensity(eos_param);
 
-    double omega = vpr_->SaturatedVaporPressure(T)/p_atm_;
+    double omega = vpr_->SaturatedVaporPressure(T) / p_atm_;
 
     double pc_i;
     if (pc_i_->IsMolarBasis()) {
@@ -297,15 +310,13 @@ int PermafrostModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGe
     result[1] = poro * (rho_l * s_l + rho_i * s_i + rho_g * s_g * omega);
 
     // energy
-    result[0] = poro * (u_l * rho_l * s_l + u_i * rho_i * s_i + u_g * rho_g * s_g)
-        + (1.0 - poro_) * (rho_rock_ * u_rock);
+    result[0] = poro * (u_l * rho_l * s_l + u_i * rho_i * s_i + u_g * rho_g * s_g) +
+                (1.0 - poro_) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
-}
+} // namespace Amanzi

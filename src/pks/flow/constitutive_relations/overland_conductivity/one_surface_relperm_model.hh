@@ -24,25 +24,17 @@ class OneSurfaceRelPermModel : public SurfaceRelPermModel {
 
   virtual bool TemperatureDependent() { return false; }
 
-  virtual double SurfaceRelPerm(double uf, double h) {
-    return 1.;
-  }
+  virtual double SurfaceRelPerm(double uf, double h) { return 1.; }
 
-  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) {
-    return 0.;
-  }
+  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) { return 0.; }
 
-  virtual double DSurfaceRelPermDPondedDepth(double uf, double h) {
-    return 0.;
-  }
+  virtual double DSurfaceRelPermDPondedDepth(double uf, double h) { return 0.; }
 
  private:
-  static Utils::RegisteredFactory<SurfaceRelPermModel,OneSurfaceRelPermModel> reg_;
-
-  
+  static Utils::RegisteredFactory<SurfaceRelPermModel, OneSurfaceRelPermModel> reg_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

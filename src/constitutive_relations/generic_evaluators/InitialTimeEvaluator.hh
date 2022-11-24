@@ -34,24 +34,24 @@ namespace Relations {
 
 class InitialTimeEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  InitialTimeEvaluator(Teuchos::ParameterList& plist);
+  explicit InitialTimeEvaluator(Teuchos::ParameterList& plist);
   InitialTimeEvaluator(const InitialTimeEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  bool IsDifferentiableWRT(const State& S, const Key& wrt_key,
-                           const Tag& wrt_tag) const override {
+  bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
     return false;
   }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-                         const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override {}
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {}
 
   // must be checkpointed
   virtual void EnsureCompatibility_Flags_(State& S) override;
@@ -62,11 +62,8 @@ class InitialTimeEvaluator : public EvaluatorSecondaryMonotypeCV {
   double time_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InitialTimeEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, InitialTimeEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace Amanzi

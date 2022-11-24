@@ -12,4 +12,4 @@ namespace Amanzi {
 
 RegisteredPKFactory<MPCWeakSubdomain> MPCWeakSubdomain::reg_("domain set weak MPC");
 
-} // namespace
+} // namespace Amanzi

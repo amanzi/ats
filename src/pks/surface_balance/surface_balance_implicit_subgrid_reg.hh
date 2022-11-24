@@ -13,8 +13,7 @@
 namespace Amanzi {
 namespace SurfaceBalance {
 
-RegisteredPKFactory<ImplicitSubgrid>
-ImplicitSubgrid::reg_("surface balance implicit subgrid");
+RegisteredPKFactory<ImplicitSubgrid> ImplicitSubgrid::reg_("surface balance implicit subgrid");
 
-} // namespace
-} // namespace
+} // namespace SurfaceBalance
+} // namespace Amanzi

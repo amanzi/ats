@@ -28,27 +28,23 @@ namespace General {
 namespace Relations {
 
 class EosIdealGasModel {
-
  public:
-  explicit
-  EosIdealGasModel(Teuchos::ParameterList& plist);
+  explicit EosIdealGasModel(Teuchos::ParameterList& plist);
 
   double Density(double temp, double pres) const;
 
   double DDensityDTemperature(double temp, double pres) const;
   double DDensityDPressure(double temp, double pres) const;
-  
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double cv_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace General
+} // namespace Amanzi
 
 #endif

@@ -28,15 +28,16 @@ namespace Energy {
 TwoPhase::TwoPhase(Teuchos::ParameterList& FElist,
                    const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
-                   const Teuchos::RCP<TreeVector>& solution) :
-    PK(FElist, plist, S, solution),
-    EnergyBase(FElist, plist, S, solution) {}
+                   const Teuchos::RCP<TreeVector>& solution)
+  : PK(FElist, plist, S, solution), EnergyBase(FElist, plist, S, solution)
+{}
 
 
 // -------------------------------------------------------------
 // Create the physical evaluators for energy and thermal conductivity
 // -------------------------------------------------------------
-void TwoPhase::SetupPhysicalEvaluators_()
+void
+TwoPhase::SetupPhysicalEvaluators_()
 {
   // -- thermal conductivity
   // This deals with deprecated location for the TC list (in the PK).  Move it
@@ -50,5 +51,5 @@ void TwoPhase::SetupPhysicalEvaluators_()
   EnergyBase::SetupPhysicalEvaluators_();
 }
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

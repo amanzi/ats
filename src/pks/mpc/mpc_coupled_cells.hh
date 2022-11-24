@@ -61,22 +61,25 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to
 
 namespace Amanzi {
 
-namespace Operators { class TreeOperator; class PDE_Accumulation; }
+namespace Operators {
+class TreeOperator;
+class PDE_Accumulation;
+} // namespace Operators
 
 class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
  public:
-
   MPCCoupledCells(Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
                   const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<TreeVector>& solution):
-    PK(FElist, plist, S, solution),
-    StrongMPC<PK_PhysicalBDF_Default>(FElist, plist, S, solution) {}
+                  const Teuchos::RCP<TreeVector>& solution)
+    : PK(FElist, plist, S, solution), StrongMPC<PK_PhysicalBDF_Default>(FElist, plist, S, solution)
+  {}
 
   virtual void Setup() override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
@@ -95,12 +98,11 @@ class MPCCoupledCells : public StrongMPC<PK_PhysicalBDF_Default> {
   // cruft for easier global debugging
   Teuchos::RCP<Debugger> db_;
 
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<MPCCoupledCells> reg_;
-
 };
 
 
-} //  namespace
+} // namespace Amanzi
 #endif

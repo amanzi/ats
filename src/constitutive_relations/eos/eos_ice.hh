@@ -24,28 +24,19 @@ namespace Relations {
 
 // Equation of State model
 class EOSIce : public EOSConstantMolarMass {
-
-public:
+ public:
   explicit EOSIce(Teuchos::ParameterList& eos_plist);
 
   virtual double MassDensity(std::vector<double>& params) override;
   virtual double DMassDensityDT(std::vector<double>& params) override;
   virtual double DMassDensityDp(std::vector<double>& params) override;
-  virtual double DMassDensityDC(std::vector<double>& params) override {
-    return 0;
-  }
+  virtual double DMassDensityDC(std::vector<double>& params) override { return 0; }
 
-  virtual bool IsTemperature() override {
-    return true;
-  }
-  virtual bool IsPressure() override {
-    return true;
-  }
-  virtual bool IsConcentration() override {
-    return false;
-  }
+  virtual bool IsTemperature() override { return true; }
+  virtual bool IsPressure() override { return true; }
+  virtual bool IsConcentration() override { return false; }
 
-private:
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList eos_plist_;
@@ -59,11 +50,10 @@ private:
   // -- pressure dependence of density
   const double kalpha_, kp0_;
 
-  static Utils::RegisteredFactory<EOS,EOSIce> factory_;
-
+  static Utils::RegisteredFactory<EOS, EOSIce> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

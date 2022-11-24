@@ -52,12 +52,11 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 namespace Amanzi {
 
 class PK_Physical_Default : public PK_Physical {
-
-  public:
-    PK_Physical_Default(Teuchos::ParameterList& pk_tree,
-                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                        const Teuchos::RCP<State>& S,
-                        const Teuchos::RCP<TreeVector>& solution);
+ public:
+  PK_Physical_Default(Teuchos::ParameterList& pk_tree,
+                      const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                      const Teuchos::RCP<State>& S,
+                      const Teuchos::RCP<TreeVector>& solution);
 
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;
@@ -74,7 +73,6 @@ class PK_Physical_Default : public PK_Physical {
   virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-
   // step validity
   double max_valid_change_;
 
@@ -85,6 +83,6 @@ class PK_Physical_Default : public PK_Physical {
   } ENorm_t;
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

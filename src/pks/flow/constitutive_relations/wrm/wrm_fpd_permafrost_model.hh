@@ -17,15 +17,13 @@ namespace Flow {
 class WRM;
 
 class WRMFPDPermafrostModel : public WRMPermafrostModel {
-
  public:
-  explicit
-  WRMFPDPermafrostModel(Teuchos::ParameterList& plist) :
-      WRMPermafrostModel(plist) {}
+  explicit WRMFPDPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist) {}
 
   // required methods from the base class
   // sats[0] = sg, sats[1] = sl, sats[2] = si
-  virtual bool freezing(double T, double pc_liq, double pc_ice) { 
+  virtual bool freezing(double T, double pc_liq, double pc_ice)
+  {
     return pc_liq <= 0. ? pc_ice > 0. : pc_liq < pc_ice;
   }
 
@@ -38,12 +36,11 @@ class WRMFPDPermafrostModel : public WRMPermafrostModel {
 
  private:
   // factory registration
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMFPDPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMFPDPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

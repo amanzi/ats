@@ -15,7 +15,6 @@ namespace Amanzi {
 namespace Relations {
 
 class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   enum EOSMode { EOS_MODE_MASS, EOS_MODE_MOLAR, EOS_MODE_BOTH };
 
@@ -28,17 +27,18 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // ensures a given structure of all of my_keys
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   void ParsePlistKeys_();
@@ -55,10 +55,10 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool updated_once_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EOSEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator, EOSEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

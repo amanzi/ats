@@ -32,20 +32,23 @@ namespace Flow {
 // Create the physical evaluators for water content, water
 // retention, rel perm, etc, that are specific to Richards.
 // -------------------------------------------------------------
-void Permafrost::SetupPhysicalEvaluators_()
+void
+Permafrost::SetupPhysicalEvaluators_()
 {
   // -- Absolute permeability.
   //       For now, we assume scalar permeability.  This will change.
   requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
 
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireDerivative<CompositeVector,CompositeVectorSpace>(conserved_key_,
-          tag_next_, key_, tag_next_);
+  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+    conserved_key_, tag_next_, key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
@@ -68,15 +71,18 @@ void Permafrost::SetupPhysicalEvaluators_()
 
   // -- saturation
   requireAtNext(sat_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   requireAtNext(sat_gas_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   requireAtNext(sat_ice_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
@@ -90,7 +96,8 @@ void Permafrost::SetupPhysicalEvaluators_()
   // -- the rel perm evaluator, also with the same underlying WRM.
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
   requireAtNext(coef_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
 
@@ -101,14 +108,16 @@ void Permafrost::SetupPhysicalEvaluators_()
 
   // -- molar density used to infer liquid Darcy velocity from flux
   requireAtNext(molar_dens_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
   requireAtNext(mass_dens_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
 }
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

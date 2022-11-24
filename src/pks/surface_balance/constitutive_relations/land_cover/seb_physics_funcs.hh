@@ -46,54 +46,63 @@ namespace Relations {
 //
 // Determine the albedo of snow as a function of density.
 // ------------------------------------------------------------------------------------------
-double CalcAlbedoSnow(double density_snow);
+double
+CalcAlbedoSnow(double density_snow);
 
 //
 // Determine the surface roughness
 // ------------------------------------------------------------------------------------------
-double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rough_snow);
+double
+CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rough_snow);
 
 
 //
 // Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
-double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air);
+double
+IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air);
 
 //
 // Calculates incoming shortwave and longwave radiation incident on surface
 // ------------------------------------------------------------------------------------------
-std::pair<double,double>
+std::pair<double, double>
 IncomingRadiation(const MetData& met, double albedo);
 
 //
 // Calculates outgoing longwave radiation
 // ------------------------------------------------------------------------------------------
-double OutgoingLongwaveRadiation(double temp, double emissivity);
+double
+OutgoingLongwaveRadiation(double temp, double emissivity);
 
 //
 // Beer's law for radiation attenuation through a single-layer canopy
 // ------------------------------------------------------------------------------------------
-double BeersLaw(double sw_in, double k_extinction, double lai);
+double
+BeersLaw(double sw_in, double k_extinction, double lai);
 
 //
 // Wind speed term D_he
 // ------------------------------------------------------------------------------------------
-double WindFactor(double Us, double Z_Us, double Z_rough, double c_von_Karman, double KB);
+double
+WindFactor(double Us, double Z_Us, double Z_rough, double c_von_Karman, double KB);
 
 //
 // Stability of convective overturning term Zeta AKA Sqig
 // ------------------------------------------------------------------------------------------
-double StabilityFunction(double air_temp, double skin_temp, double Us,
-                         double Z_Us, double c_gravity);
+double
+StabilityFunction(double air_temp, double skin_temp, double Us, double Z_Us, double c_gravity);
 
 
 //
 // Westermann 2016, saturated vapor pressure over water/ice
 // In [Pa]
 // ------------------------------------------------------------------------------------------
-double SaturatedVaporPressure(double temp);
-double SaturatedVaporPressureELM(double temp);
-double SaturatedSpecificHumidityELM(double temp);
+double
+SaturatedVaporPressure(double temp);
+double
+SaturatedVaporPressureELM(double temp);
+double
+SaturatedSpecificHumidityELM(double temp);
 
 
 //
@@ -101,46 +110,53 @@ double SaturatedSpecificHumidityELM(double temp);
 // After Ho & Webb 2006
 // In [Pa]
 // ------------------------------------------------------------------------------------------
-double VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
+double
+VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 
 
 //
 // Diffusion of vapor pressure limiter on evaporation.
 // After Sakagucki and Zeng 2009 eqaution (10)
 // ------------------------------------------------------------------------------------------
-double EvaporativeResistanceGround(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        double vapor_pressure_ground);
+double
+EvaporativeResistanceGround(const GroundProperties& surf,
+                            const MetData& met,
+                            const ModelParams& params,
+                            double vapor_pressure_ground);
 
-double EvaporativeResistanceCoef(double saturation_gas,
-        double porosity, double dessicated_zone_thickness, double Clapp_Horn_b);
+double
+EvaporativeResistanceCoef(double saturation_gas,
+                          double porosity,
+                          double dessicated_zone_thickness,
+                          double Clapp_Horn_b);
 
 
 //
 // Basic sensible heat.
 // ------------------------------------------------------------------------------------------
-double SensibleHeat(double resistance_coef,
-                    double density_air,
-                    double Cp_air,
-                    double air_temp,
-                    double skin_temp);
+double
+SensibleHeat(double resistance_coef,
+             double density_air,
+             double Cp_air,
+             double air_temp,
+             double skin_temp);
 
 //
 // Basic latent heat.
 // ------------------------------------------------------------------------------------------
-double LatentHeat(double resistance_coef,
-                  double density_air,  /// this should be w?
-                  double latent_heat_fusion,
-                  double vapor_pressure_air,
-                  double vapor_pressure_skin,
-                  double Apa);
+double
+LatentHeat(double resistance_coef,
+           double density_air, /// this should be w?
+           double latent_heat_fusion,
+           double vapor_pressure_air,
+           double vapor_pressure_skin,
+           double Apa);
 
 //
 // Heat conducted to ground via simple diffusion model between snow and skin surface.
 // ------------------------------------------------------------------------------------------
-double ConductedHeatIfSnow(double ground_temp,
-                           const SnowProperties& snow);
+double
+ConductedHeatIfSnow(double ground_temp, const SnowProperties& snow);
 
 //
 // Update the energy balance, solving for the amount of heat available to melt snow.
@@ -148,23 +164,25 @@ double ConductedHeatIfSnow(double ground_temp,
 // NOTE, this should not be used directly -- instead it is called within the loop solving for
 // snow temperature.
 // ------------------------------------------------------------------------------------------
-void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
-        const SnowProperties& snow,
-        const MetData& met,
-        const ModelParams& params,
-        EnergyBalance& eb);
+void
+UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
+                                  const SnowProperties& snow,
+                                  const MetData& met,
+                                  const ModelParams& params,
+                                  EnergyBalance& eb);
 
 //
 // Determine the snow temperature by solving for energy balance, i.e. the snow
 // temp at equilibrium.  Assumes no melting (and therefore T_snow calculated
 // can be greater than 0 C.
 // ------------------------------------------------------------------------------------------
-double DetermineSnowTemperature(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        SnowProperties& snow,
-        EnergyBalance& eb,
-        std::string method="toms");
+double
+DetermineSnowTemperature(const GroundProperties& surf,
+                         const MetData& met,
+                         const ModelParams& params,
+                         SnowProperties& snow,
+                         EnergyBalance& eb,
+                         std::string method = "toms");
 
 
 //
@@ -172,97 +190,102 @@ double DetermineSnowTemperature(const GroundProperties& surf,
 //
 // NOTE, this CAN be used directly.
 // ------------------------------------------------------------------------------------------
-EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        SnowProperties& snow);
+EnergyBalance
+UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
+                            const MetData& met,
+                            const ModelParams& params,
+                            SnowProperties& snow);
 
 //
 // Update the energy balance, solving for the amount of heat conducted to the ground.
 //
 // NOTE, this CAN be used directly.
 // ------------------------------------------------------------------------------------------
-EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params);
+EnergyBalance
+UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
+                               const MetData& met,
+                               const ModelParams& params);
 
 //
 // Given an energy balance, determine the resulting mass changes between
 // precip, evaporation, melt, etc, with snow.
 // ------------------------------------------------------------------------------------------
-MassBalance UpdateMassBalanceWithSnow(const GroundProperties& surf,
-        const ModelParams& params, const EnergyBalance& eb);
+MassBalance
+UpdateMassBalanceWithSnow(const GroundProperties& surf,
+                          const ModelParams& params,
+                          const EnergyBalance& eb);
 
 //
 // Given an energy balance, determine the resulting mass changes between
 // precip, evaporation, melt, etc, with snow.
 // ------------------------------------------------------------------------------------------
-MassBalance UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
-        const ModelParams& params, const EnergyBalance& eb);
+MassBalance
+UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
+                             const ModelParams& params,
+                             const EnergyBalance& eb);
 
 
 //
 // Given an energy balance and a mass balance, accumulate these into sources
 // for surf and subsurf.
 // ------------------------------------------------------------------------------------------
-FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
-        const MetData& met, const ModelParams& params, const SnowProperties& snow,
-        const EnergyBalance& eb, const MassBalance& mb);
+FluxBalance
+UpdateFluxesWithSnow(const GroundProperties& surf,
+                     const MetData& met,
+                     const ModelParams& params,
+                     const SnowProperties& snow,
+                     const EnergyBalance& eb,
+                     const MassBalance& mb);
 
 //
 // Given an energy balance and a mass balance, accumulate these into sources
 // for surf and subsurf.
 // ------------------------------------------------------------------------------------------
-FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
-        const MetData& met, const ModelParams& params, const EnergyBalance& eb,
-        const MassBalance& mb, bool model_1p1=false);
-
+FluxBalance
+UpdateFluxesWithoutSnow(const GroundProperties& surf,
+                        const MetData& met,
+                        const ModelParams& params,
+                        const EnergyBalance& eb,
+                        const MassBalance& mb,
+                        bool model_1p1 = false);
 
 
 // Calculation of a snow temperature requires a root-finding operation, for
 // which we use a functor.
 class SnowTemperatureFunctor_ {
  public:
+  explicit SnowTemperatureFunctor_(GroundProperties const* const surf,
+                                   SnowProperties* const snow,
+                                   MetData const* const met,
+                                   ModelParams const* const params,
+                                   EnergyBalance* const eb)
+    : surf_(surf), params_(params), snow_(snow), met_(met), eb_(eb)
+  {}
 
-  explicit SnowTemperatureFunctor_(
-      GroundProperties const * const surf,
-      SnowProperties * const snow,
-      MetData const * const met,
-      ModelParams const * const params,
-      EnergyBalance * const eb)
-      : surf_(surf),
-        params_(params),
-        snow_(snow),
-        met_(met),
-        eb_(eb) {}
-
-  double operator()(double temp) {
+  double operator()(double temp)
+  {
     snow_->temp = temp;
     UpdateEnergyBalanceWithSnow_Inner(*surf_, *snow_, *met_, *params_, *eb_);
     return eb_->fQm;
   }
 
  private:
-  GroundProperties const * const surf_;
-  ModelParams const * const params_;
-  MetData const * const met_;
+  GroundProperties const* const surf_;
+  ModelParams const* const params_;
+  MetData const* const met_;
 
-  SnowProperties * const snow_;
-  EnergyBalance * const eb_;
+  SnowProperties* const snow_;
+  EnergyBalance* const eb_;
 };
 
 
 // Convergence criteria for root-finding
 struct Tol_ {
   Tol_(double eps) : eps_(eps) {}
-  bool operator()(const double& a, const double& b) const {
-    return std::abs(a - b) <= eps_;
-  }
+  bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
   double eps_;
 };
 
-} // namespace
-} // namespace
-} // namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

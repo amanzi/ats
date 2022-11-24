@@ -16,21 +16,17 @@ namespace Flow {
 class WRM;
 
 class WRMMCKPermafrostModel : public WRMPermafrostModel {
-
  public:
   double residualSaturation();
-  explicit
-  WRMMCKPermafrostModel(Teuchos::ParameterList& plist) :
-      WRMPermafrostModel(plist) {
+  explicit WRMMCKPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist)
+  {
     T0_ = plist.get<double>("freezing point [K]", 273.15);
-    w_  = plist.get<double>("sfc fitting coefficient", 3.0);
+    w_ = plist.get<double>("sfc fitting coefficient", 3.0);
   }
 
 
   // required methods from the base class
-  virtual bool freezing(double T, double pc_liq, double pc_ice) { 
-    return T < T0_;
-  }
+  virtual bool freezing(double T, double pc_liq, double pc_ice) { return T < T0_; }
 
   virtual void saturations(double pc_liq, double pc_ice, double (&sats)[3]);
   virtual void dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3]);
@@ -42,12 +38,11 @@ class WRMMCKPermafrostModel : public WRMPermafrostModel {
 
  private:
   // factory registration
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMMCKPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMMCKPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -50,7 +50,6 @@ namespace Flow {
 class ManningConductivityModel;
 
 class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   OverlandConductivitySubgridEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivitySubgridEvaluator(const OverlandConductivitySubgridEvaluator& other) = default;
@@ -62,13 +61,13 @@ class OverlandConductivitySubgridEvaluator : public EvaluatorSecondaryMonotypeCV
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
-private:
+ private:
   Teuchos::RCP<ManningConductivityModel> model_;
 
   Key slope_key_;
@@ -79,9 +78,8 @@ private:
   Key frac_cond_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,OverlandConductivitySubgridEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, OverlandConductivitySubgridEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

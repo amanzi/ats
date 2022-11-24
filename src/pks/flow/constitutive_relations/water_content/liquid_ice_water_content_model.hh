@@ -15,31 +15,39 @@ namespace Flow {
 namespace Relations {
 
 class LiquidIceWaterContentModel {
-
  public:
-  explicit
-  LiquidIceWaterContentModel(Teuchos::ParameterList& plist);
+  explicit LiquidIceWaterContentModel(Teuchos::ParameterList& plist);
 
   double WaterContent(double phi, double sl, double nl, double si, double ni, double cv) const;
 
-  double DWaterContentDPorosity(double phi, double sl, double nl, double si, double ni, double cv) const;
-  double DWaterContentDSaturationLiquid(double phi, double sl, double nl, double si, double ni, double cv) const;
-  double DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double si, double ni, double cv) const;
-  double DWaterContentDSaturationIce(double phi, double sl, double nl, double si, double ni, double cv) const;
-  double DWaterContentDMolarDensityIce(double phi, double sl, double nl, double si, double ni, double cv) const;
-  double DWaterContentDCellVolume(double phi, double sl, double nl, double si, double ni, double cv) const;
-  
+  double
+  DWaterContentDPorosity(double phi, double sl, double nl, double si, double ni, double cv) const;
+  double
+  DWaterContentDSaturationLiquid(double phi, double sl, double nl, double si, double ni, double cv)
+    const;
+  double DWaterContentDMolarDensityLiquid(double phi,
+                                          double sl,
+                                          double nl,
+                                          double si,
+                                          double ni,
+                                          double cv) const;
+  double
+  DWaterContentDSaturationIce(double phi, double sl, double nl, double si, double ni, double cv)
+    const;
+  double
+  DWaterContentDMolarDensityIce(double phi, double sl, double nl, double si, double ni, double cv)
+    const;
+  double
+  DWaterContentDCellVolume(double phi, double sl, double nl, double si, double ni, double cv) const;
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
-
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -15,8 +15,7 @@ namespace Amanzi {
 namespace Flow {
 
 class PCLiqAtm {
-
-public:
+ public:
   explicit PCLiqAtm(Teuchos::ParameterList& plist) {}
 
   // required methods from the base class
@@ -25,7 +24,7 @@ public:
   double DCapillaryPressureDpatm(double p, double p_atm) { return 1.; }
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

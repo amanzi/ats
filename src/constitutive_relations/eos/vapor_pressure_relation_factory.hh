@@ -20,12 +20,11 @@ namespace Amanzi {
 namespace Relations {
 
 class VaporPressureRelationFactory : public Utils::Factory<VaporPressureRelation> {
-
-public:
+ public:
   Teuchos::RCP<VaporPressureRelation> createVaporPressure(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

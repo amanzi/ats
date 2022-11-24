@@ -62,7 +62,6 @@ EosIdealGasModel::DDensityDPressure(double temp, double pres) const
   return AMANZI_ASSERT(False);
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace General
+} // namespace Amanzi

@@ -15,10 +15,9 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                         ThermalConductivityThreePhaseVolumeAveraged>
-        ThermalConductivityThreePhaseVolumeAveraged::factory_("three-phase volume averaged");
+Utils::RegisteredFactory<ThermalConductivityThreePhase, ThermalConductivityThreePhaseVolumeAveraged>
+  ThermalConductivityThreePhaseVolumeAveraged::factory_("three-phase volume averaged");
 
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

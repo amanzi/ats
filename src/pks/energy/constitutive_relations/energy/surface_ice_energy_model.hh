@@ -15,32 +15,61 @@ namespace Energy {
 namespace Relations {
 
 class SurfaceIceEnergyModel {
-
  public:
-  explicit
-  SurfaceIceEnergyModel(Teuchos::ParameterList& plist);
+  explicit SurfaceIceEnergyModel(Teuchos::ParameterList& plist);
 
   double Energy(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
 
-  double DEnergyDPondedDepth(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDUnfrozenFraction(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDMolarDensityLiquid(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDInternalEnergyLiquid(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDMolarDensityIce(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDInternalEnergyIce(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  double DEnergyDCellVolume(double h, double eta, double nl, double ul, double ni, double ui, double cv) const;
-  
+  double
+  DEnergyDPondedDepth(double h, double eta, double nl, double ul, double ni, double ui, double cv)
+    const;
+  double DEnergyDUnfrozenFraction(double h,
+                                  double eta,
+                                  double nl,
+                                  double ul,
+                                  double ni,
+                                  double ui,
+                                  double cv) const;
+  double DEnergyDMolarDensityLiquid(double h,
+                                    double eta,
+                                    double nl,
+                                    double ul,
+                                    double ni,
+                                    double ui,
+                                    double cv) const;
+  double DEnergyDInternalEnergyLiquid(double h,
+                                      double eta,
+                                      double nl,
+                                      double ul,
+                                      double ni,
+                                      double ui,
+                                      double cv) const;
+  double DEnergyDMolarDensityIce(double h,
+                                 double eta,
+                                 double nl,
+                                 double ul,
+                                 double ni,
+                                 double ui,
+                                 double cv) const;
+  double DEnergyDInternalEnergyIce(double h,
+                                   double eta,
+                                   double nl,
+                                   double ul,
+                                   double ni,
+                                   double ui,
+                                   double cv) const;
+  double
+  DEnergyDCellVolume(double h, double eta, double nl, double ul, double ni, double ui, double cv)
+    const;
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
-
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

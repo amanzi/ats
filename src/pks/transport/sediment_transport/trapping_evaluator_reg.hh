@@ -12,6 +12,7 @@
 namespace Amanzi {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,TrappingRateEvaluator > TrappingRateEvaluator ::factory_("trapping rate");
+Utils::RegisteredFactory<Evaluator, TrappingRateEvaluator>
+  TrappingRateEvaluator ::factory_("trapping rate");
 
-} // namespace
+} // namespace Amanzi

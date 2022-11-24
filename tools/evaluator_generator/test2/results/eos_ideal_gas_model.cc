@@ -35,7 +35,7 @@ EosIdealGasModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 double
 EosIdealGasModel::Density(double temp, double pres) const
 {
-  return cv_*(-T0_ + temp);
+  return cv_ * (-T0_ + temp);
 }
 
 double
@@ -50,7 +50,6 @@ EosIdealGasModel::DDensityDPressure(double temp, double pres) const
   return 0;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace General
+} // namespace Amanzi

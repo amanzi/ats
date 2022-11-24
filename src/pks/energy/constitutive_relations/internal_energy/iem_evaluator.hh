@@ -17,11 +17,9 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  IEMEvaluator(Teuchos::ParameterList& plist);
+  explicit IEMEvaluator(Teuchos::ParameterList& plist);
   IEMEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<IEM>& iem);
   IEMEvaluator(const IEMEvaluator& other) = default;
 
@@ -31,11 +29,11 @@ class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
   void InitializeFromPlist_();
 
@@ -43,11 +41,10 @@ class IEMEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<IEM> iem_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,IEMEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, IEMEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

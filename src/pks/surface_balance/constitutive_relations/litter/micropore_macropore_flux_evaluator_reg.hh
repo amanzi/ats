@@ -4,8 +4,9 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,MicroporeMacroporeFluxEvaluator> MicroporeMacroporeFluxEvaluator::reg_("micropore-macropore flux");
+Utils::RegisteredFactory<Evaluator, MicroporeMacroporeFluxEvaluator>
+  MicroporeMacroporeFluxEvaluator::reg_("micropore-macropore flux");
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

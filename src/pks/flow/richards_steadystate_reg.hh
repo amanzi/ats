@@ -6,5 +6,5 @@ namespace Flow {
 
 RegisteredPKFactory<RichardsSteadyState> RichardsSteadyState::reg_("richards steady state");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

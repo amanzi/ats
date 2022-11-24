@@ -23,9 +23,7 @@ class CompositeVector;
 namespace Operators {
 
 class UpwindFluxHarmonicMean : public Upwinding {
-
-public:
-
+ public:
   UpwindFluxHarmonicMean(const std::string& pkname,
                          const Tag& tag,
                          const Key& flux,
@@ -34,34 +32,31 @@ public:
   virtual void Update(const CompositeVector& cell_coef,
                       CompositeVector& face_coef,
                       const State& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const override;
 
-  void CalculateCoefficientsOnFaces(
-        const CompositeVector& cell_coef,
-        const CompositeVector& flux,
-        CompositeVector& face_coef,
-        const Teuchos::Ptr<Debugger>& db) const;
+  void CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
+                                    const CompositeVector& flux,
+                                    CompositeVector& face_coef,
+                                    const Teuchos::Ptr<Debugger>& db) const;
 
-  virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                    std::string potential_key,
-                    const CompositeVector& dconductivity,
-                    const std::vector<int>& bc_markers,
-                    const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const override;
+  virtual void UpdateDerivatives(
+    const Teuchos::Ptr<State>& S,
+    std::string potential_key,
+    const CompositeVector& dconductivity,
+    const std::vector<int>& bc_markers,
+    const std::vector<double>& bc_values,
+    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const override;
 
-  virtual std::string
-  CoefficientLocation() const override { return "upwind: face"; }
+  virtual std::string CoefficientLocation() const override { return "upwind: face"; }
 
-private:
-
+ private:
   Tag tag_;
   std::string pkname_;
   Key flux_;
   double flux_eps_;
 };
 
-} // namespace
-} // namespace
+} // namespace Operators
+} // namespace Amanzi
 
 #endif

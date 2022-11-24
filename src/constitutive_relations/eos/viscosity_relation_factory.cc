@@ -14,11 +14,12 @@ namespace Amanzi {
 namespace Relations {
 
 // method for instantiating Viscosity implementations
-Teuchos::RCP<ViscosityRelation> ViscosityRelationFactory::createViscosity(Teuchos::ParameterList& plist) {
+Teuchos::RCP<ViscosityRelation>
+ViscosityRelationFactory::createViscosity(Teuchos::ParameterList& plist)
+{
   std::string visc_typename = plist.get<std::string>("viscosity relation type");
   return Teuchos::rcp(CreateInstance(visc_typename, plist));
 };
 
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace Amanzi

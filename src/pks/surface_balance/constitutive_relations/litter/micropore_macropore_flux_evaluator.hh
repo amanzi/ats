@@ -57,7 +57,6 @@ namespace Relations {
 class MicroporeMacroporeFluxModel;
 
 class MicroporeMacroporeFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit MicroporeMacroporeFluxEvaluator(Teuchos::ParameterList& plist);
   MicroporeMacroporeFluxEvaluator(const MicroporeMacroporeFluxEvaluator& other) = default;
@@ -67,10 +66,11 @@ class MicroporeMacroporeFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -85,12 +85,9 @@ class MicroporeMacroporeFluxEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<MicroporeMacroporeFluxModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,MicroporeMacroporeFluxEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, MicroporeMacroporeFluxEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

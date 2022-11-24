@@ -18,24 +18,35 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMInterfrost : public WRM {
-
-public:
+ public:
   explicit WRMInterfrost(Teuchos::ParameterList& plist) {}
 
   // required methods from the base class
-  double k_relative(double sat) { return std::pow(10, -50*0.37*(1-sat)); }
+  double k_relative(double sat) { return std::pow(10, -50 * 0.37 * (1 - sat)); }
   double d_k_relative(double pc) { return 0.; }
-  double saturation(double pc) { AMANZI_ASSERT(0); return 0.; }
-  double d_saturation(double pc) { AMANZI_ASSERT(0); return 0.;  }
+  double saturation(double pc)
+  {
+    AMANZI_ASSERT(0);
+    return 0.;
+  }
+  double d_saturation(double pc)
+  {
+    AMANZI_ASSERT(0);
+    return 0.;
+  }
   double capillaryPressure(double saturation) { return saturation; }
   double d_capillaryPressure(double saturation) { return 1.; }
-  double residualSaturation() { AMANZI_ASSERT(0); return 0.; }
+  double residualSaturation()
+  {
+    AMANZI_ASSERT(0);
+    return 0.;
+  }
 
  private:
-  static Utils::RegisteredFactory<WRM,WRMInterfrost> factory_;
+  static Utils::RegisteredFactory<WRM, WRMInterfrost> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

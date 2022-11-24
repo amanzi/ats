@@ -16,26 +16,30 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // Constructor from ParameterList
-PlantWiltingFactorModel::PlantWiltingFactorModel(const LandCover& lc)
-  : lc_(lc) {}
+PlantWiltingFactorModel::PlantWiltingFactorModel(const LandCover& lc) : lc_(lc) {}
 
 // main method
 double
 PlantWiltingFactorModel::PlantWiltingFactor(double pc) const
 {
-  return lc_.stomata_closed_mafic_potential < pc ? 0. :
-    (pc < lc_.stomata_open_mafic_potential ? 1. :
-     ((-pc + lc_.stomata_closed_mafic_potential)/(lc_.stomata_closed_mafic_potential - lc_.stomata_open_mafic_potential)));
+  return lc_.stomata_closed_mafic_potential < pc ?
+           0. :
+           (pc < lc_.stomata_open_mafic_potential ?
+              1. :
+              ((-pc + lc_.stomata_closed_mafic_potential) /
+               (lc_.stomata_closed_mafic_potential - lc_.stomata_open_mafic_potential)));
 }
 
 double
 PlantWiltingFactorModel::DPlantWiltingFactorDCapillaryPressureGasLiq(double pc) const
 {
-  return lc_.stomata_closed_mafic_potential < pc ? 0. :
-    (pc < lc_.stomata_open_mafic_potential ? 0. :
-     (-1/(lc_.stomata_closed_mafic_potential - lc_.stomata_open_mafic_potential)));
+  return lc_.stomata_closed_mafic_potential < pc ?
+           0. :
+           (pc < lc_.stomata_open_mafic_potential ?
+              0. :
+              (-1 / (lc_.stomata_closed_mafic_potential - lc_.stomata_open_mafic_potential)));
 }
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -16,5 +16,5 @@ namespace Energy {
 
 RegisteredPKFactory<TwoPhase> TwoPhase::reg_("two-phase energy");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

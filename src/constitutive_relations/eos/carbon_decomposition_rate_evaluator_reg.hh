@@ -11,7 +11,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
+Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator>
+  CarbonDecomposeRateEvaluator::reg_("carbon decomposition rate");
 
-}
-}
+} // namespace Relations
+} // namespace Amanzi

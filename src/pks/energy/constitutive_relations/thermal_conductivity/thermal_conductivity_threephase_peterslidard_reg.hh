@@ -15,10 +15,9 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                         ThermalConductivityThreePhasePetersLidard>
-        ThermalConductivityThreePhasePetersLidard::factory_("three-phase Peters-Lidard");
+Utils::RegisteredFactory<ThermalConductivityThreePhase, ThermalConductivityThreePhasePetersLidard>
+  ThermalConductivityThreePhasePetersLidard::factory_("three-phase Peters-Lidard");
 
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

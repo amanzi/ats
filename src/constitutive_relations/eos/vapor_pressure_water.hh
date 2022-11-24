@@ -20,22 +20,21 @@ namespace Amanzi {
 namespace Relations {
 
 class VaporPressureWater : public VaporPressureRelation {
-
-public:
+ public:
   explicit VaporPressureWater(Teuchos::ParameterList& plist);
 
   virtual double SaturatedVaporPressure(double T);
   virtual double DSaturatedVaporPressureDT(double T);
 
-private:
+ private:
   Teuchos::ParameterList plist_;
   const double ka0_;
   const double ka_, kb_, kc_, kd_;
 
-  static Utils::RegisteredFactory<VaporPressureRelation,VaporPressureWater> factory_;
+  static Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

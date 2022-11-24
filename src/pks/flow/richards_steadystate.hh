@@ -40,7 +40,7 @@ namespace Amanzi {
 namespace Flow {
 
 class RichardsSteadyState : public Richards {
-public:
+ public:
   // Constructors.
 
   RichardsSteadyState(Teuchos::ParameterList& FElist,
@@ -51,11 +51,14 @@ public:
   // Virtual destructor
   virtual ~RichardsSteadyState() override {}
 
-protected:
+ protected:
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
@@ -63,10 +66,9 @@ protected:
  private:
   // factory registration
   static RegisteredPKFactory<RichardsSteadyState> reg_;
-
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

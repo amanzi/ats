@@ -25,85 +25,202 @@ LiquidIceEnergyModel::LiquidIceEnergyModel(Teuchos::ParameterList& plist)
 // Initialize parameters
 void
 LiquidIceEnergyModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
-{
-
-}
+{}
 
 
 // main method
 double
-LiquidIceEnergyModel::Energy(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::Energy(double phi,
+                             double phi0,
+                             double sl,
+                             double nl,
+                             double ul,
+                             double si,
+                             double ni,
+                             double ui,
+                             double rho_r,
+                             double ur,
+                             double cv) const
 {
-  return cv*(phi*(ni*si*ui + nl*sl*ul) + rho_r*ur*(-phi0 + 1));
+  return cv * (phi * (ni * si * ui + nl * sl * ul) + rho_r * ur * (-phi0 + 1));
 }
 
 double
-LiquidIceEnergyModel::DEnergyDPorosity(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDPorosity(double phi,
+                                       double phi0,
+                                       double sl,
+                                       double nl,
+                                       double ul,
+                                       double si,
+                                       double ni,
+                                       double ui,
+                                       double rho_r,
+                                       double ur,
+                                       double cv) const
 {
-  return cv*(ni*si*ui + nl*sl*ul);
+  return cv * (ni * si * ui + nl * sl * ul);
 }
 
 double
-LiquidIceEnergyModel::DEnergyDBasePorosity(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDBasePorosity(double phi,
+                                           double phi0,
+                                           double sl,
+                                           double nl,
+                                           double ul,
+                                           double si,
+                                           double ni,
+                                           double ui,
+                                           double rho_r,
+                                           double ur,
+                                           double cv) const
 {
-  return -cv*rho_r*ur;
+  return -cv * rho_r * ur;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDSaturationLiquid(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDSaturationLiquid(double phi,
+                                               double phi0,
+                                               double sl,
+                                               double nl,
+                                               double ul,
+                                               double si,
+                                               double ni,
+                                               double ui,
+                                               double rho_r,
+                                               double ur,
+                                               double cv) const
 {
-  return cv*nl*phi*ul;
+  return cv * nl * phi * ul;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDMolarDensityLiquid(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDMolarDensityLiquid(double phi,
+                                                 double phi0,
+                                                 double sl,
+                                                 double nl,
+                                                 double ul,
+                                                 double si,
+                                                 double ni,
+                                                 double ui,
+                                                 double rho_r,
+                                                 double ur,
+                                                 double cv) const
 {
-  return cv*phi*sl*ul;
+  return cv * phi * sl * ul;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDInternalEnergyLiquid(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDInternalEnergyLiquid(double phi,
+                                                   double phi0,
+                                                   double sl,
+                                                   double nl,
+                                                   double ul,
+                                                   double si,
+                                                   double ni,
+                                                   double ui,
+                                                   double rho_r,
+                                                   double ur,
+                                                   double cv) const
 {
-  return cv*nl*phi*sl;
+  return cv * nl * phi * sl;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDSaturationIce(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDSaturationIce(double phi,
+                                            double phi0,
+                                            double sl,
+                                            double nl,
+                                            double ul,
+                                            double si,
+                                            double ni,
+                                            double ui,
+                                            double rho_r,
+                                            double ur,
+                                            double cv) const
 {
-  return cv*ni*phi*ui;
+  return cv * ni * phi * ui;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDMolarDensityIce(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDMolarDensityIce(double phi,
+                                              double phi0,
+                                              double sl,
+                                              double nl,
+                                              double ul,
+                                              double si,
+                                              double ni,
+                                              double ui,
+                                              double rho_r,
+                                              double ur,
+                                              double cv) const
 {
-  return cv*phi*si*ui;
+  return cv * phi * si * ui;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDInternalEnergyIce(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDInternalEnergyIce(double phi,
+                                                double phi0,
+                                                double sl,
+                                                double nl,
+                                                double ul,
+                                                double si,
+                                                double ni,
+                                                double ui,
+                                                double rho_r,
+                                                double ur,
+                                                double cv) const
 {
-  return cv*ni*phi*si;
+  return cv * ni * phi * si;
 }
 
 double
-LiquidIceEnergyModel::DEnergyDDensityRock(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDDensityRock(double phi,
+                                          double phi0,
+                                          double sl,
+                                          double nl,
+                                          double ul,
+                                          double si,
+                                          double ni,
+                                          double ui,
+                                          double rho_r,
+                                          double ur,
+                                          double cv) const
 {
-  return cv*ur*(-phi0 + 1);
+  return cv * ur * (-phi0 + 1);
 }
 
 double
-LiquidIceEnergyModel::DEnergyDInternalEnergyRock(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDInternalEnergyRock(double phi,
+                                                 double phi0,
+                                                 double sl,
+                                                 double nl,
+                                                 double ul,
+                                                 double si,
+                                                 double ni,
+                                                 double ui,
+                                                 double rho_r,
+                                                 double ur,
+                                                 double cv) const
 {
-  return cv*rho_r*(-phi0 + 1);
+  return cv * rho_r * (-phi0 + 1);
 }
 
 double
-LiquidIceEnergyModel::DEnergyDCellVolume(double phi, double phi0, double sl, double nl, double ul, double si, double ni, double ui, double rho_r, double ur, double cv) const
+LiquidIceEnergyModel::DEnergyDCellVolume(double phi,
+                                         double phi0,
+                                         double sl,
+                                         double nl,
+                                         double ul,
+                                         double si,
+                                         double ni,
+                                         double ui,
+                                         double rho_r,
+                                         double ur,
+                                         double cv) const
 {
-  return phi*(ni*si*ui + nl*sl*ul) + rho_r*ur*(-phi0 + 1);
+  return phi * (ni * si * ui + nl * sl * ul) + rho_r * ur * (-phi0 + 1);
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

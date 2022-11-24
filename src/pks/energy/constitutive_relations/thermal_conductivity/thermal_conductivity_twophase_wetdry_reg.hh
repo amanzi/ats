@@ -22,8 +22,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityTwoPhase,ThermalConductivityTwoPhaseWetDry>
-        ThermalConductivityTwoPhaseWetDry::factory_("two-phase wet/dry");
+Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhaseWetDry>
+  ThermalConductivityTwoPhaseWetDry::factory_("two-phase wet/dry");
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

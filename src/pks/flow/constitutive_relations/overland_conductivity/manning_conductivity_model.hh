@@ -16,20 +16,19 @@ namespace Amanzi {
 namespace Flow {
 
 class ManningConductivityModel {
-public:
-  explicit
-  ManningConductivityModel(Teuchos::ParameterList& plist);
+ public:
+  explicit ManningConductivityModel(Teuchos::ParameterList& plist);
 
   double Conductivity(double depth, double slope, double coef);
   double DConductivityDDepth(double depth, double slope, double coef);
 
-protected:
+ protected:
   double slope_regularization_;
   double manning_exp_;
   double depth_max_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

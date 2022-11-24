@@ -55,10 +55,8 @@ namespace Relations {
 class LiquidIceEnergyModel;
 
 class LiquidIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  LiquidIceEnergyEvaluator(Teuchos::ParameterList& plist);
+  explicit LiquidIceEnergyEvaluator(Teuchos::ParameterList& plist);
   LiquidIceEnergyEvaluator(const LiquidIceEnergyEvaluator& other);
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -67,11 +65,11 @@ class LiquidIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -90,10 +88,9 @@ class LiquidIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<LiquidIceEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,LiquidIceEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, LiquidIceEnergyEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

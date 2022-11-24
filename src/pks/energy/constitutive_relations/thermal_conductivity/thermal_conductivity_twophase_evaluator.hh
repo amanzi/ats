@@ -17,11 +17,9 @@ namespace Amanzi {
 namespace Energy {
 
 // Equation of State model
-class ThermalConductivityTwoPhaseEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class ThermalConductivityTwoPhaseEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  using RegionModelPair = std::pair<std::string,Teuchos::RCP<ThermalConductivityTwoPhase> >;
+  using RegionModelPair = std::pair<std::string, Teuchos::RCP<ThermalConductivityTwoPhase>>;
 
   // constructor format for all derived classes
   ThermalConductivityTwoPhaseEvaluator(Teuchos::ParameterList& plist);
@@ -30,11 +28,11 @@ class ThermalConductivityTwoPhaseEvaluator :
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::vector<RegionModelPair> tcs_;
@@ -45,10 +43,10 @@ class ThermalConductivityTwoPhaseEvaluator :
   Key sat_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThermalConductivityTwoPhaseEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ThermalConductivityTwoPhaseEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

@@ -14,5 +14,5 @@ namespace Flow {
 
 RegisteredPKFactory<Richards> Richards::reg_("richards flow");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

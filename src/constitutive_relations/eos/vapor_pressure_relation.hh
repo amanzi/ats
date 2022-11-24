@@ -15,16 +15,14 @@ namespace Amanzi {
 namespace Relations {
 
 class VaporPressureRelation {
-
-public:
-  virtual ~VaporPressureRelation() {};
+ public:
+  virtual ~VaporPressureRelation(){};
 
   virtual double SaturatedVaporPressure(double T) = 0;
   virtual double DSaturatedVaporPressureDT(double T) = 0;
-
 };
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

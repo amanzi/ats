@@ -1,1 +1,5 @@
-  }} else if (wrt_key == {var}_key_) {{
+}
+}
+else if (wrt_key == { var } _key_)
+{
+  {

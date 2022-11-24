@@ -18,32 +18,30 @@ namespace Amanzi {
 namespace Relations {
 
 class CarbonDecomposeRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
-public:
-  explicit
-  CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist);
+ public:
+  explicit CarbonDecomposeRateEvaluator(Teuchos::ParameterList& plist);
   CarbonDecomposeRateEvaluator(const CarbonDecomposeRateEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  bool IsDifferentiableWRT(const State& S, const Key& wrt_key,
-                           const Tag& wrt_tag) const override {
+  bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
     return false;
   }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-                         const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override {}
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {}
 
   double Func_TempPres(double temp, double pres) const;
   double Func_Temp(double temp, double q10) const;
   double Func_Depth(double depth) const;
 
  protected:
-
   Key temp_key_;
   Key pres_key_;
   Key sat_key_;
@@ -54,11 +52,10 @@ public:
   double q10_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,CarbonDecomposeRateEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, CarbonDecomposeRateEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

@@ -11,7 +11,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,DepthEvaluator> DepthEvaluator::reg_("depth");
+Utils::RegisteredFactory<Evaluator, DepthEvaluator> DepthEvaluator::reg_("depth");
 
-}
-}
+} // namespace Flow
+} // namespace Amanzi

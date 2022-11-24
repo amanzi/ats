@@ -18,30 +18,27 @@ namespace BGCRelations {
 
 class PoolDecompositionEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  PoolDecompositionEvaluator(Teuchos::ParameterList& plist);
+  explicit PoolDecompositionEvaluator(Teuchos::ParameterList& plist);
   PoolDecompositionEvaluator(const PoolDecompositionEvaluator& other);
   Teuchos::RCP<Evaluator> Clone() const;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
+  virtual void
+  EvaluateField_(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+                                               Key wrt_key,
+                                               const Teuchos::Ptr<CompositeVector>& result);
 
-protected:
+ protected:
   Key carbon_key_;
   Key decay_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,PoolDecompositionEvaluator> fac_;
-
-
-
+  static Utils::RegisteredFactory<Evaluator, PoolDecompositionEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace BGCRelations
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

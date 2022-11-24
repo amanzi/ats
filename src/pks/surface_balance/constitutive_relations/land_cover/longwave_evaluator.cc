@@ -30,36 +30,34 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+LongwaveEvaluator::LongwaveEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   auto domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 
   air_temp_key_ = Keys::readKey(plist, domain, "air temperature", "air_temperature");
-  dependencies_.insert(KeyTag{air_temp_key_, tag});
+  dependencies_.insert(KeyTag{ air_temp_key_, tag });
   vp_air_key_ = Keys::readKey(plist, domain, "vapor pressure air", "vapor_pressure_air");
-  dependencies_.insert(KeyTag{vp_air_key_, tag});
+  dependencies_.insert(KeyTag{ vp_air_key_, tag });
 
   scale_ = plist.get<double>("scaling factor [-]", 1.0);
 }
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-LongwaveEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+LongwaveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
   const auto& vp_air = *S.Get<CompositeVector>(vp_air_key_, tag).ViewComponent("cell", false);
   auto& res = *result[0]->ViewComponent("cell", false);
 
-  for (int c=0; c!=res.MyLength(); ++c) {
+  for (int c = 0; c != res.MyLength(); ++c) {
     res[0][c] = scale_ * Relations::IncomingLongwaveRadiation(air_temp[0][c], vp_air[0][c]);
   }
 }
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -15,10 +15,9 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                         ThermalConductivityThreePhaseSutraHacked>
-        ThermalConductivityThreePhaseSutraHacked::factory_("three-phase sutra hacked");
+Utils::RegisteredFactory<ThermalConductivityThreePhase, ThermalConductivityThreePhaseSutraHacked>
+  ThermalConductivityThreePhaseSutraHacked::factory_("three-phase sutra hacked");
 
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

@@ -26,4 +26,4 @@ namespace Amanzi {
 
 RegisteredPKFactory<MPCPermafrost> MPCPermafrost::reg_("permafrost model");
 
-} // namespace
+} // namespace Amanzi

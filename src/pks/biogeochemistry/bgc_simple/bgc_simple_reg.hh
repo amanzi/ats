@@ -13,9 +13,8 @@
 namespace Amanzi {
 namespace BGC {
 
-RegisteredPKFactory<BGCSimple>
-BGCSimple::reg_("BGC simple");
+RegisteredPKFactory<BGCSimple> BGCSimple::reg_("BGC simple");
 
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
