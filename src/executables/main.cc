@@ -177,7 +177,8 @@ int main(int argc, char *argv[])
 
   if (Amanzi::VerboseObject::global_default_level != Teuchos::VERB_NONE &&
       (rank == 0)) {
-    std::cout << "ATS version " << XSTR(ATS_VERSION) << ", Amanzi version " << XSTR(AMANZI_VERSION) << std::endl;
+    std::cout << "ATS version " << XSTR(ATS_VERSION) << ", Amanzi version " << XSTR(AMANZI_VERSION) << std::endl
+              << "================================================================================" << std::endl;
   }
 
   // -- create simulator object and run
