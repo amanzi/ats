@@ -51,16 +51,15 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class AreaFractionsTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit AreaFractionsTwoComponentEvaluator(Teuchos::ParameterList& plist);
   AreaFractionsTwoComponentEvaluator(const AreaFractionsTwoComponentEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new AreaFractionsTwoComponentEvaluator(*this));
   }
 
  protected:
-
   // custom EC used to set subfield names
   virtual void EnsureCompatibility_Structure_(State& S) override;
 
@@ -68,10 +67,11 @@ class AreaFractionsTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key domain_, domain_snow_;
@@ -83,10 +83,9 @@ class AreaFractionsTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AreaFractionsTwoComponentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, AreaFractionsTwoComponentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -16,8 +16,8 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSWater::EOSWater(Teuchos::ParameterList& eos_plist) :
-    EOSConstantMolarMass(0.0180153),
+EOSWater::EOSWater(Teuchos::ParameterList& eos_plist)
+  : EOSConstantMolarMass(0.0180153),
     eos_plist_(eos_plist),
 
     ka_(999.915),
@@ -27,46 +27,47 @@ EOSWater::EOSWater(Teuchos::ParameterList& eos_plist) :
     kT0_(273.15),
 
     kalpha_(5.0e-10),
-    kp0_(1.0e5) {
-};
+    kp0_(1.0e5){};
 
 
-
-double EOSWater::MassDensity(std::vector<double>& params) {
+double
+EOSWater::MassDensity(std::vector<double>& params)
+{
   double T = params[0];
-  double p =  std::max(params[1], 101325.);
+  double p = std::max(params[1], 101325.);
 
   double dT = T - kT0_;
-  double rho1bar = ka_ + (kb_ + (kc_ + kd_*dT)*dT)*dT;
-  return rho1bar * (1.0 + kalpha_*(p - kp0_));
+  double rho1bar = ka_ + (kb_ + (kc_ + kd_ * dT) * dT) * dT;
+  return rho1bar * (1.0 + kalpha_ * (p - kp0_));
 };
 
 
-
-double EOSWater::DMassDensityDT(std::vector<double>& params) {
+double
+EOSWater::DMassDensityDT(std::vector<double>& params)
+{
   double T = params[0];
-  double p =  std::max(params[1], 101325.);
+  double p = std::max(params[1], 101325.);
 
   double dT = T - kT0_;
-  double rho1bar = kb_ + (2.0*kc_ + 3.0*kd_*dT)*dT;
-  return rho1bar * (1.0 + kalpha_*(p - kp0_));
+  double rho1bar = kb_ + (2.0 * kc_ + 3.0 * kd_ * dT) * dT;
+  return rho1bar * (1.0 + kalpha_ * (p - kp0_));
 };
 
 
-
-double EOSWater::DMassDensityDp(std::vector<double>& params) {
+double
+EOSWater::DMassDensityDp(std::vector<double>& params)
+{
   double T = params[0];
-  double p =  params[1];
+  double p = params[1];
 
   if (p < 101325.) {
     return 0.;
   } else {
     double dT = T - kT0_;
-    double rho1bar = ka_ + (kb_ + (kc_ + kd_*dT)*dT)*dT;
+    double rho1bar = ka_ + (kb_ + (kc_ + kd_ * dT) * dT) * dT;
     return rho1bar * kalpha_;
   }
-
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

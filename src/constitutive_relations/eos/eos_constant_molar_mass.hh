@@ -21,41 +21,41 @@ namespace Amanzi {
 namespace Relations {
 
 class EOSConstantMolarMass : public EOS {
-
  public:
-
   EOSConstantMolarMass() : M_(0.0) {}
   explicit EOSConstantMolarMass(double M) : M_(M) {}
 
-  virtual double MolarDensity(std::vector<double>& params) {
-    return MassDensity(params) / M_;
-  }
+  virtual double MolarDensity(std::vector<double>& params) { return MassDensity(params) / M_; }
 
-  virtual double DMolarDensityDT(std::vector<double>& params) {
+  virtual double DMolarDensityDT(std::vector<double>& params)
+  {
     return DMassDensityDT(params) / M_;
   }
 
-  virtual double DMolarDensityDp(std::vector<double>& params) {
+  virtual double DMolarDensityDp(std::vector<double>& params)
+  {
     return DMassDensityDp(params) / M_;
   }
 
-  virtual double DMolarDensityDC(std::vector<double>& params) {
+  virtual double DMolarDensityDC(std::vector<double>& params)
+  {
     return DMassDensityDC(params) / M_;
   }
 
-  virtual double MassDensity(std::vector<double>& params) {
-    return MolarDensity(params) * M_;
-  }
+  virtual double MassDensity(std::vector<double>& params) { return MolarDensity(params) * M_; }
 
-  virtual double DMassDensityDT(std::vector<double>& params) {
+  virtual double DMassDensityDT(std::vector<double>& params)
+  {
     return DMolarDensityDT(params) * M_;
   }
 
-  virtual double DMassDensityDp(std::vector<double>& params) {
+  virtual double DMassDensityDp(std::vector<double>& params)
+  {
     return DMolarDensityDp(params) * M_;
   }
 
-  virtual double DMassDensityDC(std::vector<double>& params) {
+  virtual double DMassDensityDC(std::vector<double>& params)
+  {
     return DMolarDensityDC(params) * M_;
   }
 
@@ -64,10 +64,9 @@ class EOSConstantMolarMass : public EOS {
 
  protected:
   double M_;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

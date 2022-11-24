@@ -12,7 +12,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,TimeMaxEvaluator> TimeMaxEvaluator::reg_("max in time");
+Utils::RegisteredFactory<Evaluator, TimeMaxEvaluator> TimeMaxEvaluator::reg_("max in time");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

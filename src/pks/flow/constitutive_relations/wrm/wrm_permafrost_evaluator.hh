@@ -20,11 +20,8 @@ namespace Flow {
 
 class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-
-  explicit
-  WRMPermafrostEvaluator(Teuchos::ParameterList& plist);
-  WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
-                         const Teuchos::RCP<WRMPartition>& wrms);
+  explicit WRMPermafrostEvaluator(Teuchos::ParameterList& plist);
+  WRMPermafrostEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
   WRMPermafrostEvaluator(Teuchos::ParameterList& plist,
                          const Teuchos::RCP<WRMPermafrostModelPartition>& models);
   WRMPermafrostEvaluator(const WRMPermafrostEvaluator& other) = default;
@@ -36,13 +33,14 @@ class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 
@@ -56,11 +54,10 @@ class WRMPermafrostEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<WRMPartition> wrms_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,WRMPermafrostEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, WRMPermafrostEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

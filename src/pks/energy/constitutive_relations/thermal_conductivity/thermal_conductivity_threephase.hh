@@ -20,30 +20,40 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhase {
-
-public:
+ public:
   virtual ~ThermalConductivityThreePhase() {}
 
-  virtual double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp) = 0;
-  virtual double DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp) = 0;
+  virtual double
+  DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DSaturationLiquid(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double DThermalConductivity_DSaturationLiquid(double porosity,
+                                                        double sat_liq,
+                                                        double sat_ice,
+                                                        double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

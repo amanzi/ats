@@ -14,14 +14,13 @@ namespace Amanzi {
 namespace Relations {
 
 // method for instantiating EOS implementations
-Teuchos::RCP<EOS> EOSFactory::createEOS(Teuchos::ParameterList& plist) {
+Teuchos::RCP<EOS>
+EOSFactory::createEOS(Teuchos::ParameterList& plist)
+{
   std::string eos_typename = plist.get<std::string>("EOS type");
   return Teuchos::rcp(CreateInstance(eos_typename, plist));
 };
 
 
-} // namespace
-} // namespace
-
-
-
+} // namespace Relations
+} // namespace Amanzi

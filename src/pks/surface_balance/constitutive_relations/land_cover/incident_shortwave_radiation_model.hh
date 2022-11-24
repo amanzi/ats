@@ -42,42 +42,51 @@ namespace SurfaceBalance {
 namespace Relations {
 
 namespace Impl {
-  double DeclinationAngle(double doy);
-  double HourAngle(double hour);
-  double SolarAltitude(double delta, double phi, double tau);
-  double SolarAzhimuth(double delta, double phi, double tau);
-  double FlatGeometry(double alpha, double phi_sun);
-  double SlopeGeometry(double slope, double aspect, double alpha, double phi_sun);
-  std::pair<double,double> GeometricRadiationFactors(double slope, double aspect, int doy, double hour, double lat);
-  double Radiation(double slope, double aspect, int doy, double hr, double lat, double qSWin);
-}
-  
+double
+DeclinationAngle(double doy);
+double
+HourAngle(double hour);
+double
+SolarAltitude(double delta, double phi, double tau);
+double
+SolarAzhimuth(double delta, double phi, double tau);
+double
+FlatGeometry(double alpha, double phi_sun);
+double
+SlopeGeometry(double slope, double aspect, double alpha, double phi_sun);
+std::pair<double, double>
+GeometricRadiationFactors(double slope, double aspect, int doy, double hour, double lat);
+double
+Radiation(double slope, double aspect, int doy, double hr, double lat, double qSWin);
+} // namespace Impl
+
 
 class IncidentShortwaveRadiationModel {
-
  public:
-  explicit
-  IncidentShortwaveRadiationModel(Teuchos::ParameterList& plist);
+  explicit IncidentShortwaveRadiationModel(Teuchos::ParameterList& plist);
 
   double IncidentShortwaveRadiation(double slope, double aspect, double qSWin, double time) const;
 
-  double DIncidentShortwaveRadiationDSlope(double slope, double aspect, double qSWin, double time) const;
-  double DIncidentShortwaveRadiationDAspect(double slope, double aspect, double qSWin, double time) const;
-  double DIncidentShortwaveRadiationDIncomingShortwaveRadiation(double slope, double aspect, double qSWin, double time) const;
-  
+  double
+  DIncidentShortwaveRadiationDSlope(double slope, double aspect, double qSWin, double time) const;
+  double
+  DIncidentShortwaveRadiationDAspect(double slope, double aspect, double qSWin, double time) const;
+  double DIncidentShortwaveRadiationDIncomingShortwaveRadiation(double slope,
+                                                                double aspect,
+                                                                double qSWin,
+                                                                double time) const;
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   bool daily_avg_;
   double lat_;
   int doy0_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

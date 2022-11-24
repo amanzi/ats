@@ -38,27 +38,25 @@ namespace Amanzi {
 namespace Flow {
 
 class PresElevEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  PresElevEvaluator(Teuchos::ParameterList& plist);
+  explicit PresElevEvaluator(Teuchos::ParameterList& plist);
   PresElevEvaluator(const PresElevEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  private:
   Key pres_key_;
   Key elev_key_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

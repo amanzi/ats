@@ -18,10 +18,10 @@ UnfrozenEffectiveDepthEvaluator::UnfrozenEffectiveDepthEvaluator(Teuchos::Parame
   Key domain = Keys::getDomain(my_keys_.front().first);
 
   depth_key_ = Keys::readKey(plist_, domain, "depth", "ponded_depth");
-  dependencies_.insert(KeyTag{depth_key_, tag});
+  dependencies_.insert(KeyTag{ depth_key_, tag });
 
   uf_key_ = Keys::readKey(plist_, domain, "unfrozen fraction", "unfrozen_fraction");
-  dependencies_.insert(KeyTag{uf_key_, tag});
+  dependencies_.insert(KeyTag{ uf_key_, tag });
 
   alpha_ = plist_.get<double>("ice retardation exponent [-]", 1.0);
 }
@@ -35,8 +35,9 @@ UnfrozenEffectiveDepthEvaluator::Clone() const
 
 
 // Required methods from EvaluatorSecondaryMonotypeCV
-void UnfrozenEffectiveDepthEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+void
+UnfrozenEffectiveDepthEvaluator::Evaluate_(const State& S,
+                                           const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(depth_key_, tag);
@@ -47,16 +48,19 @@ void UnfrozenEffectiveDepthEvaluator::Evaluate_(const State& S,
     const auto& depth_c = *depth->ViewComponent(compname, false);
     const auto& uf_c = *uf->ViewComponent(compname, false);
 
-    for (int c=0; c!=result_c.MyLength(); ++c) {
+    for (int c = 0; c != result_c.MyLength(); ++c) {
       result_c[0][c] = depth_c[0][c] * std::pow(uf_c[0][c], alpha_);
     }
   }
 }
 
 
-void UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
-    const State& S,
-    const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+void
+UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> depth = S.GetPtr<CompositeVector>(depth_key_, tag);
@@ -68,7 +72,7 @@ void UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
       const auto& depth_c = *depth->ViewComponent(compname, false);
       const auto& uf_c = *uf->ViewComponent(compname, false);
 
-      for (int c=0; c!=result_c.MyLength(); ++c) {
+      for (int c = 0; c != result_c.MyLength(); ++c) {
         result_c[0][c] = std::pow(uf_c[0][c], alpha_);
       }
     }
@@ -78,7 +82,7 @@ void UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
       const auto& depth_c = *depth->ViewComponent(compname, false);
       const auto& uf_c = *uf->ViewComponent(compname, false);
 
-      for (int c=0; c!=result_c.MyLength(); ++c) {
+      for (int c = 0; c != result_c.MyLength(); ++c) {
         result_c[0][c] = alpha_ * depth_c[0][c] * std::pow(uf_c[0][c], alpha_ - 1);
       }
     }
@@ -88,6 +92,5 @@ void UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
 }
 
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -16,5 +16,5 @@ namespace BGC {
 RegisteredPKFactory<FATES_PK> FATES_PK::reg_("FATES");
 
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi

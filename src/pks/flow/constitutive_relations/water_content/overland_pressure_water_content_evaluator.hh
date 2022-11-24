@@ -16,12 +16,11 @@ namespace Amanzi {
 namespace Flow {
 
 class OverlandPressureWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  OverlandPressureWaterContentEvaluator(Teuchos::ParameterList& plist);
-  OverlandPressureWaterContentEvaluator(const OverlandPressureWaterContentEvaluator& other) = default;
+  explicit OverlandPressureWaterContentEvaluator(Teuchos::ParameterList& plist);
+  OverlandPressureWaterContentEvaluator(const OverlandPressureWaterContentEvaluator& other) =
+    default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -29,26 +28,25 @@ class OverlandPressureWaterContentEvaluator : public EvaluatorSecondaryMonotypeC
   void InitializeFromPlist_();
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key pres_key_, cv_key_;
 
   double M_;
-  bool bar_;  // bar'd variable indicates this is potentially negative for
-              // pressures less than atmospheric
+  bool bar_; // bar'd variable indicates this is potentially negative for
+             // pressures less than atmospheric
   double rollover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,OverlandPressureWaterContentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, OverlandPressureWaterContentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

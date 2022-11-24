@@ -5,5 +5,5 @@ namespace BGC {
 
 Amanzi::RegisteredPKFactory<CarbonSimple> CarbonSimple::reg_("simple Carbon");
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi

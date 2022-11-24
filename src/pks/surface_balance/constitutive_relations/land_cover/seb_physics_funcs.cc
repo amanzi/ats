@@ -25,26 +25,31 @@ namespace Relations {
 #define ENERGY_BALANCE_TOL 1.e-8
 
 
-double CalcAlbedoSnow(double density_snow) {
+double
+CalcAlbedoSnow(double density_snow)
+{
   double AlSnow;
-//  432.23309912785146
+  //  432.23309912785146
   if (density_snow <= 432.23309912785146) {
-    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110*std::pow(density_snow/1000, 4), 0.5);
+    AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110 * std::pow(density_snow / 1000, 4), 0.5);
   } else {
     AlSnow = 0.6 - density_snow / 4600;
   }
   return AlSnow;
 }
 
-double CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rough_snow)
+double
+CalcRoughnessFactor(double snow_height, double Z_rough_bare, double Z_rough_snow)
 {
-  double Zfraction = snow_height <= 0. ? 0. : snow_height >= Z_rough_bare ? 1. :
-                     1 - (Z_rough_bare-snow_height)/Z_rough_bare;
-  return Z_rough_snow * Zfraction + Z_rough_bare * (1-Zfraction);
+  double Zfraction = snow_height <= 0.           ? 0. :
+                     snow_height >= Z_rough_bare ? 1. :
+                                                   1 - (Z_rough_bare - snow_height) / Z_rough_bare;
+  return Z_rough_snow * Zfraction + Z_rough_bare * (1 - Zfraction);
 }
 
 
-std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
+std::pair<double, double>
+IncomingRadiation(const MetData& met, double albedo)
 {
   // Calculate incoming short-wave radiation
   double fQswIn = (1 - albedo) * met.QswIn;
@@ -57,51 +62,57 @@ std::pair<double,double> IncomingRadiation(const MetData& met, double albedo)
 //
 // Calculate longwave from air temp and vapor pressure
 // ------------------------------------------------------------------------------------------
-double IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air)
+double
+IncomingLongwaveRadiation(double air_temp, double vapor_pressure_air)
 {
   double vp_air_hPa = vapor_pressure_air / 100;
   double e_air = std::pow(vp_air_hPa, air_temp / 2016.);
   e_air = 1.08 * (1 - std::exp(-e_air));
-  double longwave = e_air * c_stephan_boltzmann * std::pow(air_temp,4);
+  double longwave = e_air * c_stephan_boltzmann * std::pow(air_temp, 4);
   AMANZI_ASSERT(longwave > 0.);
   return longwave;
 }
 
 
-double OutgoingLongwaveRadiation(double temp, double emissivity)
+double
+OutgoingLongwaveRadiation(double temp, double emissivity)
 {
   // Calculate outgoing long-wave radiation
-  return emissivity * c_stephan_boltzmann * std::pow(temp,4);
+  return emissivity * c_stephan_boltzmann * std::pow(temp, 4);
 }
 
-double BeersLaw(double sw_in, double k_extinction, double lai)
+double
+BeersLaw(double sw_in, double k_extinction, double lai)
 {
   return sw_in * std::exp(-k_extinction * lai);
 }
 
 
-double WindFactor(double Us, double Z_Us, double Z_rough, double KB)
+double
+WindFactor(double Us, double Z_Us, double Z_rough, double KB)
 {
   // Calculate D_h, D_e,
-  return std::pow(c_von_Karman,2) * Us / (std::pow(std::log(Z_Us / Z_rough), 2) + std::log(Z_Us / Z_rough) * KB);
+  return std::pow(c_von_Karman, 2) * Us /
+         (std::pow(std::log(Z_Us / Z_rough), 2) + std::log(Z_Us / Z_rough) * KB);
 }
 
 
-double StabilityFunction(double air_temp, double skin_temp, double Us,
-                         double Z_Us, double c_gravity)
+double
+StabilityFunction(double air_temp, double skin_temp, double Us, double Z_Us, double c_gravity)
 {
-  double Ri  = c_gravity * Z_Us * (air_temp - skin_temp) / (air_temp * std::pow(Us,2));
+  double Ri = c_gravity * Z_Us * (air_temp - skin_temp) / (air_temp * std::pow(Us, 2));
   if (Ri >= 0.) {
     // stable condition
-    return 1. / (1 + 10*Ri);
+    return 1. / (1 + 10 * Ri);
   } else {
     // Unstable condition
-    return (1 - 10*Ri);
+    return (1 - 10 * Ri);
   }
 }
 
 
-double SaturatedVaporPressure(double temp)
+double
+SaturatedVaporPressure(double temp)
 {
   // Westermann (2016), August–Roche–Magnus formula, Pa
   double tempC = temp - 273.15;
@@ -112,21 +123,24 @@ double SaturatedVaporPressure(double temp)
   }
 }
 
-double SaturatedVaporPressureELM(double temp)
+double
+SaturatedVaporPressureELM(double temp)
 {
   // Saturated vapor pressure in [kPa] from CLM technical note
   double T = temp - 273.15;
-  double coef_w[9] = {6.1123516, 5.03109514e-1, 1.88369801e-2, 4.20547422e-4, 6.14396778e-6,
-    6.02780717e-8, 3.87940929e-10, 1.49436277e-12, 2.62655803e-15};
-  double coef_i[9] = {6.11213467, 4.44007856e-1, 1.43064234e-2, 2.64461437e-4, 3.05903558e-6,
-      1.96237241e-8, 8.92344772e-11, -3.73208410e-13, 2.09339997e-16};
+  double coef_w[9] = { 6.1123516,     5.03109514e-1,  1.88369801e-2,  4.20547422e-4, 6.14396778e-6,
+                       6.02780717e-8, 3.87940929e-10, 1.49436277e-12, 2.62655803e-15 };
+  double coef_i[9] = { 6.11213467,    4.44007856e-1,  1.43064234e-2,   2.64461437e-4, 3.05903558e-6,
+                       1.96237241e-8, 8.92344772e-11, -3.73208410e-13, 2.09339997e-16 };
   double* coef;
-  if (T >= 0) coef = coef_w;
-  else coef = coef_i;
+  if (T >= 0)
+    coef = coef_w;
+  else
+    coef = coef_i;
 
   double res = coef[0];
   double Tn = T;
-  for (int i=1; i!=9; ++i) {
+  for (int i = 1; i != 9; ++i) {
     res += coef[i] * Tn;
     Tn *= T;
   }
@@ -134,14 +148,16 @@ double SaturatedVaporPressureELM(double temp)
   return 1e3 * res;
 }
 
-double SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
+double
+SaturatedSpecificHumidityELM(double temp, const ModelParams& params)
 {
   double vp_sat = SaturatedVaporPressureELM(temp);
   return 0.622 * vp_sat / (params.P_atm - 0.378 * vp_sat);
 }
 
 
-double VaporPressureGround(const GroundProperties& surf, const ModelParams& params)
+double
+VaporPressureGround(const GroundProperties& surf, const ModelParams& params)
 {
   // Ho & Webb 2006
   double relative_humidity = -1;
@@ -156,21 +172,27 @@ double VaporPressureGround(const GroundProperties& surf, const ModelParams& para
 }
 
 
-double EvaporativeResistanceGround(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        double vapor_pressure_ground)
+double
+EvaporativeResistanceGround(const GroundProperties& surf,
+                            const MetData& met,
+                            const ModelParams& params,
+                            double vapor_pressure_ground)
 {
   // calculate evaporation prefactors
   if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-    return EvaporativeResistanceCoef(surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
+    return EvaporativeResistanceCoef(
+      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
   }
 }
 
-double EvaporativeResistanceCoef(double saturation_gas,
-        double porosity, double dessicated_zone_thickness, double Clapp_Horn_b) {
+double
+EvaporativeResistanceCoef(double saturation_gas,
+                          double porosity,
+                          double dessicated_zone_thickness,
+                          double Clapp_Horn_b)
+{
   double Rsoil;
   if (saturation_gas == 0.) {
     Rsoil = 0.; // ponded water
@@ -186,57 +208,63 @@ double EvaporativeResistanceCoef(double saturation_gas,
     // The result of using this with other WRMs requires some adaptation...
     // also with arbitrary values.
     double s_res = std::min(0.0556 / porosity, 0.4);
-    double vp_diffusion = 0.000022 * std::pow(porosity,2)
-                          * std::pow(1-s_res, 2 + 3*Clapp_Horn_b);
+    double vp_diffusion =
+      0.000022 * std::pow(porosity, 2) * std::pow(1 - s_res, 2 + 3 * Clapp_Horn_b);
     // Sakagucki and Zeng 2009 eqaution (10)
-    double L_Rsoil = dessicated_zone_thickness *
-      (std::exp(std::pow(saturation_gas, 5)) - 1) / (std::exp(1)-1);
-    Rsoil = L_Rsoil/vp_diffusion;
+    double L_Rsoil =
+      dessicated_zone_thickness * (std::exp(std::pow(saturation_gas, 5)) - 1) / (std::exp(1) - 1);
+    Rsoil = L_Rsoil / vp_diffusion;
   }
   AMANZI_ASSERT(Rsoil >= 0);
   return Rsoil;
 }
 
 
-double SensibleHeat(double resistance_coef,
-                    double density_air,
-                    double Cp_air,
-                    double air_temp,
-                    double skin_temp) {
+double
+SensibleHeat(double resistance_coef,
+             double density_air,
+             double Cp_air,
+             double air_temp,
+             double skin_temp)
+{
   return resistance_coef * density_air * Cp_air * (air_temp - skin_temp);
 }
 
 
-double LatentHeat(double resistance_coef,
-                  double density_air,
-                  double latent_heat_fusion,
-                  double vapor_pressure_air,
-                  double vapor_pressure_skin,
-                  double p_atm) {
+double
+LatentHeat(double resistance_coef,
+           double density_air,
+           double latent_heat_fusion,
+           double vapor_pressure_air,
+           double vapor_pressure_skin,
+           double p_atm)
+{
   AMANZI_ASSERT(resistance_coef <= 1.);
-  return resistance_coef * density_air * latent_heat_fusion * 0.622
-    * (vapor_pressure_air - vapor_pressure_skin) / p_atm;
+  return resistance_coef * density_air * latent_heat_fusion * 0.622 *
+         (vapor_pressure_air - vapor_pressure_skin) / p_atm;
 }
 
-double ConductedHeatIfSnow(double ground_temp,
-                           const SnowProperties& snow, const ModelParams& params)
+double
+ConductedHeatIfSnow(double ground_temp, const SnowProperties& snow, const ModelParams& params)
 {
   // Calculate heat conducted to ground, if snow
   double density = snow.density;
   if (density > 150) {
     // adjust for frost hoar
-    density = 1. / ((0.90/density) + (0.10/150));
+    density = 1. / ((0.90 / density) + (0.10 / 150));
   }
-  double Ks = params.thermalK_freshsnow * std::pow(density/params.density_freshsnow, params.thermalK_snow_exp);
+  double Ks = params.thermalK_freshsnow *
+              std::pow(density / params.density_freshsnow, params.thermalK_snow_exp);
   return Ks * (snow.temp - ground_temp) / snow.height;
 }
 
 
-void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
-        const SnowProperties& snow,
-        const MetData& met,
-        const ModelParams& params,
-        EnergyBalance& eb)
+void
+UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
+                                  const SnowProperties& snow,
+                                  const MetData& met,
+                                  const ModelParams& params,
+                                  EnergyBalance& eb)
 {
   // incoming radiation -- DONE IN OUTER
 
@@ -244,16 +272,22 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQlwOut = OutgoingLongwaveRadiation(snow.temp, snow.emissivity);
 
   // sensible heat
-  double Dhe = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), params.KB);
+  double Dhe = WindFactor(
+    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), params.KB);
   double Sqig = StabilityFunction(met.air_temp, snow.temp, met.Us, met.Z_Us, params.gravity);
   eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, snow.temp);
 
   // latent heat
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
 
-  double Dhe_latent = WindFactor(met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
-  eb.fQe = LatentHeat(Dhe_latent * Sqig, params.density_air, params.H_sublimation,
-                      met.vp_air, vapor_pressure_skin, params.P_atm);
+  double Dhe_latent = WindFactor(
+    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
+  eb.fQe = LatentHeat(Dhe_latent * Sqig,
+                      params.density_air,
+                      params.H_sublimation,
+                      met.vp_air,
+                      vapor_pressure_skin,
+                      params.P_atm);
 
 
   // conducted heat
@@ -263,10 +297,11 @@ void UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   eb.fQm = eb.fQswIn + eb.fQlwIn - eb.fQlwOut + eb.fQh - eb.fQc + eb.fQe;
 }
 
-EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        SnowProperties& snow)
+EnergyBalance
+UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
+                            const MetData& met,
+                            const ModelParams& params,
+                            SnowProperties& snow)
 {
   EnergyBalance eb;
 
@@ -290,9 +325,10 @@ EnergyBalance UpdateEnergyBalanceWithSnow(const GroundProperties& surf,
 }
 
 
-EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params)
+EnergyBalance
+UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
+                               const MetData& met,
+                               const ModelParams& params)
 {
   EnergyBalance eb;
 
@@ -315,19 +351,23 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
   // sensible heat
   double Dhe = WindFactor(met.Us, met.Z_Us, surf.roughness, params.KB);
   double Sqig = StabilityFunction(met.air_temp, surf.temp, met.Us, met.Z_Us, params.gravity);
-  eb.fQh = SensibleHeat(Dhe*Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
+  eb.fQh = SensibleHeat(Dhe * Sqig, params.density_air, params.Cp_air, met.air_temp, surf.temp);
 
   // latent heat
   double vapor_pressure_skin = VaporPressureGround(surf, params);
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
-  double coef = 1.0 / (Rsoil + 1.0/(Dhe_latent*Sqig));
+  double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
 
 
   // positive is condensation
-  eb.fQe = LatentHeat(coef, params.density_air,
-		      surf.unfrozen_fraction * params.H_vaporization + (1-surf.unfrozen_fraction) * params.H_sublimation,
-		      met.vp_air, vapor_pressure_skin, params.P_atm);
+  eb.fQe = LatentHeat(coef,
+                      params.density_air,
+                      surf.unfrozen_fraction * params.H_vaporization +
+                        (1 - surf.unfrozen_fraction) * params.H_sublimation,
+                      met.vp_air,
+                      vapor_pressure_skin,
+                      params.P_atm);
 
   // fQc is the energy balance -- this is not used in this branch (e.g. no snow
   // branch) but is kept here anyway for use by diagnostic variables
@@ -336,12 +376,13 @@ EnergyBalance UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 }
 
 // Snow temperature calculation.
-double DetermineSnowTemperature(const GroundProperties& surf,
-        const MetData& met,
-        const ModelParams& params,
-        SnowProperties& snow,
-        EnergyBalance& eb,
-        std::string method)
+double
+DetermineSnowTemperature(const GroundProperties& surf,
+                         const MetData& met,
+                         const ModelParams& params,
+                         SnowProperties& snow,
+                         EnergyBalance& eb,
+                         std::string method)
 {
   SnowTemperatureFunctor_ func(&surf, &snow, &met, &params, &eb);
   Tol_ tol(ENERGY_BALANCE_TOL);
@@ -376,7 +417,7 @@ double DetermineSnowTemperature(const GroundProperties& surf,
     }
   }
 
-  std::pair<double,double> result;
+  std::pair<double, double> result;
   auto my_max_it = max_it;
   if (method == "bisection") {
     result = boost::math::tools::bisect(func, left, right, tol, max_it);
@@ -389,13 +430,15 @@ double DetermineSnowTemperature(const GroundProperties& surf,
   // [result.first, result.second], and that width of that interval is less than TOL.
   // We choose to set the solution as the center of that interval.
   // Call the function again to set the fluxes.
-  double solution = (result.first + result.second)/2.;
+  double solution = (result.first + result.second) / 2.;
   return solution;
 }
 
 
-MassBalance UpdateMassBalanceWithSnow(const GroundProperties& surf,
-        const ModelParams& params, const EnergyBalance& eb)
+MassBalance
+UpdateMassBalanceWithSnow(const GroundProperties& surf,
+                          const ModelParams& params,
+                          const EnergyBalance& eb)
 {
   MassBalance mb;
 
@@ -407,17 +450,25 @@ MassBalance UpdateMassBalanceWithSnow(const GroundProperties& surf,
   return mb;
 }
 
-MassBalance UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
-        const ModelParams& params, const EnergyBalance& eb)
+MassBalance
+UpdateMassBalanceWithoutSnow(const GroundProperties& surf,
+                             const ModelParams& params,
+                             const EnergyBalance& eb)
 {
   MassBalance mb;
   mb.Mm = eb.fQm / (surf.density_w * params.H_fusion);
-  mb.Me = eb.fQe / (surf.density_w * (surf.unfrozen_fraction * params.H_vaporization + (1-surf.unfrozen_fraction) * params.H_sublimation));
+  mb.Me = eb.fQe / (surf.density_w * (surf.unfrozen_fraction * params.H_vaporization +
+                                      (1 - surf.unfrozen_fraction) * params.H_sublimation));
   return mb;
 }
 
-FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
-        const MetData& met, const ModelParams& params, const EnergyBalance& eb, const MassBalance& mb, bool model_1p1)
+FluxBalance
+UpdateFluxesWithoutSnow(const GroundProperties& surf,
+                        const MetData& met,
+                        const ModelParams& params,
+                        const EnergyBalance& eb,
+                        const MassBalance& mb,
+                        bool model_1p1)
 {
   FluxBalance flux;
 
@@ -433,8 +484,9 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
   // Energy to surface.
   double Train = std::max(0., met.air_temp - 273.15);
   flux.E_surf = eb.fQswIn + eb.fQlwIn - eb.fQlwOut + eb.fQh // purely energy fluxes
-                - eb.fQm   // energy put into melting snow
-                + surf.density_w * met.Pr * Train * params.Cv_water; // energy advected in by rainfall
+                - eb.fQm                                    // energy put into melting snow
+                +
+                surf.density_w * met.Pr * Train * params.Cv_water; // energy advected in by rainfall
 
   // zero subsurf values
   flux.M_subsurf = 0.;
@@ -454,14 +506,16 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
       } else if (surf.pressure < params.P_atm) {
         evap_to_subsurface_fraction = 1.;
       } else {
-        evap_to_subsurface_fraction = (params.P_atm + params.evap_transition_width - surf.pressure) / (params.evap_transition_width);
+        evap_to_subsurface_fraction =
+          (params.P_atm + params.evap_transition_width - surf.pressure) /
+          (params.evap_transition_width);
       }
     } else {
       evap_to_subsurface_fraction = 0.;
     }
   } else {
-    evap_to_subsurface_fraction = 1 - std::min(1.0,
-          surf.ponded_depth / surf.water_transition_depth);
+    evap_to_subsurface_fraction =
+      1 - std::min(1.0, surf.ponded_depth / surf.water_transition_depth);
   }
   AMANZI_ASSERT(evap_to_subsurface_fraction >= 0. && evap_to_subsurface_fraction <= 1.);
 
@@ -484,9 +538,13 @@ FluxBalance UpdateFluxesWithoutSnow(const GroundProperties& surf,
 }
 
 
-FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
-        const MetData& met, const ModelParams& params, const SnowProperties& snow,
-        const EnergyBalance& eb, const MassBalance& mb)
+FluxBalance
+UpdateFluxesWithSnow(const GroundProperties& surf,
+                     const MetData& met,
+                     const ModelParams& params,
+                     const SnowProperties& snow,
+                     const EnergyBalance& eb,
+                     const MassBalance& mb)
 {
   FluxBalance flux;
 
@@ -497,16 +555,13 @@ FluxBalance UpdateFluxesWithSnow(const GroundProperties& surf,
 
   // Energy to surface.
   double Train = std::max(0., met.air_temp - 273.15);
-  flux.E_surf = eb.fQc   // conducted to ground
+  flux.E_surf = eb.fQc                                               // conducted to ground
                 + surf.density_w * met.Pr * Train * params.Cv_water; // rain enthalpy
-               // + 0 // enthalpy of meltwater at 0C.
+  // + 0 // enthalpy of meltwater at 0C.
   return flux;
 }
 
 
-
-
-
-} // namespace
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

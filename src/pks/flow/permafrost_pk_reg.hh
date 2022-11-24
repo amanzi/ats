@@ -13,5 +13,5 @@ namespace Flow {
 
 RegisteredPKFactory<Permafrost> Permafrost::reg_("permafrost flow");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -18,14 +18,12 @@ Test PK for testing snow distribution
 namespace Amanzi {
 
 class TestSnowDist : public PKPhysicalBase {
-
-public:
-
+ public:
   TestSnowDist(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                      Teuchos::ParameterList& FElist,
-                      const Teuchos::RCP<TreeVector>& solution) :
-      PKDefaultBase(plist, FElist, solution),
-      PKPhysicalBase(plist, FElist, solution) {
+               Teuchos::ParameterList& FElist,
+               const Teuchos::RCP<TreeVector>& solution)
+    : PKDefaultBase(plist, FElist, solution), PKPhysicalBase(plist, FElist, solution)
+  {
     plist_->set("solution key", "snow_depth");
     sink_type_ = plist_->get<std::string>("sink type", "none");
     sink_value_ = plist_->get<double>("sink value", 1.);
@@ -44,8 +42,9 @@ public:
   // -- advance via one of a few methods
   virtual bool advance(double dt);
 
-  double get_dt() {
-    return 24*60*60.0; // 1 day
+  double get_dt()
+  {
+    return 24 * 60 * 60.0; // 1 day
   }
 
  protected:
@@ -57,6 +56,6 @@ public:
   static RegisteredPKFactory_ATS<TestSnowDist> reg_;
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

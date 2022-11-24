@@ -342,75 +342,86 @@ The type of boundary conditions maybe changed in time depending on the switch fu
  */
 
 
-
 namespace Amanzi {
 namespace Flow {
 
 class FlowBCFactory : public Amanzi::BCFactory {
-
-public:
-  FlowBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh> &mesh,
+ public:
+  FlowBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
                 const Teuchos::ParameterList& plist)
-      : Amanzi::BCFactory(mesh,plist) {}
+    : Amanzi::BCFactory(mesh, plist)
+  {}
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreatePressure() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreatePressure() const
+  {
     return CreateWithFunction("pressure", "boundary pressure");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateHead() const
+  {
     return CreateWithFunction("head", "boundary head");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateMassFlux() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateMassFlux() const
+  {
     return CreateWithFunction("water flux", "outward water flux");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateZeroGradient() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateZeroGradient() const
+  {
     return CreateWithoutFunction("zero gradient");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFaceHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFaceHead() const
+  {
     return CreateWithFunction("seepage face head", "boundary head");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateTidalHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateTidalHead() const
+  {
     return CreateWithFunction("tidal head", "boundary head");
   }
-  
-  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFacePressure() const {
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFacePressure() const
+  {
     return CreateWithFunction("seepage face pressure", "boundary pressure");
   }
 
   std::pair<bool, Teuchos::RCP<Functions::BoundaryFunction>>
-  CreateSeepageFacePressureWithInfiltration() {
+  CreateSeepageFacePressureWithInfiltration()
+  {
     bool is_explicit = CheckExplicitFlag("seepage face with infiltration");
     auto bfunc = CreateWithFunction("seepage face with infiltration", "outward water flux");
     return std::make_pair(is_explicit, bfunc);
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateCriticalDepth() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateCriticalDepth() const
+  {
     return CreateWithoutFunction("critical depth");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevel() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevel() const
+  {
     return CreateWithFunction("fixed level", "fixed level");
   }
 
-  Teuchos::RCP<Functions::DynamicBoundaryFunction> CreateDynamic() const {
+  Teuchos::RCP<Functions::DynamicBoundaryFunction> CreateDynamic() const
+  {
     return CreateDynamicFunction("dynamic");
   }
-  
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const {
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const
+  {
     return CreateWithFunction("fixed level flux", "fixed level");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const
+  {
     return CreateWithFunction("fixed level flux", "velocity");
   }
-
 };
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif // AMANZI_FLOW_BC_FACTORY_HH_

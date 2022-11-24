@@ -12,7 +12,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,InitialTimeEvaluator> InitialTimeEvaluator::reg_("initial value");
+Utils::RegisteredFactory<Evaluator, InitialTimeEvaluator>
+  InitialTimeEvaluator::reg_("initial value");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

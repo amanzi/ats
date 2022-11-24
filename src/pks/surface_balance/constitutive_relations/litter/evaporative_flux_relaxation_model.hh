@@ -26,29 +26,25 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class EvaporativeFluxRelaxationModel {
-
  public:
-  explicit
-  EvaporativeFluxRelaxationModel(Teuchos::ParameterList& plist);
+  explicit EvaporativeFluxRelaxationModel(Teuchos::ParameterList& plist);
 
   double EvaporativeFlux(double wc, double rho, double L) const;
 
   double DEvaporativeFluxDLitterWaterContent(double wc, double rho, double L) const;
   double DEvaporativeFluxDSurfaceMolarDensityLiquid(double wc, double rho, double L) const;
   double DEvaporativeFluxDLitterThickness(double wc, double rho, double L) const;
-  
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double wc_sat_;
   double tau_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

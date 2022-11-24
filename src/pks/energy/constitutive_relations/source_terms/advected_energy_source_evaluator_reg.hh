@@ -11,8 +11,8 @@
 namespace Amanzi {
 namespace Energy {
 
-Utils::RegisteredFactory<Evaluator,AdvectedEnergySourceEvaluator> AdvectedEnergySourceEvaluator::factory_("advected energy source");
+Utils::RegisteredFactory<Evaluator, AdvectedEnergySourceEvaluator>
+  AdvectedEnergySourceEvaluator::factory_("advected energy source");
 
-} //namespace
-} //namespace
-
+} // namespace Energy
+} // namespace Amanzi

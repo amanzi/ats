@@ -42,17 +42,22 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseWetDry : public ThermalConductivityThreePhase {
-
-public:
+ public:
   ThermalConductivityThreePhaseWetDry(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DSaturationLiquid(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp);
+  double
+  DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp);
+  double DThermalConductivity_DSaturationLiquid(double porosity,
+                                                double sat_liq,
+                                                double sat_ice,
+                                                double temp);
+  double
+  DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp);
+  double
+  DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -66,11 +71,11 @@ private:
 
  private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhaseWetDry> factory_;
-
+                                  ThermalConductivityThreePhaseWetDry>
+    factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

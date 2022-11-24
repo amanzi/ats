@@ -53,7 +53,6 @@ namespace Flow {
 class ManningConductivityModel;
 
 class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   OverlandConductivityEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
@@ -63,14 +62,15 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-private:
+ private:
   Teuchos::RCP<ManningConductivityModel> model_;
 
   Key mobile_depth_key_;
@@ -81,9 +81,8 @@ private:
   bool dens_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,OverlandConductivityEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, OverlandConductivityEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -26,12 +26,10 @@ namespace Amanzi {
 
 class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
  public:
-
-
   MPCCoupledDualMediaWater(Teuchos::ParameterList& FElist,
-                  const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                  const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<TreeVector>& soln);
+                           const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                           const Teuchos::RCP<State>& S,
+                           const Teuchos::RCP<TreeVector>& soln);
 
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
@@ -42,8 +40,11 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g);
 
   // -- Apply preconditioner to u and returns the result in Pu.
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
@@ -57,19 +58,18 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
   //         const Teuchos::RCP<TreeVector>& Pu);
 
  protected:
-
   Teuchos::RCP<Operators::TreeOperator> op_tree_matrix_, op_tree_pc_;
   Teuchos::RCP<TreeVector> op_tree_rhs_;
 
-    // sub PKs
+  // sub PKs
   Teuchos::RCP<PK_BDF_Default> surf_flow_pk_;
   Teuchos::RCP<PK_BDF_Default> macro_flow_pk_;
-  Teuchos::RCP<StrongMPC<PK_PhysicalBDF_Default> > integrated_flow_pk_;
+  Teuchos::RCP<StrongMPC<PK_PhysicalBDF_Default>> integrated_flow_pk_;
   Teuchos::RCP<PK_BDF_Default> matrix_flow_pk_;
 
 
   Key total_ss_flux_key_, matrix_flux_key_, macro_flux_key_;
-  
+
   // debugger for dumping vectors
   Teuchos::RCP<Debugger> domain_db_;
   Teuchos::RCP<Debugger> macropore_db_;
@@ -77,11 +77,9 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
  private:
   // factory registration
   static RegisteredPKFactory<MPCCoupledDualMediaWater> reg_;
-
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 
 #endif

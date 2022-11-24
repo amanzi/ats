@@ -24,15 +24,16 @@
 #include "SedimentTransportDefs.hh"
 
 namespace Amanzi {
-namespace SedimentTransport{
+namespace SedimentTransport {
 
 /* *******************************************************************
 * Calculate dispersive tensor from given Darcy fluxes. The flux is
 * assumed to be scaled by face area.
 ******************************************************************* */
-  void SedimentTransport_PK::CalculateDiffusionTensor_(const Epetra_MultiVector& km,
-                                                       const Epetra_MultiVector& ws,
-                                                       const Epetra_MultiVector& mol_density )
+void
+SedimentTransport_PK::CalculateDiffusionTensor_(const Epetra_MultiVector& km,
+                                                const Epetra_MultiVector& ws,
+                                                const Epetra_MultiVector& mol_density)
 {
   D_.resize(ncells_owned);
   for (int c = 0; c < ncells_owned; c++) D_[c].Init(dim, 1);
@@ -49,8 +50,5 @@ namespace SedimentTransport{
 }
 
 
-}  // namespace SedimentTransport
-}  // namespace Amanzi
-
-
-
+} // namespace SedimentTransport
+} // namespace Amanzi

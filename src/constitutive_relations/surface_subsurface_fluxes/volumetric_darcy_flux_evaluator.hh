@@ -13,12 +13,9 @@
 namespace Amanzi {
 namespace Relations {
 
-class Volumetric_FluxEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class Volumetric_FluxEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  Volumetric_FluxEvaluator(Teuchos::ParameterList& plist);
+  explicit Volumetric_FluxEvaluator(Teuchos::ParameterList& plist);
   Volumetric_FluxEvaluator(const Volumetric_FluxEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -27,11 +24,11 @@ class Volumetric_FluxEvaluator :
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key flux_key_;
@@ -39,12 +36,11 @@ class Volumetric_FluxEvaluator :
   Key mesh_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,Volumetric_FluxEvaluator> fac_;
-
+  static Utils::RegisteredFactory<Evaluator, Volumetric_FluxEvaluator> fac_;
 };
 
 
-}//namespace
-}//namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

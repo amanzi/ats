@@ -22,8 +22,8 @@
 
 namespace Amanzi {
 
-class MPCCoupledTransport: public WeakMPC {
-  public:
+class MPCCoupledTransport : public WeakMPC {
+ public:
   MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
                       const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                       const Teuchos::RCP<State>& S,
@@ -49,6 +49,4 @@ class MPCCoupledTransport: public WeakMPC {
   static RegisteredPKFactory<MPCCoupledTransport> reg_;
 };
 
-}  // namespace Amanzi
-
-
+} // namespace Amanzi

@@ -42,8 +42,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMConstant : public WRM {
-
-public:
+ public:
   explicit WRMConstant(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -63,10 +62,10 @@ public:
   double a_;
   double sr_;
 
-  static Utils::RegisteredFactory<WRM,WRMConstant> factory_;
+  static Utils::RegisteredFactory<WRM, WRMConstant> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -58,8 +58,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMVanGenuchten : public WRM {
-
-public:
+ public:
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -78,24 +77,24 @@ public:
 
   Teuchos::ParameterList& plist_;
 
-  double m_;  // van Genuchten parameters: m, n, alpha
+  double m_; // van Genuchten parameters: m, n, alpha
   double n_;
   double l_;
   double alpha_;
-  double sr_;  // van Genuchten residual saturation
+  double sr_; // van Genuchten residual saturation
 
   int function_;
-  double s0_;  // regularization threshold in saturation
+  double s0_; // regularization threshold in saturation
   Amanzi::Utils::Spline fit_kr_;
 
   double pc0_;
   Amanzi::Utils::Spline fit_s_;
 
 
-  static Utils::RegisteredFactory<WRM,WRMVanGenuchten> factory_;
+  static Utils::RegisteredFactory<WRM, WRMVanGenuchten> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

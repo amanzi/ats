@@ -14,5 +14,5 @@
 #include "mdm_transport_registration.hh"
 #include "multiscale_transport_registration.hh"
 #ifdef ALQUIMIA_ENABLED
-#include "pks_chemistry_registration.hh"
+#  include "pks_chemistry_registration.hh"
 #endif

@@ -16,7 +16,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSConstant> EOSConstant::factory_("constant");
+Utils::RegisteredFactory<EOS, EOSConstant> EOSConstant::factory_("constant");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

@@ -26,12 +26,14 @@ class UnfrozenFractionRelPermModel : public SurfaceRelPermModel {
 
   virtual double SurfaceRelPerm(double uf, double h);
 
-  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) {
+  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
 
-  virtual double DSurfaceRelPermDPondedDepth(double uf, double h) {
+  virtual double DSurfaceRelPermDPondedDepth(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
@@ -43,11 +45,10 @@ class UnfrozenFractionRelPermModel : public SurfaceRelPermModel {
   const double pi_;
 
  private:
-  static Utils::RegisteredFactory<SurfaceRelPermModel,UnfrozenFractionRelPermModel> reg_;
-  
+  static Utils::RegisteredFactory<SurfaceRelPermModel, UnfrozenFractionRelPermModel> reg_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

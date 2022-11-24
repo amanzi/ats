@@ -13,8 +13,9 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // Constructor from ParameterList
-AreaFractionsTwoComponentEvaluator::AreaFractionsTwoComponentEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+AreaFractionsTwoComponentEvaluator::AreaFractionsTwoComponentEvaluator(
+  Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   //
   // NOTE: this evaluator simplifies the situation by assuming constant
@@ -24,7 +25,8 @@ AreaFractionsTwoComponentEvaluator::AreaFractionsTwoComponentEvaluator(Teuchos::
   // the subsurface) really don't matter much. --etc
   min_area_ = plist_.get<double>("minimum fractional area [-]", 1.e-5);
   if (min_area_ <= 0.) {
-    Errors::Message message("AreaFractionsTwoComponentEvaluator: Minimum fractional area should be > 0.");
+    Errors::Message message(
+      "AreaFractionsTwoComponentEvaluator: Minimum fractional area should be > 0.");
     Exceptions::amanzi_throw(message);
   }
 
@@ -35,23 +37,23 @@ AreaFractionsTwoComponentEvaluator::AreaFractionsTwoComponentEvaluator(Teuchos::
 
   // get dependencies
   snow_depth_key_ = Keys::readKey(plist_, domain_snow_, "snow depth", "depth");
-  dependencies_.insert(KeyTag{snow_depth_key_, tag});
+  dependencies_.insert(KeyTag{ snow_depth_key_, tag });
 }
 
 
 void
 AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+                                              const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
   auto mesh = result[0]->Mesh();
-  auto& res = *result[0]->ViewComponent("cell",false);
-  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell",false);
+  auto& res = *result[0]->ViewComponent("cell", false);
+  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(lc.first, AmanziMesh::Entity_kind::CELL,
-                           AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    mesh->get_set_entities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
       // calculate area of land
@@ -66,7 +68,7 @@ AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
       // if any area is less than eps, give to other
       if (res[1][c] < min_area_) {
         res[1][c] = 0.;
-      } else if (res[1][c] > (1-min_area_)) {
+      } else if (res[1][c] > (1 - min_area_)) {
         res[1][c] = 1.;
       }
       res[0][c] = 1 - res[1][c];
@@ -75,7 +77,7 @@ AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
 
   // debugging for bad input files
   int nerr = 0;
-  for (int c=0; c!=res.MyLength(); ++c) {
+  for (int c = 0; c != res.MyLength(); ++c) {
     if (std::abs(1 - res[0][c] - res[1][c]) > 1e-10) nerr++;
   }
   int nerr_global = 0;
@@ -87,8 +89,11 @@ AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
 }
 
 void
-AreaFractionsTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+AreaFractionsTwoComponentEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(0.);
   // Errors::Message msg("NotImplemented: AreaFractionsTwoComponentEvaluator currently does not provide derivatives.");
@@ -100,8 +105,7 @@ AreaFractionsTwoComponentEvaluator::EvaluatePartialDerivative_(const State& S,
 void
 AreaFractionsTwoComponentEvaluator::EnsureCompatibility_Structure_(State& S)
 {
-  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(
-    {"bare_or_water", "snow"});
+  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames({ "bare_or_water", "snow" });
 }
 
 
@@ -109,25 +113,19 @@ void
 AreaFractionsTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0)
-    land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-            {"snow_transition_depth"});
+    land_cover_ = getLandCover(S.ICList().sublist("land cover types"), { "snow_transition_depth" });
 
   for (auto dep : dependencies_) {
-    auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
+    auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))
-          ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))
-          ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
     }
   }
 }
 
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

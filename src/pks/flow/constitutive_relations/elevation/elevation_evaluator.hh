@@ -20,7 +20,6 @@ namespace Amanzi {
 namespace Flow {
 
 class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit ElevationEvaluator(Teuchos::ParameterList& plist);
   ElevationEvaluator(const ElevationEvaluator& other) = default;
@@ -29,21 +28,22 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
-  virtual void EvaluateElevationAndSlope_(const State& S,
-          const std::vector<CompositeVector*>& results) = 0;
+  virtual void
+  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) = 0;
 
   //
   // This is required to make sure that elevation, slope, and aspect share a
   // common structure.  Often, aspect is not used and so it can otherwise be an
   // empty vector with no structure, which causes seg faults.
   //
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 
@@ -52,10 +52,9 @@ class ElevationEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool updated_once_;
   bool dynamic_mesh_;
   Key deformation_key_;
-
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

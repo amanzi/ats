@@ -19,10 +19,8 @@ namespace Amanzi {
 namespace Relations {
 
 class ExtractionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ExtractionEvaluator(Teuchos::ParameterList& plist);
+  explicit ExtractionEvaluator(Teuchos::ParameterList& plist);
   ExtractionEvaluator(const ExtractionEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -30,10 +28,12 @@ class ExtractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {
     AMANZI_ASSERT(false);
   }
 
@@ -41,11 +41,8 @@ class ExtractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key parent_domain_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ExtractionEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ExtractionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace Amanzi

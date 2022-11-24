@@ -44,13 +44,13 @@ namespace Flow {
 // -------------------------------------------------------------
 
 Preferential::Preferential(Teuchos::ParameterList& pk_tree,
-                   const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                   const Teuchos::RCP<State>& S,
-                   const Teuchos::RCP<TreeVector>& solution) :
-    PK(pk_tree, glist,  S, solution),
-    Richards(pk_tree, glist,  S, solution)
+                           const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                           const Teuchos::RCP<State>& S,
+                           const Teuchos::RCP<TreeVector>& solution)
+  : PK(pk_tree, glist, S, solution), Richards(pk_tree, glist, S, solution)
 {
-  coef_grav_key_ = Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
+  coef_grav_key_ =
+    Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
 
   // all manipulation of evaluator lists should happen in constructors (pre-setup)
   // -- Water retention evaluators for gravity term
@@ -78,19 +78,15 @@ Preferential::RequireNonlinearCoefficient_(const Key& key, const std::string& co
 {
   // -- require the data on appropriate locations
   if (coef_location == "upwind: face") {
-    S_->Require<CompositeVector,CompositeVectorSpace>(key, tag_next_,  name_)
+    S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({"face","grav"},
-                      {AmanziMesh::FACE, AmanziMesh::FACE},
-                      {1,1});
+      ->SetComponents({ "face", "grav" }, { AmanziMesh::FACE, AmanziMesh::FACE }, { 1, 1 });
   } else if (coef_location == "standard: cell") {
-    S_->Require<CompositeVector,CompositeVectorSpace>(key, tag_next_,  name_)
+    S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({"cell","grav"},
-                      {AmanziMesh::CELL, AmanziMesh::FACE},
-                      {1,1});
+      ->SetComponents({ "cell", "grav" }, { AmanziMesh::CELL, AmanziMesh::FACE }, { 1, 1 });
   } else {
     Errors::Message message("Unknown upwind coefficient location in Preferential flow.");
     Exceptions::amanzi_throw(message);
@@ -103,13 +99,15 @@ Preferential::RequireNonlinearCoefficient_(const Key& key, const std::string& co
 // Create the physical evaluators for water content, water
 // retention, rel perm, etc, that are specific to Richards.
 // -------------------------------------------------------------
-void Preferential::SetupPhysicalEvaluators_()
+void
+Preferential::SetupPhysicalEvaluators_()
 {
   Richards::SetupPhysicalEvaluators_();
 
   // -- rel perm for gravity term
   requireAtNext(coef_grav_key_, tag_next_, *S_)
-    .SetMesh(mesh_)->SetGhosted()
+    .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
 }
@@ -120,14 +118,15 @@ void Preferential::SetupPhysicalEvaluators_()
 //
 //   This deals with upwinding, etc.
 // -----------------------------------------------------------------------------
-bool Preferential::UpdatePermeabilityData_(const Tag& tag)
+bool
+Preferential::UpdatePermeabilityData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  Updating permeability?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability?";
 
   Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
-  Teuchos::RCP<const CompositeVector> rel_perm_grav = S_->GetPtr<CompositeVector>(coef_grav_key_, tag);
+  Teuchos::RCP<const CompositeVector> rel_perm_grav =
+    S_->GetPtr<CompositeVector>(coef_grav_key_, tag);
   bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
   update_perm |= S_->GetEvaluator(coef_grav_key_, tag).Update(*S_, name_);
 
@@ -139,10 +138,12 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
     if (update_dir) {
       // update the direction of the flux -- note this is NOT the flux
       Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag);
-      Teuchos::RCP<CompositeVector> flux_dir = S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
+      Teuchos::RCP<CompositeVector> flux_dir =
+        S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
       Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
-      if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" flux dir"))
+      if (!deform_key_.empty() &&
+          S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir"))
         face_matrix_diff_->SetTensorCoefficient(K_);
 
       face_matrix_diff_->SetDensity(rho);
@@ -152,12 +153,12 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
       face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
 
       if (clobber_boundary_flux_dir_) {
-        Epetra_MultiVector& flux_dir_f = *flux_dir->ViewComponent("face",false);
+        Epetra_MultiVector& flux_dir_f = *flux_dir->ViewComponent("face", false);
 
         auto& markers = bc_markers();
         auto& values = bc_values();
 
-        for (int f=0; f!=markers.size(); ++f) {
+        for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
             AmanziMesh::Entity_ID_List cells;
             mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
@@ -168,7 +169,7 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
             mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
             int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
 
-            flux_dir_f[0][f] = values[f]*dirs[i];
+            flux_dir_f[0][f] = values[f] * dirs[i];
           }
         }
       }
@@ -178,18 +179,18 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
   }
 
   if (update_perm) {
-    Teuchos::RCP<CompositeVector> uw_rel_perm = S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
+    Teuchos::RCP<CompositeVector> uw_rel_perm =
+      S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
 
     // // Move rel perm on boundary_faces into uw_rel_perm on faces
     const Epetra_Import& vandelay = mesh_->exterior_face_importer();
-    const Epetra_MultiVector& rel_perm_bf =
-         *rel_perm->ViewComponent("boundary_face",false);
+    const Epetra_MultiVector& rel_perm_bf = *rel_perm->ViewComponent("boundary_face", false);
     const Epetra_MultiVector& rel_perm_grav_bf =
-         *rel_perm_grav->ViewComponent("boundary_face",false);
+      *rel_perm_grav->ViewComponent("boundary_face", false);
 
-    Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
+    Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
     uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
-    Epetra_MultiVector& uw_rel_perm_grav = *uw_rel_perm->ViewComponent("grav",false);
+    Epetra_MultiVector& uw_rel_perm_grav = *uw_rel_perm->ViewComponent("grav", false);
     uw_rel_perm_grav.Export(rel_perm_grav_bf, vandelay, Insert);
 
     // Upwind, only overwriting boundary faces if the wind says to do so.
@@ -197,25 +198,24 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
     upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "grav", *S_);
 
     if (clobber_policy_ == "clobber") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
     } else if (clobber_policy_ == "max") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       const auto& fmap = mesh_->face_map(true);
       const auto& bfmap = mesh_->exterior_face_map(true);
-      for (int bf=0; bf!=rel_perm_bf.MyLength(); ++bf) {
+      for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) {
-          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
-        }
+        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
       }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face",false);
-      const Epetra_MultiVector& pres = *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell",false);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
+      const Epetra_MultiVector& pres =
+        *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
       const auto& fmap = mesh_->face_map(true);
       const auto& bfmap = mesh_->exterior_face_map(true);
-      for (int bf=0; bf!=rel_perm_bf.MyLength(); ++bf) {
+      for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         AmanziMesh::Entity_ID_List fcells;
         mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
@@ -223,39 +223,38 @@ bool Preferential::UpdatePermeabilityData_(const Tag& tag)
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
         } else if (pres[0][fcells[0]] < 101325.) {
-          double frac = (101325. - pres[0][fcells[0]])/100.;
-          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf] * frac + uw_rel_perm_f[0][f] * (1-frac);
+          double frac = (101325. - pres[0][fcells[0]]) / 100.;
+          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf] * frac + uw_rel_perm_f[0][f] * (1 - frac);
         }
       }
     }
 
-    if (uw_rel_perm->HasComponent("face"))
-      uw_rel_perm->ScatterMasterToGhosted("face");
-    if (uw_rel_perm->HasComponent("grav"))
-      uw_rel_perm->ScatterMasterToGhosted("grav");
+    if (uw_rel_perm->HasComponent("face")) uw_rel_perm->ScatterMasterToGhosted("face");
+    if (uw_rel_perm->HasComponent("grav")) uw_rel_perm->ScatterMasterToGhosted("grav");
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-    *vo_->os() << " " << update_perm << std::endl;
-  }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
 
   return update_perm;
 };
 
 
-bool Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
+bool
+Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  Updating permeability derivatives?";
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability derivatives?";
 
   bool update_perm = S_->GetEvaluator(coef_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
-  update_perm |= S_->GetEvaluator(coef_grav_key_, tag).UpdateDerivative(*S_, name_, key_, tag);;
+  update_perm |= S_->GetEvaluator(coef_grav_key_, tag).UpdateDerivative(*S_, name_, key_, tag);
+  ;
 
   if (update_perm) {
-    const CompositeVector& drel_perm = S_->GetDerivative<CompositeVector>(coef_key_, tag, key_, tag);
-    const CompositeVector& drel_grav_perm = S_->GetDerivative<CompositeVector>(coef_grav_key_, tag, key_, tag);
+    const CompositeVector& drel_perm =
+      S_->GetDerivative<CompositeVector>(coef_key_, tag, key_, tag);
+    const CompositeVector& drel_grav_perm =
+      S_->GetDerivative<CompositeVector>(coef_grav_key_, tag, key_, tag);
 
     if (!duw_coef_key_.empty()) {
       CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, name_);
@@ -274,11 +273,9 @@ bool Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
-    *vo_->os() << " " << update_perm << std::endl;
-  }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
   return update_perm;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

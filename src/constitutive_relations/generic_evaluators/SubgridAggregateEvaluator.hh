@@ -32,11 +32,9 @@ namespace Amanzi {
 namespace Relations {
 
 class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  SubgridAggregateEvaluator(Teuchos::ParameterList& plist);
+  explicit SubgridAggregateEvaluator(Teuchos::ParameterList& plist);
 
   SubgridAggregateEvaluator(const SubgridAggregateEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
@@ -53,11 +51,11 @@ class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  void Evaluate_(const State& S,
-                      const std::vector<CompositeVector*>& result) override;
+  void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag,
+                                  const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key source_domain_;
@@ -65,11 +63,10 @@ class SubgridAggregateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key var_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SubgridAggregateEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, SubgridAggregateEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif
-

@@ -17,10 +17,8 @@ namespace Amanzi {
 namespace Flow {
 
 class DepthEvaluator : public EvaluatorIndependentCV {
-
  public:
-  explicit
-  DepthEvaluator(Teuchos::ParameterList& plist);
+  explicit DepthEvaluator(Teuchos::ParameterList& plist);
   DepthEvaluator(const DepthEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -30,11 +28,10 @@ class DepthEvaluator : public EvaluatorIndependentCV {
   virtual void Update_(State& S) override;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,DepthEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, DepthEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

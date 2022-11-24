@@ -35,21 +35,20 @@ namespace Amanzi {
 namespace Relations {
 
 class AdditiveEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  AdditiveEvaluator(Teuchos::ParameterList& plist);
+  explicit AdditiveEvaluator(Teuchos::ParameterList& plist);
 
   AdditiveEvaluator(const AdditiveEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  void Evaluate_(const State& S,
-                      const std::vector<CompositeVector*>& result) override;
+  void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag,
+                                  const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::map<Key, double> coefs_;
@@ -57,10 +56,8 @@ class AdditiveEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool positive_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AdditiveEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, AdditiveEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
-
-
+} // namespace Relations
+} // namespace Amanzi

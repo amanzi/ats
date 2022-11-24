@@ -18,13 +18,10 @@ namespace Amanzi {
 namespace Flow {
 
 class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  SuctionHeadEvaluator(Teuchos::ParameterList& plist);
-  SuctionHeadEvaluator(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<WRMPartition>& wrms);
+  explicit SuctionHeadEvaluator(Teuchos::ParameterList& plist);
+  SuctionHeadEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
   SuctionHeadEvaluator(const SuctionHeadEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -32,11 +29,11 @@ class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -46,10 +43,10 @@ class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
   double min_val_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SuctionHeadEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, SuctionHeadEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

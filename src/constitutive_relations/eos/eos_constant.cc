@@ -15,12 +15,14 @@
 namespace Amanzi {
 namespace Relations {
 
-EOSConstant::EOSConstant(Teuchos::ParameterList& eos_plist) :
-    eos_plist_(eos_plist) {
+EOSConstant::EOSConstant(Teuchos::ParameterList& eos_plist) : eos_plist_(eos_plist)
+{
   InitializeFromPlist_();
 };
 
-void EOSConstant::InitializeFromPlist_() {
+void
+EOSConstant::InitializeFromPlist_()
+{
   // defaults to water
   if (eos_plist_.isParameter("molar mass [kg mol^-1]")) {
     M_ = eos_plist_.get<double>("molar mass [kg mol^-1]");
@@ -33,8 +35,7 @@ void EOSConstant::InitializeFromPlist_() {
   } else {
     rho_ = eos_plist_.get<double>("density [kg m^-3]");
   }
-
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

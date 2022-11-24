@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,ThermalConductivitySurfaceEvaluator> 
-ThermalConductivitySurfaceEvaluator::factory_("surface thermal conductivity");
+Utils::RegisteredFactory<Evaluator, ThermalConductivitySurfaceEvaluator>
+  ThermalConductivitySurfaceEvaluator::factory_("surface thermal conductivity");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

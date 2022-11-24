@@ -12,8 +12,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<SurfaceRelPermModel,UnfrozenFractionRelPermModel>
-UnfrozenFractionRelPermModel::reg_("unfrozen fraction rel perm");
+Utils::RegisteredFactory<SurfaceRelPermModel, UnfrozenFractionRelPermModel>
+  UnfrozenFractionRelPermModel::reg_("unfrozen fraction rel perm");
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

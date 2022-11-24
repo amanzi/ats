@@ -13,8 +13,8 @@
 namespace Amanzi {
 namespace Flow {
 
-ColumnElevationEvaluator::ColumnElevationEvaluator(Teuchos::ParameterList& plist) :
-  ElevationEvaluator(plist)
+ColumnElevationEvaluator::ColumnElevationEvaluator(Teuchos::ParameterList& plist)
+  : ElevationEvaluator(plist)
 {
   dset_name_ = plist.get<std::string>("domain set name", "column");
   surface_domain_ = Keys::getDomain(my_keys_.front().first);
@@ -23,24 +23,27 @@ ColumnElevationEvaluator::ColumnElevationEvaluator(Teuchos::ParameterList& plist
 
 
 Teuchos::RCP<Evaluator>
-ColumnElevationEvaluator::Clone() const {
+ColumnElevationEvaluator::Clone() const
+{
   return Teuchos::rcp(new ColumnElevationEvaluator(*this));
 }
 
 
-void ColumnElevationEvaluator::EnsureEvaluators(State& S)
+void
+ColumnElevationEvaluator::EnsureEvaluators(State& S)
 {
   Tag tag = Keys::readTag(plist_, my_keys_.front().second);
   auto dset = S.GetDomainSet(dset_name_);
   for (const auto& domain : *dset) {
-    dependencies_.insert(KeyTag{Keys::getKey(domain, base_poro_suffix_), tag});
+    dependencies_.insert(KeyTag{ Keys::getKey(domain, base_poro_suffix_), tag });
   }
   ElevationEvaluator::EnsureEvaluators(S);
 }
 
 
-void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
-        const std::vector<CompositeVector*>& results)
+void
+ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
+                                                     const std::vector<CompositeVector*>& results)
 {
   CompositeVector* elev = results[0];
   CompositeVector* slope = results[1];
@@ -69,10 +72,10 @@ void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
   // Now get slope
   elev->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell",true);
+  const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell", true);
 
   // get all cell centroids
-  for (int c=0; c!=ncells; ++c) {
+  for (int c = 0; c != ncells; ++c) {
     int id = S.GetMesh(surface_domain_)->cell_map(true).GID(c);
     AmanziGeometry::Point P1 = S.GetMesh(surface_domain_)->cell_centroid(c);
     P1.set(P1[0], P1[1], elev_ngb_c[0][c]);
@@ -80,16 +83,17 @@ void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   }
 
   // get neighboring cell ids
-  for (int c=0; c!= ncells; c++) {
+  for (int c = 0; c != ncells; c++) {
     AmanziMesh::Entity_ID_List nadj_cellids;
-    S.GetMesh(surface_domain_)->cell_get_face_adj_cells(c, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
+    S.GetMesh(surface_domain_)
+      ->cell_get_face_adj_cells(c, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
     int nface_pcell = S.GetMesh(surface_domain_)->cell_get_num_faces(c);
 
     int ngb_cells = nadj_cellids.size();
     std::vector<AmanziGeometry::Point> ngb_centroids(ngb_cells);
 
     // get the neighboring cell's centroids
-    for(unsigned i=0; i<ngb_cells; i++){
+    for (unsigned i = 0; i < ngb_cells; i++) {
       AmanziGeometry::Point P2 = S.GetMesh(surface_domain_)->cell_centroid(nadj_cellids[i]);
       ngb_centroids[i].set(P2[0], P2[1], elev_ngb_c[0][nadj_cellids[i]]);
     }
@@ -100,27 +104,26 @@ void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     std::vector<AmanziGeometry::Point> Normal;
     AmanziGeometry::Point N, PQ, PR, Nor_avg(3);
 
-    if (ngb_cells >1){
-      for (int i=0; i <ngb_cells-1; i++){
+    if (ngb_cells > 1) {
+      for (int i = 0; i < ngb_cells - 1; i++) {
         PQ = my_centroid[c] - ngb_centroids[i];
-        PR = my_centroid[c] - ngb_centroids[i+1];
-        N = PQ^PR;
-        if (N[2] < 0)
-          N *= -1.; // all normals upward
+        PR = my_centroid[c] - ngb_centroids[i + 1];
+        N = PQ ^ PR;
+        if (N[2] < 0) N *= -1.; // all normals upward
         Normal.push_back(N);
       }
 
       AmanziGeometry::Point fnor = S.GetMesh(my_name)->face_normal(0); //0 is the id of top face
       Nor_avg = (nface_pcell - Normal.size()) * fnor;
-      for (int i=0; i <Normal.size(); i++)
-        Nor_avg += Normal[i];
+      for (int i = 0; i < Normal.size(); i++) Nor_avg += Normal[i];
 
       Nor_avg /= nface_pcell;
-      slope_c[0][c] = (std::sqrt(std::pow(Nor_avg[0],2) + std::pow(Nor_avg[1],2)))/ std::abs(Nor_avg[2]);
+      slope_c[0][c] =
+        (std::sqrt(std::pow(Nor_avg[0], 2) + std::pow(Nor_avg[1], 2))) / std::abs(Nor_avg[2]);
 
     } else if (ngb_cells == 1) {
       PQ = my_centroid[c] - ngb_centroids[0];
-      slope_c[0][c] = std::abs(PQ[2]) / (std::sqrt(std::pow(PQ[0],2) + std::pow(PQ[1],2)));
+      slope_c[0][c] = std::abs(PQ[2]) / (std::sqrt(std::pow(PQ[0], 2) + std::pow(PQ[1], 2)));
     } else if (ngb_cells == 0) {
       slope_c[0][c] = 0.0;
     }
@@ -128,22 +131,19 @@ void ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
   if (elev->HasComponent("face")) {
     Epetra_MultiVector& elev_f = *elev->ViewComponent("face", false);
-    const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell",true);
+    const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell", true);
     int nfaces = elev_f.MyLength();
 
-    for (int f=0; f!=nfaces; ++f) {
+    for (int f = 0; f != nfaces; ++f) {
       AmanziMesh::Entity_ID_List nadj_cellids;
       S.GetMesh(surface_domain_)->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
       double ef = 0;
-      for (int i=0; i<nadj_cellids.size(); i++){
-        ef += elev_ngb_c[0][nadj_cellids[i]];
-      }
-      elev_f[0][f] = ef/nadj_cellids.size();
+      for (int i = 0; i < nadj_cellids.size(); i++) { ef += elev_ngb_c[0][nadj_cellids[i]]; }
+      elev_f[0][f] = ef / nadj_cellids.size();
     }
   }
-
 }
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

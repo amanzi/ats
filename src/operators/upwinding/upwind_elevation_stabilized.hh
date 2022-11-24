@@ -21,9 +21,7 @@ class CompositeVector;
 namespace Operators {
 
 class UpwindElevationStabilized : public Upwinding {
-
-public:
-
+ public:
   UpwindElevationStabilized(const std::string& pkname,
                             const Tag& tag,
                             const std::string& slope,
@@ -37,21 +35,19 @@ public:
   virtual void Update(const CompositeVector& cells,
                       CompositeVector& faces,
                       const State& S,
-                      const Teuchos::Ptr<Debugger>& db=Teuchos::null) const override;
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const override;
 
-  void CalculateCoefficientsOnFaces(
-        const CompositeVector& slope,
-        const CompositeVector& manning_coef,
-        const CompositeVector& ponded_depth,
-        const CompositeVector& elevation,
-        const CompositeVector& density,
-        CompositeVector& face_coef,
-        const Teuchos::Ptr<Debugger>& db) const;
+  void CalculateCoefficientsOnFaces(const CompositeVector& slope,
+                                    const CompositeVector& manning_coef,
+                                    const CompositeVector& ponded_depth,
+                                    const CompositeVector& elevation,
+                                    const CompositeVector& density,
+                                    CompositeVector& face_coef,
+                                    const Teuchos::Ptr<Debugger>& db) const;
 
-  virtual std::string
-  CoefficientLocation() const override { return "upwind: face"; }
+  virtual std::string CoefficientLocation() const override { return "upwind: face"; }
 
-private:
+ private:
   Tag tag_;
   std::string pkname_;
   std::string slope_;
@@ -62,10 +58,7 @@ private:
 
   double slope_regularization_;
   double manning_exp_;
-
 };
 
-} // namespace
-} // namespace
-
-
+} // namespace Operators
+} // namespace Amanzi

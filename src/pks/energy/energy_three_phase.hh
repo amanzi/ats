@@ -31,9 +31,7 @@ namespace Amanzi {
 namespace Energy {
 
 class ThreePhase : public TwoPhase {
-
-public:
-
+ public:
   ThreePhase(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,
              const Teuchos::RCP<State>& S,

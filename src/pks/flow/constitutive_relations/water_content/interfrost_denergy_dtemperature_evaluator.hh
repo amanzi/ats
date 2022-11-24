@@ -20,22 +20,21 @@ namespace Relations {
 class InterfrostDenergyDtemperatureModel;
 
 class InterfrostDenergyDtemperatureEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  InterfrostDenergyDtemperatureEvaluator(Teuchos::ParameterList& plist);
-  InterfrostDenergyDtemperatureEvaluator(const InterfrostDenergyDtemperatureEvaluator& other) = default;
+  explicit InterfrostDenergyDtemperatureEvaluator(Teuchos::ParameterList& plist);
+  InterfrostDenergyDtemperatureEvaluator(const InterfrostDenergyDtemperatureEvaluator& other) =
+    default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<InterfrostDenergyDtemperatureModel> get_model() { return model_; }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
   void InitializeFromPlist_();
 
  protected:
@@ -50,12 +49,11 @@ class InterfrostDenergyDtemperatureEvaluator : public EvaluatorSecondaryMonotype
   Teuchos::RCP<InterfrostDenergyDtemperatureModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterfrostDenergyDtemperatureEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, InterfrostDenergyDtemperatureEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

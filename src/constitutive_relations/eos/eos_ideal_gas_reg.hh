@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSIdealGas> EOSIdealGas::factory_("ideal gas");
+Utils::RegisteredFactory<EOS, EOSIdealGas> EOSIdealGas::factory_("ideal gas");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

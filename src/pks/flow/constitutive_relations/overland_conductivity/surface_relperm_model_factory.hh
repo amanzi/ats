@@ -20,12 +20,11 @@ namespace Amanzi {
 namespace Flow {
 
 class SurfaceRelPermModelFactory : public Utils::Factory<SurfaceRelPermModel> {
-
-public:
+ public:
   Teuchos::RCP<SurfaceRelPermModel> createModel(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

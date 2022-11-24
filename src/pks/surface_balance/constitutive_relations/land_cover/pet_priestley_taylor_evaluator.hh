@@ -61,44 +61,49 @@ namespace PriestleyTaylor {
 // [MJ m^-2 d^-1] given a daily-averaged ground and air temperature
 // (in C or K).  We convert to W/m^2
 //
-double groundHeatFlux(double temp_ground, double temp_air);
+double
+groundHeatFlux(double temp_ground, double temp_air);
 
 //
 // PRMS-IV eqn 1-58, calculates the slope of vapor pressure as a function of
 // daily averaged air temperature [K], in [KPa C^-1]
 //
-double vaporPressureSlope(double temp_air);
+double
+vaporPressureSlope(double temp_air);
 
 //
 // PRMS-IV eqn 1-57, calculates the psychrometric constant in [KPa C^-1] as a
 // function of an elevation (lapse rate fixed) and a latent heat of
 // vaporization in [cal gm^-1].
 //
-double psychrometricConstant(double lh_vap, double evel);
+double
+psychrometricConstant(double lh_vap, double evel);
 
 //
 // PRMS-IV eqn 1-51, calculates the latent heat of vaporization [cal g^-1] as a
 // function of the daily averaged air temperature [K] for liquid water
 //
-double latentHeatVaporization_water(double temp_air);
+double
+latentHeatVaporization_water(double temp_air);
 
 //
 // PRMS-IV eqn 1-51, calculates the latent heat of vaporization [cal g^-1] as a
 // function of the daily averaged air temperature [K] for snow -- note this is
 // currently the same as the water value, but should get modified for snow!
 //
-double latentHeatVaporization_snow(double temp_air);
+double
+latentHeatVaporization_snow(double temp_air);
 
 
 } // namespace PriestleyTaylor
 
 
 class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit PETPriestleyTaylorEvaluator(Teuchos::ParameterList& plist);
   PETPriestleyTaylorEvaluator(const PETPriestleyTaylorEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new PETPriestleyTaylorEvaluator(*this));
   }
 
@@ -106,10 +111,11 @@ class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key domain_;
@@ -130,11 +136,9 @@ class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,PETPriestleyTaylorEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, PETPriestleyTaylorEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

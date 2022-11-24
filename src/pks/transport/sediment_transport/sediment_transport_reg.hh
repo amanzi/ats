@@ -16,5 +16,5 @@ namespace SedimentTransport {
 
 RegisteredPKFactory<SedimentTransport_PK> SedimentTransport_PK::reg_("sediment transport");
 
-}  // namespace Transport
-}  // namespace Amanzi
+} // namespace SedimentTransport
+} // namespace Amanzi

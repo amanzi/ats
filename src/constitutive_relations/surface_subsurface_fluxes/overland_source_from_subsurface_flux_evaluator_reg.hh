@@ -12,8 +12,8 @@
 namespace Amanzi {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,OverlandSourceFromSubsurfaceFluxEvaluator>
-OverlandSourceFromSubsurfaceFluxEvaluator::fac_("overland source from subsurface via flux");
+Utils::RegisteredFactory<Evaluator, OverlandSourceFromSubsurfaceFluxEvaluator>
+  OverlandSourceFromSubsurfaceFluxEvaluator::fac_("overland source from subsurface via flux");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

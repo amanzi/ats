@@ -12,9 +12,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<SurfaceRelPermModel,OneSurfaceRelPermModel>
-OneSurfaceRelPermModel::reg_("one surface rel perm");
+Utils::RegisteredFactory<SurfaceRelPermModel, OneSurfaceRelPermModel>
+  OneSurfaceRelPermModel::reg_("one surface rel perm");
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

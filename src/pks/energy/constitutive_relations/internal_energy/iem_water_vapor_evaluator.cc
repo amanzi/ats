@@ -11,8 +11,8 @@
 namespace Amanzi {
 namespace Energy {
 
-IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   // defaults work fine, this sublist need not exist
   Teuchos::ParameterList sublist = plist.sublist("IEM parameters");
@@ -21,9 +21,10 @@ IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist) :
 }
 
 
-IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<IEMWaterVapor>& iem) :
-    EvaluatorSecondaryMonotypeCV(plist),
-    iem_(iem) {
+IEMWaterVaporEvaluator::IEMWaterVaporEvaluator(Teuchos::ParameterList& plist,
+                                               const Teuchos::RCP<IEMWaterVapor>& iem)
+  : EvaluatorSecondaryMonotypeCV(plist), iem_(iem)
+{
   InitializeFromPlist_();
 }
 
@@ -35,7 +36,8 @@ IEMWaterVaporEvaluator::Clone() const
 }
 
 
-void IEMWaterVaporEvaluator::InitializeFromPlist_()
+void
+IEMWaterVaporEvaluator::InitializeFromPlist_()
 {
   // Set up my dependencies.
   Key domain_name = Keys::getDomain(my_keys_.front().first);
@@ -43,63 +45,65 @@ void IEMWaterVaporEvaluator::InitializeFromPlist_()
 
   // -- temperature
   temp_key_ = Keys::readKey(plist_, domain_name, "temperature key", "temperature");
-  dependencies_.insert(KeyTag{temp_key_, tag});
+  dependencies_.insert(KeyTag{ temp_key_, tag });
 
   // -- molar fraction of water vapor in the gaseous phase
   mol_frac_key_ = Keys::readKey(plist_, domain_name, "vapor molar fraction key", "mol_frac_gas");
-  dependencies_.insert(KeyTag{mol_frac_key_, tag});
+  dependencies_.insert(KeyTag{ mol_frac_key_, tag });
 }
 
 
-void IEMWaterVaporEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+void
+IEMWaterVaporEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> mol_frac = S.GetPtr<CompositeVector>(mol_frac_key_, tag);
 
-  for (CompositeVector::name_iterator comp=result[0]->begin();
-       comp!=result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-    const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
+    const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
-    for (int i=0; i!=ncomp; ++i) {
+    for (int i = 0; i != ncomp; ++i) {
       result_v[0][i] = iem_->InternalEnergy(temp_v[0][i], molfrac_v[0][i]);
     }
   }
 }
 
 
-void IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+void
+IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
+                                                   const Key& wrt_key,
+                                                   const Tag& wrt_tag,
+                                                   const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> mol_frac = S.GetPtr<CompositeVector>(mol_frac_key_, tag);
 
   if (wrt_key == temp_key_) {
-    for (CompositeVector::name_iterator comp=result[0]->begin();
-         comp!=result[0]->end(); ++comp) {
-      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp,false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
+    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
+      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
-      for (int i=0; i!=ncomp; ++i) {
+      for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] = iem_->DInternalEnergyDT(temp_v[0][i], molfrac_v[0][i]);
       }
     }
   } else if (wrt_key == mol_frac_key_) {
-    for (CompositeVector::name_iterator comp=result[0]->begin();
-         comp!=result[0]->end(); ++comp) {
-      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp,false);
-      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp,false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
+    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+         ++comp) {
+      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
+      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
-      for (int i=0; i!=ncomp; ++i) {
+      for (int i = 0; i != ncomp; ++i) {
         result_v[0][i] = iem_->DInternalEnergyDomega(temp_v[0][i], molfrac_v[0][i]);
       }
     }
@@ -109,5 +113,5 @@ void IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
 }
 
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi

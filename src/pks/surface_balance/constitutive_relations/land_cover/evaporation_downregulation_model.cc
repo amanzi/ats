@@ -39,7 +39,9 @@ EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_e
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg,
+                                                           double poro,
+                                                           double pot_evap) const
 {
   return 0.;
 }
@@ -51,11 +53,13 @@ EvaporationDownregulationModel::DEvaporationDPorosity(double sg, double poro, do
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg,
+                                                                  double poro,
+                                                                  double pot_evap) const
 {
   return 1. / (1. + Relations::EvaporativeResistanceCoef(sg, poro, dess_dz_, Clapp_Horn_b_));
 }
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

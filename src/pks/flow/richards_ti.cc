@@ -17,18 +17,19 @@ namespace Flow {
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
 // -----------------------------------------------------------------------------
-void Richards::FunctionalResidual(double t_old,
-                   double t_new,
-                   Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new,
-                   Teuchos::RCP<TreeVector> g)
+void
+Richards::FunctionalResidual(double t_old,
+                             double t_new,
+                             Teuchos::RCP<TreeVector> u_old,
+                             Teuchos::RCP<TreeVector> u_new,
+                             Teuchos::RCP<TreeVector> g)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
   double h = t_new - t_old;
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4*h);
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4 * h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
@@ -40,12 +41,12 @@ void Richards::FunctionalResidual(double t_old,
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Residual calculation: t0 = " << t_old
-               << " t1 = " << t_new << " h = " << h << std::endl;
+               << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << h
+               << std::endl;
 
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames{"p_old", "p_new"};
+  std::vector<std::string> vnames{ "p_old", "p_new" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
   vecs.emplace_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
   vecs.emplace_back(u.ptr());
@@ -61,20 +62,24 @@ void Richards::FunctionalResidual(double t_old,
   // if (vapor_diffusion_) AddVaporDiffusionResidual_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
-  vnames = {"sl_old", "sl_new"};
-  vecs = {S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr(),
-          S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr()};
+  vnames = { "sl_old", "sl_new" };
+  vecs = { S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr(),
+           S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr() };
 
   if (S_->HasRecordSet(sat_ice_key_)) {
     vnames.emplace_back("si_old");
     vnames.emplace_back("si_new");
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_current_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
   vnames.emplace_back("poro");
-  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
+  vecs.emplace_back(
+    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
   vnames.emplace_back("perm_K");
-  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"permeability"), tag_next_).ptr());
+  vecs.emplace_back(
+    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.emplace_back("k_rel");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.emplace_back("wind");
@@ -83,7 +88,7 @@ void Richards::FunctionalResidual(double t_old,
   vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
   vnames.emplace_back("flux");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
-  db_->WriteVectors(vnames,vecs,true);
+  db_->WriteVectors(vnames, vecs, true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 
   // accumulation term
@@ -104,12 +109,11 @@ void Richards::FunctionalResidual(double t_old,
 // -----------------------------------------------------------------------------
 // Apply the preconditioner to u and return the result in Pu.
 // -----------------------------------------------------------------------------
-int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-        Teuchos::RCP<TreeVector> Pu)
+int
+Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH))
-    *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
 
   // Apply the preconditioner
   db_->WriteVector("p_res", u->Data().ptr(), true);
@@ -123,24 +127,24 @@ int Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 // -----------------------------------------------------------------------------
 // Update the preconditioner at time t and u = up
 // -----------------------------------------------------------------------------
-void Richards::UpdatePreconditioner(double t,
-        Teuchos::RCP<const TreeVector> up, double h)
+void
+Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH))
-    *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // Recreate mass matrices
-  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
+  if (!deform_key_.empty() &&
+      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
     preconditioner_diff_->SetTensorCoefficient(K_);
 
   // update state with the solution up.
-  if (std::abs(t - iter_counter_time_)/t > 1.e-4) {
+  if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
     iter_ = 0;
     iter_counter_time_ = t;
   }
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
@@ -163,8 +167,7 @@ void Richards::UpdatePreconditioner(double t,
     if (!duw_coef_key_.empty()) {
       dkrdp = S_->GetPtr<CompositeVector>(duw_coef_key_, tag_next_);
     } else {
-      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_,
-              key_, tag_next_);
+      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -187,13 +190,11 @@ void Richards::UpdatePreconditioner(double t,
 
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives
-  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_,
-          key_, tag_next_);
+  S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
 
   // -- get the accumulation deriv
   Teuchos::RCP<const CompositeVector> dwc_dp =
-    S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_,
-            key_, tag_next_);
+    S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_);
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
 
   // -- update the cell-cell block
@@ -207,8 +208,5 @@ void Richards::UpdatePreconditioner(double t,
 };
 
 
-}  // namespace Flow
-}  // namespace Amanzi
-
-
-
+} // namespace Flow
+} // namespace Amanzi

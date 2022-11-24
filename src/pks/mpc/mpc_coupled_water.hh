@@ -49,8 +49,6 @@ namespace Amanzi {
 
 class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
  public:
-
-
   MPCCoupledWater(Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
                   const Teuchos::RCP<State>& S,
@@ -61,23 +59,29 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to u and returns the result in Pu.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // -- Modify the predictor.
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                       Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<const TreeVector> res) override;
+  virtual double
+  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res) override;
 
   Teuchos::RCP<Operators::Operator> preconditioner() { return precon_; }
 
@@ -113,11 +117,9 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
  private:
   // factory registration
   static RegisteredPKFactory<MPCCoupledWater> reg_;
-
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 
 #endif

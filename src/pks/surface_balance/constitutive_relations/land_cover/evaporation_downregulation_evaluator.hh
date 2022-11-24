@@ -38,7 +38,6 @@ namespace Relations {
 class EvaporationDownregulationModel;
 
 class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit EvaporationDownregulationEvaluator(Teuchos::ParameterList& plist);
   EvaporationDownregulationEvaluator(const EvaporationDownregulationEvaluator& other) = default;
@@ -46,10 +45,11 @@ class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -69,10 +69,9 @@ class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
   std::map<std::string, Teuchos::RCP<EvaporationDownregulationModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EvaporationDownregulationEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, EvaporationDownregulationEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

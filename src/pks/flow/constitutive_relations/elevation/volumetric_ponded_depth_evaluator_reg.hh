@@ -4,7 +4,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,VolumetricPondedDepthEvaluator> VolumetricPondedDepthEvaluator::reg_("volumetric ponded depth");
+Utils::RegisteredFactory<Evaluator, VolumetricPondedDepthEvaluator>
+  VolumetricPondedDepthEvaluator::reg_("volumetric ponded depth");
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -14,27 +14,22 @@ Licencse: BSD
 namespace Amanzi {
 namespace BGC {
 
-SoilCarbonParameters::SoilCarbonParameters(int nPools_, double percent_sand) :
-    nPools(nPools_),
-    RespF(nPools_),
-    TurnoverRates(nPools_),
-    Tij(nPools_,nPools_)
+SoilCarbonParameters::SoilCarbonParameters(int nPools_, double percent_sand)
+  : nPools(nPools_), RespF(nPools_), TurnoverRates(nPools_), Tij(nPools_, nPools_)
 {
   InitCentury_(percent_sand);
 }
 
 
-SoilCarbonParameters::SoilCarbonParameters(int nPools_, Teuchos::ParameterList& plist) :
-    nPools(nPools_),
-    RespF(nPools_),
-    TurnoverRates(nPools_),
-    Tij(nPools_,nPools_)
+SoilCarbonParameters::SoilCarbonParameters(int nPools_, Teuchos::ParameterList& plist)
+  : nPools(nPools_), RespF(nPools_), TurnoverRates(nPools_), Tij(nPools_, nPools_)
 {
   Init_(plist);
 }
 
 
-void SoilCarbonParameters::InitCentury_(double percent_sand)
+void
+SoilCarbonParameters::InitCentury_(double percent_sand)
 {
   double tt = 0.85 - 0.68 * 0.01 * (100 - percent_sand);
 
@@ -67,10 +62,10 @@ void SoilCarbonParameters::InitCentury_(double percent_sand)
   Tij[5][4] = 0.93;
   Tij[5][6] = 0.07;
   Tij[6][4] = 1.0;
-
 }
 
-void SoilCarbonParameters::Init_(Teuchos::ParameterList& plist)
+void
+SoilCarbonParameters::Init_(Teuchos::ParameterList& plist)
 {
   std::string model = plist.get<std::string>("soil carbon model", "century");
   if (model == "century") {
@@ -83,5 +78,5 @@ void SoilCarbonParameters::Init_(Teuchos::ParameterList& plist)
   // special case init from plist here...
 }
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi

@@ -5,8 +5,9 @@ namespace Flow {
 namespace FlowRelations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,SubgridMobileDepthEvaluator> SubgridMobileDepthEvaluator::factory_("subgrid mobile depth");
+Utils::RegisteredFactory<Evaluator, SubgridMobileDepthEvaluator>
+  SubgridMobileDepthEvaluator::factory_("subgrid mobile depth");
 
-}
-}
-}
+} // namespace FlowRelations
+} // namespace Flow
+} // namespace Amanzi

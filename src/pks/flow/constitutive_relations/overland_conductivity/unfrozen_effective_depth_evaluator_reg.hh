@@ -12,8 +12,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,UnfrozenEffectiveDepthEvaluator> UnfrozenEffectiveDepthEvaluator::fac_("unfrozen effective depth");
+Utils::RegisteredFactory<Evaluator, UnfrozenEffectiveDepthEvaluator>
+  UnfrozenEffectiveDepthEvaluator::fac_("unfrozen effective depth");
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -23,13 +23,14 @@ namespace Amanzi {
 namespace Operators {
 namespace UpwindFactory {
 
-Teuchos::RCP<Upwinding> Create(Teuchos::ParameterList& oplist,
-        State& S,
-        const std::string& pkname,
-        const Tag& tag,
-        const Key& flux_key);
+Teuchos::RCP<Upwinding>
+Create(Teuchos::ParameterList& oplist,
+       State& S,
+       const std::string& pkname,
+       const Tag& tag,
+       const Key& flux_key);
 
-} // namespace UpwindFluxFactory
+} // namespace UpwindFactory
 } // namespace Operators
 } // namespace Amanzi
 

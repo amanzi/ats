@@ -4,8 +4,9 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,LiquidIceWaterContentEvaluator> LiquidIceWaterContentEvaluator::reg_("liquid+ice water content");
+Utils::RegisteredFactory<Evaluator, LiquidIceWaterContentEvaluator>
+  LiquidIceWaterContentEvaluator::reg_("liquid+ice water content");
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

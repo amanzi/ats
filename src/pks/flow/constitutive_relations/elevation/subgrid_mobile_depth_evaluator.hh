@@ -33,18 +33,17 @@ namespace Flow {
 namespace FlowRelations {
 
 class SubgridMobileDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit SubgridMobileDepthEvaluator(Teuchos::ParameterList& plist);
   SubgridMobileDepthEvaluator(const SubgridMobileDepthEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -53,11 +52,9 @@ class SubgridMobileDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key depr_depth_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SubgridMobileDepthEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, SubgridMobileDepthEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace FlowRelations
+} // namespace Flow
+} // namespace Amanzi

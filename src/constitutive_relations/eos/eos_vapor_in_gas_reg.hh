@@ -14,7 +14,7 @@
 namespace Amanzi {
 namespace Relations {
 
-Utils::RegisteredFactory<EOS,EOSVaporInGas> EOSVaporInGas::factory_("vapor in gas");
+Utils::RegisteredFactory<EOS, EOSVaporInGas> EOSVaporInGas::factory_("vapor in gas");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

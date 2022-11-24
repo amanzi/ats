@@ -22,16 +22,20 @@ Linear internal energy model -- function of Cv and temperature
 namespace Amanzi {
 namespace Energy {
 
-IEMLinear::IEMLinear(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+IEMLinear::IEMLinear(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
-double IEMLinear::InternalEnergy(double temp) {
+double
+IEMLinear::InternalEnergy(double temp)
+{
   return L_ + Cv_ * (temp - T_ref_);
 };
 
-void IEMLinear::InitializeFromPlist_() {
+void
+IEMLinear::InitializeFromPlist_()
+{
   if (plist_.isParameter("heat capacity [J kg^-1 K^-1]")) {
     Cv_ = 1.e-6 * plist_.get<double>("heat capacity [J kg^-1 K^-1]");
     molar_basis_ = false;
@@ -63,5 +67,5 @@ void IEMLinear::InitializeFromPlist_() {
   T_ref_ = plist_.get<double>("reference temperature [K]", 273.15);
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

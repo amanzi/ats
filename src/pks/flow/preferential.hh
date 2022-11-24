@@ -5,8 +5,8 @@
 
   Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
-//! Gravity driven preferential flow  
-   
+//! Gravity driven preferential flow
+
 /*!
 
 Solves Preferential Flow equation:
@@ -238,18 +238,18 @@ namespace Amanzi {
 class MPCSubsurface;
 class PredictorDelegateBCFlux;
 class PrimaryVariableFieldEvaluator;
-namespace WhetStone { class Tensor; }
+namespace WhetStone {
+class Tensor;
+}
 
 namespace Flow {
 
 class Preferential : public Richards {
-
-public:
-
+ public:
   Preferential(Teuchos::ParameterList& pk_tree,
-           const Teuchos::RCP<Teuchos::ParameterList>& plist,
-           const Teuchos::RCP<State>& S,
-           const Teuchos::RCP<TreeVector>& solution);
+               const Teuchos::RCP<Teuchos::ParameterList>& plist,
+               const Teuchos::RCP<State>& S,
+               const Teuchos::RCP<TreeVector>& solution);
 
   // Virtual destructor
   virtual ~Preferential() {}
@@ -274,10 +274,9 @@ public:
 
   // Preferential has a friend in couplers...
   friend class Amanzi::MPCSubsurface;
-
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

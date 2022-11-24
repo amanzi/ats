@@ -28,24 +28,25 @@ namespace Flow {
 namespace Relations {
 
 
-SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::ParameterList& plist) :
-  EvaluatorSecondary(plist)
+SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondary(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
 
   catch_id_key_ = Keys::readKey(plist, domain_, "catchment ID", "catchments_id");
-  dependencies_.insert(KeyTag{catch_id_key_, tag});
+  dependencies_.insert(KeyTag{ catch_id_key_, tag });
 
   catch_frac_key_ = Keys::readKey(plist, domain_, "catchment fraction", "catchments_frac");
-  dependencies_.insert(KeyTag{catch_frac_key_, tag});
+  dependencies_.insert(KeyTag{ catch_frac_key_, tag });
 
   auto domain_subsurf = Keys::readDomainHint(plist, domain_, "surface", "domain");
-  acc_sources_key_ = Keys::readKey(plist, domain_subsurf, "accumulated source", "accumulated_source");
-  dependencies_.insert(KeyTag{acc_sources_key_, tag});
+  acc_sources_key_ =
+    Keys::readKey(plist, domain_subsurf, "accumulated source", "accumulated_source");
+  dependencies_.insert(KeyTag{ acc_sources_key_, tag });
 
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
-  dependencies_.insert(KeyTag{cv_key_, tag});
+  dependencies_.insert(KeyTag{ cv_key_, tag });
 
   num_ditches_ = plist.get<int>("number of ditches");
 }
@@ -59,24 +60,24 @@ SurfDistributedTilesRateEvaluator::Update_(State& S)
   double dt = S.Get<double>("dt", tag);
 
   const auto& catch_id = *S.Get<CompositeVector>(catch_id_key_, tag).ViewComponent("cell", false);
-  const auto& catch_frac = *S.Get<CompositeVector>(catch_frac_key_, tag).ViewComponent("cell", false);
-  const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell",false);
+  const auto& catch_frac =
+    *S.Get<CompositeVector>(catch_frac_key_, tag).ViewComponent("cell", false);
+  const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& acc_sources_vec = S.Get<Teuchos::Array<double>>(acc_sources_key_, tag);
 
-  auto& surf_src = *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).ViewComponent("cell"); 
+  auto& surf_src =
+    *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).ViewComponent("cell");
   double total = 0.0;
 
   AmanziMesh::Entity_ID ncells = catch_id.MyLength();
-  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
+  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
     if ((catch_id[0][c] > 0) && (dt > 1e-14)) {
-      surf_src[0][c] = -acc_sources_vec[catch_id[0][c] - 1] * catch_frac[0][c] / (cv[0][c] * dt) ;
+      surf_src[0][c] = -acc_sources_vec[catch_id[0][c] - 1] * catch_frac[0][c] / (cv[0][c] * dt);
     }
   }
 
   total = 0.0;
-  for (AmanziMesh::Entity_ID c=0; c!=ncells; ++c) {
-    total += surf_src[0][c] * cv[0][c];
-  }
+  for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) { total += surf_src[0][c] * cv[0][c]; }
 }
 
 void
@@ -88,17 +89,14 @@ SurfDistributedTilesRateEvaluator::EnsureCompatibility(State& S)
   if (!S.HasRecord(acc_sources_key_, tag)) {
     S.Require<Teuchos::Array<double>>(num_ditches_, acc_sources_key_, tag);
   }
-  S.Require<CompositeVector,CompositeVectorSpace>(key, tag, key)
+  S.Require<CompositeVector, CompositeVectorSpace>(key, tag, key)
     .SetMesh(S.GetMesh(domain_))
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Cop-out -- ensure not fully implemented for this evaluator.  FIXME --ETC
-  for (const auto& dep : dependencies_) {
-    S.RequireEvaluator(dep.first, dep.second);
-  }
+  for (const auto& dep : dependencies_) { S.RequireEvaluator(dep.first, dep.second); }
 }
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

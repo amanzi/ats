@@ -22,18 +22,17 @@
 namespace Amanzi {
 
 class TreeVector;
-class PK_Explicit_Default: public PK_Explicit<TreeVector> {
-
+class PK_Explicit_Default : public PK_Explicit<TreeVector> {
  public:
   PK_Explicit_Default(Teuchos::ParameterList& pk_tree,
                       const Teuchos::RCP<Teuchos::ParameterList>& glist,
                       const Teuchos::RCP<State>& S,
                       const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, glist, S, solution),
-      PK_Explicit<TreeVector>(pk_tree, glist, S, solution) {}
+    : PK(pk_tree, glist, S, solution), PK_Explicit<TreeVector>(pk_tree, glist, S, solution)
+  {}
 
   // Virtual destructor
-  virtual ~PK_Explicit_Default() {};
+  virtual ~PK_Explicit_Default(){};
 
   // Default implementations of PK methods.
   // -- setup
@@ -51,16 +50,15 @@ class PK_Explicit_Default: public PK_Explicit<TreeVector> {
 
  protected: //data  timestep control
   double dt_;
-  Teuchos::RCP<Explicit_TI::RK<TreeVector> > time_stepper_;
+  Teuchos::RCP<Explicit_TI::RK<TreeVector>> time_stepper_;
 
   // timing
   Teuchos::RCP<Teuchos::Time> step_walltime_;
 
   // solution at the old timestep
   Teuchos::RCP<TreeVector> solution_old_;
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

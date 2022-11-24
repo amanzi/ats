@@ -48,12 +48,10 @@ namespace Amanzi {
 
 class MPCPermafrost : public MPCSubsurface {
  public:
-
-
   MPCPermafrost(Teuchos::ParameterList& FElist,
-                 const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                 const Teuchos::RCP<State>& S,
-                 const Teuchos::RCP<TreeVector>& soln);
+                const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                const Teuchos::RCP<State>& S,
+                const Teuchos::RCP<TreeVector>& soln);
 
 
   virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
@@ -66,24 +64,29 @@ class MPCPermafrost : public MPCSubsurface {
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to r and returns the result in Pr.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
 
   // -- Update the preconditioner.
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Modify the predictor.
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> r,
-                       Teuchos::RCP<const TreeVector> u, 
-                       Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> r,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // sub PKs
@@ -135,10 +138,9 @@ class MPCPermafrost : public MPCSubsurface {
   static RegisteredPKFactory<MPCPermafrost> reg_;
 
   Key domain_surf, domain_ss;
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 
 #endif

@@ -15,9 +15,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                         ThermalConductivityThreePhaseWetDry>
-        ThermalConductivityThreePhaseWetDry::factory_("three-phase wet/dry");
+Utils::RegisteredFactory<ThermalConductivityThreePhase, ThermalConductivityThreePhaseWetDry>
+  ThermalConductivityThreePhaseWetDry::factory_("three-phase wet/dry");
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

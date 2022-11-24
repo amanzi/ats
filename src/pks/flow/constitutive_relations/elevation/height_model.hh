@@ -15,28 +15,29 @@ namespace Amanzi {
 namespace Flow {
 
 class HeightModel {
-public:
-  explicit
-  HeightModel(Teuchos::ParameterList& plist) : plist_(plist) {}
+ public:
+  explicit HeightModel(Teuchos::ParameterList& plist) : plist_(plist) {}
 
-  double Height(double pres, double rho, double p_atm, double g_z) {
+  double Height(double pres, double rho, double p_atm, double g_z)
+  {
     return (pres - p_atm) / (rho * g_z);
   }
 
-  double DHeightDPressure(double pres, double rho, double p_atm, double g_z) {
+  double DHeightDPressure(double pres, double rho, double p_atm, double g_z)
+  {
     return 1. / (rho * g_z);
   }
 
-  double DHeightDRho(double pres, double rho, double p_atm, double g_z) {
+  double DHeightDRho(double pres, double rho, double p_atm, double g_z)
+  {
     return -(pres - p_atm) / (rho * rho * g_z);
   }
 
-protected:
+ protected:
   Teuchos::ParameterList plist_;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

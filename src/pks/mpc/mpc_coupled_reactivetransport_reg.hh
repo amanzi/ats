@@ -3,6 +3,7 @@
 
 namespace Amanzi {
 
-RegisteredPKFactory<MPCCoupledReactiveTransport> MPCCoupledReactiveTransport::reg_("coupled reactive transport");
+RegisteredPKFactory<MPCCoupledReactiveTransport>
+  MPCCoupledReactiveTransport::reg_("coupled reactive transport");
 
-}  // namespace Amanzi
+} // namespace Amanzi

@@ -42,12 +42,11 @@ namespace Flow {
 namespace Relations {
 
 class DistributedTilesRateEvaluator : public EvaluatorSecondary {
-
  public:
-  explicit
-  DistributedTilesRateEvaluator(Teuchos::ParameterList& plist);
+  explicit DistributedTilesRateEvaluator(Teuchos::ParameterList& plist);
   DistributedTilesRateEvaluator(const DistributedTilesRateEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new DistributedTilesRateEvaluator(*this));
   }
 
@@ -56,7 +55,7 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
  protected:
   // Required methods from EvaluatorSecondary
   virtual void Update_(State& S) override;
-  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag)  override {};
+  virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override{};
 
  protected:
   Key domain_;
@@ -77,11 +76,10 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
   int num_components_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,DistributedTilesRateEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, DistributedTilesRateEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 #endif

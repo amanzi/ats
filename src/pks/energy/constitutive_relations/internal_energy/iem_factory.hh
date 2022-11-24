@@ -20,12 +20,11 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMFactory : public Utils::Factory<IEM> {
-
-public:
+ public:
   Teuchos::RCP<IEM> createIEM(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

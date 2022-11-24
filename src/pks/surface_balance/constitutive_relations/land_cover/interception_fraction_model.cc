@@ -30,7 +30,8 @@ InterceptionFractionModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
   alpha_ = plist.get<double>("leaf area interception fraction [-]", 0.25);
   if (alpha_ < 0 && alpha_ > 1) {
     Errors::Message msg;
-    msg << "InterceptionFraction: invalid \"leaf area interception fraction [-]\", must be in [0,1] (provided: "
+    msg << "InterceptionFraction: invalid \"leaf area interception fraction [-]\", must be in "
+           "[0,1] (provided: "
         << alpha_ << ")";
     Exceptions::amanzi_throw(alpha_);
   }
@@ -41,16 +42,15 @@ InterceptionFractionModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 double
 InterceptionFractionModel::InterceptionFraction(double ai) const
 {
-  return alpha_*(1 - exp(-0.5*ai));
+  return alpha_ * (1 - exp(-0.5 * ai));
 }
 
 double
 InterceptionFractionModel::DInterceptionFractionDAreaIndex(double ai) const
 {
-  return 0.5*alpha_*exp(-0.5*ai);
+  return 0.5 * alpha_ * exp(-0.5 * ai);
 }
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

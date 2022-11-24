@@ -4,9 +4,10 @@ namespace Amanzi {
 namespace BGC {
 namespace BGCRelations {
 
-// registry of method 
-  Utils::RegisteredFactory<Evaluator,PoolDecompositionEvaluator> PoolDecompositionEvaluator::fac_("pool decomposition evaluator"); 
+// registry of method
+Utils::RegisteredFactory<Evaluator, PoolDecompositionEvaluator>
+  PoolDecompositionEvaluator::fac_("pool decomposition evaluator");
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace BGCRelations
+} // namespace BGC
+} // namespace Amanzi

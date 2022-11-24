@@ -26,12 +26,9 @@ namespace Flow {
 class PCLiqAtm;
 
 class PCLiquidEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-
   // constructor format for all derived classes
-  explicit
-  PCLiquidEvaluator(Teuchos::ParameterList& plist);
+  explicit PCLiquidEvaluator(Teuchos::ParameterList& plist);
   PCLiquidEvaluator(const PCLiquidEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -39,12 +36,12 @@ class PCLiquidEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // the actual model
@@ -55,11 +52,10 @@ class PCLiquidEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key pres_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,PCLiquidEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, PCLiquidEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

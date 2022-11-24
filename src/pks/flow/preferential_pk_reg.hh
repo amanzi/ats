@@ -13,5 +13,5 @@ namespace Flow {
 
 RegisteredPKFactory<Preferential> Preferential::reg_("preferential flow");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

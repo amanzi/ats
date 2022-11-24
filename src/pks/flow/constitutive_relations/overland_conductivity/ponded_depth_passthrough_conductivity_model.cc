@@ -11,17 +11,25 @@
 namespace Amanzi {
 namespace Flow {
 
-PondedDepthPassthroughConductivityModel::PondedDepthPassthroughConductivityModel(Teuchos::ParameterList& plist) :
-    plist_(plist) {}
+PondedDepthPassthroughConductivityModel::PondedDepthPassthroughConductivityModel(
+  Teuchos::ParameterList& plist)
+  : plist_(plist)
+{}
 
-double PondedDepthPassthroughConductivityModel::Conductivity(double depth, double slope, double coef) {
+double
+PondedDepthPassthroughConductivityModel::Conductivity(double depth, double slope, double coef)
+{
   return depth;
 }
 
-double PondedDepthPassthroughConductivityModel::DConductivityDDepth(double depth, double slope, double coef) {
+double
+PondedDepthPassthroughConductivityModel::DConductivityDDepth(double depth,
+                                                             double slope,
+                                                             double coef)
+{
   return 1;
 }
 
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

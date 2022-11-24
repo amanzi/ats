@@ -23,25 +23,22 @@ class BioturbationEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
-protected:
+ protected:
   Key carbon_key_;
   Key diffusivity_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,BioturbationEvaluator> fac_;
-
-
-
+  static Utils::RegisteredFactory<Evaluator, BioturbationEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace BGCRelations
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

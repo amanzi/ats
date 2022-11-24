@@ -1,1 +1,1 @@
-    {var}_key_(other.{var}_key_),
+{ var } _key_(other.{ var } _key_),

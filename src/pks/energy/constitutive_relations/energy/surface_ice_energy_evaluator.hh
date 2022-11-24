@@ -42,10 +42,8 @@ namespace Relations {
 class SurfaceIceEnergyModel;
 
 class SurfaceIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  SurfaceIceEnergyEvaluator(Teuchos::ParameterList& plist);
+  explicit SurfaceIceEnergyEvaluator(Teuchos::ParameterList& plist);
   SurfaceIceEnergyEvaluator(const SurfaceIceEnergyEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -54,11 +52,11 @@ class SurfaceIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -73,11 +71,9 @@ class SurfaceIceEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<SurfaceIceEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SurfaceIceEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, SurfaceIceEnergyEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

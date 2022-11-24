@@ -44,7 +44,6 @@ namespace Relations {
 class RootingDepthFractionModel;
 
 class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit RootingDepthFractionEvaluator(Teuchos::ParameterList& plist);
   RootingDepthFractionEvaluator(const RootingDepthFractionEvaluator& other) = default;
@@ -52,11 +51,11 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -75,11 +74,9 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   std::map<std::string, Teuchos::RCP<RootingDepthFractionModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RootingDepthFractionEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

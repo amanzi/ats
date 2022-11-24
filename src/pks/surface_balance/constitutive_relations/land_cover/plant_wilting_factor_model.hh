@@ -31,8 +31,7 @@ namespace Relations {
 
 class PlantWiltingFactorModel {
  public:
-  explicit
-  PlantWiltingFactorModel(const LandCover& lc);
+  explicit PlantWiltingFactorModel(const LandCover& lc);
 
   double PlantWiltingFactor(double pc) const;
 
@@ -42,8 +41,6 @@ class PlantWiltingFactorModel {
   const LandCover& lc_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

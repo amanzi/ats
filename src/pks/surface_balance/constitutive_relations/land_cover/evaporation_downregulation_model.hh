@@ -36,11 +36,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class EvaporationDownregulationModel {
-
  public:
-  explicit
-  EvaporationDownregulationModel(double dessicated_zone_thickness,
-          double clapp_horn_b);
+  explicit EvaporationDownregulationModel(double dessicated_zone_thickness, double clapp_horn_b);
   EvaporationDownregulationModel(Teuchos::ParameterList& plist);
   EvaporationDownregulationModel(const LandCover& lc);
 
@@ -54,13 +51,10 @@ class EvaporationDownregulationModel {
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double dess_dz_;
   double Clapp_Horn_b_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

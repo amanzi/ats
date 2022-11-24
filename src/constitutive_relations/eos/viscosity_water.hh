@@ -25,15 +25,13 @@ namespace Relations {
 
 // Equation of State model
 class ViscosityWater : public ViscosityRelation {
-
-public:
-  explicit
-  ViscosityWater(Teuchos::ParameterList& eos_plist);
+ public:
+  explicit ViscosityWater(Teuchos::ParameterList& eos_plist);
 
   virtual double Viscosity(double T);
   virtual double DViscosityDT(double T);
 
-protected:
+ protected:
   Teuchos::ParameterList eos_plist_;
 
   // constants for water, hard-coded because it would be crazy to try to come
@@ -44,12 +42,11 @@ protected:
   // -- temperature dependence of viscosity > T1
   const double kbv2_, kcv2_, kT1_;
 
-private:
-  static Utils::RegisteredFactory<ViscosityRelation,ViscosityWater> factory_;
-
+ private:
+  static Utils::RegisteredFactory<ViscosityRelation, ViscosityWater> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

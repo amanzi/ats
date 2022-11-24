@@ -26,16 +26,16 @@ namespace Amanzi {
 MPCSubcycled::MPCSubcycled(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                            const Teuchos::RCP<State>& S,
-                           const Teuchos::RCP<TreeVector>& soln) :
-  PK(pk_tree, global_list, S, soln),
-  MPC<PK>(pk_tree, global_list, S, soln)
+                           const Teuchos::RCP<TreeVector>& soln)
+  : PK(pk_tree, global_list, S, soln), MPC<PK>(pk_tree, global_list, S, soln)
 {
   init_();
 
   // Master PK is the PK whose time step size sets the size, the subcycled is subcycled.
   subcycling_ = plist_->get<Teuchos::Array<int>>("subcycle");
   if (subcycling_.size() != sub_pks_.size()) {
-    Errors::Message msg("MPCSubcycling pass \"subcycle\" list of length inconsistent with the number of PKs.\"");
+    Errors::Message msg(
+      "MPCSubcycling pass \"subcycle\" list of length inconsistent with the number of PKs.\"");
     Exceptions::amanzi_throw(msg);
   }
   dts_.resize(sub_pks_.size(), -1);
@@ -86,8 +86,7 @@ MPCSubcycled::Initialize()
 {
   int i = 0;
   for (const auto& tag : tags_) {
-    if (subcycling_[i])
-      S_->GetRecordW("dt", tag.first, name()).set_initialized();
+    if (subcycling_[i]) S_->GetRecordW("dt", tag.first, name()).set_initialized();
     ++i;
   }
   MPC<PK>::Initialize();
@@ -97,7 +96,8 @@ MPCSubcycled::Initialize()
 // -----------------------------------------------------------------------------
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
-double MPCSubcycled::get_dt()
+double
+MPCSubcycled::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
   if (target_dt_ > 0) dt = target_dt_;
@@ -118,7 +118,8 @@ double MPCSubcycled::get_dt()
 // -----------------------------------------------------------------------------
 // Set standard dt
 // -----------------------------------------------------------------------------
-void MPCSubcycled::set_dt(double dt)
+void
+MPCSubcycled::set_dt(double dt)
 {
   dt_ = dt;
   int i = 0;
@@ -153,7 +154,7 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
       dt_inner = std::min(dt_inner, t_new - t_inner);
       S_->Assign("dt", tag_subcycle_current, name(), dt_inner);
       S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
+      bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
@@ -193,11 +194,11 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
 }
 
 
-
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually, returning a failure as soon as possible.
 // -----------------------------------------------------------------------------
-bool MPCSubcycled::AdvanceStep(double t_old, double t_new, bool reinit)
+bool
+MPCSubcycled::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   bool fail = false;
 
@@ -221,15 +222,11 @@ MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
     // initial commit, also do the substep commits
     int i = 0;
     for (auto& pk : sub_pks_) {
-      if (subcycling_[i]) {
-        pk->CommitStep(t_old, t_new, tags_[i].second);
-      }
+      if (subcycling_[i]) { pk->CommitStep(t_old, t_new, tags_[i].second); }
       ++i;
     }
   }
 }
 
 
-
-}  // namespace Amanzi
-
+} // namespace Amanzi

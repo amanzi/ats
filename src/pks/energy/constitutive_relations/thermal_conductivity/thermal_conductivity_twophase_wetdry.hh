@@ -40,13 +40,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityTwoPhaseWetDry : public ThermalConductivityTwoPhase {
-
-public:
+ public:
   ThermalConductivityTwoPhaseWetDry(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -56,13 +55,12 @@ private:
   double k_wet_;
   double k_dry_;
 
-private:
-  static Utils::RegisteredFactory<ThermalConductivityTwoPhase,
-                                  ThermalConductivityTwoPhaseWetDry> factory_;
-
+ private:
+  static Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhaseWetDry>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

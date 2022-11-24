@@ -40,34 +40,33 @@ namespace Flow {
 namespace FlowRelations {
 
 class FractionalConductanceEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  FractionalConductanceEvaluator(Teuchos::ParameterList& plist);
+  explicit FractionalConductanceEvaluator(Teuchos::ParameterList& plist);
   FractionalConductanceEvaluator(const FractionalConductanceEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-private:
+ private:
   Key mobile_depth_key_;
   Key vpd_key_;
   Key depr_depth_key_;
   Key delta_ex_key_, delta_max_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,FractionalConductanceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, FractionalConductanceEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace FlowRelations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

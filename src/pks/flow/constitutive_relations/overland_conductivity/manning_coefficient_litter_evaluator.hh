@@ -21,15 +21,13 @@ namespace Relations {
 
 class ManningCoefficientLitterModel;
 
-typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel> > ManningCoefList;
+typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel>> ManningCoefList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, ManningCoefList> ManningCoefPartition;
 
 
 class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
+  explicit ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
   ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -37,11 +35,11 @@ class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -51,8 +49,7 @@ class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<ManningCoefPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ManningCoefficientLitterEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ManningCoefficientLitterEvaluator> reg_;
 };
 
 
@@ -61,8 +58,8 @@ Teuchos::RCP<ManningCoefPartition>
 createManningCoefPartition(Teuchos::ParameterList& plist);
 
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

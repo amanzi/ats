@@ -18,11 +18,9 @@ namespace Flow {
 class HeightModel;
 
 class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  HeightEvaluator(Teuchos::ParameterList& plist);
+  explicit HeightEvaluator(Teuchos::ParameterList& plist);
   HeightEvaluator(const HeightEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -36,11 +34,11 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key dens_key_;
@@ -52,11 +50,10 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<HeightModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,HeightEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, HeightEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

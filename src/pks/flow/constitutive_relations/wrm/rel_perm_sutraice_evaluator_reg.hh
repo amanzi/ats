@@ -4,7 +4,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,RelPermSutraIceEvaluator> RelPermSutraIceEvaluator::factory_("SutraIce rel perm");
+Utils::RegisteredFactory<Evaluator, RelPermSutraIceEvaluator>
+  RelPermSutraIceEvaluator::factory_("SutraIce rel perm");
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

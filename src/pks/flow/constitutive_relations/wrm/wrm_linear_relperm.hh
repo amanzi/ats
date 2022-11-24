@@ -18,7 +18,6 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMLinearRelPerm : public WRM {
-
  public:
   explicit WRMLinearRelPerm(Teuchos::ParameterList& plist);
 
@@ -36,11 +35,10 @@ class WRMLinearRelPerm : public WRM {
   Teuchos::ParameterList plist_;
   Teuchos::RCP<WRM> wrm_;
 
-  static Utils::RegisteredFactory<WRM,WRMLinearRelPerm> factory_;
+  static Utils::RegisteredFactory<WRM, WRMLinearRelPerm> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif
-

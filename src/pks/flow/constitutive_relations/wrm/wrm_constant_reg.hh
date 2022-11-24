@@ -9,7 +9,7 @@
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<WRM,WRMConstant> WRMConstant::factory_("constant");
+Utils::RegisteredFactory<WRM, WRMConstant> WRMConstant::factory_("constant");
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi

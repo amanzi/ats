@@ -14,7 +14,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,ViscosityEvaluator> ViscosityEvaluator::factory_("viscosity");
+Utils::RegisteredFactory<Evaluator, ViscosityEvaluator> ViscosityEvaluator::factory_("viscosity");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

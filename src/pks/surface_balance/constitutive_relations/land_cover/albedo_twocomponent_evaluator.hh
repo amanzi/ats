@@ -52,7 +52,8 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit AlbedoTwoComponentEvaluator(Teuchos::ParameterList& plist);
   AlbedoTwoComponentEvaluator(const AlbedoTwoComponentEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new AlbedoTwoComponentEvaluator(*this));
   }
 
@@ -64,12 +65,12 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key domain_;
@@ -86,9 +87,9 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AlbedoTwoComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, AlbedoTwoComponentEvaluator> reg_;
 };
 
-}  // namespace Relations
-}  // namespace SurfaceBalance
-}  // namespace Amanzi
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

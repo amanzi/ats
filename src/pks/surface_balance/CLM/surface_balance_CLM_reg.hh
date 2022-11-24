@@ -13,8 +13,7 @@
 namespace Amanzi {
 namespace SurfaceBalance {
 
-RegisteredPKFactory<SurfaceBalanceCLM>
-SurfaceBalanceCLM::reg_("surface balance CLM");
+RegisteredPKFactory<SurfaceBalanceCLM> SurfaceBalanceCLM::reg_("surface balance CLM");
 
-} // namespace
-} // namespace
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -23,7 +23,7 @@ namespace Amanzi {
 namespace Flow {
 class IcyHeightModel;
 class UnfrozenFractionModel;
-}
+} // namespace Flow
 
 namespace Energy {
 class IEM;
@@ -34,21 +34,22 @@ class EOS;
 }
 
 class SurfaceIceModel : public EWCModelBase {
-
  public:
   SurfaceIceModel() {}
-  virtual ~SurfaceIceModel() {};
-  virtual void InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag, Teuchos::ParameterList& plist) override;
+  virtual ~SurfaceIceModel(){};
+  virtual void InitializeModel(const Teuchos::Ptr<State>& S,
+                               const Tag& tag,
+                               Teuchos::ParameterList& plist) override;
   virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
 
   virtual bool Freezing(double T, double p) override;
-  virtual int EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) override;
+  virtual int
+  EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) override;
 
  protected:
   bool IsSetUp_();
 
-  int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result) override;
+  int EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result) override;
 
  protected:
   Teuchos::RCP<Flow::IcyHeightModel> pd_;
@@ -66,7 +67,7 @@ class SurfaceIceModel : public EWCModelBase {
 };
 
 
-}
+} // namespace Amanzi
 
 
 #endif

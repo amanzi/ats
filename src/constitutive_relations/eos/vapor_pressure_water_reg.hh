@@ -16,7 +16,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<VaporPressureRelation,VaporPressureWater> VaporPressureWater::factory_("water vapor over water/ice");
+Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater>
+  VaporPressureWater::factory_("water vapor over water/ice");
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi

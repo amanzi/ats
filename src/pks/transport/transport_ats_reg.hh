@@ -16,5 +16,5 @@ namespace Transport {
 
 RegisteredPKFactory<Transport_ATS> Transport_ATS::reg_("transport ATS");
 
-}  // namespace Transport
-}  // namespace Amanzi
+} // namespace Transport
+} // namespace Amanzi

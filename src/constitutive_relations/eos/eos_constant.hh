@@ -24,23 +24,16 @@ namespace Relations {
 
 // Equation of State model
 class EOSConstant : public EOSConstantMolarMass {
-
-public:
+ public:
   explicit EOSConstant(Teuchos::ParameterList& eos_plist);
 
   virtual double MassDensity(std::vector<double>& params) override { return rho_; }
 
-  virtual double DMolarDensityDT(std::vector<double>& params) override {
-    return 0.;
-  }
+  virtual double DMolarDensityDT(std::vector<double>& params) override { return 0.; }
 
-  virtual double DMolarDensityDp(std::vector<double>& params) override {
-    return 0.;
-  }
+  virtual double DMolarDensityDp(std::vector<double>& params) override { return 0.; }
 
-  virtual double DMolarDensityDC(std::vector<double>& params) override {
-    return 0.;
-  }
+  virtual double DMolarDensityDC(std::vector<double>& params) override { return 0.; }
 
   virtual bool IsTemperature() override { return false; }
   virtual bool IsPressure() override { return false; }
@@ -52,11 +45,10 @@ public:
   Teuchos::ParameterList eos_plist_;
   double rho_;
 
-  static Utils::RegisteredFactory<EOS,EOSConstant> factory_;
-
+  static Utils::RegisteredFactory<EOS, EOSConstant> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

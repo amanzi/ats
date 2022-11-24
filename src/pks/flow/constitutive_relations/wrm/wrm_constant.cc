@@ -18,8 +18,8 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMConstant::WRMConstant(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+WRMConstant::WRMConstant(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
@@ -29,15 +29,19 @@ WRMConstant::WRMConstant(Teuchos::ParameterList& plist) :
 * The original curve is regulized on interval (s0, 1) using the
 * Hermite interpolant of order 3. Formulas (3.11)-(3.12).
 ****************************************************************** */
-double WRMConstant::k_relative(double s) {
-  return  a_;
+double
+WRMConstant::k_relative(double s)
+{
+  return a_;
 }
 
 
 /* ******************************************************************
  * D Relative permeability / D capillary pressure pc.
  ****************************************************************** */
-double WRMConstant::d_k_relative(double s) {
+double
+WRMConstant::d_k_relative(double s)
+{
   return 0.;
 }
 
@@ -45,7 +49,9 @@ double WRMConstant::d_k_relative(double s) {
 /* ******************************************************************
  * Saturation formula
  ****************************************************************** */
-double WRMConstant::saturation(double pc) {
+double
+WRMConstant::saturation(double pc)
+{
   return sr_;
 }
 
@@ -53,14 +59,18 @@ double WRMConstant::saturation(double pc) {
 /* ******************************************************************
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
-double WRMConstant::d_saturation(double pc) {
+double
+WRMConstant::d_saturation(double pc)
+{
   return 0.;
 }
 
 /* ******************************************************************
  * Pressure as a function of saturation.
  ****************************************************************** */
-double WRMConstant::capillaryPressure(double s) {
+double
+WRMConstant::capillaryPressure(double s)
+{
   AMANZI_ASSERT(0);
   return 0;
 }
@@ -69,19 +79,21 @@ double WRMConstant::capillaryPressure(double s) {
 /* ******************************************************************
  * Derivative of pressure formulat w.r.t. saturation.
  ****************************************************************** */
-double WRMConstant::d_capillaryPressure(double s) {
+double
+WRMConstant::d_capillaryPressure(double s)
+{
   AMANZI_ASSERT(0);
   return 0;
 }
 
 
-void WRMConstant::InitializeFromPlist_() {
+void
+WRMConstant::InitializeFromPlist_()
+{
   a_ = plist_.get<double>("constant value [-]", 1.0);
   sr_ = plist_.get<double>("residual saturation [-]", 1.0);
 };
 
 
-
-}  // namespace
-}  // namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -113,7 +113,8 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit SEBThreeComponentEvaluator(Teuchos::ParameterList& plist);
   SEBThreeComponentEvaluator(const SEBThreeComponentEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new SEBThreeComponentEvaluator(*this));
   }
 
@@ -124,12 +125,12 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_Structure_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
   // this is non-standard practice.  Implementing UpdateFieldDerivative_ to
   // override the default chain rule behavior, instead doing a numerical
@@ -146,7 +147,7 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key ponded_depth_key_, unfrozen_fraction_key_;
   Key sg_albedo_key_, sg_emissivity_key_, area_frac_key_;
   Key surf_temp_key_, surf_pres_key_;
-  Key sat_gas_key_, poro_key_,ss_pres_key_;
+  Key sat_gas_key_, poro_key_, ss_pres_key_;
   Key mol_dens_key_, mass_dens_key_;
 
   Key melt_key_, evap_key_;
@@ -158,8 +159,9 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_ss_;
   Key domain_snow_;
 
-  double min_wind_speed_;       // wind speed of 0, under this model, would have 0 latent or sensible heat?
-  double wind_speed_ref_ht_;    // reference height of the met data
+  double
+    min_wind_speed_; // wind speed of 0, under this model, would have 0 latent or sensible heat?
+  double wind_speed_ref_ht_; // reference height of the met data
 
   LandCoverMap land_cover_;
 
@@ -170,9 +172,9 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::ParameterList plist_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SEBThreeComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, SEBThreeComponentEvaluator> reg_;
 };
 
-}  // namespace Relations
-}  // namespace SurfaceBalance
-}  // namespace Amanzi
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

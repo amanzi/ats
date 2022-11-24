@@ -38,7 +38,6 @@ namespace Relations {
 class IncidentShortwaveRadiationModel;
 
 class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist);
   IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other) = default;
@@ -49,10 +48,11 @@ class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV 
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
   void InitializeFromPlist_();
 
  protected:
@@ -63,11 +63,9 @@ class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV 
   Teuchos::RCP<IncidentShortwaveRadiationModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,IncidentShortwaveRadiationEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, IncidentShortwaveRadiationEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

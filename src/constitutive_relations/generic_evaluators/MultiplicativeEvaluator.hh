@@ -38,7 +38,6 @@ namespace Amanzi {
 namespace Relations {
 
 class MultiplicativeEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
   explicit MultiplicativeEvaluator(Teuchos::ParameterList& plist);
@@ -47,10 +46,11 @@ class MultiplicativeEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  void Evaluate_(const State& S,
-                 const std::vector<CompositeVector*>& result) override;
+  void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                  const Key& wrt_key,
+                                  const Tag& wrt_tag,
+                                  const std::vector<CompositeVector*>& result) override;
 
   void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -63,10 +63,8 @@ class MultiplicativeEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool any_dof_provided_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,MultiplicativeEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, MultiplicativeEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
-
-
+} // namespace Relations
+} // namespace Amanzi

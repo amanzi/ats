@@ -12,13 +12,15 @@
 namespace Amanzi {
 namespace Flow {
 
-WRMLinearRelPerm::WRMLinearRelPerm(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+WRMLinearRelPerm::WRMLinearRelPerm(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
 
-void WRMLinearRelPerm::InitializeFromPlist_() {
+void
+WRMLinearRelPerm::InitializeFromPlist_()
+{
   AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
   Teuchos::ParameterList sublist = plist_.sublist("WRM parameters");
 
@@ -27,5 +29,5 @@ void WRMLinearRelPerm::InitializeFromPlist_() {
 };
 
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

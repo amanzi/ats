@@ -15,28 +15,24 @@ namespace Flow {
 namespace Relations {
 
 class InterfrostDthetaDpressureModel {
-
  public:
-  explicit
-  InterfrostDthetaDpressureModel(Teuchos::ParameterList& plist);
+  explicit InterfrostDthetaDpressureModel(Teuchos::ParameterList& plist);
 
   double DThetaDpCoef(double nl, double sl, double phi) const;
 
   double DDThetaDpCoefDMolarDensityLiquid(double nl, double sl, double phi) const;
   double DDThetaDpCoefDSaturationLiquid(double nl, double sl, double phi) const;
   double DDThetaDpCoefDPorosity(double nl, double sl, double phi) const;
-  
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double beta_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

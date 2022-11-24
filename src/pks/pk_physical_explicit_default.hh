@@ -23,40 +23,44 @@ namespace Amanzi {
 
 
 class PK_Physical_Explicit_Default : public PK_Explicit_Default, public PK_Physical_Default {
-
-public:
+ public:
   PK_Physical_Explicit_Default(Teuchos::ParameterList& pk_tree,
-                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                          const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<TreeVector>& solution)
+                               const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                               const Teuchos::RCP<State>& S,
+                               const Teuchos::RCP<TreeVector>& solution)
     : PK(pk_tree, glist, S, solution),
       PK_Explicit_Default(pk_tree, glist, S, solution),
-      PK_Physical_Default(pk_tree, glist, S, solution) {}
+      PK_Physical_Default(pk_tree, glist, S, solution)
+  {}
 
-  virtual void Setup() override {
+  virtual void Setup() override
+  {
     PK_Physical_Default::Setup();
     PK_Explicit_Default::Setup();
   }
 
   // initialize.  Note both ExplicitBase and PhysicalBase have initialize()
   // methods, so we need a unique overrider.
-  virtual void Initialize() override {
+  virtual void Initialize() override
+  {
     PK_Physical_Default::Initialize();
     PK_Explicit_Default::Initialize();
   }
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override {
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override
+  {
     PK_Explicit_Default::AdvanceStep(t_old, t_new, reinit);
     ChangedSolutionPK(tag_next_);
     return false;
   }
 
-  virtual void FailStep(double t_old, double t_new, const Tag& tag) override {
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override
+  {
     PK_Physical_Default::FailStep(t_old, t_new, tag);
   }
 };
 
-}
+} // namespace Amanzi
 
 #endif

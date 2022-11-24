@@ -28,8 +28,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMWaterVapor {
-
-public:
+ public:
   IEMWaterVapor(Teuchos::ParameterList& plist);
 
   bool IsMolarBasis() { return true; }
@@ -38,16 +37,16 @@ public:
   double DInternalEnergyDT(double temp, double mol_frac_gas);
   double DInternalEnergyDomega(double temp, double mol_frac_gas);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
 
-  double Cv_air_; // units: MJ/(mol-K)
+  double Cv_air_;            // units: MJ/(mol-K)
   double heat_vaporization_; // units: MJ/mol
 };
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

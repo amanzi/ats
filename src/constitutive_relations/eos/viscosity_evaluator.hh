@@ -17,22 +17,19 @@ namespace Amanzi {
 namespace Relations {
 
 class ViscosityEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-
   // constructor format for all derived classes
-  explicit
-  ViscosityEvaluator(Teuchos::ParameterList& plist);
+  explicit ViscosityEvaluator(Teuchos::ParameterList& plist);
 
   ViscosityEvaluator(const ViscosityEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // the actual model
@@ -43,11 +40,10 @@ class ViscosityEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key temp_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ViscosityEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, ViscosityEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

@@ -11,7 +11,7 @@
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<WRM,WRMMacropore> WRMMacropore::factory_("macropore");
+Utils::RegisteredFactory<WRM, WRMMacropore> WRMMacropore::factory_("macropore");
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi

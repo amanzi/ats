@@ -17,32 +17,19 @@ namespace Amanzi {
 namespace Relations {
 
 class EOS {
-
  public:
-  virtual ~EOS() {};
+  virtual ~EOS(){};
 
   // Virtual methods that form the EOS
   virtual double MassDensity(std::vector<double>& params) = 0;
-  virtual double DMassDensityDT(std::vector<double>& params) {
-    return 0.;
-  }
-  virtual double DMassDensityDp(std::vector<double>& params) {
-    return 0.;
-  }
-  virtual double DMassDensityDC(std::vector<double>& params) {
-    return 0.;
-  }
+  virtual double DMassDensityDT(std::vector<double>& params) { return 0.; }
+  virtual double DMassDensityDp(std::vector<double>& params) { return 0.; }
+  virtual double DMassDensityDC(std::vector<double>& params) { return 0.; }
 
   virtual double MolarDensity(std::vector<double>& params) = 0;
-  virtual double DMolarDensityDT(std::vector<double>& params) {
-    return 0.;
-  }
-  virtual double DMolarDensityDp(std::vector<double>& params) {
-    return 0.;
-  }
-  virtual double DMolarDensityDC(std::vector<double>& params) {
-    return 0.;
-  }
+  virtual double DMolarDensityDT(std::vector<double>& params) { return 0.; }
+  virtual double DMolarDensityDp(std::vector<double>& params) { return 0.; }
+  virtual double DMolarDensityDC(std::vector<double>& params) { return 0.; }
 
   // If molar mass is constant, we can take some shortcuts if we need both
   // molar and mass densities.  MolarMass() is undefined if
@@ -54,7 +41,7 @@ class EOS {
   virtual bool IsConcentration() = 0;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

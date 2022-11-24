@@ -1,1 +1,1 @@
-  double D{myKeyMethod}D{wrtMethod}({myMethodDeclarationArgs});
+double D{ myKeyMethod } D{ wrtMethod }({ myMethodDeclarationArgs });

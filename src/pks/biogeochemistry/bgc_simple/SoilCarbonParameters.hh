@@ -28,9 +28,7 @@ namespace Amanzi {
 namespace BGC {
 
 class SoilCarbonParameters {
-
  public:
-
   SoilCarbonParameters(int npools, double percent_sand);
   SoilCarbonParameters(int npools, Teuchos::ParameterList& plist);
 
@@ -45,12 +43,12 @@ class SoilCarbonParameters {
   void Init_(Teuchos::ParameterList& plist);
 
  private:
-  SoilCarbonParameters(const SoilCarbonParameters& other); // not implemented
+  SoilCarbonParameters(const SoilCarbonParameters& other);            // not implemented
   SoilCarbonParameters& operator=(const SoilCarbonParameters& other); // not implemented
 };
 
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

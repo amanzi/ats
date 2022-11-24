@@ -34,28 +34,31 @@ InterfrostDthetaDpressureModel::InitializeFromPlist_(Teuchos::ParameterList& pli
 double
 InterfrostDthetaDpressureModel::DThetaDpCoef(double nl, double sl, double phi) const
 {
-  return beta_*nl*phi*sl;
+  return beta_ * nl * phi * sl;
 }
 
 double
-InterfrostDthetaDpressureModel::DDThetaDpCoefDMolarDensityLiquid(double nl, double sl, double phi) const
+InterfrostDthetaDpressureModel::DDThetaDpCoefDMolarDensityLiquid(double nl,
+                                                                 double sl,
+                                                                 double phi) const
 {
-  return beta_*phi*sl;
+  return beta_ * phi * sl;
 }
 
 double
-InterfrostDthetaDpressureModel::DDThetaDpCoefDSaturationLiquid(double nl, double sl, double phi) const
+InterfrostDthetaDpressureModel::DDThetaDpCoefDSaturationLiquid(double nl,
+                                                               double sl,
+                                                               double phi) const
 {
-  return beta_*nl*phi;
+  return beta_ * nl * phi;
 }
 
 double
 InterfrostDthetaDpressureModel::DDThetaDpCoefDPorosity(double nl, double sl, double phi) const
 {
-  return beta_*nl*sl;
+  return beta_ * nl * sl;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

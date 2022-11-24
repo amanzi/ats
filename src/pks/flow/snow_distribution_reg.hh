@@ -13,6 +13,5 @@ namespace Flow {
 
 RegisteredPKFactory<SnowDistribution> SnowDistribution::reg_("snow distribution");
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

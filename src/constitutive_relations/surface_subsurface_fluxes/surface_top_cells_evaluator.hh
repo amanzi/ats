@@ -18,10 +18,8 @@ namespace Amanzi {
 namespace Relations {
 
 class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  SurfaceTopCellsEvaluator(Teuchos::ParameterList& plist);
+  explicit SurfaceTopCellsEvaluator(Teuchos::ParameterList& plist);
   SurfaceTopCellsEvaluator(const SurfaceTopCellsEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -29,11 +27,12 @@ class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override {
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {
     AMANZI_ASSERT(0);
   }
 
@@ -41,11 +40,10 @@ class SurfaceTopCellsEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key dependency_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SurfaceTopCellsEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, SurfaceTopCellsEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

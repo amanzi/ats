@@ -33,11 +33,9 @@ void
 applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
 {
   if (u.HasComponent("face")) {
-    Epetra_MultiVector& u_f = *u.ViewComponent("face",false);
-    for (unsigned int f=0; f!=u_f.MyLength(); ++f) {
-      if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
-        u_f[0][f] = bcs.bc_value()[f];
-      }
+    Epetra_MultiVector& u_f = *u.ViewComponent("face", false);
+    for (unsigned int f = 0; f != u_f.MyLength(); ++f) {
+      if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) { u_f[0][f] = bcs.bc_value()[f]; }
     }
   }
 
@@ -47,7 +45,7 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
     const Epetra_Map& vandalay_map = u.Mesh()->exterior_face_map(false);
     const Epetra_Map& face_map = u.Mesh()->face_map(false);
 
-    for (int bf=0; bf!=u_bf.MyLength(); ++bf) {
+    for (int bf = 0; bf != u_bf.MyLength(); ++bf) {
       AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
       if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
         u_bf[0][bf] = bcs.bc_value()[f];
@@ -70,15 +68,15 @@ double
 getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const Operators::BCs& bcs)
 {
   if (u.HasComponent("face")) {
-    return (*u.ViewComponent("face",false))[0][f];
+    return (*u.ViewComponent("face", false))[0][f];
   } else if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
     return bcs.bc_value()[f];
-  // } else if (u.HasComponent("boundary_face")) {
-  //   AmanziMesh::Entity_ID bf = getFaceOnBoundaryBoundaryFace(*u.Mesh(), f);
-  //   return (*u.ViewComponent("boundary_face",false))[0][bf];
+    // } else if (u.HasComponent("boundary_face")) {
+    //   AmanziMesh::Entity_ID bf = getFaceOnBoundaryBoundaryFace(*u.Mesh(), f);
+    //   return (*u.ViewComponent("boundary_face",false))[0][bf];
   } else {
-    auto c = getFaceOnBoundaryInternalCell(*u.Mesh(),f);
-    return (*u.ViewComponent("cell",false))[0][c];
+    auto c = getFaceOnBoundaryInternalCell(*u.Mesh(), f);
+    return (*u.ViewComponent("cell", false))[0][c];
   }
   return -1;
 }
@@ -110,12 +108,10 @@ requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
   if (S.HasEvaluator(key, tag)) {
     // if so, make sure it is primary
     Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
-    Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
-      Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+    Teuchos::RCP<EvaluatorPrimaryCV> eval_pv = Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
     if (or_die && eval_pv == Teuchos::null) {
       Errors::Message msg;
-      msg << "Expected primary variable evaluator for "
-          << key << " @ " << tag.get();
+      msg << "Expected primary variable evaluator for " << key << " @ " << tag.get();
       Exceptions::amanzi_throw(msg);
     }
     return eval_pv;
@@ -143,13 +139,11 @@ changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
 {
   bool changed = false;
   Teuchos::RCP<Evaluator> eval = S.GetEvaluatorPtr(key, tag);
-  Teuchos::RCP<EvaluatorPrimaryCV> eval_pv =
-    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
+  Teuchos::RCP<EvaluatorPrimaryCV> eval_pv = Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(eval);
   if (eval_pv == Teuchos::null) {
     if (or_die) {
       Errors::Message msg;
-      msg << "Expected primary variable evaluator for "
-          << key << " @ " << tag.get();
+      msg << "Expected primary variable evaluator for " << key << " @ " << tag.get();
       Exceptions::amanzi_throw(msg);
     }
   } else {
@@ -203,9 +197,7 @@ requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
     S.RequireEvaluator(key, tag);
   }
 
-  if (tag != Tags::NEXT) {
-    aliasVector(S, key, tag, Tags::NEXT);
-  }
+  if (tag != Tags::NEXT) { aliasVector(S, key, tag, Tags::NEXT); }
   return cvs;
 }
 
@@ -231,7 +223,6 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S)
   bool changed = changedEvaluatorPrimary(key, tag_dest, S, false);
   if (changed) S.Assign(key, tag_dest, tag_source);
 }
-
 
 
 // -----------------------------------------------------------------------------
@@ -270,7 +261,9 @@ convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
 
 bool
 advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
-                 double t_old, double t_new, bool reinit,
+                 double t_old,
+                 double t_new,
+                 bool reinit,
                  const Epetra_MultiVector& mol_dens,
                  Teuchos::RCP<Epetra_MultiVector> tcc,
                  Teuchos::Time& timer)
@@ -293,54 +286,56 @@ advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
 
 
 void
-copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
-                            CompositeVector& vec)
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh, CompositeVector& vec)
 {
   Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
 
   int ndim = mesh.space_dimension();
   AmanziGeometry::Point nc;
-  for (int i=0; i!=nodes.MyLength(); ++i) {
+  for (int i = 0; i != nodes.MyLength(); ++i) {
     mesh.node_get_coordinates(i, &nc);
-    for (int j=0; j!=ndim; ++j) nodes[j][i] = nc[j];
+    for (int j = 0; j != ndim; ++j) nodes[j][i] = nc[j];
   }
 }
 
 void
-copyVectorToMeshCoordinates(const CompositeVector& vec,
-                            AmanziMesh::Mesh& mesh)
+copyVectorToMeshCoordinates(const CompositeVector& vec, AmanziMesh::Mesh& mesh)
 {
   const Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
   int ndim = mesh.space_dimension();
 
   std::vector<int> node_ids(nodes.MyLength());
   Amanzi::AmanziGeometry::Point_List new_positions(nodes.MyLength());
-  for (int n=0; n!=nodes.MyLength(); ++n) {
+  for (int n = 0; n != nodes.MyLength(); ++n) {
     node_ids[n] = n;
     if (mesh.space_dimension() == 2) {
-      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n]};
+      new_positions[n] = Amanzi::AmanziGeometry::Point{ nodes[0][n], nodes[1][n] };
     } else {
-      new_positions[n] = Amanzi::AmanziGeometry::Point{nodes[0][n], nodes[1][n], nodes[2][n]};
+      new_positions[n] = Amanzi::AmanziGeometry::Point{ nodes[0][n], nodes[1][n], nodes[2][n] };
     }
   }
   mesh.deform(node_ids, new_positions);
 }
 
-int commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global) {
+int
+commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global)
+{
   MpiComm_type const* mpi_comm = dynamic_cast<const MpiComm_type*>(&comm);
   const MPI_Comm& mpi_comm_raw = mpi_comm->Comm();
   return MPI_Allreduce(&local, &global, 1, MPI_DOUBLE_INT, MPI_MAXLOC, mpi_comm_raw);
 }
 
-ValLoc maxValLoc(const Epetra_Vector& vec) {
-  ValLoc local{0.,0};
-  for (int i=0; i!=vec.MyLength(); ++i) {
+ValLoc
+maxValLoc(const Epetra_Vector& vec)
+{
+  ValLoc local{ 0., 0 };
+  for (int i = 0; i != vec.MyLength(); ++i) {
     if (vec[i] > local.value) {
       local.value = vec[i];
       local.gid = vec.Map().GID(i);
     }
   }
-  ValLoc global{0.,0};
+  ValLoc global{ 0., 0 };
   int ierr = commMaxValLoc(vec.Comm(), local, global);
   AMANZI_ASSERT(!ierr);
   return global;

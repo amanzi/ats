@@ -13,8 +13,8 @@
 namespace Amanzi {
 namespace Relations {
 
-Utils::RegisteredFactory<Evaluator,Volumetric_FluxEvaluator>
-Volumetric_FluxEvaluator::fac_("volumetric darcy flux");
+Utils::RegisteredFactory<Evaluator, Volumetric_FluxEvaluator>
+  Volumetric_FluxEvaluator::fac_("volumetric darcy flux");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

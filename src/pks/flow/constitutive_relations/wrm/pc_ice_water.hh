@@ -37,8 +37,7 @@ namespace Amanzi {
 namespace Flow {
 
 class PCIceWater {
-
-public:
+ public:
   explicit PCIceWater(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -47,7 +46,7 @@ public:
   double DCapillaryPressureDT(double T, double dens);
   double DCapillaryPressureDRho(double T, double dens);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList pc_plist_;
@@ -61,7 +60,7 @@ private:
   double halfwidth_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

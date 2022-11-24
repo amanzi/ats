@@ -16,21 +16,20 @@ namespace Amanzi {
 namespace Flow {
 
 class SplitDenominatorConductivityModel : public OverlandConductivityModel {
-public:
-  explicit
-  SplitDenominatorConductivityModel(Teuchos::ParameterList& plist);
+ public:
+  explicit SplitDenominatorConductivityModel(Teuchos::ParameterList& plist);
 
   virtual double Conductivity(double depth, double slope, double coef);
 
   virtual double DConductivityDDepth(double depth, double slope, double coef);
 
-protected:
+ protected:
   Teuchos::ParameterList plist_;
 
   double manning_exp_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

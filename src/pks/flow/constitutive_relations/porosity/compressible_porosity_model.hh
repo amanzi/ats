@@ -42,7 +42,6 @@ Example:
 */
 
 
-
 #ifndef AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_MODEL_HH_
 #define AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_MODEL_HH_
 
@@ -54,25 +53,26 @@ namespace Flow {
 
 class CompressiblePorosityModel {
  public:
-  explicit
-  CompressiblePorosityModel(Teuchos::ParameterList& plist) :
-      plist_(plist) {
+  explicit CompressiblePorosityModel(Teuchos::ParameterList& plist) : plist_(plist)
+  {
     InitializeFromPlist_();
   }
 
-  double Porosity(double base_poro, double pres, double patm) {
+  double Porosity(double base_poro, double pres, double patm)
+  {
     double poro = base_poro;
     double p_over = pres - patm;
     if (p_over > cutoff_) {
-      poro = base_poro + compressibility_ * ( cutoff_ / 2. + (p_over - cutoff_));
+      poro = base_poro + compressibility_ * (cutoff_ / 2. + (p_over - cutoff_));
     } else if (p_over > 0.) {
-      poro = base_poro + compressibility_ * (std::pow(p_over,2.) / 2. / cutoff_);
+      poro = base_poro + compressibility_ * (std::pow(p_over, 2.) / 2. / cutoff_);
     }
 
     return poro > 1. ? 1. : poro;
   }
 
-  double DPorosityDPressure(double base_poro, double pres, double patm) {
+  double DPorosityDPressure(double base_poro, double pres, double patm)
+  {
     double p_over = pres - patm;
     double poro = Porosity(base_poro, pres, patm);
     if (poro == 1.) {
@@ -86,25 +86,25 @@ class CompressiblePorosityModel {
     return 0.;
   }
 
-  double DPorosityDBasePorosity(double base_poro, double pres, double patm) {
+  double DPorosityDBasePorosity(double base_poro, double pres, double patm)
+  {
     return pres > patm ? (Porosity(base_poro, pres, patm) > 1.0 ? 0. : 1.) : 1.;
   }
 
  protected:
-  void InitializeFromPlist_() {
+  void InitializeFromPlist_()
+  {
     compressibility_ = plist_.get<double>("pore compressibility [Pa^-1]");
     cutoff_ = plist_.get<double>("pore compressibility inflection point [Pa]", 1000.);
   }
 
  protected:
-
   Teuchos::ParameterList plist_;
   double compressibility_;
   double cutoff_;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

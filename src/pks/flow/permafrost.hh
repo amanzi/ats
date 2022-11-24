@@ -48,18 +48,17 @@ namespace Amanzi {
 namespace Flow {
 
 class Permafrost : public Richards {
+  friend class MPCCoupledFlowEnergy;
 
-friend class MPCCoupledFlowEnergy;
-
-public:
+ public:
   // Constructors.
 
   Permafrost(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,
              const Teuchos::RCP<State>& S,
-             const Teuchos::RCP<TreeVector>& solution) :
-    PK(FElist, plist, S, solution),
-    Richards(FElist, plist, S, solution) {}
+             const Teuchos::RCP<TreeVector>& solution)
+    : PK(FElist, plist, S, solution), Richards(FElist, plist, S, solution)
+  {}
 
   // Virtual destructor
   virtual ~Permafrost() override {}
@@ -71,10 +70,9 @@ public:
  private:
   // factory registration
   static RegisteredPKFactory<Permafrost> reg_;
-
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

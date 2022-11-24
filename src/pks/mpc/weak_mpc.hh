@@ -30,9 +30,7 @@ order.
 namespace Amanzi {
 
 class WeakMPC : public MPC<PK> {
-
-public:
-
+ public:
   WeakMPC(Teuchos::ParameterList& pk_tree,
           const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
           const Teuchos::RCP<State>& S,
@@ -47,10 +45,8 @@ public:
 
   virtual void set_dt(double dt) override;
 
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<WeakMPC> reg_;
-
 };
-} // close namespace Amanzi
-
+} // namespace Amanzi

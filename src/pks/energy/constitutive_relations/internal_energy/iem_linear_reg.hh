@@ -13,7 +13,7 @@ Author: Ethan Coon
 namespace Amanzi {
 namespace Energy {
 
-Utils::RegisteredFactory<IEM,IEMLinear> IEMLinear::factory_("linear");
+Utils::RegisteredFactory<IEM, IEMLinear> IEMLinear::factory_("linear");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

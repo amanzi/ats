@@ -11,8 +11,9 @@
 namespace Amanzi {
 namespace Flow {
 
-// registry of method 
-  Utils::RegisteredFactory<Evaluator,CompressiblePorosityEvaluator> CompressiblePorosityEvaluator::fac_("compressible porosity"); 
+// registry of method
+Utils::RegisteredFactory<Evaluator, CompressiblePorosityEvaluator>
+  CompressiblePorosityEvaluator::fac_("compressible porosity");
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

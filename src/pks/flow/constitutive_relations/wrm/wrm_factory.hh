@@ -20,12 +20,11 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMFactory : public Utils::Factory<WRM> {
-
-public:
+ public:
   Teuchos::RCP<WRM> createWRM(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

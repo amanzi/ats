@@ -56,10 +56,8 @@ namespace Relations {
 class ThreePhaseEnergyModel;
 
 class ThreePhaseEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ThreePhaseEnergyEvaluator(Teuchos::ParameterList& plist);
+  explicit ThreePhaseEnergyEvaluator(Teuchos::ParameterList& plist);
   ThreePhaseEnergyEvaluator(const ThreePhaseEnergyEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -68,10 +66,11 @@ class ThreePhaseEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -93,11 +92,9 @@ class ThreePhaseEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<ThreePhaseEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThreePhaseEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ThreePhaseEnergyEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

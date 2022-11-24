@@ -17,27 +17,30 @@ namespace Relations {
 
 class ManningCoefficientLitterConstantModel : public ManningCoefficientLitterModel {
  public:
-  ManningCoefficientLitterConstantModel(Teuchos::ParameterList& plist) {
-    n_ = plist.get<double>("manning coefficient [s m^-1/3]"); }
-    
-  
-  double ManningCoefficient(double litter_depth, double ponded_depth) const {
-    return n_; }
+  ManningCoefficientLitterConstantModel(Teuchos::ParameterList& plist)
+  {
+    n_ = plist.get<double>("manning coefficient [s m^-1/3]");
+  }
 
-  double DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const {
-    return 0; }
 
-  double DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const {
-    return 0; }
+  double ManningCoefficient(double litter_depth, double ponded_depth) const { return n_; }
+
+  double DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const
+  {
+    return 0;
+  }
+
+  double DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const
+  {
+    return 0;
+  }
 
  protected:
   double n_;
-
-  
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

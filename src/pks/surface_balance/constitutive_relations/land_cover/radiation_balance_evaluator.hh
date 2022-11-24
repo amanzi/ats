@@ -52,7 +52,8 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit RadiationBalanceEvaluator(Teuchos::ParameterList& plist);
   RadiationBalanceEvaluator(const RadiationBalanceEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new RadiationBalanceEvaluator(*this));
   }
 
@@ -60,12 +61,12 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key domain_surf_;
@@ -89,9 +90,9 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RadiationBalanceEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, RadiationBalanceEvaluator> reg_;
 };
 
-}  // namespace Relations
-}  // namespace SurfaceBalance
-}  // namespace Amanzi
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

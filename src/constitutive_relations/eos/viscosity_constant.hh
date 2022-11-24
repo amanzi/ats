@@ -24,27 +24,23 @@ namespace Relations {
 
 // Equation of State model
 class ViscosityConstant : public ViscosityRelation {
-
-public:
-  explicit
-  ViscosityConstant(Teuchos::ParameterList& visc_plist);
+ public:
+  explicit ViscosityConstant(Teuchos::ParameterList& visc_plist);
 
   virtual double Viscosity(double T) { return visc_; }
   virtual double DViscosityDT(double T) { return 0.; }
 
-protected:
-
+ protected:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList visc_plist_;
   double visc_;
 
  private:
-  static Utils::RegisteredFactory<ViscosityRelation,ViscosityConstant> factory_;
-
+  static Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

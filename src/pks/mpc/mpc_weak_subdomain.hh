@@ -22,11 +22,10 @@ namespace Amanzi {
 
 class MPCWeakSubdomain : public MPC<PK> {
  public:
-
   MPCWeakSubdomain(Teuchos::ParameterList& FElist,
-          const Teuchos::RCP<Teuchos::ParameterList>& plist,
-          const Teuchos::RCP<State>& S,
-          const Teuchos::RCP<TreeVector>& solution);
+                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                   const Teuchos::RCP<State>& S,
+                   const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
   // -- dt is the minimum of the sub pks
@@ -47,15 +46,19 @@ class MPCWeakSubdomain : public MPC<PK> {
   bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
   bool AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit);
 
-  Tag get_ds_tag_next_(const std::string& subdomain) {
+  Tag get_ds_tag_next_(const std::string& subdomain)
+  {
     if (subcycled_)
       return Tag(Keys::getKey(subdomain, tag_next_.get()));
-    else return tag_next_;
+    else
+      return tag_next_;
   }
-  Tag get_ds_tag_current_(const std::string& subdomain) {
+  Tag get_ds_tag_current_(const std::string& subdomain)
+  {
     if (subcycled_)
       return Tag(Keys::getKey(subdomain, tag_current_.get()));
-    else return tag_current_;
+    else
+      return tag_current_;
   }
 
   Comm_ptr_type comm_;
@@ -67,9 +70,6 @@ class MPCWeakSubdomain : public MPC<PK> {
  private:
   // factory registration
   static RegisteredPKFactory<MPCWeakSubdomain> reg_;
-
 };
 
 } // namespace Amanzi
-
-

@@ -13,8 +13,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator,ThermalConductivityThreePhaseEvaluator> 
-ThermalConductivityThreePhaseEvaluator::factory_("three-phase thermal conductivity");
+Utils::RegisteredFactory<Evaluator, ThermalConductivityThreePhaseEvaluator>
+  ThermalConductivityThreePhaseEvaluator::factory_("three-phase thermal conductivity");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

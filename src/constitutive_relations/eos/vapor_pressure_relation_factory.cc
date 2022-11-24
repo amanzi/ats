@@ -14,11 +14,12 @@ namespace Amanzi {
 namespace Relations {
 
 // method for instantiating VaporPressure implementations
-Teuchos::RCP<VaporPressureRelation> VaporPressureRelationFactory::createVaporPressure(Teuchos::ParameterList& plist) {
+Teuchos::RCP<VaporPressureRelation>
+VaporPressureRelationFactory::createVaporPressure(Teuchos::ParameterList& plist)
+{
   std::string eos_typename = plist.get<std::string>("vapor pressure model type");
   return Teuchos::rcp(CreateInstance(eos_typename, plist));
 };
 
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace Amanzi

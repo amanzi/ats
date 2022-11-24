@@ -42,10 +42,8 @@ namespace Relations {
 class LiquidGasWaterContentModel;
 
 class LiquidGasWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  LiquidGasWaterContentEvaluator(Teuchos::ParameterList& plist);
+  explicit LiquidGasWaterContentEvaluator(Teuchos::ParameterList& plist);
   LiquidGasWaterContentEvaluator(const LiquidGasWaterContentEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -54,11 +52,11 @@ class LiquidGasWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -74,12 +72,11 @@ class LiquidGasWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<LiquidGasWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,LiquidGasWaterContentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, LiquidGasWaterContentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

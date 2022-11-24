@@ -26,12 +26,14 @@ class OneUFRelPermModel : public SurfaceRelPermModel {
 
   virtual double SurfaceRelPerm(double uf, double h);
 
-  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) {
+  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
 
-  virtual double DSurfaceRelPermDPondedDepth(double uf, double h) {
+  virtual double DSurfaceRelPermDPondedDepth(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
@@ -44,12 +46,10 @@ class OneUFRelPermModel : public SurfaceRelPermModel {
   double h_cutoff_up_, h_cutoff_dn_;
 
  private:
-  static Utils::RegisteredFactory<SurfaceRelPermModel,OneUFRelPermModel> reg_;
-  
+  static Utils::RegisteredFactory<SurfaceRelPermModel, OneUFRelPermModel> reg_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif
-

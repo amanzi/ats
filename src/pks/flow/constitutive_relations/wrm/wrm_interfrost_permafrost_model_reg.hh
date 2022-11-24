@@ -13,7 +13,8 @@ namespace Flow {
 
 
 // registry of method
-Utils::RegisteredFactory<WRMPermafrostModel,WRMInterfrostPermafrostModel> WRMInterfrostPermafrostModel::factory_("interfrost permafrost model");
+Utils::RegisteredFactory<WRMPermafrostModel, WRMInterfrostPermafrostModel>
+  WRMInterfrostPermafrostModel::factory_("interfrost permafrost model");
 
 } // namespace Flow
-} // namespace Flow
+} // namespace Amanzi

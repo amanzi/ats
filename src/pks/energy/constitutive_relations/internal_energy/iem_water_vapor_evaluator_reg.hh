@@ -11,7 +11,8 @@
 namespace Amanzi {
 namespace Energy {
 
-Utils::RegisteredFactory<Evaluator,IEMWaterVaporEvaluator> IEMWaterVaporEvaluator::factory_("iem water vapor");
+Utils::RegisteredFactory<Evaluator, IEMWaterVaporEvaluator>
+  IEMWaterVaporEvaluator::factory_("iem water vapor");
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi

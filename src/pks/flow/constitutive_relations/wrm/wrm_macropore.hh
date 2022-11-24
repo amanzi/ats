@@ -25,7 +25,6 @@ An exponential model basd on the equations of... (document me!)
  */
 
 
-
 #ifndef ATS_FLOWRELATIONS_WRM_MACROPORE_
 #define ATS_FLOWRELATIONS_WRM_MACROPORE_
 
@@ -39,8 +38,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMMacropore : public WRM {
-
-public:
+ public:
   explicit WRMMacropore(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -59,10 +57,10 @@ public:
 
   Teuchos::ParameterList& plist_;
 
-  double a_;  // Macropore parameters: a, dP, Pwe
+  double a_; // Macropore parameters: a, dP, Pwe
   double dP_;
   double Pwe_;
-  double sr_;  // Macropore residual saturation
+  double sr_; // Macropore residual saturation
 
   // int function_;
   // double s0_;  // regularization threshold in saturation
@@ -72,10 +70,10 @@ public:
   // Amanzi::Utils::Spline fit_s_;
 
 
-  static Utils::RegisteredFactory<WRM,WRMMacropore> factory_;
+  static Utils::RegisteredFactory<WRM, WRMMacropore> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

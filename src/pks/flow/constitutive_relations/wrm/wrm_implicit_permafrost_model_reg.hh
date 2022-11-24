@@ -7,7 +7,8 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<WRMPermafrostModel,WRMImplicitPermafrostModel> WRMImplicitPermafrostModel::factory_("permafrost model");
+Utils::RegisteredFactory<WRMPermafrostModel, WRMImplicitPermafrostModel>
+  WRMImplicitPermafrostModel::factory_("permafrost model");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

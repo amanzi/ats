@@ -17,7 +17,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSIce> EOSIce::factory_("ice");
+Utils::RegisteredFactory<EOS, EOSIce> EOSIce::factory_("ice");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

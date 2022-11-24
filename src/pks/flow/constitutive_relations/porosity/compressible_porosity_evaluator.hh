@@ -39,19 +39,19 @@ namespace Flow {
 
 class CompressiblePorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  CompressiblePorosityEvaluator(Teuchos::ParameterList& plist);
+  explicit CompressiblePorosityEvaluator(Teuchos::ParameterList& plist);
   CompressiblePorosityEvaluator(const CompressiblePorosityEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<CompressiblePorosityModelPartition> get_Models() { return models_; }
 
-protected:
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key poro_key_;
@@ -60,11 +60,10 @@ protected:
   Teuchos::RCP<CompressiblePorosityModelPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,CompressiblePorosityEvaluator> fac_;
-
+  static Utils::RegisteredFactory<Evaluator, CompressiblePorosityEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

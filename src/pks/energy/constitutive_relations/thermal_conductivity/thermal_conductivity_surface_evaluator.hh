@@ -16,9 +16,7 @@
 namespace Amanzi {
 namespace Energy {
 
-class ThermalConductivitySurfaceEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class ThermalConductivitySurfaceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   // constructor format for all derived classes
   ThermalConductivitySurfaceEvaluator(Teuchos::ParameterList& plist);
@@ -28,11 +26,11 @@ class ThermalConductivitySurfaceEvaluator :
 
  protected:
   // Required methods from SecondaryVariableFieldModel
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // dependencies
@@ -44,10 +42,10 @@ class ThermalConductivitySurfaceEvaluator :
   double min_K_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThermalConductivitySurfaceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ThermalConductivitySurfaceEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

@@ -14,25 +14,27 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // Constructor from ParameterList
-RootingDepthFractionModel::RootingDepthFractionModel(const LandCover& lc)
-  : lc_(lc) {}
+RootingDepthFractionModel::RootingDepthFractionModel(const LandCover& lc) : lc_(lc) {}
 
 // main method
 double
 RootingDepthFractionModel::RootingDepthFraction(double z) const
 {
-  return (z > lc_.rooting_depth_max) ? 0 :
-    0.5 * (lc_.rooting_profile_alpha * exp(-lc_.rooting_profile_alpha*z) + lc_.rooting_profile_beta * exp(-lc_.rooting_profile_beta*z));
-
+  return (z > lc_.rooting_depth_max) ?
+           0 :
+           0.5 * (lc_.rooting_profile_alpha * exp(-lc_.rooting_profile_alpha * z) +
+                  lc_.rooting_profile_beta * exp(-lc_.rooting_profile_beta * z));
 }
 
 double
 RootingDepthFractionModel::DRootingDepthFractionDDepth(double z) const
 {
-  return (z > lc_.rooting_depth_max) ? 0 :
-    -0.5*pow(lc_.rooting_profile_alpha, 2)*exp(-lc_.rooting_profile_alpha*z) - 0.5*pow(lc_.rooting_profile_beta, 2)*exp(-lc_.rooting_profile_beta*z);
+  return (z > lc_.rooting_depth_max) ?
+           0 :
+           -0.5 * pow(lc_.rooting_profile_alpha, 2) * exp(-lc_.rooting_profile_alpha * z) -
+             0.5 * pow(lc_.rooting_profile_beta, 2) * exp(-lc_.rooting_profile_beta * z);
 }
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

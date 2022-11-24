@@ -121,9 +121,7 @@ namespace Amanzi {
 namespace Deform {
 
 class VolumetricDeformation : public PK_Physical_Default {
-
  public:
-
   VolumetricDeformation(Teuchos::ParameterList& pk_tree,
                         const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
                         const Teuchos::RCP<State>& S,
@@ -146,14 +144,11 @@ class VolumetricDeformation : public PK_Physical_Default {
   // -- advance via one of a few methods
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  virtual double get_dt() override {
-    return dt_max_;
-  }
+  virtual double get_dt() override { return dt_max_; }
 
   virtual void set_dt(double dt) override {}
 
  private:
-
   // strategy for calculating nodal deformation given change in cell volume
   enum DeformStrategy {
     DEFORM_STRATEGY_GLOBAL_OPTIMIZATION,
@@ -163,11 +158,7 @@ class VolumetricDeformation : public PK_Physical_Default {
   DeformStrategy strategy_;
 
   // strategy for calculating change in cell volume
-  enum DeformMode {
-    DEFORM_MODE_DVDT,
-    DEFORM_MODE_SATURATION,
-    DEFORM_MODE_STRUCTURAL
-  };
+  enum DeformMode { DEFORM_MODE_DVDT, DEFORM_MODE_SATURATION, DEFORM_MODE_STRUCTURAL };
   DeformMode deform_mode_;
   double overpressured_limit_;
 
@@ -206,10 +197,9 @@ class VolumetricDeformation : public PK_Physical_Default {
 
   // factory registration
   static RegisteredPKFactory<VolumetricDeformation> reg_;
-
 };
 
-} // namespace
-} // namespace
+} // namespace Deform
+} // namespace Amanzi
 
 #endif

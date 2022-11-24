@@ -15,10 +15,8 @@ namespace Flow {
 namespace Relations {
 
 class RichardsWaterContentModel {
-
  public:
-  explicit
-  RichardsWaterContentModel(Teuchos::ParameterList& plist);
+  explicit RichardsWaterContentModel(Teuchos::ParameterList& plist);
 
   double WaterContent(double phi, double sl, double nl, double cv) const;
 
@@ -26,18 +24,15 @@ class RichardsWaterContentModel {
   double DWaterContentDSaturationLiquid(double phi, double sl, double nl, double cv) const;
   double DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double cv) const;
   double DWaterContentDCellVolume(double phi, double sl, double nl, double cv) const;
-  
+
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
-
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

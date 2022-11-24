@@ -17,7 +17,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSWater> EOSWater::factory_("liquid water");
+Utils::RegisteredFactory<EOS, EOSWater> EOSWater::factory_("liquid water");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
