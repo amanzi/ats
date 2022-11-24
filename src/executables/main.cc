@@ -176,6 +176,12 @@ main(int argc, char* argv[])
     Amanzi::VerboseObject::global_default_level = verbosity_from_list;
   if (!verbosity.empty()) Amanzi::VerboseObject::global_default_level = opt_level;
 
+  if (Amanzi::VerboseObject::global_default_level != Teuchos::VERB_NONE &&
+      (rank == 0)) {
+    std::cout << "ATS version " << XSTR(ATS_VERSION) << ", Amanzi version " << XSTR(AMANZI_VERSION) << std::endl;
+  }
+
+
   // create the top level driver and run simulation
   ATS::ATSDriver driver(plist, comm);
   int ret = 0;
