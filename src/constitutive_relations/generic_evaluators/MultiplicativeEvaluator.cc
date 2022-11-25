@@ -61,8 +61,9 @@ MultiplicativeEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
     auto& res_c = *(result[0]->ViewComponent(lcv_name, false));
     int i = 0;
     for (const auto& key_tag : dependencies_) {
-      const auto& dep_v = *(*S.Get<CompositeVector>(key_tag.first, key_tag.second)
-                               .ViewComponent(lcv_name, false))(dofs_[i]);
+      const auto& dep_v =
+        *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).ViewComponent(lcv_name, false))(
+          dofs_[i]);
       res_c.Multiply(1, dep_v, res_c, 0.);
       i++;
     }
@@ -89,8 +90,9 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
     int i = 0;
     for (const auto& key_tag : dependencies_) {
       if ((key_tag.first != wrt_key) || (key_tag.second != wrt_tag)) {
-        const auto& dep_v = *(*S.Get<CompositeVector>(key_tag.first, key_tag.second)
-                                 .ViewComponent(lcv_name, false))(dofs_[i]);
+        const auto& dep_v =
+          *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).ViewComponent(lcv_name, false))(
+            dofs_[i]);
         res_c.Multiply(1, dep_v, res_c, 0.);
         i++;
       }
