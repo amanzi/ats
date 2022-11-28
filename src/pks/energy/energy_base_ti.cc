@@ -183,6 +183,7 @@ void EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
 
   // create local matrices
   preconditioner_->Init();
+  preconditioner_diff_->SetTensorCoefficient(Teuchos::null); // ETC: FORCE UPDATE MASS MATRICES
   preconditioner_diff_->SetScalarCoefficient(conductivity, dKdT);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);

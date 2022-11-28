@@ -385,6 +385,7 @@ void EnergyBase::CommitStep(double t_old, double t_new, const Teuchos::RCP<State
     Teuchos::RCP<const CompositeVector> temp = S->GetFieldData(key_);
     Teuchos::RCP<const CompositeVector> conductivity = S->GetFieldData(uw_conductivity_key_);
     matrix_diff_->global_operator()->Init();
+    matrix_diff_->SetTensorCoefficient(Teuchos::null); // ETC: FORCE UPDATE MASS MATRICES
     matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
     matrix_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
     matrix_diff_->ApplyBCs(true, true, true);
@@ -766,6 +767,7 @@ void EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u
 
   // Update the preconditioner
   matrix_diff_->global_operator()->Init();
+  matrix_diff_->SetTensorCoefficient(Teuchos::null); // ETC: FORCE UPDATE MASS MATRICES
   matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, u);
   //matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);

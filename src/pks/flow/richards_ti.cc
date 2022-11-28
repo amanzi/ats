@@ -37,8 +37,6 @@ void Richards::FunctionalResidual(double t_old,
   Solution_to_State(*u_new, S_next_);
   Teuchos::RCP<CompositeVector> u = u_new->Data();
 
-  if (dynamic_mesh_) matrix_diff_->SetTensorCoefficient(K_);
-
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old
@@ -177,6 +175,7 @@ void Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
   }
 
   // create local matrices
+  preconditioner_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);

@@ -31,6 +31,7 @@ void Richards::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
   matrix_->Init();
 
   S->GetFieldEvaluator(mass_dens_key_)->HasFieldChanged(S, name_);
+  matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
   matrix_diff_->SetDensity(S->GetFieldData(mass_dens_key_));
   matrix_diff_->SetScalarCoefficient(S->GetFieldData(uw_coef_key_), Teuchos::null);
 

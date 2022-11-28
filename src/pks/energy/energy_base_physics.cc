@@ -88,6 +88,7 @@ void EnergyBase::ApplyDiffusion_(const Teuchos::Ptr<State>& S,
 
   // update the stiffness matrix
   matrix_diff_->global_operator()->Init();
+  matrix_diff_->SetTensorCoefficient(Teuchos::null); // ETC: FORCE UPDATE MASS MATRICES
   matrix_diff_->SetScalarCoefficient(conductivity, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, temp.ptr());
   matrix_diff_->ApplyBCs(true, true, true);

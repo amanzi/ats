@@ -680,6 +680,7 @@ void Richards::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>&
     Teuchos::RCP<CompositeVector> pres = S->GetFieldData(key_, name_);
 
     matrix_->Init();
+    matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
     matrix_diff_->SetDensity(rho);
     matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
     matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
@@ -788,6 +789,7 @@ void Richards::CalculateDiagnostics(const Teuchos::RCP<State>& S)
   Teuchos::RCP<const CompositeVector> rel_perm = S->GetFieldData(uw_coef_key_);
   Teuchos::RCP<const CompositeVector> rho = S->GetFieldData(mass_dens_key_);
   // update the stiffness matrix
+  matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
@@ -829,6 +831,7 @@ bool Richards::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
       Teuchos::RCP<const CompositeVector> pres = S->GetFieldData(key_);
 
 
+      face_matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
       //if (!pres->HasComponent("face"))
@@ -1338,6 +1341,7 @@ bool Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
     S_next_->GetFieldData(uw_coef_key_);
 
   matrix_->Init();
+  matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   Teuchos::RCP<const CompositeVector> rho = S_next_->GetFieldData(mass_dens_key_);
   Teuchos::RCP<const CompositeVector> pres = S_next_->GetFieldData(key_);
@@ -1446,6 +1450,7 @@ void Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 
   // Update the preconditioner with darcy and gravity fluxes
   matrix_->Init();
+  matrix_diff_->SetTensorCoefficient(K_); // ETC: HACK TO FORCE MASS MATRIX CHANGE
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, u);
