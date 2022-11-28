@@ -209,8 +209,9 @@ void SurfaceEnergyBalance::UpdateVaporPressure(VaporPressure& vp) {
   //Convert from Kelvin to Celsius
   temp = vp.temp-273.15;
   // Sat vap. press o/water Dingman D-7 (Bolton, 1980)
-// *** (Bolton, 1980) Calculates vapor pressure in millibars or hPa  ****
-  vp.saturated_vaporpressure = 0.6112*std::exp(17.67*temp / (temp+243.5));
+  // Westermann (2016), August–Roche–Magnus formula, kPa
+  //  vp.saturated_vaporpressure = 0.6112*std::exp(17.67*temp / (temp+243.5)); // Bolton
+  vp.saturated_vaporpressure = (temp>0) ? 0.611*std::exp(17.62*temp/(temp+243.12)) : 0.611*std::exp(22.46*temp/(temp+272.62));
   // (Bolton, 1980)
   vp.actual_vaporpressure = vp.saturated_vaporpressure * vp.relative_humidity;
   // Find dewpoint Temp Dingman D-11

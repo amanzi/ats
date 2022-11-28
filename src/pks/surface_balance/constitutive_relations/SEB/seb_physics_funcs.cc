@@ -90,10 +90,13 @@ double StabilityFunction(double air_temp, double skin_temp, double Us,
 
 double SaturatedVaporPressure(double temp)
 {
-  // Sat vap. press o/water Dingman D-7 (Bolton, 1980)
-  // *** (Bolton, 1980) Calculates vapor pressure in [kPa]  ****
+  // Westermann (2016), August–Roche–Magnus formula, kPa
   double tempC = temp - 273.15;
-  return 0.6112 * std::exp(17.67 * tempC / (tempC + 243.5));
+  if (tempC > 0) {
+    return 0.611 * std::exp(17.62 * tempC / (tempC + 243.12));
+  } else {
+    return 0.611 * std::exp(22.46 * tempC / (tempC + 272.62));
+  }
 }
 
 double VaporPressureAir(double air_temp, double relative_humidity)
