@@ -6,7 +6,7 @@
 
 
 # collect all sources
-list(APPEND subdirs elevation overland_conductivity porosity water_content wrm)
+list(APPEND subdirs elevation overland_conductivity porosity water_content wrm sources)
 set(ats_flow_relations_src_files "")
 set(ats_flow_relations_inc_files "")
 

@@ -39,14 +39,12 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
           const std::vector<CompositeVector*>& result) override;
 
  protected:
- //What are the names for the flow depth above surface and hydraulic head in pipe network?
- //Key pres_key_, cv_key_;
-
+ Key head_key_, mark_key_;
+ 
   double manhole_radius_;
   double energy_losses_coeff_; //at manhole
   double H_max_; //max height of pipe (considering a rectangular cross section)
   double H_; //surface elevation relative to the pipe flow hydraulic head
-//we also need some array of cells that says in what cell the manhole is
 
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;
