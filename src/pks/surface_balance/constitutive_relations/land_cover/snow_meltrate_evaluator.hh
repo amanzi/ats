@@ -28,6 +28,7 @@ Uses LandCover for snow_ground_transition parameter.
      guess a sane default by the snow domain name.
 
    KEYS:
+
    - `"air temperature`"  **SURFACE_DOMAIN-air_temperature**
    - `"snow water equivalent`" **DOMAIN-water_equivalent**
 

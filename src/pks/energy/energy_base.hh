@@ -106,18 +106,23 @@ Solves an advection-diffusion equation for energy:
       Typically not provided by users, as defaults are correct.
 
     IF
+
     * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
+
     THEN
+
     * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
+
     END
 
     * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
       surface boundary conditions from the surface temperature (Dirichlet).
 
     KEYS:
+
     - `"conserved quantity`" **DOMAIN-energy** The total energy :math:`E` `[MJ]`
     - `"energy`" **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
     - `"water content`" **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
@@ -129,6 +134,7 @@ Solves an advection-diffusion equation for energy:
     - `"upwinded thermal conductivity`" **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
 
     EVALUATORS:
+
     - `"source term`" **optional** If source key is provided.
     - `"enthalpy`"
     - `"cell volume`"

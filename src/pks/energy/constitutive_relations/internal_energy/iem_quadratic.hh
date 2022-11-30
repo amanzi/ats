@@ -15,8 +15,10 @@ Quadratic internal energy model -- function of Cv and temperature
 
     u = L_f + C_v * (T - T_{ref}) + b(T - T_{ref})^2
 
-.. _iem-quadratic-spec
-.. admonition:: iem-quadratic-spec
+`"IEM type`" = `"quadratic`"
+
+.. _IEM-model-quadratic-spec
+.. admonition:: IEM-model-quadratic-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
 

@@ -1,16 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  License: BSD
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
-/* -------------------------------------------------------------------------
-ATS
+/*!
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
-
-Hacky TC model with constant values as a function of temperature, requires the
-sutra model for permafrost WRM to also be used.  This only exists to support
-the INTERFROST comparison.
+Thermal conductivity model with constant values as a function of temperature,
+requires the sutra model for permafrost WRM to also be used.  This only exists
+to support the INTERFROST comparison.
 
 Usage:
+
+.. code:: xml
 
   <ParameterList name="Thermal Conductivity Model">
     <Parameter name="Thermal Conductivity Type" type="string" value="sutra hacked"/>
@@ -20,8 +21,8 @@ Usage:
     <Parameter name="residual saturation" type="double" value=""/>
   </ParameterList>
 
-Units: ????
-------------------------------------------------------------------------- */
+Units: [W m^-1 K^-1]
+*/
 
 #ifndef PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_SUTRA_HACKEED_HH_
 #define PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_SUTRA_HACKEED_HH_

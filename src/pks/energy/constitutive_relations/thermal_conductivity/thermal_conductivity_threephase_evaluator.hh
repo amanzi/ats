@@ -5,7 +5,26 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Thermal conductivity based on a three-phase (air,liquid,ice) composition of the porous media.
+/*!
+
+Thermal conductivity based on a three-phase (air,liquid,ice) composition of the
+porous media.
+
+`"evaluator type`" = `"three-phase thermal conductivity`"
+
+.. _thermal-conductivity-threephase-evaluator-spec:
+.. admonition:: thermal-conductivity-threephase-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-threephase-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"porosity`"
+   - `"saturation liquid`"
+   - `"second saturation`"
+   - `"temperature`"
+
+*/
 
 #pragma once
 

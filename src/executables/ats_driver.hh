@@ -13,23 +13,24 @@
 
 /*!
 
-ATS's top-level driver accepts an XML list including a few required elements.
+ATS's top level driver is provided the entire input spec as a single list
+called `"main`".  That list contains the following required elements:
 
 .. _main-spec:
 .. admonition:: main-spec
 
+    * `"cycle driver`" ``[coordinator-spec]``  See below.
     * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
     * `"regions`" ``[region-typedsublist-spec-list]`` A list of Region_ objects.
-    * `"cycle driver`" ``[coordinator-spec]``  See below.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
-    * `"checkpoint`" ``[checkpoint-spec]`` See Checkpoint_.
-    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of PK_ objects.
-    * `"state`" ``[state-spec]`` See State_.
+    * `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec.
+    * `"PKs`" ``[pk-typedinline-spec-list]`` A list of `Process Kernels`_.
+    * `"state`" ``[state-spec]`` A State_ spec.
 
- */
 
-/*!
+Coordinator
+############
 
 In the `"cycle driver`" sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.

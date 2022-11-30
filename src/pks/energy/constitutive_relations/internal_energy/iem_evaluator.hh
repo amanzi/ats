@@ -1,9 +1,25 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   The IEM Evaluator simply calls the IEM with the correct arguments.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Computes (specific) internal energy of as a function of temperature.
+
+`"evaluator type`" = `"iem`"
+
+.. _iem-evaluator-spec:
+.. admonition:: iem-evaluator-spec
+
+   * `"IEM parameters`" ``[IEM-model-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"temperature`"
+
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_IEM_EVALUATOR_

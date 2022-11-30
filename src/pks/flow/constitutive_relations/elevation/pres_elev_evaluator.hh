@@ -10,14 +10,19 @@
 */
 
 /*!
-Evaluator type: ""
 
 .. math::
   h + z
 
-* `"my key`" ``[string]`` **pres_elev** Names the surface water potential variable, h + z [m]
-* `"height key`" ``[string]`` **ponded_depth** Names the height variable. [m]
-* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
+`"evaluator type`" =
+
+.. _pres-elev-evaluator-spec
+.. admonition:: pres-elev-evaluator-spec
+
+   KEYS:
+   
+   - `"height`" **DOMAIN-ponded_depth** Names the height variable. [m]
+   - `"elevation`" **DOMAIN-elevation** Names the elevation variable. [m]
 
 
 NOTE: This is a legacy evaluator, and is not in the factory, so need not be in

@@ -18,7 +18,7 @@ the mesh.
    * `"region`" ``[string]`` Region on which the WRM is valid.
    * `"WRM type`" ``[string]`` Name of the WRM type.
    * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
-      parameter spec for each type.
+     parameter spec for each type.
 
 */
 

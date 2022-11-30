@@ -1,14 +1,24 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  ATS
-
-  Viscosity for liquid water.  See the permafrost physical properties notes for
-  references and documentation of this EOS at:
-
-  http://software.lanl.gov/ats/trac
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+/*!
+
+A constitutive relation for the viscosity of water as a function of temperature
+in K, given as an empirical series expansion fit to data.
+
+Used by setting
+
+`"viscosity relation type`" = `"liquid water`"
+
+.. _viscosity-water-spec
+.. admonition:: viscosity-water-spec
+
+   NONE
+
 */
 
 #ifndef AMANZI_RELATIONS_VISCOSITY_WATER_HH_

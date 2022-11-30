@@ -16,11 +16,15 @@ Compressible grains are both physically realistic (based on bulk modulus) and a
 simple way to provide a non-elliptic, diagonal term for helping solvers to
 converge.
 
+`"evaluator type`" = `"compressible porosity`"
+
 .. _compressible-porosity-evaluator-spec
 .. admonition:: compressible-porosity-evaluator-spec
+
    * `"compressible porosity model parameters`" ``[compressible-porosity-model-spec-list]``
 
    KEYS:
+
    - `"pressure`" **DOMAIN-pressure**
    - `"base porosity`" **DOMAIN-base_porosity**
 

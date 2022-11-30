@@ -1,12 +1,18 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  Amanzi needs to fix its WRM interface... the current lack of factory or
-  common interface is stupid.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+This model was used as a part of the INTERFROST code comparison effort which
+led to the paper by Grenier et al 2018 AWR.  It is not intended to be used in
+most ATS runs.
+
+*/
 #ifndef FLOWRELATIONS_WRM_INTERFROST_
 #define FLOWRELATIONS_WRM_INTERFROST_
 

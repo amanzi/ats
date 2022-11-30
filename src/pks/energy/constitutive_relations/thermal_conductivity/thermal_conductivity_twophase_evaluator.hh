@@ -7,6 +7,25 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+Thermal conductivity based on two-phases (air,liquid) composition of the
+porous media.
+
+`"evaluator type`" = `"two-phase thermal conductivity`"
+
+.. _thermal-conductivity-twophase-evaluator-spec:
+.. admonition:: thermal-conductivity-twophase-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"porosity`"
+   - `"saturation liquid`"
+
+*/
+
 #ifndef AMANZI_ENERGY_RELATIONS_TC_TWOPHASE_EVALUATOR_HH_
 #define AMANZI_ENERGY_RELATIONS_TC_TWOPHASE_EVALUATOR_HH_
 

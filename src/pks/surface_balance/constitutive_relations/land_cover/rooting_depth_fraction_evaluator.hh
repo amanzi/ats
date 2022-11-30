@@ -25,6 +25,7 @@ LandCover type.
    * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
 
    KEYS:
+
    - `"depth`" **DOMAIN-depth**
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface cell volume`" **SURFACE_DOMAIN-cell_volume**

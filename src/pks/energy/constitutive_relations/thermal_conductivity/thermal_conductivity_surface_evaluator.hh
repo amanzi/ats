@@ -1,10 +1,34 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   Interface for a thermal conductivity model with two phases.
 
   License: BSD
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Thermal conductivity of surface water that can be either frozen or liquid phase.
+
+`"evaluator type`" = `"surface thermal conductivity`"
+
+.. _thermal-conductivity-surface-evaluator-spec:
+.. admonition:: thermal-conductivity-surface-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
+
+   KEYS:
+
+   - `"unfrozen fraction`"
+   - `"ponded depth`"
+
+.. _thermal-conductivity-surface-spec:
+.. admonition:: thermal-conductivity-surface-spec
+
+   * `"thermal conductivity of water [W m^-1 K^-1]`" ``[double]`` **0.58**
+   * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` **2.18**
+   * `"minimum thermal conductivity`" ``[double]`` **1.e-14**
+
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_TC_SURFACE_EVALUATOR_HH_

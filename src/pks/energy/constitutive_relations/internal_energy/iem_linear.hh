@@ -15,8 +15,10 @@ Linear internal energy model -- function of Cv and temperature
 
     u = L_f +  C_v * (T - T_{ref})
 
-.. _iem-linear-spec
-.. admonition:: iem-linear-spec
+`"IEM type`" = `"linear`"
+    
+.. _IEM-model-linear-spec
+.. admonition:: IEM-model-linear-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above
 

@@ -7,6 +7,11 @@ Manning's coefficient that varies based on litter thickness and ponded depth.
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+(missing documentation!)
+
+*/
 #ifndef AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_EVALUATOR_HH_
 #define AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_EVALUATOR_HH_
 

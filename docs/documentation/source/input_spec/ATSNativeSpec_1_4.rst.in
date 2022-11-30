@@ -1,55 +1,37 @@
-ATS Native XML Input Specification V-dev
+ATS Native XML Input Specification V-1.4
 ****************************************
 
 
 .. contents:: **Table of Contents**
-  :local:
-  :depth: 2
+   :depth: 2
 
   
-About the Specification
-#######################
+Syntax of the Specification
+#######################################
 
-ATS, and Amanzi's "native" specificiation, is an xml file following
-Trilinos's Teuchos ParameterList schema.  There are only two types of
-tags used -- `"Parameter`" and `"ParameterList`".  `"Parameter`"
-elements consist of `"name`", `"type`", and `"value`" attributes.
-`"ParameterList`" elements use the `"name`" attribute and include
-subelements that are other `"ParameterList`" and `"Parameter`"
-elements.
+* Input specification for each ParameterList entry consists of two parts.  
+  First, a bulleted list defines the usage syntax and available options.  
+  This is followed by example snipets of XML code to demonstrate usage.
 
-The top-most, `"main`" list is read by the code and used to provide
-all information needed to run the simulation.  This input spec is
-designed for the code, not necessarily for the user.  In general,
-avoid writing input files from scratch, and prefer to modify existing
-demos or examples.
+* In many cases, the input specifies data for a particular parameterized model, and ATS 
+  supports a number of parameterizations.  
+  For example, initial data might be uniform (the value is required), or linear in y (the value 
+  and its gradient are required).  
+  Where ATS supports a number of parameterized models for quantity Z, the available 
+  models will be listed by name, and then will be described in the subsequent section.  
+  For example, the specification for an `"X`" list might begin with the following:
 
-Here we document the input spec by defining what each possible element
-used by the code needs to be well posed.
+  * `"Y`" ``[string]`` **"default_value"**, `"other`", `"valid`", `"options`"
 
-Specs
-=====
+  * Z ``[Z-spec]`` Model for Z, choose exactly one of the following: (1) `"z1`", or (2) `"z2`" (see below) 
 
-In many cases, the input specifies data for a particular parameterized
-model, and ATS supports a number of parameterizations.  For example,
-initial data might be uniform (the value is required), or linear in y
-(the value and its gradient are required).  Where ATS supports a
-number of parameterized models for quantity Z, the available models
-will be listed by name, and then will be described in the subsequent
-section.  For example, the specification for an `"X`" list might look
-like:
+Here, an `"X`" is defined by a `"Y`" and a `"Z`".  
+The `"Y`" is a string parameter but the `"Z`" is given by a model (which will require its own set of parameters).
+The options for `"Z`" will then be described as a spec:
 
-.. _X-spec:
-.. admonition:: X-spec
+ * `"z1`" applies model z1.  Requires `"z1a`" ``[string]``
 
-  * `"Y`" ``[string]`` **default_value** Documentation desribing Y.
-  * `"Z`" ``[Z-spec]`` Model for Z, One of `"z1`" or `"z2`" (see below) 
-
-Here, an `"X`" is defined by a `"Y`" and a `"Z`".  The `"Y`" is a
-string parameter but the `"Z`" is given by a model (which will require
-its own set of parameters).  The options for `"Z`" will then be
-described seperately as a `"Z-spec`"
-
+ * `"z2`" applies model z2.  Requires `"z2a`" ``[double]`` and `"z2b`" ``[int]``
 
 An example of using such a specification:
 
@@ -63,72 +45,31 @@ An example of using such a specification:
       </ParameterList>   
     </ParameterList>   
  
+Here, the user is defining X with Y="hello", and Z will be a z2 constructed with z2a=0.7 and z2b=3.
 
-Syntax
-======
+Conventions:
 
 * Reserved keywords and labels are `"quoted and italicized`" -- these
   labels or values of parameters in user-generated input files must
   match (using XML matching rules) the specified or allowable values.
 
 * User-defined labels are indicated with ALL-CAPS, and are meant to
-  represent a typical or default name given by a user - these can be
-  names or numbers or whatever serves best the organization of the
-  user input data.  Things liked PRESSURE or SURFACE-PONDED_DEPTH can
-  be renamed from their defaults if it makes sense to the problem.
+  represent a typical name given by a user - these can be names or
+  numbers or whatever serves best the organization of the user input
+  data.
 
 * Bold values are default values, and are used if the Parameter
   is not provided.
 
-Naming
-======
-
-Variables are named according to a very strong convention.  While some
-variables may be overridden by the user, users should choose to follow
-these conventions or things like visualization scripts may not behave
-as expected.
-
-A variable name looks like one of:
-
-- SUFFIX
-- DOMAIN-SUFFIX
-- DOMAIN_SET:ID-VARNAME
-
-where:
-
-- When DOMAIN is supplied, it is the "default" mesh, called `"domain`"
-  in the mesh list, and otherwise is the name of the mesh (e.g. `"surface`").
-- DOMAIN_SET:ID is itself a DOMAIN, where the set defines the
-  collection as a whole (from the mesh list) and the ID is defined by
-  an index across the collection, e.g. `"column:4`"
-
-Tags indicate the use of a variable at a specific time in the
-discretized time interval.  Default tags include `"current`" and
-`"next`" indicating the variable at the beginning and end of the
-interval, respectively.  Often subcycling and other schemes will
-designate special-purpose tags which may be used internally by a
-subset of the equations begin solved.  Tags are combined with
-variables to indicate a specific data structure,
-e.g. `"surface-pressure@NEXT`".
-
-Lastly, derivatives are named using the `"d`" and the `"|`" character,
-e.g. `"dsurface-water_content|dsurface-pressure`" is the derivative of
-the `"water_content`" variable on the `"surface`" domain with respect
-to the `"pressure`" on the same domain.
-
-As a result of these conventions, none of the above individual strings,
-(suffixes, domains, domain sets, or IDs) can contain any of the
-following reserved characters: `:`, `-`, `|`, `@`.
-  
 
 Symbol Index
-============
+############
 
 .. include:: symbol_table.rst
   
 Main
 ####
-{ ats_driver }
+{ coordinator }
   
 
 Mesh
@@ -213,20 +154,9 @@ Observation
 { Observable }
 
 
-Process Kernels
-###############
-.. _`PK`:
-
-Process Kernels, or PKs, are the fundamental unit of a model, and
-represent a single or system of Partial Differential Equations (PDEs)
-or Differential Algebraic Equations (DAEs).  PKs are broadly split
-into individual equations (Physical PKs) and systems of equations,
-called Multi-Process Coordinators (MPCs).
-
-The PK tree forms the fundamental definition of the entire system of
-equations to be solved by the simulator, and is represented by a
-single PK or a single MPC which couples other MPCs and/or Physical
-PKs.
+PK
+###
+{ PK }
 
 .. contents:: **List of PKs**
    :local:
@@ -237,10 +167,6 @@ There are several types of PKs, and each PK has its own valid input
 spec.  However, there are three main types of PKs, from which nearly
 all PKs derive.  Note that none of these are true PKs and cannot stand
 alone.
-
-PK base class
--------------
-{ PK }
 
 PK: Physical
 ------------
@@ -509,30 +435,20 @@ example:
  
 
 Evaluators
-==========
+=================
+{ Evaluator }
 
-Evaluators are individual terms used to build up a PK or MPCs.  Each
-term represents a variable in the equation, and can consist of primary
-variables (those that are solved for by a PK solver), independent
-variables (those that have no dependent variables but are provided by
-the user as data), and secondary variables (those that are functions
-of other variables).  Note that all three may be variable in space
-and/or time.
 
 .. contents:: **List of Evalutors**
    :local:
 
-Primary Variables
------------------
+EvaluatorPrimary
+------------------------
 { EvaluatorPrimary }
 
-Independent Variables
----------------------
-
-Independent variables are variables which do not depend upon other
-dependent variables but are provided as data by the user.  Examples
-include material properties, forcing datasets, etc.  These can be
-provided in a few forms:
+EvaluatorIndependent
+----------------------------
+{ EvaluatorIndependent }
 
 Constant
 ^^^^^^^^
@@ -547,51 +463,10 @@ From File
 { EvaluatorIndependentFromFile }
 
 
-Secondary Variables
--------------------
+SecondaryVariableEvaluators
+---------------------------
 
-All other evaluators are secondary variable evaluators, and these are
-grouped by physics concept or process type.
-
-Secondary variables, by definition, define functions that evaluate one
-or more variables as a function of one or more variables.  Therefore
-all secondary evaluators provide at least one "Key," which is the
-variable(s) computed, and at least one "Dependency."
-
-If the evaluator computes one and only one key, that key is provided
-by the name of the parameter list in the `"evalutors`" list of State_.
-If more than one Key is computed, then the second must either be
-guessed by the code (for instance if the provided key is
-"saturation_liquid", it is likely that the other key is
-"saturation_gas") or provided by the user.  If more than one key is
-computed, all of the keys computed can be specified exactly via the
-input spec.  Keys are provided in one of two parameters:
-
-* `"my variable key`" ``[string]`` Specifically name the variable used as "my variable"
-
-* `"my variable key suffix`" ``[string]`` Name a suffix, and the
-  variable is given by DOMAIN-SUFFIX, where the DOMAIN is given by the
-  prefix in the evaluator list's name.  This is particularly useful
-  for collections of enumerated PKs, e.g. columnar PKs, where the
-  DOMAIN might be computed on the fly based on a column ID.
-
-Dependencies use the same approach -- each dependency variable name
-may include a default, and looks for a "key" and "key suffix" as
-potential options.
-
-As an example, a saturation evaluator may depend on pressure, and may
-detail all of its names via something like:
-
-.. code-block:: xml
-
-    <ParameterList name="domain:1-saturation_liquid">
-      <Parameter name="saturation gas key" type="string" value="domain:1-saturation_gas" />
-
-      <Parameter name="pressure key suffix" type="string" value="pressure" />
-      <!-- OR EQUIVALENTLY -->
-      <Parameter name="pressure key" type="string" value="domain:1-pressure" />
-    </ParameterList>
-
+All other evaluators are secondary variable evaluators, and these are grouped by physics concept or process type.
 
 Conserved quantities
 --------------------
@@ -743,16 +618,8 @@ Exponential model
 { compressible_porosity_leijnse_model }
 
 
-Viscosity of water
+Viscosity Constant
 ^^^^^^^^^^^^^^^^^^
-
-Two main viscosity models are commonly used -- a constant and one
-which is temperature-dependent.  The viscosity of water is strongly
-temperature dependent, so it is highly recommended to use that one if
-the problem is nonisothermal.
-
-Constant
-~~~~~~~~
 Like any quantity, a viscosity can simply be a constant value, at which
 point it is not a secondary variable but an independent variable.
 
@@ -764,8 +631,8 @@ point it is not a secondary variable but an independent variable.
         <Parameter name="units" type="string" value="Pa s" />
       </ParameterList>
 
-Nonisothermal
-~~~~~~~~~~~~~
+Viscosity of Water
+^^^^^^^^^^^^^^^^^^
 { viscosity_evaluator }
 { viscosity_water }
 
@@ -842,7 +709,6 @@ Quadratic
 
 Water Vapor
 ~~~~~~~~~~~
-{ iem_water_vapor_evaluator }
 { iem_water_vapor }
 
 Enthalpy
@@ -1160,8 +1026,12 @@ Cell Volume evaluator
 { EvaluatorCellVolume }
 
 Deforming Cell Volume evaluator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 { EvaluatorDeformingCellVolume }
+
+
+Coupling terms
+--------------
 
 
 Generic evaluators

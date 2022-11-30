@@ -17,16 +17,20 @@ A three-phase thermal conductivity, based upon:
 
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
+`"thermal conductivity type`" = `"three-phase wet/dry`"
+
 .. _thermal-conductivity-threephase-wetdry-spec:
 .. admonition:: thermal-conductivity-threephase-wetdry-spec
 
-    * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully saturated, unfrozen bulk soil.
-    * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully dried bulk soil.
-    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
-    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+   * `"region`" ``[string]`` Region name on which to apply these parameters.
+   * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]``
+     Thermal conductivity of fully saturated, unfrozen bulk soil.
+   * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity
+     of fully dried bulk soil.
+   * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
+   * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
+   * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
+   * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
 */
 
