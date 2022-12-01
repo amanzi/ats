@@ -21,8 +21,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
   energy_losses_coeff_ = plist.get<double>("energy losses coeff", 0.1);
-  H_max_ = plist.get<double>("pipe max height", 0.1);
-  H_ = plist.get<double>("bed flume height", 0.478);
+  //H_max_ = plist.get<double>("pipe max height", 0.1);
+  //H_ = plist.get<double>("bed flume height", 0.478);
 
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
