@@ -3054,7 +3054,7 @@ various fields.
 
    * `"initial conditions`" ``[list]`` A list of constant-in-time data.  Note
      that `"initial conditions`" is not a particularly descriptive name here --
-     PDE initial conditions are generally not here.
+     PDE initial conditions are generally not here.  This list consists of 
 
 .. _evaluator-typedinline-spec:
 .. admonition:: evaluator-typedinline-spec
@@ -3065,16 +3065,7 @@ various fields.
      stored in state but never change.  Typically they're limited to scalars
      and dense, local vectors.
 
-.. _constants-scalar-spec:
-.. admonition:: constants-scalar-spec
-
-   * `"value`" ``[double]`` Value of a scalar constant
-
-.. _constants-vector-spec:
-.. admonition:: constants-vector-spec
-
-   * `"value`" ``[Array(double)]`` Value of a dense, local vector.
-
+     
 Example:
 
 .. code-block:: xml
@@ -5796,11 +5787,13 @@ For example, one might write a dependency:
 
    ONE OF:
                 
-   * `"functions`" ``[composite-vector-function-spec-list]``  Note this is used for multiple Degress of Freedom.
+   * `"functions`" ``[composite-vector-function-spec-list]`` Note this is used
+     for multiple Degress of Freedom.
 
    OR:
 
-   * `"function`" ``[composite-vector-function-spec]`` Used for a single degree of freedom.
+   * `"function`" ``[composite-vector-function-spec]`` Used for a single degree
+     of freedom.
 
 Example:
 
@@ -5841,7 +5834,42 @@ Initial condition specs are used in three places:
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
 available options for initializing various data in state differ by
-data type:
+data type.
+
+
+
+.. _constants-scalar-spec:
+.. admonition:: constants-scalar-spec
+
+   * `"value`" ``[double]`` Value of a scalar constant
+
+.. _constants-dense-vector-spec:
+.. admonition:: constants-dense-vector-spec
+
+   * `"value`" ``[Array(double)]`` Value of a dense, local vector.
+
+.. _constants-point-spec:
+.. admonition:: constants-point-spec
+
+   * `"value`" ``[Array(double)]`` Array containing the values of the point.
+
+
+.. _constants-composite-vector-spec:
+.. admonition:: constants-composite-vector-spec
+
+   * `"constant`" ``[double]`` **optional** Constant value.
+   * `"value`" ``[double]`` **optional** Constant value, same as `"constant`" above.
+   * `"function`" ``[composite-vector-function-spec-list]`` **optional**
+     Initialize from a function, see CompositeVectorFunction_
+   * `"restart file`" ``[string]`` **optional** Path to a checkpoint file from
+     which to read the values.
+   * `"cells from file`" ``[string]`` **optional** Same as `"restart file`",
+     but only reads the cell component.
+   * `"exodus file initialization`" ``[exodus-file-initialization-spec]``
+     **optional** See `Exodus File Initialization`_.
+   * `"initialize from 1D column`" ``[column-file-initialization-spec]``
+     **optional** See `Column File Initialization`_.
+
 
 
 
@@ -8429,4 +8457,106 @@ for use in diffusion-dominated advection-diffusion equations.
 
 
 
+Field Initializers
+==================
+
+Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.
+
+Function Initialization
+-----------------------
+.. _CompositeVectorFunction:
+
+ Mesh Functions, evaluate a function on a mesh and stick the result in a vector.
+
+CompositeVectorFunctions are ways of evaluating a piecewise function on a
+mesh and sticking the result into a CompositeVector.
+
+This is used in a variety of ways -- Initial Conditions, Boundary
+Conditions, and Independent Variable Evaluators.
+
+Typically any containing object of this spec is a list of these specs.  The
+list is indexed by Region, and the regions (logically) should partition the
+domain (or boundary of the domain in the case of BCs).
+
+Each entry in that list is a:
+
+.. _composite-vector-function-spec:
+.. admonition:: composite-vector-function-spec
+
+   ONE OF
+
+   * `"region`" ``[string]`` Region on which this function is evaluated.
+
+   OR
+
+   * `"regions`" ``[Array(string)]`` List of regions on which this function is evaluated.
+
+   END
+
+   ONE OF
+
+   * `"component`" ``[string]`` Mesh component to evaluate this on.  This is
+     one of "cell", "face", "node", "edge", or "boundary_face". The last two
+     may require additional conditions, such as a proper mesh initialization.
+     The mask "*" could be used in place of the component name.
+
+   OR
+
+   * `"components`" ``[Array(string)]`` Mesh components to evaluate this on.
+     This is some collection of "cell", "face", "node", "edge", and/or
+     "boundary_face". The last two may require additional conditions, such as a
+     proper mesh initialization.  The array with the single entry "*" could be
+     used to initialize all existing components.
+
+   END
+
+   * `"function`" ``[function-typedsublist-spec]`` The spec to provide the actual algebraic function.
+
+ 
+
+
+Column File Initialization
+--------------------------
+
+
+Interpolate a depth-based, 1D column of data onto a mesh.  Values are
+prescribed only to cells.  Expected is an HDF5 file in the format:
+
+Depth coordinates z:
+
+  /z[:] = (z_0, z_1, ... , z_n)
+     z_0 = 0.0
+     z_n >= max depth of mesh
+     z_i > z_(i-1)
+
+Function values u:
+
+  /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
+
+.. _constants-composite-vector-spec:
+.. admonition:: constants-composite-vector-spec
+
+   * `"file`" ``[string]`` HDF5 filename
+   * `"z header`" ``[string]`` name of the z-coordinate data: `z` above.  Depth
+     coordinates (positive downward from the surface), [m]
+   * `"f header`" ``[string]`` name of the function data: `f` above.
+
+   ONE OF
+
+   * `"surface sideset`" ``[string]`` Region on the surface domain from which
+     to start to determine columns.
+
+   OR
+
+   * `"surface sidesets`" ``[Array(string)]`` Regions on the surface domain
+     from which to start to determine columns.
+
+   END
+
+
+
+Exodus File Initialization
+--------------------------
 

@@ -1209,7 +1209,7 @@ Initial condition specs are used in three places:
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
 available options for initializing various data in state differ by
-data type:
+data type.
 
 { Data_Helpers }
 
@@ -1543,4 +1543,23 @@ PDE_Advection
 { PDE_AdvectionUpwind }
 
 
+Field Initializers
+==================
 
+Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.
+
+Function Initialization
+-----------------------
+.. _CompositeVectorFunction:
+
+{ CompositeVectorFunctionFactory }
+
+Column File Initialization
+--------------------------
+{ ColumnMeshFunction }
+
+Exodus File Initialization
+--------------------------
+{ IO }
