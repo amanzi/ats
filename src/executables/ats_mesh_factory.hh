@@ -36,29 +36,27 @@ through providing a "verify mesh" option.
 .. _mesh-typed-spec:
 .. admonition:: mesh-typed-spec
 
-    * `"mesh type`" ``[string]`` One of:
+   * `"mesh type`" ``[string]`` One of:
 
-      - `"generate mesh`" See `Generated Mesh`_.
-      - `"read mesh file`" See `Read Mesh File`_.
-      - `"logical`" See `Logical Mesh`_.
-      - `"surface`" See `Surface Mesh`_.
-      - `"subgrid`" See `Subgrid Meshes`_.
-      - `"column`" See `Column Meshes`_.
+     - `"generate mesh`" See `Generated Mesh`_.
+     - `"read mesh file`" See `Read Mesh File`_.
+     - `"logical`" See `Logical Mesh`_.
+     - `"surface`" See `Surface Mesh`_.
+     - `"subgrid`" See `Subgrid Meshes`_.
+     - `"column`" See `Column Meshes`_.
 
-    * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
-      associated with the type.
-    * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
-    * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+   * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
+     associated with the type.
+   * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
+   * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+   * `"build columns from set`" ``[string]`` **optional** If provided, build
+     columnar structures from the provided set.
+   * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
+     mesh.  Note this only makes sense on the domain mesh.  One of:
 
-    * `"build columns from set`" ``[string]`` **optional** If provided, build
-       columnar structures from the provided set.
-
-    * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
-      mesh.  Note this only makes sense on the domain mesh.  One of:
-
-      - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
-      - `"metis`" uses the METIS graph partitioner
-      - `"zoltan`" uses the default Zoltan graph-based partitioner.
+     - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
+     - `"metis`" uses the METIS graph partitioner
+     - `"zoltan`" uses the default Zoltan graph-based partitioner.
 
 
 Generated Mesh
@@ -73,9 +71,9 @@ Specified by `"mesh type`" of `"generate mesh`".
 .. _mesh-generate-mesh-spec:
 .. admonition:: mesh-generate-mesh-spec
 
-    * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
-    * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
-    * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
+   * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
+   * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
+   * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
 
 Example:
 
@@ -111,7 +109,7 @@ Specified by `"mesh type`" of `"read mesh file`".
 .. _mesh-read-mesh-file-spec:
 .. admonition:: mesh-read-mesh-file-spec
 
-    * `"file`" ``[string]`` filename of a pre-generated mesh file
+   * `"file`" ``[string]`` filename of a pre-generated mesh file
 
 Example:
 
@@ -149,7 +147,7 @@ Specified by `"mesh type`" of `"logical`".
 .. _mesh-logical-spec:
 .. admonition:: mesh-logical-spec
 
-    Not yet completed...
+   Not yet completed...
    
 Surface Mesh
 ============
@@ -168,19 +166,19 @@ Specified by `"mesh type`" of `"surface`".
 .. _mesh-surface-spec:
 .. admonition:: mesh-surface-spec
 
-    ONE OF
+   ONE OF
 
-    * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+   * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
 
-    OR
+   OR
 
-    * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+   * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
 
-    END
+   END
 
-    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-    * `"export mesh to file`" ``[string]`` **optional** Export the lifted
-      surface mesh to this filename.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+     surface mesh to this filename.
 
 Example:
 
@@ -219,7 +217,7 @@ Specified by `"mesh type`" of `"aliased`".
 .. _mesh-aliased-spec:
 .. admonition:: mesh-aliased-spec
 
-    * `"target`" ``[string]`` Mesh that this alias points to.
+   * `"target`" ``[string]`` Mesh that this alias points to.
 
 
 Subgrid Meshes
@@ -238,12 +236,12 @@ Specified by `"mesh type`" of `"subgrid`".
 .. _mesh-subgrid-spec:
 .. admonition:: mesh-subgrid-spec
 
-    * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
-    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
-      region (usually `"cell`") on which each subgrid mesh will be associated.
-    * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-    * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
-      mesh instead of one per entity.
+   * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
+   * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+     region (usually `"cell`") on which each subgrid mesh will be associated.
+   * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
+     mesh instead of one per entity.
 
 .. todo::
    WIP: Add examples (intermediate scale model, transport subgrid model)
@@ -262,11 +260,11 @@ Specified by `"mesh type`" of `"column`".
 .. _mesh-column-spec:
 .. admonition:: mesh-column-spec
 
-    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
-      Note that the `"build columns from set`" parameter must be set in that mesh.
-    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-    * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
-    * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
+   * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+     Note that the `"build columns from set`" parameter must be set in that mesh.
+   * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
 
 Example:
 

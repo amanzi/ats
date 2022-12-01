@@ -16,15 +16,19 @@
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
 
    * `"DEPENDENCY dof`" ``[double]`` **0** Degree of Freedom for each given
-      dependency to use in the multiplication.  NOTE, this should only be
-      provided if the dependency has more than 1 DoF -- if it just has one
-      leaving this blank results in better error checking than providing the
-      value 0 manually.
+     dependency to use in the multiplication.  NOTE, this should only be
+     provided if the dependency has more than 1 DoF -- if it just has one
+     leaving this blank results in better error checking than providing the
+     value 0 manually.
 
    ONE OF
+
    * `"dependencies`" ``[Array(string)]`` The fields to multiply.
+
    OR
+
    * `"evaluator dependency suffixes`" ``[Array(string)]``
+
    END
 
 */

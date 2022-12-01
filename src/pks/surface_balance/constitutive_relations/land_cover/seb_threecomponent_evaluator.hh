@@ -5,28 +5,23 @@
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! SEBThreeComponentEvaluator: evaluates the Surface Energy Balance model on subgrid units.
+//! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
+
 
 /*!
 
-Calculates source terms for surface fluxes to and from the atmosphere and a
-snowpack.  In the case of snow on the ground, this solves for a snow
-temperature, given a skin temperature, that satisfies a energy balance
-equation.  In the case of no-snow, this calculates a conductive heat flux to
-the ground from the atmosphere.
+Calculates source terms for surface fluxes to and from the atmosphere and a ground surface characterized by three components -- snow, water-covered ground, and vegetated/bare soil.
 
-This uses a 3-component subgrid model, setting up a collection of patches, for
-portions of the column covered in snow, ponded water, and vegetated/bare
-ground.  The surface energy balance on these area weighted patches are
-individually calculated then averaged to form the total quantities.  All down-
-and up-scaling of relevant quantities are done through the area weighting,
-which is calculated by a minimum threshold in snow and a depression
-depth/geometry-based approach for water.  All snow is assumed to first cover
-water (likely ice), then cover land, as both water and snow prefer low-lying
-depressions due to gravity- and wind-driven redistributions, respectively.
+The surface energy balance on these area weighted patches are individually
+calculated then averaged to form the total quantities.  All down- and
+up-scaling of relevant quantities are done through the area weighting, which is
+calculated by a minimum threshold in snow and a depression depth/geometry-based
+approach for water.  All snow is assumed to first cover water (likely ice),
+then cover land, as both water and snow prefer low-lying depressions due to
+gravity- and wind-driven redistributions, respectively.
 
-.. _seb_subgrid_evaluator-spec:
-.. admonition:: seb_subgrid_evaluator-spec
+.. _seb-threecomponent-evaluator-spec:
+.. admonition:: seb-threecomponent-evaluator-spec
 
    * `"wind speed reference height [m]`" ``[double]`` **2.0** Reference height at which
      wind speed is measured.
@@ -39,50 +34,52 @@ depressions due to gravity- and wind-driven redistributions, respectively.
    * `"subsurface domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
    * `"snow domain name`" ``[string]`` **DEFAULT** Default set relative to surface domain name.
 
-    KEYS:
-    - `"surface water source`" **DOMAIN-water_source**  [m s^-1]
-    - `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
-    - `"subsurface water source`" **DOMAIN-water_source**  [mol s^-1]
-    - `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
-    - `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
-    - `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
+   KEYS:
 
-    Diagnostics:
-    - `"albedo`" **DOMAIN-albedo** [-] A single variate diagnostic of the final albedo.
-    - `"snowmelt`" **DOMAIN_SNOW-melt** [m_SWE s^-1]
-    - `"evaporation`" **DOMAIN-evaporative_flux** [m s^-1]
-    - `"snow temperature`" **DOMAIN_SNOW-temperature** [K]
-    - `"sensible heat flux`" **DOMAIN-qE_sensible_heat** [W m^-2]
-    - `"latent heat of evaporation`" **DOMAIN-qE_latent_heat** [W m^-2]
-    - `"latent heat of snowmelt`" **DOMAIN-qE_snowmelt** [W m^-2]
-    - `"outgoing longwave radiation`" **DOMAIN-qE_lw_out** [W m^-2]
-    - `"conducted energy flux`" **DOMAIN-qE_conducted** [W m^-2]
+   - `"surface water source`" **DOMAIN-water_source**  [m s^-1]
+   - `"surface energy source`" **DOMAIN-total_energy_source** [MW m^-2]
+   - `"subsurface water source`" **DOMAIN-water_source**  [mol s^-1]
+   - `"subsurface energy source`" **DOMAIN-total_energy_source** [MW m^-3]
+   - `"snow mass source - sink`" **DOMAIN-source_sink** [m_SWE s^-1]
+   - `"new snow source`" **DOMAIN-source** [m_SWE s^-1]
 
-    DEPENDENCIES:
-    - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
-    - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
-    - `"air temperature`" **DOMAIN-air_temperature** [K]
-    - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
-    - `"wind speed`" **DOMAIN-wind_speed** [m s^-1]
-    - `"precipitation rain`" **DOMAIN-precipitation_rain** [m s^-1]
-    - `"precipitation snow`" **DOMAIN_SNOW-precipitation** [m_SWE s^-1]
+   - `"albedo`" **DOMAIN-albedo** [-] A single variate diagnostic of the final albedo.
+   - `"snowmelt`" **DOMAIN_SNOW-melt** [m_SWE s^-1]
+   - `"evaporation`" **DOMAIN-evaporative_flux** [m s^-1]
+   - `"snow temperature`" **DOMAIN_SNOW-temperature** [K]
+   - `"sensible heat flux`" **DOMAIN-qE_sensible_heat** [W m^-2]
+   - `"latent heat of evaporation`" **DOMAIN-qE_latent_heat** [W m^-2]
+   - `"latent heat of snowmelt`" **DOMAIN-qE_snowmelt** [W m^-2]
+   - `"outgoing longwave radiation`" **DOMAIN-qE_lw_out** [W m^-2]
+   - `"conducted energy flux`" **DOMAIN-qE_conducted** [W m^-2]
 
-    - `"snow depth`" **DOMAIN_SNOW-depth** [m]
-    - `"snow density`" **DOMAIN_SNOW-density** [kg m^-3]
-    - `"snow death rate`" **DOMAIN_SNOW-death_rate** [m s^-1]  Snow "death" refers to the last bit of snowmelt that we want to remove discretely.
-    - `"ponded depth`" **DOMAIN-ponded_depth** [m]
-    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction** [-]  1 --> all surface water, 0 --> all surface ice
-    - `"subgrid albedos`" **DOMAIN-albedos** [-] Dimension 2 field of (no-snow, snow) albedos.
-    - `"subgrid emissivity`" **DOMAIN-emissivities** [-] Dimension 2 field of (no-snow, snow) emissivities.
-    - `"area fractions`" **DOMAIN-fractional_areas** Dimension 2 field of (no-snow, snow) area fractions (sum to 1).
+   DEPENDENCIES:
 
-    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
-    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
-    - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
-    - `"porosity`" [-] subsurface porosity
-    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
-    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
-    - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
+   - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
+   - `"air temperature`" **DOMAIN-air_temperature** [K]
+   - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
+   - `"wind speed`" **DOMAIN-wind_speed** [m s^-1]
+   - `"precipitation rain`" **DOMAIN-precipitation_rain** [m s^-1]
+   - `"precipitation snow`" **DOMAIN_SNOW-precipitation** [m_SWE s^-1]
+
+   - `"snow depth`" **DOMAIN_SNOW-depth** [m]
+   - `"snow density`" **DOMAIN_SNOW-density** [kg m^-3]
+   - `"snow death rate`" **DOMAIN_SNOW-death_rate** [m s^-1]  Snow "death" refers to the last bit of snowmelt that we want to remove discretely.
+   - `"ponded depth`" **DOMAIN-ponded_depth** [m]
+   - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction** [-]  1 --> all surface water, 0 --> all surface ice
+   - `"subgrid albedos`" **DOMAIN-albedos** [-] Dimension 2 field of (no-snow, snow) albedos.
+   - `"subgrid emissivity`" **DOMAIN-emissivities** [-] Dimension 2 field of (no-snow, snow) emissivities.
+   - `"area fractions`" **DOMAIN-fractional_areas** Dimension 2 field of (no-snow, snow) area fractions (sum to 1).
+
+   - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
+   - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
+   - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
+   - `"porosity`" [-] subsurface porosity
+   - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
+   - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
+
 
 .. note:
 

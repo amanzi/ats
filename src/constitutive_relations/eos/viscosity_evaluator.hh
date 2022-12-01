@@ -1,11 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
-  EOSEvaluator is the interface between state/data and the model, an EOS.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-  License: BSD
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+/*!
+
+A non-isothermal viscosity model intended for use within a range of
+temperatures from well below freezing to ~100C.
+
+.. _viscosity-evaluator-spec
+.. admonition:: viscosity-evaluator-spec
+
+   * `"viscosity model parameters`" ``[viscosity-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"temperature`"
+
+ */
+
 
 #ifndef AMANZI_RELATIONS_VISC_EVALUATOR_HH_
 #define AMANZI_RELATIONS_VISC_EVALUATOR_HH_

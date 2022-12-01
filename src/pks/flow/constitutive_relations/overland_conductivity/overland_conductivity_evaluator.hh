@@ -22,6 +22,8 @@ converts the flow law to water flux rather than volumetric flux.
 Also, this evaluator can be used in snow redistribution, and in that case needs
 some extra factors (timestep size) to ensure the correct flow law in that case.
 
+`"evaluator type`" = `"overland conductivity`"
+
 .. _overland-conductivity-evaluator-spec
 .. admonition:: overland-conductivity-evaluator-spec
 
@@ -32,6 +34,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
    * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.
 
    DEPENDENCIES:
+
    - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
      in the above equation.
    - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving

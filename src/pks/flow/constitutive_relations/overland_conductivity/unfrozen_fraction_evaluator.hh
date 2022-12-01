@@ -1,9 +1,24 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   Evaluates the unfrozen fraction model.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+/*!
+
+An empirical equation for freezing ponded water -- this is simply a smooth
+sinusoidal curve from 0 to 1 over a given transition in temperature.
+
+`"evaluator type`" = `"unfrozen fraction`"
+
+.. _unfrozen-fraction-evaluator-spec:
+.. admonition:: unfrozen-fraction-evaluator-spec
+
+   * `"unfrozen fraction model`" ``[unfrozen-fraction-model-spec]``
+
+   KEYS:
+
+   - `"temperature`"
 */
 
 #ifndef AMANZI_FLOWRELATIONS_UNFROZEN_FRACTION_EVALUATOR_

@@ -16,9 +16,12 @@ A three-phase thermal conductivity, based upon:
 
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
+`"thermal conductivity type`" = `"three-phase Peters-Lidard`"
+
 .. _thermal-conductivity-threephase-peterslidard-spec:
 .. admonition:: thermal-conductivity-threephase-peterslidard-spec
 
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
     * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
     * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
@@ -27,7 +30,9 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
     * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
     * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
-Usage:
+Example:
+
+.. code:: xml
 
   <ParameterList name="thermal_conductivity">
     <Parameter name="thermal conductivity type" type="string" value="three-phase Peters-Lidard"/>

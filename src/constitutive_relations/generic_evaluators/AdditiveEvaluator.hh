@@ -19,9 +19,13 @@
      the list below.
 
    ONE OF
+
    * `"dependencies`" ``[Array(string)]`` The things to sum.
+
    OR
+
    * `"evaluator dependency suffixes`" ``[Array(string)]``
+
    END
 
 */

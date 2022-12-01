@@ -29,16 +29,16 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
 
     Not typically set by user, defaults work:
 
-    * `"conserved quantity key`" ``[string]`` **LAYER-snow_water_equivalent**
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-snow_water_equivalent**
       Sets the default conserved quantity key, so this is likely not supplied
       by the user. `[m]`
-    * `"snow density key`" ``[string]`` **LAYER-density** Default snow density
+    * `"snow density key`" ``[string]`` **DOMAIN-density** Default snow density
       key. `[kg m^-3]`
-    * `"snow age key`" ``[string]`` **LAYER-age** Default snow age key. `[d]`
-    * `"new snow key`" ``[string]`` **LAYER-source** Default new snow key. `[m SWE s^-1]`
-    * `"area fractions key`" ``[string]`` **LAYER-fractional_areas** Subgrid
+    * `"snow age key`" ``[string]`` **DOMAIN-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **DOMAIN-fractional_areas** Subgrid
       model fractional areas, see note above. `[-]`
-    * `"snow death rate key`" ``[string]`` **LAYER-death_rate** Deals with last
+    * `"snow death rate key`" ``[string]`` **DOMAIN-death_rate** Deals with last
       tiny bit of snowmelt.
 
 */

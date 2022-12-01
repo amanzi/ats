@@ -1,9 +1,21 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   Evaluates the unfrozen fraction of water.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+/*!
+
+.. _unfrozen-fraction-model-spec:
+.. admonition:: unfrozen-fraction-model-spec
+
+   * `"transition width [K]`" ``[double]`` **0.2** Degrees over which to
+     transition from no ice to all ice.
+
+   * `"freezing point [K]`" ``[double]`` **273.15** Center of the transition,
+     at this point unfrozen fraction is 0.5.
+
+   * `"minimum unfrozen fraction [-]`` ``[double]`` **0** Sets a minimum value.
+
 */
 
 #ifndef AMANZI_FLOWRELATIONS_UNFROZEN_FRACTION_MODEL_

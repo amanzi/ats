@@ -12,11 +12,14 @@
 A simple model of three-phase thermal conductivity, based upon volume-averaging
 of four consitutive components.
 
+`"thermal conductivity type`" = `"three-phase volume averaged`"
+
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
 .. _thermal-conductivity-volume-averaged-spec:
 .. admonition:: thermal-conductivity-volume-averaged-spec
 
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal
       conductivity of soil **grains**
     * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal

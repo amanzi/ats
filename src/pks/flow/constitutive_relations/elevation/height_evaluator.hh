@@ -1,9 +1,28 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   Evaluator for determining height( rho, head )
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Computes ponded depth from surface water pressure.
+
+.. math::
+   h = \frac{H(p - p_{atm})}{\rho g}
+
+where :math:`H` is the Heaviside function.
+
+`"evaluator type`" = `"ponded depth`"
+
+.. _height-evaluator-spec:
+.. admonition:: height-evaluator-spec
+
+   KEYS:
+
+   - `"mass density`"
+   - `"pressure`"
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_HEIGHT_EVALUATOR_

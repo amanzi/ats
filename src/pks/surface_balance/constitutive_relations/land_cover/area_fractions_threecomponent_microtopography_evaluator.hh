@@ -12,6 +12,8 @@ Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
 ponded depth to determine the area of water, then heuristically places snow on
 top of that surface.
 
+`"evaluator type`" = `"area fractions, three components with microtopography`"
+
 .. _area-fractions-threecomponent-microtopography-evaluator-spec:
 .. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
 
@@ -23,6 +25,7 @@ top of that surface.
      by replacing `"surface`" with `"snow`" in the this's domain.
 
    KEYS:
+
    - `"microtopographic relief`" **DOMAIN-microtopographic_relief**
      The name of del_max, the max microtopography value.
    - `"excluded volume`" **DOMAIN-excluded_volume**

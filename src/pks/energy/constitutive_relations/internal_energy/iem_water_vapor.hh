@@ -9,10 +9,8 @@
 
 /*!
 
-Internal energy model for air and water vapor, relative to water @237.15K
-
-.. _iem-water-vapor-spec
-.. admonition:: iem-water-vapor-spec
+.. _iem-water-vapor-model-spec
+.. admonition:: iem-water-vapor-model-spec
 
     * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
     * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v

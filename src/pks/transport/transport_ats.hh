@@ -34,7 +34,7 @@ The advection-diffusion equation for component *i* in the surface may be written
     * `"PK type`" ``[string]`` **"transport ats"**
 
     * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
-       the domain of this PK.
+      the domain of this PK.
 
     * `"component names`" ``[Array(string)]`` No default. Provides the names of the
       components that will be transported. Must be in the order: aqueous, gaseous, solid. 
@@ -66,7 +66,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 
     * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
 
-      * `"effective transport porosity`" [bool] If *true*, effective transport porosity
+    * `"effective transport porosity`" [bool] If *true*, effective transport porosity
       will be used by dispersive-diffusive fluxes instead of total porosity.
       Default is *false*.
 
@@ -94,8 +94,8 @@ The advection-diffusion equation for component *i* in the surface may be written
     * `"reconstruction`" [list] collects reconstruction parameters. The available options are
       describe in the separate section below.
 
-    * `"transport subcycling`" ``[bool]`` **true** The code will default to subcycling for transport within
-      the master PK if there is one.
+    * `"transport subcycling`" ``[bool]`` **true** The code will default to
+      subcycling for transport within the master PK if there is one.
 
 
     Developer parameters:
@@ -142,18 +142,18 @@ The advection-diffusion equation for component *i* in the surface may be written
       The injection rate of a solute [molC s^-1], when given as the product of
       a concentration and a water source, is evaluated as:
 
-          Concentration [mol C L^-1] *
-            1000 [L m^-3] of water *
-            water source [mol H2O m^-3 s^-1] *
-            volume of injection domain [m^3] /
-            molar density of water [mol H2O m^-3]
+      Concentration [mol C L^-1] *
+        1000 [L m^-3] of water *
+        water source [mol H2O m^-3 s^-1] *
+        volume of injection domain [m^3] /
+        molar density of water [mol H2O m^-3]
 
 
 .. _molecular-diffusion-spec:
 .. admonition:: molecular-diffusion-spec
 
    * `"aqueous names`" ``[Array(string)]`` List of aqueous component names to
-      be diffused.
+     be diffused.
    * `"aqueous values`" ``[Array(string)]`` Diffusivities of each component.
 
 
@@ -222,23 +222,26 @@ The advection-diffusion equation for component *i* in the surface may be written
    END
 
    * `"aqueous tortuosity`" ``[double]`` Defines tortuosity for calculating
-      diffusivity of liquid solutes, [-].
+     diffusivity of liquid solutes, [-].
 
    * `"gaseous tortuosity`" ``[double]`` Defines tortuosity for calculating
-      diffusivity of gas solutes, [-].
+     diffusivity of gas solutes, [-].
 
 
 .. _transport-source-spec:
 .. admonition:: transport-source-spec
-   * `"component mass source`" [list]  Defines solute source injection rate.
-     * `"spatial distribution method`" [string] One of:
-       - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
-       - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
 
-     * `"geochemical`" [list]  Defines a source by setting solute concentration for all components (in moles/L) and an injection
+   * `"component mass source`" ``[list]``  Defines solute source injection rate.
+
+     * `"spatial distribution method`" ``[string]`` One of:
+
+        - `"volume`", source is considered as extensive quantity [molC s^-1] and is evenly distributed across the region.
+        - `"none`", source is considered as intensive quantity. [molC m^-2 s^-1] in surface and [molC m^-3 s^-1] in subsurface
+
+     * `"geochemical`" ``[list]``  Defines a source by setting solute concentration for all components (in moles/L) and an injection
        rate given by the water source.  Currently, this option is only available for Alquimia provided geochemical conditions.
 
-       - `"geochemical conditions`" [Array(string)] List of geochemical constraints providing concentration for solute injection.
+       - `"geochemical conditions`" ``[Array(string)]`` List of geochemical constraints providing concentration for solute injection.
 
 */
 

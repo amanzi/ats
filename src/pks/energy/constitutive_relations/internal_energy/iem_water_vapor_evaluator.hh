@@ -1,9 +1,27 @@
 /* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /*
   The IEM Evaluator simply calls the IEM with the correct arguments.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Computes (specific) internal energy of as a function of temperature and molar
+fraction of water vapor in the gaseous phase.
+
+`"evaluator type`" = `"iem water vapor`"
+
+.. _iem-water-vapor-evaluator-spec:
+.. admonition:: iem-water-vapor-evaluator-spec
+
+   * `"IEM parameters`" ``[IEM-water-vapor-model-spec]``
+
+   KEYS:
+
+   - `"temperature`"
+   - `"vapor molar fraction`"
+
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_IEM_WATER_VAPOR_EVALUATOR_

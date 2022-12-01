@@ -1,4 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
@@ -13,20 +12,23 @@ Water Retention Models (WRMs) determine the saturation as a function of
 pressure and the relative permeability as a function of saturation.  Most
 commonly used in practice is the van Genuchten model, but others are available default default;
 
+`"evaluator type`" = `"wrm`"
+
 .. _wrm-evaluator-spec
 .. admonition:: wrm-evaluator-spec
 
    * `"WRM parameters`" ``[WRM-typedinline-spec-list]``
 
    KEYS:
+
    - `"saturation`" **determined from evaluator name** The name
-       of the liquid saturation -- typically this is determined from
-       the evaluator name and need not be set.
+     of the liquid saturation -- typically this is determined from
+     the evaluator name and need not be set.
    - `"other saturation`"  **determined from evaluator name**
-       The name of the other saturation, usually gas -- typically this is determined
-       from the evaluator name and need not be set.
+     The name of the other saturation, usually gas -- typically this is determined
+     from the evaluator name and need not be set.
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
-       The name of the capillary pressure.
+     The name of the capillary pressure.
 
 */
 

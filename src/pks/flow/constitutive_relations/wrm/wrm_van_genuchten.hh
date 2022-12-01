@@ -20,9 +20,13 @@ van Genuchten's water retention curve.
     * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
     ONE OF:
+
     * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+
     OR
+
     * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+
     END
 
     * `"residual saturation [-]`" ``[double]`` **0.0**

@@ -27,10 +27,12 @@ Requires the use of LandCover types, for ground albedo and emissivity.
    * `"emissivity snow [-]`" ``[double]`` **0.98**
 
    KEYS:
+
    - `"subgrid albedos`" **DOMAIN-subgrid_albedos**
    - `"subgrid emissivities`" **DOMAIN-subgrid_emissivities**
 
    DEPENDENCIES:
+
    - `"snow density`" **SNOW_DOMAIN-density**
    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
 

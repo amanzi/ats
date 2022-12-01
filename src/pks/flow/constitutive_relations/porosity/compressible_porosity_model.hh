@@ -16,22 +16,29 @@
 
 Based on a linear increase, i.e.
 
-$$ \phi = \phi_{base} + H(p - p_{atm}) * \alpha $$
+.. math::
 
-where $H$ is the heaviside function and $\alpha$ is the provided
-compressibility.  If the inflection point is set to zero, the above function
-is exact.  However, then the porosity function is not smooth (has
-discontinuous derivatives).
+   \phi = \phi_{base} + H(p - p_{atm}) * \alpha
 
-* `"pore compressibility [Pa^-1]`" ``[double]``  $\alpha$ as described above
-* `"pore compressibility inflection point [Pa]`" ``[double]`` **1000**
-* `"region`" ``[string]`` Region on which this is applied.
+where :math:`H` is the heaviside function and :math:`\alpha` is the provided
+compressibility.  If the inflection point is set to zero, the above function is
+exact.  However, then the porosity function is not smooth (has discontinuous
+derivatives), so the inflection point smooths this with a quadratic that
+matches the value and derivative at the inflection point and is 0 with 0 slope
+at atmospheric pressure.
+
+.. _compressible-porosity-standard-model-spec
+.. admonition:: compressible-porosity-standard-model-spec
+
+   * `"region`" ``[string]`` Region on which this is applied.
+   * `"pore compressibility [Pa^-1]`" ``[double]``  :math:`\alpha` as described above
+   * `"pore compressibility inflection point [Pa]`" ``[double]`` **1000**
 
   The inflection point above which the function is linear.
 
 Example:
 
-.. code-block::xml
+.. code-block:: xml
 
   <ParameterList name="soil" type="ParameterList">
     <Parameter name="region" type="string" value="soil" />

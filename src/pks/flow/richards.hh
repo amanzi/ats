@@ -43,9 +43,11 @@ Solves Richards equation:
      State.
 
    IF
+
    * `"source term`" ``[bool]`` **false** Is there a source term?
 
    THEN
+
    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
      set, as the default is good. ``[mol s^-1]``
    * `"source term is differentiable`" ``[bool]`` **true** Can the
@@ -92,10 +94,10 @@ Solves Richards equation:
      - `"upwind with gravity`" Upwinds according to the gravitational
        flux direction
      - `"cell centered`" This corresponds to the harmonic mean, and is
-        most accurate if the problem is always wet, but has issues
-        when it is dry.
+       most accurate if the problem is always wet, but has issues
+       when it is dry.
      - `"arithmetic mean`" Face value is the mean of the neighboring
-        cells.  Not a good method.
+       cells.  Not a good method.
 
    Globalization and other process-based hacks:
 
@@ -138,7 +140,7 @@ Solves Richards equation:
      The inverse of the accumulation operator.  See PDE_Accumulation_.
      Typically not provided by users, as defaults are correct.
 
-   * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``
+   * `"absolute error tolerance`" ``[double]`` **2750.0** in units of [mol].
 
    * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
      face unknowns on discretizations that are cell-only (e.g. FV).  This can
@@ -153,12 +155,14 @@ Solves Richards equation:
      (:math:`\rho / \mu`).
 
    IF
+
    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
      surface boundary conditions from an exchange flux.  Note, if this is a
      coupled problem, it is probably set by the MPC.  No need for a user to
      set it.
 
    THEN
+
    * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
 
    END

@@ -19,8 +19,8 @@ will be N evaluators each filling one subdomain.
    * `"source domain name`" ``[string]`` Domain name of the source mesh.
 
    KEYS:
-   - `"field`" **SOURCE_DOMAIN-KEY**  Default set from this evaluator's name.
 
+   - `"field`" **SOURCE_DOMAIN-KEY**  Default set from this evaluator's name.
 
  */
 

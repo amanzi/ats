@@ -10,13 +10,19 @@
 
 Compressible grains are both physically realistic (based on bulk modulus) and a
 simple way to provide a non-elliptic, diagonal term for helping solvers to
-converge.
+converge.  After Leijnse thesis, 1992.
 
-* `"compressible porosity model parameters`" ``[compressible-porosity-leijnse-model-spec]``
+`"evaluator type`" = `"compressible porosity leijnse`"
 
-KEYS:
-- `"pressure`" **DOMAIN-pressure**
-- `"base porosity`" **DOMAIN-base_porosity**
+.. _compressible-porosity-leijnse-evaluator-spec
+.. admonition:: compressible-porosity-leijnse-evaluator-spec
+
+   * `"compressible porosity model parameters`" ``[compressible-porosity-leijnse-model-spec]``
+
+   KEYS:
+
+   - `"pressure`" **DOMAIN-pressure**
+   - `"base porosity`" **DOMAIN-base_porosity**
 
 */
 

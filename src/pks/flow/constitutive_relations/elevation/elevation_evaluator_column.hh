@@ -10,7 +10,6 @@
 */
 
 /*!
-Evaluator type: `"elevation column`"
 
 Evaluates elevation, slope, and aspect of the "surface_star" mesh of the Arctic
 Intermediate Scale Model (ISM).
@@ -31,18 +30,17 @@ Instead, it is a mix of:
 - aspect is set to 0.  It could easily be calculated using the same normal as
   the slope algorithm, but is not done currently.
 
+`"evaluator type`" = `"elevation column`"
+  
 .. _column-elevation-evaluator-spec:
 .. admonition:: column-elevation-evaluator-spec
 
    * `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
-
    * `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation
-      variable. [-]
-
+     variable. [-]
    * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
-      elevation changes in time, and adds the `"deformation`" and
-      `"base_porosity`" dependencies.
-
+     elevation changes in time, and adds the `"deformation`" and
+     `"base_porosity`" dependencies.
    * `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
      mesh, which is the 3D version of this domain.  In the columnar meshes the
      surface elevation and slope are assigned based on the columns and not the

@@ -1,5 +1,3 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-
 /* -----------------------------------------------------------------------------
 ATS
 
@@ -8,6 +6,27 @@ Authors: Ethan Coon (ecoon@lanl.gov)
 Evaluator for enthalpy.
 ----------------------------------------------------------------------------- */
 
+/*!
+
+Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.
+
+.. math::
+   e = u + 10^{-6} * \frac{p}{n_l}
+
+`"evaluator type`" = `"enthalpy`"
+
+.. _enthalpy-evaluator-spec:
+.. admonition:: enthalpy-evaluator-spec
+
+   * `"include work term`" ``[bool]`` **false** If false, e = u, ignoring the work term.
+
+   KEYS:
+
+   - `"internal energy`"
+   - `"pressure`"
+   - `"mass density`"
+
+*/
 
 #ifndef AMANZI_ENTHALPY_EVALUATOR_HH_
 #define AMANZI_ENTHALPY_EVALUATOR_HH_
