@@ -112,6 +112,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#residual-debugger">Residual Debugger</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#function">Function</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#operator">Operator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#field-initializers">Field Initializers</a></li>
 </ul>
 </li>
 </ul>
@@ -179,84 +180,85 @@
 <div class="contents local topic" id="table-of-contents">
 <p class="topic-title"><strong>Table of Contents</strong></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#about-the-specification" id="id23">About the Specification</a></p>
+<li><p><a class="reference internal" href="#about-the-specification" id="id24">About the Specification</a></p>
 <ul>
-<li><p><a class="reference internal" href="#specs" id="id24">Specs</a></p></li>
-<li><p><a class="reference internal" href="#syntax" id="id25">Syntax</a></p></li>
-<li><p><a class="reference internal" href="#naming" id="id26">Naming</a></p></li>
-<li><p><a class="reference internal" href="#symbol-index" id="id27">Symbol Index</a></p></li>
+<li><p><a class="reference internal" href="#specs" id="id25">Specs</a></p></li>
+<li><p><a class="reference internal" href="#syntax" id="id26">Syntax</a></p></li>
+<li><p><a class="reference internal" href="#naming" id="id27">Naming</a></p></li>
+<li><p><a class="reference internal" href="#symbol-index" id="id28">Symbol Index</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#main" id="id28">Main</a></p></li>
-<li><p><a class="reference internal" href="#coordinator" id="id29">Coordinator</a></p></li>
-<li><p><a class="reference internal" href="#mesh" id="id30">Mesh</a></p>
+<li><p><a class="reference internal" href="#main" id="id29">Main</a></p></li>
+<li><p><a class="reference internal" href="#coordinator" id="id30">Coordinator</a></p></li>
+<li><p><a class="reference internal" href="#mesh" id="id31">Mesh</a></p>
 <ul>
-<li><p><a class="reference internal" href="#generated-mesh" id="id31">Generated Mesh</a></p></li>
-<li><p><a class="reference internal" href="#read-mesh-file" id="id32">Read Mesh File</a></p></li>
-<li><p><a class="reference internal" href="#logical-mesh" id="id33">Logical Mesh</a></p></li>
-<li><p><a class="reference internal" href="#surface-mesh" id="id34">Surface Mesh</a></p></li>
-<li><p><a class="reference internal" href="#aliased-mesh" id="id35">Aliased Mesh</a></p></li>
-<li><p><a class="reference internal" href="#subgrid-meshes" id="id36">Subgrid Meshes</a></p></li>
-<li><p><a class="reference internal" href="#column-meshes" id="id37">Column Meshes</a></p></li>
+<li><p><a class="reference internal" href="#generated-mesh" id="id32">Generated Mesh</a></p></li>
+<li><p><a class="reference internal" href="#read-mesh-file" id="id33">Read Mesh File</a></p></li>
+<li><p><a class="reference internal" href="#logical-mesh" id="id34">Logical Mesh</a></p></li>
+<li><p><a class="reference internal" href="#surface-mesh" id="id35">Surface Mesh</a></p></li>
+<li><p><a class="reference internal" href="#aliased-mesh" id="id36">Aliased Mesh</a></p></li>
+<li><p><a class="reference internal" href="#subgrid-meshes" id="id37">Subgrid Meshes</a></p></li>
+<li><p><a class="reference internal" href="#column-meshes" id="id38">Column Meshes</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#region" id="id38">Region</a></p>
+<li><p><a class="reference internal" href="#region" id="id39">Region</a></p>
 <ul>
-<li><p><a class="reference internal" href="#all" id="id39">All</a></p></li>
-<li><p><a class="reference internal" href="#box" id="id40">Box</a></p></li>
-<li><p><a class="reference internal" href="#plane" id="id41">Plane</a></p></li>
-<li><p><a class="reference internal" href="#labeled-set" id="id42">Labeled Set</a></p></li>
-<li><p><a class="reference internal" href="#function-color" id="id43">Function Color</a></p></li>
-<li><p><a class="reference internal" href="#point" id="id44">Point</a></p></li>
-<li><p><a class="reference internal" href="#logical" id="id45">Logical</a></p></li>
-<li><p><a class="reference internal" href="#polygon" id="id46">Polygon</a></p></li>
-<li><p><a class="reference internal" href="#enumerated" id="id47">Enumerated</a></p></li>
-<li><p><a class="reference internal" href="#boundary" id="id48">Boundary</a></p></li>
-<li><p><a class="reference internal" href="#box-volume-fractions" id="id49">Box Volume Fractions</a></p></li>
-<li><p><a class="reference internal" href="#line-segment" id="id50">Line Segment</a></p></li>
+<li><p><a class="reference internal" href="#all" id="id40">All</a></p></li>
+<li><p><a class="reference internal" href="#box" id="id41">Box</a></p></li>
+<li><p><a class="reference internal" href="#plane" id="id42">Plane</a></p></li>
+<li><p><a class="reference internal" href="#labeled-set" id="id43">Labeled Set</a></p></li>
+<li><p><a class="reference internal" href="#function-color" id="id44">Function Color</a></p></li>
+<li><p><a class="reference internal" href="#point" id="id45">Point</a></p></li>
+<li><p><a class="reference internal" href="#logical" id="id46">Logical</a></p></li>
+<li><p><a class="reference internal" href="#polygon" id="id47">Polygon</a></p></li>
+<li><p><a class="reference internal" href="#enumerated" id="id48">Enumerated</a></p></li>
+<li><p><a class="reference internal" href="#boundary" id="id49">Boundary</a></p></li>
+<li><p><a class="reference internal" href="#box-volume-fractions" id="id50">Box Volume Fractions</a></p></li>
+<li><p><a class="reference internal" href="#line-segment" id="id51">Line Segment</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#visualization" id="id51">Visualization</a></p></li>
-<li><p><a class="reference internal" href="#checkpoint" id="id52">Checkpoint</a></p></li>
-<li><p><a class="reference internal" href="#observation" id="id53">Observation</a></p></li>
-<li><p><a class="reference internal" href="#process-kernels" id="id54">Process Kernels</a></p>
+<li><p><a class="reference internal" href="#visualization" id="id52">Visualization</a></p></li>
+<li><p><a class="reference internal" href="#checkpoint" id="id53">Checkpoint</a></p></li>
+<li><p><a class="reference internal" href="#observation" id="id54">Observation</a></p></li>
+<li><p><a class="reference internal" href="#process-kernels" id="id55">Process Kernels</a></p>
 <ul>
-<li><p><a class="reference internal" href="#base-pks" id="id55">Base PKs</a></p></li>
-<li><p><a class="reference internal" href="#physical-pks" id="id56">Physical PKs</a></p></li>
-<li><p><a class="reference internal" href="#mpc" id="id57">MPC</a></p></li>
-<li><p><a class="reference internal" href="#physical-mpcs" id="id58">Physical MPCs</a></p></li>
-<li><p><a class="reference internal" href="#globalization-delegates" id="id59">Globalization Delegates</a></p></li>
+<li><p><a class="reference internal" href="#base-pks" id="id56">Base PKs</a></p></li>
+<li><p><a class="reference internal" href="#physical-pks" id="id57">Physical PKs</a></p></li>
+<li><p><a class="reference internal" href="#mpc" id="id58">MPC</a></p></li>
+<li><p><a class="reference internal" href="#physical-mpcs" id="id59">Physical MPCs</a></p></li>
+<li><p><a class="reference internal" href="#globalization-delegates" id="id60">Globalization Delegates</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#state" id="id60">State</a></p>
+<li><p><a class="reference internal" href="#state" id="id61">State</a></p>
 <ul>
-<li><p><a class="reference internal" href="#evaluators" id="id61">Evaluators</a></p></li>
-<li><p><a class="reference internal" href="#initialconditions" id="id62">InitialConditions</a></p></li>
-<li><p><a class="reference internal" href="#boundaryconditions" id="id63">BoundaryConditions</a></p></li>
+<li><p><a class="reference internal" href="#evaluators" id="id62">Evaluators</a></p></li>
+<li><p><a class="reference internal" href="#initialconditions" id="id63">InitialConditions</a></p></li>
+<li><p><a class="reference internal" href="#boundaryconditions" id="id64">BoundaryConditions</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id64">Time integrators, solvers, and other mathematical specs</a></p>
+<li><p><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id65">Time integrators, solvers, and other mathematical specs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#timeintegrator" id="id65">TimeIntegrator</a></p></li>
-<li><p><a class="reference internal" href="#nonlinear-solver" id="id66">Nonlinear Solver</a></p></li>
-<li><p><a class="reference internal" href="#linear-solvers" id="id67">Linear Solvers</a></p></li>
-<li><p><a class="reference internal" href="#preconditioners" id="id68">Preconditioners</a></p></li>
+<li><p><a class="reference internal" href="#timeintegrator" id="id66">TimeIntegrator</a></p></li>
+<li><p><a class="reference internal" href="#nonlinear-solver" id="id67">Nonlinear Solver</a></p></li>
+<li><p><a class="reference internal" href="#linear-solvers" id="id68">Linear Solvers</a></p></li>
+<li><p><a class="reference internal" href="#preconditioners" id="id69">Preconditioners</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#other-common-specs" id="id69">Other Common Specs</a></p>
+<li><p><a class="reference internal" href="#other-common-specs" id="id70">Other Common Specs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#ioevent" id="id70">IOEvent</a></p></li>
-<li><p><a class="reference internal" href="#verbose-object" id="id71">Verbose Object</a></p></li>
-<li><p><a class="reference internal" href="#debugger" id="id72">Debugger</a></p></li>
-<li><p><a class="reference internal" href="#residual-debugger" id="id73">Residual Debugger</a></p></li>
-<li><p><a class="reference internal" href="#function" id="id74">Function</a></p></li>
-<li><p><a class="reference internal" href="#operator" id="id75">Operator</a></p></li>
+<li><p><a class="reference internal" href="#ioevent" id="id71">IOEvent</a></p></li>
+<li><p><a class="reference internal" href="#verbose-object" id="id72">Verbose Object</a></p></li>
+<li><p><a class="reference internal" href="#debugger" id="id73">Debugger</a></p></li>
+<li><p><a class="reference internal" href="#residual-debugger" id="id74">Residual Debugger</a></p></li>
+<li><p><a class="reference internal" href="#function" id="id75">Function</a></p></li>
+<li><p><a class="reference internal" href="#operator" id="id76">Operator</a></p></li>
+<li><p><a class="reference internal" href="#field-initializers" id="id77">Field Initializers</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="about-the-specification">
-<h2><a class="toc-backref" href="#id23">About the Specification</a><a class="headerlink" href="#about-the-specification" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id24">About the Specification</a><a class="headerlink" href="#about-the-specification" title="Permalink to this headline"></a></h2>
 <p>ATS, and Amanzi’s “native” specificiation, is an xml file following
 Trilinos’s Teuchos ParameterList schema.  There are only two types of
 tags used – <cite>“Parameter</cite>” and <cite>“ParameterList</cite>”.  <cite>“Parameter</cite>”
@@ -272,7 +274,7 @@ demos or examples.</p>
 <p>Here we document the input spec by defining what each possible element
 used by the code needs to be well posed.</p>
 <div class="section" id="specs">
-<h3><a class="toc-backref" href="#id24">Specs</a><a class="headerlink" href="#specs" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id25">Specs</a><a class="headerlink" href="#specs" title="Permalink to this headline"></a></h3>
 <p>In many cases, the input specifies data for a particular parameterized
 model, and ATS supports a number of parameterizations.  For example,
 initial data might be uniform (the value is required), or linear in y
@@ -304,7 +306,7 @@ described seperately as a <cite>“Z-spec</cite>”</p>
 </div>
 </div>
 <div class="section" id="syntax">
-<h3><a class="toc-backref" href="#id25">Syntax</a><a class="headerlink" href="#syntax" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id26">Syntax</a><a class="headerlink" href="#syntax" title="Permalink to this headline"></a></h3>
 <ul class="simple">
 <li><p>Reserved keywords and labels are <cite>“quoted and italicized</cite>” – these
 labels or values of parameters in user-generated input files must
@@ -319,7 +321,7 @@ is not provided.</p></li>
 </ul>
 </div>
 <div class="section" id="naming">
-<h3><a class="toc-backref" href="#id26">Naming</a><a class="headerlink" href="#naming" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id27">Naming</a><a class="headerlink" href="#naming" title="Permalink to this headline"></a></h3>
 <p>Variables are named according to a very strong convention.  While some
 variables may be overridden by the user, users should choose to follow
 these conventions or things like visualization scripts may not behave
@@ -355,7 +357,7 @@ to the <cite>“pressure</cite>” on the same domain.</p>
 following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <cite>&#64;</cite>.</p>
 </div>
 <div class="section" id="symbol-index">
-<h3><a class="toc-backref" href="#id27">Symbol Index</a><a class="headerlink" href="#symbol-index" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id28">Symbol Index</a><a class="headerlink" href="#symbol-index" title="Permalink to this headline"></a></h3>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 28%" />
@@ -468,7 +470,7 @@ following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <
 </div>
 </div>
 <div class="section" id="main">
-<h2><a class="toc-backref" href="#id28">Main</a><a class="headerlink" href="#main" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id29">Main</a><a class="headerlink" href="#main" title="Permalink to this headline"></a></h2>
 <p>ATS’s top level driver is provided the entire input spec as a single list
 called <cite>“main</cite>”.  That list contains the following required elements:</p>
 <div class="admonition-main-spec admonition" id="main-spec">
@@ -486,7 +488,7 @@ called <cite>“main</cite>”.  That list contains the following required eleme
 </div>
 </div>
 <div class="section" id="coordinator">
-<h2><a class="toc-backref" href="#id29">Coordinator</a><a class="headerlink" href="#coordinator" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id30">Coordinator</a><a class="headerlink" href="#coordinator" title="Permalink to this headline"></a></h2>
 <p>In the <cite>“cycle driver</cite>” sublist, the user specifies global control of the
 simulation, including starting and ending times and restart options.</p>
 <div class="admonition-coordinator-spec admonition" id="coordinator-spec">
@@ -546,7 +548,7 @@ of a time step crash, we do not continue on forever spewing output.</p>
 </div>
 </div>
 <div class="section" id="mesh">
-<h2><a class="toc-backref" href="#id30">Mesh</a><a class="headerlink" href="#mesh" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id31">Mesh</a><a class="headerlink" href="#mesh" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>A list of mesh objects and their domain names.</p>
 </div></blockquote>
@@ -599,7 +601,7 @@ mesh.  Note this only makes sense on the domain mesh.  One of:</p>
 </ul>
 </div>
 <div class="section" id="generated-mesh">
-<h3><a class="toc-backref" href="#id31">Generated Mesh</a><a class="headerlink" href="#generated-mesh" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id32">Generated Mesh</a><a class="headerlink" href="#generated-mesh" title="Permalink to this headline"></a></h3>
 <p>Generated mesh are by definition structured, with uniform dx, dy, and dz.
 Such a mesh is specified by a bounding box high and low coordinate, and a list
 of number of cells in each direction.</p>
@@ -627,7 +629,7 @@ of number of cells in each direction.</p>
 </div>
 </div>
 <div class="section" id="read-mesh-file">
-<h3><a class="toc-backref" href="#id32">Read Mesh File</a><a class="headerlink" href="#read-mesh-file" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id33">Read Mesh File</a><a class="headerlink" href="#read-mesh-file" title="Permalink to this headline"></a></h3>
 <p>Meshes can be pre-generated in a multitude of ways, then written to file, and
 loaded in ATS. Note that in the case of an Exodus II mesh file, the suffix of
 the serial mesh file must be .exo and the suffix of the parallel mesh file must
@@ -658,7 +660,7 @@ suffix is .exo, the code will partition automatically the serial file.</p>
 </div>
 </div>
 <div class="section" id="logical-mesh">
-<h3><a class="toc-backref" href="#id33">Logical Mesh</a><a class="headerlink" href="#logical-mesh" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id34">Logical Mesh</a><a class="headerlink" href="#logical-mesh" title="Permalink to this headline"></a></h3>
 <p>Logical meshes are meshes for whom nodal coordinates may not be
 specified, but sufficient information about the geometry of the
 conceptual domain can be specified to allow solving problems.  This
@@ -674,7 +676,7 @@ frequently for river networks, root networks, and crack networks.</p>
 </div>
 </div>
 <div class="section" id="surface-mesh">
-<h3><a class="toc-backref" href="#id34">Surface Mesh</a><a class="headerlink" href="#surface-mesh" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id35">Surface Mesh</a><a class="headerlink" href="#surface-mesh" title="Permalink to this headline"></a></h3>
 <p>To lift a surface off of the mesh, a side-set specifying all surface faces
 must be given.  These faces are lifted locally, so the partitioning of the
 surface cells will be identical to the partitioning of the subsurface faces
@@ -723,7 +725,7 @@ surface mesh to this filename.</p></li>
 </div>
 </div>
 <div class="section" id="aliased-mesh">
-<h3><a class="toc-backref" href="#id35">Aliased Mesh</a><a class="headerlink" href="#aliased-mesh" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id36">Aliased Mesh</a><a class="headerlink" href="#aliased-mesh" title="Permalink to this headline"></a></h3>
 <p>Aliased domains are simply domains that share a mesh with another domain.  For
 instance, one might find it useful to define both a “surface water” and a
 “snow” domain that share a common “surface” mesh.  In that case, typically the
@@ -738,7 +740,7 @@ be an “aliased” domain whose target is the “surface” mesh.</p>
 </div>
 </div>
 <div class="section" id="subgrid-meshes">
-<h3><a class="toc-backref" href="#id36">Subgrid Meshes</a><a class="headerlink" href="#subgrid-meshes" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id37">Subgrid Meshes</a><a class="headerlink" href="#subgrid-meshes" title="Permalink to this headline"></a></h3>
 <p>A collection of meshes formed by associating a new mesh with each entity of a
 region.  Used for a few cases, including generating a 1D column for each
 surface face of a semi-structured subsurface mesh, or for hanging logical
@@ -759,7 +761,7 @@ mesh instead of one per entity.</p></li>
 </div>
 </div>
 <div class="section" id="column-meshes">
-<h3><a class="toc-backref" href="#id37">Column Meshes</a><a class="headerlink" href="#column-meshes" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id38">Column Meshes</a><a class="headerlink" href="#column-meshes" title="Permalink to this headline"></a></h3>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Note these are rarely if ever created manually by a user.  Instead use
@@ -798,7 +800,7 @@ Note that the <cite>“build columns from set</cite>” parameter must be set in
 </div>
 </div>
 <div class="section" id="region">
-<h2><a class="toc-backref" href="#id38">Region</a><a class="headerlink" href="#region" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id39">Region</a><a class="headerlink" href="#region" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>A geometric or discrete subdomain of the full domain.</p>
 </div></blockquote>
@@ -889,22 +891,22 @@ region defined by the value 25 in color function file.</p>
 <div class="contents local topic" id="region-types">
 <p class="topic-title"><strong>Region Types</strong></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#all" id="id76">All</a></p></li>
-<li><p><a class="reference internal" href="#box" id="id77">Box</a></p></li>
-<li><p><a class="reference internal" href="#plane" id="id78">Plane</a></p></li>
-<li><p><a class="reference internal" href="#labeled-set" id="id79">Labeled Set</a></p></li>
-<li><p><a class="reference internal" href="#function-color" id="id80">Function Color</a></p></li>
-<li><p><a class="reference internal" href="#point" id="id81">Point</a></p></li>
-<li><p><a class="reference internal" href="#logical" id="id82">Logical</a></p></li>
-<li><p><a class="reference internal" href="#polygon" id="id83">Polygon</a></p></li>
-<li><p><a class="reference internal" href="#enumerated" id="id84">Enumerated</a></p></li>
-<li><p><a class="reference internal" href="#boundary" id="id85">Boundary</a></p></li>
-<li><p><a class="reference internal" href="#box-volume-fractions" id="id86">Box Volume Fractions</a></p></li>
-<li><p><a class="reference internal" href="#line-segment" id="id87">Line Segment</a></p></li>
+<li><p><a class="reference internal" href="#all" id="id78">All</a></p></li>
+<li><p><a class="reference internal" href="#box" id="id79">Box</a></p></li>
+<li><p><a class="reference internal" href="#plane" id="id80">Plane</a></p></li>
+<li><p><a class="reference internal" href="#labeled-set" id="id81">Labeled Set</a></p></li>
+<li><p><a class="reference internal" href="#function-color" id="id82">Function Color</a></p></li>
+<li><p><a class="reference internal" href="#point" id="id83">Point</a></p></li>
+<li><p><a class="reference internal" href="#logical" id="id84">Logical</a></p></li>
+<li><p><a class="reference internal" href="#polygon" id="id85">Polygon</a></p></li>
+<li><p><a class="reference internal" href="#enumerated" id="id86">Enumerated</a></p></li>
+<li><p><a class="reference internal" href="#boundary" id="id87">Boundary</a></p></li>
+<li><p><a class="reference internal" href="#box-volume-fractions" id="id88">Box Volume Fractions</a></p></li>
+<li><p><a class="reference internal" href="#line-segment" id="id89">Line Segment</a></p></li>
 </ul>
 </div>
 <div class="section" id="all">
-<h3><a class="toc-backref" href="#id76">All</a><a class="headerlink" href="#all" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id78">All</a><a class="headerlink" href="#all" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>A region consisting of all entities on a mesh.</p>
 </div></blockquote>
@@ -925,7 +927,7 @@ empty lists.</p></li>
 </div>
 </div>
 <div class="section" id="box">
-<h3><a class="toc-backref" href="#id77">Box</a><a class="headerlink" href="#box" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id79">Box</a><a class="headerlink" href="#box" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionBox: a rectangular region in space, defined by two corners</p>
 </div></blockquote>
@@ -950,7 +952,7 @@ direction in which case they are equivalent to planes.</p>
 </div>
 </div>
 <div class="section" id="plane">
-<h3><a class="toc-backref" href="#id78">Plane</a><a class="headerlink" href="#plane" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id80">Plane</a><a class="headerlink" href="#plane" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionPlane: A planar (infinite) region in space, defined by a point and a normal.</p>
 </div></blockquote>
@@ -976,7 +978,7 @@ direction in which case they are equivalent to planes.</p>
 </div>
 </div>
 <div class="section" id="labeled-set">
-<h3><a class="toc-backref" href="#id79">Labeled Set</a><a class="headerlink" href="#labeled-set" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id81">Labeled Set</a><a class="headerlink" href="#labeled-set" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionLabeledSet: A region defined by a set of mesh entities in a mesh file</p>
 </div></blockquote>
@@ -1017,7 +1019,7 @@ associated with the entities in the indicated set.</p>
 </div>
 </div>
 <div class="section" id="function-color">
-<h3><a class="toc-backref" href="#id80">Function Color</a><a class="headerlink" href="#function-color" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id82">Function Color</a><a class="headerlink" href="#function-color" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionFunctionColor: A region defined by the value of an indicator function in a file.</p>
 </div></blockquote>
@@ -1049,7 +1051,7 @@ recommended that regions be defined using a single color function file.</p>
 </div>
 </div>
 <div class="section" id="point">
-<h3><a class="toc-backref" href="#id81">Point</a><a class="headerlink" href="#point" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id83">Point</a><a class="headerlink" href="#point" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionPoint: a point in space.</p>
 </div></blockquote>
@@ -1071,7 +1073,7 @@ This region consists of cells containing this point.</p>
 </div>
 </div>
 <div class="section" id="logical">
-<h3><a class="toc-backref" href="#id82">Logical</a><a class="headerlink" href="#logical" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id84">Logical</a><a class="headerlink" href="#logical" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionLogical: A region defined by a logical operation on one or two other regions</p>
 </div></blockquote>
@@ -1102,7 +1104,7 @@ One of: <cite>“union</cite>”, <cite>“intersect</cite>”, <cite>“subtrac
 </div>
 </div>
 <div class="section" id="polygon">
-<h3><a class="toc-backref" href="#id83">Polygon</a><a class="headerlink" href="#polygon" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id85">Polygon</a><a class="headerlink" href="#polygon" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionPolygon: A closed polygonal segment of a plane.</p>
 </div></blockquote>
@@ -1140,7 +1142,7 @@ are specified.</p>
 </div>
 </div>
 <div class="section" id="enumerated">
-<h3><a class="toc-backref" href="#id84">Enumerated</a><a class="headerlink" href="#enumerated" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id86">Enumerated</a><a class="headerlink" href="#enumerated" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionEnumerated: A region enumerated as a list of IDs.</p>
 </div></blockquote>
@@ -1165,7 +1167,7 @@ parallel mesh is created on a fly.</p>
 </div>
 </div>
 <div class="section" id="boundary">
-<h3><a class="toc-backref" href="#id85">Boundary</a><a class="headerlink" href="#boundary" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id87">Boundary</a><a class="headerlink" href="#boundary" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionBoundary:  A region consisting of all entities on the domain boundary</p>
 </div></blockquote>
@@ -1188,7 +1190,7 @@ used or can be other things than <cite>“face</cite>”?</p></li>
 </div>
 </div>
 <div class="section" id="box-volume-fractions">
-<h3><a class="toc-backref" href="#id86">Box Volume Fractions</a><a class="headerlink" href="#box-volume-fractions" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id88">Box Volume Fractions</a><a class="headerlink" href="#box-volume-fractions" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.</p>
 </div></blockquote>
@@ -1221,7 +1223,7 @@ one another and form the right coordinate frame.</p></li>
 <p>This example defines a degenerate box, a square on a surface <em>z=1</em>.</p>
 </div>
 <div class="section" id="line-segment">
-<h3><a class="toc-backref" href="#id87">Line Segment</a><a class="headerlink" href="#line-segment" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id89">Line Segment</a><a class="headerlink" href="#line-segment" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>RegionLineSegment: A line segment, defined by two points in space.</p>
 </div></blockquote>
@@ -1251,7 +1253,7 @@ end of a line segment.</p></li>
 </div>
 </div>
 <div class="section" id="visualization">
-<h2><a class="toc-backref" href="#id51">Visualization</a><a class="headerlink" href="#visualization" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id52">Visualization</a><a class="headerlink" href="#visualization" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>Manages simulation output to disk.</p>
 </div></blockquote>
@@ -1292,7 +1294,7 @@ into for output files.  One of <cite>“s</cite>”, <cite>“d</cite>”, <cite
 </div>
 </div>
 <div class="section" id="checkpoint">
-<h2><a class="toc-backref" href="#id52">Checkpoint</a><a class="headerlink" href="#checkpoint" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id53">Checkpoint</a><a class="headerlink" href="#checkpoint" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>Manages checkpoint/restart capability.</p>
 </div></blockquote>
@@ -1334,7 +1336,7 @@ a multiple of 100, every 10 seconds for the first 100 seconds, and
 every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be written in the form: <cite>“checkpoint00000.h5</cite>”.</p>
 </div>
 <div class="section" id="observation">
-<h2><a class="toc-backref" href="#id53">Observation</a><a class="headerlink" href="#observation" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id54">Observation</a><a class="headerlink" href="#observation" title="Permalink to this headline"></a></h2>
 <div class="admonition-observation-spec admonition" id="observation-spec">
 <p class="admonition-title">observation-spec</p>
 <ul class="simple">
@@ -1422,7 +1424,7 @@ backwards-Euler product of dt times the observable at the new time.</p></li>
 </div>
 </div>
 <div class="section" id="process-kernels">
-<h2><a class="toc-backref" href="#id54">Process Kernels</a><a class="headerlink" href="#process-kernels" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id55">Process Kernels</a><a class="headerlink" href="#process-kernels" title="Permalink to this headline"></a></h2>
 <p id="pk">Process Kernels, or PKs, are the fundamental unit of a model, and
 represent a single or system of Partial Differential Equations (PDEs)
 or Differential Algebraic Equations (DAEs).  PKs are broadly split
@@ -1435,84 +1437,84 @@ PKs.</p>
 <div class="contents local topic" id="list-of-pks">
 <p class="topic-title"><strong>List of PKs</strong></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#base-pks" id="id88">Base PKs</a></p>
+<li><p><a class="reference internal" href="#base-pks" id="id90">Base PKs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#pk-base-class" id="id89">PK base class</a></p></li>
-<li><p><a class="reference internal" href="#pk-physical" id="id90">PK: Physical</a></p></li>
-<li><p><a class="reference internal" href="#pk-bdf" id="id91">PK: BDF</a></p></li>
-<li><p><a class="reference internal" href="#pk-physical-and-bdf" id="id92">PK: Physical and BDF</a></p></li>
+<li><p><a class="reference internal" href="#pk-base-class" id="id91">PK base class</a></p></li>
+<li><p><a class="reference internal" href="#pk-physical" id="id92">PK: Physical</a></p></li>
+<li><p><a class="reference internal" href="#pk-bdf" id="id93">PK: BDF</a></p></li>
+<li><p><a class="reference internal" href="#pk-physical-and-bdf" id="id94">PK: Physical and BDF</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#physical-pks" id="id93">Physical PKs</a></p>
+<li><p><a class="reference internal" href="#physical-pks" id="id95">Physical PKs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#flow-pks" id="id94">Flow PKs</a></p>
+<li><p><a class="reference internal" href="#flow-pks" id="id96">Flow PKs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#richards-pk" id="id95">Richards PK</a></p></li>
-<li><p><a class="reference internal" href="#permafrost-flow-pk" id="id96">Permafrost Flow PK</a></p></li>
-<li><p><a class="reference internal" href="#overland-flow-pk" id="id97">Overland Flow PK</a></p></li>
-<li><p><a class="reference internal" href="#overland-flow-with-ice" id="id98">Overland Flow with Ice</a></p></li>
-<li><p><a class="reference internal" href="#snow-distribution-pk" id="id99">Snow Distribution PK</a></p></li>
+<li><p><a class="reference internal" href="#richards-pk" id="id97">Richards PK</a></p></li>
+<li><p><a class="reference internal" href="#permafrost-flow-pk" id="id98">Permafrost Flow PK</a></p></li>
+<li><p><a class="reference internal" href="#overland-flow-pk" id="id99">Overland Flow PK</a></p></li>
+<li><p><a class="reference internal" href="#overland-flow-with-ice" id="id100">Overland Flow with Ice</a></p></li>
+<li><p><a class="reference internal" href="#snow-distribution-pk" id="id101">Snow Distribution PK</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#transport-pk" id="id100">Transport PK</a></p></li>
-<li><p><a class="reference internal" href="#energy-pks" id="id101">Energy PKs</a></p>
+<li><p><a class="reference internal" href="#transport-pk" id="id102">Transport PK</a></p></li>
+<li><p><a class="reference internal" href="#energy-pks" id="id103">Energy PKs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#energy-base-pk" id="id102">Energy Base PK</a></p></li>
-<li><p><a class="reference internal" href="#two-phase-subsurface-energy-pk" id="id103">Two-Phase subsurface Energy PK</a></p></li>
-<li><p><a class="reference internal" href="#three-phase-subsurface-energy-pk" id="id104">Three-Phase subsurface Energy PK</a></p></li>
-<li><p><a class="reference internal" href="#overland-energy-with-ice" id="id105">Overland energy with Ice</a></p></li>
+<li><p><a class="reference internal" href="#energy-base-pk" id="id104">Energy Base PK</a></p></li>
+<li><p><a class="reference internal" href="#two-phase-subsurface-energy-pk" id="id105">Two-Phase subsurface Energy PK</a></p></li>
+<li><p><a class="reference internal" href="#three-phase-subsurface-energy-pk" id="id106">Three-Phase subsurface Energy PK</a></p></li>
+<li><p><a class="reference internal" href="#overland-energy-with-ice" id="id107">Overland energy with Ice</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#surface-energy-balance-pks" id="id106">Surface Energy Balance PKs</a></p>
+<li><p><a class="reference internal" href="#surface-energy-balance-pks" id="id108">Surface Energy Balance PKs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#balance-equation" id="id107">Balance Equation</a></p></li>
-<li><p><a class="reference internal" href="#snow-balance-equation" id="id108">Snow Balance Equation</a></p></li>
+<li><p><a class="reference internal" href="#balance-equation" id="id109">Balance Equation</a></p></li>
+<li><p><a class="reference internal" href="#snow-balance-equation" id="id110">Snow Balance Equation</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#biogeochemistry" id="id109">Biogeochemistry</a></p>
+<li><p><a class="reference internal" href="#biogeochemistry" id="id111">Biogeochemistry</a></p>
 <ul>
-<li><p><a class="reference internal" href="#biogeochemistry-monolithic-version" id="id110">Biogeochemistry – Monolithic Version</a></p></li>
+<li><p><a class="reference internal" href="#biogeochemistry-monolithic-version" id="id112">Biogeochemistry – Monolithic Version</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#deformation" id="id111">Deformation</a></p>
+<li><p><a class="reference internal" href="#deformation" id="id113">Deformation</a></p>
 <ul>
-<li><p><a class="reference internal" href="#volumetric-deformation" id="id112">Volumetric Deformation</a></p></li>
+<li><p><a class="reference internal" href="#volumetric-deformation" id="id114">Volumetric Deformation</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#mpc" id="id113">MPC</a></p>
+<li><p><a class="reference internal" href="#mpc" id="id115">MPC</a></p>
 <ul>
-<li><p><a class="reference internal" href="#base-mpc" id="id114">Base MPC</a></p></li>
-<li><p><a class="reference internal" href="#weakmpc" id="id115">WeakMPC</a></p></li>
-<li><p><a class="reference internal" href="#strongmpc" id="id116">StrongMPC</a></p></li>
+<li><p><a class="reference internal" href="#base-mpc" id="id116">Base MPC</a></p></li>
+<li><p><a class="reference internal" href="#weakmpc" id="id117">WeakMPC</a></p></li>
+<li><p><a class="reference internal" href="#strongmpc" id="id118">StrongMPC</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#physical-mpcs" id="id117">Physical MPCs</a></p>
+<li><p><a class="reference internal" href="#physical-mpcs" id="id119">Physical MPCs</a></p>
 <ul>
-<li><p><a class="reference internal" href="#coupled-water-mpc" id="id118">Coupled Water MPC</a></p></li>
-<li><p><a class="reference internal" href="#coupled-cells-mpc" id="id119">Coupled Cells MPC</a></p></li>
-<li><p><a class="reference internal" href="#subsurface-mpc" id="id120">Subsurface MPC</a></p></li>
-<li><p><a class="reference internal" href="#surface-mpc" id="id121">Surface MPC</a></p></li>
-<li><p><a class="reference internal" href="#permafrost-mpc" id="id122">Permafrost MPC</a></p></li>
+<li><p><a class="reference internal" href="#coupled-water-mpc" id="id120">Coupled Water MPC</a></p></li>
+<li><p><a class="reference internal" href="#coupled-cells-mpc" id="id121">Coupled Cells MPC</a></p></li>
+<li><p><a class="reference internal" href="#subsurface-mpc" id="id122">Subsurface MPC</a></p></li>
+<li><p><a class="reference internal" href="#surface-mpc" id="id123">Surface MPC</a></p></li>
+<li><p><a class="reference internal" href="#permafrost-mpc" id="id124">Permafrost MPC</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#globalization-delegates" id="id123">Globalization Delegates</a></p>
+<li><p><a class="reference internal" href="#globalization-delegates" id="id125">Globalization Delegates</a></p>
 <ul>
-<li><p><a class="reference internal" href="#coupled-water-globalization-delegate" id="id124">Coupled Water Globalization Delegate</a></p></li>
-<li><p><a class="reference internal" href="#ewc-globalization-delegate" id="id125">EWC Globalization Delegate</a></p></li>
+<li><p><a class="reference internal" href="#coupled-water-globalization-delegate" id="id126">Coupled Water Globalization Delegate</a></p></li>
+<li><p><a class="reference internal" href="#ewc-globalization-delegate" id="id127">EWC Globalization Delegate</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="base-pks">
-<h3><a class="toc-backref" href="#id88">Base PKs</a><a class="headerlink" href="#base-pks" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id90">Base PKs</a><a class="headerlink" href="#base-pks" title="Permalink to this headline"></a></h3>
 <p>There are several types of PKs, and each PK has its own valid input
 spec.  However, there are three main types of PKs, from which nearly
 all PKs derive.  Note that none of these are true PKs and cannot stand
 alone.</p>
 <div class="section" id="pk-base-class">
-<h4><a class="toc-backref" href="#id89">PK base class</a><a class="headerlink" href="#pk-base-class" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id91">PK base class</a><a class="headerlink" href="#pk-base-class" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>The interface for a Process Kernel, an equation or system of equations.</p>
 </div></blockquote>
@@ -1572,7 +1574,7 @@ match the corresponding entry in the <code class="docutils literal notranslate">
 </div>
 </div>
 <div class="section" id="pk-physical">
-<h4><a class="toc-backref" href="#id90">PK: Physical</a><a class="headerlink" href="#pk-physical" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id92">PK: Physical</a><a class="headerlink" href="#pk-physical" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).</p>
 </div></blockquote>
@@ -1599,7 +1601,7 @@ Units are the same as the primary variable.</p></li>
 </div>
 </div>
 <div class="section" id="pk-bdf">
-<h4><a class="toc-backref" href="#id91">PK: BDF</a><a class="headerlink" href="#pk-bdf" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id93">PK: BDF</a><a class="headerlink" href="#pk-bdf" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A base class with default implementations of methods for a PK that can be implicitly integrated in time.</p>
 </div></blockquote>
@@ -1626,7 +1628,7 @@ Note that this is only used if this PK is not strongly coupled to other PKs.</p>
 </div>
 </div>
 <div class="section" id="pk-physical-and-bdf">
-<h4><a class="toc-backref" href="#id92">PK: Physical and BDF</a><a class="headerlink" href="#pk-physical-and-bdf" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id94">PK: Physical and BDF</a><a class="headerlink" href="#pk-physical-and-bdf" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Default implementation of both BDF and Physical PKs.</p>
 </div></blockquote>
@@ -1665,10 +1667,10 @@ values, and very rarely are these set by the user.</p></li>
 </div>
 </div>
 <div class="section" id="physical-pks">
-<h3><a class="toc-backref" href="#id93">Physical PKs</a><a class="headerlink" href="#physical-pks" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id95">Physical PKs</a><a class="headerlink" href="#physical-pks" title="Permalink to this headline"></a></h3>
 <p>Physical PKs are the physical capability implemented within ATS.</p>
 <div class="section" id="flow-pks">
-<h4><a class="toc-backref" href="#id94">Flow PKs</a><a class="headerlink" href="#flow-pks" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id96">Flow PKs</a><a class="headerlink" href="#flow-pks" title="Permalink to this headline"></a></h4>
 <p>Flow PKs describe the conservation of mass of water as it flows both
 above and below-ground.  Subsurface flow PKs are based on 3D Richards
 equation, which describes variably saturated flow in porous media.
@@ -1682,7 +1684,7 @@ precipitation and applies it based on the existing surface level
 preferentially.  This makes for more accurate snowpacks at fine
 scales.</p>
 <div class="section" id="richards-pk">
-<h5><a class="toc-backref" href="#id95">Richards PK</a><a class="headerlink" href="#richards-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id97">Richards PK</a><a class="headerlink" href="#richards-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Two-phase, variable density Richards equation.</p>
 </div></blockquote>
@@ -1838,7 +1840,7 @@ surface boundary conditions from the surface pressure (Dirichlet).</p></li>
 </div>
 </div>
 <div class="section" id="permafrost-flow-pk">
-<h5><a class="toc-backref" href="#id96">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id98">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>A three-phase, thermal Richard’s equation with water, water vapor, and ice for permafrost applications.</p>
 </div></blockquote>
@@ -1859,7 +1861,7 @@ are now drop-in field evaluators, there is very little to change in the PK.</p>
 </div>
 </div>
 <div class="section" id="overland-flow-pk">
-<h5><a class="toc-backref" href="#id97">Overland Flow PK</a><a class="headerlink" href="#overland-flow-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id99">Overland Flow PK</a><a class="headerlink" href="#overland-flow-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Overland flow using the diffusion wave equation.</p>
 </div></blockquote>
@@ -1955,7 +1957,7 @@ Typically not provided by users, as defaults are correct.</p></li>
 </div>
 </div>
 <div class="section" id="overland-flow-with-ice">
-<h5><a class="toc-backref" href="#id98">Overland Flow with Ice</a><a class="headerlink" href="#overland-flow-with-ice" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id100">Overland Flow with Ice</a><a class="headerlink" href="#overland-flow-with-ice" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Two-phase overland flow equation.</p>
 </div></blockquote>
@@ -1973,7 +1975,7 @@ generating the input file, and this class would go away.</p>
 </div>
 </div>
 <div class="section" id="snow-distribution-pk">
-<h5><a class="toc-backref" href="#id99">Snow Distribution PK</a><a class="headerlink" href="#snow-distribution-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id101">Snow Distribution PK</a><a class="headerlink" href="#snow-distribution-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Preferential distribution of snow precip in low-lying areas.</p>
 </div></blockquote>
@@ -2006,7 +2008,7 @@ default to the same as the <cite>“diffusion</cite>” list.  See <a class="ref
 </div>
 </div>
 <div class="section" id="transport-pk">
-<h4><a class="toc-backref" href="#id100">Transport PK</a><a class="headerlink" href="#transport-pk" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id102">Transport PK</a><a class="headerlink" href="#transport-pk" title="Permalink to this headline"></a></h4>
 <p>The Transport PK describes the conservation of mass of components transported
 with water as it flows. The transport PK is based on the advection-diffusion
 equation, applies to one or more components that are dissolved in the aqueous
@@ -2223,13 +2225,13 @@ rate given by the water source.  Currently, this option is only available for Al
 </div>
 </div>
 <div class="section" id="energy-pks">
-<h4><a class="toc-backref" href="#id101">Energy PKs</a><a class="headerlink" href="#energy-pks" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id103">Energy PKs</a><a class="headerlink" href="#energy-pks" title="Permalink to this headline"></a></h4>
 <p>Energy PKs describe the conservation of energy as it is advected and
 diffuses both above and below-ground.  Both surface and subsurface
 energy equations are based on a simple advection-diffusion equation,
 and include variants with and without freeze-thaw processes.</p>
 <div class="section" id="energy-base-pk">
-<h5><a class="toc-backref" href="#id102">Energy Base PK</a><a class="headerlink" href="#energy-base-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id104">Energy Base PK</a><a class="headerlink" href="#energy-base-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An advection-diffusion equation for energy.</p>
 </div></blockquote>
@@ -2354,7 +2356,7 @@ surface boundary conditions from the surface temperature (Dirichlet).</p></li>
 </div>
 </div>
 <div class="section" id="two-phase-subsurface-energy-pk">
-<h5><a class="toc-backref" href="#id103">Two-Phase subsurface Energy PK</a><a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id105">Two-Phase subsurface Energy PK</a><a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An advection-diffusion equation for energy in two phases.</p>
 </div></blockquote>
@@ -2370,7 +2372,7 @@ hard-coded evaluators.</p>
 </div>
 </div>
 <div class="section" id="three-phase-subsurface-energy-pk">
-<h5><a class="toc-backref" href="#id104">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id106">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An advection-diffusion equation for energy in three phases.</p>
 </div></blockquote>
@@ -2386,7 +2388,7 @@ hard-coded evaluators.</p>
 </div>
 </div>
 <div class="section" id="overland-energy-with-ice">
-<h5><a class="toc-backref" href="#id105">Overland energy with Ice</a><a class="headerlink" href="#overland-energy-with-ice" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id107">Overland energy with Ice</a><a class="headerlink" href="#overland-energy-with-ice" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An advection-diffusion equation for surface energy in two phases.</p>
 </div></blockquote>
@@ -2413,7 +2415,7 @@ Provided by MPC.</p></li>
 </div>
 </div>
 <div class="section" id="surface-energy-balance-pks">
-<h4><a class="toc-backref" href="#id106">Surface Energy Balance PKs</a><a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id108">Surface Energy Balance PKs</a><a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this headline"></a></h4>
 <p>Integrated hydrology is not much use without significant process
 complexity in source terms coming from the ecohydrologic environment.
 These include straightforward sources, like precipitation, but also
@@ -2428,7 +2430,7 @@ energy, latent and sensible heat models, etc.</p>
 <a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a> examples on
 ecohydrology for a more in-depth discussion.</p>
 <div class="section" id="balance-equation">
-<h5><a class="toc-backref" href="#id107">Balance Equation</a><a class="headerlink" href="#balance-equation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id109">Balance Equation</a><a class="headerlink" href="#balance-equation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>A simple conservation ODE.</p>
 </div></blockquote>
@@ -2461,7 +2463,7 @@ the same as the conserved quantity.</p></li>
 </div>
 </div>
 <div class="section" id="snow-balance-equation">
-<h5><a class="toc-backref" href="#id108">Snow Balance Equation</a><a class="headerlink" href="#snow-balance-equation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id110">Snow Balance Equation</a><a class="headerlink" href="#snow-balance-equation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An implicit PK for surface balance snow SWE conservation.</p>
 </div></blockquote>
@@ -2498,7 +2500,7 @@ tiny bit of snowmelt.</p></li>
 </div>
 </div>
 <div class="section" id="biogeochemistry">
-<h4><a class="toc-backref" href="#id109">Biogeochemistry</a><a class="headerlink" href="#biogeochemistry" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id111">Biogeochemistry</a><a class="headerlink" href="#biogeochemistry" title="Permalink to this headline"></a></h4>
 <p>To accurately predict watershed ecohydrology, a carbon cycle model is
 needed to predict transpiration.  By simulating a carbon cycle, we are
 able to predict the rate of photosynthesis as a function of space and
@@ -2508,7 +2510,7 @@ generalized Common/Colorado Land Model based on that developed within
 the ParFlow team, and another ongoing project is working on wrapping
 kernels from E3SM’s Land Model.</p>
 <div class="section" id="biogeochemistry-monolithic-version">
-<h5><a class="toc-backref" href="#id110">Biogeochemistry – Monolithic Version</a><a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id112">Biogeochemistry – Monolithic Version</a><a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Above and below-ground carbon cycle model.</p>
 </div></blockquote>
@@ -2562,7 +2564,7 @@ past the canopy and teo the bare ground for soil evaporation. <cite>[W m^-2]</ci
 </div>
 </div>
 <div class="section" id="deformation">
-<h4><a class="toc-backref" href="#id111">Deformation</a><a class="headerlink" href="#deformation" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id113">Deformation</a><a class="headerlink" href="#deformation" title="Permalink to this headline"></a></h4>
 <p>The unstructured mesh framework we use provides the opportunity to
 include deformation of the mesh.  This deformation can be done in two
 ways – either node coordinate changes are provided, or volumetric
@@ -2573,7 +2575,7 @@ simple deformation such as small, somewhat uniform subsidence.  The
 volumetric deformation PK below does this based on a volumetric change
 given by loss of bulk ice.</p>
 <div class="section" id="volumetric-deformation">
-<h5><a class="toc-backref" href="#id112">Volumetric Deformation</a><a class="headerlink" href="#volumetric-deformation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id114">Volumetric Deformation</a><a class="headerlink" href="#volumetric-deformation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Subsidence through bulk ice loss and cell volumetric change.</p>
 </div></blockquote>
@@ -2658,7 +2660,7 @@ implementation</cite>”</p></li>
 </div>
 </div>
 <div class="section" id="mpc">
-<h3><a class="toc-backref" href="#id113">MPC</a><a class="headerlink" href="#mpc" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id115">MPC</a><a class="headerlink" href="#mpc" title="Permalink to this headline"></a></h3>
 <p>Multi-process-couplers or MPCs couple other PKs.  They also are PKs
 themselves, in that they implement the PK interface.  So MPCs can also
 couple other MPCs.  There are a few common “base” MPCs which do the
@@ -2672,7 +2674,7 @@ hydrology is a surface+subsurface flow coupler.  They also can do
 fancier things like drape a bunch of subgrid columns off of a mesh, or
 other things.  Think of these as the custom couplers.</p>
 <div class="section" id="base-mpc">
-<h4><a class="toc-backref" href="#id114">Base MPC</a><a class="headerlink" href="#base-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id116">Base MPC</a><a class="headerlink" href="#base-mpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Multi process coupler base class.</p>
 </div></blockquote>
@@ -2699,7 +2701,7 @@ method in this order.</p></li>
 </div>
 </div>
 <div class="section" id="weakmpc">
-<h4><a class="toc-backref" href="#id115">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id117">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Multi process coupler for sequential coupling.</p>
 </div></blockquote>
@@ -2714,7 +2716,7 @@ order.</p>
 </div>
 </div>
 <div class="section" id="strongmpc">
-<h4><a class="toc-backref" href="#id116">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id118">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Multi process coupler for globally implicit (strong) coupling.</p>
 </div></blockquote>
@@ -2730,14 +2732,14 @@ order.</p>
 </div>
 </div>
 <div class="section" id="physical-mpcs">
-<h3><a class="toc-backref" href="#id117">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id119">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline"></a></h3>
 <p>Coupling is an art, and often requires special off-diagonal work for
 globally implicit coupling, and fancy games can be played with domains
 to couple across domain interfaces both implicitly and sequentially.
 Physical MPCs derive from default MPCs to provide special
 implementations of some methods.</p>
 <div class="section" id="coupled-water-mpc">
-<h4><a class="toc-backref" href="#id118">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id120">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A coupler which integrates surface and subsurface flow implicitly.</p>
 </div></blockquote>
@@ -2765,7 +2767,7 @@ Globalization Delegate</a> spec.</p></li>
 </div>
 </div>
 <div class="section" id="coupled-cells-mpc">
-<h4><a class="toc-backref" href="#id119">Coupled Cells MPC</a><a class="headerlink" href="#coupled-cells-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id121">Coupled Cells MPC</a><a class="headerlink" href="#coupled-cells-mpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A coupler which solves two PDEs on the same domain.</p>
 </div></blockquote>
@@ -2806,7 +2808,7 @@ mesh.  In the temperature/pressure system, these extra blocks correspond to</p>
 </div>
 </div>
 <div class="section" id="subsurface-mpc">
-<h4><a class="toc-backref" href="#id120">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id122">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A coupler which solves flow and energy in the subsurface.</p>
 </div></blockquote>
@@ -2909,10 +2911,10 @@ diagonal</cite>”, <cite>“no flow coupling</cite>”, <cite>“picard</cite>�
 </div>
 </div>
 <div class="section" id="surface-mpc">
-<h4><a class="toc-backref" href="#id121">Surface MPC</a><a class="headerlink" href="#surface-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id123">Surface MPC</a><a class="headerlink" href="#surface-mpc" title="Permalink to this headline"></a></h4>
 </div>
 <div class="section" id="permafrost-mpc">
-<h4><a class="toc-backref" href="#id122">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id124">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>A coupler which solves flow and energy both surface and subsurface.</p>
 </div></blockquote>
@@ -2939,7 +2941,7 @@ Globalization Delegate</a> spec.</p></li>
 </div>
 </div>
 <div class="section" id="globalization-delegates">
-<h3><a class="toc-backref" href="#id123">Globalization Delegates</a><a class="headerlink" href="#globalization-delegates" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id125">Globalization Delegates</a><a class="headerlink" href="#globalization-delegates" title="Permalink to this headline"></a></h3>
 <p>Globalization is the art of convincing a solver to find the solution.
 Remember – physics typically cares very little about <em>how</em> you get to
 a solution, only that you get there.  If you can guess or otherwise
@@ -2953,7 +2955,7 @@ and not converging.</p>
 <p>Much of the efficiency of ATS comes from these delegates, and more of
 them are always welcome contributions.</p>
 <div class="section" id="coupled-water-globalization-delegate">
-<h4><a class="toc-backref" href="#id124">Coupled Water Globalization Delegate</a><a class="headerlink" href="#coupled-water-globalization-delegate" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id126">Coupled Water Globalization Delegate</a><a class="headerlink" href="#coupled-water-globalization-delegate" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Globalization for nonlinearity around the appearance/disappearance of surface water.</p>
 </div></blockquote>
@@ -3004,7 +3006,7 @@ atmospheric to which things are capped or damped. <cite>[Pa]</cite></p></li>
 </div>
 </div>
 <div class="section" id="ewc-globalization-delegate">
-<h4><a class="toc-backref" href="#id125">EWC Globalization Delegate</a><a class="headerlink" href="#ewc-globalization-delegate" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id127">EWC Globalization Delegate</a><a class="headerlink" href="#ewc-globalization-delegate" title="Permalink to this headline"></a></h4>
 <blockquote>
 <div><p>Globalization for nonlinearity associated with phase change and latent heat.</p>
 </div></blockquote>
@@ -3074,7 +3076,7 @@ warmer, and begins applying the EWC algorithm in <cite>“ewc smarter</cite>”.
 </div>
 </div>
 <div class="section" id="state">
-<h2><a class="toc-backref" href="#id60">State</a><a class="headerlink" href="#state" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id61">State</a><a class="headerlink" href="#state" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>State, a container for data.</p>
 </div></blockquote>
@@ -3094,7 +3096,7 @@ are owned by state, not by any PK).</p></li>
 <li><p><cite>“evaluators</cite>” <code class="docutils literal notranslate"><span class="pre">[evaluator-typedinline-spec-list]</span></code> A list of evaluators.</p></li>
 <li><p><cite>“initial conditions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> A list of constant-in-time data.  Note
 that <cite>“initial conditions</cite>” is not a particularly descriptive name here –
-PDE initial conditions are generally not here.</p></li>
+PDE initial conditions are generally not here.  This list consists of</p></li>
 </ul>
 </div>
 <div class="admonition-evaluator-typedinline-spec admonition" id="evaluator-typedinline-spec">
@@ -3105,18 +3107,6 @@ convenience in defining data that is not in the dependency graph,
 constants are things (like gravity, or atmospheric pressure) which are
 stored in state but never change.  Typically they’re limited to scalars
 and dense, local vectors.</p></li>
-</ul>
-</div>
-<div class="admonition-constants-scalar-spec admonition" id="constants-scalar-spec">
-<p class="admonition-title">constants-scalar-spec</p>
-<ul class="simple">
-<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Value of a scalar constant</p></li>
-</ul>
-</div>
-<div class="admonition-constants-vector-spec admonition" id="constants-vector-spec">
-<p class="admonition-title">constants-vector-spec</p>
-<ul class="simple">
-<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Value of a dense, local vector.</p></li>
 </ul>
 </div>
 <p>Example:</p>
@@ -3154,7 +3144,7 @@ conditions</cite>”, which is a terrible name which must be fixed.</p>
 </pre></div>
 </div>
 <div class="section" id="evaluators">
-<h3><a class="toc-backref" href="#id61">Evaluators</a><a class="headerlink" href="#evaluators" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id62">Evaluators</a><a class="headerlink" href="#evaluators" title="Permalink to this headline"></a></h3>
 <p>Evaluators are individual terms used to build up a PK or MPCs.  Each
 term represents a variable in the equation, and can consist of primary
 variables (those that are solved for by a PK solver), independent
@@ -3165,202 +3155,202 @@ and/or time.</p>
 <div class="contents local topic" id="list-of-evalutors">
 <p class="topic-title"><strong>List of Evalutors</strong></p>
 <ul class="simple">
-<li><p><a class="reference internal" href="#primary-variables" id="id126">Primary Variables</a></p></li>
-<li><p><a class="reference internal" href="#independent-variables" id="id127">Independent Variables</a></p>
+<li><p><a class="reference internal" href="#primary-variables" id="id128">Primary Variables</a></p></li>
+<li><p><a class="reference internal" href="#independent-variables" id="id129">Independent Variables</a></p>
 <ul>
-<li><p><a class="reference internal" href="#constant" id="id128">Constant</a></p></li>
-<li><p><a class="reference internal" href="#from-function" id="id129">From Function</a></p></li>
-<li><p><a class="reference internal" href="#from-file" id="id130">From File</a></p></li>
+<li><p><a class="reference internal" href="#constant" id="id130">Constant</a></p></li>
+<li><p><a class="reference internal" href="#from-function" id="id131">From Function</a></p></li>
+<li><p><a class="reference internal" href="#from-file" id="id132">From File</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#secondary-variables" id="id131">Secondary Variables</a></p></li>
-<li><p><a class="reference internal" href="#conserved-quantities" id="id132">Conserved quantities</a></p>
+<li><p><a class="reference internal" href="#secondary-variables" id="id133">Secondary Variables</a></p></li>
+<li><p><a class="reference internal" href="#conserved-quantities" id="id134">Conserved quantities</a></p>
 <ul>
-<li><p><a class="reference internal" href="#richards-equation-water-content-liquid-only" id="id133">Richards Equation water content (liquid only)</a></p></li>
-<li><p><a class="reference internal" href="#liquid-gas-water-content" id="id134">Liquid+Gas water content</a></p></li>
-<li><p><a class="reference internal" href="#liquid-ice-water-content" id="id135">Liquid+Ice water content</a></p></li>
-<li><p><a class="reference internal" href="#liquid-ice-gas-water-content" id="id136">Liquid+Ice+Gas water content</a></p></li>
-<li><p><a class="reference internal" href="#surface-water-content" id="id137">Surface water content</a></p></li>
-<li><p><a class="reference internal" href="#snow-or-canopy-water-content" id="id138">Snow or canopy water content</a></p></li>
-<li><p><a class="reference internal" href="#richards-energy" id="id139">Richards energy</a></p></li>
-<li><p><a class="reference internal" href="#liquid-gas-energy" id="id140">Liquid+Gas energy</a></p></li>
-<li><p><a class="reference internal" href="#liquid-ice-energy" id="id141">Liquid+Ice energy</a></p></li>
-<li><p><a class="reference internal" href="#liquid-ice-gas-energy" id="id142">Liquid+Ice+Gas energy</a></p></li>
-<li><p><a class="reference internal" href="#surface-water-ice-energy" id="id143">Surface water+ice energy</a></p></li>
+<li><p><a class="reference internal" href="#richards-equation-water-content-liquid-only" id="id135">Richards Equation water content (liquid only)</a></p></li>
+<li><p><a class="reference internal" href="#liquid-gas-water-content" id="id136">Liquid+Gas water content</a></p></li>
+<li><p><a class="reference internal" href="#liquid-ice-water-content" id="id137">Liquid+Ice water content</a></p></li>
+<li><p><a class="reference internal" href="#liquid-ice-gas-water-content" id="id138">Liquid+Ice+Gas water content</a></p></li>
+<li><p><a class="reference internal" href="#surface-water-content" id="id139">Surface water content</a></p></li>
+<li><p><a class="reference internal" href="#snow-or-canopy-water-content" id="id140">Snow or canopy water content</a></p></li>
+<li><p><a class="reference internal" href="#richards-energy" id="id141">Richards energy</a></p></li>
+<li><p><a class="reference internal" href="#liquid-gas-energy" id="id142">Liquid+Gas energy</a></p></li>
+<li><p><a class="reference internal" href="#liquid-ice-energy" id="id143">Liquid+Ice energy</a></p></li>
+<li><p><a class="reference internal" href="#liquid-ice-gas-energy" id="id144">Liquid+Ice+Gas energy</a></p></li>
+<li><p><a class="reference internal" href="#surface-water-ice-energy" id="id145">Surface water+ice energy</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#subsurface-flow-evaluators" id="id144">Subsurface flow evaluators</a></p>
+<li><p><a class="reference internal" href="#subsurface-flow-evaluators" id="id146">Subsurface flow evaluators</a></p>
 <ul>
-<li><p><a class="reference internal" href="#capillary-pressure" id="id145">Capillary pressure</a></p></li>
-<li><p><a class="reference internal" href="#capillary-pressure-of-liquid-on-ice" id="id146">Capillary pressure of liquid on ice</a></p></li>
-<li><p><a class="reference internal" href="#water-retention-model-and-relative-permeability" id="id147">Water Retention Model and Relative Permeability</a></p>
+<li><p><a class="reference internal" href="#capillary-pressure" id="id147">Capillary pressure</a></p></li>
+<li><p><a class="reference internal" href="#capillary-pressure-of-liquid-on-ice" id="id148">Capillary pressure of liquid on ice</a></p></li>
+<li><p><a class="reference internal" href="#water-retention-model-and-relative-permeability" id="id149">Water Retention Model and Relative Permeability</a></p>
 <ul>
-<li><p><a class="reference internal" href="#van-genuchten-model" id="id148">Van Genuchten Model</a></p></li>
-<li><p><a class="reference internal" href="#linear-model" id="id149">Linear  Model</a></p></li>
+<li><p><a class="reference internal" href="#van-genuchten-model" id="id150">Van Genuchten Model</a></p></li>
+<li><p><a class="reference internal" href="#linear-model" id="id151">Linear  Model</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#water-retention-model-for-freeze-thaw" id="id150">Water Retention Model for Freeze-Thaw</a></p>
+<li><p><a class="reference internal" href="#water-retention-model-for-freeze-thaw" id="id152">Water Retention Model for Freeze-Thaw</a></p>
 <ul>
-<li><p><a class="reference internal" href="#original-implicit-model" id="id151">Original Implicit model</a></p></li>
-<li><p><a class="reference internal" href="#freezing-point-depression-model" id="id152">Freezing point depression model</a></p></li>
-<li><p><a class="reference internal" href="#freezing-point-depression-smoothed-model" id="id153">Freezing point depression, smoothed model</a></p></li>
-<li><p><a class="reference internal" href="#interfrost-model" id="id154">Interfrost model</a></p></li>
-<li><p><a class="reference internal" href="#sutra-ice-model" id="id155">Sutra-ICE model</a></p></li>
+<li><p><a class="reference internal" href="#original-implicit-model" id="id153">Original Implicit model</a></p></li>
+<li><p><a class="reference internal" href="#freezing-point-depression-model" id="id154">Freezing point depression model</a></p></li>
+<li><p><a class="reference internal" href="#freezing-point-depression-smoothed-model" id="id155">Freezing point depression, smoothed model</a></p></li>
+<li><p><a class="reference internal" href="#interfrost-model" id="id156">Interfrost model</a></p></li>
+<li><p><a class="reference internal" href="#sutra-ice-model" id="id157">Sutra-ICE model</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#compressible-porosity" id="id156">Compressible porosity</a></p>
+<li><p><a class="reference internal" href="#compressible-porosity" id="id158">Compressible porosity</a></p>
 <ul>
-<li><p><a class="reference internal" href="#standard-model" id="id157">Standard model</a></p></li>
-<li><p><a class="reference internal" href="#exponential-model" id="id158">Exponential model</a></p></li>
+<li><p><a class="reference internal" href="#standard-model" id="id159">Standard model</a></p></li>
+<li><p><a class="reference internal" href="#exponential-model" id="id160">Exponential model</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#viscosity-of-water" id="id159">Viscosity of water</a></p>
+<li><p><a class="reference internal" href="#viscosity-of-water" id="id161">Viscosity of water</a></p>
 <ul>
-<li><p><a class="reference internal" href="#id6" id="id160">Constant</a></p></li>
-<li><p><a class="reference internal" href="#nonisothermal" id="id161">Nonisothermal</a></p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#surface-flow-evaluators" id="id162">Surface flow evaluators</a></p>
-<ul>
-<li><p><a class="reference internal" href="#ponded-depth-or-water-height" id="id163">Ponded Depth or Water Height</a></p></li>
-<li><p><a class="reference internal" href="#ponded-depth-frozen" id="id164">Ponded Depth, Frozen</a></p></li>
-<li><p><a class="reference internal" href="#effective-or-smoothed-height" id="id165">Effective, or Smoothed Height</a></p></li>
-<li><p><a class="reference internal" href="#unfrozen-fraction" id="id166">Unfrozen fraction</a></p></li>
-<li><p><a class="reference internal" href="#unfrozen-flowing-depth" id="id167">Unfrozen Flowing Depth</a></p></li>
-<li><p><a class="reference internal" href="#surfacepotential" id="id168">SurfacePotential</a></p></li>
-<li><p><a class="reference internal" href="#overland-conductivity-sheet-flow" id="id169">Overland Conductivity, sheet flow</a></p></li>
-<li><p><a class="reference internal" href="#overland-conductivity-litter-resistance" id="id170">Overland Conductivity, litter resistance</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#thermodynamic-evaluators" id="id171">Thermodynamic evaluators</a></p>
-<ul>
-<li><p><a class="reference internal" href="#internal-energy" id="id172">Internal energy</a></p>
-<ul>
-<li><p><a class="reference internal" href="#linear" id="id173">Linear</a></p></li>
-<li><p><a class="reference internal" href="#quadratic" id="id174">Quadratic</a></p></li>
-<li><p><a class="reference internal" href="#water-vapor" id="id175">Water Vapor</a></p></li>
-<li><p><a class="reference internal" href="#enthalpy" id="id176">Enthalpy</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#thermal-conductivity-two-phases" id="id177">Thermal Conductivity, two phases</a></p>
-<ul>
-<li><p><a class="reference internal" href="#wet-dry-model" id="id178">Wet-Dry Model</a></p></li>
-<li><p><a class="reference internal" href="#peters-lidard-model" id="id179">Peters-Lidard Model</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#thermal-conductivity-three-phases" id="id180">Thermal Conductivity, three phases</a></p>
-<ul>
-<li><p><a class="reference internal" href="#id9" id="id181">Wet-Dry Model</a></p></li>
-<li><p><a class="reference internal" href="#id10" id="id182">Peters-Lidard Model</a></p></li>
-<li><p><a class="reference internal" href="#volume-averaged-model" id="id183">Volume-averaged Model</a></p></li>
-<li><p><a class="reference internal" href="#id11" id="id184">Sutra-ICE model</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#thermal-conductivity-surface" id="id185">Thermal Conductivity, Surface</a></p></li>
-<li><p><a class="reference internal" href="#advected-energy-source" id="id186">Advected Energy Source</a></p></li>
-<li><p><a class="reference internal" href="#active-layer-averaged-temperature" id="id187">Active Layer Averaged Temperature</a></p></li>
-<li><p><a class="reference internal" href="#water-table" id="id188">Water Table</a></p></li>
-<li><p><a class="reference internal" href="#thaw-depth" id="id189">Thaw Depth</a></p></li>
-</ul>
-</li>
-<li><p><a class="reference internal" href="#equations-of-state" id="id190">Equations of State</a></p>
-<ul>
-<li><p><a class="reference internal" href="#constant-value" id="id191">Constant Value</a></p></li>
-<li><p><a class="reference internal" href="#standard-equation-of-state" id="id192">Standard Equation of State</a></p></li>
-<li><p><a class="reference internal" href="#models" id="id193">Models</a></p>
-<ul>
-<li><p><a class="reference internal" href="#constant-eos" id="id194">Constant EOS</a></p></li>
-<li><p><a class="reference internal" href="#linear-eos" id="id195">Linear EOS</a></p></li>
-<li><p><a class="reference internal" href="#ideal-gas" id="id196">Ideal Gas</a></p></li>
-<li><p><a class="reference internal" href="#eos-of-water" id="id197">EOS of Water</a></p></li>
-<li><p><a class="reference internal" href="#eos-of-ice" id="id198">EOS of Ice</a></p></li>
-<li><p><a class="reference internal" href="#eos-of-vapor-in-air" id="id199">EOS of Vapor in Air</a></p></li>
-<li><p><a class="reference internal" href="#eos-of-saltwater" id="id200">EOS of Saltwater</a></p></li>
+<li><p><a class="reference internal" href="#id6" id="id162">Constant</a></p></li>
+<li><p><a class="reference internal" href="#nonisothermal" id="id163">Nonisothermal</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#surface-energy-balance-evaluators" id="id201">Surface energy balance evaluators</a></p>
+<li><p><a class="reference internal" href="#surface-flow-evaluators" id="id164">Surface flow evaluators</a></p>
 <ul>
-<li><p><a class="reference internal" href="#area-fractions" id="id202">Area Fractions</a></p>
-<ul>
-<li><p><a class="reference internal" href="#two-component-model" id="id203">Two-component model</a></p></li>
-<li><p><a class="reference internal" href="#three-component-model" id="id204">Three-component model</a></p></li>
-<li><p><a class="reference internal" href="#three-component-model-with-microtopography" id="id205">Three-component model, with microtopography</a></p></li>
+<li><p><a class="reference internal" href="#ponded-depth-or-water-height" id="id165">Ponded Depth or Water Height</a></p></li>
+<li><p><a class="reference internal" href="#ponded-depth-frozen" id="id166">Ponded Depth, Frozen</a></p></li>
+<li><p><a class="reference internal" href="#effective-or-smoothed-height" id="id167">Effective, or Smoothed Height</a></p></li>
+<li><p><a class="reference internal" href="#unfrozen-fraction" id="id168">Unfrozen fraction</a></p></li>
+<li><p><a class="reference internal" href="#unfrozen-flowing-depth" id="id169">Unfrozen Flowing Depth</a></p></li>
+<li><p><a class="reference internal" href="#surfacepotential" id="id170">SurfacePotential</a></p></li>
+<li><p><a class="reference internal" href="#overland-conductivity-sheet-flow" id="id171">Overland Conductivity, sheet flow</a></p></li>
+<li><p><a class="reference internal" href="#overland-conductivity-litter-resistance" id="id172">Overland Conductivity, litter resistance</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#potential-evapotranspiration" id="id206">Potential Evapotranspiration</a></p>
+<li><p><a class="reference internal" href="#thermodynamic-evaluators" id="id173">Thermodynamic evaluators</a></p>
 <ul>
-<li><p><a class="reference internal" href="#priestley-taylor-potential-evapotranspiration" id="id207">Priestley-Taylor Potential Evapotranspiration</a></p></li>
+<li><p><a class="reference internal" href="#internal-energy" id="id174">Internal energy</a></p>
+<ul>
+<li><p><a class="reference internal" href="#linear" id="id175">Linear</a></p></li>
+<li><p><a class="reference internal" href="#quadratic" id="id176">Quadratic</a></p></li>
+<li><p><a class="reference internal" href="#water-vapor" id="id177">Water Vapor</a></p></li>
+<li><p><a class="reference internal" href="#enthalpy" id="id178">Enthalpy</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#downregulation-and-limiters" id="id208">Downregulation and limiters</a></p>
+<li><p><a class="reference internal" href="#thermal-conductivity-two-phases" id="id179">Thermal Conductivity, two phases</a></p>
 <ul>
-<li><p><a class="reference internal" href="#transpiration-distribution" id="id209">Transpiration Distribution</a></p></li>
-<li><p><a class="reference internal" href="#rooting-depth-fraction" id="id210">Rooting Depth Fraction</a></p></li>
-<li><p><a class="reference internal" href="#plant-wilting-point" id="id211">Plant Wilting Point</a></p></li>
+<li><p><a class="reference internal" href="#wet-dry-model" id="id180">Wet-Dry Model</a></p></li>
+<li><p><a class="reference internal" href="#peters-lidard-model" id="id181">Peters-Lidard Model</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#soil-resistance" id="id212">Soil Resistance</a></p></li>
-<li><p><a class="reference internal" href="#radiation-balance-terms" id="id213">Radiation Balance Terms</a></p>
+<li><p><a class="reference internal" href="#thermal-conductivity-three-phases" id="id182">Thermal Conductivity, three phases</a></p>
 <ul>
-<li><p><a class="reference internal" href="#surface-albedo" id="id214">Surface Albedo</a></p></li>
-<li><p><a class="reference internal" href="#incident-shortwave-radiation" id="id215">Incident Shortwave Radiation</a></p></li>
-<li><p><a class="reference internal" href="#longwave-radiation" id="id216">Longwave Radiation</a></p></li>
+<li><p><a class="reference internal" href="#id9" id="id183">Wet-Dry Model</a></p></li>
+<li><p><a class="reference internal" href="#id10" id="id184">Peters-Lidard Model</a></p></li>
+<li><p><a class="reference internal" href="#volume-averaged-model" id="id185">Volume-averaged Model</a></p></li>
+<li><p><a class="reference internal" href="#id11" id="id186">Sutra-ICE model</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#full-surface-energy-balance-models" id="id217">Full Surface Energy Balance Models</a></p>
+<li><p><a class="reference internal" href="#thermal-conductivity-surface" id="id187">Thermal Conductivity, Surface</a></p></li>
+<li><p><a class="reference internal" href="#advected-energy-source" id="id188">Advected Energy Source</a></p></li>
+<li><p><a class="reference internal" href="#active-layer-averaged-temperature" id="id189">Active Layer Averaged Temperature</a></p></li>
+<li><p><a class="reference internal" href="#water-table" id="id190">Water Table</a></p></li>
+<li><p><a class="reference internal" href="#thaw-depth" id="id191">Thaw Depth</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#equations-of-state" id="id192">Equations of State</a></p>
 <ul>
-<li><p><a class="reference internal" href="#bare-soil-surface-energy-balance" id="id218">Bare Soil Surface Energy Balance</a></p></li>
-<li><p><a class="reference internal" href="#common-land-model-parflow-clm" id="id219">Common Land Model (ParFlow-CLM)</a></p></li>
+<li><p><a class="reference internal" href="#constant-value" id="id193">Constant Value</a></p></li>
+<li><p><a class="reference internal" href="#standard-equation-of-state" id="id194">Standard Equation of State</a></p></li>
+<li><p><a class="reference internal" href="#models" id="id195">Models</a></p>
+<ul>
+<li><p><a class="reference internal" href="#constant-eos" id="id196">Constant EOS</a></p></li>
+<li><p><a class="reference internal" href="#linear-eos" id="id197">Linear EOS</a></p></li>
+<li><p><a class="reference internal" href="#ideal-gas" id="id198">Ideal Gas</a></p></li>
+<li><p><a class="reference internal" href="#eos-of-water" id="id199">EOS of Water</a></p></li>
+<li><p><a class="reference internal" href="#eos-of-ice" id="id200">EOS of Ice</a></p></li>
+<li><p><a class="reference internal" href="#eos-of-vapor-in-air" id="id201">EOS of Vapor in Air</a></p></li>
+<li><p><a class="reference internal" href="#eos-of-saltwater" id="id202">EOS of Saltwater</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#snow-evaluators" id="id220">Snow evaluators</a></p>
+<li><p><a class="reference internal" href="#surface-energy-balance-evaluators" id="id203">Surface energy balance evaluators</a></p>
 <ul>
-<li><p><a class="reference internal" href="#snowsurfacepotential" id="id221">SnowSurfacePotential</a></p></li>
-<li><p><a class="reference internal" href="#snow-melt-rate" id="id222">Snow Melt Rate</a></p></li>
+<li><p><a class="reference internal" href="#area-fractions" id="id204">Area Fractions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#two-component-model" id="id205">Two-component model</a></p></li>
+<li><p><a class="reference internal" href="#three-component-model" id="id206">Three-component model</a></p></li>
+<li><p><a class="reference internal" href="#three-component-model-with-microtopography" id="id207">Three-component model, with microtopography</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#carbon-and-biogeochemistry-models" id="id223">Carbon and Biogeochemistry Models</a></p>
+<li><p><a class="reference internal" href="#potential-evapotranspiration" id="id208">Potential Evapotranspiration</a></p>
 <ul>
-<li><p><a class="reference internal" href="#carbon-decomposition-rate" id="id224">Carbon Decomposition Rate</a></p></li>
-<li><p><a class="reference internal" href="#cryo-bioturbation" id="id225">Cryo/bioturbation</a></p></li>
-<li><p><a class="reference internal" href="#pool-decomposition" id="id226">Pool Decomposition</a></p></li>
-<li><p><a class="reference internal" href="#pool-transfer" id="id227">Pool Transfer</a></p></li>
+<li><p><a class="reference internal" href="#priestley-taylor-potential-evapotranspiration" id="id209">Priestley-Taylor Potential Evapotranspiration</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#multiscale-models" id="id228">Multiscale Models</a></p>
+<li><p><a class="reference internal" href="#downregulation-and-limiters" id="id210">Downregulation and limiters</a></p>
 <ul>
-<li><p><a class="reference internal" href="#subgrid-aggregation" id="id229">Subgrid Aggregation</a></p></li>
-<li><p><a class="reference internal" href="#subgrid-disaggregation" id="id230">Subgrid disaggregation</a></p></li>
+<li><p><a class="reference internal" href="#transpiration-distribution" id="id211">Transpiration Distribution</a></p></li>
+<li><p><a class="reference internal" href="#rooting-depth-fraction" id="id212">Rooting Depth Fraction</a></p></li>
+<li><p><a class="reference internal" href="#plant-wilting-point" id="id213">Plant Wilting Point</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#geometric-evaluators" id="id231">Geometric evaluators</a></p>
+<li><p><a class="reference internal" href="#soil-resistance" id="id214">Soil Resistance</a></p></li>
+<li><p><a class="reference internal" href="#radiation-balance-terms" id="id215">Radiation Balance Terms</a></p>
 <ul>
-<li><p><a class="reference internal" href="#surfaceelevation" id="id232">SurfaceElevation</a></p></li>
-<li><p><a class="reference internal" href="#elevation-of-a-column" id="id233">Elevation of a Column</a></p></li>
-<li><p><a class="reference internal" href="#depth-evaluator" id="id234">Depth Evaluator</a></p></li>
-<li><p><a class="reference internal" href="#cell-volume-evaluator" id="id235">Cell Volume evaluator</a></p></li>
-<li><p><a class="reference internal" href="#deforming-cell-volume-evaluator" id="id236">Deforming Cell Volume evaluator</a></p></li>
+<li><p><a class="reference internal" href="#surface-albedo" id="id216">Surface Albedo</a></p></li>
+<li><p><a class="reference internal" href="#incident-shortwave-radiation" id="id217">Incident Shortwave Radiation</a></p></li>
+<li><p><a class="reference internal" href="#longwave-radiation" id="id218">Longwave Radiation</a></p></li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#generic-evaluators" id="id237">Generic evaluators</a></p>
+<li><p><a class="reference internal" href="#full-surface-energy-balance-models" id="id219">Full Surface Energy Balance Models</a></p>
 <ul>
-<li><p><a class="reference internal" href="#additive" id="id238">Additive</a></p></li>
-<li><p><a class="reference internal" href="#multiplicative" id="id239">Multiplicative</a></p></li>
-<li><p><a class="reference internal" href="#column-summation" id="id240">Column summation</a></p></li>
-<li><p><a class="reference internal" href="#top-cell" id="id241">Top cell</a></p></li>
-<li><p><a class="reference internal" href="#arbitrary-function" id="id242">Arbitrary function</a></p></li>
+<li><p><a class="reference internal" href="#bare-soil-surface-energy-balance" id="id220">Bare Soil Surface Energy Balance</a></p></li>
+<li><p><a class="reference internal" href="#common-land-model-parflow-clm" id="id221">Common Land Model (ParFlow-CLM)</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#snow-evaluators" id="id222">Snow evaluators</a></p>
+<ul>
+<li><p><a class="reference internal" href="#snowsurfacepotential" id="id223">SnowSurfacePotential</a></p></li>
+<li><p><a class="reference internal" href="#snow-melt-rate" id="id224">Snow Melt Rate</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#carbon-and-biogeochemistry-models" id="id225">Carbon and Biogeochemistry Models</a></p>
+<ul>
+<li><p><a class="reference internal" href="#carbon-decomposition-rate" id="id226">Carbon Decomposition Rate</a></p></li>
+<li><p><a class="reference internal" href="#cryo-bioturbation" id="id227">Cryo/bioturbation</a></p></li>
+<li><p><a class="reference internal" href="#pool-decomposition" id="id228">Pool Decomposition</a></p></li>
+<li><p><a class="reference internal" href="#pool-transfer" id="id229">Pool Transfer</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#multiscale-models" id="id230">Multiscale Models</a></p>
+<ul>
+<li><p><a class="reference internal" href="#subgrid-aggregation" id="id231">Subgrid Aggregation</a></p></li>
+<li><p><a class="reference internal" href="#subgrid-disaggregation" id="id232">Subgrid disaggregation</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#geometric-evaluators" id="id233">Geometric evaluators</a></p>
+<ul>
+<li><p><a class="reference internal" href="#surfaceelevation" id="id234">SurfaceElevation</a></p></li>
+<li><p><a class="reference internal" href="#elevation-of-a-column" id="id235">Elevation of a Column</a></p></li>
+<li><p><a class="reference internal" href="#depth-evaluator" id="id236">Depth Evaluator</a></p></li>
+<li><p><a class="reference internal" href="#cell-volume-evaluator" id="id237">Cell Volume evaluator</a></p></li>
+<li><p><a class="reference internal" href="#deforming-cell-volume-evaluator" id="id238">Deforming Cell Volume evaluator</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#generic-evaluators" id="id239">Generic evaluators</a></p>
+<ul>
+<li><p><a class="reference internal" href="#additive" id="id240">Additive</a></p></li>
+<li><p><a class="reference internal" href="#multiplicative" id="id241">Multiplicative</a></p></li>
+<li><p><a class="reference internal" href="#column-summation" id="id242">Column summation</a></p></li>
+<li><p><a class="reference internal" href="#top-cell" id="id243">Top cell</a></p></li>
+<li><p><a class="reference internal" href="#arbitrary-function" id="id244">Arbitrary function</a></p></li>
 </ul>
 </li>
 </ul>
 </div>
 <div class="section" id="primary-variables">
-<h4><a class="toc-backref" href="#id126">Primary Variables</a><a class="headerlink" href="#primary-variables" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id128">Primary Variables</a><a class="headerlink" href="#primary-variables" title="Permalink to this headline"></a></h4>
 <p>An evaluator with no dependencies that serves as the primary variable to be
 solved for by a PK.  Note that users almost never are required to write an
 input spec for these – they are controlled by the PK and therefore the input
@@ -3373,13 +3363,13 @@ spec for this evaluator is written by that PK.</p>
 </div>
 </div>
 <div class="section" id="independent-variables">
-<h4><a class="toc-backref" href="#id127">Independent Variables</a><a class="headerlink" href="#independent-variables" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id129">Independent Variables</a><a class="headerlink" href="#independent-variables" title="Permalink to this headline"></a></h4>
 <p>Independent variables are variables which do not depend upon other
 dependent variables but are provided as data by the user.  Examples
 include material properties, forcing datasets, etc.  These can be
 provided in a few forms:</p>
 <div class="section" id="constant">
-<h5><a class="toc-backref" href="#id128">Constant</a><a class="headerlink" href="#constant" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id130">Constant</a><a class="headerlink" href="#constant" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>A field evaluator with no dependencies, a constant value.</p>
 </div></blockquote>
@@ -3395,13 +3385,13 @@ value.</p>
 </div>
 </div>
 <div class="section" id="from-function">
-<h5><a class="toc-backref" href="#id129">From Function</a><a class="headerlink" href="#from-function" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id131">From Function</a><a class="headerlink" href="#from-function" title="Permalink to this headline"></a></h5>
 <p>This evaluator is typically used for providing data that are functions of space
 and time.  The evaluator consists of a list of region,function pairs, and the
 functions are evaluated across that region at each timestep.  If the problem is
 time-independent, the <cite>“constant in time</cite>” option results in a performance
 boost (as the functions need only be evaluated once).  This leverages the
-exaustive functional format capability provided in Amanzi’s <a href="#id243"><span class="problematic" id="id244">Functions_</span></a> library.</p>
+exaustive functional format capability provided in Amanzi’s <a href="#id245"><span class="problematic" id="id246">Functions_</span></a> library.</p>
 <p>This evaluator is used by providing the option:</p>
 <p><cite>“evaluator type</cite>” == <cite>“independent variable</cite>”</p>
 <div class="admonition-independent-variable-function-evaluator-spec admonition" id="independent-variable-function-evaluator-spec">
@@ -3414,7 +3404,7 @@ functions once as they are time-independent.</p></li>
 </div>
 </div>
 <div class="section" id="from-file">
-<h5><a class="toc-backref" href="#id130">From File</a><a class="headerlink" href="#from-file" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id132">From File</a><a class="headerlink" href="#from-file" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>An evaluator with no dependencies specified by discrete data in a file.</p>
 </div></blockquote>
@@ -3458,7 +3448,7 @@ repeat the same data.</p></li>
 </div>
 </div>
 <div class="section" id="secondary-variables">
-<h4><a class="toc-backref" href="#id131">Secondary Variables</a><a class="headerlink" href="#secondary-variables" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id133">Secondary Variables</a><a class="headerlink" href="#secondary-variables" title="Permalink to this headline"></a></h4>
 <p>All other evaluators are secondary variable evaluators, and these are
 grouped by physics concept or process type.</p>
 <p>Secondary variables, by definition, define functions that evaluate one
@@ -3497,7 +3487,7 @@ detail all of its names via something like:</p>
 </div>
 </div>
 <div class="section" id="conserved-quantities">
-<h4><a class="toc-backref" href="#id132">Conserved quantities</a><a class="headerlink" href="#conserved-quantities" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id134">Conserved quantities</a><a class="headerlink" href="#conserved-quantities" title="Permalink to this headline"></a></h4>
 <p>Nearly all ATS process kernels are conservation equations, where there
 is a formal conserved quantity, that, upon convergence, is conserved
 to tolerance.  These are always an “extensive” quantity.</p>
@@ -3507,7 +3497,7 @@ measured in <code class="docutils literal notranslate"><span class="pre">[MJ]</s
 SI, and is done so because this makes for fairly evenly balanced
 equations between a coupled flow and energy problem.</p>
 <div class="section" id="richards-equation-water-content-liquid-only">
-<h5><a class="toc-backref" href="#id133">Richards Equation water content (liquid only)</a><a class="headerlink" href="#richards-equation-water-content-liquid-only" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id135">Richards Equation water content (liquid only)</a><a class="headerlink" href="#richards-equation-water-content-liquid-only" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Richards water content evaluator: the standard form as a function of liquid saturation.</p>
 </div></blockquote>
@@ -3526,7 +3516,7 @@ equations between a coupled flow and energy problem.</p>
 </div>
 </div>
 <div class="section" id="liquid-gas-water-content">
-<h5><a class="toc-backref" href="#id134">Liquid+Gas water content</a><a class="headerlink" href="#liquid-gas-water-content" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id136">Liquid+Gas water content</a><a class="headerlink" href="#liquid-gas-water-content" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Water content for liquid + water vapor.</p>
 </div></blockquote>
@@ -3548,7 +3538,7 @@ equations between a coupled flow and energy problem.</p>
 </div>
 </div>
 <div class="section" id="liquid-ice-water-content">
-<h5><a class="toc-backref" href="#id135">Liquid+Ice water content</a><a class="headerlink" href="#liquid-ice-water-content" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id137">Liquid+Ice water content</a><a class="headerlink" href="#liquid-ice-water-content" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Water content for liquid + water vapor.</p>
 </div></blockquote>
@@ -3569,7 +3559,7 @@ equations between a coupled flow and energy problem.</p>
 </div>
 </div>
 <div class="section" id="liquid-ice-gas-water-content">
-<h5><a class="toc-backref" href="#id136">Liquid+Ice+Gas water content</a><a class="headerlink" href="#liquid-ice-gas-water-content" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id138">Liquid+Ice+Gas water content</a><a class="headerlink" href="#liquid-ice-gas-water-content" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Three phase water content: vapor, liquid, and ice.</p>
 </div></blockquote>
@@ -3593,10 +3583,10 @@ equations between a coupled flow and energy problem.</p>
 </div>
 </div>
 <div class="section" id="surface-water-content">
-<h5><a class="toc-backref" href="#id137">Surface water content</a><a class="headerlink" href="#surface-water-content" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id139">Surface water content</a><a class="headerlink" href="#surface-water-content" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="snow-or-canopy-water-content">
-<h5><a class="toc-backref" href="#id138">Snow or canopy water content</a><a class="headerlink" href="#snow-or-canopy-water-content" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id140">Snow or canopy water content</a><a class="headerlink" href="#snow-or-canopy-water-content" title="Permalink to this headline"></a></h5>
 <p>Most other water contents can be formed as <a class="reference internal" href="#multiplicative">Multiplicative</a>
 evaluators.  See below for a few examples:</p>
 <p>Multiplicative evalutator for <cite>snow-water_content</cite>:</p>
@@ -3617,7 +3607,7 @@ evaluators.  See below for a few examples:</p>
 </div>
 </div>
 <div class="section" id="richards-energy">
-<h5><a class="toc-backref" href="#id139">Richards energy</a><a class="headerlink" href="#richards-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id141">Richards energy</a><a class="headerlink" href="#richards-energy" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Energy content evaluator for a standard Richards equation’s water content.</p>
 </div></blockquote>
@@ -3648,7 +3638,7 @@ but must be consistent with the above density.</p></li>
 </div>
 </div>
 <div class="section" id="liquid-gas-energy">
-<h5><a class="toc-backref" href="#id140">Liquid+Gas energy</a><a class="headerlink" href="#liquid-gas-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id142">Liquid+Gas energy</a><a class="headerlink" href="#liquid-gas-energy" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Energy content evaluator for a standard Richards equation, including energy in the gas phase.</p>
 </div></blockquote>
@@ -3681,7 +3671,7 @@ but must be consistent with the above density.</p></li>
 </div>
 </div>
 <div class="section" id="liquid-ice-energy">
-<h5><a class="toc-backref" href="#id141">Liquid+Ice energy</a><a class="headerlink" href="#liquid-ice-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id143">Liquid+Ice energy</a><a class="headerlink" href="#liquid-ice-energy" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Energy content evaluator for a two-phase system, including energy in an ice phase.</p>
 </div></blockquote>
@@ -3715,7 +3705,7 @@ but must be consistent with the above density.</p></li>
 </div>
 </div>
 <div class="section" id="liquid-ice-gas-energy">
-<h5><a class="toc-backref" href="#id142">Liquid+Ice+Gas energy</a><a class="headerlink" href="#liquid-ice-gas-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id144">Liquid+Ice+Gas energy</a><a class="headerlink" href="#liquid-ice-gas-energy" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Energy content evaluator for a three-phase, gas, liquid, ice system including the surrounding soil.</p>
 </div></blockquote>
@@ -3751,7 +3741,7 @@ but must be consistent with the above density.</p></li>
 </div>
 </div>
 <div class="section" id="surface-water-ice-energy">
-<h5><a class="toc-backref" href="#id143">Surface water+ice energy</a><a class="headerlink" href="#surface-water-ice-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id145">Surface water+ice energy</a><a class="headerlink" href="#surface-water-ice-energy" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Energy content for a surface water, partially frozen system.</p>
 </div></blockquote>
@@ -3775,7 +3765,7 @@ but must be consistent with the above density.</p></li>
 </div>
 </div>
 <div class="section" id="subsurface-flow-evaluators">
-<h4><a class="toc-backref" href="#id144">Subsurface flow evaluators</a><a class="headerlink" href="#subsurface-flow-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id146">Subsurface flow evaluators</a><a class="headerlink" href="#subsurface-flow-evaluators" title="Permalink to this headline"></a></h4>
 <p>Assorted evaluators used for subsurface flow processes,
 including water retention curves, compressible pore space, relative
 permeability, and their frozen equivalents.</p>
@@ -3783,16 +3773,16 @@ permeability, and their frozen equivalents.</p>
 subsurface flow of water is the core process underlying all of ATS
 physics.  For real examples, see <a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a></p>
 <div class="section" id="capillary-pressure">
-<h5><a class="toc-backref" href="#id145">Capillary pressure</a><a class="headerlink" href="#capillary-pressure" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id147">Capillary pressure</a><a class="headerlink" href="#capillary-pressure" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Capillary pressure for gas on a liquid.</p>
 </div></blockquote>
 </div>
 <div class="section" id="capillary-pressure-of-liquid-on-ice">
-<h5><a class="toc-backref" href="#id146">Capillary pressure of liquid on ice</a><a class="headerlink" href="#capillary-pressure-of-liquid-on-ice" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id148">Capillary pressure of liquid on ice</a><a class="headerlink" href="#capillary-pressure-of-liquid-on-ice" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="water-retention-model-and-relative-permeability">
-<h5><a class="toc-backref" href="#id147">Water Retention Model and Relative Permeability</a><a class="headerlink" href="#water-retention-model-and-relative-permeability" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id149">Water Retention Model and Relative Permeability</a><a class="headerlink" href="#water-retention-model-and-relative-permeability" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Evaluates saturation through water retention models.</p>
 </div></blockquote>
@@ -3876,7 +3866,7 @@ this quantity by offsetting and equal values is encourage.  Typically 10^7 or so
 </ul>
 </div>
 <div class="section" id="van-genuchten-model">
-<h6><a class="toc-backref" href="#id148">Van Genuchten Model</a><a class="headerlink" href="#van-genuchten-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id150">Van Genuchten Model</a><a class="headerlink" href="#van-genuchten-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>WRMVanGenuchten : water retention model using van Genuchten’s parameterization</p>
 </div></blockquote>
@@ -3916,7 +3906,7 @@ this quantity by offsetting and equal values is encourage.  Typically 10^7 or so
 </div>
 </div>
 <div class="section" id="linear-model">
-<h6><a class="toc-backref" href="#id149">Linear  Model</a><a class="headerlink" href="#linear-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id151">Linear  Model</a><a class="headerlink" href="#linear-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A linear sat-pc curve.</p>
 <blockquote>
@@ -3930,9 +3920,9 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </div>
 </div>
 <div class="section" id="water-retention-model-for-freeze-thaw">
-<h5><a class="toc-backref" href="#id150">Water Retention Model for Freeze-Thaw</a><a class="headerlink" href="#water-retention-model-for-freeze-thaw" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id152">Water Retention Model for Freeze-Thaw</a><a class="headerlink" href="#water-retention-model-for-freeze-thaw" title="Permalink to this headline"></a></h5>
 <div class="section" id="original-implicit-model">
-<h6><a class="toc-backref" href="#id151">Original Implicit model</a><a class="headerlink" href="#original-implicit-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id153">Original Implicit model</a><a class="headerlink" href="#original-implicit-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Painter’s original, implicitly defined permafrost model.</p>
 </div></blockquote>
@@ -3946,10 +3936,10 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </div>
 </div>
 <div class="section" id="freezing-point-depression-model">
-<h6><a class="toc-backref" href="#id152">Freezing point depression model</a><a class="headerlink" href="#freezing-point-depression-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id154">Freezing point depression model</a><a class="headerlink" href="#freezing-point-depression-model" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="freezing-point-depression-smoothed-model">
-<h6><a class="toc-backref" href="#id153">Freezing point depression, smoothed model</a><a class="headerlink" href="#freezing-point-depression-smoothed-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id155">Freezing point depression, smoothed model</a><a class="headerlink" href="#freezing-point-depression-smoothed-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Painter’s permafrost model with freezing point depression, smoothed.</p>
 </div></blockquote>
@@ -3966,10 +3956,10 @@ is always less than atmospheric and within the acceptable range of the slope.</p
 </div>
 </div>
 <div class="section" id="interfrost-model">
-<h6><a class="toc-backref" href="#id154">Interfrost model</a><a class="headerlink" href="#interfrost-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id156">Interfrost model</a><a class="headerlink" href="#interfrost-model" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="sutra-ice-model">
-<h6><a class="toc-backref" href="#id155">Sutra-ICE model</a><a class="headerlink" href="#sutra-ice-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id157">Sutra-ICE model</a><a class="headerlink" href="#sutra-ice-model" title="Permalink to this headline"></a></h6>
 <p>This model is based on the emperical freezing curve used by Sutra-Ice,
 documented in papers by Voss &amp; Walvoord.</p>
 <div class="admonition-wrm-sutra-permafrost-model-spec admonition" id="wrm-sutra-permafrost-model-spec">
@@ -3983,7 +3973,7 @@ documented in papers by Voss &amp; Walvoord.</p>
 </div>
 </div>
 <div class="section" id="compressible-porosity">
-<h5><a class="toc-backref" href="#id156">Compressible porosity</a><a class="headerlink" href="#compressible-porosity" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id158">Compressible porosity</a><a class="headerlink" href="#compressible-porosity" title="Permalink to this headline"></a></h5>
 <p>Compressible grains are both physically realistic (based on bulk modulus) and a
 simple way to provide a non-elliptic, diagonal term for helping solvers to
 converge.</p>
@@ -4000,7 +3990,7 @@ converge.</p>
 </ul>
 </div>
 <div class="section" id="standard-model">
-<h6><a class="toc-backref" href="#id157">Standard model</a><a class="headerlink" href="#standard-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id159">Standard model</a><a class="headerlink" href="#standard-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A simple model for allowing porosity to vary with pressure.</p>
 </div></blockquote>
@@ -4034,7 +4024,7 @@ at atmospheric pressure.</p>
 </div>
 </div>
 <div class="section" id="exponential-model">
-<h6><a class="toc-backref" href="#id158">Exponential model</a><a class="headerlink" href="#exponential-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id160">Exponential model</a><a class="headerlink" href="#exponential-model" title="Permalink to this headline"></a></h6>
 <p>The Leinjnse model is an exponential model of porosity as a function of
 pressure, based on (insert citation!):</p>
 <p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the provided
@@ -4057,13 +4047,13 @@ Globalization Delegate</a> to turn Leijnse model ON in the EWC calculations.</p>
 </div>
 </div>
 <div class="section" id="viscosity-of-water">
-<h5><a class="toc-backref" href="#id159">Viscosity of water</a><a class="headerlink" href="#viscosity-of-water" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id161">Viscosity of water</a><a class="headerlink" href="#viscosity-of-water" title="Permalink to this headline"></a></h5>
 <p>Two main viscosity models are commonly used – a constant and one
 which is temperature-dependent.  The viscosity of water is strongly
 temperature dependent, so it is highly recommended to use that one if
 the problem is nonisothermal.</p>
 <div class="section" id="id6">
-<h6><a class="toc-backref" href="#id160">Constant</a><a class="headerlink" href="#id6" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id162">Constant</a><a class="headerlink" href="#id6" title="Permalink to this headline"></a></h6>
 <p>Like any quantity, a viscosity can simply be a constant value, at which
 point it is not a secondary variable but an independent variable.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;viscosity_liquid&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -4075,7 +4065,7 @@ point it is not a secondary variable but an independent variable.</p>
 </div>
 </div>
 <div class="section" id="nonisothermal">
-<h6><a class="toc-backref" href="#id161">Nonisothermal</a><a class="headerlink" href="#nonisothermal" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id163">Nonisothermal</a><a class="headerlink" href="#nonisothermal" title="Permalink to this headline"></a></h6>
 <p>A non-isothermal viscosity model intended for use within a range of
 temperatures from well below freezing to ~100C.</p>
 <div class="admonition-viscosity-evaluator-spec admonition">
@@ -4100,13 +4090,13 @@ in K, given as an empirical series expansion fit to data.</p>
 </div>
 </div>
 <div class="section" id="surface-flow-evaluators">
-<h4><a class="toc-backref" href="#id162">Surface flow evaluators</a><a class="headerlink" href="#surface-flow-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id164">Surface flow evaluators</a><a class="headerlink" href="#surface-flow-evaluators" title="Permalink to this headline"></a></h4>
 <p>Assorted evaluators used for surface flow, including potential
 surfaces, Manning’s conductivity, and their frozen equivalents.</p>
 <p>Like the subsurface flow evaluators, many of these evaluators show up
 in nearly all ATS simulations.  For real examples, see <a class="reference external" href="https://github.com/amanzi/ats-demos">ats-demos</a></p>
 <div class="section" id="ponded-depth-or-water-height">
-<h5><a class="toc-backref" href="#id163">Ponded Depth or Water Height</a><a class="headerlink" href="#ponded-depth-or-water-height" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id165">Ponded Depth or Water Height</a><a class="headerlink" href="#ponded-depth-or-water-height" title="Permalink to this headline"></a></h5>
 <p>Computes ponded depth from surface water pressure.</p>
 <div class="math notranslate nohighlight">
 \[h = \frac{H(p - p_{atm})}{\rho g}\]</div>
@@ -4122,10 +4112,10 @@ in nearly all ATS simulations.  For real examples, see <a class="reference exter
 </div>
 </div>
 <div class="section" id="ponded-depth-frozen">
-<h5><a class="toc-backref" href="#id164">Ponded Depth, Frozen</a><a class="headerlink" href="#ponded-depth-frozen" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id166">Ponded Depth, Frozen</a><a class="headerlink" href="#ponded-depth-frozen" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="effective-or-smoothed-height">
-<h5><a class="toc-backref" href="#id165">Effective, or Smoothed Height</a><a class="headerlink" href="#effective-or-smoothed-height" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id167">Effective, or Smoothed Height</a><a class="headerlink" href="#effective-or-smoothed-height" title="Permalink to this headline"></a></h5>
 <p>Computes ponded depth from surface water pressure using a smoothed term to make
 derivative smooth near 0.  This is pretty much never used anymore.</p>
 <p><cite>“evaluator type</cite>” = <cite>“effective height</cite>”</p>
@@ -4142,7 +4132,7 @@ is applied.</p></li>
 </div>
 </div>
 <div class="section" id="unfrozen-fraction">
-<h5><a class="toc-backref" href="#id166">Unfrozen fraction</a><a class="headerlink" href="#unfrozen-fraction" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id168">Unfrozen fraction</a><a class="headerlink" href="#unfrozen-fraction" title="Permalink to this headline"></a></h5>
 <p>An empirical equation for freezing ponded water – this is simply a smooth
 sinusoidal curve from 0 to 1 over a given transition in temperature.</p>
 <p><cite>“evaluator type</cite>” = <cite>“unfrozen fraction</cite>”</p>
@@ -4168,7 +4158,7 @@ at this point unfrozen fraction is 0.5.</p></li>
 </div>
 </div>
 <div class="section" id="unfrozen-flowing-depth">
-<h5><a class="toc-backref" href="#id167">Unfrozen Flowing Depth</a><a class="headerlink" href="#unfrozen-flowing-depth" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id169">Unfrozen Flowing Depth</a><a class="headerlink" href="#unfrozen-flowing-depth" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Evaluates the unfrozen mobile depth.</p>
 </div></blockquote>
@@ -4198,7 +4188,7 @@ at this point unfrozen fraction is 0.5.</p></li>
 </div>
 </div>
 <div class="section" id="surfacepotential">
-<h5><a class="toc-backref" href="#id168">SurfacePotential</a><a class="headerlink" href="#surfacepotential" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id170">SurfacePotential</a><a class="headerlink" href="#surfacepotential" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>PresElevEvaluator: evaluates h + z</p>
 </div></blockquote>
@@ -4220,7 +4210,7 @@ would need to be added to the factory and the input spec.</p>
 <p>NOTE: This could easily be replaced by a generic <a class="reference internal" href="#additive">Additive</a> Evaluator.</p>
 </div>
 <div class="section" id="overland-conductivity-sheet-flow">
-<h5><a class="toc-backref" href="#id169">Overland Conductivity, sheet flow</a><a class="headerlink" href="#overland-conductivity-sheet-flow" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id171">Overland Conductivity, sheet flow</a><a class="headerlink" href="#overland-conductivity-sheet-flow" title="Permalink to this headline"></a></h5>
 <p>This implements the conductivity of overland flow, which is the nonlinear
 coefficient in the diffusion wave equation.  The term is given by:</p>
 <p>Optionally, this may include a density factor, typically a molar density, which
@@ -4254,16 +4244,16 @@ density</cite>” is true, the density.</p></li>
 </div>
 </div>
 <div class="section" id="overland-conductivity-litter-resistance">
-<h5><a class="toc-backref" href="#id170">Overland Conductivity, litter resistance</a><a class="headerlink" href="#overland-conductivity-litter-resistance" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id172">Overland Conductivity, litter resistance</a><a class="headerlink" href="#overland-conductivity-litter-resistance" title="Permalink to this headline"></a></h5>
 <p>(missing documentation!)</p>
 </div>
 </div>
 <div class="section" id="thermodynamic-evaluators">
-<h4><a class="toc-backref" href="#id171">Thermodynamic evaluators</a><a class="headerlink" href="#thermodynamic-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id173">Thermodynamic evaluators</a><a class="headerlink" href="#thermodynamic-evaluators" title="Permalink to this headline"></a></h4>
 <p>Internal energy, enthalpy, thermal conductivity, etc used for both
 surface and subsurface transport of energy.</p>
 <div class="section" id="internal-energy">
-<h5><a class="toc-backref" href="#id172">Internal energy</a><a class="headerlink" href="#internal-energy" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id174">Internal energy</a><a class="headerlink" href="#internal-energy" title="Permalink to this headline"></a></h5>
 <p>Computes (specific) internal energy of as a function of temperature.</p>
 <p><cite>“evaluator type</cite>” = <cite>“iem</cite>”</p>
 <div class="admonition-iem-evaluator-spec admonition" id="iem-evaluator-spec">
@@ -4277,7 +4267,7 @@ surface and subsurface transport of energy.</p>
 </ul>
 </div>
 <div class="section" id="linear">
-<h6><a class="toc-backref" href="#id173">Linear</a><a class="headerlink" href="#linear" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id175">Linear</a><a class="headerlink" href="#linear" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Internal energy based on a linear fit.</p>
 </div></blockquote>
@@ -4304,7 +4294,7 @@ surface and subsurface transport of energy.</p>
 </div>
 </div>
 <div class="section" id="quadratic">
-<h6><a class="toc-backref" href="#id174">Quadratic</a><a class="headerlink" href="#quadratic" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id176">Quadratic</a><a class="headerlink" href="#quadratic" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Internal energy based on a quadratic fit to data.</p>
 </div></blockquote>
@@ -4333,7 +4323,7 @@ surface and subsurface transport of energy.</p>
 </div>
 </div>
 <div class="section" id="water-vapor">
-<h6><a class="toc-backref" href="#id175">Water Vapor</a><a class="headerlink" href="#water-vapor" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id177">Water Vapor</a><a class="headerlink" href="#water-vapor" title="Permalink to this headline"></a></h6>
 <p>Computes (specific) internal energy of as a function of temperature and molar
 fraction of water vapor in the gaseous phase.</p>
 <p><cite>“evaluator type</cite>” = <cite>“iem water vapor</cite>”</p>
@@ -4360,7 +4350,7 @@ fraction of water vapor in the gaseous phase.</p>
 </div>
 </div>
 <div class="section" id="enthalpy">
-<h6><a class="toc-backref" href="#id176">Enthalpy</a><a class="headerlink" href="#enthalpy" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id178">Enthalpy</a><a class="headerlink" href="#enthalpy" title="Permalink to this headline"></a></h6>
 <p>Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.</p>
 <div class="math notranslate nohighlight">
 \[e = u + 10^{-6} * \frac{p}{n_l}\]</div>
@@ -4380,7 +4370,7 @@ fraction of water vapor in the gaseous phase.</p>
 </div>
 </div>
 <div class="section" id="thermal-conductivity-two-phases">
-<h5><a class="toc-backref" href="#id177">Thermal Conductivity, two phases</a><a class="headerlink" href="#thermal-conductivity-two-phases" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id179">Thermal Conductivity, two phases</a><a class="headerlink" href="#thermal-conductivity-two-phases" title="Permalink to this headline"></a></h5>
 <p>Thermal conductivity based on two-phases (air,liquid) composition of the
 porous media.</p>
 <p><cite>“evaluator type</cite>” = <cite>“two-phase thermal conductivity</cite>”</p>
@@ -4396,7 +4386,7 @@ porous media.</p>
 </ul>
 </div>
 <div class="section" id="wet-dry-model">
-<h6><a class="toc-backref" href="#id178">Wet-Dry Model</a><a class="headerlink" href="#wet-dry-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id180">Wet-Dry Model</a><a class="headerlink" href="#wet-dry-model" title="Permalink to this headline"></a></h6>
 <p>Simple model of two-phase thermal conductivity, based upon:</p>
 <ul class="simple">
 <li><p>Interpolation between saturated and dry conductivities via a Kersten number.</p></li>
@@ -4426,7 +4416,7 @@ porous media.</p>
 <p>Units: [W m^-1 K^-1]</p>
 </div>
 <div class="section" id="peters-lidard-model">
-<h6><a class="toc-backref" href="#id179">Peters-Lidard Model</a><a class="headerlink" href="#peters-lidard-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id181">Peters-Lidard Model</a><a class="headerlink" href="#peters-lidard-model" title="Permalink to this headline"></a></h6>
 <p>A two-phase thermal conductivity, based upon:</p>
 <ul class="simple">
 <li><p>Interpolation between saturated and dry conductivities via a Kersten number.</p></li>
@@ -4461,7 +4451,7 @@ porous media.</p>
 </div>
 </div>
 <div class="section" id="thermal-conductivity-three-phases">
-<h5><a class="toc-backref" href="#id180">Thermal Conductivity, three phases</a><a class="headerlink" href="#thermal-conductivity-three-phases" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id182">Thermal Conductivity, three phases</a><a class="headerlink" href="#thermal-conductivity-three-phases" title="Permalink to this headline"></a></h5>
 <p>Thermal conductivity based on a three-phase (air,liquid,ice) composition of the
 porous media.</p>
 <p><cite>“evaluator type</cite>” = <cite>“three-phase thermal conductivity</cite>”</p>
@@ -4479,7 +4469,7 @@ porous media.</p>
 </ul>
 </div>
 <div class="section" id="id9">
-<h6><a class="toc-backref" href="#id181">Wet-Dry Model</a><a class="headerlink" href="#id9" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id183">Wet-Dry Model</a><a class="headerlink" href="#id9" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Three-phase thermal conductivity based on paper by Peters-Lidard.</p>
 </div></blockquote>
@@ -4507,7 +4497,7 @@ of fully dried bulk soil.</p></li>
 </div>
 </div>
 <div class="section" id="id10">
-<h6><a class="toc-backref" href="#id182">Peters-Lidard Model</a><a class="headerlink" href="#id10" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id184">Peters-Lidard Model</a><a class="headerlink" href="#id10" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Three-phase thermal conductivity based on paper by Peters-Lidard.</p>
 </div></blockquote>
@@ -4548,7 +4538,7 @@ of fully dried bulk soil.</p></li>
 </div>
 </div>
 <div class="section" id="volume-averaged-model">
-<h6><a class="toc-backref" href="#id183">Volume-averaged Model</a><a class="headerlink" href="#volume-averaged-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id185">Volume-averaged Model</a><a class="headerlink" href="#volume-averaged-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A volume-averaged thermal conductivity based on TCs of raw components.</p>
 </div></blockquote>
@@ -4572,7 +4562,7 @@ conductivity of frozen water.</p></li>
 </div>
 </div>
 <div class="section" id="id11">
-<h6><a class="toc-backref" href="#id184">Sutra-ICE model</a><a class="headerlink" href="#id11" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id186">Sutra-ICE model</a><a class="headerlink" href="#id11" title="Permalink to this headline"></a></h6>
 <p>Thermal conductivity model with constant values as a function of temperature,
 requires the sutra model for permafrost WRM to also be used.  This only exists
 to support the INTERFROST comparison.</p>
@@ -4590,7 +4580,7 @@ to support the INTERFROST comparison.</p>
 </div>
 </div>
 <div class="section" id="thermal-conductivity-surface">
-<h5><a class="toc-backref" href="#id185">Thermal Conductivity, Surface</a><a class="headerlink" href="#thermal-conductivity-surface" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id187">Thermal Conductivity, Surface</a><a class="headerlink" href="#thermal-conductivity-surface" title="Permalink to this headline"></a></h5>
 <p>Thermal conductivity of surface water that can be either frozen or liquid phase.</p>
 <p><cite>“evaluator type</cite>” = <cite>“surface thermal conductivity</cite>”</p>
 <div class="admonition-thermal-conductivity-surface-evaluator-spec admonition" id="thermal-conductivity-surface-evaluator-spec">
@@ -4614,13 +4604,13 @@ to support the INTERFROST comparison.</p>
 </div>
 </div>
 <div class="section" id="advected-energy-source">
-<h5><a class="toc-backref" href="#id186">Advected Energy Source</a><a class="headerlink" href="#advected-energy-source" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id188">Advected Energy Source</a><a class="headerlink" href="#advected-energy-source" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="active-layer-averaged-temperature">
-<h5><a class="toc-backref" href="#id187">Active Layer Averaged Temperature</a><a class="headerlink" href="#active-layer-averaged-temperature" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id189">Active Layer Averaged Temperature</a><a class="headerlink" href="#active-layer-averaged-temperature" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="water-table">
-<h5><a class="toc-backref" href="#id188">Water Table</a><a class="headerlink" href="#water-table" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id190">Water Table</a><a class="headerlink" href="#water-table" title="Permalink to this headline"></a></h5>
 <p>Computes the depth to a saturated water table.</p>
 <p>Evaluator name: <cite>“water table depth</cite>”</p>
 <div class="admonition-water-table-depth-spec admonition" id="water-table-depth-spec">
@@ -4632,7 +4622,7 @@ to support the INTERFROST comparison.</p>
 </div>
 </div>
 <div class="section" id="thaw-depth">
-<h5><a class="toc-backref" href="#id189">Thaw Depth</a><a class="headerlink" href="#thaw-depth" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id191">Thaw Depth</a><a class="headerlink" href="#thaw-depth" title="Permalink to this headline"></a></h5>
 <p>Computes the depth to a saturated water table.</p>
 <p>Evaluator name: <cite>“water table depth</cite>”</p>
 <div class="admonition-water-table-depth-spec admonition" id="id12">
@@ -4645,7 +4635,7 @@ to support the INTERFROST comparison.</p>
 </div>
 </div>
 <div class="section" id="equations-of-state">
-<h4><a class="toc-backref" href="#id190">Equations of State</a><a class="headerlink" href="#equations-of-state" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id192">Equations of State</a><a class="headerlink" href="#equations-of-state" title="Permalink to this headline"></a></h4>
 <p>The density of water can be specified in many ways, depending upon
 phase and problem of interest.  Options are available from the
 simplest (constant value) to functions of just temperature,
@@ -4663,7 +4653,7 @@ these than the evaluator provides is valid, but it is inefficient.
 Choosing a model that uses more than the evaluator provides will
 result in an error.</p>
 <div class="section" id="constant-value">
-<h5><a class="toc-backref" href="#id191">Constant Value</a><a class="headerlink" href="#constant-value" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id193">Constant Value</a><a class="headerlink" href="#constant-value" title="Permalink to this headline"></a></h5>
 <p>Like any quantity, a density can simply be a constant value, at which
 point it is not a secondary variable but an independent variable.</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;surface-molar_density_liquid&quot;</span> <span class="na">type=</span><span class="s">&quot;ParameterList&quot;</span><span class="nt">&gt;</span>
@@ -4675,43 +4665,43 @@ point it is not a secondary variable but an independent variable.</p>
 </div>
 </div>
 <div class="section" id="standard-equation-of-state">
-<h5><a class="toc-backref" href="#id192">Standard Equation of State</a><a class="headerlink" href="#standard-equation-of-state" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id194">Standard Equation of State</a><a class="headerlink" href="#standard-equation-of-state" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>EOSEvaluator is the interface between state/data and the model, an EOS.</p>
 </div></blockquote>
 </div>
 <div class="section" id="models">
-<h5><a class="toc-backref" href="#id193">Models</a><a class="headerlink" href="#models" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id195">Models</a><a class="headerlink" href="#models" title="Permalink to this headline"></a></h5>
 <div class="section" id="constant-eos">
-<h6><a class="toc-backref" href="#id194">Constant EOS</a><a class="headerlink" href="#constant-eos" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id196">Constant EOS</a><a class="headerlink" href="#constant-eos" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="linear-eos">
-<h6><a class="toc-backref" href="#id195">Linear EOS</a><a class="headerlink" href="#linear-eos" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id197">Linear EOS</a><a class="headerlink" href="#linear-eos" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="ideal-gas">
-<h6><a class="toc-backref" href="#id196">Ideal Gas</a><a class="headerlink" href="#ideal-gas" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id198">Ideal Gas</a><a class="headerlink" href="#ideal-gas" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="eos-of-water">
-<h6><a class="toc-backref" href="#id197">EOS of Water</a><a class="headerlink" href="#eos-of-water" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id199">EOS of Water</a><a class="headerlink" href="#eos-of-water" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="eos-of-ice">
-<h6><a class="toc-backref" href="#id198">EOS of Ice</a><a class="headerlink" href="#eos-of-ice" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id200">EOS of Ice</a><a class="headerlink" href="#eos-of-ice" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="eos-of-vapor-in-air">
-<h6><a class="toc-backref" href="#id199">EOS of Vapor in Air</a><a class="headerlink" href="#eos-of-vapor-in-air" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id201">EOS of Vapor in Air</a><a class="headerlink" href="#eos-of-vapor-in-air" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="eos-of-saltwater">
-<h6><a class="toc-backref" href="#id200">EOS of Saltwater</a><a class="headerlink" href="#eos-of-saltwater" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id202">EOS of Saltwater</a><a class="headerlink" href="#eos-of-saltwater" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 </div>
 <div class="section" id="surface-energy-balance-evaluators">
-<h4><a class="toc-backref" href="#id201">Surface energy balance evaluators</a><a class="headerlink" href="#surface-energy-balance-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id203">Surface energy balance evaluators</a><a class="headerlink" href="#surface-energy-balance-evaluators" title="Permalink to this headline"></a></h4>
 <p>Evaluators used to solve the fluxes to and from the atmosphere and
 between layers of the surface.  Typically in ATS these calculate
 evapotranspiration.</p>
 <div class="section" id="area-fractions">
-<h5><a class="toc-backref" href="#id202">Area Fractions</a><a class="headerlink" href="#area-fractions" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id204">Area Fractions</a><a class="headerlink" href="#area-fractions" title="Permalink to this headline"></a></h5>
 <p>Frequently, the surface of a grid cell is split across at least two
 “subgrid components,” for instance snow covered and bare ground.  This
 “subgrid” model allows smooth transitions between fully snow-covered
@@ -4719,7 +4709,7 @@ and fully bare ground.</p>
 <p>These area fractions often get included as area-weights in calculating
 full-cell quantities.</p>
 <div class="section" id="two-component-model">
-<h6><a class="toc-backref" href="#id203">Two-component model</a><a class="headerlink" href="#two-component-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id205">Two-component model</a><a class="headerlink" href="#two-component-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A subgrid model for determining the area fraction of snow vs not snow within a grid cell.</p>
 </div></blockquote>
@@ -4743,7 +4733,7 @@ another linear transition to vary between snow-covered and not-snow-covered.</p>
 </div>
 </div>
 <div class="section" id="three-component-model">
-<h6><a class="toc-backref" href="#id204">Three-component model</a><a class="headerlink" href="#three-component-model" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id206">Three-component model</a><a class="headerlink" href="#three-component-model" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A subgrid model for determining the area fraction of land, water, and snow within a grid cell.</p>
 </div></blockquote>
@@ -4768,7 +4758,7 @@ another linear transition to vary between snow-covered and not-snow-covered.</p>
 </div>
 </div>
 <div class="section" id="three-component-model-with-microtopography">
-<h6><a class="toc-backref" href="#id205">Three-component model, with microtopography</a><a class="headerlink" href="#three-component-model-with-microtopography" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id207">Three-component model, with microtopography</a><a class="headerlink" href="#three-component-model-with-microtopography" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.</p>
 </div></blockquote>
@@ -4808,14 +4798,14 @@ matter much. –etc</p>
 </div>
 </div>
 <div class="section" id="potential-evapotranspiration">
-<h5><a class="toc-backref" href="#id206">Potential Evapotranspiration</a><a class="headerlink" href="#potential-evapotranspiration" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id208">Potential Evapotranspiration</a><a class="headerlink" href="#potential-evapotranspiration" title="Permalink to this headline"></a></h5>
 <p>Models of potential evapotranspiration approximate the difference in
 vapor pressure between the atmosphere and the soil as a function of
 available energy, allowing the calculation of the max flux of ET that
 the atmosphere could accept.  This can then be limited based on water
 availability, etc.</p>
 <div class="section" id="priestley-taylor-potential-evapotranspiration">
-<h6><a class="toc-backref" href="#id207">Priestley-Taylor Potential Evapotranspiration</a><a class="headerlink" href="#priestley-taylor-potential-evapotranspiration" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id209">Priestley-Taylor Potential Evapotranspiration</a><a class="headerlink" href="#priestley-taylor-potential-evapotranspiration" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Evaluates potential evapotranpiration (PET) using Priestley &amp; Taylor formulation.</p>
 </div></blockquote>
@@ -4861,13 +4851,13 @@ as limiters, and these have multiple dofs.  This provides which one to use.</p><
 </div>
 </div>
 <div class="section" id="downregulation-and-limiters">
-<h5><a class="toc-backref" href="#id208">Downregulation and limiters</a><a class="headerlink" href="#downregulation-and-limiters" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id210">Downregulation and limiters</a><a class="headerlink" href="#downregulation-and-limiters" title="Permalink to this headline"></a></h5>
 <p>Given a potential, the actual ET is often limited by available water
 (or nutrients or other quantities).  These evaluators are used to
 limit, downregulate, distribute, or otherwise move a potential to an
 actual ET.</p>
 <div class="section" id="transpiration-distribution">
-<h6><a class="toc-backref" href="#id209">Transpiration Distribution</a><a class="headerlink" href="#transpiration-distribution" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id211">Transpiration Distribution</a><a class="headerlink" href="#transpiration-distribution" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Distributes and downregulates potential transpiration to the rooting zone.</p>
 </div></blockquote>
@@ -4932,7 +4922,7 @@ potential * rooting fraction.</p></li>
 </div>
 </div>
 <div class="section" id="rooting-depth-fraction">
-<h6><a class="toc-backref" href="#id210">Rooting Depth Fraction</a><a class="headerlink" href="#rooting-depth-fraction" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id212">Rooting Depth Fraction</a><a class="headerlink" href="#rooting-depth-fraction" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Provides a depth-based profile of root density.</p>
 </div></blockquote>
@@ -4955,7 +4945,7 @@ LandCover type.</p>
 </div>
 </div>
 <div class="section" id="plant-wilting-point">
-<h6><a class="toc-backref" href="#id211">Plant Wilting Point</a><a class="headerlink" href="#plant-wilting-point" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id213">Plant Wilting Point</a><a class="headerlink" href="#plant-wilting-point" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Plant wilting factor provides a moisture availability-based limiter on transpiration.</p>
 <blockquote>
@@ -4983,7 +4973,7 @@ Verhoef &amp; Egea, Ag. &amp; Forest Meteorology, 2014
 </div>
 </div>
 <div class="section" id="soil-resistance">
-<h5><a class="toc-backref" href="#id212">Soil Resistance</a><a class="headerlink" href="#soil-resistance" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id214">Soil Resistance</a><a class="headerlink" href="#soil-resistance" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Downregulates evaporation via vapor diffusion through a dessicated zone.</p>
 </div></blockquote>
@@ -5002,14 +4992,14 @@ Hornberger b.</p>
 </div>
 </div>
 <div class="section" id="radiation-balance-terms">
-<h5><a class="toc-backref" href="#id213">Radiation Balance Terms</a><a class="headerlink" href="#radiation-balance-terms" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id215">Radiation Balance Terms</a><a class="headerlink" href="#radiation-balance-terms" title="Permalink to this headline"></a></h5>
 <p>Often a balance of incoming and outgoing short and longwave radiations
 are required to determine the energy available to go into latent heat,
 and therefore potential evapotranspiration.</p>
 <p>Note that incoming shortwave radiation is typically a user-provided
 meterological forcing dataset.</p>
 <div class="section" id="surface-albedo">
-<h6><a class="toc-backref" href="#id214">Surface Albedo</a><a class="headerlink" href="#surface-albedo" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id216">Surface Albedo</a><a class="headerlink" href="#surface-albedo" title="Permalink to this headline"></a></h6>
 <p>Note that albedo is also a multiple subgrid component model, like
 surface balance.</p>
 <blockquote>
@@ -5072,7 +5062,7 @@ snow.  Note this internally calculates albedo of snow based upon snow density.</
 </div>
 </div>
 <div class="section" id="incident-shortwave-radiation">
-<h6><a class="toc-backref" href="#id215">Incident Shortwave Radiation</a><a class="headerlink" href="#incident-shortwave-radiation" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id217">Incident Shortwave Radiation</a><a class="headerlink" href="#incident-shortwave-radiation" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><dl class="simple">
 <dt>Evaluates shortwave as a function of slope/aspect/etc.</dt><dd><p>Generated via evaluator_generator with:</p>
@@ -5094,7 +5084,7 @@ the daily average aspect modifier.</p>
 <a class="reference external" href="https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py">https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py</a></p>
 </div>
 <div class="section" id="longwave-radiation">
-<h6><a class="toc-backref" href="#id216">Longwave Radiation</a><a class="headerlink" href="#longwave-radiation" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id218">Longwave Radiation</a><a class="headerlink" href="#longwave-radiation" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Evaluates incoming longwave radiation from vapor pressure and air temperature.</p>
 </div></blockquote>
@@ -5109,12 +5099,12 @@ the daily average aspect modifier.</p>
 </div>
 </div>
 <div class="section" id="full-surface-energy-balance-models">
-<h5><a class="toc-backref" href="#id217">Full Surface Energy Balance Models</a><a class="headerlink" href="#full-surface-energy-balance-models" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id219">Full Surface Energy Balance Models</a><a class="headerlink" href="#full-surface-energy-balance-models" title="Permalink to this headline"></a></h5>
 <p>Finally, in addition to the potential-based models above, a few
 full-physics model are available.  These are often based on older,
 monolithic models.</p>
 <div class="section" id="bare-soil-surface-energy-balance">
-<h6><a class="toc-backref" href="#id218">Bare Soil Surface Energy Balance</a><a class="headerlink" href="#bare-soil-surface-energy-balance" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id220">Bare Soil Surface Energy Balance</a><a class="headerlink" href="#bare-soil-surface-energy-balance" title="Permalink to this headline"></a></h6>
 <blockquote>
 <div><p>Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.</p>
 </div></blockquote>
@@ -5245,18 +5235,18 @@ potential wierd data.  Models have trouble with no wind.</p></li>
 </div>
 </div>
 <div class="section" id="common-land-model-parflow-clm">
-<h6><a class="toc-backref" href="#id219">Common Land Model (ParFlow-CLM)</a><a class="headerlink" href="#common-land-model-parflow-clm" title="Permalink to this headline"></a></h6>
+<h6><a class="toc-backref" href="#id221">Common Land Model (ParFlow-CLM)</a><a class="headerlink" href="#common-land-model-parflow-clm" title="Permalink to this headline"></a></h6>
 <p>This is included here because it should eventually get split into
-evaluators.  Currently, the CLM SEB model is a PK only, see <a href="#id245"><span class="problematic" id="id246">`Common
+evaluators.  Currently, the CLM SEB model is a PK only, see <a href="#id247"><span class="problematic" id="id248">`Common
 Land Model PK`_</span></a>.</p>
 </div>
 </div>
 </div>
 <div class="section" id="snow-evaluators">
-<h4><a class="toc-backref" href="#id220">Snow evaluators</a><a class="headerlink" href="#snow-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id222">Snow evaluators</a><a class="headerlink" href="#snow-evaluators" title="Permalink to this headline"></a></h4>
 <p>Evaluators used for solving snowpack and/or snow redistribution laterally.</p>
 <div class="section" id="snowsurfacepotential">
-<h5><a class="toc-backref" href="#id221">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id223">SnowSurfacePotential</a><a class="headerlink" href="#snowsurfacepotential" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>PresElevEvaluator: evaluates h + z</p>
 </div></blockquote>
@@ -5281,7 +5271,7 @@ Land Model PK`_</span></a>.</p>
 </div>
 </div>
 <div class="section" id="snow-melt-rate">
-<h5><a class="toc-backref" href="#id222">Snow Melt Rate</a><a class="headerlink" href="#snow-melt-rate" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id224">Snow Melt Rate</a><a class="headerlink" href="#snow-melt-rate" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Evaluates snow melt via USDA - Natural Resources Conservation Service model</p>
 </div></blockquote>
@@ -5308,24 +5298,24 @@ guess a sane default by the snow domain name.</p></li>
 </div>
 </div>
 <div class="section" id="carbon-and-biogeochemistry-models">
-<h4><a class="toc-backref" href="#id223">Carbon and Biogeochemistry Models</a><a class="headerlink" href="#carbon-and-biogeochemistry-models" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id225">Carbon and Biogeochemistry Models</a><a class="headerlink" href="#carbon-and-biogeochemistry-models" title="Permalink to this headline"></a></h4>
 <div class="section" id="carbon-decomposition-rate">
-<h5><a class="toc-backref" href="#id224">Carbon Decomposition Rate</a><a class="headerlink" href="#carbon-decomposition-rate" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id226">Carbon Decomposition Rate</a><a class="headerlink" href="#carbon-decomposition-rate" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="cryo-bioturbation">
-<h5><a class="toc-backref" href="#id225">Cryo/bioturbation</a><a class="headerlink" href="#cryo-bioturbation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id227">Cryo/bioturbation</a><a class="headerlink" href="#cryo-bioturbation" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="pool-decomposition">
-<h5><a class="toc-backref" href="#id226">Pool Decomposition</a><a class="headerlink" href="#pool-decomposition" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id228">Pool Decomposition</a><a class="headerlink" href="#pool-decomposition" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="pool-transfer">
-<h5><a class="toc-backref" href="#id227">Pool Transfer</a><a class="headerlink" href="#pool-transfer" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id229">Pool Transfer</a><a class="headerlink" href="#pool-transfer" title="Permalink to this headline"></a></h5>
 </div>
 </div>
 <div class="section" id="multiscale-models">
-<h4><a class="toc-backref" href="#id228">Multiscale Models</a><a class="headerlink" href="#multiscale-models" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id230">Multiscale Models</a><a class="headerlink" href="#multiscale-models" title="Permalink to this headline"></a></h4>
 <div class="section" id="subgrid-aggregation">
-<h5><a class="toc-backref" href="#id229">Subgrid Aggregation</a><a class="headerlink" href="#subgrid-aggregation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id231">Subgrid Aggregation</a><a class="headerlink" href="#subgrid-aggregation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.</p>
 </div></blockquote>
@@ -5341,7 +5331,7 @@ guess a sane default by the snow domain name.</p></li>
 </div>
 </div>
 <div class="section" id="subgrid-disaggregation">
-<h5><a class="toc-backref" href="#id230">Subgrid disaggregation</a><a class="headerlink" href="#subgrid-disaggregation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id232">Subgrid disaggregation</a><a class="headerlink" href="#subgrid-disaggregation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.</p>
 </div></blockquote>
@@ -5360,10 +5350,10 @@ will be N evaluators each filling one subdomain.</p>
 </div>
 </div>
 <div class="section" id="geometric-evaluators">
-<h4><a class="toc-backref" href="#id231">Geometric evaluators</a><a class="headerlink" href="#geometric-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id233">Geometric evaluators</a><a class="headerlink" href="#geometric-evaluators" title="Permalink to this headline"></a></h4>
 <p>Evaluators that capture various aspects of the mesh geometry.</p>
 <div class="section" id="surfaceelevation">
-<h5><a class="toc-backref" href="#id232">SurfaceElevation</a><a class="headerlink" href="#surfaceelevation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id234">SurfaceElevation</a><a class="headerlink" href="#surfaceelevation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>MeshedElevationEvaluator: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.</p>
 </div></blockquote>
@@ -5386,7 +5376,7 @@ intelligent default by stripping “surface” from this domain.</p></li>
 </div>
 </div>
 <div class="section" id="elevation-of-a-column">
-<h5><a class="toc-backref" href="#id233">Elevation of a Column</a><a class="headerlink" href="#elevation-of-a-column" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id235">Elevation of a Column</a><a class="headerlink" href="#elevation-of-a-column" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.</p>
 </div></blockquote>
@@ -5430,21 +5420,21 @@ base 3D domain.</p></li>
 </div>
 </div>
 <div class="section" id="depth-evaluator">
-<h5><a class="toc-backref" href="#id234">Depth Evaluator</a><a class="headerlink" href="#depth-evaluator" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id236">Depth Evaluator</a><a class="headerlink" href="#depth-evaluator" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="cell-volume-evaluator">
-<h5><a class="toc-backref" href="#id235">Cell Volume evaluator</a><a class="headerlink" href="#cell-volume-evaluator" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id237">Cell Volume evaluator</a><a class="headerlink" href="#cell-volume-evaluator" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="deforming-cell-volume-evaluator">
-<h5><a class="toc-backref" href="#id236">Deforming Cell Volume evaluator</a><a class="headerlink" href="#deforming-cell-volume-evaluator" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id238">Deforming Cell Volume evaluator</a><a class="headerlink" href="#deforming-cell-volume-evaluator" title="Permalink to this headline"></a></h5>
 </div>
 </div>
 <div class="section" id="generic-evaluators">
-<h4><a class="toc-backref" href="#id237">Generic evaluators</a><a class="headerlink" href="#generic-evaluators" title="Permalink to this headline"></a></h4>
+<h4><a class="toc-backref" href="#id239">Generic evaluators</a><a class="headerlink" href="#generic-evaluators" title="Permalink to this headline"></a></h4>
 <p>These evaluators take arguments to allow the user to provide custom
 functions via the input spec.</p>
 <div class="section" id="additive">
-<h5><a class="toc-backref" href="#id238">Additive</a><a class="headerlink" href="#additive" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id240">Additive</a><a class="headerlink" href="#additive" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>A generic evaluator for summing a collection of fields.</p>
 </div></blockquote>
@@ -5468,7 +5458,7 @@ the list below.</p></li>
 </div>
 </div>
 <div class="section" id="multiplicative">
-<h5><a class="toc-backref" href="#id239">Multiplicative</a><a class="headerlink" href="#multiplicative" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id241">Multiplicative</a><a class="headerlink" href="#multiplicative" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>A generic evaluator for multiplying a collection of fields.</p>
 </div></blockquote>
@@ -5495,7 +5485,7 @@ value 0 manually.</p></li>
 </div>
 </div>
 <div class="section" id="column-summation">
-<h5><a class="toc-backref" href="#id240">Column summation</a><a class="headerlink" href="#column-summation" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id242">Column summation</a><a class="headerlink" href="#column-summation" title="Permalink to this headline"></a></h5>
 <blockquote>
 <div><p>Sums a subsurface field vertically only a surface field.</p>
 </div></blockquote>
@@ -5527,10 +5517,10 @@ rarely set by the user.</p></li>
 </div>
 </div>
 <div class="section" id="top-cell">
-<h5><a class="toc-backref" href="#id241">Top cell</a><a class="headerlink" href="#top-cell" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id243">Top cell</a><a class="headerlink" href="#top-cell" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="arbitrary-function">
-<h5><a class="toc-backref" href="#id242">Arbitrary function</a><a class="headerlink" href="#arbitrary-function" title="Permalink to this headline"></a></h5>
+<h5><a class="toc-backref" href="#id244">Arbitrary function</a><a class="headerlink" href="#arbitrary-function" title="Permalink to this headline"></a></h5>
 <p>Uses functions to evaluate arbitrary algebraic functions of its dependencies.</p>
 <p>For example, one might write a dependency:</p>
 <blockquote>
@@ -5541,11 +5531,13 @@ rarely set by the user.</p></li>
 <p class="admonition-title">secondary-variable-from-function-evaluator-spec</p>
 <p>ONE OF:</p>
 <ul class="simple">
-<li><p><cite>“functions</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec-list]</span></code>  Note this is used for multiple Degress of Freedom.</p></li>
+<li><p><cite>“functions</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec-list]</span></code> Note this is used
+for multiple Degress of Freedom.</p></li>
 </ul>
 <p>OR:</p>
 <ul class="simple">
-<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec]</span></code> Used for a single degree of freedom.</p></li>
+<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec]</span></code> Used for a single degree
+of freedom.</p></li>
 </ul>
 </div>
 <p>Example:</p>
@@ -5566,7 +5558,7 @@ rarely set by the user.</p></li>
 </div>
 </div>
 <div class="section" id="initialconditions">
-<h3><a class="toc-backref" href="#id62">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id63">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline"></a></h3>
 <p>Initial condition specs are used in three places:</p>
 <ul class="simple">
 <li><p>In the <cite>“initial conditions</cite>” sublist of state, in which the value
@@ -5575,15 +5567,50 @@ should be renamed).  These atomic values are not controlled by
 evaluators, and are not included in the DaG.</p></li>
 <li><p>Within the <a class="reference internal" href="#pk">PK</a> spec which describes the initial condition of primary variables (true
 initial conditions).</p></li>
-<li><p>In <a href="#id247"><span class="problematic" id="id248">`IndependentVariableEvaluator Constant &lt;Constant_&gt;`_</span></a></p></li>
+<li><p>In <a href="#id249"><span class="problematic" id="id250">`IndependentVariableEvaluator Constant &lt;Constant_&gt;`_</span></a></p></li>
 </ul>
 <p>The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
 available options for initializing various data in state differ by
-data type:</p>
+data type.</p>
+<div class="admonition-constants-scalar-spec admonition" id="constants-scalar-spec">
+<p class="admonition-title">constants-scalar-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> Value of a scalar constant</p></li>
+</ul>
+</div>
+<div class="admonition-constants-dense-vector-spec admonition" id="constants-dense-vector-spec">
+<p class="admonition-title">constants-dense-vector-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Value of a dense, local vector.</p></li>
+</ul>
+</div>
+<div class="admonition-constants-point-spec admonition" id="constants-point-spec">
+<p class="admonition-title">constants-point-spec</p>
+<ul class="simple">
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code> Array containing the values of the point.</p></li>
+</ul>
+</div>
+<div class="admonition-constants-composite-vector-spec admonition" id="constants-composite-vector-spec">
+<p class="admonition-title">constants-composite-vector-spec</p>
+<ul class="simple">
+<li><p><cite>“constant</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> Constant value.</p></li>
+<li><p><cite>“value</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>optional</strong> Constant value, same as <cite>“constant</cite>” above.</p></li>
+<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[composite-vector-function-spec-list]</span></code> <strong>optional</strong>
+Initialize from a function, see <a class="reference internal" href="#compositevectorfunction">CompositeVectorFunction</a></p></li>
+<li><p><cite>“restart file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Path to a checkpoint file from
+which to read the values.</p></li>
+<li><p><cite>“cells from file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>optional</strong> Same as <cite>“restart file</cite>”,
+but only reads the cell component.</p></li>
+<li><p><cite>“exodus file initialization</cite>” <code class="docutils literal notranslate"><span class="pre">[exodus-file-initialization-spec]</span></code>
+<strong>optional</strong> See <a class="reference internal" href="#exodus-file-initialization">Exodus File Initialization</a>.</p></li>
+<li><p><cite>“initialize from 1D column</cite>” <code class="docutils literal notranslate"><span class="pre">[column-file-initialization-spec]</span></code>
+<strong>optional</strong> See <a class="reference internal" href="#column-file-initialization">Column File Initialization</a>.</p></li>
+</ul>
+</div>
 </div>
 <div class="section" id="boundaryconditions">
-<h3><a class="toc-backref" href="#id63">BoundaryConditions</a><a class="headerlink" href="#boundaryconditions" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id64">BoundaryConditions</a><a class="headerlink" href="#boundaryconditions" title="Permalink to this headline"></a></h3>
 <p>In general, boundary conditions are provided in a hierarchical list by
 boundary condition type, then functional form.  Boundary condition specs are
 split between two types – those which require a user-provided function
@@ -6003,7 +6030,7 @@ for benchmarks or other testing.</p>
 </div>
 </div>
 <div class="section" id="time-integrators-solvers-and-other-mathematical-specs">
-<h2><a class="toc-backref" href="#id64">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id65">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline"></a></h2>
 <blockquote>
 <div><p>Common specs for all solvers and time integrators, used in PKs.</p>
 </div></blockquote>
@@ -6037,7 +6064,7 @@ to calculate an update.  In this case, the time integration scheme
 requires both a nonlinear solver (to drive the residual to zero) and a
 linear solver or approximate solver (to calculate the correction).</p>
 <div class="section" id="timeintegrator">
-<h3><a class="toc-backref" href="#id65">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id66">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline"></a></h3>
 <p>Currently there are two classes of time integration schemes used in
 ATS: explicit (including a range of single and multi-stage) methods
 and BDF1, or Backward Euler.</p>
@@ -6245,7 +6272,7 @@ cause doubt over their correctness.</p>
 </div>
 </div>
 <div class="section" id="nonlinear-solver">
-<h3><a class="toc-backref" href="#id66">Nonlinear Solver</a><a class="headerlink" href="#nonlinear-solver" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id67">Nonlinear Solver</a><a class="headerlink" href="#nonlinear-solver" title="Permalink to this headline"></a></h3>
 <blockquote id="solver">
 <div><p>A factory for creating nonlinear solvers.</p>
 </div></blockquote>
@@ -6623,7 +6650,7 @@ for Anderson mixing.</p></li>
 </div>
 </div>
 <div class="section" id="linear-solvers">
-<h3><a class="toc-backref" href="#id67">Linear Solvers</a><a class="headerlink" href="#linear-solvers" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id68">Linear Solvers</a><a class="headerlink" href="#linear-solvers" title="Permalink to this headline"></a></h3>
 <blockquote id="inverse">
 <span id="linear-solver"></span><span id="linearsolvers"></span><span id="linearoperator"></span><div><p>Base class for providing ApplyInverse() methods on operators.</p>
 </div></blockquote>
@@ -6756,7 +6783,7 @@ criteria, any of which can be applied.  Valid include:</p>
 </div>
 </div>
 <div class="section" id="preconditioners">
-<h3><a class="toc-backref" href="#id68">Preconditioners</a><a class="headerlink" href="#preconditioners" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id69">Preconditioners</a><a class="headerlink" href="#preconditioners" title="Permalink to this headline"></a></h3>
 <blockquote id="preconditioner">
 <div><p>A base class for assembled preconditioners.</p>
 </div></blockquote>
@@ -6964,9 +6991,9 @@ through the Ifpack interface.</p>
 </div>
 </div>
 <div class="section" id="other-common-specs">
-<h2><a class="toc-backref" href="#id69">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline"></a></h2>
+<h2><a class="toc-backref" href="#id70">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline"></a></h2>
 <div class="section" id="ioevent">
-<h3><a class="toc-backref" href="#id70">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id71">IOEvent</a><a class="headerlink" href="#ioevent" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>IOEvent: base time/timestep control determing when in time to do something.</p>
 </div></blockquote>
@@ -7007,7 +7034,7 @@ of <cite>“s</cite>”, <cite>“d</cite>”, <cite>“yr</cite>”, or <cite>�
 </div>
 </div>
 <div class="section" id="verbose-object">
-<h3><a class="toc-backref" href="#id71">Verbose Object</a><a class="headerlink" href="#verbose-object" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id72">Verbose Object</a><a class="headerlink" href="#verbose-object" title="Permalink to this headline"></a></h3>
 <p>This allows control of log-file verbosity for a wide variety of objects
 and physics.</p>
 <div class="admonition-verbose-object-spec admonition" id="verbose-object-spec">
@@ -7039,7 +7066,7 @@ by-the-instance, so this may not catch as much as one might think.</p></li>
 </div>
 </div>
 <div class="section" id="debugger">
-<h3><a class="toc-backref" href="#id72">Debugger</a><a class="headerlink" href="#debugger" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id73">Debugger</a><a class="headerlink" href="#debugger" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>A mesh and vector structure aware utility for printing info.</p>
 </div></blockquote>
@@ -7061,7 +7088,7 @@ in <cite>“debug cells</cite>”.</p></li>
 </div>
 </div>
 <div class="section" id="residual-debugger">
-<h3><a class="toc-backref" href="#id73">Residual Debugger</a><a class="headerlink" href="#residual-debugger" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id74">Residual Debugger</a><a class="headerlink" href="#residual-debugger" title="Permalink to this headline"></a></h3>
 <p>Debugging object for writing vectors to file within an iterative
 process for use with vis tools.</p>
 <div class="admonition-residual-debugger-spec admonition" id="residual-debugger-spec">
@@ -7076,7 +7103,7 @@ process for use with vis tools.</p>
 </div>
 </div>
 <div class="section" id="function">
-<h3><a class="toc-backref" href="#id74">Function</a><a class="headerlink" href="#function" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id75">Function</a><a class="headerlink" href="#function" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>Function: base class for all functions of space and time.</p>
 </div></blockquote>
@@ -7530,7 +7557,7 @@ is 0.</p></li>
 </div>
 </div>
 <div class="section" id="operator">
-<h3><a class="toc-backref" href="#id75">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline"></a></h3>
+<h3><a class="toc-backref" href="#id76">Operator</a><a class="headerlink" href="#operator" title="Permalink to this headline"></a></h3>
 <blockquote>
 <div><p>Operator represents a linear map, and typically encapsulates a discretization.</p>
 </div></blockquote>
@@ -7691,6 +7718,98 @@ The second option is based on the divergence formula.</p></li>
 <p>which advects quantity <span class="math notranslate nohighlight">\(C\)</span> with fluxes <span class="math notranslate nohighlight">\(q\)</span>.</p>
 <p>This is a simple, first-order donor-upwind scheme, and is recommended
 for use in diffusion-dominated advection-diffusion equations.</p>
+</div>
+</div>
+<div class="section" id="field-initializers">
+<h3><a class="toc-backref" href="#id77">Field Initializers</a><a class="headerlink" href="#field-initializers" title="Permalink to this headline"></a></h3>
+<p>Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.</p>
+<div class="section" id="function-initialization">
+<h4>Function Initialization<a class="headerlink" href="#function-initialization" title="Permalink to this headline"></a></h4>
+<blockquote id="compositevectorfunction">
+<div><p>Mesh Functions, evaluate a function on a mesh and stick the result in a vector.</p>
+</div></blockquote>
+<p>CompositeVectorFunctions are ways of evaluating a piecewise function on a
+mesh and sticking the result into a CompositeVector.</p>
+<p>This is used in a variety of ways – Initial Conditions, Boundary
+Conditions, and Independent Variable Evaluators.</p>
+<p>Typically any containing object of this spec is a list of these specs.  The
+list is indexed by Region, and the regions (logically) should partition the
+domain (or boundary of the domain in the case of BCs).</p>
+<p>Each entry in that list is a:</p>
+<div class="admonition-composite-vector-function-spec admonition" id="composite-vector-function-spec">
+<p class="admonition-title">composite-vector-function-spec</p>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“region</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on which this function is evaluated.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> List of regions on which this function is evaluated.</p></li>
+</ul>
+<p>END</p>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“component</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Mesh component to evaluate this on.  This is
+one of “cell”, “face”, “node”, “edge”, or “boundary_face”. The last two
+may require additional conditions, such as a proper mesh initialization.
+The mask “*” could be used in place of the component name.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“components</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Mesh components to evaluate this on.
+This is some collection of “cell”, “face”, “node”, “edge”, and/or
+“boundary_face”. The last two may require additional conditions, such as a
+proper mesh initialization.  The array with the single entry “*” could be
+used to initialize all existing components.</p></li>
+</ul>
+<p>END</p>
+<ul class="simple">
+<li><p><cite>“function</cite>” <code class="docutils literal notranslate"><span class="pre">[function-typedsublist-spec]</span></code> The spec to provide the actual algebraic function.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="column-file-initialization">
+<h4>Column File Initialization<a class="headerlink" href="#column-file-initialization" title="Permalink to this headline"></a></h4>
+<p>Interpolate a depth-based, 1D column of data onto a mesh.  Values are
+prescribed only to cells.  Expected is an HDF5 file in the format:</p>
+<p>Depth coordinates z:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>/z[:] = (z_0, z_1, … , z_n)</dt><dd><p>z_0 = 0.0
+z_n &gt;= max depth of mesh
+z_i &gt; z_(i-1)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Function values u:</p>
+<blockquote>
+<div><p>/f[:] = (f_0(z_0), f_1(z_1), …, f_n(z_n))</p>
+</div></blockquote>
+<div class="admonition-constants-composite-vector-spec admonition" id="id22">
+<p class="admonition-title">constants-composite-vector-spec</p>
+<ul class="simple">
+<li><p><cite>“file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> HDF5 filename</p></li>
+<li><p><cite>“z header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the z-coordinate data: <cite>z</cite> above.  Depth
+coordinates (positive downward from the surface), [m]</p></li>
+<li><p><cite>“f header</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> name of the function data: <cite>f</cite> above.</p></li>
+</ul>
+<p>ONE OF</p>
+<ul class="simple">
+<li><p><cite>“surface sideset</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> Region on the surface domain from which
+to start to determine columns.</p></li>
+</ul>
+<p>OR</p>
+<ul class="simple">
+<li><p><cite>“surface sidesets</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> Regions on the surface domain
+from which to start to determine columns.</p></li>
+</ul>
+<p>END</p>
+</div>
+</div>
+<div class="section" id="exodus-file-initialization">
+<h4>Exodus File Initialization<a class="headerlink" href="#exodus-file-initialization" title="Permalink to this headline"></a></h4>
 </div>
 </div>
 </div>
