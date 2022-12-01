@@ -1,77 +1,38 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html4" lang="en" >
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>ATS Native XML Input Specification V0.86 &mdash; ATS 1.0 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>ATS Native XML Input Specification V0.86 &mdash; ATS 1.4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script type="text/javascript" src="../_static/language_data.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-        <script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true, "ignoreClass": "document", "processClass": "math|output_area"}})</script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="ATS Native XML Input Specification V1" href="ATSNativeSpec_1_0.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html" class="icon icon-home"> ATS
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.0
+                1.4
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,23 +40,14 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">User Guide:</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../demos.html">ATS Demo Problems</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../input_spec.html">Input Specification</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="ATSNativeSpec_dev.html">ATS Native XML Input Specification V-dev</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ATSNativeSpec_1_4.html">ATS Native XML Input Specification V-1.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ATSNativeSpec_1_2.html">ATS Native XML Input Specification V-1.2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ATSNativeSpec_1_1.html">ATS Native XML Input Specification V-1.1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ATSNativeSpec_1_0.html">ATS Native XML Input Specification V1</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">ATS Native XML Input Specification V0.86</a><ul>
@@ -122,73 +74,31 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">ATS</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="../input_spec.html">Input Specification</a> &raquo;</li>
-        
       <li>ATS Native XML Input Specification V0.86</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/input_spec/ATSNativeSpec_0_86.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   
 <style>
 /* CSS overrides for sphinx_rtd_theme */
@@ -214,120 +124,140 @@
 }
 </style>
 <div class="section" id="ats-native-xml-input-specification-v0-86">
-<h1><a class="toc-backref" href="#id2">ATS Native XML Input Specification V0.86</a><a class="headerlink" href="#ats-native-xml-input-specification-v0-86" title="Permalink to this headline">¶</a></h1>
+<h1><a class="toc-backref" href="#id2">ATS Native XML Input Specification V0.86</a><a class="headerlink" href="#ats-native-xml-input-specification-v0-86" title="Permalink to this headline"></a></h1>
 <div class="contents topic" id="table-of-contents">
 <p class="topic-title"><strong>Table of Contents</strong></p>
 <ul class="simple">
-<li><a class="reference internal" href="#ats-native-xml-input-specification-v0-86" id="id2">ATS Native XML Input Specification V0.86</a><ul>
-<li><a class="reference internal" href="#notes" id="id3">Notes</a></li>
-<li><a class="reference internal" href="#syntax-of-the-specification" id="id4">Syntax of the Specification</a></li>
-<li><a class="reference internal" href="#input-spec" id="id5">Input Spec</a><ul>
-<li><a class="reference internal" href="#main" id="id6">Main</a></li>
-<li><a class="reference internal" href="#mesh" id="id7">Mesh</a></li>
-<li><a class="reference internal" href="#domain" id="id8">Domain</a></li>
-<li><a class="reference internal" href="#region" id="id9">Region</a></li>
-<li><a class="reference internal" href="#coordinator" id="id10">Coordinator</a></li>
-<li><a class="reference internal" href="#visualization" id="id11">Visualization</a></li>
-<li><a class="reference internal" href="#checkpoint" id="id12">Checkpoint</a></li>
-<li><a class="reference internal" href="#observation" id="id13">Observation</a></li>
-<li><a class="reference internal" href="#pk" id="id14">PK</a><ul>
-<li><a class="reference internal" href="#base-pks" id="id15">Base PKs</a><ul>
-<li><a class="reference internal" href="#pkdefaultbase" id="id16">PKDefaultBase</a></li>
-<li><a class="reference internal" href="#pkphysicalbase" id="id17">PKPhysicalBase</a></li>
-<li><a class="reference internal" href="#pkbdfbase" id="id18">PKBDFBase</a></li>
-<li><a class="reference internal" href="#pkphysicalbdfbase" id="id19">PKPhysicalBDFBase</a></li>
+<li><p><a class="reference internal" href="#ats-native-xml-input-specification-v0-86" id="id2">ATS Native XML Input Specification V0.86</a></p>
+<ul>
+<li><p><a class="reference internal" href="#notes" id="id3">Notes</a></p></li>
+<li><p><a class="reference internal" href="#syntax-of-the-specification" id="id4">Syntax of the Specification</a></p></li>
+<li><p><a class="reference internal" href="#input-spec" id="id5">Input Spec</a></p>
+<ul>
+<li><p><a class="reference internal" href="#main" id="id6">Main</a></p></li>
+<li><p><a class="reference internal" href="#mesh" id="id7">Mesh</a></p></li>
+<li><p><a class="reference internal" href="#domain" id="id8">Domain</a></p></li>
+<li><p><a class="reference internal" href="#region" id="id9">Region</a></p></li>
+<li><p><a class="reference internal" href="#coordinator" id="id10">Coordinator</a></p></li>
+<li><p><a class="reference internal" href="#visualization" id="id11">Visualization</a></p></li>
+<li><p><a class="reference internal" href="#checkpoint" id="id12">Checkpoint</a></p></li>
+<li><p><a class="reference internal" href="#observation" id="id13">Observation</a></p></li>
+<li><p><a class="reference internal" href="#pk" id="id14">PK</a></p>
+<ul>
+<li><p><a class="reference internal" href="#base-pks" id="id15">Base PKs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#pkdefaultbase" id="id16">PKDefaultBase</a></p></li>
+<li><p><a class="reference internal" href="#pkphysicalbase" id="id17">PKPhysicalBase</a></p></li>
+<li><p><a class="reference internal" href="#pkbdfbase" id="id18">PKBDFBase</a></p></li>
+<li><p><a class="reference internal" href="#pkphysicalbdfbase" id="id19">PKPhysicalBDFBase</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#physical-pks" id="id20">Physical PKs</a><ul>
-<li><a class="reference internal" href="#flow-pks" id="id21">Flow PKs</a><ul>
-<li><a class="reference internal" href="#richards-pk" id="id22">Richards PK</a></li>
-<li><a class="reference internal" href="#permafrost-flow-pk" id="id23">Permafrost Flow PK</a></li>
-<li><a class="reference internal" href="#overland-flow-head-primary-variable-pk" id="id24">Overland Flow, head primary variable PK</a></li>
-<li><a class="reference internal" href="#overland-flow-pressure-primary-variable-pk" id="id25">Overland Flow, pressure primary variable, PK</a></li>
-<li><a class="reference internal" href="#snow-distribution-pk" id="id26">Snow Distribution PK</a></li>
+<li><p><a class="reference internal" href="#physical-pks" id="id20">Physical PKs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#flow-pks" id="id21">Flow PKs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#richards-pk" id="id22">Richards PK</a></p></li>
+<li><p><a class="reference internal" href="#permafrost-flow-pk" id="id23">Permafrost Flow PK</a></p></li>
+<li><p><a class="reference internal" href="#overland-flow-head-primary-variable-pk" id="id24">Overland Flow, head primary variable PK</a></p></li>
+<li><p><a class="reference internal" href="#overland-flow-pressure-primary-variable-pk" id="id25">Overland Flow, pressure primary variable, PK</a></p></li>
+<li><p><a class="reference internal" href="#snow-distribution-pk" id="id26">Snow Distribution PK</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#energy-pks" id="id27">Energy PKs</a><ul>
-<li><a class="reference internal" href="#advection-diffusion-pk" id="id28">Advection Diffusion PK</a></li>
-<li><a class="reference internal" href="#energy-base-pk" id="id29">Energy Base PK</a></li>
-<li><a class="reference internal" href="#two-phase-subsurface-energy-pk" id="id30">Two-Phase subsurface Energy PK</a></li>
-<li><a class="reference internal" href="#three-phase-subsurface-energy-pk" id="id31">Three-Phase subsurface Energy PK</a></li>
-<li><a class="reference internal" href="#id1" id="id32">Three-Phase subsurface Energy PK</a></li>
-<li><a class="reference internal" href="#surface-ice-energy-pk" id="id33">Surface Ice Energy PK</a></li>
+<li><p><a class="reference internal" href="#energy-pks" id="id27">Energy PKs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#advection-diffusion-pk" id="id28">Advection Diffusion PK</a></p></li>
+<li><p><a class="reference internal" href="#energy-base-pk" id="id29">Energy Base PK</a></p></li>
+<li><p><a class="reference internal" href="#two-phase-subsurface-energy-pk" id="id30">Two-Phase subsurface Energy PK</a></p></li>
+<li><p><a class="reference internal" href="#three-phase-subsurface-energy-pk" id="id31">Three-Phase subsurface Energy PK</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id32">Three-Phase subsurface Energy PK</a></p></li>
+<li><p><a class="reference internal" href="#surface-ice-energy-pk" id="id33">Surface Ice Energy PK</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#surface-energy-balance-pks" id="id34">Surface Energy Balance PKs</a><ul>
-<li><a class="reference internal" href="#surface-energy-balance-snow-monolithic-version" id="id35">Surface Energy Balance / Snow – Monolithic Version</a></li>
-<li><a class="reference internal" href="#surface-energy-balance-generic-version" id="id36">Surface Energy Balance – Generic Version</a></li>
+<li><p><a class="reference internal" href="#surface-energy-balance-pks" id="id34">Surface Energy Balance PKs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#surface-energy-balance-snow-monolithic-version" id="id35">Surface Energy Balance / Snow – Monolithic Version</a></p></li>
+<li><p><a class="reference internal" href="#surface-energy-balance-generic-version" id="id36">Surface Energy Balance – Generic Version</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#biogeochemistry" id="id37">Biogeochemistry</a><ul>
-<li><a class="reference internal" href="#biogeochemistry-monolithic-version" id="id38">Biogeochemistry – Monolithic Version</a></li>
+<li><p><a class="reference internal" href="#biogeochemistry" id="id37">Biogeochemistry</a></p>
+<ul>
+<li><p><a class="reference internal" href="#biogeochemistry-monolithic-version" id="id38">Biogeochemistry – Monolithic Version</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#deformation" id="id39">Deformation</a><ul>
-<li><a class="reference internal" href="#volumetric-deformation" id="id40">Volumetric Deformation</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#mpcs" id="id41">MPCs</a><ul>
-<li><a class="reference internal" href="#weakmpc" id="id42">WeakMPC</a></li>
-<li><a class="reference internal" href="#strongmpc" id="id43">StrongMPC</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#physical-mpcs" id="id44">Physical MPCs</a><ul>
-<li><a class="reference internal" href="#coupled-water-mpc" id="id45">Coupled Water MPC</a></li>
-<li><a class="reference internal" href="#subsurface-mpc" id="id46">Subsurface MPC</a></li>
-<li><a class="reference internal" href="#permafrost-mpc" id="id47">Permafrost MPC</a></li>
+<li><p><a class="reference internal" href="#deformation" id="id39">Deformation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#volumetric-deformation" id="id40">Volumetric Deformation</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#state" id="id48">State</a><ul>
-<li><a class="reference internal" href="#field-evaluators" id="id49">Field Evaluators</a><ul>
-<li><a class="reference internal" href="#field-evaluator-base-classes" id="id50">Field Evaluator Base Classes</a><ul>
-<li><a class="reference internal" href="#primaryvariableevaluator" id="id51">PrimaryVariableEvaluator</a></li>
-<li><a class="reference internal" href="#secondaryvariableevaluator" id="id52">SecondaryVariableEvaluator</a></li>
-<li><a class="reference internal" href="#secondaryvariablesevaluator" id="id53">SecondaryVariablesEvaluator</a></li>
-<li><a class="reference internal" href="#independentvariableevaluator" id="id54">IndependentVariableEvaluator</a></li>
+<li><p><a class="reference internal" href="#mpcs" id="id41">MPCs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#weakmpc" id="id42">WeakMPC</a></p></li>
+<li><p><a class="reference internal" href="#strongmpc" id="id43">StrongMPC</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#physical-mpcs" id="id44">Physical MPCs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#coupled-water-mpc" id="id45">Coupled Water MPC</a></p></li>
+<li><p><a class="reference internal" href="#subsurface-mpc" id="id46">Subsurface MPC</a></p></li>
+<li><p><a class="reference internal" href="#permafrost-mpc" id="id47">Permafrost MPC</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#initialconditions" id="id55">InitialConditions</a><ul>
-<li><a class="reference internal" href="#initialization-of-constant-scalars" id="id56">Initialization of constant scalars</a></li>
-<li><a class="reference internal" href="#initialization-of-constant-vectors" id="id57">Initialization of constant vectors</a></li>
-<li><a class="reference internal" href="#initialization-of-scalar-fields" id="id58">Initialization of scalar fields</a></li>
-<li><a class="reference internal" href="#initialization-of-tensor-fields" id="id59">Initialization of tensor fields</a></li>
-<li><a class="reference internal" href="#initialization-from-a-file" id="id60">Initialization from a file</a></li>
+<li><p><a class="reference internal" href="#state" id="id48">State</a></p>
+<ul>
+<li><p><a class="reference internal" href="#field-evaluators" id="id49">Field Evaluators</a></p>
+<ul>
+<li><p><a class="reference internal" href="#field-evaluator-base-classes" id="id50">Field Evaluator Base Classes</a></p>
+<ul>
+<li><p><a class="reference internal" href="#primaryvariableevaluator" id="id51">PrimaryVariableEvaluator</a></p></li>
+<li><p><a class="reference internal" href="#secondaryvariableevaluator" id="id52">SecondaryVariableEvaluator</a></p></li>
+<li><p><a class="reference internal" href="#secondaryvariablesevaluator" id="id53">SecondaryVariablesEvaluator</a></p></li>
+<li><p><a class="reference internal" href="#independentvariableevaluator" id="id54">IndependentVariableEvaluator</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id61">Time integrators, solvers, and other mathematical specs</a><ul>
-<li><a class="reference internal" href="#timeintegrator" id="id62">TimeIntegrator</a></li>
-<li><a class="reference internal" href="#linear-solver-spec" id="id63">Linear Solver Spec</a></li>
-<li><a class="reference internal" href="#preconditioner" id="id64">Preconditioner</a><ul>
-<li><a class="reference internal" href="#hypre-amg" id="id65">Hypre AMG</a></li>
-<li><a class="reference internal" href="#trilinos-ml" id="id66">Trilinos ML</a></li>
-<li><a class="reference internal" href="#block-ilu" id="id67">Block ILU</a></li>
-<li><a class="reference internal" href="#indentity" id="id68">Indentity</a></li>
+<li><p><a class="reference internal" href="#initialconditions" id="id55">InitialConditions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#initialization-of-constant-scalars" id="id56">Initialization of constant scalars</a></p></li>
+<li><p><a class="reference internal" href="#initialization-of-constant-vectors" id="id57">Initialization of constant vectors</a></p></li>
+<li><p><a class="reference internal" href="#initialization-of-scalar-fields" id="id58">Initialization of scalar fields</a></p></li>
+<li><p><a class="reference internal" href="#initialization-of-tensor-fields" id="id59">Initialization of tensor fields</a></p></li>
+<li><p><a class="reference internal" href="#initialization-from-a-file" id="id60">Initialization from a file</a></p></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#nonlinearsolver" id="id69">NonlinearSolver</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#other-common-specs" id="id70">Other Common Specs</a><ul>
-<li><a class="reference internal" href="#timecontrol" id="id71">TimeControl</a></li>
-<li><a class="reference internal" href="#verboseobject" id="id72">VerboseObject</a></li>
-<li><a class="reference internal" href="#function" id="id73">Function</a><ul>
-<li><a class="reference internal" href="#constant-function" id="id74">Constant function</a></li>
-<li><a class="reference internal" href="#tabular-function" id="id75">Tabular function</a></li>
-<li><a class="reference internal" href="#smooth-step-function" id="id76">Smooth step function</a></li>
-<li><a class="reference internal" href="#polynomial-function" id="id77">Polynomial function</a></li>
-<li><a class="reference internal" href="#multi-variable-linear-function" id="id78">Multi-variable linear function</a></li>
-<li><a class="reference internal" href="#separable-function" id="id79">Separable function</a></li>
+<li><p><a class="reference internal" href="#time-integrators-solvers-and-other-mathematical-specs" id="id61">Time integrators, solvers, and other mathematical specs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#timeintegrator" id="id62">TimeIntegrator</a></p></li>
+<li><p><a class="reference internal" href="#linear-solver-spec" id="id63">Linear Solver Spec</a></p></li>
+<li><p><a class="reference internal" href="#preconditioner" id="id64">Preconditioner</a></p>
+<ul>
+<li><p><a class="reference internal" href="#hypre-amg" id="id65">Hypre AMG</a></p></li>
+<li><p><a class="reference internal" href="#trilinos-ml" id="id66">Trilinos ML</a></p></li>
+<li><p><a class="reference internal" href="#block-ilu" id="id67">Block ILU</a></p></li>
+<li><p><a class="reference internal" href="#indentity" id="id68">Indentity</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#nonlinearsolver" id="id69">NonlinearSolver</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#other-common-specs" id="id70">Other Common Specs</a></p>
+<ul>
+<li><p><a class="reference internal" href="#timecontrol" id="id71">TimeControl</a></p></li>
+<li><p><a class="reference internal" href="#verboseobject" id="id72">VerboseObject</a></p></li>
+<li><p><a class="reference internal" href="#function" id="id73">Function</a></p>
+<ul>
+<li><p><a class="reference internal" href="#constant-function" id="id74">Constant function</a></p></li>
+<li><p><a class="reference internal" href="#tabular-function" id="id75">Tabular function</a></p></li>
+<li><p><a class="reference internal" href="#smooth-step-function" id="id76">Smooth step function</a></p></li>
+<li><p><a class="reference internal" href="#polynomial-function" id="id77">Polynomial function</a></p></li>
+<li><p><a class="reference internal" href="#multi-variable-linear-function" id="id78">Multi-variable linear function</a></p></li>
+<li><p><a class="reference internal" href="#separable-function" id="id79">Separable function</a></p></li>
 </ul>
 </li>
 </ul>
@@ -339,28 +269,29 @@
 </ul>
 </div>
 <div class="section" id="notes">
-<h2><a class="toc-backref" href="#id3">Notes</a><a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id3">Notes</a><a class="headerlink" href="#notes" title="Permalink to this headline"></a></h2>
 <ul class="simple">
-<li>ATS’s input spec is similar, but not identical, to Amanzi’s Native
-input spec.  Much of this document is stolen from Amanzi’s Native Spec.</li>
-<li>Note also that nearly <strong>everything</strong> takes a <a class="reference internal" href="#verboseobject">VerboseObject</a> spec.  Assume all specs may take a <a class="reference internal" href="#verboseobject">VerboseObject</a> spec within a sublist named <cite>“VerboseObject</cite>” unless otherwise noted.</li>
+<li><p>ATS’s input spec is similar, but not identical, to Amanzi’s Native
+input spec.  Much of this document is stolen from Amanzi’s Native Spec.</p></li>
+<li><p>Note also that nearly <strong>everything</strong> takes a <a class="reference internal" href="#verboseobject">VerboseObject</a> spec.  Assume all specs may take a <a class="reference internal" href="#verboseobject">VerboseObject</a> spec within a sublist named <cite>“VerboseObject</cite>” unless otherwise noted.</p></li>
 </ul>
 </div>
 <div class="section" id="syntax-of-the-specification">
-<h2><a class="toc-backref" href="#id4">Syntax of the Specification</a><a class="headerlink" href="#syntax-of-the-specification" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id4">Syntax of the Specification</a><a class="headerlink" href="#syntax-of-the-specification" title="Permalink to this headline"></a></h2>
 <ul class="simple">
-<li>Input specification for each ParameterList entry consists of two parts.
+<li><p>Input specification for each ParameterList entry consists of two parts.
 First, a bulleted list defines the usage syntax and available options.
-This is followed by example snipets of XML code to demonstrate usage.</li>
-<li>In many cases, the input specifies data for a particular parameterized model, and ATS
+This is followed by example snipets of XML code to demonstrate usage.</p></li>
+<li><p>In many cases, the input specifies data for a particular parameterized model, and ATS
 supports a number of parameterizations.
 For example, initial data might be uniform (the value is required), or linear in y (the value
 and its gradient are required).
 Where ATS supports a number of parameterized models for quantity Z, the available
 models will be listed by name, and then will be described in the subsequent section.
-For example, the specification for an <cite>“X</cite>” list might begin with the following:<ul>
-<li><cite>“Y</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“default_value”</strong>, <cite>“other</cite>”, <cite>“valid</cite>”, <cite>“options</cite>”</li>
-<li>Z <code class="docutils literal notranslate"><span class="pre">[Z-spec]</span></code> Model for Z, choose exactly one of the following: (1) <cite>“z1</cite>”, or (2) <cite>“z2</cite>” (see below)</li>
+For example, the specification for an <cite>“X</cite>” list might begin with the following:</p>
+<ul>
+<li><p><cite>“Y</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“default_value”</strong>, <cite>“other</cite>”, <cite>“valid</cite>”, <cite>“options</cite>”</p></li>
+<li><p>Z <code class="docutils literal notranslate"><span class="pre">[Z-spec]</span></code> Model for Z, choose exactly one of the following: (1) <cite>“z1</cite>”, or (2) <cite>“z2</cite>” (see below)</p></li>
 </ul>
 </li>
 </ul>
@@ -369,8 +300,8 @@ The <cite>“Y</cite>” is a string parameter but the <cite>“Z</cite>” is g
 The options for <cite>“Z</cite>” will then be described as a spec:</p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“z1</cite>” applies model z1.  Requires <cite>“z1a</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></li>
-<li><cite>“z2</cite>” applies model z2.  Requires <cite>“z2a</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> and <cite>“z2b</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code></li>
+<li><p><cite>“z1</cite>” applies model z1.  Requires <cite>“z1a</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p></li>
+<li><p><cite>“z2</cite>” applies model z2.  Requires <cite>“z2a</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> and <cite>“z2b</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code></p></li>
 </ul>
 </div></blockquote>
 <p>An example of using such a specification:</p>
@@ -386,57 +317,48 @@ The options for <cite>“Z</cite>” will then be described as a spec:</p>
 <p>Here, the user is defining X with Y=”hello”, and Z will be a z2 constructed with z2a=0.7 and z2b=3.</p>
 <p>Conventions:</p>
 <ul class="simple">
-<li>Reserved keywords and labels are <cite>“quoted and italicized</cite>” – these
+<li><p>Reserved keywords and labels are <cite>“quoted and italicized</cite>” – these
 labels or values of parameters in user-generated input files must
-match (using XML matching rules) the specified or allowable values.</li>
-<li>User-defined labels are indicated with ALL-CAPS, and are meant to
+match (using XML matching rules) the specified or allowable values.</p></li>
+<li><p>User-defined labels are indicated with ALL-CAPS, and are meant to
 represent a typical name given by a user - these can be names or
 numbers or whatever serves best the organization of the user input
-data.</li>
-<li>Bold values are default values, and are used if the Parameter
-is not provided.</li>
+data.</p></li>
+<li><p>Bold values are default values, and are used if the Parameter
+is not provided.</p></li>
 </ul>
 </div>
 <div class="section" id="input-spec">
-<h2><a class="toc-backref" href="#id5">Input Spec</a><a class="headerlink" href="#input-spec" title="Permalink to this headline">¶</a></h2>
+<h2><a class="toc-backref" href="#id5">Input Spec</a><a class="headerlink" href="#input-spec" title="Permalink to this headline"></a></h2>
 <div class="section" id="main">
-<h3><a class="toc-backref" href="#id6">Main</a><a class="headerlink" href="#main" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id6">Main</a><a class="headerlink" href="#main" title="Permalink to this headline"></a></h3>
 <p>The main ParameterList frames the entire input spec, and must contain
 one sublist for each of the following sections.  Additionally, for
 compatibility with Amanzi, the following Parameters are typically
 present, and should not be changed, as ATS does not currently support Amanzi-S.</p>
 <ul>
-<li><p class="first"><cite>“Native Unstructured Input</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code>,  Should always be <cite>“true</cite>”</p>
-</li>
-<li><p class="first"><cite>“grid_option</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>,  Should always be <cite>“Unstructured</cite>”</p>
-</li>
-<li><p class="first"><cite>“Mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[mesh-spec]</span></code>  See the <a class="reference internal" href="#mesh">Mesh</a> spec.</p>
-</li>
-<li><p class="first"><cite>“Domain</cite>” <code class="docutils literal notranslate"><span class="pre">[domain-spec]</span></code>  See the <a class="reference internal" href="#domain">Domain</a> spec.</p>
-</li>
-<li><p class="first"><cite>“Regions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></p>
+<li><p><cite>“Native Unstructured Input</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code>,  Should always be <cite>“true</cite>”</p></li>
+<li><p><cite>“grid_option</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>,  Should always be <cite>“Unstructured</cite>”</p></li>
+<li><p><cite>“Mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[mesh-spec]</span></code>  See the <a class="reference internal" href="#mesh">Mesh</a> spec.</p></li>
+<li><p><cite>“Domain</cite>” <code class="docutils literal notranslate"><span class="pre">[domain-spec]</span></code>  See the <a class="reference internal" href="#domain">Domain</a> spec.</p></li>
+<li><p><cite>“Regions</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></p>
 <p>List of multiple <a class="reference internal" href="#region">Region</a> specs, each in its own sublist named uniquely by the user.</p>
 </li>
-<li><p class="first"><cite>“coordinator</cite>” <code class="docutils literal notranslate"><span class="pre">[coordinator-spec]</span></code>  See the <a class="reference internal" href="#coordinator">Coordinator</a> spec.</p>
-</li>
-<li><p class="first"><cite>“visualization</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec]</span></code> A <a class="reference internal" href="#visualization">Visualization</a> spec for the main mesh/domain.</p>
-</li>
-<li><p class="first"><cite>“visualization XX</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec]</span></code></p>
+<li><p><cite>“coordinator</cite>” <code class="docutils literal notranslate"><span class="pre">[coordinator-spec]</span></code>  See the <a class="reference internal" href="#coordinator">Coordinator</a> spec.</p></li>
+<li><p><cite>“visualization</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec]</span></code> A <a class="reference internal" href="#visualization">Visualization</a> spec for the main mesh/domain.</p></li>
+<li><p><cite>“visualization XX</cite>” <code class="docutils literal notranslate"><span class="pre">[visualization-spec]</span></code></p>
 <p>Potentially more than one other <a class="reference internal" href="#visualization">Visualization</a> specs, one for each domain <cite>“XX</cite>”.  e.g. <cite>“surface</cite>”</p>
 </li>
-<li><p class="first"><cite>“checkpoint</cite>” <code class="docutils literal notranslate"><span class="pre">[checkpoint-spec]</span></code> A <a class="reference internal" href="#checkpoint">Checkpoint</a> spec.</p>
-</li>
-<li><p class="first"><cite>“observations</cite>” <code class="docutils literal notranslate"><span class="pre">[observation-spec]</span></code> An <a class="reference internal" href="#observation">Observation</a> spec.</p>
-</li>
-<li><p class="first"><cite>“PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></p>
+<li><p><cite>“checkpoint</cite>” <code class="docutils literal notranslate"><span class="pre">[checkpoint-spec]</span></code> A <a class="reference internal" href="#checkpoint">Checkpoint</a> spec.</p></li>
+<li><p><cite>“observations</cite>” <code class="docutils literal notranslate"><span class="pre">[observation-spec]</span></code> An <a class="reference internal" href="#observation">Observation</a> spec.</p></li>
+<li><p><cite>“PKs</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code></p>
 <p>A list containing exactly one sublist, a <a class="reference internal" href="#pk">PK</a> spec with the top level PK.</p>
 </li>
-<li><p class="first"><cite>“state</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> A <a class="reference internal" href="#state">State</a> spec.</p>
-</li>
+<li><p><cite>“state</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> A <a class="reference internal" href="#state">State</a> spec.</p></li>
 </ul>
 </div>
 <div class="section" id="mesh">
-<h3><a class="toc-backref" href="#id7">Mesh</a><a class="headerlink" href="#mesh" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id7">Mesh</a><a class="headerlink" href="#mesh" title="Permalink to this headline"></a></h3>
 <p>The mesh represents the primary domain of simulation.  Simple,
 structured meshes may be generated on the fly, or complex unstructured
 meshes are provided as <code class="docutils literal notranslate"><span class="pre">Exodus</span> <span class="pre">II</span></code> files.</p>
@@ -475,98 +397,95 @@ ripped from the subsurface mesh.</p>
 of the main mesh.</p>
 </div>
 <div class="section" id="domain">
-<h3><a class="toc-backref" href="#id8">Domain</a><a class="headerlink" href="#domain" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id8">Domain</a><a class="headerlink" href="#domain" title="Permalink to this headline"></a></h3>
 <p>The domain simply refers to the geometric model in which a mesh is contained.  Currently it has a single parameter.</p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“Spatial Dimension</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>3</strong></li>
+<li><p><cite>“Spatial Dimension</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>3</strong></p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="region">
-<h3><a class="toc-backref" href="#id9">Region</a><a class="headerlink" href="#region" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id9">Region</a><a class="headerlink" href="#region" title="Permalink to this headline"></a></h3>
 <p>Regions are geometrical constructs used in ATS to define subsets of the computational domain in order to specify the problem
 to be solved, and the output desired.  Regions may represents zero-, one-, two- or three-dimensional subsets of physical space.
 For a three-dimensional problem, the simulation domain will be a three-dimensional region bounded by a set of two-dimensional
 regions.  If the simulation domain is N-dimensional, the boundary conditions must be specified over a set of regions are (N-1)-dimensional.</p>
 <p>User-defined regions are constructed using the following syntax</p>
 <ul class="simple">
-<li>REGION-SHAPE [list] In this case the list name is a geometric model primitive, from the table below.</li>
+<li><p>REGION-SHAPE [list] In this case the list name is a geometric model primitive, from the table below.</p></li>
 </ul>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="18%" />
-<col width="23%" />
-<col width="17%" />
-<col width="41%" />
+<col style="width: 18%" />
+<col style="width: 23%" />
+<col style="width: 17%" />
+<col style="width: 41%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">shape functional name</th>
-<th class="head">parameters</th>
-<th class="head">type(s)</th>
-<th class="head">Comment</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>shape functional name</p></th>
+<th class="head"><p>parameters</p></th>
+<th class="head"><p>type(s)</p></th>
+<th class="head"><p>Comment</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><cite>“Region: Point”</cite>  [SU]</td>
-<td><cite>“Coordinate</cite>”</td>
-<td>Array(double)</td>
-<td>Location of point in space</td>
+<tbody>
+<tr class="row-even"><td><p><cite>“Region: Point”</cite>  [SU]</p></td>
+<td><p><cite>“Coordinate</cite>”</p></td>
+<td><p>Array(double)</p></td>
+<td><p>Location of point in space</p></td>
 </tr>
-<tr class="row-odd"><td><cite>“Region: Box”</cite> [SU]</td>
-<td><cite>“Low Coordinate</cite>”, <cite>“High Coordinate</cite>”</td>
-<td>Array(double), Array(double)</td>
-<td>Location of boundary points of box</td>
+<tr class="row-odd"><td><p><cite>“Region: Box”</cite> [SU]</p></td>
+<td><p><cite>“Low Coordinate</cite>”, <cite>“High Coordinate</cite>”</p></td>
+<td><p>Array(double), Array(double)</p></td>
+<td><p>Location of boundary points of box</p></td>
 </tr>
-<tr class="row-even"><td><cite>“Region: Plane”</cite>  [SU]</td>
-<td><cite>“Direction</cite>”, <cite>“Location</cite>”</td>
-<td>string, double</td>
-<td>direction: <cite>“X</cite>”, <cite>“-X</cite>”, etc, and <cite>“Location</cite>” is coordinate value</td>
+<tr class="row-even"><td><p><cite>“Region: Plane”</cite>  [SU]</p></td>
+<td><p><cite>“Direction</cite>”, <cite>“Location</cite>”</p></td>
+<td><p>string, double</p></td>
+<td><p>direction: <cite>“X</cite>”, <cite>“-X</cite>”, etc, and <cite>“Location</cite>” is coordinate value</p></td>
 </tr>
-<tr class="row-odd"><td><cite>“Region: Polygon”</cite>  [U]</td>
-<td><cite>“Number of points</cite>”, <cite>“Points</cite>”</td>
-<td>int, Array double</td>
-<td>Number of polygon points and point coordinates in linear array</td>
+<tr class="row-odd"><td><p><cite>“Region: Polygon”</cite>  [U]</p></td>
+<td><p><cite>“Number of points</cite>”, <cite>“Points</cite>”</p></td>
+<td><p>int, Array double</p></td>
+<td><p>Number of polygon points and point coordinates in linear array</p></td>
 </tr>
-<tr class="row-even"><td><cite>“Region: Labeled Set”</cite></td>
-<td><cite>“Label</cite>”, <cite>“File</cite>”,
-<cite>“Format</cite>”, <cite>“Entity</cite>”</td>
-<td>string, string,
-string, string</td>
-<td><dl class="first last docutils">
-<dt>Set per label defined in mesh file (see below)</dt>
-<dd>(available for frameworks supporting the <cite>“File</cite>” keyword)</dd>
+<tr class="row-even"><td><p><cite>“Region: Labeled Set”</cite></p></td>
+<td><p><cite>“Label</cite>”, <cite>“File</cite>”,
+<cite>“Format</cite>”, <cite>“Entity</cite>”</p></td>
+<td><p>string, string,
+string, string</p></td>
+<td><dl class="simple">
+<dt>Set per label defined in mesh file (see below)</dt><dd><p>(available for frameworks supporting the <cite>“File</cite>” keyword)</p>
+</dd>
 </dl>
 </td>
 </tr>
-<tr class="row-odd"><td><cite>“Region: Color Function”</cite> [S]</td>
-<td><cite>“File</cite>”, <cite>“Value</cite>”</td>
-<td>string, int</td>
-<td>Set defined by color in a tabulated function file (see below)</td>
+<tr class="row-odd"><td><p><cite>“Region: Color Function”</cite> [S]</p></td>
+<td><p><cite>“File</cite>”, <cite>“Value</cite>”</p></td>
+<td><p>string, int</p></td>
+<td><p>Set defined by color in a tabulated function file (see below)</p></td>
 </tr>
-<tr class="row-even"><td><cite>“Region: Layer”</cite></td>
-<td><cite>“File#</cite>”, <cite>“Label#</cite>”</td>
-<td>(#=1,2) string, string</td>
-<td>Region between two surfaces</td>
+<tr class="row-even"><td><p><cite>“Region: Layer”</cite></p></td>
+<td><p><cite>“File#</cite>”, <cite>“Label#</cite>”</p></td>
+<td><p>(#=1,2) string, string</p></td>
+<td><p>Region between two surfaces</p></td>
 </tr>
-<tr class="row-odd"><td><cite>“Region: Surface”</cite></td>
-<td><cite>“File</cite>” <cite>“Label</cite>”</td>
-<td>string, string</td>
-<td>Labeled triangulated face set in file</td>
+<tr class="row-odd"><td><p><cite>“Region: Surface”</cite></p></td>
+<td><p><cite>“File</cite>” <cite>“Label</cite>”</p></td>
+<td><p>string, string</p></td>
+<td><p>Labeled triangulated face set in file</p></td>
 </tr>
 </tbody>
 </table>
 <p>Notes</p>
 <ul>
-<li><p class="first"><cite>“Region: Point</cite>” defines a point in space. Using this definition, cell sets encompassing this point are retrieved inside ATS.</p>
-</li>
-<li><p class="first"><cite>“Region: Box</cite>” defines a region bounded by coordinate-aligned
+<li><p><cite>“Region: Point</cite>” defines a point in space. Using this definition, cell sets encompassing this point are retrieved inside ATS.</p></li>
+<li><p><cite>“Region: Box</cite>” defines a region bounded by coordinate-aligned
 planes. Boxes are allowed to be of zero thickness in only one
-direction in which case they are equivalent to planes.</p>
-</li>
-<li><p class="first">Currently, <cite>“Region: Plane</cite>” is constrained to be coordinate-aligned.</p>
-</li>
-<li><p class="first">The <cite>“Region: Labeled Set</cite>” region defines a named set of mesh entities
+direction in which case they are equivalent to planes.</p></li>
+<li><p>Currently, <cite>“Region: Plane</cite>” is constrained to be coordinate-aligned.</p></li>
+<li><p>The <cite>“Region: Labeled Set</cite>” region defines a named set of mesh entities
 existing in an input mesh file. This is the same file that contains
 the computational mesh. The name of the entity set is given
 by <cite>“Label</cite>”.  For example, a mesh file in the Exodus II
@@ -585,7 +504,7 @@ associated with the entities in the indicated set.</p>
 unstructured version of ATS.</p>
 <p>Currently, ATS only supports mesh files in the Exodus II format.</p>
 </li>
-<li><p class="first"><cite>“Region: Color Function</cite>” defines a region based a specified
+<li><p><cite>“Region: Color Function</cite>” defines a region based a specified
 integer color, <cite>“Value</cite>”, in a structured color function file,
 <cite>“File</cite>”. The format of the color function file is given below in
 the “Tabulated function file format” section. As
@@ -599,7 +518,7 @@ all cells with the specified color <cite>“Value</cite>”.</p>
 strongly recommended that regions be defined using a single color
 function file.</p>
 </li>
-<li><p class="first"><cite>“Region: Polygon</cite>” defines a polygonal region on which mesh faces and
+<li><p><cite>“Region: Polygon</cite>” defines a polygonal region on which mesh faces and
 nodes can be queried. NOTE that one cannot ask for cells in a polygonal
 region.In 2D, the “polygonal” region is a line and is specified by 2 points
 In 3D, the “polygonal” region is specified by an arbitrary number of points.
@@ -610,7 +529,7 @@ defined as [Vy,-Vx] where [Vx,Vy] is the vector from point 1 to point 2.
 In 3D, the normal of the polygon is defined by the order in which points
 are specified.</p>
 </li>
-<li><p class="first">Surface files contain labeled triangulated face sets.  The user is
+<li><p>Surface files contain labeled triangulated face sets.  The user is
 responsible for ensuring that the intersections with other surfaces
 in the problem, including the boundaries, are <cite>“exact</cite>” (<em>i.e.</em> that
 surface intersections are <cite>“watertight</cite>” where applicable), and that
@@ -620,8 +539,7 @@ define are ignored.</p>
 <p>Examples of surface files are given in the <cite>“Exodus II</cite>” file
 format here.</p>
 </li>
-<li><p class="first">Region names must NOT be repeated</p>
-</li>
+<li><p>Region names must NOT be repeated</p></li>
 </ul>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;Regions&quot;</span><span class="nt">&gt;</span>
@@ -673,27 +591,22 @@ file and “Outflow plane” is a planar region. “Sand” is a volumetric
 region defined by the value 25 in color function file.</p>
 </div>
 <div class="section" id="coordinator">
-<h3><a class="toc-backref" href="#id10">Coordinator</a><a class="headerlink" href="#coordinator" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id10">Coordinator</a><a class="headerlink" href="#coordinator" title="Permalink to this headline"></a></h3>
 <p>In the <cite>“coordinator</cite>” sublist the user specifies global control of
 the simulation, including starting and ending times and restart options.</p>
 <ul>
-<li><p class="first"><cite>“start time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code>, <strong>0.</strong></p>
-</li>
-<li><p class="first"><cite>“start time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>, <strong>“s”</strong>, <cite>“d</cite>”, <cite>“yr</cite>”</p>
-</li>
-<li><p class="first"><cite>“end time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code></p>
-</li>
-<li><p class="first"><cite>“end time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>, <strong>“s”</strong>, <cite>“d</cite>”, <cite>“yr</cite>”</p>
-</li>
-<li><p class="first"><cite>“end cycle</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code></p>
-</li>
-<li><p class="first"><cite>“restart from checkpoint file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
+<li><p><cite>“start time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code>, <strong>0.</strong></p></li>
+<li><p><cite>“start time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>, <strong>“s”</strong>, <cite>“d</cite>”, <cite>“yr</cite>”</p></li>
+<li><p><cite>“end time</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code></p></li>
+<li><p><cite>“end time units</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code>, <strong>“s”</strong>, <cite>“d</cite>”, <cite>“yr</cite>”</p></li>
+<li><p><cite>“end cycle</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code></p></li>
+<li><p><cite>“restart from checkpoint file</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
 <p>requires a path to the checkpoint file.</p>
 </li>
-<li><p class="first"><cite>“wallclock end time</cite>” [double]</p>
+<li><p><cite>“wallclock end time</cite>” [double]</p>
 <p>?? This works, but this documentation needs updated.</p>
 </li>
-<li><p class="first"><cite>“required times</cite>” <code class="docutils literal notranslate"><span class="pre">[time-control-spec]</span></code></p>
+<li><p><cite>“required times</cite>” <code class="docutils literal notranslate"><span class="pre">[time-control-spec]</span></code></p>
 <p>A <a class="reference internal" href="#timecontrol">TimeControl</a> spec that sets a collection of times/cycles at which the simulation is guaranteed to hit exactly.  This is useful for situations such as where data is provided at a regular interval, and interpolation error related to that data is to be minimized.</p>
 </li>
 </ul>
@@ -704,25 +617,24 @@ of a time step crash, we do not continue on forever spewing output.</p>
 <p>Example:</p>
 </div>
 <div class="section" id="visualization">
-<h3><a class="toc-backref" href="#id11">Visualization</a><a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id11">Visualization</a><a class="headerlink" href="#visualization" title="Permalink to this headline"></a></h3>
 <p>A user may request periodic writes of field data for the purposes of visualization in the <cite>“visualization</cite>” sublists.
 ATS accepts a visualization list for each domain/mesh – currently this is up to two (one for the subsurface, and one for the surface).
 These are in separate ParameterLists, entitled <cite>“visualization</cite>” for the main mesh, and <cite>“visualization surface</cite>” on the surface mesh.
 It is expected that, for any addition meshes, each will have a domain name and therefore admit a spec of the form: <cite>“visualization DOMAIN-NAME</cite>”.</p>
 <p>Each list contains all parameters as in a <a class="reference internal" href="#timecontrol">TimeControl</a> spec, and also:</p>
 <ul>
-<li><p class="first"><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“visdump_data”</strong>, <strong>“visdump_surface_data”</strong></p>
-</li>
-<li><p class="first"><cite>“dynamic mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
+<li><p><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“visdump_data”</strong>, <strong>“visdump_surface_data”</strong></p></li>
+<li><p><cite>“dynamic mesh</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
 <p>Write mesh data for every visualization dump, this facilitates visualizing deforming meshes.</p>
 </li>
 </ul>
 <p><strong>Currently not supported…</strong></p>
 <ul>
-<li><p class="first"><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>empty array</strong></p>
+<li><p><cite>“regions</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code> <strong>empty array</strong></p>
 <p>Write an array into the visualization file that can be used to identify a region or regions. The first entry in the regions array is marked with the value 1.0 in the array, the second with the value 2.0, and so forth. The code ignores entries in the regions array that are not valid regions that contain cells.</p>
 </li>
-<li><p class="first"><cite>“write partition</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
+<li><p><cite>“write partition</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
 <p>If this parameter is true, then write an array into the visualization file that contains the rank number of the processor that owns a mesh cell.</p>
 </li>
 </ul>
@@ -743,7 +655,7 @@ It is expected that, for any addition meshes, each will have a domain name and t
 </div>
 </div>
 <div class="section" id="checkpoint">
-<h3><a class="toc-backref" href="#id12">Checkpoint</a><a class="headerlink" href="#checkpoint" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id12">Checkpoint</a><a class="headerlink" href="#checkpoint" title="Permalink to this headline"></a></h3>
 <p>A user may request periodic dumps of ATS Checkpoint Data in the
 <cite>“checkpoint</cite>” sublist.  The user has no explicit control over the
 content of these files, but has the guarantee that the ATS run will be
@@ -755,8 +667,8 @@ Unlike <cite>“visualization</cite>”, there is only one <cite>“checkpoint</
 all domains/meshes.</p>
 <p>The checkpoint-spec includes all parameters as in a <a class="reference internal" href="#timecontrol">TimeControl</a> spec and additionally:</p>
 <ul class="simple">
-<li><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“checkpoint”</strong></li>
-<li><cite>“file name digits</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>5</strong></li>
+<li><p><cite>“file name base</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“checkpoint”</strong></p></li>
+<li><p><cite>“file name digits</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>5</strong></p></li>
 </ul>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;checkpoint&quot;</span><span class="nt">&gt;</span>
@@ -773,43 +685,43 @@ a multiple of 100, every 10 seconds for the first 100 seconds, and
 every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be written in the form: <cite>“checkpoint00000.h5</cite>”.</p>
 </div>
 <div class="section" id="observation">
-<h3><a class="toc-backref" href="#id13">Observation</a><a class="headerlink" href="#observation" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id13">Observation</a><a class="headerlink" href="#observation" title="Permalink to this headline"></a></h3>
 <p><strong>This is not currently correct!</strong></p>
 <p>A user may request any number of specific observations from ATS.  Each labeled Observation Data quantity involves a field quantity, a model, a region from which it will extract its source data, and a list of discrete times
 for its evaluation.  The observations are evaluated during the simulation and returned to the calling process through one of ATS arguments.</p>
 <ul class="simple">
-<li><cite>“Observation Data</cite>” [list] can accept multiple lists for named observations (OBSERVATION)</li>
+<li><p><cite>“Observation Data</cite>” [list] can accept multiple lists for named observations (OBSERVATION)</p></li>
 </ul>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“Observation Output Filename</cite>” [string] user-defined name for the file that the observations are written to.</li>
-<li>OBSERVATION [list] user-defined label, can accept values for <cite>“Variables</cite>”, <cite>“Functional</cite>”, <cite>“Region</cite>”, and all <a class="reference internal" href="#timecontrol">TimeControl</a> spec options.</li>
+<li><p><cite>“Observation Output Filename</cite>” [string] user-defined name for the file that the observations are written to.</p></li>
+<li><p>OBSERVATION [list] user-defined label, can accept values for <cite>“Variables</cite>”, <cite>“Functional</cite>”, <cite>“Region</cite>”, and all <a class="reference internal" href="#timecontrol">TimeControl</a> spec options.</p></li>
 </ul>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“Variables</cite>” [Array(string)] a list of field quantities taken from the list of available field quantities:</li>
+<li><p><cite>“Variables</cite>” [Array(string)] a list of field quantities taken from the list of available field quantities:</p></li>
 </ul>
 <blockquote>
 <div><ul class="simple">
-<li>Volumetric water content [volume water / bulk volume]</li>
-<li>Aqueous saturation [volume water / volume pore space]</li>
-<li>Aqueous pressure [Pa]</li>
-<li>Hydraulic Head [m]</li>
-<li>XXX Aqueous concentration [moles of solute XXX / volume water in MKS] (name formed by string concatenation, given the definitions in <cite>“Phase Definition</cite>” section)</li>
-<li>X-, Y-, Z- Aqueous volumetric fluxe [m/s]</li>
-<li>MaterialID</li>
+<li><p>Volumetric water content [volume water / bulk volume]</p></li>
+<li><p>Aqueous saturation [volume water / volume pore space]</p></li>
+<li><p>Aqueous pressure [Pa]</p></li>
+<li><p>Hydraulic Head [m]</p></li>
+<li><p>XXX Aqueous concentration [moles of solute XXX / volume water in MKS] (name formed by string concatenation, given the definitions in <cite>“Phase Definition</cite>” section)</p></li>
+<li><p>X-, Y-, Z- Aqueous volumetric fluxe [m/s]</p></li>
+<li><p>MaterialID</p></li>
 </ul>
 </div></blockquote>
 <ul class="simple">
-<li><cite>“Functional</cite>” [string] the label of a function to apply to each of the variables in the variable list (Function options detailed below)</li>
-<li><cite>“Region</cite>” [string] the label of a user-defined region</li>
+<li><p><cite>“Functional</cite>” [string] the label of a function to apply to each of the variables in the variable list (Function options detailed below)</p></li>
+<li><p><cite>“Region</cite>” [string] the label of a user-defined region</p></li>
 </ul>
 </div></blockquote>
 </div></blockquote>
 <p>The following Observation Data functionals are currently supported.  All of them operate on the variables identified.</p>
 <ul class="simple">
-<li><cite>“Observation Data: Point</cite>” returns the value of the field quantity at a point</li>
-<li><cite>“Observation Data: Integral</cite>” returns the integral of the field quantity over the region specified</li>
+<li><p><cite>“Observation Data: Point</cite>” returns the value of the field quantity at a point</p></li>
+<li><p><cite>“Observation Data: Integral</cite>” returns the integral of the field quantity over the region specified</p></li>
 </ul>
 <p>Example:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;Observation Data&quot;</span><span class="nt">&gt;</span>
@@ -833,15 +745,15 @@ for its evaluation.  The observations are evaluated during the simulation and re
 </div>
 </div>
 <div class="section" id="pk">
-<h3><a class="toc-backref" href="#id14">PK</a><a class="headerlink" href="#pk" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id14">PK</a><a class="headerlink" href="#pk" title="Permalink to this headline"></a></h3>
 <p>The <cite>“PKs</cite>” ParameterList in <a class="reference internal" href="#main">Main</a> is expected to have one and only one sublist, which corresponds to the PK at the top of the PK tree.
 This top level PK is also often an MPC (MPCs are PKs).</p>
 <p>All PKs have the following parameters in their spec:</p>
 <ul>
-<li><p class="first"><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
+<li><p><cite>“PK type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
 <p>The PK type is a special key-word which corresponds to a given class in the PK factory.  See available PK types listed below in the <a class="reference internal" href="#physical-pks">Physical PKs</a> section.</p>
 </li>
-<li><p class="first"><cite>“PK name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LIST-NAME</strong></p>
+<li><p><cite>“PK name</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>LIST-NAME</strong></p>
 <p>This is automatically written as the <cite>“name</cite>” attribute of the containing PK sublist, and need not be included by the user.</p>
 </li>
 </ul>
@@ -864,75 +776,74 @@ This top level PK is also often an MPC (MPCs are PKs).</p>
 </div>
 <p>Each PK, which may be named arbitrarily, is one of the following PK specs listed below.</p>
 <div class="section" id="base-pks">
-<h4><a class="toc-backref" href="#id15">Base PKs</a><a class="headerlink" href="#base-pks" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id15">Base PKs</a><a class="headerlink" href="#base-pks" title="Permalink to this headline"></a></h4>
 <p>There are several types of PKs, and each PK has its own valid input spec.  However, there are three main types of PKs, from which nearly all PKs derive.  Note that none of these are true PKs and cannot stand alone.</p>
 <div class="section" id="pkdefaultbase">
-<h5><a class="toc-backref" href="#id16">PKDefaultBase</a><a class="headerlink" href="#pkdefaultbase" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id16">PKDefaultBase</a><a class="headerlink" href="#pkdefaultbase" title="Permalink to this headline"></a></h5>
 <p><code class="docutils literal notranslate"><span class="pre">PKDefaultBase</span></code> is not a true PK, but is a helper for providing some basic functionality shared by (nearly) all PKs.
 Therefore, (nearly) all PKs inherit from this base class.  No input required.</p>
 </div>
 <div class="section" id="pkphysicalbase">
-<h5><a class="toc-backref" href="#id17">PKPhysicalBase</a><a class="headerlink" href="#pkphysicalbase" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id17">PKPhysicalBase</a><a class="headerlink" href="#pkphysicalbase" title="Permalink to this headline"></a></h5>
 <p><code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span> <span class="pre">(v)--&gt;</span></code> <a class="reference internal" href="#pkdefaultbase">PKDefaultBase</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span></code> is a base class providing some functionality for PKs which are defined on a single mesh, and represent a single process model.
 Typically all leaves of the PK tree will inherit from <code class="docutils literal notranslate"><span class="pre">PKPhysicalBase</span></code>.</p>
 <ul>
-<li><p class="first"><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“”</strong>, e.g. <cite>“surface</cite>”.</p>
+<li><p><cite>“domain</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“”</strong>, e.g. <cite>“surface</cite>”.</p>
 <p>Domains and meshes are 1-to-1, and the empty string refers to the main domain or mesh.  PKs defined on other domains must specify which domain/mesh they refer to.</p>
 </li>
-<li><p class="first"><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
+<li><p><cite>“primary variable key</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code></p>
 <p>The primary variable associated with this PK, i.e. <cite>“pressure</cite>”, <cite>“temperature</cite>”, <cite>“surface_pressure</cite>”, etc.</p>
 </li>
-<li><p class="first"><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-condition-spec]</span></code>  See <a class="reference internal" href="#initialconditions">InitialConditions</a>.</p>
+<li><p><cite>“initial condition</cite>” <code class="docutils literal notranslate"><span class="pre">[initial-condition-spec]</span></code>  See <a class="reference internal" href="#initialconditions">InitialConditions</a>.</p>
 <p>Additionally, the following parameters are supported:</p>
 </li>
 </ul>
 <blockquote>
 <div><ul>
-<li><p class="first"><cite>“initialize faces from cell</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
+<li><p><cite>“initialize faces from cell</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>false</strong></p>
 <p>Indicates that the primary variable field has both CELL and FACE objects, and the FACE values are calculated as the average of the neighboring cells.</p>
 </li>
-<li><p class="first">other, PK-specific additions</p>
-</li>
+<li><p>other, PK-specific additions</p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="pkbdfbase">
-<h5><a class="toc-backref" href="#id18">PKBDFBase</a><a class="headerlink" href="#pkbdfbase" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id18">PKBDFBase</a><a class="headerlink" href="#pkbdfbase" title="Permalink to this headline"></a></h5>
 <p><code class="docutils literal notranslate"><span class="pre">PKBDFBase</span>&#160; <span class="pre">(v)--&gt;</span></code> <a class="reference internal" href="#pkdefaultbase">PKDefaultBase</a></p>
 <p><code class="docutils literal notranslate"><span class="pre">PKBDFBase</span></code> is a base class from which PKs that want to use the <code class="docutils literal notranslate"><span class="pre">BDF</span></code> series of implicit time integrators must derive.  It specifies both the <code class="docutils literal notranslate"><span class="pre">BDFFnBase</span></code> interface and implements some basic functionality for <code class="docutils literal notranslate"><span class="pre">BDF</span></code> PKs.</p>
 <ul>
-<li><p class="first"><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong></p>
+<li><p><cite>“initial time step</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.</strong></p>
 <p>The initial timestep size for the PK, this ensures that the initial timestep will not be <strong>larger</strong> than this value.</p>
 </li>
-<li><p class="first"><cite>“assemble preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong></p>
+<li><p><cite>“assemble preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[bool]</span></code> <strong>true</strong></p>
 <p>A flag for the PK to not assemble its preconditioner if it is not needed by a controlling PK.  This is usually set by the MPC, not by the user.</p>
 </li>
 </ul>
 <p>In the top-most (in the PK tree) PK that is meant to be integrated implicitly, several additional specs are included.  For instance, in a strongly coupled flow and energy problem, these specs are included in the <code class="docutils literal notranslate"><span class="pre">StrongMPC</span></code> that couples the flow and energy PKs, not to the flow or energy PK itself.</p>
 <ul>
-<li><p class="first"><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[time-integrator-spec]</span></code> is a <a class="reference internal" href="#timeintegrator">TimeIntegrator</a>.</p>
+<li><p><cite>“time integrator</cite>” <code class="docutils literal notranslate"><span class="pre">[time-integrator-spec]</span></code> is a <a class="reference internal" href="#timeintegrator">TimeIntegrator</a>.</p>
 <p>Note that this is only provided in the top-most <code class="docutils literal notranslate"><span class="pre">PKBDFBase</span></code> in the tree – this is often a <a class="reference internal" href="#strongmpc">StrongMPC</a> or a class deriving from <a class="reference internal" href="#strongmpc">StrongMPC</a>, not a <a class="reference internal" href="#pkphysicalbdfbase">PKPhysicalBDFBase</a>.</p>
 </li>
-<li><p class="first"><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-spec]</span></code> is a <a class="reference internal" href="#preconditioner">Preconditioner</a>.</p>
+<li><p><cite>“preconditioner</cite>” <code class="docutils literal notranslate"><span class="pre">[preconditioner-spec]</span></code> is a <a class="reference internal" href="#preconditioner">Preconditioner</a>.</p>
 <p>This spec describes how to form the (approximate) inverse of the preconditioner.</p>
 </li>
 </ul>
 </div>
 <div class="section" id="pkphysicalbdfbase">
-<h5><a class="toc-backref" href="#id19">PKPhysicalBDFBase</a><a class="headerlink" href="#pkphysicalbdfbase" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id19">PKPhysicalBDFBase</a><a class="headerlink" href="#pkphysicalbdfbase" title="Permalink to this headline"></a></h5>
 <p><code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkbdfbase">PKBDFBase</a>
 <code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">--&gt;</span></code> <a class="reference internal" href="#pkphysicalbase">PKPhysicalBase</a>
 <code class="docutils literal notranslate"><span class="pre">PKPhysicalBDFBase</span> <span class="pre">(v)--&gt;</span></code> <a class="reference internal" href="#pkdefaultbase">PKDefaultBase</a></p>
 <p>A base class for all PKs that are all of the above.</p>
 <ul>
-<li><p class="first"><cite>“debug cells</cite>” [Array(int)]</p>
+<li><p><cite>“debug cells</cite>” [Array(int)]</p>
 <p>List of global cell IDs for which (if the verbosity is set high enough) more debugging info is printed to the log file.</p>
 </li>
-<li><p class="first"><cite>“absolute error tolerance</cite>” [double] <strong>1.0</strong></p>
+<li><p><cite>“absolute error tolerance</cite>” [double] <strong>1.0</strong></p>
 <p>Absolute tolerance, <span class="math notranslate nohighlight">\(a_tol\)</span> in the equation below.</p>
 </li>
-<li><p class="first"><cite>“relative error tolerance</cite>” [double] <strong>1.0</strong></p>
+<li><p><cite>“relative error tolerance</cite>” [double] <strong>1.0</strong></p>
 <p>Relative tolerance, <span class="math notranslate nohighlight">\(r_tol\)</span> in the equation below.</p>
 </li>
 </ul>
@@ -941,95 +852,95 @@ Typically all leaves of the PK tree will inherit from <code class="docutils lite
 </div>
 </div>
 <div class="section" id="physical-pks">
-<h4><a class="toc-backref" href="#id20">Physical PKs</a><a class="headerlink" href="#physical-pks" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id20">Physical PKs</a><a class="headerlink" href="#physical-pks" title="Permalink to this headline"></a></h4>
 <p>Physical PKs are the physical capability implemented within ATS.</p>
 <div class="section" id="flow-pks">
-<h5><a class="toc-backref" href="#id21">Flow PKs</a><a class="headerlink" href="#flow-pks" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id21">Flow PKs</a><a class="headerlink" href="#flow-pks" title="Permalink to this headline"></a></h5>
 <div class="section" id="richards-pk">
-<h6><a class="toc-backref" href="#id22">Richards PK</a><a class="headerlink" href="#richards-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id22">Richards PK</a><a class="headerlink" href="#richards-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="permafrost-flow-pk">
-<h6><a class="toc-backref" href="#id23">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id23">Permafrost Flow PK</a><a class="headerlink" href="#permafrost-flow-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="overland-flow-head-primary-variable-pk">
-<h6><a class="toc-backref" href="#id24">Overland Flow, head primary variable PK</a><a class="headerlink" href="#overland-flow-head-primary-variable-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id24">Overland Flow, head primary variable PK</a><a class="headerlink" href="#overland-flow-head-primary-variable-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="overland-flow-pressure-primary-variable-pk">
-<h6><a class="toc-backref" href="#id25">Overland Flow, pressure primary variable, PK</a><a class="headerlink" href="#overland-flow-pressure-primary-variable-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id25">Overland Flow, pressure primary variable, PK</a><a class="headerlink" href="#overland-flow-pressure-primary-variable-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="snow-distribution-pk">
-<h6><a class="toc-backref" href="#id26">Snow Distribution PK</a><a class="headerlink" href="#snow-distribution-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id26">Snow Distribution PK</a><a class="headerlink" href="#snow-distribution-pk" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 <div class="section" id="energy-pks">
-<h5><a class="toc-backref" href="#id27">Energy PKs</a><a class="headerlink" href="#energy-pks" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id27">Energy PKs</a><a class="headerlink" href="#energy-pks" title="Permalink to this headline"></a></h5>
 <div class="section" id="advection-diffusion-pk">
-<h6><a class="toc-backref" href="#id28">Advection Diffusion PK</a><a class="headerlink" href="#advection-diffusion-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id28">Advection Diffusion PK</a><a class="headerlink" href="#advection-diffusion-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="energy-base-pk">
-<h6><a class="toc-backref" href="#id29">Energy Base PK</a><a class="headerlink" href="#energy-base-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id29">Energy Base PK</a><a class="headerlink" href="#energy-base-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="two-phase-subsurface-energy-pk">
-<h6><a class="toc-backref" href="#id30">Two-Phase subsurface Energy PK</a><a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id30">Two-Phase subsurface Energy PK</a><a class="headerlink" href="#two-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="three-phase-subsurface-energy-pk">
-<h6><a class="toc-backref" href="#id31">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id31">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#three-phase-subsurface-energy-pk" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="id1">
-<h6><a class="toc-backref" href="#id32">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id32">Three-Phase subsurface Energy PK</a><a class="headerlink" href="#id1" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="surface-ice-energy-pk">
-<h6><a class="toc-backref" href="#id33">Surface Ice Energy PK</a><a class="headerlink" href="#surface-ice-energy-pk" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id33">Surface Ice Energy PK</a><a class="headerlink" href="#surface-ice-energy-pk" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 <div class="section" id="surface-energy-balance-pks">
-<h5><a class="toc-backref" href="#id34">Surface Energy Balance PKs</a><a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id34">Surface Energy Balance PKs</a><a class="headerlink" href="#surface-energy-balance-pks" title="Permalink to this headline"></a></h5>
 <div class="section" id="surface-energy-balance-snow-monolithic-version">
-<h6><a class="toc-backref" href="#id35">Surface Energy Balance / Snow – Monolithic Version</a><a class="headerlink" href="#surface-energy-balance-snow-monolithic-version" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id35">Surface Energy Balance / Snow – Monolithic Version</a><a class="headerlink" href="#surface-energy-balance-snow-monolithic-version" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="surface-energy-balance-generic-version">
-<h6><a class="toc-backref" href="#id36">Surface Energy Balance – Generic Version</a><a class="headerlink" href="#surface-energy-balance-generic-version" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id36">Surface Energy Balance – Generic Version</a><a class="headerlink" href="#surface-energy-balance-generic-version" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 <div class="section" id="biogeochemistry">
-<h5><a class="toc-backref" href="#id37">Biogeochemistry</a><a class="headerlink" href="#biogeochemistry" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id37">Biogeochemistry</a><a class="headerlink" href="#biogeochemistry" title="Permalink to this headline"></a></h5>
 <div class="section" id="biogeochemistry-monolithic-version">
-<h6><a class="toc-backref" href="#id38">Biogeochemistry – Monolithic Version</a><a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id38">Biogeochemistry – Monolithic Version</a><a class="headerlink" href="#biogeochemistry-monolithic-version" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 <div class="section" id="deformation">
-<h5><a class="toc-backref" href="#id39">Deformation</a><a class="headerlink" href="#deformation" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id39">Deformation</a><a class="headerlink" href="#deformation" title="Permalink to this headline"></a></h5>
 <div class="section" id="volumetric-deformation">
-<h6><a class="toc-backref" href="#id40">Volumetric Deformation</a><a class="headerlink" href="#volumetric-deformation" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id40">Volumetric Deformation</a><a class="headerlink" href="#volumetric-deformation" title="Permalink to this headline"></a></h6>
 </div>
 </div>
 </div>
 <div class="section" id="mpcs">
-<h4><a class="toc-backref" href="#id41">MPCs</a><a class="headerlink" href="#mpcs" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id41">MPCs</a><a class="headerlink" href="#mpcs" title="Permalink to this headline"></a></h4>
 <p>MPCs couple other PKs, and are the non-leaf nodes in the PK tree.</p>
 <div class="section" id="weakmpc">
-<h5><a class="toc-backref" href="#id42">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id42">WeakMPC</a><a class="headerlink" href="#weakmpc" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="strongmpc">
-<h5><a class="toc-backref" href="#id43">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id43">StrongMPC</a><a class="headerlink" href="#strongmpc" title="Permalink to this headline"></a></h5>
 </div>
 </div>
 <div class="section" id="physical-mpcs">
-<h4><a class="toc-backref" href="#id44">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id44">Physical MPCs</a><a class="headerlink" href="#physical-mpcs" title="Permalink to this headline"></a></h4>
 <p>Often coupling is an art, and requires special off-diagonal work.  Physical MPCs can derive from default MPCs to provide special work.</p>
 <div class="section" id="coupled-water-mpc">
-<h5><a class="toc-backref" href="#id45">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id45">Coupled Water MPC</a><a class="headerlink" href="#coupled-water-mpc" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="subsurface-mpc">
-<h5><a class="toc-backref" href="#id46">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id46">Subsurface MPC</a><a class="headerlink" href="#subsurface-mpc" title="Permalink to this headline"></a></h5>
 </div>
 <div class="section" id="permafrost-mpc">
-<h5><a class="toc-backref" href="#id47">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id47">Permafrost MPC</a><a class="headerlink" href="#permafrost-mpc" title="Permalink to this headline"></a></h5>
 </div>
 </div>
 </div>
 <div class="section" id="state">
-<h3><a class="toc-backref" href="#id48">State</a><a class="headerlink" href="#state" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id48">State</a><a class="headerlink" href="#state" title="Permalink to this headline"></a></h3>
 <p>State consists of two sublists, one for evaluators and the other for
 atomic constants.  The latter is currently called <cite>“initial
 conditions</cite>”, which is a terrible name which must be fixed.</p>
@@ -1045,27 +956,27 @@ conditions</cite>”, which is a terrible name which must be fixed.</p>
 </pre></div>
 </div>
 <div class="section" id="field-evaluators">
-<h4><a class="toc-backref" href="#id49">Field Evaluators</a><a class="headerlink" href="#field-evaluators" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id49">Field Evaluators</a><a class="headerlink" href="#field-evaluators" title="Permalink to this headline"></a></h4>
 <p>Many field evaluators exist, but most derive from one of four base types.</p>
 <div class="section" id="field-evaluator-base-classes">
-<h5><a class="toc-backref" href="#id50">Field Evaluator Base Classes</a><a class="headerlink" href="#field-evaluator-base-classes" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id50">Field Evaluator Base Classes</a><a class="headerlink" href="#field-evaluator-base-classes" title="Permalink to this headline"></a></h5>
 <div class="section" id="primaryvariableevaluator">
-<h6><a class="toc-backref" href="#id51">PrimaryVariableEvaluator</a><a class="headerlink" href="#primaryvariableevaluator" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id51">PrimaryVariableEvaluator</a><a class="headerlink" href="#primaryvariableevaluator" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="secondaryvariableevaluator">
-<h6><a class="toc-backref" href="#id52">SecondaryVariableEvaluator</a><a class="headerlink" href="#secondaryvariableevaluator" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id52">SecondaryVariableEvaluator</a><a class="headerlink" href="#secondaryvariableevaluator" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="secondaryvariablesevaluator">
-<h6><a class="toc-backref" href="#id53">SecondaryVariablesEvaluator</a><a class="headerlink" href="#secondaryvariablesevaluator" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id53">SecondaryVariablesEvaluator</a><a class="headerlink" href="#secondaryvariablesevaluator" title="Permalink to this headline"></a></h6>
 </div>
 <div class="section" id="independentvariableevaluator">
-<h6><a class="toc-backref" href="#id54">IndependentVariableEvaluator</a><a class="headerlink" href="#independentvariableevaluator" title="Permalink to this headline">¶</a></h6>
+<h6><a class="toc-backref" href="#id54">IndependentVariableEvaluator</a><a class="headerlink" href="#independentvariableevaluator" title="Permalink to this headline"></a></h6>
 <p>While these provide base functionality, all of the physics are in the following</p>
 </div>
 </div>
 </div>
 <div class="section" id="initialconditions">
-<h4><a class="toc-backref" href="#id55">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id55">InitialConditions</a><a class="headerlink" href="#initialconditions" title="Permalink to this headline"></a></h4>
 <p>Initial condition specs are used in two places – in the <a class="reference internal" href="#pk">PK</a> spec
 which describes the initial condition of primary variables, and in the
 initial conditions sublist of state, in which the value of atomic
@@ -1075,7 +986,7 @@ list (hence the name of this sublist).  In ATS, this sublist is pretty
 much only used for constant scalars and constant vectors.</p>
 <p>This list needs to be renamed – it has nothing to do with inital conditions anymore.</p>
 <div class="section" id="initialization-of-constant-scalars">
-<h5><a class="toc-backref" href="#id56">Initialization of constant scalars</a><a class="headerlink" href="#initialization-of-constant-scalars" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id56">Initialization of constant scalars</a><a class="headerlink" href="#initialization-of-constant-scalars" title="Permalink to this headline"></a></h5>
 <p>A constant scalar field is the global (with respect to the mesh)
 constant.  At the moment, the set of such fields includes atmospheric
 pressure.  The initialization requires to provide a named sublist with
@@ -1087,7 +998,7 @@ a single parameter <cite>“value</cite>”.</p>
 </div>
 </div>
 <div class="section" id="initialization-of-constant-vectors">
-<h5><a class="toc-backref" href="#id57">Initialization of constant vectors</a><a class="headerlink" href="#initialization-of-constant-vectors" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id57">Initialization of constant vectors</a><a class="headerlink" href="#initialization-of-constant-vectors" title="Permalink to this headline"></a></h5>
 <p>A constant vector field is the global (with respect to the mesh)
 vector constant.  At the moment, the set of such vector constants
 includes gravity.  The initialization requires to provide a named
@@ -1100,7 +1011,7 @@ is looks like</p>
 </div>
 </div>
 <div class="section" id="initialization-of-scalar-fields">
-<h5><a class="toc-backref" href="#id58">Initialization of scalar fields</a><a class="headerlink" href="#initialization-of-scalar-fields" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id58">Initialization of scalar fields</a><a class="headerlink" href="#initialization-of-scalar-fields" title="Permalink to this headline"></a></h5>
 <p>A variable scalar field is defined by a few functions (labeled for instance,
 <cite>“Mesh Block i</cite>” with non-overlapping ranges.
 The required parameters for each function are <cite>“region</cite>”, <cite>“component</cite>”,
@@ -1125,7 +1036,7 @@ and the function itself.</p>
 </div>
 </div>
 <div class="section" id="initialization-of-tensor-fields">
-<h5><a class="toc-backref" href="#id59">Initialization of tensor fields</a><a class="headerlink" href="#initialization-of-tensor-fields" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id59">Initialization of tensor fields</a><a class="headerlink" href="#initialization-of-tensor-fields" title="Permalink to this headline"></a></h5>
 <p>A variable tensor (or vector) field is defined similarly to a variable
 scalar field.  The difference lies in the definition of the function
 which is now a multi-values function.  The required parameters are
@@ -1148,7 +1059,7 @@ which is now a multi-values function.  The required parameters are
 </div>
 </div>
 <div class="section" id="initialization-from-a-file">
-<h5><a class="toc-backref" href="#id60">Initialization from a file</a><a class="headerlink" href="#initialization-from-a-file" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id60">Initialization from a file</a><a class="headerlink" href="#initialization-from-a-file" title="Permalink to this headline"></a></h5>
 <p>Some data can be initialized from files. Additional sublist has to be
 added to named sublist of the <cite>“state</cite>” list with the file name and
 the name of attribute.  For a serial run, the file extension must be
@@ -1185,27 +1096,23 @@ example:</p>
 </div>
 </div>
 <div class="section" id="time-integrators-solvers-and-other-mathematical-specs">
-<h3><a class="toc-backref" href="#id61">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id61">Time integrators, solvers, and other mathematical specs</a><a class="headerlink" href="#time-integrators-solvers-and-other-mathematical-specs" title="Permalink to this headline"></a></h3>
 <p>Common specs for all solvers and time integrators, used in PKs.</p>
 <div class="section" id="timeintegrator">
-<h4><a class="toc-backref" href="#id62">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id62">TimeIntegrator</a><a class="headerlink" href="#timeintegrator" title="Permalink to this headline"></a></h4>
 </div>
 <div class="section" id="linear-solver-spec">
-<h4><a class="toc-backref" href="#id63">Linear Solver Spec</a><a class="headerlink" href="#linear-solver-spec" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id63">Linear Solver Spec</a><a class="headerlink" href="#linear-solver-spec" title="Permalink to this headline"></a></h4>
 <p>For each solver, a few parameters are used:</p>
 <ul>
-<li><p class="first"><cite>“iterative method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <cite>“pcg</cite>”, <cite>“gmres</cite>”, or <cite>“nka</cite>”</p>
+<li><p><cite>“iterative method</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <cite>“pcg</cite>”, <cite>“gmres</cite>”, or <cite>“nka</cite>”</p>
 <p>defines which method to use.</p>
 </li>
-<li><p class="first"><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> is used in the convergence test.</p>
-</li>
-<li><p class="first"><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> is used in the convergence test.</p>
-</li>
-<li><p class="first"><cite>“convergence criteria</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code>  <strong>{“relative rhs”}</strong> specifies multiple convergence criteria. The list
-may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>”, and <cite>“absolute residual</cite>”, and <cite>“???? force once????</cite>”</p>
-</li>
-<li><p class="first"><cite>“size of Krylov space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> is used in GMRES iterative method. The default value is 10.</p>
-</li>
+<li><p><cite>“error tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>1.e-6</strong> is used in the convergence test.</p></li>
+<li><p><cite>“maximum number of iterations</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>100</strong> is used in the convergence test.</p></li>
+<li><p><cite>“convergence criteria</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(string)]</span></code>  <strong>{“relative rhs”}</strong> specifies multiple convergence criteria. The list
+may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>”, and <cite>“absolute residual</cite>”, and <cite>“???? force once????</cite>”</p></li>
+<li><p><cite>“size of Krylov space</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> is used in GMRES iterative method. The default value is 10.</p></li>
 </ul>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;my solver&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;iterative method&quot;</span> <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;gmres&quot;</span><span class="nt">/&gt;</span>
@@ -1222,12 +1129,12 @@ may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>�
 </div>
 </div>
 <div class="section" id="preconditioner">
-<h4><a class="toc-backref" href="#id64">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id64">Preconditioner</a><a class="headerlink" href="#preconditioner" title="Permalink to this headline"></a></h4>
 <p>These can be used by a process kernel lists to define a preconditioner.  The only common parameter required by all lists is the type:</p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“preconditioner type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“identity”</strong>, <cite>“boomer amg</cite>”, <cite>“trilinos ml</cite>”, <cite>“block ilu</cite>” ???</li>
-<li><cite>“PC TYPE parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> includes a list of parameters specific to the type of PC.</li>
+<li><p><cite>“preconditioner type</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>“identity”</strong>, <cite>“boomer amg</cite>”, <cite>“trilinos ml</cite>”, <cite>“block ilu</cite>” ???</p></li>
+<li><p><cite>“PC TYPE parameters</cite>” <code class="docutils literal notranslate"><span class="pre">[list]</span></code> includes a list of parameters specific to the type of PC.</p></li>
 </ul>
 </div></blockquote>
 <p>Example:</p>
@@ -1240,26 +1147,26 @@ may include <cite>“relative residual</cite>”, <cite>“relative rhs</cite>�
 </pre></div>
 </div>
 <div class="section" id="hypre-amg">
-<h5><a class="toc-backref" href="#id65">Hypre AMG</a><a class="headerlink" href="#hypre-amg" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id65">Hypre AMG</a><a class="headerlink" href="#hypre-amg" title="Permalink to this headline"></a></h5>
 <p>Internal parameters of Boomer AMG includes</p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong> if is not zero, the preconditioner is dynamic
+<li><p><cite>“tolerance</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.0</strong> if is not zero, the preconditioner is dynamic
 and approximate the inverse matrix with the prescribed tolerance (in
-the energy norm?).</li>
-<li><cite>“smoother sweeps</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Number of smoothing iterations at each level on each cycle.</li>
-<li><cite>“cycle applications</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>5</strong> Number of V/W cycles to take.</li>
-<li><cite>“strong threshold</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.5</strong> Tolerance for including an off-diagonal when coarsening?  This is a very tunable parameter.</li>
-<li><cite>“relaxation type</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>6</strong> defines the smoother to be used. Default is 6
-which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method.</li>
+the energy norm?).</p></li>
+<li><p><cite>“smoother sweeps</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> Number of smoothing iterations at each level on each cycle.</p></li>
+<li><p><cite>“cycle applications</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>5</strong> Number of V/W cycles to take.</p></li>
+<li><p><cite>“strong threshold</cite>” <code class="docutils literal notranslate"><span class="pre">[double]</span></code> <strong>0.5</strong> Tolerance for including an off-diagonal when coarsening?  This is a very tunable parameter.</p></li>
+<li><p><cite>“relaxation type</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>6</strong> defines the smoother to be used. Default is 6
+which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method.</p></li>
 </ul>
 </div></blockquote>
 <ul class="simple">
-<li><cite>“verbosity</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> prints BoomerAMG statistics useful for analysis.</li>
+<li><p><cite>“verbosity</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>0</strong> prints BoomerAMG statistics useful for analysis.</p></li>
 </ul>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“number of functions</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Used in systems, this is very important to set correctly if you have two or more seperate variables interleaved.</li>
+<li><p><cite>“number of functions</cite>” <code class="docutils literal notranslate"><span class="pre">[int]</span></code> <strong>1</strong> Used in systems, this is very important to set correctly if you have two or more seperate variables interleaved.</p></li>
 </ul>
 </div></blockquote>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;boomer amg parameters&quot;</span><span class="nt">&gt;</span>
@@ -1275,7 +1182,7 @@ which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method.</li>
 </div>
 </div>
 <div class="section" id="trilinos-ml">
-<h5><a class="toc-backref" href="#id66">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id66">Trilinos ML</a><a class="headerlink" href="#trilinos-ml" title="Permalink to this headline"></a></h5>
 <p>Internal parameters of Trilinos ML includes</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;ml parameters&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;ML output&quot;</span> <span class="na">type=</span><span class="s">&quot;int&quot;</span> <span class="na">value=</span><span class="s">&quot;0&quot;</span><span class="nt">/&gt;</span>
@@ -1300,7 +1207,7 @@ which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method.</li>
 </div>
 </div>
 <div class="section" id="block-ilu">
-<h5><a class="toc-backref" href="#id67">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id67">Block ILU</a><a class="headerlink" href="#block-ilu" title="Permalink to this headline"></a></h5>
 <p>The internal parameters of the block ILU are as follows:</p>
 <div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;ParameterList</span> <span class="na">name=</span><span class="s">&quot;block ilu parameters&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;Parameter</span> <span class="na">name=</span><span class="s">&quot;fact: relax value&quot;</span> <span class="na">type=</span><span class="s">&quot;double&quot;</span> <span class="na">value=</span><span class="s">&quot;1.00000000000000000e+00&quot;</span><span class="nt">/&gt;</span>
@@ -1314,50 +1221,50 @@ which specifies a symmetric hybrid Gauss-Seidel / Jacobi hybrid method.</li>
 </div>
 </div>
 <div class="section" id="indentity">
-<h5><a class="toc-backref" href="#id68">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id68">Indentity</a><a class="headerlink" href="#indentity" title="Permalink to this headline"></a></h5>
 <p>The default, no PC applied.</p>
 </div>
 </div>
 <div class="section" id="nonlinearsolver">
-<h4><a class="toc-backref" href="#id69">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id69">NonlinearSolver</a><a class="headerlink" href="#nonlinearsolver" title="Permalink to this headline"></a></h4>
 </div>
 </div>
 <div class="section" id="other-common-specs">
-<h3><a class="toc-backref" href="#id70">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline">¶</a></h3>
+<h3><a class="toc-backref" href="#id70">Other Common Specs</a><a class="headerlink" href="#other-common-specs" title="Permalink to this headline"></a></h3>
 <div class="section" id="timecontrol">
-<h4><a class="toc-backref" href="#id71">TimeControl</a><a class="headerlink" href="#timecontrol" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id71">TimeControl</a><a class="headerlink" href="#timecontrol" title="Permalink to this headline"></a></h4>
 <p>The time-control-spec is used for multiple lists that need to indicate simulation times or cycles on which to do something.</p>
 <blockquote>
 <div><ul>
-<li><p class="first"><cite>“cycles start period stop</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
+<li><p><cite>“cycles start period stop</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
 <p>The first entry is the start cycle, the second is the cycle
 period, and the third is the stop cycle or -1, in which case there
 is no stop cycle. A visualization dump is written at such
 cycles that satisfy cycle = start + n*period, for n=0,1,2,… and
 cycle &lt; stop if stop != -1.0.</p>
 </li>
-<li><p class="first"><cite>“cycles start period stop N</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
+<li><p><cite>“cycles start period stop N</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
 <p>If multiple cycles start period stop parameters are needed, then
 use these parameters with N=0,1,2,…</p>
 </li>
-<li><p class="first"><cite>“cycles</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
+<li><p><cite>“cycles</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(int)]</span></code></p>
 <p>An array of discrete cycles that at which a visualization dump is
 written.</p>
 </li>
-<li><p class="first"><cite>“times start period stop</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
+<li><p><cite>“times start period stop</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
 <p>The first entry is the start time, the second is the time period,
 and the third is the stop time or -1, in which case there is no
 stop time. A visualization dump is written at such times that
 satisfy time = start + n*period, for n=0,1,2,… and time &lt; stop
 if stop != -1.0.  Note that all times units are in seconds.</p>
 </li>
-<li><p class="first"><cite>“times start period stop n</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
+<li><p><cite>“times start period stop n</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
 <p>If multiple start period stop parameters are needed, then use this
 these parameters with n=0,1,2,…, and not the single <cite>“times
 start period stop</cite>” parameter.  Note that all times units are in
 seconds.</p>
 </li>
-<li><p class="first"><cite>“times</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
+<li><p><cite>“times</cite>” <code class="docutils literal notranslate"><span class="pre">[Array(double)]</span></code></p>
 <p>An array of discrete times that at which a visualization dump
 shall be written.  Note that all times units are in seconds.</p>
 </li>
@@ -1365,16 +1272,16 @@ shall be written.  Note that all times units are in seconds.</p>
 </div></blockquote>
 </div>
 <div class="section" id="verboseobject">
-<h4><a class="toc-backref" href="#id72">VerboseObject</a><a class="headerlink" href="#verboseobject" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id72">VerboseObject</a><a class="headerlink" href="#verboseobject" title="Permalink to this headline"></a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">Teuchos::VerboseObject</span></code> is a tool for managing code output.  See also the <a class="reference external" href="http://trilinos.org/docs/r11.6/packages/teuchos/doc/html/classTeuchos_1_1VerboseObject.html">Trilinos documentation</a></p>
 <blockquote>
 <div><ul class="simple">
-<li><cite>“Verbosity Level</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>GLOBAL_VERBOSITY</strong>, <cite>“low</cite>”, <cite>“medium</cite>”, <cite>“high</cite>”, <cite>“extreme</cite>”  The default is set by the global verbosity spec, (fix me!)  Typically, <cite>“low</cite>” prints out minimal information, <cite>“medium</cite>” prints out errors and overall high level information, <cite>“high</cite>” prints out basic debugging, and <cite>“extreme</cite>” prints out local debugging information.  <cite>“medium</cite>” is the standard.</li>
+<li><p><cite>“Verbosity Level</cite>” <code class="docutils literal notranslate"><span class="pre">[string]</span></code> <strong>GLOBAL_VERBOSITY</strong>, <cite>“low</cite>”, <cite>“medium</cite>”, <cite>“high</cite>”, <cite>“extreme</cite>”  The default is set by the global verbosity spec, (fix me!)  Typically, <cite>“low</cite>” prints out minimal information, <cite>“medium</cite>” prints out errors and overall high level information, <cite>“high</cite>” prints out basic debugging, and <cite>“extreme</cite>” prints out local debugging information.  <cite>“medium</cite>” is the standard.</p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="function">
-<h4><a class="toc-backref" href="#id73">Function</a><a class="headerlink" href="#function" title="Permalink to this headline">¶</a></h4>
+<h4><a class="toc-backref" href="#id73">Function</a><a class="headerlink" href="#function" title="Permalink to this headline"></a></h4>
 <p>To set up non-trivial boundary conditions and/or initial fields, ATS supports a few mathematical functions.
 New function types can added easily.
 Each function is defined a list:</p>
@@ -1388,7 +1295,7 @@ This list is given as input to the ATS::FunctionFactory::Create method which ins
 The function-specification is one of the following parameter lists.</p>
 <p>????? many more are supported… add to the list! ????</p>
 <div class="section" id="constant-function">
-<h5><a class="toc-backref" href="#id74">Constant function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id74">Constant function</a><a class="headerlink" href="#constant-function" title="Permalink to this headline"></a></h5>
 <p>Constant function is defined as <cite>f(x) = a</cite>, for all <cite>x</cite>.
 The specification of this function needs only one parameter.
 For example, when <cite>a = 1</cite>, we have:</p>
@@ -1399,7 +1306,7 @@ For example, when <cite>a = 1</cite>, we have:</p>
 </div>
 </div>
 <div class="section" id="tabular-function">
-<h5><a class="toc-backref" href="#id75">Tabular function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id75">Tabular function</a><a class="headerlink" href="#tabular-function" title="Permalink to this headline"></a></h5>
 <p>Given values <span class="math notranslate nohighlight">\(x_i, y_i, i=0, ... n-1\)</span>, a tabular function <span class="math notranslate nohighlight">\(f(x)\)</span> is
 defined piecewise:</p>
 <div class="math notranslate nohighlight">
@@ -1428,7 +1335,7 @@ and constant (<cite>f(x)=2</cite>) on interval <span class="math notranslate noh
 </div>
 </div>
 <div class="section" id="smooth-step-function">
-<h5><a class="toc-backref" href="#id76">Smooth step function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id76">Smooth step function</a><a class="headerlink" href="#smooth-step-function" title="Permalink to this headline"></a></h5>
 <p>A smooth <span class="math notranslate nohighlight">\(C^2\)</span> function <cite>f(x)</cite> on interval <span class="math notranslate nohighlight">\([x_0,\,x_1]\)</span> is
 defined such that <cite>f(x) = y_0</cite> for <cite>x &lt; x0</cite>, <cite>f(x) = y_1</cite> for <cite>x &gt; x_1</cite>,
 and monotonically increasing for <span class="math notranslate nohighlight">\(x \in [x_0, x_1]\)</span>.
@@ -1443,7 +1350,7 @@ Here is an example:</p>
 </div>
 </div>
 <div class="section" id="polynomial-function">
-<h5><a class="toc-backref" href="#id77">Polynomial function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id77">Polynomial function</a><a class="headerlink" href="#polynomial-function" title="Permalink to this headline"></a></h5>
 <p>A generic polynomial function is given by the following expression:</p>
 <div class="math notranslate nohighlight">
 \[f(x) = \sum_{j=0}^n c_j (x - x_0)^{p_j}\]</div>
@@ -1459,7 +1366,7 @@ Here i san example of a quartic polynomial:</p>
 </div>
 </div>
 <div class="section" id="multi-variable-linear-function">
-<h5><a class="toc-backref" href="#id78">Multi-variable linear function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id78">Multi-variable linear function</a><a class="headerlink" href="#multi-variable-linear-function" title="Permalink to this headline"></a></h5>
 <p>A multi-variable linear function is formally defined by</p>
 <div class="math notranslate nohighlight">
 \[f(x) = y_0 + \sum_{j=0}^{n-1} g_j (x_j - x_{0,j})\]</div>
@@ -1477,7 +1384,7 @@ Here is an example:</p>
 </div>
 </div>
 <div class="section" id="separable-function">
-<h5><a class="toc-backref" href="#id79">Separable function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline">¶</a></h5>
+<h5><a class="toc-backref" href="#id79">Separable function</a><a class="headerlink" href="#separable-function" title="Permalink to this headline"></a></h5>
 <p>A separable function is defined as the product of other functions such as</p>
 <div class="math notranslate nohighlight">
 \[f(x_0, x_1,...,x_{n-1}) = f_1(x_0)\, f_2(x_1,...,x_{n-1})\]</div>
@@ -1501,49 +1408,32 @@ Here is an example:</p>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="ATSNativeSpec_1_0.html" class="btn btn-neutral float-left" title="ATS Native XML Input Specification V1" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, jointly shared by contributor institutions.
-
-    </p>
+    <p>&#169; Copyright 202X, jointly shared by contributor institutions.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

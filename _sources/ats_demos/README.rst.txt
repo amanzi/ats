@@ -52,6 +52,9 @@ runs in that suite, and so all demos in that suite should be run.
 This is particularly true for demos that show a full workflow, such as
 `ecohydrology` or `arctic_hydrology`.
 
+Also, if you want to run the demos without using these python scripts,
+be sure to check out the FAQs on our `Wiki <https://github.com/amanzi/ats/wiki>`_
+
 
 Visualizing the results
 ------------------------
@@ -139,3 +142,14 @@ ATS's sister code Amanzi was designed for solving problems of reactive
 transport.  Interoperability of ATS and Amanzi allows ATS to leverage
 this work to solve problems of nonreactive and reactive transport in
 both the surface and subsurface, and even in frozen environments.
+(See below for ATS reactive transport demos when used with integrated hydrology)
+
+Integrated hydrology and Reactive Transport
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+`<ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.ipynb>`
+
+ATS is unique in the its ability to simulate reactive transport in integrated
+hydrology problems. In other words, it is capable of simulating muticomponent
+reactive transport in both surface and subsurface compartments using a novel
+coupling approach, and levering powerful, external geochemical engines
+`Molins et al (2022) WRR <https://doi.org/10.1029/2022WR032074>`_
