@@ -1,10 +1,14 @@
 /*
+  Copyright 2010-201x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
-*/
-//! Macropore water retention model.
 
+  Authors:
+
+*/
+
+//! Macropore water retention model.
 /*!
 
 An exponential model basd on the equations of... (document me!)

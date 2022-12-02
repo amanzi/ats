@@ -1,11 +1,12 @@
-/*----------------------------------------------------------------------------*
- * ATS
- *
- * License: see $ATS_DIR/COPYRIGHT
- *
- * C-to-F90 wrapper for CLM
- *----------------------------------------------------------------------------*/
+/*
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
+  Authors:
+
+*/
 
 #include "ats_clm_interface.hh"
 #include "ats_clm_interface_private.hh"

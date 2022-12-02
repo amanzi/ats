@@ -1,8 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
-  Authors: Ahmad Jan (jana@ornl.gov)
-           Ethan Coon (ecoon@ornl.gov)
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+      Ahmad Jan (jana@ornl.gov)
+      Ethan Coon (ecoon@ornl.gov)
 */
 
 //! Determine the volumetric ponded and snow depths from ponded depth and snow depth.

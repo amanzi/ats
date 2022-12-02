@@ -1,14 +1,15 @@
 /*
+  Copyright 2010-201x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Markus Berndt (berndt@lanl.gov)
-           Konstantin Lipnikov (lipnikov@lanl.gov)
-
+  Authors:
+      Markus Berndt (berndt@lanl.gov)
+      Konstantin Lipnikov (lipnikov@lanl.gov)
 */
-//! A linear sat-pc curve.
 
+//! A linear sat-pc curve.
 /*!
 
   A linear sat-pc curve, plus a constant rel perm, makes the system linear, so

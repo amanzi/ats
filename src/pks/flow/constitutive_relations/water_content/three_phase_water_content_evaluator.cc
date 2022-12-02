@@ -1,4 +1,14 @@
 /*
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+
+*/
+
+/*
   The three phase water content evaluator is an algebraic evaluator of a given model.
 Water content for a three-phase, gas+liquid+ice evaluator.
   Generated via evaluator_generator.

@@ -1,18 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-   ATS
-
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon
-
-   DOCUMENT ME
-   Surface Energy Balance for Snow Surface and Ground Surface
-   Calculates Energy flux, rate or water, and water temperature
-   entering through the surface skin.  Snow surface energy balance
-   is calculated at equilibrium with ground/surface water and Air.
-
-   ------------------------------------------------------------------------- */
+  Authors:
+      Ethan Coon
+*/
 
 #include <algorithm>
 

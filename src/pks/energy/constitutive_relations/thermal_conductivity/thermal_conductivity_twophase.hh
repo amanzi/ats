@@ -1,15 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
-
-Base class of a two-phase Thermal Conductivity relation.
-
-UNITS: ????
-------------------------------------------------------------------------- */
+  Authors:
+      Ethan Coon
+*/
 
 #ifndef PK_ENERGY_RELATIONS_TC_TWOPHASE_HH_
 #define PK_ENERGY_RELATIONS_TC_TWOPHASE_HH_

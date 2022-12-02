@@ -1,12 +1,14 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors:
+      Ethan Coon (ecoon@lanl.gov)
 */
-//! An advection-diffusion equation for energy in two phases.
 
+//! An advection-diffusion equation for energy in two phases.
 /*!
 
 This is simply a subsurface energy equation that places a few more requirements

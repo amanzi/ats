@@ -1,12 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-   Amanzi
+/*
+  Copyright 2010-201x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-   License: see $AMANZI_DIR/COPYRIGHT
-   Author: Ethan Coon
-
-   Helper class for energy unit tests
-   ------------------------------------------------------------------------- */
+  Authors:
+      Ethan Coon
+*/
 
 #ifndef ENERGY_TEST_CLASS_HH_
 #define ENERGY_TEST_CLASS_HH_
