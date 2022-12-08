@@ -80,7 +80,7 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   Key micro_domain = Keys::getDomain(my_keys_.front().first);
   Key macro_domain = Keys::readDomainHint(plist_, micro_domain, "micropore", "macropore");
   auto tag = my_keys_.front().second;
-
+  
   // - pull Keys from plist
   // dependency: micropore_pressure
   pm_key_ = Keys::readKey(plist_, micro_domain, "micropore pressure", "pressure");
@@ -90,11 +90,11 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{ pM_key_, tag });
   // dependency: micropore_relative_permeability
   krm_key_ =
-    Keys::readKey(plist_, micro_domain, "micropore relative permeability", "relative_permeability");
+    Keys::readKey(plist_, micro_domain, "micropore relative permeability");
   dependencies_.insert(KeyTag{ krm_key_, tag });
   // dependency: relative_permeability
   krM_key_ =
-    Keys::readKey(plist_, macro_domain, "macropore relative permeability", "relative_permeability");
+    Keys::readKey(plist_, macro_domain, "macropore relative permeability");
   dependencies_.insert(KeyTag{ krM_key_, tag });
   // dependency: micropore_absolute_permeability
   K_key_ = Keys::readKey(plist_, macro_domain, "macropore absolute permeability", "permeability");
@@ -103,6 +103,7 @@ MicroporeMacroporeFluxEvaluator::InitializeFromPlist_()
   den_key_ =
     Keys::readKey(plist_, micro_domain, "micropore molar density liquid", "molar_density_liquid");
   dependencies_.insert(KeyTag{ den_key_, tag });
+
 }
 
 

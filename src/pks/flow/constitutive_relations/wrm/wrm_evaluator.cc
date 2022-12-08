@@ -51,12 +51,14 @@ WRMEvaluator::InitializeFromPlist_()
     my_keys_.emplace_back(KeyTag{ akey, tag });
 
     Key otherkey = akey.substr(0, liq_pos) + "gas" + akey.substr(liq_pos + 6);
-    otherkey = Keys::readKey(plist_, domain_name, "other saturation", otherkey);
+    auto splitkey=Keys::splitKey(otherkey);
+    otherkey = Keys::readKey(plist_, domain_name, "other saturation", splitkey.second);
     my_keys_.emplace_back(KeyTag{ otherkey, tag });
 
   } else if (gas_pos != std::string::npos) {
     Key otherkey = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
-    otherkey = Keys::readKey(plist_, domain_name, "saturation", otherkey);
+    auto splitkey=Keys::splitKey(otherkey);
+    otherkey = Keys::readKey(plist_, domain_name, "saturation", splitkey.second);
     my_keys_.emplace_back(KeyTag{ otherkey, tag });
     my_keys_.emplace_back(KeyTag{ akey, tag });
 

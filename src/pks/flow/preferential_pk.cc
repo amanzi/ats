@@ -47,7 +47,8 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<Teuchos::ParameterList>& glist,
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), Richards(pk_tree, glist, S, solution)
+  : PK(pk_tree, glist, S, solution),
+    Richards(pk_tree, glist, S, solution)
 {
   coef_grav_key_ =
     Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
@@ -68,7 +69,7 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
   S_->GetEvaluatorList(coef_grav_key_).set<double>("permeability rescaling", perm_scale_);
 }
 
-
+  
 // -------------------------------------------------------------
 // Pieces of the construction process that are common to all
 // Preferential-like PKs.
@@ -110,6 +111,8 @@ Preferential::SetupPhysicalEvaluators_()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+                    coef_grav_key_, tag_next_, key_, tag_next_);
 }
 
 

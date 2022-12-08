@@ -354,10 +354,11 @@ Richards::SetupRichardsFlow_()
   if (coupled_to_surface_via_flux_) {
     Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
     ss_flux_key_ =
-      Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", "surface_subsurface_flux");
+      Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", domain_surf+"_"+domain_+"_"+"flux");
     S_->Require<CompositeVector, CompositeVectorSpace>(ss_flux_key_, tag_next_)
       .SetMesh(S_->GetMesh(domain_surf))
       ->AddComponent("cell", AmanziMesh::CELL, 1);
+    requireEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
   }
 
   // -- coupling done by a Dirichlet condition
@@ -1186,7 +1187,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     // Face is Dirichlet with value of surface head
     Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh("surface");
     const Epetra_MultiVector& head =
-      *S_->GetPtr<CompositeVector>("surface_pressure", tag)->ViewComponent("cell", false);
+      *S_->GetPtr<CompositeVector>(ss_primary_key_, tag)->ViewComponent("cell", false);
 
     unsigned int ncells_surface = head.MyLength();
     bc_counts[bc_counts.size() - 1] = ncells_surface;

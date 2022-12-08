@@ -104,6 +104,16 @@ Richards::FunctionalResidual(double t_old,
     }
     db_->WriteVector("res (src)", res.ptr(), false);
   }
+
+  std::cout<<"Solution "<<key_<<"\n";
+  std::cout<<"subsurface cell\n"<<*u_new->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"subsurface face\n"<<*u_new->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"\n";
+  
+  std::cout<<"Residual\n";
+  std::cout<<"subsurface cell\n"<<*g->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"subsurface face\n"<<*g->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"\n";
 };
 
 // -----------------------------------------------------------------------------

@@ -19,6 +19,9 @@
 #include "Operator.hh"
 #include "mpc_delegate_water.hh"
 #include "pk_physical_bdf_default.hh"
+#include "overland_pressure.hh"
+#include "richards.hh"
+#include "mpc_coupled_water.hh"
 #include "TreeOperator.hh"
 #include "strong_mpc.hh"
 
@@ -31,12 +34,8 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
                            const Teuchos::RCP<State>& S,
                            const Teuchos::RCP<TreeVector>& soln);
 
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-
-  virtual void set_states(const Teuchos::RCP<State>& S,
-                          const Teuchos::RCP<State>& S_inter,
-                          const Teuchos::RCP<State>& S_next);
+  virtual void Setup();
+  virtual void Initialize();
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
@@ -67,8 +66,14 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
   Teuchos::RCP<StrongMPC<PK_PhysicalBDF_Default>> integrated_flow_pk_;
   Teuchos::RCP<PK_BDF_Default> matrix_flow_pk_;
 
+  Key ss_flux_key_,  ss_macro_flux_key_, matrix_flux_key_, macro_flux_key_;
+  Key domain_ss_, domain_surf_, domain_macro_;
 
-  Key total_ss_flux_key_, matrix_flux_key_, macro_flux_key_;
+  // sub meshes
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh_;
+  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh_;
+  Teuchos::RCP<const AmanziMesh::Mesh> macro_mesh_;
+
 
   // debugger for dumping vectors
   Teuchos::RCP<Debugger> domain_db_;

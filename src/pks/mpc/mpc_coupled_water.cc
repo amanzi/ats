@@ -55,7 +55,8 @@ MPCCoupledWater::Setup()
 
   // require the coupling fields, claim ownership
   exfilt_key_ =
-    Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+    Keys::readKey(*plist_, domain_surf_, "exfiltration flux",
+		  domain_surf_ + "_" + domain_ss_ + "_" + "flux");
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::CELL, 1);
@@ -150,6 +151,14 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   // propagate updated info into state
   Solution_to_State(*u_new, tag_next_);
 
+
+  std::cout<<"Solution\n";
+  std::cout<<"macro cell\n"<<*u_new->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"macro face\n"<<*u_new->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"surface\n"<<*u_new->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"\n";
+
+  
   // Evaluate the surface flow residual
   surf_flow_pk_->FunctionalResidual(
     t_old, t_new, u_old->SubVector(1), u_new->SubVector(1), g->SubVector(1));
@@ -167,6 +176,13 @@ MPCCoupledWater::FunctionalResidual(double t_old,
 
   // All surface to subsurface fluxes have been taken by the subsurface.
   g->SubVector(1)->Data()->ViewComponent("cell", false)->PutScalar(0.);
+
+  std::cout<<"Residual\n";
+  std::cout<<"macro cell\n"<<*g->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"macro face\n"<<*g->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"surface\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"\n";
+
 }
 
 

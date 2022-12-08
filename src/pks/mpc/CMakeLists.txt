@@ -41,7 +41,7 @@ set(ats_mpc_src_files
   mpc_surface.cc
   mpc_delegate_water.cc
   mpc_coupled_water.cc
-#  mpc_coupled_dualmedia_water.cc
+  mpc_coupled_dualmedia_water.cc
   mpc_coupled_water_split_flux.cc
   mpc_permafrost.cc
   mpc_coupled_transport.cc
@@ -167,10 +167,10 @@ register_evaluator_with_factory(
   LISTNAME   ATS_MPC_REG
   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE mpc_coupled_dualmedia_water_reg.hh
-#   LISTNAME   ATS_MPC_REG
-#   )
+register_evaluator_with_factory(
+   HEADERFILE mpc_coupled_dualmedia_water_reg.hh
+   LISTNAME   ATS_MPC_REG
+   )
 
 
 register_evaluator_with_factory(
