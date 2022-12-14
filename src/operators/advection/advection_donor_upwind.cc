@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Donor upwind advection.
+   ------------------------------------------------------------------------- */
+
 #include "advection_donor_upwind.hh"
 
 namespace Amanzi {

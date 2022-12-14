@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Standard base for most PKs, this combines both domains/meshes of
+PKPhysicalBase and BDF methods of PK_BDF_Default.
+------------------------------------------------------------------------- */
+
 #include "boost/math/special_functions/fpclassify.hpp"
 #include "pk_helpers.hh"
 #include "pk_physical_bdf_default.hh"

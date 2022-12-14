@@ -7,6 +7,14 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Interface for the derived MPC for coupling energy and water in the subsurface,
+with freezing.
+
+------------------------------------------------------------------------- */
+
 #ifndef MPC_SURFACE_HH_
 #define MPC_SURFACE_HH_
 

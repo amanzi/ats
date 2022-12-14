@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Default base with default implementations of methods for a physical PK.
+   ------------------------------------------------------------------------- */
+
 #include "EvaluatorPrimary.hh"
 #include "StateDefs.hh"
 #include "pk_helpers.hh"

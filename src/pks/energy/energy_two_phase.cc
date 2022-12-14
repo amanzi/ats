@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Process kernel for energy equation for Richard's flow.
+------------------------------------------------------------------------- */
+
+
 #include "eos_evaluator.hh"
 #include "iem_evaluator.hh"
 #include "thermal_conductivity_twophase_evaluator.hh"

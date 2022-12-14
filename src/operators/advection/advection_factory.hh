@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Interface for a general-purpose advection factory.
+   ------------------------------------------------------------------------- */
+
 #ifndef OPERATOR_ADVECTION_ADVECTION_FACTORY_HH_
 #define OPERATOR_ADVECTION_ADVECTION_FACTORY_HH_
 

@@ -9,6 +9,7 @@
 
 /*
   Evaluates height(pressure)
+
 */
 
 #ifndef AMANZI_FLOWRELATIONS_ICY_HEIGHT_MODEL_

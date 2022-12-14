@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Interface for EWC, a helper class that does projections and preconditioners in
+energy/water-content space instead of temperature/pressure space.
+------------------------------------------------------------------------- */
+
 #define DEBUG_FLAG 1
 
 #include "ewc_model.hh"

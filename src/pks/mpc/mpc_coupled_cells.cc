@@ -10,6 +10,10 @@
 /* -------------------------------------------------------------------------
    ATS
 
+   Interface for a StrongMPC which uses a preconditioner in which the
+   block-diagonal cell-local matrix is dense.  If the system looks something
+   like:
+
    A( y1, y2, x, t ) = 0
    B( y1, y2, x, t ) = 0
 

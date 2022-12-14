@@ -9,6 +9,7 @@
 
 /*
   License:
+
   Delegate for setting up and solving a preconditioned system.
 */
 

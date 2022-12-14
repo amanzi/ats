@@ -7,6 +7,14 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+// -----------------------------------------------------------------------------
+// ATS
+//
+// Scheme for taking coefficients for div-grad operators from cells to faces.
+// Upwinds based upon a potential vector, with an overlap region size
+// determined by an (optional) other field.
+// -----------------------------------------------------------------------------
+
 #include "CompositeVector.hh"
 #include "State.hh"
 #include "upwind_potential_difference.hh"

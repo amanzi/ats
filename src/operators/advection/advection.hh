@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Base interface for a general-purpose advection operator.
+   ------------------------------------------------------------------------- */
+
 #ifndef OPERATOR_ADVECTION_ADVECTION_HH_
 #define OPERATOR_ADVECTION_ADVECTION_HH_
 

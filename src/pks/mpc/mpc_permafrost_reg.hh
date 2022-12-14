@@ -10,6 +10,9 @@
 /* -------------------------------------------------------------------------
 ATS
 
+MPC for the Coupled Permafrost model.  This MPC sits at the top of the
+subtree:
+
                     MPCPermafrost
                      /          \
                     /            \

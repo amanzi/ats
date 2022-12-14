@@ -10,6 +10,8 @@
 /* -------------------------------------------------------------------------
 ATS
 
+Physics methods of the advection-diffusion equation.
+
 Solves:
 
 dT/dt  +  u dot grad(T) = div K grad T

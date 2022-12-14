@@ -10,6 +10,11 @@
 /* -------------------------------------------------------------------------
    ATS
 
+   Implementation for the NullEnergy PK.  This PK simply provides a constant
+   temperature, and is provided for testing with other PKs that depend upon an
+   energy equation.  This could easily be provided by the state as an independent
+   variable, but this is nice for testing the full hierarchy with a simple PK.
+
    Example usage:
 
    <ParameterList name="energy">

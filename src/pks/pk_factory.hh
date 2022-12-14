@@ -10,6 +10,7 @@
 /* -------------------------------------------------------------------------
 
    ATS
+
    PK factory for self-registering PKs.
 
    See a more thorough factory discussion in $ATS_DIR/src/factory/factory.hh.

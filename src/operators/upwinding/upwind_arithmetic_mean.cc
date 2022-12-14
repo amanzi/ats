@@ -7,6 +7,13 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+// -----------------------------------------------------------------------------
+// ATS
+//
+// Scheme for taking coefficients for div-grad operators from cells to
+// faces.
+// -----------------------------------------------------------------------------
+
 #include "CompositeVector.hh"
 #include "State.hh"
 #include "upwind_arithmetic_mean.hh"

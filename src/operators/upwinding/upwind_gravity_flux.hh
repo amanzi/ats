@@ -7,6 +7,13 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+// -----------------------------------------------------------------------------
+// ATS
+//
+// Scheme for taking coefficients for div-grad operators from cells to
+// faces.
+// -----------------------------------------------------------------------------
+
 #ifndef AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 #define AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 

@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Default base with default implementations of methods for a PK integrated using
+   Explicit.
+   ------------------------------------------------------------------------- */
+
 #ifndef ATS_PK_EXPLICIT_DEFAULT_HH_
 #define ATS_PK_EXPLICIT_DEFAULT_HH_
 

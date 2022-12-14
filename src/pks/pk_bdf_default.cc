@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Default base with default implementations of methods for a PK integrated using
+BDF.
+------------------------------------------------------------------------- */
+
 #include "Teuchos_TimeMonitor.hpp"
 #include "BDF1_TI.hh"
 #include "pk_bdf_default.hh"

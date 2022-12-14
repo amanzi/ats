@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Process kernel for energy equation for overland flow.
+------------------------------------------------------------------------- */
+
 #include "energy_surface_ice.hh"
 
 namespace Amanzi {

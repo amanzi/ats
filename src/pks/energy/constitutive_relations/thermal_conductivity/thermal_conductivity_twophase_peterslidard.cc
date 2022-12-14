@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Linear interpolant of thermal conductivity.
+------------------------------------------------------------------------- */
+
 #include <cmath>
 #include "thermal_conductivity_twophase_peterslidard.hh"
 

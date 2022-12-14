@@ -10,6 +10,9 @@
 /* -------------------------------------------------------------------------
 ATS
 
+Implementation for the Coordinator. Coordinator holds the functionality
+called by the cycle driver, which runs the overall, top level timestep loop.
+
 Coordinator instantiates states, ensures they are initialized, advances
 timesteps, and writes vis and restart/checkpoint dumps. It contains one and
 only one PK -- most likely this PK is an MPC of some type -- to do the

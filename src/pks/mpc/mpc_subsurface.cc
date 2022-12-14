@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Interface for the derived MPC for coupling energy and water in the subsurface,
+with freezing.
+
+------------------------------------------------------------------------- */
 #include "EpetraExt_RowMatrixOut.h"
 
 #include "MultiplicativeEvaluator.hh"

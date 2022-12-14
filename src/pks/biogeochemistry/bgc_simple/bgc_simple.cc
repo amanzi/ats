@@ -10,6 +10,9 @@
 /* -------------------------------------------------------------------------
    ATS
 
+   Simple implementation of CLM's Century model for carbon decomposition and a
+   simplified 2-PFT (sedge, moss) vegetation model for creating carbon.
+
    CURRENT ASSUMPTIONS:
      1. parallel decomp not in the vertical
      2. fields are not ordered along the column, and so must be copied

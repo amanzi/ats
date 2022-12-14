@@ -11,6 +11,8 @@
 
 ATS
 
+Functions needed for using CLM as a land surface model.
+
 Usage:
 =========
 

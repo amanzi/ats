@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Linear interpolant of thermal conductivity.
+------------------------------------------------------------------------- */
+
 #include "thermal_conductivity_threephase_sutra_hacked.hh"
 
 namespace Amanzi {

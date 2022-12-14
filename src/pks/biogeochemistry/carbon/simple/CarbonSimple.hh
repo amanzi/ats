@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Process kernel for energy equation for Richard's flow.
+------------------------------------------------------------------------- */
+
 #ifndef PKS_CARBON_SIMPLE_HH_
 #define PKS_CARBON_SIMPLE_HH_
 

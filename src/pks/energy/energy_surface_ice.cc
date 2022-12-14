@@ -7,6 +7,11 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Process kernel for energy equation for overland flow.
+------------------------------------------------------------------------- */
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
 #include "Debugger.hh"

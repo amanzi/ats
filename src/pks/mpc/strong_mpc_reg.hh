@@ -10,6 +10,10 @@
 /* -------------------------------------------------------------------------
 ATS
 
+Implementation for the derived StrongMPC class.  Is both a PK and a Model
+Evalulator, providing needed methods for BDF time integration of the coupled
+system.
+
 Completely automated and generic to any sub PKs, this uses a block diagonal
 preconditioner.
 

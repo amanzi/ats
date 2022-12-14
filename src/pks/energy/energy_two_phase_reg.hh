@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Process kernel for energy equation for Richard's flow.
+------------------------------------------------------------------------- */
+
 #include "energy_two_phase.hh"
 
 namespace Amanzi {

@@ -7,6 +7,14 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+EWCModelBase provides some of the functionality of EWCModel for inverse
+evaluating.
+
+------------------------------------------------------------------------- */
+
 #include "ewc_model_base.hh"
 
 #define DEBUG_FLAG 0

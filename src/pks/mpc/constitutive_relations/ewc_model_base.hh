@@ -7,6 +7,14 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+EWCModelBase provides some of the functionality of EWCModel for inverse
+evaluating.
+
+------------------------------------------------------------------------- */
+
 #ifndef AMANZI_EWC_MODEL_BASE_HH_
 #define AMANZI_EWC_MODEL_BASE_HH_
 

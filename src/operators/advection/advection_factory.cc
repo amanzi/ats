@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Interface for a general-purpose advection factory.
+   ------------------------------------------------------------------------- */
+
 #include "errors.hh"
 #include "advection_donor_upwind.hh"
 #include "advection_factory.hh"

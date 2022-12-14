@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Default base with default implementations of methods for a PK integrated using
+Explicit.
+------------------------------------------------------------------------- */
+
 #include "Teuchos_TimeMonitor.hpp"
 #include "PK.hh"
 #include "State.hh"

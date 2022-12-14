@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Base class for advection.
+   ------------------------------------------------------------------------- */
+
 #include "CompositeVectorSpace.hh"
 
 #include "advection.hh"

@@ -7,6 +7,17 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   DOCUMENT ME
+   Surface Energy Balance for Snow Surface and Ground Surface
+   Calculates Energy flux, rate or water, and water temperature
+   entering through the surface skin.  Snow surface energy balance
+   is calculated at equilibrium with ground/surface water and Air.
+
+   ------------------------------------------------------------------------- */
+
 #include <algorithm>
 
 #include "pk_helpers.hh"

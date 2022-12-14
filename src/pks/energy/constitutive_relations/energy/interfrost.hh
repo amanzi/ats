@@ -10,6 +10,9 @@
 /* -------------------------------------------------------------------------
 ATS
 
+Fully three-phase (air, water, ice) permafrost energy equation, with only
+mobile water.
+
 Inherits TwoPhase instead of EnergyBase to pick up the enthalpy from TwoPhase.
 ------------------------------------------------------------------------- */
 

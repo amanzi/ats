@@ -7,6 +7,12 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+   ATS
+
+   Donor upwind advection.
+   ------------------------------------------------------------------------- */
+
 #ifndef OPERATOR_ADVECTION_ADVECTION_DONOR_UPWIND_HH_
 #define OPERATOR_ADVECTION_ADVECTION_DONOR_UPWIND_HH_
 

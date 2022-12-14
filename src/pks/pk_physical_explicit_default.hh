@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Standard base for most diffusion-dominated PKs, this combines both
+domains/meshes of PKPhysicalBase and Explicit methods of PKExplicitBase.
+------------------------------------------------------------------------- */
+
 #ifndef AMANZI_PK_PHYSICAL_EXPLICIT_DEFAULT_HH_
 #define AMANZI_PK_PHYSICAL_EXPLICIT_DEFAULT_HH_
 

@@ -7,6 +7,13 @@
   Authors: Ethan Coon
 */
 
+/* -------------------------------------------------------------------------
+ATS
+
+Test PK for testing snow distribution
+
+------------------------------------------------------------------------- */
+
 #ifndef PKS_TEST_SNOW_DIST_HH_
 #define PKS_TEST_SNOW_DIST_HH_
 
