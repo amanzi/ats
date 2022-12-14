@@ -12,7 +12,6 @@
 
 Soil carbon data structures class
 
-Licencse: BSD
 */
 
 #ifndef ATS_BGC_SOIL_CARBON_HH_

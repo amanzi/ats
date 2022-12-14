@@ -12,7 +12,6 @@
 
 Functor for evaluating QSat
 
-Licencse: BSD
 */
 
 #include <cmath>

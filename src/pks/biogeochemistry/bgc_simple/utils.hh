@@ -11,7 +11,6 @@
 /*
 Utility functions for Vegetation.
 
-Licencse: BSD
 */
 
 

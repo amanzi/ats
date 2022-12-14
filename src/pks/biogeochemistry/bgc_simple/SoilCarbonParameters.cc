@@ -12,7 +12,6 @@
 
 Soil carbon parameters data structures class
 
-Licencse: BSD
 */
 
 #include "dbc.hh"
