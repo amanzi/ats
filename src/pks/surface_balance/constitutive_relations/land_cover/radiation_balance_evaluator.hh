@@ -1,11 +1,17 @@
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Evaluates a net radiation balance for ground and canopy.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+*/
 /*!
 
 Here the net radiation is positive for energy inputs to the layer.  Note that

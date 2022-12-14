@@ -1,12 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
-
-EWCModel evaluates the full chain of models to determine energy and water
-content as a function of temperature, pressure (and optionally porosity).
 
 This format is not a typical Model format, and doesn't have an evaluator, but
 is instead used by the MPCDelegateEWC, which is delegated much of the

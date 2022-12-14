@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The manning coefficient with variable litter model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Manning's coefficient that varies based on litter thickness and ponded depth.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #ifndef AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_MODEL_HH_

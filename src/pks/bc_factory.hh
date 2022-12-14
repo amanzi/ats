@@ -1,12 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-// Boundary conditions base classes.
-
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+// Boundary conditions base classes.
+
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
 */
 
 #ifndef AMANZI_BC_FACTORY_HH_
@@ -68,7 +73,7 @@ Example:
 
 Different PKs populate this general format with different names, replacing
 DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.
-  
+
  */
 
 

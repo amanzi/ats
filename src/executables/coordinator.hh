@@ -1,12 +1,16 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Simulation controller intended to be used as base class for top-level driver
-
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+//! Simulation controller intended to be used as base class for top-level driver
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
 */
 
 

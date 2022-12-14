@@ -1,7 +1,15 @@
 /*
-  ReciprocalEvaluator is the generic evaluator for dividing two vectors.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Daniil Svyatsky
+*/
+
+/*
+  ReciprocalEvaluator is the generic evaluator for dividing two vectors.
+
 */
 
 #ifndef AMANZI_RELATIONS_RECIPROCAL_EVALUATOR_

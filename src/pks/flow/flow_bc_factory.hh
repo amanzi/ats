@@ -1,9 +1,15 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
 */
 
 #ifndef AMANZI_FLOW_BC_FACTORY_HH_
@@ -129,7 +135,7 @@ Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^
 Example:
 
 .. code-block:: xml
-    
+
      <ParameterList name="boundary conditions">
        <ParameterList name="fixed level flux">
           <ParameterList name="river level south">
@@ -143,13 +149,13 @@ Example:
                <ParameterList name="function-constant">
                  <Parameter name="value" type="double" value="2.5"/>
                </ParameterList>
-            </ParameterList>            
+            </ParameterList>
           </ParameterList>
        </ParameterList>
     </ParameterList>
 
 
- 
+
 Seepage face boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -181,7 +187,7 @@ Example: pressure (for surface or subsurface)
 
 
 Example: head (for surface)
- 
+
 .. code-block:: xml
 
  <ParameterList name="boundary conditions">
@@ -303,7 +309,7 @@ The type of boundary conditions maybe changed in time depending on the switch fu
          <Parameter name="form" type="Array(string)" value="{constant}"/>
        </ParameterList>
      </ParameterList>
-          
+
      <ParameterList name="bcs">
        <Parameter name="bc types" type="Array(string)" value="{head, water flux}"/>
        <Parameter name="bc functions" type="Array(string)" value="{boundary head, outward water flux}"/>
@@ -322,7 +328,7 @@ The type of boundary conditions maybe changed in time depending on the switch fu
           </ParameterList>
        </ParameterList>
 
-       <ParameterList name="head">  
+       <ParameterList name="head">
           <ParameterList name="BC west">
             <Parameter name="regions" type="Array(string)" value="{surface west}"/>
             <ParameterList name="boundary head">

@@ -1,4 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The ideal gas equation of state evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
@@ -15,9 +24,8 @@
     evalNameString = ideal gas equation of state
     myMethodDeclarationArgs = double temp, double pres
     evalClassName = EosIdealGas
-    myKey = density  
-  
-  Authors: Ethan Coon (ecoon@lanl.gov)
+    myKey = density
+
 */
 
 #include "eos_ideal_gas_evaluator.hh"

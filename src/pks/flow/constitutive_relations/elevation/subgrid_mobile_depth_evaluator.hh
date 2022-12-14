@@ -1,11 +1,16 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
-//! SubgridMobileDepthEvaluator: calculates mobile depth including a depression storage term.
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon
+*/
+
+//! SubgridMobileDepthEvaluator: calculates mobile depth including a depression storage term.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
 */
 
 /*!

@@ -1,12 +1,16 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! PresElevEvaluator: evaluates h + z
-
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+//! PresElevEvaluator: evaluates h + z
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
 */
 
 /*!
@@ -20,7 +24,7 @@
 .. admonition:: pres-elev-evaluator-spec
 
    KEYS:
-   
+
    - `"height`" **DOMAIN-ponded_depth** Names the height variable. [m]
    - `"elevation`" **DOMAIN-elevation** Names the elevation variable. [m]
 

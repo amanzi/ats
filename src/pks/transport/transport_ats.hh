@@ -1,12 +1,15 @@
 /*
-  Transport PK
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Copyright 2010-202x held jointly by participating institutions.
   Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+*/
+
+/*
+  Transport PK
+
 */
 
 
@@ -37,7 +40,7 @@ The advection-diffusion equation for component *i* in the surface may be written
       the domain of this PK.
 
     * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-      components that will be transported. Must be in the order: aqueous, gaseous, solid. 
+      components that will be transported. Must be in the order: aqueous, gaseous, solid.
 
     * `"number of aqueous components`" ``[int]`` **-1** The total number of
       aqueous components.  Default value is the length of `"component names`"
@@ -180,7 +183,7 @@ The advection-diffusion equation for component *i* in the surface may be written
    * `"parameters for MODEL`" ``[list]`` where `"MODEL`" is the model name.
 
    IF model == scalar
-  
+
    ONE OF
 
    * `"alpha`" ``[double]`` defines dispersivity in all directions, [m].

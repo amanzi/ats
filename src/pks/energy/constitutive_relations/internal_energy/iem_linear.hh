@@ -1,11 +1,17 @@
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Internal energy based on a linear fit.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+*/
 
 /*!
 
@@ -16,7 +22,7 @@ Linear internal energy model -- function of Cv and temperature
     u = L_f +  C_v * (T - T_{ref})
 
 `"IEM type`" = `"linear`"
-    
+
 .. _IEM-model-linear-spec
 .. admonition:: IEM-model-linear-spec
 

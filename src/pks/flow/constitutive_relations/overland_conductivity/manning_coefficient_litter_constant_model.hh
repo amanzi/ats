@@ -1,9 +1,17 @@
 /*
-  The manning coefficient with variable litter model is an algebraic model with dependencies.
-  
-  Constant values.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
+  The manning coefficient with variable litter model is an algebraic model with dependencies.
+
+  Constant values.
+
 */
 
 #ifndef AMANZI_FLOW_MANNING_LITTER_COEFFICIENT_CONSTANT_MODEL_HH_

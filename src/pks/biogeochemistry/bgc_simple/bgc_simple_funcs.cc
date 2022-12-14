@@ -1,8 +1,15 @@
 /*
-  Main functions for biogeochemistry on a column.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-  Author: Ethan Coon (ecoon@lanl.gov)
-  Chonggang Xu (cxu@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Chonggang Xu (cxu@lanl.gov)
+*/
+
+/*
+  Main functions for biogeochemistry on a column.
 
 
   Issues:
@@ -10,7 +17,6 @@
   -- has no knowledge of snow cover?
   -- has no use of wind speed ref ht
 
-  License: BSD
 */
 
 #include <algorithm>

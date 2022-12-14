@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The three phase energy model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Energy for a three-phase, gas+liquid+ice evaluator.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #ifndef AMANZI_ENERGY_THREE_PHASE_ENERGY_MODEL_HH_

@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   EOSConstantMolarMass -- intermediate class for default implementations of
@@ -8,8 +15,6 @@
   Instead, this class is intended to be inherited and either the Molar or Mass
   methods replaced.  Use as it stands results in an infinite recursion...
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_RELATIONS_EOS_CONSTANT_MM_HH_

@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The liquid + gas water content model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Water content for a two-phase, liquid+water vapor evaluator.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #ifndef AMANZI_FLOW_LIQUID_GAS_WATER_CONTENT_MODEL_HH_

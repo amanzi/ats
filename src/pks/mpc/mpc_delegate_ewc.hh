@@ -1,11 +1,17 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Globalization for nonlinearity associated with phase change and latent heat.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+*/
 
 /*!
 
@@ -33,7 +39,7 @@ provides the initial guess to the nonlinear solve.
 .. admonition:: mpc-delegate-ewc-spec
 
     * `"verbose object`" ``[verbose-object-spec]`` See `Verbose Object`_.
-    
+
     * `"PK name`" ``[string]`` Name of the owning PK -- simply for logging and
       debugging.
     * `"domain name`" ``[string]`` **"domain"** The mesh.
@@ -48,7 +54,7 @@ provides the initial guess to the nonlinear solve.
 
     * `"predictor type`" ``[string]`` When to use EWC on the predictor.  One
       of:
-      
+
       - `"none`" Never do EWC
       - `"ewc`" Always do EWC
       - `"smart ewc`" Attempt EWC when it seems likely it will be useful and
@@ -65,7 +71,7 @@ provides the initial guess to the nonlinear solve.
     * `"freeze-thaw cusp width (thawing) [K]`" ``[double]`` Controls a width
       over which to assume we are close to the latent heat cliff as we get
       warmer, and begins applying the EWC algorithm in `"ewc smarter`".
-        
+
     * `"pressure key`" ``[string]`` **DOMAIN-pressure**
     * `"temperature key`" ``[string]`` **DOMAIN-temperature**
     * `"water content key`" ``[string]`` **DOMAIN-water_content**
@@ -75,7 +81,7 @@ provides the initial guess to the nonlinear solve.
     INCLUDES
 
     - ``[debugger-spec]`` Uses a Debugger_
-    
+
 */
 
 #ifndef MPC_DELEGATE_EWC_HH_

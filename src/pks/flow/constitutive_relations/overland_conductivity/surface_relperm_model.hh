@@ -1,10 +1,15 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluates Kr from surface into the subsurface
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_FLOWRELATIONS_SURFACE_KR_MODEL_

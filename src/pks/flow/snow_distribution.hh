@@ -1,11 +1,17 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Preferential distribution of snow precip in low-lying areas.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+*/
 
 /*!
 
@@ -34,15 +40,15 @@ daily (which all defaults are set for).
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
     * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
-    
+
     Not typically provided by the user, defaults are good:
 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
-    
+
 
 .. todo::
     For this PK, all variable root names are hard-coded.  This should get changed.
-    
+
 */
 
 

@@ -1,4 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The evaporative flux relaxation evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
@@ -15,7 +24,6 @@
     myKeyMethod = EvaporativeFlux
     myMethodArgs = wc_v[0][i], rho_v[0][i], L_v[0][i]
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "evaporative_flux_relaxation_evaluator.hh"

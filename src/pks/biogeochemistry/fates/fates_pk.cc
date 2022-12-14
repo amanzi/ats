@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Daniil Svyatsky, Xu Chonggang
+*/
+
 /* -------------------------------------------------------------------------
  * ATS
  *
- * License: see $ATS_DIR/COPYRIGHT
- * Author: Daniil Svyatsky, Xu Chonggang
  *
  * DOCUMENT ME:
 
@@ -104,7 +110,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
        Sets:
        fates_maxElementsPerPatch
        fates_maxElementsPerSite (where a site is roughly equivalent to a column)
-     
+
        (Note: fates_maxELementsPerSite is the critical variable used by CLM
        to allocate space)
      ------------------------------------------------------------------------*/

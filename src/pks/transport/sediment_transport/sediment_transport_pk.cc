@@ -1,13 +1,15 @@
-
 /*
-  Transport PK 
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+*/
+
+/*
+  Transport PK
+
 */
 
 #include <algorithm>
@@ -245,7 +247,7 @@ SedimentTransport_PK::Setup(const Teuchos::Ptr<State>& S)
 
 /* ******************************************************************
 * Routine processes parameter list. It needs to be called only once
-* on each processor.                                                     
+* on each processor.
 ****************************************************************** */
 void
 SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
@@ -592,12 +594,12 @@ SedimentTransport_PK::InitializeAll_()
 
 
 /* *******************************************************************
-* Estimation of the time step based on T.Barth (Lecture Notes   
-* presented at VKI Lecture Series 1994-05, Theorem 4.2.2.       
+* Estimation of the time step based on T.Barth (Lecture Notes
+* presented at VKI Lecture Series 1994-05, Theorem 4.2.2.
 * Routine must be called every time we update a flow field.
 *
 * Warning: Barth calculates influx, we calculate outflux. The methods
-* are equivalent for divergence-free flows and gurantee EMP. Outflux 
+* are equivalent for divergence-free flows and gurantee EMP. Outflux
 * takes into account sinks and sources but preserves only positivity
 * of an advected mass.
 * ***************************************************************** */
@@ -677,8 +679,8 @@ SedimentTransport_PK::StableTimeStep()
 }
 
 
-/* ******************************************************************* 
-* Estimate returns last time step unless it is zero.     
+/* *******************************************************************
+* Estimate returns last time step unless it is zero.
 ******************************************************************* */
 double
 SedimentTransport_PK::get_dt()
@@ -697,7 +699,7 @@ SedimentTransport_PK::get_dt()
 }
 
 
-/* ******************************************************************* 
+/* *******************************************************************
 * MPC will call this function to advance the transport state.
 * Efficient subcycling requires to calculate an intermediate state of
 * saturation only once, which leads to a leap-frog-type algorithm.
@@ -950,7 +952,7 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
 }
 
 
-/* ******************************************************************* 
+/* *******************************************************************
 * Copy the advected tcc field to the state.
 ******************************************************************* */
 void
@@ -971,8 +973,8 @@ SedimentTransport_PK::CommitStep(double t_old, double t_new, const Teuchos::RCP<
 }
 
 
-/* ******************************************************************* 
- * A simple first-order transport method 
+/* *******************************************************************
+ * A simple first-order transport method
  ****************************************************************** */
 void
 SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
@@ -1511,8 +1513,8 @@ SedimentTransport_PK::PopulateBoundaryData(std::vector<int>& bc_model,
 
 
 /* *******************************************************************
-* Identify flux direction based on orientation of the face normal 
-* and sign of the  Darcy velocity.                               
+* Identify flux direction based on orientation of the face normal
+* and sign of the  Darcy velocity.
 ******************************************************************* */
 void
 SedimentTransport_PK::IdentifyUpwindCells()
@@ -1564,9 +1566,9 @@ SedimentTransport_PK::IdentifyUpwindCells()
 
 
 /* *******************************************************************
-* Interpolate linearly in time between two values v0 and v1. The time 
+* Interpolate linearly in time between two values v0 and v1. The time
 * is measuared relative to value v0; so that v1 is at time dt. The
-* interpolated data are at time dt_int.            
+* interpolated data are at time dt_int.
 ******************************************************************* */
 void
 SedimentTransport_PK::InterpolateCellVector(const Epetra_MultiVector& v0,

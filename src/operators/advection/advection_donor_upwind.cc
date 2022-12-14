@@ -1,12 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
-   ATS
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon
-
-   Donor upwind advection.
-   ------------------------------------------------------------------------- */
+  Authors: Ethan Coon
+*/
 
 #include "advection_donor_upwind.hh"
 

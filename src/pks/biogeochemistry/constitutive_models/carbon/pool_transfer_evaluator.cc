@@ -1,10 +1,16 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Pool transfer, transfer of carbon between pools
   Koven et al 13, eqn 1, sum_{i /= j} (1-r_i)T_ij k_j C_j
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "Epetra_SerialDenseVector.h"

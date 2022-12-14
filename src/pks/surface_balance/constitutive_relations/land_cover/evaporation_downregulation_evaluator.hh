@@ -1,11 +1,17 @@
 /*
-  ATS is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Downregulates evaporation via vapor diffusion through a dessicated zone.
+/*
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+*/
 /*!
 
 Calculates evaporative resistance through a dessicated zone.
@@ -19,7 +25,7 @@ Hornberger b.
 .. admonition:: evaporation-downregulation-evaluator-spec
 
    KEYS:
-   
+
    - `"saturation gas`" **DOMAIN_SUB-saturation_gas**
    - `"porosity`" **DOMAIN_SUB-porosity**
    - `"potential evaporation`" **DOMAIN_SUB-potential_evaporation**

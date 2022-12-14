@@ -1,12 +1,15 @@
 /*
-  Transport PK 
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  Amanzi is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Daniil Svyatsky (dasvyat@lanl.gov)
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
+*/
+
+/*
+  Transport PK
+
 */
 
 #ifndef AMANZI_ATS_SEDIMENTTRANSPORT_PK_HH_
@@ -40,10 +43,10 @@
 
 
 /* ******************************************************************
-The transport PK receives a reduced (optional) copy of a physical 
-state at time n and returns a different state at time n+1. 
+The transport PK receives a reduced (optional) copy of a physical
+state at time n and returns a different state at time n+1.
 
-Unmodified physical quantaties in the returned state are the smart 
+Unmodified physical quantaties in the returned state are the smart
 pointers to the original variables.
 ****************************************************************** */
 
