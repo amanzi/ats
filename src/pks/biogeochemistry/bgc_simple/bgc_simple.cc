@@ -1,12 +1,17 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -------------------------------------------------------------------------
+   ATS
 
-  Authors:
-      Ethan Coon, Chonggang Xu
-*/
+   License: see $ATS_DIR/COPYRIGHT
+   Author: Ethan Coon, Chonggang Xu
+
+   Simple implementation of CLM's Century model for carbon decomposition and a
+   simplified 2-PFT (sedge, moss) vegetation model for creating carbon.
+
+   CURRENT ASSUMPTIONS:
+     1. parallel decomp not in the vertical
+     2. fields are not ordered along the column, and so must be copied
+     3. all columns have the same number of cells
+   ------------------------------------------------------------------------- */
 
 #include "MeshPartition.hh"
 #include "pk_helpers.hh"

@@ -1,14 +1,15 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+//! A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
+
 /*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
+  ATS is released under the three-clause BSD License. 
+  The terms of use and "as is" disclaimer for this license are 
   provided in the top-level COPYRIGHT file.
 
-  Authors:
-      Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! A base class with default implementations of methods for a leaf of the PK tree (a conservation equation, or similar).
+
 /*!
 
 `PKPhysicalBase` is a base class providing some functionality for PKs which

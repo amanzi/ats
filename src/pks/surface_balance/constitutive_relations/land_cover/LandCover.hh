@@ -1,14 +1,12 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
-      Ethan Coon (coonet@ornl.gov)
+  Authors: Ethan Coon (coonet@ornl.gov)
 */
-
 //! Basic land cover/plant function type
+
 /*!
 
 This is a simple base class for PFTs, but currently called LandCover_t to

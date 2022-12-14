@@ -1,13 +1,10 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
-      Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
 */
-
 //! RelPermSutraIceEvaluator: evaluates relative permeability using water retention models.
 #include "rel_perm_sutraice_evaluator.hh"
 #include "rel_perm_sutraice_drag_term.hh"

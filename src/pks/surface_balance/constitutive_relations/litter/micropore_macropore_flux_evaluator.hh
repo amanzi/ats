@@ -1,15 +1,13 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
-      Ethan Coon (ecoon@lanl.gov)
-      Daniil Svyatsky (dasvyat@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Daniil Svyatsky (dasvyat@lanl.gov)
 */
-
 //! Exchange flux between multiple continua.
+
 /*!
 
 Evaluates the following exchange flux model:

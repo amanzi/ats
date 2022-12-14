@@ -1,12 +1,56 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/*----------------------------------------------------------------------------
 
-  Authors:
-      Ethan Coon (coonet@ornl.gov)
-*/
+ATS
+
+License: see $ATS_DIR/COPYRIGHT
+Author: Ethan Coon (coonet@ornl.gov)
+
+Functions needed for using CLM as a land surface model.
+
+Usage:
+=========
+
+Initialization:
+    (order matters!)
+-----------------
+
+init()
+set_zero_time()
+set_initial_state()
+set_ground_properties()
+setup_begin()
+set_dz()
+set_et_controls()
+set_irrigation_controls()       [optional, not currently implemented FIXME]
+setup_end()
+set_dz()                        [a second time, FIXME]
+
+Advance timestep:
+   (advance_time() last!)
+-------------------
+set_tksat_from_porosity()       [if porosity changes, alternatively call
+                                 once after initialization]
+set_wc()
+set_pressure()                  [can these be merged? FIXME]
+set_met_data()                  [figure out expected Met data! FIXME]
+advance_time()
+
+
+Forcing for hydrologic model:
+-------------------------------
+get_total_mass_fluxes()
+
+
+Diagnostics:
+--------------
+get_total_energy_fluxes()
+get_mass_fluxes()
+get_diagnostics()
+
+
+
+----------------------------------------------------------------------------*/
+
 
 #ifndef ATS_CLM_INTERFACE_HH_
 #define ATS_CLM_INTERFACE_HH_

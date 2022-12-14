@@ -1,12 +1,16 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 
-  Authors:
-      Ethan Coon
-*/
+/* -------------------------------------------------------------------------
+ATS
+
+License: see $ATS_DIR/COPYRIGHT
+Author: Ethan Coon
+
+Fully three-phase (air, water, ice) permafrost energy equation, with only
+mobile water.
+
+Inherits TwoPhase instead of EnergyBase to pick up the enthalpy from TwoPhase.
+------------------------------------------------------------------------- */
 
 #ifndef PKS_ENERGY_INTERFROST_ENERGY_HH_
 #define PKS_ENERGY_INTERFROST_ENERGY_HH_

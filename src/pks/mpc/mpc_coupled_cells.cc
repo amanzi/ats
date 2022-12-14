@@ -1,12 +1,35 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/* -------------------------------------------------------------------------
+   ATS
 
-  Authors:
-      Ethan Coon
-*/
+   License: see $ATS_DIR/COPYRIGHT
+   Author: Ethan Coon
+
+   Interface for a StrongMPC which uses a preconditioner in which the
+   block-diagonal cell-local matrix is dense.  If the system looks something
+   like:
+
+   A( y1, y2, x, t ) = 0
+   B( y1, y2, x, t ) = 0
+
+   where y1,y2 are spatially varying unknowns that are discretized using the MFD
+   method (and therefore have both cell and face unknowns), an approximation to
+   the Jacobian is written as
+
+   [  dA_c/dy1_c  dA_c/dy1_f   dA_c/dy2_c       0      ]
+   [  dA_f/dy1_c  dA_f/dy1_f      0              0      ]
+   [  dB_c/dy1_c     0          dB_c/dy2_c  dB_c/dy2_f ]
+   [      0           0          dB_f/dy2_c  dB_f/dy2_f ]
+
+
+   Note that the upper left block is the standard preconditioner for the A
+   system, and the lower right block is the standard precon for the B system,
+   and we have simply added cell-based couplings, dA_c/dy2_c and dB_c/dy1_c.
+
+   In the temperature/pressure system, these correspond to d_water_content /
+   d_temperature and d_energy / d_pressure.
+
+   ------------------------------------------------------------------------- */
 
 #include <fstream>
 #include "EpetraExt_RowMatrixOut.h"

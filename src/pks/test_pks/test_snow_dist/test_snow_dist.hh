@@ -1,12 +1,13 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/* -------------------------------------------------------------------------
+ATS
 
-  Authors:
-      Ethan Coon
-*/
+License: see $ATS_DIR/COPYRIGHT
+Author: Ethan Coon
+
+Test PK for testing snow distribution
+
+------------------------------------------------------------------------- */
 
 #ifndef PKS_TEST_SNOW_DIST_HH_
 #define PKS_TEST_SNOW_DIST_HH_

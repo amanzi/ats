@@ -1,14 +1,15 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/* -------------------------------------------------------------------------
 
-  Authors:
-      Ethan Coon (coonet @ ornl.gov)
-*/
+ATS
+
+License: see $ATS_DIR/COPYRIGHT
+Author: Ethan Coon (coonet @ ornl.gov)
+
+ ------------------------------------------------------------------------- */
 
 //! SEBThreeComponentEvaluator: evaluates the Surface Energy Balance model on subgrid units.
+
 /*!
 
 Sets up a collection of patches, for portions of the column covered in snow,

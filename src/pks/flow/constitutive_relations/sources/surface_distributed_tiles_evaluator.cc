@@ -1,14 +1,9 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
-
-  Authors:
-
+  License: see $ATS_DIR/COPYRIGHT
+  Author:
 */
+//!  Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
 
-//! Evaluates water/solute source which represent effect of distributed subsurface tiles on overland flow
 /*!
 
 Accumulated surface sources due to tile drains.

@@ -1,14 +1,15 @@
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+//! Overland flow using the diffusion wave equation.
+
 /*
-  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
-      Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Overland flow using the diffusion wave equation.
+
 /*!
 
 Solves the diffusion wave equation for overland flow with pressure as a primary variable:
