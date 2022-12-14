@@ -1,6 +1,6 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
@@ -8,10 +8,6 @@
 */
 
 //! Evaluates relative permeability using water retention models.
-/*
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-*/
 /*!
 
 Uses a list of regions and water retention models on those regions to evaluate

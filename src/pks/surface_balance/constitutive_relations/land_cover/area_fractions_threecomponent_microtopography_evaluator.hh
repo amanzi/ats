@@ -1,6 +1,6 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
@@ -8,10 +8,6 @@
 */
 
 //! A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.
-/*
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-*/
 /*!
 
 Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective

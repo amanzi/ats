@@ -1,6 +1,6 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
@@ -8,10 +8,6 @@
 */
 
 //! A collection of WRMs along with a Mesh Partition.
-/*
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-*/
 /*!
 
 A WRM partition is a list of (region, WRM) pairs, where the regions partition

@@ -1,6 +1,6 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
@@ -8,11 +8,6 @@
 */
 
 //! SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
-/*
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-*/
-
 #include "SubgridDisaggregateEvaluator.hh"
 
 namespace Amanzi {

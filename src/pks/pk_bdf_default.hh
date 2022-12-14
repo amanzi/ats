@@ -1,6 +1,6 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
@@ -8,12 +8,6 @@
 */
 
 //! A base class with default implementations of methods for a PK that can be implicitly integrated in time.
-/*
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-*/
-
-
 /*!
 
 `PKBDFBase` is a base class from which PKs that want to use the `BDF`

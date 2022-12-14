@@ -1,15 +1,11 @@
 /*
   Copyright 2010-202x held jointly by participating institutions.
-  Amanzi is released under the three-clause BSD License.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Neil Carlson (versions 1 & 2)  (nnc@lanl.gov)
            Ethan Coon (ATS version)
-*/
-
-/*
-  This is the flow component of the Amanzi code.
 */
 
 #include "FunctionConstant.hh"
