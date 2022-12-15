@@ -10,7 +10,7 @@
 #include "pk_helpers.hh"
 #include "surface_balance_ELMKernels.hh"
 
-#include "canopy_fluxes_kokkos.hh"
+//#include "elm_kokkos_interface.hh"
 
 #define NUM_LC_CLASSES 18
 
@@ -102,9 +102,7 @@ SurfaceBalanceELMKernels::Setup()
   SetupDependencies_(tag_next_);
 
   // Set up the ELMKernels object
-  //ATS::ELMKernels::init(subsurf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED),
-  //               mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED),
-  //               2, mesh_->get_comm()->MyPID(), 3);
+  elm_ = std::make_unique<ELM::ELMKernels>(mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
 }
 
 void
@@ -231,6 +229,7 @@ SurfaceBalanceELMKernels::Initialize()
 void
 SurfaceBalanceELMKernels::InitializeELMKernels_(const Tag& tag)
 {
+  elm_->setup();
   // Initialize the ELMKernels instance
   Teuchos::ParameterList& ic_list = plist_->sublist("initial condition");
   double snow_depth = ic_list.get<double>("initial snow depth [m]");
@@ -333,6 +332,9 @@ SurfaceBalanceELMKernels::AdvanceStep(double t_old, double t_new, bool reinit)
                << "----------------------------------------------------------------" << std::endl;
 
   Tag tag = tag_current_;
+
+  auto dummy_date = ELM::Utils::Date(2014, 1, 1);
+  elm_->advance(dummy_date, dt);
 
   // Set the state
   S_->GetEvaluator(pres_key_, tag).Update(*S_, name_);

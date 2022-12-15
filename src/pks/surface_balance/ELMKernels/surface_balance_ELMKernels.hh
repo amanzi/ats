@@ -15,6 +15,7 @@
 
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
+#include "elm_kokkos_interface.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -95,6 +96,8 @@ public:
   Key clay_frac_key_;
   Key color_index_key_;
   Key pft_index_key_;
+
+  std::unique_ptr<ELM::ELMKernels> elm_;
 
  private:
   // factory registration
