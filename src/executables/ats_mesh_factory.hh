@@ -1,12 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! A list of mesh objects and their domain names.
 
+//! A list of mesh objects and their domain names.
 /*!
 
 All processes are simulated on a domain, which is discretized through a mesh.
@@ -87,8 +88,8 @@ Example:
          <Parameter name="domain low coordinate" type="Array(double)" value="{0.0, 0.0, 0.0}" />
          <Parameter name="domain high coordinate" type="Array(double)" value="{100.0, 1.0, 10.0}" />
        </ParameterList>
-     </ParameterList>   
-   </ParameterList>   
+     </ParameterList>
+   </ParameterList>
 
 
 Read Mesh File
@@ -148,7 +149,7 @@ Specified by `"mesh type`" of `"logical`".
 .. admonition:: mesh-logical-spec
 
    Not yet completed...
-   
+
 Surface Mesh
 ============
 

@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! A generic evaluator for summing a collection of fields.
 
+//! A generic evaluator for summing a collection of fields.
 /*!
 
 .. _additive-evaluator-spec:
@@ -14,7 +15,7 @@
    * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
 
    * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
-     
+
    * `"DEPENDENCY coefficient`" ``[double]`` **1.0** A multiple for each dependency in
      the list below.
 

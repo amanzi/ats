@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,6 +7,7 @@
   Authors: Ahmad Jan (jana@ornl.gov)
 */
 
+//! ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
 /*!
 
 Evaluates elevation, slope, and aspect of the "surface_star" mesh of the Arctic
@@ -31,7 +30,7 @@ Instead, it is a mix of:
   the slope algorithm, but is not done currently.
 
 `"evaluator type`" = `"elevation column`"
-  
+
 .. _column-elevation-evaluator-spec:
 .. admonition:: column-elevation-evaluator-spec
 

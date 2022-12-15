@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! A subgrid model for determining the area fraction of land, water, and snow within a grid cell with subgrid microtopography.
 
+//! A subgrid model for determining the area fraction of land, water, and snow within a grid cell with subgrid microtopography.
 #include "subgrid_microtopography.hh"
 #include "area_fractions_threecomponent_microtopography_evaluator.hh"
 

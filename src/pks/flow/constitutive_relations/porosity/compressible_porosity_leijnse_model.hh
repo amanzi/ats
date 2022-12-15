@@ -1,10 +1,12 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 /*!
 
 The Leinjnse model is an exponential model of porosity as a function of
@@ -16,11 +18,11 @@ pressure, based on (insert citation!):
    \phi = 1 - (1-\phi_\text{base}) * (1 - 0.5 \alpha / \delta p_\lambda^2)
 
 where :math:`\alpha` is the provided
-compressibility, and :math:`\delta` is the cutoff (inflection point). 
+compressibility, and :math:`\delta` is the cutoff (inflection point).
 
 If the inflection point is set to zero, the above function is exact.  However,
 then the porosity function is not smooth (has discontinuous derivatives).
-  
+
 .. _compressible-porosity-leijnse-model-spec
 .. admonition:: compressible-porosity-leijnse-model-spec
 

@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
-//! Basic land cover/plant function type
 
+//! Basic land cover/plant function type
 /*!
 
 This is a simple base class for PFTs, but currently called LandCover_t to
@@ -44,7 +45,7 @@ same region-based partitioning.
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
       function [-] Note that these are from the CLM 4.5 Technical Note.
 
-    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN** 
+    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN**
     * `"mafic potential at fully open stomata [Pa]`" ``[double]``  **NaN** Transpiration
       is typically multipled by a limiter that is empirically modeling stomata
       closure.  Typically it varies linearly from 0 to 1 as a function of

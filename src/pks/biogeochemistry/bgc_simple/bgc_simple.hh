@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -6,8 +7,8 @@
   Authors: Ethan Coon (coonet@ornl.gov)
            Chonggang Xu (cxu@lanl.gov)
 */
-//! Above and below-ground carbon cycle model.
 
+//! Above and below-ground carbon cycle model.
 /*!
 
 This is a multi-leaf layer, big-leaf vegetation model coupled to a Century

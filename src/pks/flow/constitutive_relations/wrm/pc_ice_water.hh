@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Capillary pressure of ice on water.
 
+//! Capillary pressure of ice on water.
 /*!
 .. _pc-ice-water-spec
 .. admonition:: pc-ice-water-spec

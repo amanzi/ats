@@ -1,12 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
 
 /*
   Delegate for modifying the predictor in the case of infiltration into dry soil.
 
   NOTE this uses only a domain, and assumes standard variable names.
-  
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+
 */
 
 #ifndef PREDICTOR_DELEGATE_BC_FLUX_

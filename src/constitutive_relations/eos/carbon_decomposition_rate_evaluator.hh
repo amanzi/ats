@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ahmad Jan (jana@ornl.gov)
+*/
 
 /*
   The carbon decompostion rate evaluator gets the subsurface temperature and pressure.
   Computes(integrates) CO2 decomposition rate.
   This is EvaluatorSecondaryMonotypeCV and depends on the subsurface temperature and pressure,
 
-  Authors: Ahmad Jan (jana@ornl.gov)
 */
 
 #ifndef AMANZI_FLOWRELATIONS_CARBONDECOM_EVALUATOR_

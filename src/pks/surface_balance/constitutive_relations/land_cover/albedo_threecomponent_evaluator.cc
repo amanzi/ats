@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates albedos and emissivities in a three-region subgrid model.
 
+//! Evaluates albedos and emissivities in a three-region subgrid model.
 #include "Key.hh"
 #include "albedo_threecomponent_evaluator.hh"
 #include "seb_physics_defs.hh"

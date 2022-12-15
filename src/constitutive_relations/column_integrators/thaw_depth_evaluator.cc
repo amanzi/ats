@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -7,7 +8,6 @@
 */
 
 //! An evaluator for calculating the water table height, relative to the surface.
-
 #include "thaw_depth_evaluator.hh"
 
 namespace Amanzi {

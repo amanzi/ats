@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 
+//! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 /*!
 The ground is assumed to consist of two potential area-fraction components --
 snow and no-snow.  In the case of snow on the ground, this solves for a snow

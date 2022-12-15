@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The surface ice energy model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Energy evaulator for ice+liquid surface water.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #include "Teuchos_ParameterList.hpp"

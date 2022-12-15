@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,6 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+//! SubgridAggregateEvaluator restricts a field to the subgrid version of the same field.
 #include "SubgridAggregateEvaluator.hh"
 
 namespace Amanzi {

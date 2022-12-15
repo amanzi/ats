@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Distributes and downregulates potential transpiration to the rooting zone.
 
+//! Distributes and downregulates potential transpiration to the rooting zone.
 #include "Function.hh"
 #include "FunctionFactory.hh"
 #include "transpiration_distribution_evaluator.hh"

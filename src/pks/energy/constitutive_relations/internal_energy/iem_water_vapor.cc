@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Internal energy model for air and water vapor.
 
+//! Internal energy model for air and water vapor.
 /*!
 
 Internal energy model for air and water vapor, relative to water @237.15K

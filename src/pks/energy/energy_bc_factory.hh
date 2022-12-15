@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -98,7 +99,7 @@ Example:
  </ParameterList>
 
 
- 
+
 */
 
 #ifndef AMANZI_ENERGY_BC_FACTORY_HH_

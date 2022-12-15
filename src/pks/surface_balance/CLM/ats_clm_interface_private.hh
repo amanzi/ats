@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #ifndef ATS_CLM_INTERFACE_PRIVATE_HH_
 #define ATS_CLM_INTERFACE_PRIVATE_HH_
 

@@ -1,10 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
 
 /*
   A high level test class for the MatrixMFD operator.
 
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
 #ifndef PK_TESTS_DIVGRAD_TEST_HH_

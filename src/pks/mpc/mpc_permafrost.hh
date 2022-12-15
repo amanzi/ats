@@ -1,13 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! A coupler which solves flow and energy both surface and subsurface.
-
-
 /*!
 
 This MPC handles the coupling of surface energy and flow to subsurface energy
@@ -20,9 +20,9 @@ and flow for integrated hydrology with freeze/thaw processes.
      coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
      surface_flow_pk, surface_energy_pk}.
 
-   * `"subsurface domain name`" ``[string]`` **domain** 
+   * `"subsurface domain name`" ``[string]`` **domain**
 
-   * `"surface domain name`" ``[string]`` **surface** 
+   * `"surface domain name`" ``[string]`` **surface**
 
    * `"mass exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_flux**
 
@@ -34,7 +34,7 @@ and flow for integrated hydrology with freeze/thaw processes.
    INCLUDES:
 
    - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
-    
+
  */
 
 #ifndef PKS_MPC_PERMAFROST_FOUR_HH_
