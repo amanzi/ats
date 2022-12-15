@@ -10,6 +10,10 @@
 #include "pk_helpers.hh"
 #include "surface_balance_ELMKernels.hh"
 
+#include "canopy_fluxes_kokkos.hh"
+
+#define NUM_LC_CLASSES 18
+
 namespace Amanzi {
 namespace SurfaceBalance {
 

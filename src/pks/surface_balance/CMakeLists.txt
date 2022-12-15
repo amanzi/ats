@@ -1,6 +1,13 @@
 # -*- mode: cmake -*-
 # ATS Surface balance PKs describe Evaporation, energy fluxes from
 #  long/showtwave radiation, precip, etc etc etc
+
+# temporary ELMKernels
+set(ELM_LIBRARIES $ENV{ELM_DIR}/install/lib/libelm_kokkos.dylib)
+set(ELM_INCLUDES_DIR $ENV{ELM_DIR}/install/include)
+include_directories(${ELM_INCLUDES_DIR})
+
+
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations/land_cover)
@@ -51,7 +58,8 @@ if (ENABLE_CLM)
     )
 endif()
 
-if (ENABLE_ELMKERNELS)
+set(ENABLE_ELM true)
+if (ENABLE_ELM)
   list(APPEND ats_surface_balance_src_files
     ELMKernels/surface_balance_ELMKernels.cc
     )
@@ -101,7 +109,7 @@ if (ENABLE_CLM)
     )
 endif()
 
-if (ENABLE_ELMKERNELS)
+if (ENABLE_ELM)
   list(APPEND ats_surface_balance_inc_files
     ELMKernels/surface_balance_ELMKernels.hh
     )
@@ -111,6 +119,7 @@ set(ats_surface_balance_link_libs
   ${Teuchos_LIBRARIES}
   ${Epetra_LIBRARIES}
   ${CLM_LIBRARIES}
+  ${ELM_LIBRARIES}
   error_handling
   atk
   mesh
@@ -157,7 +166,7 @@ if (ENABLE_CLM)
     )
 endif()
 
-if (ENABLE_ELMKERNELS)
+if (ENABLE_ELM)
   register_evaluator_with_factory(
     HEADERFILE ELMKernels/surface_balance_ELMKernels_reg.hh
     LISTNAME ATS_SURFACE_BALANCE_REG
