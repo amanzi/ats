@@ -23,6 +23,8 @@
 
 // registration files
 #include "ats_registration_files.hh"
+#include "pks_shallow_water_registration.hh"
+#include "numerical_flux_registration.hh"
 
 
 // include fenv if it exists
