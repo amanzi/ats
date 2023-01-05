@@ -15,10 +15,10 @@
 
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
-#include "elm_kokkos_interface.hh"
+#include "ats_elm_interface.hh"
 
 namespace Amanzi {
-namespace SurfaceBalance {
+namespace LandPhysics {
 
 class SurfaceBalanceELMKernels : public PK_Physical_Default {
 
@@ -97,14 +97,14 @@ public:
   Key color_index_key_;
   Key pft_index_key_;
 
-  std::unique_ptr<ELM::ELMKernels> elm_;
+  Teuchos::RCP<Amanzi::LandPhysics::Kernels> elm_interface{nullptr};
 
  private:
   // factory registration
   static RegisteredPKFactory<SurfaceBalanceELMKernels> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+}  // namespace LandPhysics
+}  // namespace ATS
 
 #endif

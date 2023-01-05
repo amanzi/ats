@@ -15,7 +15,7 @@
 #define NUM_LC_CLASSES 18
 
 namespace Amanzi {
-namespace SurfaceBalance {
+namespace LandPhysics {
 
 SurfaceBalanceELMKernels::SurfaceBalanceELMKernels(Teuchos::ParameterList& pk_tree,
                                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
@@ -101,8 +101,8 @@ SurfaceBalanceELMKernels::Setup()
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
 
-  // Set up the ELMKernels object
-  elm_ = std::make_unique<ELM::ELMKernels>(mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
+  // Set up the ELMKernels interface
+  elm_interface_ = Teuchos::rcp(new Amanzi::LandPhysics::Kernels(engine_name, engine_inputfile));
 }
 
 void
