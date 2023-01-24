@@ -43,7 +43,13 @@ PK_Physical_Default::Setup()
   mesh_ = S_->GetMesh(domain_);
 
   // set up the debugger
-  db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
+  Teuchos::RCP<Teuchos::ParameterList> vo_plist = plist_;
+  if (plist_->isSublist(name_ + " verbose object")) {
+    vo_plist = Teuchos::rcp(new Teuchos::ParameterList(*plist_));
+    vo_plist->set("verbose object", plist_->sublist(name_ + " verbose object"));
+  }
+
+  db_ = Teuchos::rcp(new Debugger(mesh_, name_, *vo_plist));
 
   // require primary variable evaluators
   requireAtNext(key_, tag_next_, *S_, name_);
