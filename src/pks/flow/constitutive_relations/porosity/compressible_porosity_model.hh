@@ -44,7 +44,6 @@ Example:
 
 */
 
-
 #ifndef AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_MODEL_HH_
 #define AMANZI_FLOWRELATIONS_COMPRESSIBLE_POROSITY_MODEL_HH_
 
@@ -71,14 +70,17 @@ class CompressiblePorosityModel {
       poro = base_poro + compressibility_ * (std::pow(p_over, 2.) / 2. / cutoff_);
     }
 
-    return poro > 1. ? 1. : poro;
+    if (max_is_one_)
+      return poro > 1. ? 1. : poro;
+    else
+      return poro;
   }
 
   double DPorosityDPressure(double base_poro, double pres, double patm)
   {
     double p_over = pres - patm;
     double poro = Porosity(base_poro, pres, patm);
-    if (poro == 1.) {
+    if (max_is_one_ && poro == 1.) {
       return 0.;
     } else if (p_over > cutoff_) {
       return compressibility_;
@@ -91,7 +93,10 @@ class CompressiblePorosityModel {
 
   double DPorosityDBasePorosity(double base_poro, double pres, double patm)
   {
-    return pres > patm ? (Porosity(base_poro, pres, patm) > 1.0 ? 0. : 1.) : 1.;
+    if (max_is_one_)
+      return pres > patm ? (Porosity(base_poro, pres, patm) > 1.0 ? 0. : 1.) : 1.;
+    else
+      return 1;
   }
 
  protected:
@@ -99,12 +104,14 @@ class CompressiblePorosityModel {
   {
     compressibility_ = plist_.get<double>("pore compressibility [Pa^-1]");
     cutoff_ = plist_.get<double>("pore compressibility inflection point [Pa]", 1000.);
+    max_is_one_ = plist_.get<bool>("cap porosity at 1", true);
   }
 
  protected:
   Teuchos::ParameterList plist_;
   double compressibility_;
   double cutoff_;
+  bool max_is_one_;
 };
 
 } // namespace Flow
