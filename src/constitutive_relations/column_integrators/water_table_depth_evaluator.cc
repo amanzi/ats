@@ -7,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! An evaluator for calculating the water table height, relative to the surface.
+//! Calculates the water table depth where the water table is defined as the top cell with 0 gas saturation.
 #include "water_table_depth_evaluator.hh"
 
 namespace Amanzi {
@@ -19,7 +19,7 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
   Tag tag = key_tag.second;
 
   Key domain_ss = Keys::readDomainHint(plist, domain, "surface", "subsurface");
-  Key sat_key = Keys::readKey(plist, domain_ss, "saturation of liquid", "saturation_liquid");
+  Key sat_key = Keys::readKey(plist, domain_ss, "saturation of gas", "saturation_gas");
   dependencies.insert(KeyTag{ sat_key, tag });
 
   Key cv_key = Keys::readKey(plist, domain_ss, "subsurface cell volume", "cell_volume");
@@ -45,7 +45,7 @@ IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
                                 AmanziMesh::Entity_ID c,
                                 AmanziGeometry::Point& p)
 {
-  if ((*sat_)[0][c] < 1.0) {
+  if ((*sat_)[0][c] > 0.0) {
     p[0] += (*cv_)[0][c];
     return false;
   }
