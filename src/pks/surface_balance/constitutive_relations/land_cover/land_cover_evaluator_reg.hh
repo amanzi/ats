@@ -23,6 +23,7 @@
 #include "snow_meltrate_evaluator.hh"
 #include "transpiration_distribution_evaluator.hh"
 #include "radiation_balance_evaluator.hh"
+#include "canopy_radiation_evaluator.hh"
 #include "seb_twocomponent_evaluator.hh"
 #include "seb_threecomponent_evaluator.hh"
 
@@ -77,6 +78,9 @@ Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator>
 
 Utils::RegisteredFactory<Evaluator, RadiationBalanceEvaluator>
   RadiationBalanceEvaluator::reg_("radiation balance, surface and canopy");
+
+Utils::RegisteredFactory<Evaluator, CanopyRadiationEvaluator>
+  CanopyRadiationEvaluator::reg_("canopy radiation balance from above");
 
 Utils::RegisteredFactory<Evaluator, SEBTwoComponentEvaluator>
   SEBTwoComponentEvaluator::reg_("surface energy balance, two components");

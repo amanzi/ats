@@ -10,21 +10,42 @@
 //! Evaluates a net radiation balance for ground and canopy.
 /*!
 
+
+
 Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
 a simple, single layer.
 
-Requires the use of LandCover types, for canopy albedo and emissivity.
+Requires the use of LandCover types, for albedo and emissivity of the canopy
+itself, along with Beer's law coefficients.
+
+Computes:
+
+1. "surface radiation balance" -- Net radiation seen by the bare soil/ponded
+   water, this includes radiation transmitted to the surface through the
+   canopy, longwave emitted by the canopy, and less the longwave emitted by the
+   surface itself.  [W m^-2] of actual area -- this does NOT include the
+   surface area fraction factor which would be required to compute a total
+   energy flux in W.
+   
+2. "snow radiation balance" -- Net radiation seen by the snow.  See surface
+   above -- all are the same except using snow properties. [W m^-2]
+   
+3. "canopy radiation balance" -- this is a compute computation of the net
+   radiation experienced by the canopy.  It includes the portion of shortwave
+   and longwave from the atmosphere that are absorbed via Beer's law, minus the
+   outgoing longwave emitted from the canopy, plus upward longwave radiation
+   emitted by the snow and surface.  It also does not include any secondary
+   bounces (e.g. reflected atmosphere->canopy->cloud->back to canopy, or
+   transmitted by the canopy, reflected by snow/surface.
+
+Requires the use of LandCover types, for canopy albedo and Beer's law
+coefficients.
+
+`"evaluator type`" = `"radiation balance, surface and canopy`"
 
 .. _radiation-balance-evaluator-spec:
 .. admonition:: radiation-balance-evaluator-spec
-
-   * `"albedo ice [-]`" ``[double]`` **0.44**
-   * `"albedo water [-]`" ``[double]`` **0.1168**
-
-   * `"emissivity ice [-]`" ``[double]`` **0.98**
-   * `"emissivity water [-]`" ``[double]`` **0.995**
-   * `"emissivity snow [-]`" ``[double]`` **0.98**
 
    KEYS:
    - `"surface albedos`" **SURFACE_DOMAIN-albedos**
@@ -37,6 +58,9 @@ Requires the use of LandCover types, for canopy albedo and emissivity.
    - `"leaf area index`" **CANOPY_DOMAIN-leaf_area_index**
    - `"area fractions`" **SURFACE_DOMAIN-area_fractions**
 
+Note that this is a superset of the physics in the "canopy radiation
+evaluator," and is therefore mutually exclusive with that model.
+     
 */
 
 #pragma once
