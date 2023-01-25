@@ -27,14 +27,14 @@ CanopyRadiationEvaluator::CanopyRadiationEvaluator(Teuchos::ParameterList& plist
   if (Keys::in("shortwave", akey)) {
     can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", akey);
   } else {
-    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", "downard_shortwave_radiation");
+    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", "downward_shortwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_sw_key_, tag });
 
   if (Keys::in("longwave", akey)) {
     can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", akey);
   } else {
-    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", "downard_longwave_radiation");
+    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", "downward_longwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_lw_key_, tag });
 
@@ -47,10 +47,10 @@ CanopyRadiationEvaluator::CanopyRadiationEvaluator(Teuchos::ParameterList& plist
 
   // process dependencies
   sw_in_key_ = Keys::readKey(
-    plist_, domain_surf_, "incoming shortwave radiation", "incoming_shortwave_radiation");
+    plist_, domain_canopy_, "incoming shortwave radiation", "incoming_shortwave_radiation");
   dependencies_.insert(KeyTag{ sw_in_key_, tag });
   lw_in_key_ = Keys::readKey(
-    plist_, domain_surf_, "incoming longwave radiation", "incoming_longwave_radiation");
+    plist_, domain_canopy_, "incoming longwave radiation", "incoming_longwave_radiation");
   dependencies_.insert(KeyTag{ lw_in_key_, tag });
 
   temp_canopy_key_ = Keys::readKey(plist_, domain_canopy_, "canopy temperature", "temperature");
@@ -71,7 +71,7 @@ CanopyRadiationEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     for (const auto& dep : dependencies_) {
       S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second)
-        .SetMesh(S.GetMesh(domain_surf_))
+        .SetMesh(S.GetMesh(domain_canopy_))
         ->SetGhosted(false)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
