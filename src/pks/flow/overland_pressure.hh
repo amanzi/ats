@@ -232,6 +232,11 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
 
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
+  // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override;
+
+  
  protected:
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 

@@ -1673,5 +1673,18 @@ Richards::ModifyCorrection(double h,
   return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
 }
 
+
+/* ******************************************************************
+* Return a pointer to a local operator
+****************************************************************** */
+Teuchos::RCP<Operators::Operator>
+Richards::my_operator(const Operators::OperatorType& type)
+{
+  if (type == Operators::OPERATOR_PRECONDITIONER_RAW)
+    return preconditioner_;
+  return Teuchos::null;
+}
+
+
 } // namespace Flow
 } // namespace Amanzi

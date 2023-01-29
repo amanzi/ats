@@ -1360,5 +1360,19 @@ OverlandPressureFlow::ModifyCorrection(double h,
   return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
 }
 
+/* ******************************************************************
+* Return a pointer to a local operator
+****************************************************************** */
+Teuchos::RCP<Operators::Operator>
+OverlandPressureFlow::my_operator(const Operators::OperatorType& type)
+{
+  if (type == Operators::OPERATOR_PRECONDITIONER_RAW)
+    return matrix_;
+  else if (type == Operators::OPERATOR_MATRIX)
+    return matrix_;
+  return Teuchos::null;
+}
+
+
 } // namespace Flow
 } // namespace Amanzi

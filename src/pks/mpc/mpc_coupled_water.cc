@@ -190,6 +190,7 @@ MPCCoupledWater::FunctionalResidual(double t_old,
 int
 MPCCoupledWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu)
 {
+  //return 0;
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon application:" << std::endl;
 
@@ -377,6 +378,18 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
     }
   }
   return StrongMPC<PK_PhysicalBDF_Default>::ErrorNorm(u, res2);
+}
+
+
+/* ******************************************************************
+* Return a pointer to a local operator
+****************************************************************** */
+Teuchos::RCP<Operators::Operator>
+MPCCoupledWater::my_operator(const Operators::OperatorType& type)
+{
+  if (type == Operators::OPERATOR_PRECONDITIONER_RAW)
+    return precon_;
+  return Teuchos::null;
 }
 
 

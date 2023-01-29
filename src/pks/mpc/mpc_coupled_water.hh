@@ -85,6 +85,11 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
 
   Teuchos::RCP<Operators::Operator> preconditioner() { return precon_; }
 
+    // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override;
+
+
  protected:
   // void
   // UpdateConsistentFaceCorrectionWater_(const Teuchos::RCP<const TreeVector>& u,

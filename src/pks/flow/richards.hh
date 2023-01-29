@@ -348,6 +348,11 @@ class Richards : public PK_PhysicalBDF_Default {
                    Teuchos::RCP<const TreeVector> u,
                    Teuchos::RCP<TreeVector> du) override;
 
+  // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override;
+
+
  protected:
   // control switches
   Operators::UpwindMethod Krel_method_;
@@ -451,12 +456,6 @@ class Richards : public PK_PhysicalBDF_Default {
   // debugging control
   bool fixed_kr_;
 
-  // -- access methods
-  virtual Teuchos::RCP<Operators::Operator>
-  my_operator(const Operators::OperatorType& type) override
-  {
-    return matrix_;
-  }
 
  private:
   // factory registration
