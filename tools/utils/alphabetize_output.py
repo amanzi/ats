@@ -11,11 +11,11 @@ def alphabetize(datin, datout):
         grp = datout.create_group(var)
         keys = list(datin[var].keys())
         sorted_keys = sorted(keys, key=lambda a : int(a))
-        nints = len(keys[-1])
+        nints = len(sorted_keys[-1])
 
         fmt = "%0"+str(nints)+"d"
 
-        for k in keys:
+        for k in sorted_keys:
             knew = fmt%int(k)
             grp.create_dataset(knew, data=datin[var][k][:])
 
