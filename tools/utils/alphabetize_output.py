@@ -9,8 +9,8 @@ import h5py
 def alphabetize(datin, datout):
     for var in datin.keys():
         grp = datout.create_group(var)
-        keys = datin[var].keys()
-        keys.sort(lambda a,b: int.__cmp__(int(a), int(b)))
+        keys = list(datin[var].keys())
+        sorted_keys = sorted(keys, key=lambda a : int(a))
         nints = len(keys[-1])
 
         fmt = "%0"+str(nints)+"d"
