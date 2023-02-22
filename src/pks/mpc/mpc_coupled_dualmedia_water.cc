@@ -39,7 +39,6 @@ MPCCoupledDualMediaWater::Setup()
   
   pks_list_->sublist(subnames[0]).set("coupled to surface via flux", true);
   pks_list_->sublist(subnames[1]).set("coupled to subsurface via flux", true);
-  //pks_list_->sublist(subnames[1]).set("coupled to macropore via head", true);
   pks_list_->sublist(names[1]).set("coupled to surface via head", true);
   pks_list_->sublist(names[1]).set("surface domain name", domain_surf_);
   
@@ -69,8 +68,8 @@ MPCCoupledDualMediaWater::Setup()
   integrated_flow_pk_ = Teuchos::rcp_dynamic_cast<MPCCoupledWater>(sub_pks_[0]);
   AMANZI_ASSERT(integrated_flow_pk_ != Teuchos::null);
 
-  matrix_flow_pk_ = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[1]);
-  macro_flow_pk_ = Teuchos::rcp_dynamic_cast<Flow::Richards>(integrated_flow_pk_->get_subpk(0));
+  single_flow_pk_ = Teuchos::rcp_dynamic_cast<Flow::Richards>(sub_pks_[1]);
+  embedded_flow_pk_ = Teuchos::rcp_dynamic_cast<Flow::Richards>(integrated_flow_pk_->get_subpk(0));
   surf_flow_pk_ = Teuchos::rcp_dynamic_cast<Flow::OverlandPressureFlow>(integrated_flow_pk_->get_subpk(1));
 
 
@@ -108,11 +107,11 @@ MPCCoupledDualMediaWater::Initialize()
   // auto tvs1 = Teuchos::rcp(new TreeVectorSpace(->get_domain_map()));
   // tvs->PushBack(tvs1);
   
-  op2 = matrix_flow_pk_->my_operator(Operators::OPERATOR_PRECONDITIONER_RAW)->Clone();
+  op2 = single_flow_pk_->my_operator(Operators::OPERATOR_PRECONDITIONER_RAW)->Clone();
   auto tvs2 = Teuchos::rcp(new TreeVectorSpace(op2->get_domain_map()));
   tvs_->PushBack(tvs2);
 
-  op_coupling02 = matrix_flow_pk_->my_operator(Operators::OPERATOR_PRECONDITIONER_RAW)->Clone();
+  op_coupling02 = single_flow_pk_->my_operator(Operators::OPERATOR_PRECONDITIONER_RAW)->Clone();
 
   GenerateOffDiagonalBlocks();
   
@@ -240,31 +239,34 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   // propagate updated info into state
   Solution_to_State(*u_new, tag_next_);
 
-  u_old->get_map()->Print(std::cout);
-
   const Epetra_MultiVector& matrix_ss_flux = *S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_)->ViewComponent("cell",false);
+  //const Epetra_MultiVector& macro_ss_flux = *S_->GetPtr<CompositeVector>(ss_macro_flux_key_, tag_next_)->ViewComponent("cell",false);
 
   Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_)->ViewComponent("cell",false);
+  //Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_)->ViewComponent("cell",false);
 
   //std::cout<<"Solution\n";
   //std::cout<<"macro cell\n"<<*u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  Epetra_MultiVector& tmp = *u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false);
-  std::cout<<"Solution macro face "<<tmp[0][250]<<"\n";
+  //Epetra_MultiVector& tmp = *u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false);
+  //std::cout<<"Solution macro face "<<tmp[0][250]<<"\n";
   //std::cout<<"subsurface cell\n"<<*u_new->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"Solution subsurface face "<<(*u_new->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
-  std::cout<<"Solution surface "<<(*u_new->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
-  std::cout<<"\n";
+  //std::cout<<"Solution subsurface face "<<(*u_new->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
+  //std::cout<<"Solution surface "<<(*u_new->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
+  //std::cout<<"\n";
   
-  matrix_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
+  single_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
                             u_new->SubVector(1), g->SubVector(1));
 
-  std::cout<<"subsurfcace cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"subsurface face\n" <<*g->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"single pk cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"single pk face\n" <<*g->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
 
   //std::cout<<"Matrix\n"<<*S_->GetPtr<CompositeVector>(matrix_flux_key_, tag_next_)->ViewComponent("face",false)<<"\n";
+
+  //CopySubsurfaceToSurface(S_->Get<CompositeVector>(macro_flux_key_, tag_next_),
+  //			  S_->GetW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_));
   
   CopySubsurfaceToSurface(S_->Get<CompositeVector>(matrix_flux_key_, tag_next_),
-			  S_->GetW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_));
+         		  S_->GetW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_));
   
   //std::cout<<"Matrix\n"<<matrix_ss_flux<<"\n";
   //std::cout<<"Surface\n"<<source<<"\n";
@@ -281,10 +283,13 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   //std::cout<<"Surface\n"<<source<<"\n";
 
   source.Update(-1, matrix_ss_flux, 1);
+  //source.Update(-1, macro_ss_flux, 1);
+  
   changedEvaluatorPrimary(ss_macro_flux_key_, tag_next_, *S_);
+  //changedEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
   
   // Evaluate the macropore residual, which uses this flux as a Neumann BC.
-  macro_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0)->SubVector(0),
+  embedded_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0)->SubVector(0),
           u_new->SubVector(0)->SubVector(0), g->SubVector(0)->SubVector(0));
   
 
@@ -299,6 +304,78 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
   std::cout<<"\n";
 
+
+
+  //   // propagate updated info into state
+  // Solution_to_State(*u_new, tag_next_);
+
+  // u_old->get_map()->Print(std::cout);
+
+  // // const Epetra_MultiVector& matrix_ss_flux = *S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_)->ViewComponent("cell",false);
+  // const Epetra_MultiVector& macro_ss_flux = *S_->GetPtr<CompositeVector>(ss_macro_flux_key_, tag_next_)->ViewComponent("cell",false);
+
+  // // Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_)->ViewComponent("cell",false);
+  // Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_)->ViewComponent("cell",false);
+
+  // //std::cout<<"Solution\n";
+  // //std::cout<<"macro cell\n"<<*u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  // //Epetra_MultiVector& tmp = *u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false);
+  // //std::cout<<"Solution macro face "<<tmp[0][250]<<"\n";
+  // //std::cout<<"subsurface cell\n"<<*u_new->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // //std::cout<<"Solution subsurface face "<<(*u_new->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
+  // //std::cout<<"Solution surface "<<(*u_new->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
+  // //std::cout<<"\n";
+  
+  // single_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
+  //                           u_new->SubVector(1), g->SubVector(1));
+
+  // std::cout<<"single pk cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"single pk face\n" <<*g->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+
+  // //std::cout<<"Matrix\n"<<*S_->GetPtr<CompositeVector>(matrix_flux_key_, tag_next_)->ViewComponent("face",false)<<"\n";
+
+  // CopySubsurfaceToSurface(S_->Get<CompositeVector>(macro_flux_key_, tag_next_),
+  // 			  S_->GetW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_));
+  
+  // // CopySubsurfaceToSurface(S_->Get<CompositeVector>(matrix_flux_key_, tag_next_),
+  // //       		  S_->GetW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_));
+  
+  // //std::cout<<"Matrix\n"<<matrix_ss_flux<<"\n";
+  // //std::cout<<"Surface\n"<<source<<"\n";
+  
+  //   // Evaluate the surface flow residual
+  // surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0)->SubVector(1),
+  //                      u_new->SubVector(0)->SubVector(1), g->SubVector(0)->SubVector(1));
+
+  // // The residual of the surface flow equation provides the water flux from
+  // // subsurface to surface.
+  
+  // source = *g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false);
+  
+  // //std::cout<<"Surface\n"<<source<<"\n";
+
+  // // source.Update(-1, matrix_ss_flux, 1);
+  // source.Update(-1, macro_ss_flux, 1);
+  
+  // //changedEvaluatorPrimary(ss_macro_flux_key_, tag_next_, *S_);
+  // changedEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
+  
+  // // Evaluate the macropore residual, which uses this flux as a Neumann BC.
+  // embedded_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0)->SubVector(0),
+  //         u_new->SubVector(0)->SubVector(0), g->SubVector(0)->SubVector(0));
+  
+
+  // // All surface to macropore fluxes have been taken by the macropore
+  // g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)->PutScalar(0.);
+
+  // //std::cout<<"Residual\n";
+  // //std::cout<<"macro cell\n"<<*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"Residual macro face "<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))[0][250]<<"\n";
+  // //std::cout<<"subsurfcace cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"Residual subsurface face " <<(*g->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
+  // std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
+  // std::cout<<"\n";
+
 }
 
 // -- Apply preconditioner to u and returns the result in Pu.
@@ -309,11 +386,11 @@ MPCCoupledDualMediaWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   int ierr;
 
   std::cout<<"Vector u\n";
-  std::cout<<"macro cell\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"macro face\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"embeded cell\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"emdbbed face\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
   std::cout<<"surface\n"   <<*u->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"subsurfcace cell\n"<<*u->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"subsurface face\n" <<*u->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"single cell\n"<<*u->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"singleface face\n" <<*u->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
   std::cout<<"\n";
 
   Comm_ptr_type comm = solution_->Comm();

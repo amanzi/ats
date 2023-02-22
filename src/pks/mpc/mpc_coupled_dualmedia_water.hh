@@ -74,9 +74,9 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
   
   // sub PKs
   Teuchos::RCP<PK_BDF_Default> surf_flow_pk_;
-  Teuchos::RCP<PK_BDF_Default> macro_flow_pk_;
+  Teuchos::RCP<PK_BDF_Default> embedded_flow_pk_;
   Teuchos::RCP<StrongMPC<PK_PhysicalBDF_Default>> integrated_flow_pk_;
-  Teuchos::RCP<PK_BDF_Default> matrix_flow_pk_;
+  Teuchos::RCP<PK_BDF_Default> single_flow_pk_;
 
   Key ss_flux_key_,  ss_macro_flux_key_, matrix_flux_key_, macro_flux_key_;
   Key domain_ss_, domain_surf_, domain_macro_;
