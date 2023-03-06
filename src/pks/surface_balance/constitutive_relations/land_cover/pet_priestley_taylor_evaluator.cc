@@ -44,7 +44,7 @@ psychrometricConstant(double lh_vap, double elev)
 double
 vaporPressureSlope(double temp_air)
 {
-  return 4098 * Relations::SaturatedVaporPressure(temp_air) / std::pow(temp_air - 35.85, 2);
+  return 4.098 * Relations::SaturatedVaporPressure(temp_air) / std::pow(temp_air - 35.85, 2); //kPa
 }
 
 double
