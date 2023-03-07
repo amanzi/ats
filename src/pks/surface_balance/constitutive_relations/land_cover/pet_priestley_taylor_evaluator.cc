@@ -17,40 +17,48 @@ namespace Relations {
 
 namespace PriestleyTaylor {
 
+// Convert all units to SI
+// input temperature [K], output latent heat [J/kg] 
 double
 latentHeatVaporization_water(double temp_air)
 {
-  // convert temperature to Fahrenheit
-  double temp_f = 1.8 * (temp_air - 273.15) + 32;
-  return 597.3 - (0.5653 * temp_f);
+  double temp_f = 1.8 * (temp_air - 273.15) + 32; // F
+  double lh_vap_calg = 597.3 - (0.5653 * temp_f); // cal/g
+  return lh_vap_calg * 4.184 * 1000;              // J/kg
 }
 
 double
 latentHeatVaporization_snow(double temp_air)
 {
-  return latentHeatVaporization_water(temp_air);
+  return latentHeatVaporization_water(temp_air); // J/kg
 }
 
-
+// input latent heat [J/kg], elevation [m], output psychrometric const [Pa/C]
 double
 psychrometricConstant(double lh_vap, double elev)
 {
-  // convert elevation [m] to elevation [ft]
-  double elev_ft = elev * 3.281;
-  return 1.6286 * (101.3 - (0.003215 * elev_ft)) / lh_vap;
+  double elev_ft = elev * 3.281;               // ft
+  double lh_vap_calg = lh_vap / 1000 / 4.184;  // cal/g
+  double psy_kpaC = 1.6286 * (101.3 - (0.003215 * elev_ft)) / lh_vap_calg;
+                                               // Kpa/C
+  return psy_kpaC * 1000;                      // Pa/C
 }
 
+// input temperature [K], output slope [Pa/C]
 double
 vaporPressureSlope(double temp_air)
 {
-  return 4098 * Relations::SaturatedVaporPressure(temp_air) / std::pow(temp_air - 35.85, 2);
+  double tempC = temp_air - 273.15;                            // C
+  double vp_sat = Relations::SaturatedVaporPressure(temp_air); // Pa 
+  return 4098 * vp_sat / std::pow(tempC + 237.3, 2);           // Pa/C
 }
 
+// input temperature [K], output heat flux [W/m^2] 
 double
 groundHeatFlux(double temp_ground, double temp_air)
 {
-  double G = -4.2 * (temp_ground - temp_air);
-  return G * 1e6 / 86400; // convert MJ/m^2/d --> W/m^2
+  double G = -4.2 * (temp_ground - temp_air); // MJ/m^2/d
+  return G * 1e6 / 86400;                     // W/m^2
 }
 
 } // namespace PriestleyTaylor
@@ -144,17 +152,14 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
         lh_vap = PriestleyTaylor::latentHeatVaporization_water(air_temp[0][c]);
 
       double ps_const = PriestleyTaylor::psychrometricConstant(lh_vap, elev[0][c]);
-      double lh_vap_si = lh_vap * 4.184 * 1000.; // converts cal/gm to J/kg
-
       double vp_slope = PriestleyTaylor::vaporPressureSlope(air_temp[0][c]);
       double hf_ground = PriestleyTaylor::groundHeatFlux(surf_temp[0][c], air_temp[0][c]);
 
       double s1 = vp_slope / (vp_slope + ps_const);
       double s2 = rad[0][c] - hf_ground; // net radiation balance in W/m^2
 
-      res[0][c] = alpha / lh_vap_si * s1 * s2 / 1000.; // 1000, density of
-                                                       // water converts from
-                                                       // kg/m^2/s --> m/s
+      res[0][c] = alpha / lh_vap * s1 * s2 / 1000.; // 1000, density of water
+                                                    // kg/m^2/s --> m/s
       // do not allow condensation in P-T
       res[0][c] = std::max(res[0][c], 0.0);
     }
