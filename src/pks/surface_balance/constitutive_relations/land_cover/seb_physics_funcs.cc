@@ -37,7 +37,7 @@ CalcAlbedoSnow(double density_snow)
   } else {
     AlSnow = 0.6 - density_snow / 4600;
   }
-  return AlSnow;
+  return AlSnow + 0.07;
 }
 
 double

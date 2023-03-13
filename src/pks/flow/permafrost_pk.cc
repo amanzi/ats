@@ -1,11 +1,11 @@
-/*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
-  The terms of use and "as is" disclaimer for this license are
-  provided in the top-level COPYRIGHT file.
+/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
-*/
+/* -------------------------------------------------------------------------
+This is the flow component of the Amanzi code. 
+License: BSD
+Authors: Ethan Coon (ecoon@lanl.gov)
+------------------------------------------------------------------------- */
+
 
 #include "flow_bc_factory.hh"
 
@@ -17,11 +17,11 @@
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
 
-#include "EvaluatorPrimary.hh"
+#include "primary_variable_field_evaluator.hh"
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
 #include "rel_perm_sutraice_evaluator.hh"
-#include "pk_helpers.hh"
+#include "rel_perm_frzcampbell_evaluator.hh"
 
 #include "permafrost.hh"
 
@@ -32,92 +32,85 @@ namespace Flow {
 // Create the physical evaluators for water content, water
 // retention, rel perm, etc, that are specific to Richards.
 // -------------------------------------------------------------
-void
-Permafrost::SetupPhysicalEvaluators_()
-{
+void Permafrost::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
   // -- Absolute permeability.
   //       For now, we assume scalar permeability.  This will change.
-  requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
-
-  // -- water content, and evaluator, and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
+  S->RequireField(perm_key_)->SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireFieldEvaluator(perm_key_);
+  
+  S->RequireField(conserved_key_)->SetMesh(mesh_)->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    conserved_key_, tag_next_, key_, tag_next_);
+  S->RequireFieldEvaluator(conserved_key_);
 
-  //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  // -- Water retention evaluators, for saturation and rel perm.
+  std::vector<AmanziMesh::Entity_kind> locations2(2);
+  std::vector<std::string> names2(2);
+  std::vector<int> num_dofs2(2,1);
+  locations2[0] = AmanziMesh::CELL;
+  locations2[1] = AmanziMesh::BOUNDARY_FACE;
+  names2[0] = "cell";
+  names2[1] = "boundary_face";
 
-  // -- Water retention evaluators
-  // This deals with deprecated location for the WRM list (in the PK).  Move it
-  // to state.
+  // -- rel perm on cells + boundary faces
+
+  S->RequireField(coef_key_)->SetMesh(mesh_)->SetGhosted()
+      ->AddComponents(names2,locations2,num_dofs2);
+   
   // -- This setup is a little funky -- we use four evaluators to capture the physics.
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "permafrost WRM");
-  }
-  if (!S_->HasEvaluator(coef_key_, tag_next_) &&
-      (S_->GetEvaluatorList(coef_key_).numParams() == 0)) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
+  Teuchos::ParameterList wrm_plist = plist_->sublist("water retention evaluator");
+  wrm_plist.set("evaluator name", sat_key_);
+  Teuchos::RCP<Flow::WRMPermafrostEvaluator> wrm =
+      Teuchos::rcp(new Flow::WRMPermafrostEvaluator(wrm_plist));
+  
 
-  // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  requireAtNext(sat_ice_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
-  auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
-
-  //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_, true);
-  // S_->RequireEvaluator(sat_key_, tag_current_);
-  requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_, true);
-  // S_->RequireEvaluator(sat_ice_key_, tag_current_);
+  if (!S->HasFieldEvaluator(sat_key_)) {
+    S->SetFieldEvaluator(sat_key_, wrm);
+    S->SetFieldEvaluator(sat_gas_key_, wrm);
+    S->SetFieldEvaluator(sat_ice_key_, wrm);
+  }
 
   // -- the rel perm evaluator, also with the same underlying WRM.
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
-  requireAtNext(coef_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+  wrm_plist.set("permeability rescaling", perm_scale_);
+  wrm_plist.setName(coef_key_);
+  wrm_plist.set("evaluator name", coef_key_);
 
-  // -- get the WRM models
-  auto wrm_eval = dynamic_cast<Flow::WRMPermafrostEvaluator*>(&wrm);
-  AMANZI_ASSERT(wrm_eval != nullptr);
-  wrms_ = wrm_eval->get_WRMs();
 
-  // -- molar density used to infer liquid Darcy velocity from flux
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  std::string sutra_kr_ = plist_->get<std::string>("rel perm option");
+  if (sutra_kr_ == std::string("sutra-ice")) {
+    Teuchos::RCP<Flow::RelPermSutraIceEvaluator> rel_perm_evaluator =
+      Teuchos::rcp(new Flow::RelPermSutraIceEvaluator(wrm_plist, wrm->get_WRMs()));
+    S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  } else if (sutra_kr_ == std::string("frzcampbell")) {
+    Teuchos::RCP<Flow::RelPermFrzCampbellEvaluator> rel_perm_evaluator =
+      Teuchos::rcp(new Flow::RelPermFrzCampbellEvaluator(wrm_plist, wrm->get_WRMs()));
+    S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  } else {
+    Teuchos::RCP<Flow::RelPermEvaluator> rel_perm_evaluator =
+      Teuchos::rcp(new Flow::RelPermEvaluator(wrm_plist, wrm->get_WRMs()));
+    S->SetFieldEvaluator(coef_key_, rel_perm_evaluator);
+  }
+  wrms_ = wrm->get_WRMs();
+  
 
+
+  
+  // -- Liquid density and viscosity for the transmissivity.
+
+  S->RequireField(molar_dens_key_)->SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireFieldEvaluator(molar_dens_key_);
+
+  /* S->RequireField("viscosity_liquid")->SetMesh(S->GetMesh())->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireFieldEvaluator("viscosity_liquid");
+  */
   // -- liquid mass density for the gravity fluxes
-  requireAtNext(mass_dens_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireField(mass_dens_key_)->SetMesh(mesh_)->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireFieldEvaluator(mass_dens_key_); // simply picks up the molar density one.
+
 }
 
-} // namespace Flow
-} // namespace Amanzi
+} // namespace
+} // namespace
