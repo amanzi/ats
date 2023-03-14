@@ -544,8 +544,7 @@ Coordinator::advance()
 }
 
 
-void
-Coordinator::visualize(bool force)
+bool Coordinator::visualize(bool force)
 {
   // write visualization if requested
   bool dump = force;
@@ -561,15 +560,18 @@ Coordinator::visualize(bool force)
   for (const auto& vis : visualization_) {
     if (force || vis->DumpRequested(cycle, time)) { WriteVis(*vis, *S_); }
   }
+  return dump;
 }
 
 
-void
-Coordinator::checkpoint(bool force)
+bool Coordinator::checkpoint(bool force)
 {
   int cycle = S_->get_cycle();
   double time = S_->get_time();
-  if (force || checkpoint_->DumpRequested(cycle, time)) { checkpoint_->Write(*S_); }
+  bool dump = force;
+  dump |= checkpoint_->DumpRequested(cycle, time);
+  if (dump) checkpoint_->Write(*S_);
+  return dump;
 }
 
 } // namespace ATS
