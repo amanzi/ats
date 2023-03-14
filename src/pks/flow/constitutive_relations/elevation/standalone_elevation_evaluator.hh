@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   An elevation evaluator getting values from the volumetric mesh.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_FLOWRELATIONS_STANDALONE_ELEVATION_EVALUATOR_
@@ -17,15 +23,14 @@ namespace Amanzi {
 namespace Flow {
 
 class StandaloneElevationEvaluator : public ElevationEvaluator {
-
  public:
   StandaloneElevationEvaluator(Teuchos::ParameterList& elev_plist);
   StandaloneElevationEvaluator(const StandaloneElevationEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void EvaluateElevationAndSlope_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void
+  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
 
  protected:
   Teuchos::RCP<Functions::CompositeVectorFunction> elevation_function_;
@@ -33,10 +38,10 @@ class StandaloneElevationEvaluator : public ElevationEvaluator {
   Teuchos::RCP<Functions::CompositeVectorFunction> aspect_function_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,StandaloneElevationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, StandaloneElevationEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

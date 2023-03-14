@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Ugly hackjob to enable direct evaluation of the full model, on a single
   WRM/region.  This is bypassing much of the "niceness" of the framework, but
   seems necessary for solving a cell-wise correction equation.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_PERMAFROST_MODEL_
@@ -20,31 +26,51 @@
 
 namespace Amanzi {
 
-namespace Flow { namespace Flow { class WRM; } }
-namespace Energy { namespace Energy { class IEM; class IEMWaterVapor;} }
-namespace Relations { class EOS; class VaporPressureRelation; }
+namespace Flow {
+namespace Flow {
+class WRM;
+}
+}
+namespace Energy {
+namespace Energy {
+class IEM;
+class IEMWaterVapor;
+}
+}
+namespace Relations {
+class EOS;
+class VaporPressureRelation;
+}
 
 
 class ThermalRichardsModel : public EWCModel {
-
  public:
   ThermalRichardsModel() {}
   virtual void InitializeModel(const Teuchos::Ptr<State>& S);
   virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c);
-  virtual int Evaluate(double T, double p, double base_poro, double& energy, double& wc, bool verbose=false);
+  virtual int
+  Evaluate(double T, double p, double base_poro, double& energy, double& wc, bool verbose = false);
   virtual int InverseEvaluate(double energy, double wc, double base_poro, double& T, double& p);
 
  protected:
   bool IsSetUp_();
 
-  int EvaluateEnergyAndWaterContent_(double T, double p, double base_poro,
-          AmanziGeometry::Point& result);
+  int EvaluateEnergyAndWaterContent_(double T,
+                                     double p,
+                                     double base_poro,
+                                     AmanziGeometry::Point& result);
 
-  int EvaluateEnergyAndWaterContentAndJacobian_(double T, double p, double base_poro,
-          AmanziGeometry::Point& result, WhetStone::Tensor& jac);
+  int EvaluateEnergyAndWaterContentAndJacobian_(double T,
+                                                double p,
+                                                double base_poro,
+                                                AmanziGeometry::Point& result,
+                                                WhetStone::Tensor& jac);
 
-  int EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double p, double base_poro,
-          AmanziGeometry::Point& result, WhetStone::Tensor& jac);
+  int EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
+                                                   double p,
+                                                   double base_poro,
+                                                   AmanziGeometry::Point& result,
+                                                   WhetStone::Tensor& jac);
 
  protected:
   Teuchos::RCP<Flow::WRM> wrm_;
@@ -58,11 +84,7 @@ class ThermalRichardsModel : public EWCModel {
   double rho_rock_;
   double p_atm_;
   double poro_;
-
 };
-
-
-
 
 
 #endif

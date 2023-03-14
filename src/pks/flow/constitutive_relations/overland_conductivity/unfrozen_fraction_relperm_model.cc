@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluates the Kr associated with the unfrozen fraction of water.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "boost/math/constants/constants.hpp"
@@ -16,10 +22,9 @@
 namespace Amanzi {
 namespace Flow {
 
-UnfrozenFractionRelPermModel::UnfrozenFractionRelPermModel(Teuchos::ParameterList& plist) :
-    plist_(plist),
-    pi_(boost::math::constants::pi<double>()) {
-
+UnfrozenFractionRelPermModel::UnfrozenFractionRelPermModel(Teuchos::ParameterList& plist)
+  : plist_(plist), pi_(boost::math::constants::pi<double>())
+{
   alpha_ = plist_.get<int>("unfrozen rel perm alpha", 4);
   if (alpha_ % 2 != 0) {
     Errors::Message message("Unfrozen Fraction Rel Perm: alpha must be an even integer");
@@ -28,10 +33,11 @@ UnfrozenFractionRelPermModel::UnfrozenFractionRelPermModel(Teuchos::ParameterLis
 }
 
 double
-UnfrozenFractionRelPermModel::SurfaceRelPerm(double uf, double h) {
+UnfrozenFractionRelPermModel::SurfaceRelPerm(double uf, double h)
+{
   return std::pow(std::sin(pi_ * uf / 2.), alpha_);
 }
 
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

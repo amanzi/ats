@@ -1,5 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -8,7 +8,6 @@
 */
 
 //! An operator-split permafrost coupler, splitting overland flow from subsurface.
-
 /*!
 solve:
 
@@ -69,12 +68,11 @@ Note that this can be used with either a 3D subsurface solve, by setting the
 namespace Amanzi {
 
 class MPCPermafrostSplitFlux : public MPCSubcycled {
-
  public:
   MPCPermafrostSplitFlux(Teuchos::ParameterList& FElist,
-          const Teuchos::RCP<Teuchos::ParameterList>& plist,
-          const Teuchos::RCP<State>& S,
-          const Teuchos::RCP<TreeVector>& solution);
+                         const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                         const Teuchos::RCP<State>& S,
+                         const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
   // -- initialize in reverse order
@@ -86,7 +84,6 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-
   void CopyPrimaryToStar_();
   void CopyStarToPrimary_();
 
@@ -100,22 +97,24 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   void CopyStarToPrimary_Standard_Flux_();
   void CopyStarToPrimary_Standard_Hybrid_();
 
-  Tag get_ds_tag_next_(const std::string& subdomain) {
+  Tag get_ds_tag_next_(const std::string& subdomain)
+  {
     if (subcycling_[1]) {
       AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
-      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
-              std::string::npos), tags_[1].second.get()));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(), std::string::npos),
+                              tags_[1].second.get()));
     } else {
-      return Tag{tags_[1].second};
+      return Tag{ tags_[1].second };
     }
   }
-  Tag get_ds_tag_current_(const std::string& subdomain) {
+  Tag get_ds_tag_current_(const std::string& subdomain)
+  {
     if (subcycling_[1]) {
       AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
-      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(),
-              std::string::npos), tags_[1].first.get()));
+      return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(), std::string::npos),
+                              tags_[1].first.get()));
     } else {
-      return Tag{tags_[1].first};
+      return Tag{ tags_[1].first };
     }
   }
 
@@ -160,6 +159,4 @@ class MPCPermafrostSplitFlux : public MPCSubcycled {
   static RegisteredPKFactory<MPCPermafrostSplitFlux> reg_;
 };
 
-} // close namespace Amanzi
-
-
+} // namespace Amanzi

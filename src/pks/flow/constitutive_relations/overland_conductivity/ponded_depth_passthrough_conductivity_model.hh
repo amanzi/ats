@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
 
 /*
   Evaluates the conductivity of surface flow as a function of ponded
@@ -16,20 +23,19 @@ namespace Amanzi {
 namespace Flow {
 
 class PondedDepthPassthroughConductivityModel : public OverlandConductivityModel {
-public:
-  explicit
-  PondedDepthPassthroughConductivityModel(Teuchos::ParameterList& plist);
+ public:
+  explicit PondedDepthPassthroughConductivityModel(Teuchos::ParameterList& plist);
 
   virtual double Conductivity(double depth, double slope, double coef);
 
   virtual double DConductivityDDepth(double depth, double slope, double coef);
 
-protected:
+ protected:
   Teuchos::ParameterList plist_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 
 #endif

@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Linear interpolant of thermal conductivity.
 ------------------------------------------------------------------------- */
@@ -16,22 +20,29 @@ namespace Amanzi {
 namespace Energy {
 
 ThermalConductivityThreePhasePetersLidard::ThermalConductivityThreePhasePetersLidard(
-      Teuchos::ParameterList& plist) : plist_(plist) {
+  Teuchos::ParameterList& plist)
+  : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
-double ThermalConductivityThreePhasePetersLidard::ThermalConductivity(double poro,
-        double sat_liq, double sat_ice, double temp) {
-  double k_dry = (d_*(1-poro)*k_soil_ + k_gas_*poro)/(d_*(1-poro) + poro);
-  double k_sat_u = pow(k_soil_,(1-poro)) * pow(k_liquid_,poro);
-  double k_sat_f = pow(k_soil_,(1-poro)) * pow(k_ice_,poro);
+double
+ThermalConductivityThreePhasePetersLidard::ThermalConductivity(double poro,
+                                                               double sat_liq,
+                                                               double sat_ice,
+                                                               double temp)
+{
+  double k_dry = (d_ * (1 - poro) * k_soil_ + k_gas_ * poro) / (d_ * (1 - poro) + poro);
+  double k_sat_u = pow(k_soil_, (1 - poro)) * pow(k_liquid_, poro);
+  double k_sat_f = pow(k_soil_, (1 - poro)) * pow(k_ice_, poro);
   double kersten_u = pow(sat_liq + eps_, alpha_u_);
   double kersten_f = pow(sat_ice + eps_, alpha_f_);
-  return kersten_f * k_sat_f + kersten_u * k_sat_u
-    + (1.0 - kersten_f - kersten_u) * k_dry;
+  return kersten_f * k_sat_f + kersten_u * k_sat_u + (1.0 - kersten_f - kersten_u) * k_dry;
 };
 
-void ThermalConductivityThreePhasePetersLidard::InitializeFromPlist_() {
+void
+ThermalConductivityThreePhasePetersLidard::InitializeFromPlist_()
+{
   d_ = 0.053; // unitless empericial parameter
 
   eps_ = plist_.get<double>("epsilon [-]", 1.e-10);
@@ -43,5 +54,5 @@ void ThermalConductivityThreePhasePetersLidard::InitializeFromPlist_() {
   k_gas_ = plist_.get<double>("thermal conductivity of gas [W m^-1 K^-1]");
 };
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

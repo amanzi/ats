@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Weak MPC for subdomain model MPCs.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-
+//! Weak MPC for subdomain model MPCs.
 /*!
 
 Weakly couples N PKs of the same type across a domain set.  Handles several
@@ -32,11 +30,10 @@ namespace Amanzi {
 
 
 MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
-        const Teuchos::RCP<Teuchos::ParameterList>& plist,
-        const Teuchos::RCP<State>& S,
-        const Teuchos::RCP<TreeVector>& solution)
-    : PK(FElist, plist, S, solution),
-      MPC<PK>(FElist, plist, S, solution)
+                                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                                   const Teuchos::RCP<State>& S,
+                                   const Teuchos::RCP<TreeVector>& solution)
+  : PK(FElist, plist, S, solution), MPC<PK>(FElist, plist, S, solution)
 {
   init_();
 
@@ -51,7 +48,9 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
 // -----------------------------------------------------------------------------
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
-double MPCWeakSubdomain::get_dt() {
+double
+MPCWeakSubdomain::get_dt()
+{
   double dt = std::numeric_limits<double>::max();
 
   if (subcycled_) {
@@ -67,7 +66,9 @@ double MPCWeakSubdomain::get_dt() {
 // -----------------------------------------------------------------------------
 // Set timestep for sub PKs
 // -----------------------------------------------------------------------------
-void MPCWeakSubdomain::set_dt(double dt) {
+void
+MPCWeakSubdomain::set_dt(double dt)
+{
   if (subcycled_) {
     cycle_dt_ = dt;
   } else {
@@ -79,7 +80,8 @@ void MPCWeakSubdomain::set_dt(double dt) {
 // -----------------------------------------------------------------------------
 // Set tags for this and for subcycling
 // -----------------------------------------------------------------------------
-void MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
+void
+MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 {
   if (subcycled_) {
     PK::set_tags(current, next);
@@ -97,7 +99,6 @@ void MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
     MPC<PK>::set_tags(current, next);
   }
 }
-
 
 
 void
@@ -136,15 +137,21 @@ MPCWeakSubdomain::Initialize()
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually.
 // -----------------------------------------------------------------------------
-bool MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit) {
-  if (subcycled_) return AdvanceStep_Subcycled_(t_old, t_new, reinit);
-  else return AdvanceStep_Standard_(t_old, t_new, reinit);
+bool
+MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit)
+{
+  if (subcycled_)
+    return AdvanceStep_Subcycled_(t_old, t_new, reinit);
+  else
+    return AdvanceStep_Standard_(t_old, t_new, reinit);
 }
 
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually.
 // -----------------------------------------------------------------------------
-bool MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit) {
+bool
+MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
+{
   bool fail = false;
   for (auto& pk : sub_pks_) {
     fail = pk->AdvanceStep(t_old, t_new, reinit);
@@ -154,7 +161,7 @@ bool MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool re
   int sub_fail_i = fail ? 1 : 0;
   int fail_i;
   comm_->SumAll(&sub_fail_i, &fail_i, 1);
-  return (bool) fail_i;
+  return (bool)fail_i;
 };
 
 
@@ -191,7 +198,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
         S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
         S_->set_time(tag_subcycle_next, t_inner + dt_inner);
-        bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner+dt_inner, false);
+        bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
         if (vo_->os_OK(Teuchos::VERB_EXTREME))
           *vo_->os() << "  step failed? " << fail_inner << std::endl;
         bool valid_inner = sub_pks_[i]->ValidStep();
@@ -222,7 +229,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         }
       }
       i++;
-    } catch(Errors::TimeStepCrash& e) {
+    } catch (Errors::TimeStepCrash& e) {
       n_throw++;
       throw_msg = e.what();
       break;
@@ -267,9 +274,7 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
     // do not have a formal way of dealing with correctly.
     return;
   } else {
-    for (const auto& pk : sub_pks_) {
-      pk->CommitStep(t_old, t_new, tag_next);
-    }
+    for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
   }
 }
 
@@ -278,7 +283,7 @@ void
 MPCWeakSubdomain::init_()
 {
   // grab the list of subpks
-  auto subpks = plist_->get<Teuchos::Array<std::string> >("PKs order");
+  auto subpks = plist_->get<Teuchos::Array<std::string>>("PKs order");
   if (subpks.size() != 1) {
     Errors::Message msg;
     msg << "MPCWeakSubdomain: \"PKs order\" should consist of a single domain set of sub-pks.";
@@ -291,7 +296,8 @@ MPCWeakSubdomain::init_()
   bool is_ds = Keys::splitDomainSet(subdomain_name, subdomain_triple);
   if (!is_ds) {
     Errors::Message msg;
-    msg << "MPCWeakSubdomain: subpk \"" << subdomain_name << "\" should be a domain-set PK of the form SUBDOMAIN_DOMAIN_NAME_*-NAME";
+    msg << "MPCWeakSubdomain: subpk \"" << subdomain_name
+        << "\" should be a domain-set PK of the form SUBDOMAIN_DOMAIN_NAME_*-NAME";
     Exceptions::amanzi_throw(msg);
   }
 
@@ -316,4 +322,4 @@ MPCWeakSubdomain::init_()
   }
 }
 
-} // namespace
+} // namespace Amanzi

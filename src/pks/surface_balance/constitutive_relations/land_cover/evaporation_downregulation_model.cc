@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Downregulates bare soil evaporation through a dessicated zone.
 
+//! Downregulates bare soil evaporation through a dessicated zone.
 #include "Teuchos_ParameterList.hpp"
 #include "dbc.hh"
 #include "evaporation_downregulation_model.hh"
@@ -39,7 +40,9 @@ EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_e
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg,
+                                                           double poro,
+                                                           double pot_evap) const
 {
   return 0.;
 }
@@ -51,11 +54,13 @@ EvaporationDownregulationModel::DEvaporationDPorosity(double sg, double poro, do
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg,
+                                                                  double poro,
+                                                                  double pot_evap) const
 {
   return 1. / (1. + Relations::EvaporativeResistanceCoef(sg, poro, dess_dz_, Clapp_Horn_b_));
 }
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

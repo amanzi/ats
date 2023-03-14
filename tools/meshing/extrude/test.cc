@@ -1,9 +1,20 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include "Mesh.hh"
 #include "writeMesh3D.hh"
 #include "readMesh2D.hh"
 
 
-int main() {
+int
+main()
+{
   using namespace Amanzi::AmanziGeometry;
 
   std::string mesh_in = "Mesh.txt";
@@ -20,7 +31,7 @@ int main() {
   m3.extrude(depths, soil_type);
   m3.extrude(10, 1000);
   m3.extrude(10, 1000);
-  
+
   writeMesh3D_exodus(m3, mesh_out);
   return 0;
 }

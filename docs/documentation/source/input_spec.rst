@@ -26,6 +26,7 @@ updating it to the next newer version.  These are available at
    :caption: Versions
              
    input_spec/ATSNativeSpec_dev
+   input_spec/ATSNativeSpec_1_4
    input_spec/ATSNativeSpec_1_2
    input_spec/ATSNativeSpec_1_1
    input_spec/ATSNativeSpec_1_0

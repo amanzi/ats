@@ -1,13 +1,13 @@
-/* -*-  mode: c++; c-default-style: "google"; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates the conductivity of surface flow.
 
+//! Evaluates the conductivity of surface flow.
 /*!
 
 This implements the conductivity of overland flow, which is the nonlinear
@@ -22,6 +22,8 @@ converts the flow law to water flux rather than volumetric flux.
 Also, this evaluator can be used in snow redistribution, and in that case needs
 some extra factors (timestep size) to ensure the correct flow law in that case.
 
+`"evaluator type`" = `"overland conductivity`"
+
 .. _overland-conductivity-evaluator-spec
 .. admonition:: overland-conductivity-evaluator-spec
 
@@ -32,6 +34,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
    * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.
 
    DEPENDENCIES:
+
    - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
      in the above equation.
    - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
@@ -53,7 +56,6 @@ namespace Flow {
 class ManningConductivityModel;
 
 class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   OverlandConductivityEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
@@ -63,14 +65,15 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-private:
+ private:
   Teuchos::RCP<ManningConductivityModel> model_;
 
   Key mobile_depth_key_;
@@ -81,9 +84,8 @@ private:
   bool dens_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,OverlandConductivityEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, OverlandConductivityEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -27,8 +28,8 @@ namespace Relations {
 
 // needed constants
 static const double c_stephan_boltzmann = 0.00000005670373; // Stephan-Boltzmann constant
-static const double c_von_Karman = 0.41; // [-] Von Karman constant
-static const double c_R_ideal_gas = 461.52; // [Pa m^3 kg^-1 K^-1]
+static const double c_von_Karman = 0.41;                    // [-] Von Karman constant
+static const double c_R_ideal_gas = 461.52;                 // [Pa m^3 kg^-1 K^-1]
 
 // Catch-all of leftover parameters.
 //
@@ -42,31 +43,33 @@ static const double c_R_ideal_gas = 461.52; // [Pa m^3 kg^-1 K^-1]
 // is a field in most of ATS, so this value should be overwritten on a
 // grid-cell by grid-cell basis.
 struct ModelParams {
-  ModelParams() :
-      density_air(1.275),       // [kg/m^3]
-      density_freshsnow(100.),  // [kg/m^3]
-      density_frost(200.),      // [kg/m^3]
-      thermalK_freshsnow(0.029),// thermal conductivity of fresh snow [W/m-K]
-      thermalK_snow_exp(2),     // exponent in thermal conductivity of snow model [-]
-      H_fusion(333500.0),       // Heat of fusion for melting snow -- [J/kg]
-      H_sublimation(2834000.),  // Latent heat of sublimation ------- [J/kg]
-      H_vaporization(2497848.), // Latent heat of vaporization ------ [J/kg]
-      Cp_air(1004.0),           // Specific heat of air @ const pres- [J/K kg]
-      Cv_water(4218.636),       // Specific heat of water ----------- [J/K kg]
-      P_atm(101325.),           // atmospheric pressure ------------- [Pa]
-      gravity(9.807),           // gravity [kg m / s^2]
+  ModelParams()
+    : density_air(1.275),          // [kg/m^3]
+      density_freshsnow(100.),     // [kg/m^3]
+      density_frost(200.),         // [kg/m^3]
+      thermalK_freshsnow(0.029),   // thermal conductivity of fresh snow [W/m-K]
+      thermalK_snow_exp(2),        // exponent in thermal conductivity of snow model [-]
+      H_fusion(333500.0),          // Heat of fusion for melting snow -- [J/kg]
+      H_sublimation(2834000.),     // Latent heat of sublimation ------- [J/kg]
+      H_vaporization(2497848.),    // Latent heat of vaporization ------ [J/kg]
+      Cp_air(1004.0),              // Specific heat of air @ const pres- [J/K kg]
+      Cv_water(4218.636),          // Specific heat of water ----------- [J/K kg]
+      P_atm(101325.),              // atmospheric pressure ------------- [Pa]
+      gravity(9.807),              // gravity [kg m / s^2]
       evap_transition_width(100.), // transition on evaporation from surface to
                                    // evaporation from subsurface [m],
                                    // THIS IS DEPRECATED
       KB(0.)
   {}
 
-  ModelParams(Teuchos::ParameterList& plist) :
-      ModelParams()
+  ModelParams(Teuchos::ParameterList& plist) : ModelParams()
   {
-    thermalK_freshsnow = plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
-    thermalK_snow_exp = plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
-    evap_transition_width = plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
+    thermalK_freshsnow =
+      plist.get<double>("thermal conductivity of fresh snow [W m^-1 K^-1]", thermalK_freshsnow);
+    thermalK_snow_exp =
+      plist.get<double>("thermal conductivity of snow aging exponent [-]", thermalK_snow_exp);
+    evap_transition_width =
+      plist.get<double>("evaporation transition width [Pa]", evap_transition_width);
 
     KB = plist.get<double>("log ratio between z0m and z0h [-]", KB);
   }
@@ -90,23 +93,24 @@ struct ModelParams {
 
 // Struct of skin data
 struct GroundProperties {
-  double temp;                          // temperature [K]
-  double pressure;                      // [Pa]
-  double ponded_depth;                  // [m]
-  double porosity;                      // [-]
-  double density_w;                     // density [kg/m^3]
-  double dz;                            // [m]
-  double clapp_horn_b;                  // [-]
-  double albedo;                        // [-]
-  double emissivity;                    // [-]
-  double saturation_gas;                // [-]
-  double roughness;                     // [m] surface roughness of a bare domain
-  double snow_death_rate;               // [kg/m^2/s] snow that must die this timestep, make it melt!
-  double unfrozen_fraction;             // [-] fraction of ground water that is unfrozen
-  double water_transition_depth;        // [m] microtopographic relief, smoothing factor between water and bare ground
+  double temp;              // temperature [K]
+  double pressure;          // [Pa]
+  double ponded_depth;      // [m]
+  double porosity;          // [-]
+  double density_w;         // density [kg/m^3]
+  double dz;                // [m]
+  double clapp_horn_b;      // [-]
+  double albedo;            // [-]
+  double emissivity;        // [-]
+  double saturation_gas;    // [-]
+  double roughness;         // [m] surface roughness of a bare domain
+  double snow_death_rate;   // [kg/m^2/s] snow that must die this timestep, make it melt!
+  double unfrozen_fraction; // [-] fraction of ground water that is unfrozen
+  double
+    water_transition_depth; // [m] microtopographic relief, smoothing factor between water and bare ground
 
-  GroundProperties() :
-      temp(NaN),
+  GroundProperties()
+    : temp(NaN),
       pressure(NaN),
       porosity(NaN),
       density_w(NaN),
@@ -127,116 +131,92 @@ struct GroundProperties {
 
 // Struct of snow state
 struct SnowProperties {
-  double height;                // snow depth [m] (NOT SWE!)
-  double density;               // snow density [ kg / m^3 ]
-  double temp;                  // snow temperature [K]
-  double albedo;                // [-]
-  double emissivity;            // [-]
-  double roughness;             // [m] surface roughness of a snow-covered domain
+  double height;     // snow depth [m] (NOT SWE!)
+  double density;    // snow density [ kg / m^3 ]
+  double temp;       // snow temperature [K]
+  double albedo;     // [-]
+  double emissivity; // [-]
+  double roughness;  // [m] surface roughness of a snow-covered domain
 
-  SnowProperties() :
-      height(NaN),
-      density(NaN),
-      temp(NaN),
-      albedo(NaN),
-      emissivity(NaN),
-      roughness(NaN)
+  SnowProperties()
+    : height(NaN), density(NaN), temp(NaN), albedo(NaN), emissivity(NaN), roughness(NaN)
   {}
 };
 
 
 // struct of input MetData.
 struct MetData {
-  double Us;                    // wind speed, [m/s]
+  double Us; // wind speed, [m/s]
   double Z_Us;
-  double QswIn;                 // incoming short-wave radiation, [W/m^2]
-  double QlwIn;                 // incoming longwave radiaton, [W/m^2]
-  double Ps;                    // precip snow, [m (SWE)/s]
-  double Pr;                    // precip rain, [m/s]
-  double air_temp;              // air temperature [K]
-  double vp_air;                // vapor pressure air [Pa]
+  double QswIn;    // incoming short-wave radiation, [W/m^2]
+  double QlwIn;    // incoming longwave radiaton, [W/m^2]
+  double Ps;       // precip snow, [m (SWE)/s]
+  double Pr;       // precip rain, [m/s]
+  double air_temp; // air temperature [K]
+  double vp_air;   // vapor pressure air [Pa]
 
-  MetData() :
-      Us(NaN),
-      Z_Us(NaN),
-      QswIn(NaN),
-      QlwIn(NaN),
-      Ps(NaN),
-      Pr(NaN),
-      air_temp(NaN),
-      vp_air(NaN) {}
+  MetData()
+    : Us(NaN), Z_Us(NaN), QswIn(NaN), QlwIn(NaN), Ps(NaN), Pr(NaN), air_temp(NaN), vp_air(NaN)
+  {}
 };
 
 
 // Struct collecting energy balance terms.
 struct EnergyBalance {
   // all are [J/ (m^2 s)]
-  double fQswIn;        // incoming short-wave radiation
-  double fQlwIn;        // incoming long-wave radiation
-  double fQlwOut;       // outgoing long-wave radiation
-  double fQh;           // sensible heat
-  double fQe;           // latent heat
-  double fQc;           // heat conducted to ground surface
-  double fQm;           // energy available for melting snow
-  double error;         // imbalance!
+  double fQswIn;  // incoming short-wave radiation
+  double fQlwIn;  // incoming long-wave radiation
+  double fQlwOut; // outgoing long-wave radiation
+  double fQh;     // sensible heat
+  double fQe;     // latent heat
+  double fQc;     // heat conducted to ground surface
+  double fQm;     // energy available for melting snow
+  double error;   // imbalance!
 
-  EnergyBalance() :
-      fQswIn(NaN),
-      fQlwIn(NaN),
-      fQlwOut(NaN),
-      fQh(NaN),
-      fQe(NaN),
-      fQc(NaN),
-      fQm(NaN),
-      error(NaN)
+  EnergyBalance()
+    : fQswIn(NaN), fQlwIn(NaN), fQlwOut(NaN), fQh(NaN), fQe(NaN), fQc(NaN), fQm(NaN), error(NaN)
   {}
 };
 
 
 // Struct collecting mass balance terms.
-struct MassBalance {    // all are in [m/s] of WATER, i.e. snow are in SWE
-  double Me;    // condensation of water/frost (if positive),
-                // sublimation/evaporation of snow/water (if negative)
-  double Mm;    // melt rate (positive indicates increasing water, decreasing snow)
-  double dt;    // max dt that may be taken to conserve snow swe
+struct MassBalance { // all are in [m/s] of WATER, i.e. snow are in SWE
+  double Me;         // condensation of water/frost (if positive),
+                     // sublimation/evaporation of snow/water (if negative)
+  double Mm;         // melt rate (positive indicates increasing water, decreasing snow)
+  double dt;         // max dt that may be taken to conserve snow swe
 
-  MassBalance() :
-      Me(NaN),
-      Mm(NaN) {}
+  MassBalance() : Me(NaN), Mm(NaN) {}
 };
 
 
 // Struct collecting final output fluxes
 struct FluxBalance {
-  double M_surf; // [m/s], mass to surface system
-  double E_surf; // [W/m^2], energy to surface system
+  double M_surf;    // [m/s], mass to surface system
+  double E_surf;    // [W/m^2], energy to surface system
   double M_subsurf; // [m/s], mass to/from subsurface system
   double E_subsurf; // [W/m^2], energy to/from subsurface system
-  double M_snow; // [m/s], mass swe to snow system
+  double M_snow;    // [m/s], mass swe to snow system
 
-  FluxBalance() :
-      M_surf(0.),
-      E_surf(0.),
-      M_subsurf(0.),
-      E_subsurf(0.),
-      M_snow(0.) {}
+  FluxBalance() : M_surf(0.), E_surf(0.), M_subsurf(0.), E_subsurf(0.), M_snow(0.) {}
 };
 
 
 // Used to calculate surface properties, prior to calling SEB.
 struct SurfaceParams {
-  double a_tundra, a_water, a_ice;      // albedos
-  double e_snow, e_tundra, e_water, e_ice;     // emissivities
+  double a_tundra, a_water, a_ice;         // albedos
+  double e_snow, e_tundra, e_water, e_ice; // emissivities
 
-  SurfaceParams() :
-      a_tundra(0.135),           // [-] Grenfell and Perovich, (2004)
-      a_water(0.1168),           // [-] Cogley J.G. (1979)
-      a_ice(0.44),              // [-] deteriorated ice, Grenfell and Perovich, (2004) 0.44
-      e_snow(0.98),             // [-] emissivity for snow, From P. ReVelle (Thesis)
-      e_tundra(0.92),           // [-] emissivity for tundra, From P. ReVelle
-                                //         (Thesis), Ling & Zhang, 2004
-      e_water(0.995),           // [-] emissivity of water, EngineeringToolbox.com
-      e_ice(0.98) {}              // [-] emissivity of ice, EngineeringToolbox.com
+  SurfaceParams()
+    : a_tundra(0.135), // [-] Grenfell and Perovich, (2004)
+      a_water(0.1168), // [-] Cogley J.G. (1979)
+      a_ice(0.44),     // [-] deteriorated ice, Grenfell and Perovich, (2004) 0.44
+      e_snow(0.98),    // [-] emissivity for snow, From P. ReVelle (Thesis)
+      e_tundra(0.92),  // [-] emissivity for tundra, From P. ReVelle
+                       //         (Thesis), Ling & Zhang, 2004
+      e_water(0.995),  // [-] emissivity of water, EngineeringToolbox.com
+      e_ice(0.98)
+  {} // [-] emissivity of ice, EngineeringToolbox.com
 };
 
 
@@ -247,31 +227,33 @@ struct Partition {
   double perIce;
   double perTundra;
 
-  double Interpolate(double snow, double water, double ice, double tundra) const {
-    return snow*perSnow + water*perWater + ice*perIce + tundra*perTundra;
+  double Interpolate(double snow, double water, double ice, double tundra) const
+  {
+    return snow * perSnow + water * perWater + ice * perIce + tundra * perTundra;
   }
 };
 
 
 // Partitioning of weights for smoothing surface properties.
 struct Partitioner {
-  double water_pen, snow_pen;   // radiation penetration depths
+  double water_pen, snow_pen; // radiation penetration depths
 
-  Partitioner() :
-      water_pen(0.1),           // [m] QswIn penetration depth through water
-      snow_pen(0.02) {}         // [m] QswIn penetration depth through snow
-  Partitioner(double water_pen_, double snow_pen_) :
-      water_pen(water_pen_),    // [m] QswIn penetration depth through water
-      snow_pen(snow_pen_) {}    // [m] QswIn penetration depth through snow
+  Partitioner()
+    : water_pen(0.1), // [m] QswIn penetration depth through water
+      snow_pen(0.02)
+  {} // [m] QswIn penetration depth through snow
+  Partitioner(double water_pen_, double snow_pen_)
+    : water_pen(water_pen_), // [m] QswIn penetration depth through water
+      snow_pen(snow_pen_)
+  {} // [m] QswIn penetration depth through snow
 
-  Partition CalcPartition(double ht_snow, double ht_pond,
-                          double unfrozen_fraction) const;
+  Partition CalcPartition(double ht_snow, double ht_pond, double unfrozen_fraction) const;
 };
 
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 
 #endif

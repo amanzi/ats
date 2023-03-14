@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
-//! Basic land cover/plant function type
 
+//! Basic land cover/plant function type
 /*!
 
 This is a simple base class for PFTs, but currently called LandCover_t to
@@ -44,7 +45,7 @@ same region-based partitioning.
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
       function [-] Note that these are from the CLM 4.5 Technical Note.
 
-    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN** 
+    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN**
     * `"mafic potential at fully open stomata [Pa]`" ``[double]``  **NaN** Transpiration
       is typically multipled by a limiter that is empirically modeling stomata
       closure.  Typically it varies linearly from 0 to 1 as a function of
@@ -171,31 +172,32 @@ struct LandCover {
 
   // transition thickness between snow and bare ground
   // likely this is a property of the understory veg
-  double snow_transition_depth; // [m]
+  double snow_transition_depth;  // [m]
   double water_transition_depth; // [m]
 
   // soil properties controlling evaporation
   double dessicated_zone_thickness; // [m] Thickness over which vapor must diffuse
-      //  when the soil is dry.
-  double clapp_horn_b; // [-] exponent of the WRM, Clapp & Hornberger eqn 1
-  double roughness_ground; // [m] Fetch length for latent/sensible heat fluxes.
-  double roughness_snow; // [m] Fetch length for latent/sensible heat fluxes.
+                                    //  when the soil is dry.
+  double clapp_horn_b;              // [-] exponent of the WRM, Clapp & Hornberger eqn 1
+  double roughness_ground;          // [m] Fetch length for latent/sensible heat fluxes.
+  double roughness_snow;            // [m] Fetch length for latent/sensible heat fluxes.
 };
 
 // this one includes error checking for NaNs
 using LandCoverMap = std::map<std::string, LandCover>;
-LandCoverMap getLandCover(Teuchos::ParameterList& plist,
-                          const std::vector<std::string>& required_pars);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars);
 
 namespace Impl {
 
-void checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
-LandCoverMap getLandCover(Teuchos::ParameterList& plist);
+void
+checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist);
 
 
 } // namespace Impl
 
 
 } // namespace SurfaceBalance
-} // namespace ATS
-
+} // namespace Amanzi

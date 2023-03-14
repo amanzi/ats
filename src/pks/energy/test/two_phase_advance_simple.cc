@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include <cstdlib>
 #include <iostream>
 
@@ -15,16 +24,17 @@
 #include "energy_test_class.hh"
 
 /* **************************************************************** */
-TEST(ADVANCE_WITH_SIMPLE) {
+TEST(ADVANCE_WITH_SIMPLE)
+{
   using namespace Amanzi;
   using namespace Amanzi::AmanziMesh;
   using namespace Amanzi::AmanziGeometry;
 
   std::cout << "Test: advance using simple mesh" << endl;
 #ifdef HAVE_MPI
-  Epetra_MpiComm  *comm = new Epetra_MpiComm(MPI_COMM_WORLD);
+  Epetra_MpiComm* comm = new Epetra_MpiComm(MPI_COMM_WORLD);
 #else
-  Epetra_SerialComm  *comm = new Epetra_SerialComm();
+  Epetra_SerialComm* comm = new Epetra_SerialComm();
 #endif
 
   // read parameter list
@@ -33,10 +43,10 @@ TEST(ADVANCE_WITH_SIMPLE) {
   updateParametersFromXmlFile(xmlFileName, &parameter_list);
 
   // create an SIMPLE mesh framework
-  Teuchos::ParameterList region_list =
-    parameter_list.get<Teuchos::ParameterList>("Regions");
-  GeometricModelPtr gm = new GeometricModel(3, region_list, (Epetra_MpiComm *)comm);
-  Teuchos::RCP<Mesh> mesh = Teuchos::rcp(new Mesh_simple(0.0,0.0,0.0, 1.0,1.0,1.0, 20, 20, 2, comm, gm));
+  Teuchos::ParameterList region_list = parameter_list.get<Teuchos::ParameterList>("Regions");
+  GeometricModelPtr gm = new GeometricModel(3, region_list, (Epetra_MpiComm*)comm);
+  Teuchos::RCP<Mesh> mesh =
+    Teuchos::rcp(new Mesh_simple(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 20, 20, 2, comm, gm));
 
   // create and initialize the test class
   EnergyTestOne test(parameter_list, mesh, 1);
@@ -46,13 +56,12 @@ TEST(ADVANCE_WITH_SIMPLE) {
   int iter, k;
   double T = 0.0;
 
-  Teuchos::RCP<const CompositeVector> temp =
-    test.S1->GetPtr<CompositeVector>("temperature");
+  Teuchos::RCP<const CompositeVector> temp = test.S1->GetPtr<CompositeVector>("temperature");
 
   iter = 0;
   if (iter < 10) {
-    printf( "T=%6.2f  C_0(x):", T );
-    for( int k=0; k<15; k++ ) printf("%7.4f", (*temp)(0,k));
+    printf("T=%6.2f  C_0(x):", T);
+    for (int k = 0; k < 15; k++) printf("%7.4f", (*temp)(0, k));
     cout << endl;
   }
 
@@ -64,8 +73,8 @@ TEST(ADVANCE_WITH_SIMPLE) {
     iter++;
 
     if (iter < 10) {
-      printf( "T=%6.2f  C_0(x):", T );
-      for( int k=0; k<15; k++ ) printf("%7.4f", (*temp)(0,k));
+      printf("T=%6.2f  C_0(x):", T);
+      for (int k = 0; k < 15; k++) printf("%7.4f", (*temp)(0, k));
       cout << endl;
     }
 

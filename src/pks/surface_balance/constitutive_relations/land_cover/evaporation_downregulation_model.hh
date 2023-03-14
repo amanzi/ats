@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Downregulates bare soil evaporation through a dessicated zone.
 /*!
 
@@ -36,11 +38,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class EvaporationDownregulationModel {
-
  public:
-  explicit
-  EvaporationDownregulationModel(double dessicated_zone_thickness,
-          double clapp_horn_b);
+  explicit EvaporationDownregulationModel(double dessicated_zone_thickness, double clapp_horn_b);
   EvaporationDownregulationModel(Teuchos::ParameterList& plist);
   EvaporationDownregulationModel(const LandCover& lc);
 
@@ -54,13 +53,10 @@ class EvaporationDownregulationModel {
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double dess_dz_;
   double Clapp_Horn_b_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

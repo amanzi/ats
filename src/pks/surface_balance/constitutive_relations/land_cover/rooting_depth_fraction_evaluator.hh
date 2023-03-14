@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Provides a depth-based profile of root density.
 /*!
 
@@ -25,6 +27,7 @@ LandCover type.
    * `"surface domain name`" ``[string]`` **SURFACE_DOMAIN** Sane default provided for most domain names.
 
    KEYS:
+
    - `"depth`" **DOMAIN-depth**
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface cell volume`" **SURFACE_DOMAIN-cell_volume**
@@ -44,7 +47,6 @@ namespace Relations {
 class RootingDepthFractionModel;
 
 class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit RootingDepthFractionEvaluator(Teuchos::ParameterList& plist);
   RootingDepthFractionEvaluator(const RootingDepthFractionEvaluator& other) = default;
@@ -52,11 +54,11 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -75,11 +77,9 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   std::map<std::string, Teuchos::RCP<RootingDepthFractionModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RootingDepthFractionEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -1,12 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Preferential distribution of snow precip in low-lying areas.
 
+//! Preferential distribution of snow precip in low-lying areas.
 /*!
 
 This PK is a heuristic PK that distributes incoming snow precipitation using a
@@ -34,15 +35,15 @@ daily (which all defaults are set for).
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
     * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
-    
+
     Not typically provided by the user, defaults are good:
 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
-    
+
 
 .. todo::
     For this PK, all variable root names are hard-coded.  This should get changed.
-    
+
 */
 
 
@@ -65,14 +66,12 @@ namespace Flow {
 
 //class SnowDistribution : public PKPhysicalBDFBase {
 class SnowDistribution : public PK_PhysicalBDF_Default {
-
-public:
-
+ public:
   SnowDistribution(Teuchos::ParameterList& FElist,
                    const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& solution);
-  
+
   // Virtual destructor
   virtual ~SnowDistribution() {}
 
@@ -88,12 +87,15 @@ public:
 
   // -- Update diagnostics for vis.
   //virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {}
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+  void FunctionalResidual(double t_old,
+                          double t_new,
+                          Teuchos::RCP<TreeVector> u_old,
+                          Teuchos::RCP<TreeVector> u_new,
+                          Teuchos::RCP<TreeVector> g);
 
   // applies preconditioner to u and returns the result in Pu
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
@@ -102,16 +104,15 @@ public:
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
   // error monitor
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du);
+  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du);
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
-  
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u);
+
   // Choose a time step compatible with physics.
   virtual double get_dt() { return dt_factor_; }
 
-  // Advance PK from time t_old to time t_new. True value of the last 
+  // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms
   // that may need PK's attention.
   //
@@ -128,11 +129,12 @@ public:
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
 
   // -- Commit any secondary (dependent) variables.
-  void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {
+  void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S)
+  {
     // here to keep the coordinator from calling CommitSolution() since our
     // Advance() does it already
   }
-  
+
 
  protected:
   // setup methods
@@ -145,10 +147,10 @@ public:
 
   // boundary condition members
   virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S);
-  
+
   // physical methods
   // -- diffusion term
-  void ApplyDiffusion_(const Teuchos::Ptr<State>& S,const Teuchos::Ptr<CompositeVector>& g);
+  void ApplyDiffusion_(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<CompositeVector>& g);
   // -- accumulation term
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
@@ -161,7 +163,7 @@ public:
 
   // function for precip
   Teuchos::RCP<Function> precip_func_;
-  
+
   // work data space
   Teuchos::RCP<Operators::Upwinding> upwinding_;
 
@@ -176,7 +178,7 @@ public:
   static RegisteredPKFactory<SnowDistribution> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

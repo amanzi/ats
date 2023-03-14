@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Internal energy based on a quadratic fit to data.
 
+//! Internal energy based on a quadratic fit to data.
 /*!
 
 Quadratic internal energy model -- function of Cv and temperature
@@ -15,8 +16,10 @@ Quadratic internal energy model -- function of Cv and temperature
 
     u = L_f + C_v * (T - T_{ref}) + b(T - T_{ref})^2
 
-.. _iem-quadratic-spec
-.. admonition:: iem-quadratic-spec
+`"IEM type`" = `"quadratic`"
+
+.. _IEM-model-quadratic-spec
+.. admonition:: IEM-model-quadratic-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point, T_ref above.
 
@@ -48,8 +51,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMQuadratic : public IEM {
-
-public:
+ public:
   explicit IEMQuadratic(Teuchos::ParameterList& plist);
 
   bool IsMolarBasis() { return molar_basis_; }
@@ -57,7 +59,7 @@ public:
   double InternalEnergy(double temp);
   double DInternalEnergyDT(double temp);
 
-private:
+ private:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -68,13 +70,12 @@ private:
   double T0_; // units: K
   bool molar_basis_;
 
-private:
+ private:
   // iem factor registration
-  static Utils::RegisteredFactory<IEM,IEMQuadratic> factory_;
-
+  static Utils::RegisteredFactory<IEM, IEMQuadratic> factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

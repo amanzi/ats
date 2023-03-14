@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Provides a depth-based profile of root density.
 /*!
 
@@ -30,10 +32,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class RootingDepthFractionModel {
-
  public:
-  explicit
-  RootingDepthFractionModel(const LandCover& lc);
+  explicit RootingDepthFractionModel(const LandCover& lc);
 
   double RootingDepthFraction(double z) const;
 
@@ -41,10 +41,8 @@ class RootingDepthFractionModel {
 
  protected:
   const LandCover& lc_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

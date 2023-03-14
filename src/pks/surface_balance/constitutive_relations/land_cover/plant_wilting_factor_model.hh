@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Plant wilting factor provides a moisture availability-based limiter on transpiration.
 /*!
 
@@ -31,8 +33,7 @@ namespace Relations {
 
 class PlantWiltingFactorModel {
  public:
-  explicit
-  PlantWiltingFactorModel(const LandCover& lc);
+  explicit PlantWiltingFactorModel(const LandCover& lc);
 
   double PlantWiltingFactor(double pc) const;
 
@@ -42,8 +43,6 @@ class PlantWiltingFactorModel {
   const LandCover& lc_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

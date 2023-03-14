@@ -1,10 +1,16 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Chonggang Xu (cxu@lanl.gov)
+*/
+
+/*
 Utility functions for Vegetation.
 
-Author: Ethan Coon (ecoon@lanl.gov)
-        Chonggang Xu (cxu@lanl.gov)
-
-Licencse: BSD
 */
 
 
@@ -27,18 +33,20 @@ struct MetData {
   double lat;
 };
 
-double PermafrostDepth(const Epetra_SerialDenseVector& SoilTArr,
-                       const Epetra_SerialDenseVector& SoilThicknessArr,
-                       double freeze_temp);
+double
+PermafrostDepth(const Epetra_SerialDenseVector& SoilTArr,
+                const Epetra_SerialDenseVector& SoilThicknessArr,
+                double freeze_temp);
 
-int PermafrostDepthIndex(const Epetra_SerialDenseVector& SoilTArr,
-                       double freeze_temp);
+int
+PermafrostDepthIndex(const Epetra_SerialDenseVector& SoilTArr, double freeze_temp);
 
 // This function calculate the effect of temperature on biological process.
-double TEffectsQ10(double Q10, double T, double refT);
+double
+TEffectsQ10(double Q10, double T, double refT);
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
 
 
 #endif

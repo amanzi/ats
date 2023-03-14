@@ -1,9 +1,13 @@
 /*
-  This is the flow component of the Amanzi code.
-  License: BSD
-  Authors: Markus Berndt (berndt@lanl.gov) 
-  Konstantin Lipnikov (lipnikov@lanl.gov)
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Markus Berndt (berndt@lanl.gov)
+           Konstantin Lipnikov (lipnikov@lanl.gov)
 */
+
 #include <iostream>
 #include <cmath>
 #include <algorithm>
@@ -19,140 +23,150 @@ const double FLOW_WRM_TOLERANCE = 1e-10;
 /* ******************************************************************
  * Setup fundamental parameters for this model.
  ****************************************************************** */
-WRMPlantChristoffersen::WRMPlantChristoffersen(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+WRMPlantChristoffersen::WRMPlantChristoffersen(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
-double WRMPlantChristoffersen::capillaryPressure(double s)
+double
+WRMPlantChristoffersen::capillaryPressure(double s)
 {
-    return -potential(s)*1E6;
+  return -potential(s) * 1E6;
 }
 
-double WRMPlantChristoffersen::d_capillaryPressure(double s)
+double
+WRMPlantChristoffersen::d_capillaryPressure(double s)
 {
-    return -d_potential(s)*1E6;
+  return -d_potential(s) * 1E6;
 }
 
-double WRMPlantChristoffersen::potential(double s)
+double
+WRMPlantChristoffersen::potential(double s)
 {
-    double psi;
-    if (s > sft_)
-        psi = potentialLinear(s);
-    else if (s > stlp_)
-        psi = fmin(potentialSol(s) + potentialP(s), potentialLinear(s));
+  double psi;
+  if (s > sft_)
+    psi = potentialLinear(s);
+  else if (s > stlp_)
+    psi = fmin(potentialSol(s) + potentialP(s), potentialLinear(s));
+  else
+    psi = potentialSol(s);
+  return psi;
+}
+
+double
+WRMPlantChristoffersen::d_potential(double s)
+{
+  double dpsi;
+  if (s > sft_)
+    dpsi = d_potentialLinear(s);
+  else if (s > stlp_) {
+    if ((potentialSol(s) + potentialP(s)) < potentialLinear(s))
+      dpsi = d_potentialSol(s) + d_potentialP(s);
     else
-        psi = potentialSol(s);
-    return psi;
+      dpsi = d_potentialLinear(s);
+  } else
+    dpsi = d_potentialSol(s);
+  return dpsi;
 }
 
-double WRMPlantChristoffersen::d_potential(double s)
+double
+WRMPlantChristoffersen::potentialLinear(double s)
 {
-    double dpsi;
-    if (s > sft_)
-        dpsi = d_potentialLinear(s);
-    else if (s > stlp_)
-    {    
-        if ( (potentialSol(s) + potentialP(s)) < potentialLinear(s) )
-            dpsi = d_potentialSol(s) + d_potentialP(s);
-        else
-            dpsi = d_potentialLinear(s);
-    }
-    else
-        dpsi = d_potentialSol(s);
-    return dpsi;
+  return psi0_ - (mcap_ * (1 - s));
 }
 
-double WRMPlantChristoffersen::potentialLinear(double s)
+
+double
+WRMPlantChristoffersen::d_potentialLinear(double s)
 {
-    return psi0_ - (mcap_*(1 - s));
+  return mcap_;
 }
 
-
-double WRMPlantChristoffersen::d_potentialLinear(double s)
+double
+WRMPlantChristoffersen::potentialSol(double s)
 {
-    return mcap_;
+  double sstar;
+  sstar = (s - sr_) / (sft_ - sr_);
+  return -std::abs(pi0_) / sstar;
 }
 
-double WRMPlantChristoffersen::potentialSol(double s)
+double
+WRMPlantChristoffersen::d_potentialSol(double s)
 {
-    double sstar;
-    sstar = (s - sr_) / (sft_ - sr_);
-    return -std::abs(pi0_)/sstar;
+  return (-std::abs(pi0_) * (sft_ - sr_) * sr_) / (std::pow((s - sr_), 2));
 }
 
-double WRMPlantChristoffersen::d_potentialSol(double s)
+double
+WRMPlantChristoffersen::potentialP(double s)
 {
-    return (-std::abs(pi0_)*(sft_ - sr_)*sr_)/(std::pow( (s - sr_) , 2 ));
+  double sstar;
+  sstar = (s - sr_) / (sft_ - sr_);
+  return std::abs(pi0_) - (eps_ * (1 - sstar));
 }
 
-double WRMPlantChristoffersen::potentialP(double s)
+double
+WRMPlantChristoffersen::d_potentialP(double s)
 {
-    double sstar;
-    sstar = (s - sr_) / (sft_ - sr_);
-    return std::abs(pi0_) - (eps_ * (1 - sstar));
+  //double sstar;
+  //sstar = (s - sr_) / (sft_ - sr_);
+  //return std::abs(pi0_) - (eps_ * (1 - sstar));
+  return eps_ / (sft_ - sr_);
 }
 
-double WRMPlantChristoffersen::d_potentialP(double s)
+double
+WRMPlantChristoffersen::saturation(double pc)
 {
-    //double sstar;
-    //sstar = (s - sr_) / (sft_ - sr_);
-    //return std::abs(pi0_) - (eps_ * (1 - sstar));
-    return eps_/(sft_ - sr_);
+  double psi;
+  double se;
+
+  psi = -pc * 1E-6;
+
+  if (psi > psi0_)
+    se = (1.0 - sr_) / (sft_ - sr_);
+  else if (psi > psicapfttrans_)
+    se = (1.0 - sr_) / (sft_ - sr_) - (psi0_ - psi) / mcapstar_;
+  else if (psi > psitlp_) {
+    double b = std::abs(pi0_) - psi - eps_;
+    se = (-b + sqrt(std::pow(b, 2) + 4 * eps_ * std::abs(pi0_))) / (2 * eps_);
+  } else
+    se = -std::abs(pi0_) / psi;
+  return (se * (sft_ - sr_)) + sr_;
 }
 
-double WRMPlantChristoffersen::saturation(double pc)
+
+double
+WRMPlantChristoffersen::d_saturation(double pc)
 {
-    double psi;
-    double se;
+  double psi;
+  double dse;
 
-    psi = -pc*1E-6;
-    
-    if (psi > psi0_)
-        se = (1.0 - sr_)/(sft_ - sr_);
-    else if (psi > psicapfttrans_)
-        se = (1.0 - sr_)/(sft_ - sr_) - (psi0_ - psi)/mcapstar_;
-    else if (psi > psitlp_)
-    {    
-        double b = std::abs(pi0_) - psi - eps_;
-        se = (-b + sqrt(std::pow(b,2) + 4*eps_*std::abs(pi0_)))/(2*eps_);
-    }
-    else
-        se = -std::abs(pi0_)/psi;
-    return (se * (sft_ - sr_)) + sr_;
+  psi = -pc * 1E-6;
+  double dpsi = -1E-6;
+
+  if (psi > psi0_)
+    dse = 0;
+  else if (psi > psicapfttrans_)
+    dse = dpsi / mcapstar_;
+  else if (psi > psitlp_) {
+    double b = std::abs(pi0_) - psi - eps_;
+    double db = -dpsi;
+    dse = (db + ((db * b) / sqrt(std::pow(b, 2) + 4 * eps_ * std::abs(pi0_)))) / (2 * eps_);
+  } else
+    dse = std::abs(pi0_) * (std::pow(psi, -2)) * (dpsi);
+  return dse * (sft_ - sr_);
 }
 
-
-double WRMPlantChristoffersen::d_saturation(double pc)
+double
+WRMPlantChristoffersen::k_relative(double pc)
 {
-    double psi;
-    double dse;
-
-    psi = -pc*1E-6;
-    double dpsi = -1E-6;
-    
-    if (psi > psi0_)
-        dse = 0;
-    else if (psi > psicapfttrans_)
-        dse = dpsi/mcapstar_;
-    else if (psi > psitlp_)
-    {    
-        double b = std::abs(pi0_) - psi - eps_;
-        double db = -dpsi;
-        dse = (db + ((db*b)/sqrt(std::pow(b,2) + 4*eps_*std::abs(pi0_))))/(2*eps_);
-    }
-    else
-        dse = std::abs(pi0_)*(std::pow(psi,-2))*(dpsi);
-    return dse * (sft_ - sr_);
-}
-
-double WRMPlantChristoffersen::k_relative(double pc) {
-    return (saturation(pc) - sr_)/(1-sr_);
+  return (saturation(pc) - sr_) / (1 - sr_);
 }
 
 
-double WRMPlantChristoffersen::d_k_relative(double pc) {
-    return (d_saturation(pc))/(1-sr_);
+double
+WRMPlantChristoffersen::d_k_relative(double pc)
+{
+  return (d_saturation(pc)) / (1 - sr_);
 }
 
 /* ******************************************************************
@@ -203,7 +217,7 @@ double WRMPlantChristoffersen::d_k_relative(double pc) {
   } else if (pc <= 0.0) {
     return 0.0;
   } else {
-    return 2*a_*pc + 3*b_*pc*pc; 
+    return 2*a_*pc + 3*b_*pc*pc;
   }
 }
 
@@ -266,7 +280,9 @@ double WRMPlantChristoffersen::d_capillaryPressure(double s) {
 }
 */
 
-void WRMPlantChristoffersen::InitializeFromPlist_() {
+void
+WRMPlantChristoffersen::InitializeFromPlist_()
+{
   std::string fname = plist_.get<std::string>("Krel function name", "Mualem");
   if (fname == std::string("Mualem")) {
     function_ = FLOW_WRM_MUALEM;
@@ -282,20 +298,20 @@ void WRMPlantChristoffersen::InitializeFromPlist_() {
   l_ = plist_.get<double>("Mualem exponent l", 0.5);
   pc0_ = plist_.get<double>("smoothing interval width", 0.0);
   */
-  
-  sr_ = plist_.get<double>("residual saturation [-]", 0.0); 
+
+  sr_ = plist_.get<double>("residual saturation [-]", 0.0);
   stlp_ = plist_.get<double>("saturation at turgor loss [-]", 0.0);
   eps_ = plist_.get<double>("bulk elastic modulus [MPa]", 15.90459885634534);
   psi0_ = plist_.get<double>("water potential at full saturation [Pa]", -0.08);
   pi0_ = plist_.get<double>("osmotic potential at full turgor [Pa]", 0.0);
   psicap_ = plist_.get<double>("water potential at full turgor [Pa]", 0.0);
-  double star = 1.0 - (std::abs(pi0_) / eps_ );
-  sft_ = (stlp_ - (1.0 - star)*sr_)/star;
-  scap_ = 1.0 - 0.61*(1.0 - stlp_);
-  psitlp_ = -std::abs(pi0_)/((stlp_ - sr_) / (sft_ - sr_));
-  mcap_ = (psi0_ - psicap_)/(1.0 - scap_);
-  mcapstar_ = mcap_*(sft_ - sr_);
-   
+  double star = 1.0 - (std::abs(pi0_) / eps_);
+  sft_ = (stlp_ - (1.0 - star) * sr_) / star;
+  scap_ = 1.0 - 0.61 * (1.0 - stlp_);
+  psitlp_ = -std::abs(pi0_) / ((stlp_ - sr_) / (sft_ - sr_));
+  mcap_ = (psi0_ - psicap_) / (1.0 - scap_);
+  mcapstar_ = mcap_ * (sft_ - sr_);
+
   /*
   if (plist_.isParameter("van Genuchten m")) {
     m_ = plist_.get<double>("van Genuchten m");
@@ -339,5 +355,5 @@ void WRMPlantChristoffersen::InitializeFromPlist_() {
   */
 };
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi

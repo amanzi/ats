@@ -1,10 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -----------------------------------------------------------------------------
-This is the overland flow component of ATS.
-License: BSD
-Author: Ethan Coon (ecoon@lanl.gov)
------------------------------------------------------------------------------ */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 #include "EpetraExt_MultiVectorOut.h"
 #include "Epetra_MultiVector.h"
@@ -31,8 +32,8 @@ namespace Flow {
 SnowDistribution::SnowDistribution(Teuchos::ParameterList& FElist,
                                    const Teuchos::RCP<Teuchos::ParameterList>& plist,
                                    const Teuchos::RCP<State>& S,
-                                   const Teuchos::RCP<TreeVector>& solution) :
-    PK(FElist, plist, S, solution),
+                                   const Teuchos::RCP<TreeVector>& solution)
+  : PK(FElist, plist, S, solution),
     PK_PhysicalBDF_Default(FElist, plist, S, solution),
     my_next_time_(-9.e80)
 {
@@ -47,7 +48,9 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& FElist,
 // -------------------------------------------------------------
 // Constructor
 // -------------------------------------------------------------
-void SnowDistribution::Setup(const Teuchos::Ptr<State>& S) {
+void
+SnowDistribution::Setup(const Teuchos::Ptr<State>& S)
+{
   //PKPhysicalBDFBase::setup(S);
   PK_PhysicalBDF_Default::Setup(S);
   SetupSnowDistribution_(S);
@@ -55,19 +58,23 @@ void SnowDistribution::Setup(const Teuchos::Ptr<State>& S) {
 }
 
 
-void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
+void
+SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S)
+{
   // precip function
   Teuchos::ParameterList& precip_func = plist_->sublist("precipitation function");
   FunctionFactory fac;
   precip_func_ = Teuchos::rcp(fac.Create(precip_func));
 
   // Require fields and evaluators for those fields.
-  S->Require<CompositeVector,CompositeVectorSpace>(key_, Tags::NEXT,  name_).SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+  S->Require<CompositeVector, CompositeVectorSpace>(key_, Tags::NEXT, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted()
+    ->SetComponent("cell", AmanziMesh::CELL, 1);
 
   // -- cell volume and evaluator
   S->RequireEvaluator(Keys::getKey(domain_, "cell_volume"));
-  
+
   // boundary conditions
   int nfaces = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
   bc_markers().resize(nfaces, Operators::OPERATOR_BC_NONE);
@@ -75,15 +82,20 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
   UpdateBoundaryConditions_(S); // never change
 
   // -- create the upwinding method.
-  S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "upwind_conductivity"), name_)->SetMesh(mesh_)
-    ->SetGhosted()->SetComponent("face", AmanziMesh::FACE, 1);
-  S->GetField(Keys::getKey(domain_,"upwind_conductivity"),name_)->set_io_vis(false);
+  S->Require<CompositeVector, CompositeVectorSpace>(
+     Keys::getKey(domain_, Tags::NEXT, "upwind_conductivity"), name_)
+    ->SetMesh(mesh_)
+    ->SetGhosted()
+    ->SetComponent("face", AmanziMesh::FACE, 1);
+  S->GetField(Keys::getKey(domain_, "upwind_conductivity"), name_)->set_io_vis(false);
 
   upwind_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
-  upwinding_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-          Keys::getKey(domain_,"conductivity"),
-          Keys::getKey(domain_,"upwind_conductivity"),
-          Keys::getKey(domain_,"flux_direction"), 1.e-8));
+  upwinding_ =
+    Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
+                                                Keys::getKey(domain_, "conductivity"),
+                                                Keys::getKey(domain_, "upwind_conductivity"),
+                                                Keys::getKey(domain_, "flux_direction"),
+                                                1.e-8));
 
   // -- operator for the diffusion terms
   Teuchos::ParameterList mfd_plist = plist_->sublist("diffusion");
@@ -94,7 +106,7 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
             << "\"Newton correction\" term, perhaps you meant to put this in a "
             << "\"Diffusion PC\" sublist.";
     Exceptions::amanzi_throw(message);
-  }    
+  }
   matrix_diff_ = Teuchos::rcp(new Operators::PDE_DiffusionFV(mfd_plist, mesh_));
   matrix_diff_->SetBCs(bc_, bc_);
   matrix_diff_->SetTensorCoefficient(Teuchos::null);
@@ -108,9 +120,11 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
   face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
   face_matrix_diff_->SetBCs(bc_, bc_);
   face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
-  S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT,  "flux_direction"), name_)
-      ->SetMesh(mesh_)->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
+  S->Require<CompositeVector, CompositeVectorSpace>(
+     Keys::getKey(domain_, Tags::NEXT, "flux_direction"), name_)
+    ->SetMesh(mesh_)
+    ->SetGhosted()
+    ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // -- preconditioner
   Teuchos::ParameterList mfd_pc_plist = plist_->sublist("diffusion preconditioner");
@@ -118,17 +132,18 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
   // old style... deprecate me!
   mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("preconditioner"));
   mfd_pc_plist.sublist("inverse").setParameters(plist_->sublist("linear solver"));
-  
+
   preconditioner_diff_ = Teuchos::rcp(new Operators::PDE_DiffusionFV(mfd_pc_plist, mesh_));
   preconditioner_diff_->SetBCs(bc_, bc_);
   preconditioner_diff_->SetTensorCoefficient(Teuchos::null);
 
   preconditioner_ = preconditioner_diff_->global_operator();
-  
+
   // accumulation operator for the preconditioenr
   Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
   acc_pc_plist.set("entity kind", "cell");
-  preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
+  preconditioner_acc_ =
+    Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
   // symbolic assemble, get PC
 }
@@ -138,35 +153,44 @@ void SnowDistribution::SetupSnowDistribution_(const Teuchos::Ptr<State>& S) {
 // Create the physical evaluators for water content, water
 // retention, rel perm, etc, that are specific to Richards.
 // -------------------------------------------------------------
-void SnowDistribution::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S) {
+void
+SnowDistribution::SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S)
+{
   // -- evaluator for potential field, h + z
 
-  S->RequireEvaluator(Keys::getKey(domain_,"skin_potential"));
-  S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "skin_potential"))->SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S->RequireEvaluator(Keys::getKey(domain_, "skin_potential"));
+  S->Require<CompositeVector, CompositeVectorSpace>(
+     Keys::getKey(domain_, Tags::NEXT, "skin_potential"))
+    ->SetMesh(mesh_)
+    ->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- snow_conductivity evaluator
-  S->RequireEvaluator(Keys::getKey(domain_,"conductivity"));
-  S->Require<CompositeVector,CompositeVectorSpace>(Keys::getKey(domain_, Tags::NEXT, "conductivity"))->SetMesh(mesh_)->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-
+  S->RequireEvaluator(Keys::getKey(domain_, "conductivity"));
+  S->Require<CompositeVector, CompositeVectorSpace>(
+     Keys::getKey(domain_, Tags::NEXT, "conductivity"))
+    ->SetMesh(mesh_)
+    ->SetGhosted()
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
 }
 
 
 // -------------------------------------------------------------
 // Initialize PK
 // -------------------------------------------------------------
-void SnowDistribution::Initialize(const Teuchos::Ptr<State>& S) {
+void
+SnowDistribution::Initialize(const Teuchos::Ptr<State>& S)
+{
   // Initialize BDF stuff and physical domain stuff.
   PK_PhysicalBDF_Default::Initialize(S);
 
   // Set extra fields as initialized -- these don't currently have evaluators.
-  S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity"),name_)->PutScalar(1.0);
-  S->GetField(Keys::getKey(domain_,"upwind_conductivity"),name_)->set_initialized();
+  S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "upwind_conductivity"), name_)->PutScalar(1.0);
+  S->GetField(Keys::getKey(domain_, "upwind_conductivity"), name_)->set_initialized();
 
   if (upwind_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
-    S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"flux_direction"), name_)->PutScalar(0.);
-    S->GetField(Keys::getKey(domain_,"flux_direction"), name_)->set_initialized();
+    S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "flux_direction"), name_)->PutScalar(0.);
+    S->GetField(Keys::getKey(domain_, "flux_direction"), name_)->set_initialized();
   }
 };
 
@@ -176,38 +200,42 @@ void SnowDistribution::Initialize(const Teuchos::Ptr<State>& S) {
 //
 //   This deals with upwinding, etc.
 // -----------------------------------------------------------------------------
-bool SnowDistribution::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) {
-
-  bool update_perm = S->GetEvaluator(Keys::getKey(domain_,"conductivity"))
-      ->HasFieldChanged(S, name_);
-  update_perm |= S->GetEvaluator(Keys::getKey(domain_,"precipitation"))->HasFieldChanged(S, name_);
-  update_perm |= S->GetEvaluator(Keys::getKey(domain_,"skin_potential"))->HasFieldChanged(S, name_);
+bool
+SnowDistribution::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
+{
+  bool update_perm =
+    S->GetEvaluator(Keys::getKey(domain_, "conductivity"))->HasFieldChanged(S, name_);
+  update_perm |= S->GetEvaluator(Keys::getKey(domain_, "precipitation"))->HasFieldChanged(S, name_);
+  update_perm |=
+    S->GetEvaluator(Keys::getKey(domain_, "skin_potential"))->HasFieldChanged(S, name_);
 
   if (update_perm) {
     if (upwind_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
       // update the direction of the flux -- note this is NOT the flux
       Teuchos::RCP<CompositeVector> flux_dir =
-          S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"flux_direction"), name_);
+        S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "flux_direction"), name_);
 
       // Derive the flux
-      Teuchos::RCP<const CompositeVector> potential = S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"skin_potential"));
+      Teuchos::RCP<const CompositeVector> potential =
+        S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "skin_potential"));
       face_matrix_diff_->UpdateFlux(potential.ptr(), flux_dir.ptr());
     }
 
     // get snow_conductivity data
-    const Epetra_MultiVector& cond_c = *S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"conductivity"))
-        ->ViewComponent("cell",false);
+    const Epetra_MultiVector& cond_c =
+      *S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "conductivity"))
+         ->ViewComponent("cell", false);
 
     // get upwind snow_conductivity data
     Teuchos::RCP<CompositeVector> uw_cond =
-      S->GetPtrW<CompositeVector>(Keys::getKey(domain_,"upwind_conductivity"), name_);
+      S->GetPtrW<CompositeVector>(Keys::getKey(domain_, "upwind_conductivity"), name_);
 
     { // place interior cells on boundary faces
-      Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face",false);
+      Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face", false);
 
       int nfaces = uw_cond_f.MyLength();
       AmanziMesh::Entity_ID_List cells;
-      for (int f=0; f!=nfaces; ++f) {
+      for (int f = 0; f != nfaces; ++f) {
         mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
         if (cells.size() == 1) {
           int c = cells[0];
@@ -224,14 +252,15 @@ bool SnowDistribution::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S) {
   return update_perm;
 }
 
-void SnowDistribution::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S) {
+void
+SnowDistribution::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
-  
+
   // mark all remaining boundary conditions as zero flux conditions
   int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
   AmanziMesh::Entity_ID_List cells;
@@ -246,8 +275,7 @@ void SnowDistribution::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S) {
       }
     }
   }
-}  
+}
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

@@ -1,7 +1,15 @@
 /*
-  Evaluates depth of various mesh entities.
-    
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
+  Evaluates depth of various mesh entities.
+
 */
 
 #include "depth_model.hh"
@@ -11,21 +19,20 @@ namespace Flow {
 
 
 void
-DepthModel(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth) {
+DepthModel(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
+{
   depth.PutScalar(-1);
-  AMANZI_ASSERT(depth.MyLength() == mesh.num_entities(AmanziMesh::CELL,
-          AmanziMesh::Parallel_type::OWNED));      
-  for (int c=0; c!=depth.MyLength(); ++c) {
-    if (depth[0][c] <= 0.) {
-      DepthModel_Cell(c, mesh, depth);
-    }            
+  AMANZI_ASSERT(depth.MyLength() ==
+                mesh.num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
+  for (int c = 0; c != depth.MyLength(); ++c) {
+    if (depth[0][c] <= 0.) { DepthModel_Cell(c, mesh, depth); }
   }
 }
 
 
 void
-DepthModel_Cell(int c, const AmanziMesh::Mesh& mesh,
-                Epetra_MultiVector& depth) {
+DepthModel_Cell(int c, const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
+{
   int z_dim = mesh.space_dimension() - 1;
   int c_above = mesh.cell_get_cell_above(c);
   if (c_above == -1) {
@@ -42,22 +49,19 @@ DepthModel_Cell(int c, const AmanziMesh::Mesh& mesh,
         break;
       }
     }
-    
+
     // get the depth
-    depth[0][c] = mesh.face_centroid(f_above)[z_dim]
-                  - mesh.cell_centroid(c)[z_dim];
+    depth[0][c] = mesh.face_centroid(f_above)[z_dim] - mesh.cell_centroid(c)[z_dim];
     return;
   }
 
-  if (depth[0][c_above] <= 0) {
-    DepthModel_Cell(c_above, mesh, depth);
-  }
+  if (depth[0][c_above] <= 0) { DepthModel_Cell(c_above, mesh, depth); }
   AMANZI_ASSERT(depth[0][c_above] > 0.);
-  depth[0][c] = depth[0][c_above] + mesh.cell_centroid(c_above)[z_dim]
-                - mesh.cell_centroid(c)[z_dim];
+  depth[0][c] =
+    depth[0][c_above] + mesh.cell_centroid(c_above)[z_dim] - mesh.cell_centroid(c)[z_dim];
   return;
 }
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluates bioturbation of carbon -- simple diffusion model.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_BGCRELATIONS_BIOTURBATION_HH_
@@ -23,25 +29,22 @@ class BioturbationEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
-protected:
+ protected:
   Key carbon_key_;
   Key diffusivity_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,BioturbationEvaluator> fac_;
-
-
-
+  static Utils::RegisteredFactory<Evaluator, BioturbationEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
-} // namespace
+} // namespace BGCRelations
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

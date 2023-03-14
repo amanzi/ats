@@ -1,10 +1,40 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Interface for a thermal conductivity model with two phases.
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Thermal conductivity of surface water that can be either frozen or liquid phase.
+
+`"evaluator type`" = `"surface thermal conductivity`"
+
+.. _thermal-conductivity-surface-evaluator-spec:
+.. admonition:: thermal-conductivity-surface-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-surface-spec]``
+
+   KEYS:
+
+   - `"unfrozen fraction`"
+   - `"ponded depth`"
+
+.. _thermal-conductivity-surface-spec:
+.. admonition:: thermal-conductivity-surface-spec
+
+   * `"thermal conductivity of water [W m^-1 K^-1]`" ``[double]`` **0.58**
+   * `"thermal conductivity of ice [W m^-1 K^-1]`" ``[double]`` **2.18**
+   * `"minimum thermal conductivity`" ``[double]`` **1.e-14**
+
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_TC_SURFACE_EVALUATOR_HH_
@@ -16,9 +46,7 @@
 namespace Amanzi {
 namespace Energy {
 
-class ThermalConductivitySurfaceEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class ThermalConductivitySurfaceEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   // constructor format for all derived classes
   ThermalConductivitySurfaceEvaluator(Teuchos::ParameterList& plist);
@@ -28,11 +56,11 @@ class ThermalConductivitySurfaceEvaluator :
 
  protected:
   // Required methods from SecondaryVariableFieldModel
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // dependencies
@@ -44,10 +72,10 @@ class ThermalConductivitySurfaceEvaluator :
   double min_K_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThermalConductivitySurfaceEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ThermalConductivitySurfaceEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

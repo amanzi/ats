@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   The elevation evaluator gets the surface elevation, slope, and updates pres + elev.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "pres_elev_evaluator.hh"
@@ -18,20 +24,21 @@ PresElevEvaluator::PresElevEvaluator(Teuchos::ParameterList& plist)
   Tag tag = my_keys_.front().second;
 
   pres_key_ = Keys::readKey(plist_, domain, "ponded depth", "ponded_depth");
-  dependencies_.insert(KeyTag{pres_key_, tag});
+  dependencies_.insert(KeyTag{ pres_key_, tag });
   elev_key_ = Keys::readKey(plist_, domain, "elevation", "elevation");
-  dependencies_.insert(KeyTag{elev_key_, tag});
+  dependencies_.insert(KeyTag{ elev_key_, tag });
 }
 
 
 Teuchos::RCP<Evaluator>
-PresElevEvaluator::Clone() const {
+PresElevEvaluator::Clone() const
+{
   return Teuchos::rcp(new PresElevEvaluator(*this));
 }
 
 
-void PresElevEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+void
+PresElevEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
 
@@ -43,11 +50,14 @@ void PresElevEvaluator::Evaluate_(const State& S,
 
 
 // This is hopefully never called?
-void PresElevEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+void
+PresElevEvaluator::EvaluatePartialDerivative_(const State& S,
+                                              const Key& wrt_key,
+                                              const Tag& wrt_tag,
+                                              const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(1.0);
 }
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include <set>
 #include "Mesh2D.hh"
 
@@ -5,30 +14,23 @@ namespace Amanzi {
 namespace AmanziGeometry {
 
 Mesh2D::Mesh2D(std::vector<Point>& coords_,
-               std::vector<std::vector<int> >& cell2node_,
-               std::vector<std::vector<int> >& cell_sets_) :
-    coords(coords_),
-    cell2node(cell2node_),
-    cell_sets(cell_sets_),
-    datum(2)
+               std::vector<std::vector<int>>& cell2node_,
+               std::vector<std::vector<int>>& cell_sets_)
+  : coords(coords_), cell2node(cell2node_), cell_sets(cell_sets_), datum(2)
 {
   double area_eps = 1.e-6;
-  
-  for (auto& set : cell_sets) {
-    AMANZI_ASSERT(set.size() == cell2node.size());
-  }
+
+  for (auto& set : cell_sets) { AMANZI_ASSERT(set.size() == cell2node.size()); }
 
   nnodes = coords.size();
   ncells = cell2node.size();
-  
+
   for (auto& c : cell2node) {
     Point v1(2), v2(2);
     v1.set(coords[c[1]][0] - coords[c[0]][0], coords[c[1]][1] - coords[c[0]][1]);
     v2.set(coords[c[2]][0] - coords[c[0]][0], coords[c[2]][1] - coords[c[0]][1]);
-    Point cross = v1^v2;
-    if (is_greater(0.0, cross[0])) {
-      std::reverse(c.begin(), c.end());
-    }
+    Point cross = v1 ^ v2;
+    if (is_greater(0.0, cross[0])) { std::reverse(c.begin(), c.end()); }
     if (is_greater(area_eps, std::abs(cross[0]))) {
       std::cout << "Zero area triangle:" << std::endl
                 << " " << coords[c[0]] << std::endl
@@ -38,15 +40,15 @@ Mesh2D::Mesh2D(std::vector<Point>& coords_,
     }
   }
 
-  for (int c=0; c!=cell2node.size(); ++c) {
+  for (int c = 0; c != cell2node.size(); ++c) {
     std::vector<int> c2f(3);
-    
-    std::vector<int> f1 = {cell2node[c][0], cell2node[c][1]};
+
+    std::vector<int> f1 = { cell2node[c][0], cell2node[c][1] };
     c2f[0] = face_constructor(f1, 0, c);
-    std::vector<int> f2 = {cell2node[c][1], cell2node[c][2]};
+    std::vector<int> f2 = { cell2node[c][1], cell2node[c][2] };
     c2f[1] = face_constructor(f2, 1, c);
-    std::vector<int> f3 = {cell2node[c][2], cell2node[c][0]};
-    c2f[2] = face_constructor(f3, 2, c);      
+    std::vector<int> f3 = { cell2node[c][2], cell2node[c][0] };
+    c2f[2] = face_constructor(f3, 2, c);
     cell2face.emplace_back(c2f);
   }
 
@@ -56,16 +58,16 @@ Mesh2D::Mesh2D(std::vector<Point>& coords_,
 
   // set boundaries
   std::vector<int> boundary_c, boundary_f;
-  for (int lcv=0; lcv!=side_face_counts.size(); ++lcv) {
+  for (int lcv = 0; lcv != side_face_counts.size(); ++lcv) {
     if (side_face_counts[lcv] == 1) {
       boundary_c.push_back(face_cell_when_created[lcv]);
       boundary_f.push_back(face_in_cell_when_created[lcv]);
     }
   }
-  boundary_faces = std::make_pair(boundary_c,boundary_f);
+  boundary_faces = std::make_pair(boundary_c, boundary_f);
 
   // normalize the nodes
-  int64_t x=0., y=0.;
+  int64_t x = 0., y = 0.;
   for (auto& p : coords) {
     x += p[0];
     y += p[1];
@@ -79,12 +81,9 @@ Mesh2D::Mesh2D(std::vector<Point>& coords_,
 }
 
 int
-Mesh2D::face_constructor(const std::vector<int>& nodes,
-                         int index_in_cell,
-                         int cell)
+Mesh2D::face_constructor(const std::vector<int>& nodes, int index_in_cell, int cell)
 {
-  auto h = nodes[0] > nodes[1] ? hash(nodes[1], nodes[0]) :
-      hash(nodes[0],nodes[1]);
+  auto h = nodes[0] > nodes[1] ? hash(nodes[1], nodes[0]) : hash(nodes[0], nodes[1]);
 
   auto match = faces_sorted.find(h);
   if (match != faces_sorted.end()) {
@@ -104,6 +103,5 @@ Mesh2D::face_constructor(const std::vector<int>& nodes,
 }
 
 
-
-}
-}
+} // namespace AmanziGeometry
+} // namespace Amanzi

@@ -1,18 +1,29 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include "Mesh3D.hh"
 #include "writeMesh3D.hh"
 #include "readMesh2D.hh"
 #include <cfloat>
 
-int main() {
+int
+main()
+{
   using namespace Amanzi::AmanziGeometry;
 
   std::string mesh_in = "Mesh.txt";
   std::string mesh_out = "Mesh3D_VariableSoil.exo";
-  
-  std::vector<double> ref_soil_mlay_dz = {2.0e-2, 6.0e-2, 1.2e-1, 2.5e-1, 5.5e-1, 0.5e1};
-  std::vector<double> ref_bedrock_mlay_dz = {0.5e1, 1.5e1};
+
+  std::vector<double> ref_soil_mlay_dz = { 2.0e-2, 6.0e-2, 1.2e-1, 2.5e-1, 5.5e-1, 0.5e1 };
+  std::vector<double> ref_bedrock_mlay_dz = { 0.5e1, 1.5e1 };
   double eps_dz = 1.0e-3;
-  
+
   int nsoil_lay = ref_soil_mlay_dz.size();
   int nbedrock_lay = ref_bedrock_mlay_dz.size();
 
@@ -30,41 +41,40 @@ int main() {
   int nsnodes = m.coords.size();
   double min_depth = DBL_MAX, max_depth = 0.0;
   for (int inode = 0; inode < nsnodes; inode++) {
-    if (depths[inode] < min_depth)
-      min_depth = depths[inode];
-    if (depths[inode] > max_depth)
-      max_depth = depths[inode];
+    if (depths[inode] < min_depth) min_depth = depths[inode];
+    if (depths[inode] > max_depth) max_depth = depths[inode];
   }
-  std::cout << "Min soil depth -> " << min_depth << ", max soil depth -> " << max_depth << std::endl;
+  std::cout << "Min soil depth -> " << min_depth << ", max soil depth -> " << max_depth
+            << std::endl;
 
   std::vector<double> dzs(nsnodes, 0.0);
   std::vector<double> rem_soil = depths;
-  
+
   Mesh3D m3(&m, nsoil_lay + nbedrock_lay);
-  
+
   for (int ilay = 0; ilay < nsoil_lay; ilay++) {
     for (int inode = 0; inode < nsnodes; inode++) {
       if (rem_soil[inode] < eps_dz) {
         dzs[inode] = 0.0;
         continue;
       }
-      if (rem_soil[inode] > 2*ref_soil_mlay_dz[ilay])
+      if (rem_soil[inode] > 2 * ref_soil_mlay_dz[ilay])
         dzs[inode] = ref_soil_mlay_dz[ilay];
       else if (rem_soil[inode] > ref_soil_mlay_dz[ilay] + eps_dz)
-        dzs[inode] = 0.5*rem_soil[inode];
+        dzs[inode] = 0.5 * rem_soil[inode];
       else if (rem_soil[inode] < ref_soil_mlay_dz[ilay] - eps_dz)
         dzs[inode] = rem_soil[inode];
       else
         dzs[inode] = ref_soil_mlay_dz[ilay];
-      
+
       rem_soil[inode] -= dzs[inode];
     }
     m3.extrude(dzs, soil_type);
   }
-  
+
   for (int ilay = 0; ilay < nbedrock_lay; ilay++)
     m3.extrude(ref_bedrock_mlay_dz[ilay], bedrock_type);
-  
+
   m3.finish();
 
   std::cout << "NNodes on the surf = " << m.coords.size() << std::endl;

@@ -1,6 +1,14 @@
 /*
-  License:
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ethan Coon (ecoon@lanl.gov) (ATS version)
+*/
+
+/*
+  License:
 
   Deformation optimization matrix
 */
@@ -25,34 +33,30 @@ namespace Amanzi {
 namespace Operators {
 
 class MatrixVolumetricDeformation : public CompositeMatrix {
-
  public:
-
   MatrixVolumetricDeformation(Teuchos::ParameterList& plist,
-          const Teuchos::RCP<const AmanziMesh::Mesh>& mesh);
+                              const Teuchos::RCP<const AmanziMesh::Mesh>& mesh);
 
   MatrixVolumetricDeformation(const MatrixVolumetricDeformation& other);
 
 
   // Vector space of the Matrix's domain.
-  virtual const CompositeVectorSpace& DomainMap() const {
-    return *domain_; }
+  virtual const CompositeVectorSpace& DomainMap() const { return *domain_; }
 
   // Vector space of the Matrix's range.
-  virtual const CompositeVectorSpace& RangeMap() const {
-    return *range_; }
+  virtual const CompositeVectorSpace& RangeMap() const { return *range_; }
 
   // Virtual copy constructor.
-  virtual Teuchos::RCP<CompositeMatrix> Clone() const {
-    return Teuchos::rcp(new MatrixVolumetricDeformation(*this)); }
+  virtual Teuchos::RCP<CompositeMatrix> Clone() const
+  {
+    return Teuchos::rcp(new MatrixVolumetricDeformation(*this));
+  }
 
   // Apply matrix, b <-- Ax
-  virtual int Apply(const CompositeVector& x,
-                     CompositeVector& b) const;
+  virtual int Apply(const CompositeVector& x, CompositeVector& b) const;
 
   // Apply the inverse, x <-- A^-1 b
-  virtual int ApplyInverse(const CompositeVector& b,
-                            CompositeVector& x) const;
+  virtual int ApplyInverse(const CompositeVector& b, CompositeVector& x) const;
 
   // This is a Normal equation, so we need to apply N^T to the rhs
   void ApplyRHS(const CompositeVector& x_cell,
@@ -84,9 +88,8 @@ class MatrixVolumetricDeformation : public CompositeMatrix {
 };
 
 
-}
-}
-
+} // namespace Operators
+} // namespace Amanzi
 
 
 #endif

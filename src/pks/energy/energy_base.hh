@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! An advection-diffusion equation for energy.
 
+//! An advection-diffusion equation for energy.
 /*!
 
 Solves an advection-diffusion equation for energy:
@@ -106,18 +107,23 @@ Solves an advection-diffusion equation for energy:
       Typically not provided by users, as defaults are correct.
 
     IF
+
     * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
       surface boundary conditions from an exchange flux.  Note, if this is a
       coupled problem, it is probably set by the MPC.  No need for a user to
       set it.
+
     THEN
+
     * `"surface-subsurface energy flux key`" ``[string]`` **DOMAIN-surface_subsurface_energy_flux**
+
     END
 
     * `"coupled to surface via temperature`" ``[bool]`` **false** If true, apply
       surface boundary conditions from the surface temperature (Dirichlet).
 
     KEYS:
+
     - `"conserved quantity`" **DOMAIN-energy** The total energy :math:`E` `[MJ]`
     - `"energy`" **DOMAIN-energy** The total energy :math:`E`, also the conserved quantity. `[MJ]`
     - `"water content`" **DOMAIN-water_content** The total mass :math:`\Theta`, used in error norm `[mol]`
@@ -129,6 +135,7 @@ Solves an advection-diffusion equation for energy:
     - `"upwinded thermal conductivity`" **DOMAIN-upwinded_thermal_conductivity** Thermal conductivity on faces `[W m^-1 K^-1]`
 
     EVALUATORS:
+
     - `"source term`" **optional** If source key is provided.
     - `"enthalpy`"
     - `"cell volume`"
@@ -156,15 +163,17 @@ Solves an advection-diffusion equation for energy:
 namespace Amanzi {
 
 // forward declarations
-namespace Operators { class Advection; }
-namespace Functions { class BoundaryFunction; }
+namespace Operators {
+class Advection;
+}
+namespace Functions {
+class BoundaryFunction;
+}
 
 namespace Energy {
 
-class EnergyBase : public PK_PhysicalBDF_Default{
-
-public:
-
+class EnergyBase : public PK_PhysicalBDF_Default {
+ public:
   EnergyBase(Teuchos::ParameterList& FElist,
              const Teuchos::RCP<Teuchos::ParameterList>& plist,
              const Teuchos::RCP<State>& S,
@@ -186,17 +195,21 @@ public:
 
   // Default implementations of BDFFnBase methods.
   // -- Compute a norm on u-du and return the result.
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du) override;
+  virtual double
+  ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
   // EnergyBase is a BDFFnBase
   // computes the non-linear functional f = f(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> f) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> f) override;
 
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
@@ -204,14 +217,15 @@ public:
   // problems with temperatures -- setting a range of admissible temps
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
                    Teuchos::RCP<const TreeVector> u,
                    Teuchos::RCP<TreeVector> du) override;
 
@@ -246,8 +260,7 @@ public:
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- advection of enthalpy
-  virtual void AddAdvection_(const Tag& tag,
-        const Teuchos::Ptr<CompositeVector>& g, bool negate);
+  virtual void AddAdvection_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g, bool negate);
 
   // -- diffusion of temperature
   virtual void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);

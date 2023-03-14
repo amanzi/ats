@@ -1,6 +1,9 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ahmad Jan (jana@ornl.gov)
            Ethan Coon (ecoon@ornl.gov)
 */
@@ -26,22 +29,21 @@ namespace Amanzi {
 namespace Flow {
 
 class VolumetricPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist);
+  explicit VolumetricPondedDepthEvaluator(Teuchos::ParameterList& plist);
   VolumetricPondedDepthEvaluator(const VolumetricPondedDepthEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new VolumetricPondedDepthEvaluator(*this));
   }
 
  protected:
-
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -51,11 +53,8 @@ class VolumetricPondedDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key delta_ex_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,VolumetricPondedDepthEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, VolumetricPondedDepthEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-
-
+} // namespace Flow
+} // namespace Amanzi

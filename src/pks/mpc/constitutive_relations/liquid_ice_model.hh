@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Ugly hackjob to enable direct evaluation of the full model, on a single
   WRM/region.  This is bypassing much of the "niceness" of the framework, but
   seems necessary for solving a cell-wise correction equation.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_LIQUID_ICE_MODEL_
@@ -26,29 +32,32 @@ namespace Amanzi {
 namespace Flow {
 class PCIceWater;
 class PCLiqAtm;
+} // namespace Flow
+
+namespace Energy {
+class IEM;
+}
+namespace Relations {
+class EOS;
 }
 
-namespace Energy { class IEM; }
-namespace Relations { class EOS; }
-
 class LiquidIceModel : public EWCModelBase {
-
  public:
   LiquidIceModel() {}
-  virtual ~LiquidIceModel() {};
+  virtual ~LiquidIceModel(){};
 
-  virtual void InitializeModel(
-    const Teuchos::Ptr<State>& S, const Tag& tag, Teuchos::ParameterList& plist) override;
+  virtual void InitializeModel(const Teuchos::Ptr<State>& S,
+                               const Tag& tag,
+                               Teuchos::ParameterList& plist) override;
   virtual void UpdateModel(const Teuchos::Ptr<State>& S, int c) override;
   virtual bool Freezing(double T, double p) override;
-  virtual int EvaluateSaturations(
-    double T, double p, double& s_gas,double& s_liq, double& s_ice) override;
+  virtual int
+  EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) override;
 
  protected:
   bool IsSetUp_();
 
-  int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result) override;
+  int EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result) override;
 
  protected:
   Teuchos::RCP<Flow::WRMPermafrostModelPartition> wrms_;
@@ -76,12 +85,9 @@ class LiquidIceModel : public EWCModelBase {
   Tag tag_;
 
   bool use_pc_ice_;
-
 };
 
-}
-
-
+} // namespace Amanzi
 
 
 #endif

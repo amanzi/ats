@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Painter's permafrost model with freezing point depression, smoothed.
 
+//! Painter's permafrost model with freezing point depression, smoothed.
 /*!
 
 .. _wrm-fpd-smoothed-permafrost-spec
@@ -33,14 +34,13 @@ namespace Flow {
 class WRM;
 
 class WRMFPDSmoothedPermafrostModel : public WRMPermafrostModel {
-
  public:
-  explicit
-  WRMFPDSmoothedPermafrostModel(Teuchos::ParameterList& plist);
+  explicit WRMFPDSmoothedPermafrostModel(Teuchos::ParameterList& plist);
 
   // required methods from the base class
   // sats[0] = sg, sats[1] = sl, sats[2] = si
-  virtual bool freezing(double T, double pc_liq, double pc_ice) { 
+  virtual bool freezing(double T, double pc_liq, double pc_ice)
+  {
     return pc_liq <= 0. ? T < 273.15 : pc_liq < pc_ice;
   }
 
@@ -50,15 +50,14 @@ class WRMFPDSmoothedPermafrostModel : public WRMPermafrostModel {
 
  protected:
   double dp_;
-  
+
  private:
   // factory registration
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMFPDSmoothedPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMFPDSmoothedPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

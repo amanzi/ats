@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Source term evaluator for enthalpy of mass source.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_ADVECTED_ENERGY_SOURCE_EVALUATOR_
@@ -16,22 +22,20 @@ namespace Amanzi {
 namespace Energy {
 
 class AdvectedEnergySourceEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  AdvectedEnergySourceEvaluator(Teuchos::ParameterList& plist);
+  explicit AdvectedEnergySourceEvaluator(Teuchos::ParameterList& plist);
   AdvectedEnergySourceEvaluator(const AdvectedEnergySourceEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   void InitializeFromPlist_();
@@ -54,11 +58,10 @@ class AdvectedEnergySourceEvaluator : public EvaluatorSecondaryMonotypeCV {
   SourceUnits source_units_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AdvectedEnergySourceEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, AdvectedEnergySourceEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

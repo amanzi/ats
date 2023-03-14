@@ -1,11 +1,10 @@
 /*
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL. 
-  Amanzi is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
-
 */
 
 #include <UnitTest++.h>
@@ -23,7 +22,8 @@ using namespace Amanzi;
 struct Runner {
   Runner() {}
 
-  void setup(const std::string& filename) {
+  void setup(const std::string& filename)
+  {
     std::cout << "Test: " << filename << std::endl;
     comm = getDefaultComm();
     plist = Teuchos::getParametersFromXmlFile(filename);
@@ -31,9 +31,7 @@ struct Runner {
     S = Teuchos::rcp(new State(plist->sublist("state")));
   }
 
-  void go() {
-    ATS::createMeshes(plist->sublist("mesh"), comm, gm, *S);
-  }
+  void go() { ATS::createMeshes(plist->sublist("mesh"), comm, gm, *S); }
 
   Teuchos::RCP<Teuchos::ParameterList> plist;
   Comm_ptr_type comm;
@@ -42,25 +40,29 @@ struct Runner {
 };
 
 
-SUITE(ATS_MESH_FACTORY) {
+SUITE(ATS_MESH_FACTORY)
+{
+  TEST_FIXTURE(Runner, EXTRACT_SURFACE)
+  {
+    setup("test/executable_mesh_extract_surface.xml");
+    go();
 
-TEST_FIXTURE(Runner, EXTRACT_SURFACE) {
-  setup("test/executable_mesh_extract_surface.xml");
-  go();
+    CHECK(S->HasMesh(""));
+    CHECK(S->HasMesh("domain"));
 
-  CHECK(S->HasMesh(""));
-  CHECK(S->HasMesh("domain"));
+    int has_surface = 0;
+    int set_size = S->GetMesh("domain")->get_set_size(
+      "surface", AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_type::OWNED);
+    if (set_size > 0) {
+      has_surface += 1;
+      CHECK(S->HasMesh("surface"));
+      CHECK_EQUAL(set_size,
+                  S->GetMesh("surface")->num_entities(AmanziMesh::Entity_kind::CELL,
+                                                      AmanziMesh::Parallel_type::OWNED));
+    }
 
-  int has_surface = 0;
-  int set_size = S->GetMesh("domain")->get_set_size("surface", AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_type::OWNED);
-  if (set_size > 0) {
-    has_surface += 1;
-    CHECK(S->HasMesh("surface"));
-    CHECK_EQUAL(set_size, S->GetMesh("surface")->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED));
+    int total_has_surface = 0;
+    comm->SumAll(&has_surface, &total_has_surface, 1);
+    CHECK(total_has_surface > 0);
   }
-
-  int total_has_surface = 0;
-  comm->SumAll(&has_surface, &total_has_surface, 1);
-  CHECK(total_has_surface > 0);
-}
 }

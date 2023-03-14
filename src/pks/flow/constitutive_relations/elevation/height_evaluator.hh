@@ -1,9 +1,35 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluator for determining height( rho, head )
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Computes ponded depth from surface water pressure.
+
+.. math::
+   h = \frac{H(p - p_{atm})}{\rho g}
+
+where :math:`H` is the Heaviside function.
+
+`"evaluator type`" = `"ponded depth`"
+
+.. _height-evaluator-spec:
+.. admonition:: height-evaluator-spec
+
+   KEYS:
+
+   - `"mass density`"
+   - `"pressure`"
 */
 
 #ifndef AMANZI_FLOW_RELATIONS_HEIGHT_EVALUATOR_
@@ -18,11 +44,9 @@ namespace Flow {
 class HeightModel;
 
 class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  HeightEvaluator(Teuchos::ParameterList& plist);
+  explicit HeightEvaluator(Teuchos::ParameterList& plist);
   HeightEvaluator(const HeightEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -36,11 +60,11 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key dens_key_;
@@ -52,11 +76,10 @@ class HeightEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<HeightModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,HeightEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, HeightEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

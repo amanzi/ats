@@ -1,11 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
            Chonggang Xu (cxu@lanl.gov)
 */
+
 /*!
 
 Parameters for the Century model for biogeochemistry.
@@ -28,9 +30,7 @@ namespace Amanzi {
 namespace BGC {
 
 class SoilCarbonParameters {
-
  public:
-
   SoilCarbonParameters(int npools, double percent_sand);
   SoilCarbonParameters(int npools, Teuchos::ParameterList& plist);
 
@@ -45,12 +45,12 @@ class SoilCarbonParameters {
   void Init_(Teuchos::ParameterList& plist);
 
  private:
-  SoilCarbonParameters(const SoilCarbonParameters& other); // not implemented
+  SoilCarbonParameters(const SoilCarbonParameters& other);            // not implemented
   SoilCarbonParameters& operator=(const SoilCarbonParameters& other); // not implemented
 };
 
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
 
 #endif

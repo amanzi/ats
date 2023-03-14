@@ -1,10 +1,34 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Interface for a thermal conductivity model with two phases.
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*!
+
+Thermal conductivity based on two-phases (air,liquid) composition of the
+porous media.
+
+`"evaluator type`" = `"two-phase thermal conductivity`"
+
+.. _thermal-conductivity-twophase-evaluator-spec:
+.. admonition:: thermal-conductivity-twophase-evaluator-spec
+
+   * `"thermal conductivity parameters`" ``[thermal-conductivity-twophase-typedinline-spec-list]``
+
+   KEYS:
+
+   - `"porosity`"
+   - `"saturation liquid`"
+
 */
 
 #ifndef AMANZI_ENERGY_RELATIONS_TC_TWOPHASE_EVALUATOR_HH_
@@ -17,11 +41,9 @@ namespace Amanzi {
 namespace Energy {
 
 // Equation of State model
-class ThermalConductivityTwoPhaseEvaluator :
-    public EvaluatorSecondaryMonotypeCV {
-
+class ThermalConductivityTwoPhaseEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  using RegionModelPair = std::pair<std::string,Teuchos::RCP<ThermalConductivityTwoPhase> >;
+  using RegionModelPair = std::pair<std::string, Teuchos::RCP<ThermalConductivityTwoPhase>>;
 
   // constructor format for all derived classes
   ThermalConductivityTwoPhaseEvaluator(Teuchos::ParameterList& plist);
@@ -30,11 +52,11 @@ class ThermalConductivityTwoPhaseEvaluator :
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   std::vector<RegionModelPair> tcs_;
@@ -45,10 +67,10 @@ class ThermalConductivityTwoPhaseEvaluator :
   Key sat_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThermalConductivityTwoPhaseEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, ThermalConductivityTwoPhaseEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

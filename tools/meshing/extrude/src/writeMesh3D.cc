@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include <set>
 #include <vector>
 #include <algorithm>
@@ -12,7 +21,8 @@ namespace Amanzi {
 namespace AmanziGeometry {
 
 void
-writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
+writeMesh3D_exodus(const Mesh3D& m, const std::string& filename)
+{
   // create the exodus file
   int CPU_word_size = sizeof(float);
   int IO_Word_size = 8;
@@ -21,13 +31,13 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
     std::cerr << "Cowardly not clobbering: \"" << filename << "\" already exists." << std::endl;
     return;
   }
-  
+
   // make the blocks by set
   std::set<int> set_ids(m.block_ids.begin(), m.block_ids.end());
-  std::vector<std::vector<int> > blocks;
+  std::vector<std::vector<int>> blocks;
   std::vector<int> blocks_ncells;
   std::vector<int> blocks_id;
-  std::vector<std::vector<int> > block_face_counts;
+  std::vector<std::vector<int>> block_face_counts;
 
   int new_id = 0;
   std::vector<int> cell_map(m.cell2face.size(), -1);
@@ -37,7 +47,7 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
     // count things
     int ncells = 0;
 
-    for (int i=0; i!=m.cell2face.size(); ++i) {
+    for (int i = 0; i != m.cell2face.size(); ++i) {
       if (m.block_ids[i] == sid) {
         ncells++;
         block.insert(block.end(), m.cell2face[i].begin(), m.cell2face[i].end());
@@ -77,34 +87,32 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
 
   int ierr = ex_put_init_ext(fid, &params);
   AMANZI_ASSERT(!ierr);
-  
+
   // make the coordinate arrays, set the coordinates
   // NOTE: exodus seems to only deal with floats!
-  std::vector<std::vector<float> > coords(3);
-  for (int i=0; i!=3; ++i) {
-    coords[i].resize(m.coords.size());
-  }
+  std::vector<std::vector<float>> coords(3);
+  for (int i = 0; i != 3; ++i) { coords[i].resize(m.coords.size()); }
 
-  for (int n=0; n!=coords[0].size(); ++n) {
+  for (int n = 0; n != coords[0].size(); ++n) {
     coords[0][n] = m.coords[n][0];
     coords[1][n] = m.coords[n][1];
     coords[2][n] = m.coords[n][2];
   }
 
   char* coord_names[3];
-  char a[10]="xcoord";
-  char b[10]="ycoord";
-  char c[10]="zcoord";
-  coord_names[0]=a;
-  coord_names[1]=b;
-  coord_names[2]=c;
+  char a[10] = "xcoord";
+  char b[10] = "ycoord";
+  char c[10] = "zcoord";
+  coord_names[0] = a;
+  coord_names[1] = b;
+  coord_names[2] = c;
 
   ierr |= ex_put_coord_names(fid, coord_names);
   AMANZI_ASSERT(!ierr);
   ierr |= ex_put_coord(fid, &coords[0][0], &coords[1][0], &coords[2][0]);
   AMANZI_ASSERT(!ierr);
 
-  
+
   // put in the face block
   std::vector<int> facenodes;
   std::vector<int> facenodes_counts;
@@ -112,43 +120,47 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
     facenodes_counts.push_back(nodes.size());
     facenodes.insert(facenodes.end(), nodes.begin(), nodes.end());
   }
-  ierr |= ex_put_block(fid, EX_FACE_BLOCK, 1, "NSIDED",
-                       m.face2node.size(), facenodes.size(), 0,0,0);
+  ierr |=
+    ex_put_block(fid, EX_FACE_BLOCK, 1, "NSIDED", m.face2node.size(), facenodes.size(), 0, 0, 0);
   AMANZI_ASSERT(!ierr);
 
-  ierr |= ex_put_entity_count_per_polyhedra(fid, EX_FACE_BLOCK, 1,
-          &facenodes_counts[0]);
+  ierr |= ex_put_entity_count_per_polyhedra(fid, EX_FACE_BLOCK, 1, &facenodes_counts[0]);
   AMANZI_ASSERT(!ierr);
 
   for (auto& e : facenodes) e++;
   ierr |= ex_put_conn(fid, EX_FACE_BLOCK, 1, &facenodes[0], NULL, NULL);
   AMANZI_ASSERT(!ierr);
-  
+
 
   // put in the element blocks
-  for (int lcvb=0; lcvb!=blocks.size(); ++lcvb) {
-    ierr |= ex_put_block(fid, EX_ELEM_BLOCK, blocks_id[lcvb], "NFACED",
-                         blocks_ncells[lcvb], 0, 0, blocks[lcvb].size(),0);
+  for (int lcvb = 0; lcvb != blocks.size(); ++lcvb) {
+    ierr |= ex_put_block(fid,
+                         EX_ELEM_BLOCK,
+                         blocks_id[lcvb],
+                         "NFACED",
+                         blocks_ncells[lcvb],
+                         0,
+                         0,
+                         blocks[lcvb].size(),
+                         0);
     AMANZI_ASSERT(!ierr);
 
-    ierr |= ex_put_entity_count_per_polyhedra(fid, EX_ELEM_BLOCK, blocks_id[lcvb],
-            &block_face_counts[lcvb][0]);
+    ierr |= ex_put_entity_count_per_polyhedra(
+      fid, EX_ELEM_BLOCK, blocks_id[lcvb], &block_face_counts[lcvb][0]);
     AMANZI_ASSERT(!ierr);
 
-    for (auto&e : blocks[lcvb]) e++;
+    for (auto& e : blocks[lcvb]) e++;
     ierr |= ex_put_conn(fid, EX_ELEM_BLOCK, blocks_id[lcvb], NULL, NULL, &blocks[lcvb][0]);
     AMANZI_ASSERT(!ierr);
   }
 
-  
+
   // add the side sets, mapping elems to the new ids
-  for (int lcvs=0; lcvs!=m.side_sets.size(); ++lcvs) {
+  for (int lcvs = 0; lcvs != m.side_sets.size(); ++lcvs) {
     auto& s = m.side_sets[lcvs];
     std::vector<int> elems_copy(s.first.size(), -1);
     auto faces_copy(s.second);
-    for (int i=0; i!=elems_copy.size(); ++i) {
-      elems_copy[i] = cell_map[s.first[i]] + 1;
-    }
+    for (int i = 0; i != elems_copy.size(); ++i) { elems_copy[i] = cell_map[s.first[i]] + 1; }
     for (auto& e : faces_copy) e++;
     ierr |= ex_put_set_param(fid, EX_SIDE_SET, m.side_sets_id[lcvs], elems_copy.size(), 0);
     AMANZI_ASSERT(!ierr);
@@ -167,17 +179,14 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename) {
             << "  nnodes = " << m.coords.size() << std::endl
             << std::endl
             << "  side sets = " << std::endl;
-  for (int i=0; i!=m.side_sets.size(); ++i)
-    std::cout << "    " << m.side_sets_id[i] << " ("
-              << m.side_sets[i].first.size() << " faces)" << std::endl;
-  std::cout << std::endl
-            << "  block ids = " << std::endl;
-  for (int i=0; i!=blocks_id.size(); ++i)
-    std::cout << "    " << blocks_id[i] << " ("
-              << blocks_ncells[i] << " cells)" << std::endl;
+  for (int i = 0; i != m.side_sets.size(); ++i)
+    std::cout << "    " << m.side_sets_id[i] << " (" << m.side_sets[i].first.size() << " faces)"
+              << std::endl;
+  std::cout << std::endl << "  block ids = " << std::endl;
+  for (int i = 0; i != blocks_id.size(); ++i)
+    std::cout << "    " << blocks_id[i] << " (" << blocks_ncells[i] << " cells)" << std::endl;
   std::cout << std::endl;
-  
 }
 
-}
-}
+} // namespace AmanziGeometry
+} // namespace Amanzi

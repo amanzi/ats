@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /* -----------------------------------------------------------------------------
 ATS
-
-Authors: Ethan Coon (ecoon@lanl.gov)
 
 Evaluator for internal energy.
 
@@ -30,30 +35,27 @@ namespace Amanzi {
 namespace Energy {
 
 class InterfrostEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  InterfrostEnergyEvaluator(Teuchos::ParameterList& energy_plist);
+  explicit InterfrostEnergyEvaluator(Teuchos::ParameterList& energy_plist);
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   double beta_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterfrostEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, InterfrostEnergyEvaluator> reg_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

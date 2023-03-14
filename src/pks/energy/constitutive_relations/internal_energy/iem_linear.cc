@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Internal energy based on a linear fit.
 
+//! Internal energy based on a linear fit.
 /*!
 
 Linear internal energy model -- function of Cv and temperature
@@ -22,16 +23,20 @@ Linear internal energy model -- function of Cv and temperature
 namespace Amanzi {
 namespace Energy {
 
-IEMLinear::IEMLinear(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+IEMLinear::IEMLinear(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
-double IEMLinear::InternalEnergy(double temp) {
+double
+IEMLinear::InternalEnergy(double temp)
+{
   return L_ + Cv_ * (temp - T_ref_);
 };
 
-void IEMLinear::InitializeFromPlist_() {
+void
+IEMLinear::InitializeFromPlist_()
+{
   if (plist_.isParameter("heat capacity [J kg^-1 K^-1]")) {
     Cv_ = 1.e-6 * plist_.get<double>("heat capacity [J kg^-1 K^-1]");
     molar_basis_ = false;
@@ -63,5 +68,5 @@ void IEMLinear::InitializeFromPlist_() {
   T_ref_ = plist_.get<double>("reference temperature [K]", 273.15);
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

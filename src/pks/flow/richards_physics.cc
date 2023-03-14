@@ -1,5 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -22,11 +22,12 @@ namespace Flow {
 // -------------------------------------------------------------
 // Diffusion term, div K grad (p + rho*g*z)
 // -------------------------------------------------------------
-void Richards::ApplyDiffusion_(const Tag& tag,
-        const Teuchos::Ptr<CompositeVector>& g)
+void
+Richards::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
   // force mass matrices to change
-  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" matrix"))
+  if (!deform_key_.empty() &&
+      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " matrix"))
     matrix_diff_->SetTensorCoefficient(K_);
 
   // update the rel perm according to the scheme of choice
@@ -56,7 +57,8 @@ void Richards::ApplyDiffusion_(const Tag& tag,
 // -------------------------------------------------------------
 // Accumulation of water term du/dt
 // -------------------------------------------------------------
-void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
+void
+Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 {
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
@@ -66,55 +68,62 @@ void Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 
   // get these fields
   Teuchos::RCP<const CompositeVector> wc1 = S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);
-  Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
+  Teuchos::RCP<const CompositeVector> wc0 =
+    S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
 
   // Water content only has cells, while the residual has cells and faces.
-  g->ViewComponent("cell",false)->Update(1.0/dt, *wc1->ViewComponent("cell",false),
-          -1.0/dt, *wc0->ViewComponent("cell",false), 1.0);
+  g->ViewComponent("cell", false)
+    ->Update(1.0 / dt,
+             *wc1->ViewComponent("cell", false),
+             -1.0 / dt,
+             *wc0->ViewComponent("cell", false),
+             1.0);
 };
 
 
 // ---------------------------------------------------------------------
 // Add in mass source, in units of mol / m^3 s
 // ---------------------------------------------------------------------
-void Richards::AddSources_(const Tag& tag,
-        const Teuchos::Ptr<CompositeVector>& g)
+void
+Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // external sources of energy
   if (is_source_term_) {
-    Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
+    Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
 
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false);
 
     const Epetra_MultiVector& cv =
-      *S_->Get<CompositeVector>(Keys::getKey(domain_,"cell_volume"), tag).ViewComponent("cell",false);
+      *S_->Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag)
+         .ViewComponent("cell", false);
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c=0; c!=ncells; ++c) {
-      g_c[0][c] -= source1[0][c] * cv[0][c];
-    }
+    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
+    db_->WriteVector("res (src)", g, false);
   }
 }
 
 
-void Richards::AddSourcesToPrecon_(double h)
+void
+Richards::AddSourcesToPrecon_(double h)
 {
   // external sources of energy (temperature dependent source)
   if (is_source_term_ && !explicit_source_ && source_term_is_differentiable_ &&
       S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
-
     S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
     preconditioner_acc_->AddAccumulationTerm(
       S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),
-      -1.0, "cell", true);
+      -1.0,
+      "cell",
+      true);
   }
 }
 
@@ -122,44 +131,43 @@ void Richards::AddSourcesToPrecon_(double h)
 // -------------------------------------------------------------
 // Convert abs perm vector to tensor.
 // -------------------------------------------------------------
-void Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
+void
+Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
 {
   // currently assumes isotropic perm, should be updated
   S_->GetEvaluator(perm_key_, tag).Update(*S_, name_);
-  const Epetra_MultiVector& perm = *S_->Get<CompositeVector>(perm_key_, tag)
-      .ViewComponent("cell",false);
+  const Epetra_MultiVector& perm =
+    *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
   unsigned int ncells = perm.MyLength();
   unsigned int ndofs = perm.NumVectors();
   int space_dim = mesh_->space_dimension();
   if (ndofs == 1) { // isotropic
-    for (unsigned int c=0; c!=ncells; ++c) {
-      (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
-    }
+    for (unsigned int c = 0; c != ncells; ++c) { (*K_)[c](0, 0) = perm[0][c] * perm_scale_; }
   } else if (ndofs == 2 && space_dim == 3) {
     // horizontal and vertical perms
-    for (unsigned int c=0; c!=ncells; ++c) {
+    for (unsigned int c = 0; c != ncells; ++c) {
       (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
       (*K_)[c](1, 1) = perm[0][c] * perm_scale_;
       (*K_)[c](2, 2) = perm[1][c] * perm_scale_;
     }
   } else if (ndofs >= space_dim) {
     // diagonal tensor
-    for (unsigned int dim=0; dim!=space_dim; ++dim) {
-      for (unsigned int c=0; c!=ncells; ++c) {
+    for (unsigned int dim = 0; dim != space_dim; ++dim) {
+      for (unsigned int c = 0; c != ncells; ++c) {
         (*K_)[c](dim, dim) = perm[dim][c] * perm_scale_;
       }
     }
-      if (ndofs > space_dim) {
+    if (ndofs > space_dim) {
       // full tensor
       if (ndofs == 3) { // 2D
-        for (unsigned int c=0; c!=ncells; ++c) {
-          (*K_)[c](0,1) = (*K_)[c](1,0) = perm[2][c] * perm_scale_;
+        for (unsigned int c = 0; c != ncells; ++c) {
+          (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[2][c] * perm_scale_;
         }
       } else if (ndofs == 6) { // 3D
-        for (unsigned int c=0; c!=ncells; ++c) {
-          (*K_)[c](0,1) = (*K_)[c](1,0) = perm[3][c] * perm_scale_; // xy & yx
-          (*K_)[c](0,2) = (*K_)[c](2,0) = perm[4][c] * perm_scale_; // xz & zx
-          (*K_)[c](1,2) = (*K_)[c](2,1) = perm[5][c] * perm_scale_; // yz & zy
+        for (unsigned int c = 0; c != ncells; ++c) {
+          (*K_)[c](0, 1) = (*K_)[c](1, 0) = perm[3][c] * perm_scale_; // xy & yx
+          (*K_)[c](0, 2) = (*K_)[c](2, 0) = perm[4][c] * perm_scale_; // xz & zx
+          (*K_)[c](1, 2) = (*K_)[c](2, 1) = perm[5][c] * perm_scale_; // yz & zy
         }
       }
     }
@@ -175,14 +183,14 @@ Richards::UpdateVelocity_(const Tag& tag)
 {
   AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
 
-  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_)
-      .ViewComponent("face", true);
+  const Epetra_MultiVector& flux =
+    *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
 
   S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& nliq_c = *S_->Get<CompositeVector>(molar_dens_key_, tag_next_)
-      .ViewComponent("cell",false);
-  Epetra_MultiVector& velocity = *S_->GetW<CompositeVector>(velocity_key_, tag, name_)
-      .ViewComponent("cell", true);
+  const Epetra_MultiVector& nliq_c =
+    *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
+  Epetra_MultiVector& velocity =
+    *S_->GetW<CompositeVector>(velocity_key_, tag, name_).ViewComponent("cell", true);
 
   int d(mesh_->space_dimension());
   AmanziGeometry::Point local_velocity(d);
@@ -193,31 +201,29 @@ Richards::UpdateVelocity_(const Tag& tag)
 
   int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
   AmanziMesh::Entity_ID_List faces;
-  for (int c=0; c!=ncells_owned; ++c) {
+  for (int c = 0; c != ncells_owned; ++c) {
     mesh_->cell_get_faces(c, &faces);
     int nfaces = faces.size();
 
-    for (int i=0; i!=d; ++i) rhs[i] = 0.0;
+    for (int i = 0; i != d; ++i) rhs[i] = 0.0;
     matrix.putScalar(0.0);
 
-    for (int n=0; n!=nfaces; ++n) {  // populate least-square matrix
+    for (int n = 0; n != nfaces; ++n) { // populate least-square matrix
       int f = faces[n];
       const AmanziGeometry::Point& normal = mesh_->face_normal(f);
       double area = mesh_->face_area(f);
 
-      for (int i=0; i!=d; ++i) {
+      for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux[0][f];
         matrix(i, i) += normal[i] * normal[i];
-        for (int j = i+1; j < d; ++j) {
-          matrix(j, i) = matrix(i, j) += normal[i] * normal[j];
-        }
+        for (int j = i + 1; j < d; ++j) { matrix(j, i) = matrix(i, j) += normal[i] * normal[j]; }
       }
     }
 
     int info;
     lapack.POSV('U', d, 1, matrix.values(), d, rhs, d, &info);
 
-    for (int i=0; i!=d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
+    for (int i = 0; i != d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
   }
 }
 
@@ -228,10 +234,10 @@ Richards::UpdateVelocity_(const Tag& tag)
 // void Richards::AddVaporDiffusionResidual_(const Teuchos::Ptr<State>& S,
 //         const Teuchos::Ptr<CompositeVector>& g) {
 
-//   //res_vapor = Teuchos::rcp(new CompositeVector(*S_->GetPtr<CompositeVector>("pressure"))); 
-//   //res_vapor = Teuchos::rcp(new CompositeVector(*g)); 
+//   //res_vapor = Teuchos::rcp(new CompositeVector(*S_->GetPtr<CompositeVector>("pressure")));
+//   //res_vapor = Teuchos::rcp(new CompositeVector(*g));
 //   res_vapor->PutScalar(0.0);
-//   //Teuchos::RCP<CompositeVector> res_en = Teuchos::rcp(new CompositeVector(*g)); 
+//   //Teuchos::RCP<CompositeVector> res_en = Teuchos::rcp(new CompositeVector(*g));
 //   //res_en->PutScalar(0.);
 
 //   // derive fluxes
@@ -279,8 +285,8 @@ Richards::UpdateVelocity_(const Tag& tag)
 
 // }
 
-//   void Richards::ComputeVaporDiffusionCoef(const Teuchos::Ptr<State>& S, 
-//                                           Teuchos::RCP<CompositeVector>& vapor_diff, 
+//   void Richards::ComputeVaporDiffusionCoef(const Teuchos::Ptr<State>& S,
+//                                           Teuchos::RCP<CompositeVector>& vapor_diff,
 //                                           std::string var_name){
 
 //    Epetra_MultiVector& diff_coef = *vapor_diff->ViewComponent("cell",false);
@@ -340,14 +346,14 @@ Richards::UpdateVelocity_(const Tag& tag)
 //        diff_coef[0][c] *= (1./Patm)*dmlf_g_dt[0][c] + mlf_g[0][c]* (Patm - pressure[0][c])/ (n_l[0][c]*R*temp[0][c]*temp[0][c]);
 //        //diff_coef[0][c] =0;
 //      }
-     
+
 //    }
 //    else{
 //      // Unknown variable name
 //      AMANZI_ASSERT(0);
-//    }    
+//    }
 
 // }
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   ATS
@@ -8,7 +15,6 @@
 
   http://software.lanl.gov/ats/trac
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "eos_water.hh"
@@ -17,7 +23,7 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<EOS,EOSWater> EOSWater::factory_("liquid water");
+Utils::RegisteredFactory<EOS, EOSWater> EOSWater::factory_("liquid water");
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

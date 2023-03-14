@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Painter's original, implicitly defined permafrost model.
 
+//! Painter's original, implicitly defined permafrost model.
 /*!
 
 .. _wrm-implicit-permafrost-spec
@@ -34,10 +35,8 @@ namespace Flow {
 class WRM;
 
 class WRMImplicitPermafrostModel : public WRMPermafrostModel {
-
  public:
-  explicit
-  WRMImplicitPermafrostModel(Teuchos::ParameterList& plist);
+  explicit WRMImplicitPermafrostModel(Teuchos::ParameterList& plist);
 
   // required methods from the base class
   // sats[0] = sg, sats[1] = sl, sats[2] = si
@@ -59,20 +58,16 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
 
   // calculation if unfrozen and saturated
   bool sats_frozen_unsaturated_(double pc_liq, double pc_ice, double (&sats)[3]);
-  bool dsats_dpc_liq_frozen_unsaturated_(double pc_liq, double pc_ice,
-          double (&dsats)[3]);
-  bool dsats_dpc_ice_frozen_unsaturated_(double pc_liq, double pc_ice,
-          double (&dsats)[3]);
+  bool dsats_dpc_liq_frozen_unsaturated_(double pc_liq, double pc_ice, double (&dsats)[3]);
+  bool dsats_dpc_ice_frozen_unsaturated_(double pc_liq, double pc_ice, double (&dsats)[3]);
 
   double si_frozen_unsaturated_(double pc_liq, double pc_ice);
   double dsi_dpc_liq_frozen_unsaturated_(double pc_liq, double pc_ice, double si);
   double dsi_dpc_ice_frozen_unsaturated_(double pc_liq, double pc_ice, double si);
 
-  double si_frozen_unsaturated_nospline_(double pc_liq, double pc_ice, bool throw_ok=false);
-  double dsi_dpc_liq_frozen_unsaturated_nospline_(double pc_liq, double pc_ice,
-          double si);
-  double dsi_dpc_ice_frozen_unsaturated_nospline_(double pc_liq, double pc_ice,
-          double si);
+  double si_frozen_unsaturated_nospline_(double pc_liq, double pc_ice, bool throw_ok = false);
+  double dsi_dpc_liq_frozen_unsaturated_nospline_(double pc_liq, double pc_ice, double si);
+  double dsi_dpc_ice_frozen_unsaturated_nospline_(double pc_liq, double pc_ice, double si);
 
   bool DetermineSplineCutoff_(double pc_liq, double pc_ice, double& cutoff, double& si);
   bool FitSpline_(double pc_ice, double cutoff, double si_cutoff, double (&coefs)[4]);
@@ -88,13 +83,14 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
   // Functor for ice saturation, gets used within a root-finding algorithm
   class SatIceFunctor_ {
    public:
-    SatIceFunctor_(double pc_liq, double pc_ice,
-                   const Teuchos::RCP<WRM>& wrm) :
-        pc_liq_(pc_liq), pc_ice_(pc_ice), wrm_(wrm) {}
+    SatIceFunctor_(double pc_liq, double pc_ice, const Teuchos::RCP<WRM>& wrm)
+      : pc_liq_(pc_liq), pc_ice_(pc_ice), wrm_(wrm)
+    {}
 
-    double operator()(double si) {
+    double operator()(double si)
+    {
       double tmp = (1.0 - si) * wrm_->saturation(pc_liq_);
-      double result = tmp - wrm_->saturation( pc_ice_ + wrm_->capillaryPressure( tmp + si));
+      double result = tmp - wrm_->saturation(pc_ice_ + wrm_->capillaryPressure(tmp + si));
       return result;
     }
 
@@ -107,20 +103,17 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
   // Convergence criteria for root-finding
   struct Tol_ {
     Tol_(double eps) : eps_(eps) {}
-    bool operator()(const double& a, const double& b) const {
-      return std::abs(a - b) <= eps_;
-    }
+    bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
     double eps_;
   };
 
  private:
   // factory registration
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMImplicitPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMImplicitPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

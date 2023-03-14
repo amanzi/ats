@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,8 +7,8 @@
   Authors: Ahmad Jan (jana@ornl.gov)
 */
 
+//! ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
 /*!
-Evaluator type: `"elevation column`"
 
 Evaluates elevation, slope, and aspect of the "surface_star" mesh of the Arctic
 Intermediate Scale Model (ISM).
@@ -31,18 +29,17 @@ Instead, it is a mix of:
 - aspect is set to 0.  It could easily be calculated using the same normal as
   the slope algorithm, but is not done currently.
 
+`"evaluator type`" = `"elevation column`"
+
 .. _column-elevation-evaluator-spec:
 .. admonition:: column-elevation-evaluator-spec
 
    * `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
-
    * `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation
-      variable. [-]
-
+     variable. [-]
    * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
-      elevation changes in time, and adds the `"deformation`" and
-      `"base_porosity`" dependencies.
-
+     elevation changes in time, and adds the `"deformation`" and
+     `"base_porosity`" dependencies.
    * `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
      mesh, which is the 3D version of this domain.  In the columnar meshes the
      surface elevation and slope are assigned based on the columns and not the
@@ -68,16 +65,14 @@ namespace Amanzi {
 namespace Flow {
 
 class ColumnElevationEvaluator : public ElevationEvaluator {
-
  public:
-  explicit
-  ColumnElevationEvaluator(Teuchos::ParameterList& plist);
+  explicit ColumnElevationEvaluator(Teuchos::ParameterList& plist);
   ColumnElevationEvaluator(const ColumnElevationEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
-  virtual void EvaluateElevationAndSlope_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void
+  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   // Custom EnsureCompatibility fills dependencies based on domain set.
   virtual void EnsureEvaluators(State& S) override;
@@ -87,14 +82,14 @@ class ColumnElevationEvaluator : public ElevationEvaluator {
 
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ColumnElevationEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, ColumnElevationEvaluator> reg_;
 
   Key base_poro_suffix_;
   Key surface_domain_;
   Key dset_name_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

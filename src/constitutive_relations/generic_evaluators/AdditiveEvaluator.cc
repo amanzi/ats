@@ -1,7 +1,15 @@
 /*
-  AdditiveEvaluator is the generic evaluator for adding N other fields.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
+  AdditiveEvaluator is the generic evaluator for adding N other fields.
+
 */
 
 #include "AdditiveEvaluator.hh"
@@ -9,13 +17,12 @@
 namespace Amanzi {
 namespace Relations {
 
-AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   if (dependencies_.size() == 0) {
     Errors::Message message;
-    message << "AdditiveEvaluator: for " << my_keys_[0].first
-                << " was provided no dependencies";
+    message << "AdditiveEvaluator: for " << my_keys_[0].first << " was provided no dependencies";
     throw(message);
   }
 
@@ -23,12 +30,12 @@ AdditiveEvaluator::AdditiveEvaluator(Teuchos::ParameterList& plist) :
     Key variable = dep.first;
     Key variable_tag = Keys::getKey(dep.first, dep.second);
     Key varname = Keys::getVarName(variable);
-    if (plist.isParameter(variable_tag+" coefficient")) {
-      coefs_[variable_tag] = plist.get<double>(variable_tag+" coefficient");
-    } else if (plist.isParameter(variable+" coefficient")) {
-      coefs_[variable_tag] = plist.get<double>(variable+" coefficient");
-    } else if (plist.isParameter(varname+" coefficient")) {
-      coefs_[variable_tag] = plist.get<double>(varname+" coefficient");
+    if (plist.isParameter(variable_tag + " coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable_tag + " coefficient");
+    } else if (plist.isParameter(variable + " coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(variable + " coefficient");
+    } else if (plist.isParameter(varname + " coefficient")) {
+      coefs_[variable_tag] = plist.get<double>(varname + " coefficient");
     } else {
       coefs_[variable_tag] = 1.0;
     }
@@ -46,8 +53,7 @@ AdditiveEvaluator::Clone() const
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-AdditiveEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+AdditiveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(shift_);
 
@@ -60,14 +66,16 @@ AdditiveEvaluator::Evaluate_(const State& S,
   if (positive_) {
     for (const auto& name : *result[0]) {
       auto& res = *result[0]->ViewComponent(name, false);
-      for (int i=0; i!=res.MyLength(); ++i) res[0][i] = std::max(res[0][i], 0.);
+      for (int i = 0; i != res.MyLength(); ++i) res[0][i] = std::max(res[0][i], 0.);
     }
   }
 }
 
 void
 AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+                                              const Key& wrt_key,
+                                              const Tag& wrt_tag,
+                                              const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
 
@@ -76,16 +84,13 @@ AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
     for (const auto& name : *result[0]) {
       auto& res = *result[0]->ViewComponent(name, false);
       const auto& value_v = *value.ViewComponent(name, false);
-      for (int i=0; i!=res.MyLength(); ++i) {
-        if (value_v[0][i] == 0.0) {
-          res[0][i] = 0.;
-        }
+      for (int i = 0; i != res.MyLength(); ++i) {
+        if (value_v[0][i] == 0.0) { res[0][i] = 0.; }
       }
     }
   }
 }
 
 
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace Amanzi

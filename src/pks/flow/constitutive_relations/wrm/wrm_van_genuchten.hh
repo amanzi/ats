@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! WRMVanGenuchten : water retention model using van Genuchten's parameterization
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,6 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+//! WRMVanGenuchten : water retention model using van Genuchten's parameterization
 /*!
 
 van Genuchten's water retention curve.
@@ -20,9 +19,13 @@ van Genuchten's water retention curve.
     * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
     ONE OF:
+
     * `"van Genuchten n [-]`" ``[double]`` van Genuchten's n
+
     OR
+
     * `"van Genuchten m [-]`" ``[double]`` van Genuchten's m, m = 1 - 1/n
+
     END
 
     * `"residual saturation [-]`" ``[double]`` **0.0**
@@ -58,8 +61,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMVanGenuchten : public WRM {
-
-public:
+ public:
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -78,24 +80,24 @@ public:
 
   Teuchos::ParameterList& plist_;
 
-  double m_;  // van Genuchten parameters: m, n, alpha
+  double m_; // van Genuchten parameters: m, n, alpha
   double n_;
   double l_;
   double alpha_;
-  double sr_;  // van Genuchten residual saturation
+  double sr_; // van Genuchten residual saturation
 
   int function_;
-  double s0_;  // regularization threshold in saturation
+  double s0_; // regularization threshold in saturation
   Amanzi::Utils::Spline fit_kr_;
 
   double pc0_;
   Amanzi::Utils::Spline fit_s_;
 
 
-  static Utils::RegisteredFactory<WRM,WRMVanGenuchten> factory_;
+  static Utils::RegisteredFactory<WRM, WRMVanGenuchten> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

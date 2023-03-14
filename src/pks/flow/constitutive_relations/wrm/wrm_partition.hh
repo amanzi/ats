@@ -1,11 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! A collection of WRMs along with a Mesh Partition.
 /*!
 
@@ -18,7 +19,7 @@ the mesh.
    * `"region`" ``[string]`` Region on which the WRM is valid.
    * `"WRM type`" ``[string]`` Name of the WRM type.
    * `"_WRM_type_ parameters`" ``[_WRM_type_-spec]`` See below for the required
-      parameter spec for each type.
+     parameter spec for each type.
 
 */
 
@@ -32,21 +33,21 @@ the mesh.
 namespace Amanzi {
 namespace Flow {
 
-typedef std::vector<Teuchos::RCP<WRM> > WRMList;
+typedef std::vector<Teuchos::RCP<WRM>> WRMList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMList> WRMPartition;
 
-typedef std::vector<Teuchos::RCP<WRMPermafrostModel> > WRMPermafrostModelList;
-typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMPermafrostModelList> WRMPermafrostModelPartition;
+typedef std::vector<Teuchos::RCP<WRMPermafrostModel>> WRMPermafrostModelList;
+typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, WRMPermafrostModelList>
+  WRMPermafrostModelPartition;
 
 // Non-member factory
 Teuchos::RCP<WRMPartition>
 createWRMPartition(Teuchos::ParameterList& plist);
 
 Teuchos::RCP<WRMPermafrostModelPartition>
-createWRMPermafrostModelPartition(Teuchos::ParameterList& plist,
-        Teuchos::RCP<WRMPartition>& wrms);
+createWRMPermafrostModelPartition(Teuchos::ParameterList& plist, Teuchos::RCP<WRMPartition>& wrms);
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

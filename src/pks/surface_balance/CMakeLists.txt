@@ -33,6 +33,7 @@ set(ats_surface_balance_src_files
   constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.cc
   constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.cc
   constitutive_relations/land_cover/radiation_balance_evaluator.cc
+  constitutive_relations/land_cover/canopy_radiation_evaluator.cc
   constitutive_relations/land_cover/seb_twocomponent_evaluator.cc
   constitutive_relations/land_cover/seb_threecomponent_evaluator.cc
   constitutive_relations/litter/evaporative_flux_relaxation_evaluator.cc       
@@ -76,6 +77,7 @@ set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/area_fractions_threecomponent_evaluator.hh
   constitutive_relations/land_cover/area_fractions_threecomponent_microtopography_evaluator.hh
   constitutive_relations/land_cover/radiation_balance_evaluator.hh
+  constitutive_relations/land_cover/canopy_radiation_evaluator.hh
   constitutive_relations/land_cover/seb_twocomponent_evaluator.hh
   constitutive_relations/land_cover/seb_threecomponent_evaluator.hh
   constitutive_relations/litter/evaporative_flux_relaxation_evaluator.hh       

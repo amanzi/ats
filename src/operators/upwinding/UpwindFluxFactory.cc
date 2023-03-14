@@ -1,5 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -8,7 +8,6 @@
 */
 
 //! Factory for taking coefficients for div-grad operators from cells to faces.
-
 #include "errors.hh"
 
 #include "Teuchos_ParameterList.hpp"
@@ -28,17 +27,19 @@ namespace UpwindFactory {
 
 Teuchos::RCP<Upwinding>
 Create(Teuchos::ParameterList& oplist,
-                          State& S,
-                          const std::string& pkname,
-                          const Tag& tag,
-                          const Key& flux)
+       State& S,
+       const std::string& pkname,
+       const Tag& tag,
+       const Key& flux)
 {
   std::string model_type = oplist.get<std::string>("upwind type", "manning upwind");
   double flux_eps = oplist.get<double>("upwind flux epsilon", 1.e-8);
   auto domain = Keys::getDomain(flux);
 
   if (model_type == "manning upwind") {
-    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
     return Teuchos::rcp(new UpwindTotalFlux(pkname, tag, flux, flux_eps));
 
@@ -57,7 +58,9 @@ Create(Teuchos::ParameterList& oplist,
     //           << "============== WARNING WARNING WARNING WARNING WARNING =============" << std::endl;
     // Errors::Message msg(message.str());
     // Exceptions::amanzi_throw(msg);
-    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
     return Teuchos::rcp(new UpwindFluxHarmonicMean(pkname, tag, flux, flux_eps));
 
@@ -66,14 +69,21 @@ Create(Teuchos::ParameterList& oplist,
     Key manning_coef = Keys::readKey(oplist, domain, "coefficient", "manning_coefficient");
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
 
-    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    return Teuchos::rcp(new UpwindFluxSplitDenominator(pkname, tag, flux, slope, manning_coef, flux_eps, slope_regularization));
+    return Teuchos::rcp(new UpwindFluxSplitDenominator(
+      pkname, tag, flux, slope, manning_coef, flux_eps, slope_regularization));
 
   } else if (model_type == "manning elevation stabilized") {
     Key slope = Keys::readKey(oplist, domain, "slope", "slope_magnitude");
@@ -82,18 +92,31 @@ Create(Teuchos::ParameterList& oplist,
     Key elev = Keys::readKey(oplist, domain, "elevation", "elevation");
     Key dens = Keys::readKey(oplist, domain, "molar density liquid", "molar_density_liquid");
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
-    double manning_exp = oplist.get<double>("Manning exponent", 2.0/3);
+    double manning_exp = oplist.get<double>("Manning exponent", 2.0 / 3);
 
-    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(elev, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(elev, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     // add boundary face components?
 
-    return Teuchos::rcp(new UpwindElevationStabilized(pkname, tag, slope, manning_coef, ponded_depth, elev, dens,
-            slope_regularization, manning_exp));
+    return Teuchos::rcp(new UpwindElevationStabilized(pkname,
+                                                      tag,
+                                                      slope,
+                                                      manning_coef,
+                                                      ponded_depth,
+                                                      elev,
+                                                      dens,
+                                                      slope_regularization,
+                                                      manning_exp));
 
   } else if (model_type == "manning ponded depth passthrough") {
     Key slope = Keys::readKey(oplist, domain, "slope", "slope_magnitude");
@@ -102,29 +125,38 @@ Create(Teuchos::ParameterList& oplist,
     double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-8);
     double manning_exp = oplist.get<double>("Manning exponent");
 
-    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(flux, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(elev, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(elev, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag).SetGhosted()->SetMesh(S.GetMesh(domain))
+    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag)
+      .SetGhosted()
+      ->SetMesh(S.GetMesh(domain))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-    return Teuchos::rcp(new UpwindFluxFOCont(pkname, tag, flux, slope, manning_coef, elev, slope_regularization, manning_exp));
+    return Teuchos::rcp(new UpwindFluxFOCont(
+      pkname, tag, flux, slope, manning_coef, elev, slope_regularization, manning_exp));
 
   } else if (model_type == "manning cell centered") {
     return Teuchos::rcp(new UpwindCellCentered(pkname, tag));
   } else {
     Errors::Message msg;
-    msg << "Unknown \"upwind type\" value \"" << model_type << ",\" must be one of \"manning upwind\", \"manning harmonic mean\", or \"manning ponded depth passthrough.\"";
+    msg << "Unknown \"upwind type\" value \"" << model_type
+        << ",\" must be one of \"manning upwind\", \"manning harmonic mean\", or \"manning ponded "
+           "depth passthrough.\"";
     Exceptions::amanzi_throw(msg);
   }
   return Teuchos::null;
 }
 
-}  // namespace Upwinding
-}  // namespace Operators
-}  // namespace Amanzi
-
-
+} // namespace UpwindFactory
+} // namespace Operators
+} // namespace Amanzi

@@ -1,32 +1,45 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon
+*/
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
 Simple model of two-phase thermal conductivity, based upon:
 
 - Interpolation between saturated and dry conductivities via a Kersten number.
 - Power-law Kersten number.
 
-See ATS process model documentation's permafrost model for details.
+`"thermal conductivity type`" = `"two-phase wet/dry`"
 
-Usage:
+.. _thermal-conductivity-twophase-wetdry-spec:
+.. admonition:: thermal-conductivity-twophase-wetdry-spec
 
-  <ParameterList name="Thermal Conductivity Model">
-    <Parameter name="Thermal Conductivity Type" type="string" value="two-phase wet/dry"/>
+   * `"region`" ``[string]`` Region name on which to apply these parameters.
+   * `"thermal conductivity, wet [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of saturated soil
+   * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of dry soil
+   * `"unsaturated alpha [-]`" ``[double]`` Interpolating exponent
+   * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
-    <Parameter name="thermal conductivity, wet" type="double" value=""/>
-    <Parameter name="thermal conductivity, dry" type="double" value=""/>
+Example:
 
+.. code:: xml
+
+  <ParameterList name="thermal conductivity model">
+    <Parameter name="thermal conductivity type" type="string" value="two-phase wet/dry"/>
+    <Parameter name="thermal conductivity, wet [W m^-1 K^-1]" type="double" value=""/>
+    <Parameter name="thermal conductivity, dry [W m^-1 K^-1]" type="double" value=""/>
     <Parameter name="epsilon" type="double" value="1.e-10"/>
     <Parameter name="unsaturated alpha" type="double" value="1.0"/>
   </ParameterList>
 
-Units: ????
-------------------------------------------------------------------------- */
+Units: [W m^-1 K^-1]
+
+*/
 
 #ifndef PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_TWOPHASE_WETDRY_HH_
 #define PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_TWOPHASE_WETDRY_HH_
@@ -40,13 +53,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityTwoPhaseWetDry : public ThermalConductivityTwoPhase {
-
-public:
+ public:
   ThermalConductivityTwoPhaseWetDry(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -56,13 +68,12 @@ private:
   double k_wet_;
   double k_dry_;
 
-private:
-  static Utils::RegisteredFactory<ThermalConductivityTwoPhase,
-                                  ThermalConductivityTwoPhaseWetDry> factory_;
-
+ private:
+  static Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhaseWetDry>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

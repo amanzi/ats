@@ -1,10 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -----------------------------------------------------------------------------
-This is the overland flow component of ATS.
-License: BSD
-Authors: Ethan Coon (ecoon@lanl.gov)
------------------------------------------------------------------------------ */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 #ifndef PK_FLOW_OVERLAND_HH_
 #define PK_FLOW_OVERLAND_HH_
@@ -28,17 +29,14 @@ namespace Flow {
 class OverlandConductivityModel;
 
 
-
 class OverlandFlow : public PK_PhysicalBDF_Default {
-
-public:
-
+ public:
   OverlandFlow(Teuchos::ParameterList& FElist,
                const Teuchos::RCP<Teuchos::ParameterList>& plist,
                const Teuchos::RCP<State>& S,
                const Teuchos::RCP<TreeVector>& solution);
 
-  
+
   // Virtual destructor
   virtual ~OverlandFlow() {}
 
@@ -57,8 +55,11 @@ public:
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+  void FunctionalResidual(double t_old,
+                          double t_new,
+                          Teuchos::RCP<TreeVector> u_old,
+                          Teuchos::RCP<TreeVector> u_new,
+                          Teuchos::RCP<TreeVector> g);
 
   // applies preconditioner to u and returns the result in Pu
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
@@ -67,10 +68,9 @@ public:
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
   // -- Compute a norm on u-du and return the result.
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du);
-  
-protected:
+  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du);
+
+ protected:
   // setup methods
   virtual void SetupOverlandFlow_(const Teuchos::Ptr<State>& S);
   virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
@@ -87,7 +87,7 @@ protected:
 
   // physical methods
   // -- diffusion term
-  void ApplyDiffusion_(const Teuchos::Ptr<State>& S,const Teuchos::Ptr<CompositeVector>& g);
+  void ApplyDiffusion_(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<CompositeVector>& g);
   // -- accumulation term
   void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
   // -- source terms
@@ -96,7 +96,6 @@ protected:
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
  protected:
-
   enum FluxUpdateMode {
     UPDATE_FLUX_ITERATION = 0,
     UPDATE_FLUX_TIMESTEP = 1,
@@ -106,7 +105,7 @@ protected:
 
   // control switches
   bool standalone_mode_; // domain mesh == surface mesh
-//  Operators::UpwindMethod upwind_method_;
+                         //  Operators::UpwindMethod upwind_method_;
   bool is_source_term_;
 
   // coupling term
@@ -130,7 +129,7 @@ protected:
   Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_head_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_critical_depth_;  
+  Teuchos::RCP<Functions::BoundaryFunction> bc_critical_depth_;
 
   // needed physical models
   Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
@@ -141,7 +140,7 @@ protected:
   static RegisteredPKFactory<OverlandFlow> reg_;
 };
 
-}  // namespace Flow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

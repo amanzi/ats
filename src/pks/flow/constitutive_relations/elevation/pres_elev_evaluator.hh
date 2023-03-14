@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! PresElevEvaluator: evaluates h + z
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,15 +7,21 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+//! PresElevEvaluator: evaluates h + z
 /*!
-Evaluator type: ""
 
 .. math::
   h + z
 
-* `"my key`" ``[string]`` **pres_elev** Names the surface water potential variable, h + z [m]
-* `"height key`" ``[string]`` **ponded_depth** Names the height variable. [m]
-* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
+`"evaluator type`" =
+
+.. _pres-elev-evaluator-spec
+.. admonition:: pres-elev-evaluator-spec
+
+   KEYS:
+
+   - `"height`" **DOMAIN-ponded_depth** Names the height variable. [m]
+   - `"elevation`" **DOMAIN-elevation** Names the elevation variable. [m]
 
 
 NOTE: This is a legacy evaluator, and is not in the factory, so need not be in
@@ -38,27 +42,25 @@ namespace Amanzi {
 namespace Flow {
 
 class PresElevEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  PresElevEvaluator(Teuchos::ParameterList& plist);
+  explicit PresElevEvaluator(Teuchos::ParameterList& plist);
   PresElevEvaluator(const PresElevEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  private:
   Key pres_key_;
   Key elev_key_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

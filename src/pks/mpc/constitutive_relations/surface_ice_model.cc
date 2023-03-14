@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Ugly hackjob to enable direct evaluation of the full model, on a single
   WRM/region.  This is bypassing much of the "niceness" of the framework, but
   seems necessary for solving a cell-wise correction equation.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "exceptions.hh"
@@ -25,14 +31,17 @@
 namespace Amanzi {
 
 void
-SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag,
+SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
+                                 const Tag& tag,
                                  Teuchos::ParameterList& plist)
 {
   // NOTE: intentially using liquid instead of ice on the surface!
   Key domain = plist.get<std::string>("domain name", "surface");
   Key liq_dens_key = Keys::readKey(plist, domain, "molar density liquid", "molar_density_liquid");
-  Key ice_dens_key = Keys::readKey(plist, domain, "molar density ice", "molar_density_ice"); // NOTE: NOT ICE!
-  Key iem_liq_key = Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
+  Key ice_dens_key =
+    Keys::readKey(plist, domain, "molar density ice", "molar_density_ice"); // NOTE: NOT ICE!
+  Key iem_liq_key =
+    Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
   Key iem_ice_key = Keys::readKey(plist, domain, "internal energy ice", "internal_energy_ice");
   Key pd_key = Keys::readKey(plist, domain, "ponded depth", "ponded_depth");
   Key uf_key = Keys::readKey(plist, domain, "unfrozen fraction", "unfrozen_fraction");
@@ -81,7 +90,8 @@ SurfaceIceModel::InitializeModel(const Teuchos::Ptr<State>& S, const Tag& tag,
 }
 
 void
-SurfaceIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
+SurfaceIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c)
+{
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
   gz_ = -(S->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
@@ -89,16 +99,25 @@ SurfaceIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
 }
 
 bool
-SurfaceIceModel::Freezing(double T, double p) { return T < 273.15; }
+SurfaceIceModel::Freezing(double T, double p)
+{
+  return T < 273.15;
+}
 
 int
-SurfaceIceModel::EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) {
+SurfaceIceModel::EvaluateSaturations(double T,
+                                     double p,
+                                     double& s_gas,
+                                     double& s_liq,
+                                     double& s_ice)
+{
   AMANZI_ASSERT(0);
   return 1;
 }
 
 bool
-SurfaceIceModel::IsSetUp_() {
+SurfaceIceModel::IsSetUp_()
+{
   if (pd_ == Teuchos::null) return false;
   if (uf_ == Teuchos::null) return false;
   if (liquid_eos_ == Teuchos::null) return false;
@@ -112,8 +131,8 @@ SurfaceIceModel::IsSetUp_() {
 }
 
 int
-SurfaceIceModel::EvaluateEnergyAndWaterContent_(double T, double p,
-        AmanziGeometry::Point& result) {
+SurfaceIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result)
+{
   if (T < 100) return 1; // invalid temperature
   int ierr = 0;
   std::vector<double> eos_param(2);
@@ -142,20 +161,18 @@ SurfaceIceModel::EvaluateEnergyAndWaterContent_(double T, double p,
     double u_i = ice_iem_->InternalEnergy(T);
 
     // energy
-    double E = h * ( uf * n_l * u_l + (1-uf) * n_i * u_i);
+    double E = h * (uf * n_l * u_l + (1 - uf) * n_i * u_i);
 
     // store solution
     result[1] = WC;
     result[0] = E;
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
 
-} // namespace
+} // namespace Amanzi

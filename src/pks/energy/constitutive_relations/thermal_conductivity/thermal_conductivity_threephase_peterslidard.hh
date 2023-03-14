@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Three-phase thermal conductivity based on paper by Peters-Lidard.
 
+//! Three-phase thermal conductivity based on paper by Peters-Lidard.
 /*!
 
 A three-phase thermal conductivity, based upon:
@@ -16,9 +17,12 @@ A three-phase thermal conductivity, based upon:
 
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
+`"thermal conductivity type`" = `"three-phase Peters-Lidard`"
+
 .. _thermal-conductivity-threephase-peterslidard-spec:
 .. admonition:: thermal-conductivity-threephase-peterslidard-spec
 
+    * `"region`" ``[string]`` Region name on which to apply these parameters.
     * `"thermal conductivity of soil [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of soil grains (not bulk soil)
     * `"thermal conductivity of liquid [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of liquid (water)
     * `"thermal conductivity of gas [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of gas (air)
@@ -27,7 +31,9 @@ See Atchley et al GMD 2015 Supplementary Material for equations.
     * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
     * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
-Usage:
+Example:
+
+.. code:: xml
 
   <ParameterList name="thermal_conductivity">
     <Parameter name="thermal conductivity type" type="string" value="three-phase Peters-Lidard"/>
@@ -56,13 +62,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhasePetersLidard : public ThermalConductivityThreePhase {
-
-public:
+ public:
   ThermalConductivityThreePhasePetersLidard(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -76,13 +81,13 @@ private:
   double k_gas_;
   double d_;
 
-private:
+ private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhasePetersLidard> factory_;
-
+                                  ThermalConductivityThreePhasePetersLidard>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

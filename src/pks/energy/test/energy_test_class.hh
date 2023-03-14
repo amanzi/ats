@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
    Amanzi
-
-   License: see $AMANZI_DIR/COPYRIGHT
-   Author: Ethan Coon
 
    Helper class for energy unit tests
    ------------------------------------------------------------------------- */
@@ -21,12 +26,11 @@
 using namespace Amanzi;
 
 class EnergyTest {
-
-public:
+ public:
   // constuctor
   EnergyTest(Teuchos::ParameterList& plist,
-                const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
-                int num_components);
+             const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
+             int num_components);
 
   // init
   void initialize();
@@ -51,25 +55,25 @@ public:
 };
 
 class EnergyTestOne : public EnergyTest {
-public:
+ public:
   EnergyTestOne(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
-                   int num_components);
+                const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
+                int num_components);
 
   virtual double my_f(const AmanziGeometry::Point& x, double t);
 };
 
 class EnergyTestStep : public EnergyTest {
-public:
+ public:
   EnergyTestStep(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
-                   int num_components);
+                 const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
+                 int num_components);
 
   virtual double my_f(const AmanziGeometry::Point& x, double t);
 };
 
 class EnergyTestSmooth : public EnergyTest {
-public:
+ public:
   EnergyTestSmooth(Teuchos::ParameterList& plist,
                    const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
                    int num_components);
@@ -78,23 +82,22 @@ public:
 };
 
 class EnergyTestCubic : public EnergyTest {
-public:
+ public:
   EnergyTestCubic(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
-                   int num_components);
+                  const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
+                  int num_components);
 
   virtual double my_f(const AmanziGeometry::Point& x, double t);
 };
 
 class EnergyTestTwoDOne : public EnergyTest {
-public:
+ public:
   EnergyTestTwoDOne(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
-                   int num_components);
+                    const Teuchos::RCP<AmanziMesh::Mesh>& mesh,
+                    int num_components);
 
   virtual double my_f(const AmanziGeometry::Point& x, double t);
   virtual AmanziGeometry::Point my_u(const AmanziGeometry::Point& x, double t);
 };
 
 #endif
-

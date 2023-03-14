@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
-//! Sums a subsurface field vertically only a surface field.
 
+//! Sums a subsurface field vertically only a surface field.
 /*!
 
 Simple vertical sum of all cells below each surface cell.  Note that their are
@@ -32,6 +33,7 @@ of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
       rarely set by the user.
 
     KEYS:
+
     - `"summed`" The summand, defaults to the root suffix of the calculated variable.
     - `"cell volume`" Defaults to domain's cell volume.
     - `"surface cell volume`" Defaults to surface domain's cell volume.
@@ -59,8 +61,8 @@ struct ParserColumnSum {
 class IntegratorColumnSum {
  public:
   IntegratorColumnSum(Teuchos::ParameterList& plist,
-                std::vector<const Epetra_MultiVector*>& deps,
-                const AmanziMesh::Mesh* mesh);
+                      std::vector<const Epetra_MultiVector*>& deps,
+                      const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
   double coefficient(AmanziMesh::Entity_ID col);
 
@@ -73,13 +75,13 @@ class IntegratorColumnSum {
   const Epetra_MultiVector* cv_;
   const Epetra_MultiVector* surf_cv_;
   const Epetra_MultiVector* dens_;
-
 };
 
 } // namespace Impl
 
-using ColumnSumEvaluator = EvaluatorColumnIntegrator<Impl::ParserColumnSum,Impl::IntegratorColumnSum>;
+using ColumnSumEvaluator =
+  EvaluatorColumnIntegrator<Impl::ParserColumnSum, Impl::IntegratorColumnSum>;
 
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi

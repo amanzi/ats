@@ -1,12 +1,25 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The manning coefficient with variable litter evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
 Manning's coefficient that varies based on litter thickness and ponded depth.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+/*!
+
+(missing documentation!)
+
+*/
 #ifndef AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_EVALUATOR_HH_
 #define AMANZI_FLOW_MANNING_COEFFICIENT_LITTER_EVALUATOR_HH_
 
@@ -21,15 +34,13 @@ namespace Relations {
 
 class ManningCoefficientLitterModel;
 
-typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel> > ManningCoefList;
+typedef std::vector<Teuchos::RCP<ManningCoefficientLitterModel>> ManningCoefList;
 typedef std::pair<Teuchos::RCP<Functions::MeshPartition>, ManningCoefList> ManningCoefPartition;
 
 
 class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
+  explicit ManningCoefficientLitterEvaluator(Teuchos::ParameterList& plist);
   ManningCoefficientLitterEvaluator(const ManningCoefficientLitterEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -37,11 +48,11 @@ class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -51,8 +62,7 @@ class ManningCoefficientLitterEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<ManningCoefPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ManningCoefficientLitterEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ManningCoefficientLitterEvaluator> reg_;
 };
 
 
@@ -61,8 +71,8 @@ Teuchos::RCP<ManningCoefPartition>
 createManningCoefPartition(Teuchos::ParameterList& plist);
 
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -1,6 +1,9 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ahmad Jan (jana@ornl.gov)
            Ethan Coon (ecoon@ornl.gov)
 */
@@ -32,19 +35,20 @@ VolumetricPondedDepthEvaluator::VolumetricPondedDepthEvaluator(Teuchos::Paramete
 
   // dependencies
   pd_key_ = Keys::readKey(plist_, domain, "ponded depth key", "ponded_depth");
-  dependencies_.insert(KeyTag{pd_key_, tag});
+  dependencies_.insert(KeyTag{ pd_key_, tag });
 
-  delta_max_key_ = Keys::readKey(plist_, domain, "microtopographic relief", "microtopographic_relief");
-  dependencies_.insert(KeyTag{delta_max_key_, tag});
+  delta_max_key_ =
+    Keys::readKey(plist_, domain, "microtopographic relief", "microtopographic_relief");
+  dependencies_.insert(KeyTag{ delta_max_key_, tag });
 
   delta_ex_key_ = Keys::readKey(plist_, domain, "excluded volume", "excluded_volume");
-  dependencies_.insert(KeyTag{delta_ex_key_, tag});
+  dependencies_.insert(KeyTag{ delta_ex_key_, tag });
 }
 
 
 void
 VolumetricPondedDepthEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+                                          const std::vector<CompositeVector*>& result)
 {
   // NOTE, we can only differentiate with respect to quantities that exist on
   // all entities, not just cell entities.
@@ -59,13 +63,13 @@ VolumetricPondedDepthEvaluator::Evaluate_(const State& S,
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& pd = *pd_v->ViewComponent(comp,false);
-    const auto& del_max = *del_max_v->ViewComponent(internal_comp,false);
-    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp,false);
-    auto& res = *result[0]->ViewComponent(comp,false);
+    const auto& pd = *pd_v->ViewComponent(comp, false);
+    const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
+    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
+    auto& res = *result[0]->ViewComponent(comp, false);
 
     int ncomp = result[0]->size(comp, false);
-    for (int i=0; i!=ncomp; ++i) {
+    for (int i = 0; i != ncomp; ++i) {
       int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
       AMANZI_ASSERT(Microtopography::validParameters(del_max[0][ii], del_ex[0][ii]));
       res[0][i] = Microtopography::volumetricDepth(pd[0][i], del_max[0][ii], del_ex[0][ii]);
@@ -75,8 +79,11 @@ VolumetricPondedDepthEvaluator::Evaluate_(const State& S,
 
 
 void
-VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> pd_v = S.GetPtr<CompositeVector>(pd_key_, tag);
@@ -90,21 +97,23 @@ VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
 
-      const auto& pd = *pd_v->ViewComponent(comp,false);
-      const auto& del_max = *del_max_v->ViewComponent(internal_comp,false);
-      const auto& del_ex = *del_ex_v->ViewComponent(internal_comp,false);
-      auto& res = *result[0]->ViewComponent(comp,false);
+      const auto& pd = *pd_v->ViewComponent(comp, false);
+      const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
+      const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
+      auto& res = *result[0]->ViewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
-      for (int i=0; i!=ncomp; ++i) {
+      for (int i = 0; i != ncomp; ++i) {
         int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
-        res[0][i] = Microtopography::dVolumetricDepth_dDepth(pd[0][i], del_max[0][ii], del_ex[0][ii]);
-        res[0][i] = std::max(res[0][i],0.001);
+        res[0][i] =
+          Microtopography::dVolumetricDepth_dDepth(pd[0][i], del_max[0][ii], del_ex[0][ii]);
+        res[0][i] = std::max(res[0][i], 0.001);
       }
     }
 
   } else {
-    Errors::Message msg("VolumetricPondedDepthEvaluator: Not Implemented: no derivatives implemented other than ponded depth.");
+    Errors::Message msg("VolumetricPondedDepthEvaluator: Not Implemented: no derivatives "
+                        "implemented other than ponded depth.");
     Exceptions::amanzi_throw(msg);
   }
 }
@@ -113,15 +122,14 @@ void
 VolumetricPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // Ensure my field exists.  Requirements should be already set.
-  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(
-    my_keys_.front().first, my_keys_.front().second);
+  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                                        my_keys_.front().second);
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
   if (my_fac.Mesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
-    Teuchos::RCP<CompositeVectorSpace> dep_fac =
-        Teuchos::rcp(new CompositeVectorSpace(my_fac));
+    Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
@@ -148,6 +156,5 @@ VolumetricPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 }
 
 
-
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

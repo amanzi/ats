@@ -1,18 +1,17 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Internal energy model for air and water vapor.
 
+//! Internal energy model for air and water vapor.
 /*!
 
-Internal energy model for air and water vapor, relative to water @237.15K
-
-.. _iem-water-vapor-spec
-.. admonition:: iem-water-vapor-spec
+.. _iem-water-vapor-model-spec
+.. admonition:: iem-water-vapor-model-spec
 
     * `"latent heat [J mol^-1]`" ``[double]`` Latent heat of vaporization
     * `"heat capacity [J mol^-1 K^-1]`" ``[double]`` C_v
@@ -28,8 +27,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEMWaterVapor {
-
-public:
+ public:
   IEMWaterVapor(Teuchos::ParameterList& plist);
 
   bool IsMolarBasis() { return true; }
@@ -38,16 +36,16 @@ public:
   double DInternalEnergyDT(double temp, double mol_frac_gas);
   double DInternalEnergyDomega(double temp, double mol_frac_gas);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
 
-  double Cv_air_; // units: MJ/(mol-K)
+  double Cv_air_;            // units: MJ/(mol-K)
   double heat_vaporization_; // units: MJ/mol
 };
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

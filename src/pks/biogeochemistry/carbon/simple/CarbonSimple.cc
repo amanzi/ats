@@ -1,12 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
-
-------------------------------------------------------------------------- */
+  Authors: Ethan Coon
+*/
 
 #include "CarbonSimple.hh"
 
@@ -14,10 +13,10 @@ namespace Amanzi {
 namespace BGC {
 
 CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
-                            const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                            const Teuchos::RCP<State>& S,
-                            const Teuchos::RCP<TreeVector>& solution):
-    Amanzi::PK(pk_tree, glist, S, solution),
+                           const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                           const Teuchos::RCP<State>& S,
+                           const Teuchos::RCP<TreeVector>& solution)
+  : Amanzi::PK(pk_tree, glist, S, solution),
     Amanzi::PK_Physical_Explicit_Default(pk_tree, glist, S, solution),
     is_diffusion_(false),
     is_source_(false),
@@ -26,16 +25,16 @@ CarbonSimple::CarbonSimple(Teuchos::ParameterList& pk_tree,
 {
   is_diffusion_ = plist_->get<bool>("is cryoturbation", true);
   if (is_diffusion_)
-    div_diff_flux_key_ = Keys::readKey(*plist_, domain_, "divergence of bioturbation fluxes", "div_bioturbation");
+    div_diff_flux_key_ =
+      Keys::readKey(*plist_, domain_, "divergence of bioturbation fluxes", "div_bioturbation");
 
   is_source_ = plist_->get<bool>("is source", true);
-  if (is_source_)
-    source_key_ = Keys::readKey(*plist_, domain_, "source", "carbon_source");
+  if (is_source_) source_key_ = Keys::readKey(*plist_, domain_, "source", "carbon_source");
 
   is_decomp_ = plist_->get<bool>("is decomposition", true);
   if (is_decomp_)
-    decomp_key_ = Keys::readKey(*plist_, domain_, "decomposition rate", "carbon_decomposition_rate");
-
+    decomp_key_ =
+      Keys::readKey(*plist_, domain_, "decomposition rate", "carbon_decomposition_rate");
 }
 
 
@@ -52,28 +51,32 @@ CarbonSimple::Setup()
   if (cell_vol_key_ == std::string()) {
     cell_vol_key_ = plist_->get<std::string>("cell volume key", "cell_volume");
   }
-  S_->Require<CompositeVector,CompositeVectorSpace>(cell_vol_key_, tag_current_).SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->Require<CompositeVector, CompositeVectorSpace>(cell_vol_key_, tag_current_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_current_);
 
   // diffusion
   if (is_diffusion_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(div_diff_flux_key_, tag_current_)
-      .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, npools_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(div_diff_flux_key_, tag_current_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S_->RequireEvaluator(div_diff_flux_key_, tag_current_);
   }
 
   // source terms
   if (is_source_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(source_key_, tag_current_)
-      .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, npools_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(source_key_, tag_current_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S_->RequireEvaluator(source_key_, tag_current_);
   }
 
   // decomposition terms
   if (is_decomp_) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(decomp_key_, tag_current_)
-      .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, npools_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(decomp_key_, tag_current_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::CELL, npools_);
     S_->RequireEvaluator(decomp_key_, tag_current_);
   }
 }
@@ -87,7 +90,8 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // eventually we need to ditch this multi-state approach --etc
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t) < 1.e-4*S_->get_time(tag_next_) - S_->get_time(tag_current_));
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t) <
+                1.e-4 * S_->get_time(tag_next_) - S_->get_time(tag_current_));
   PK_Physical_Default::Solution_to_State(u, tag_current_);
 
   // debugging
@@ -111,12 +115,10 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
 
   // scale all by cell volume
   S_->GetEvaluator(cell_vol_key_, tag_current_).Update(*S_, name_);
-  const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_current_)
-      .ViewComponent("cell",false);
-  Epetra_MultiVector& dudt_c = *dudt->ViewComponent("cell",false);
-  for (int c=0; c!=dudt_c.MyLength(); ++c) {
-    dudt_c[0][c] *= cv[0][c];
-  }
+  const Epetra_MultiVector& cv =
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_current_).ViewComponent("cell", false);
+  Epetra_MultiVector& dudt_c = *dudt->ViewComponent("cell", false);
+  for (int c = 0; c != dudt_c.MyLength(); ++c) { dudt_c[0][c] *= cv[0][c]; }
 }
 
 
@@ -170,7 +172,5 @@ CarbonSimple::AddDecomposition_(const Teuchos::Ptr<CompositeVector>& g)
 }
 
 
-
-
 } // namespace BGC
-} // namespace ATS
+} // namespace Amanzi

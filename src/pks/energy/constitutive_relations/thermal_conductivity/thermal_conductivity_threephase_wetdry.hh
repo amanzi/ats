@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Three-phase thermal conductivity based on paper by Peters-Lidard.
 
+//! Three-phase thermal conductivity based on paper by Peters-Lidard.
 /*!
 
 A three-phase thermal conductivity, based upon:
@@ -17,16 +18,20 @@ A three-phase thermal conductivity, based upon:
 
 See Atchley et al GMD 2015 Supplementary Material for equations.
 
+`"thermal conductivity type`" = `"three-phase wet/dry`"
+
 .. _thermal-conductivity-threephase-wetdry-spec:
 .. admonition:: thermal-conductivity-threephase-wetdry-spec
 
-    * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully saturated, unfrozen bulk soil.
-    * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity of fully dried bulk soil.
-    * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
-    * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
-    * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
+   * `"region`" ``[string]`` Region name on which to apply these parameters.
+   * `"thermal conductivity, saturated (unfrozen) [W m^-1 K^-1]`" ``[double]``
+     Thermal conductivity of fully saturated, unfrozen bulk soil.
+   * `"thermal conductivity, dry [W m^-1 K^-1]`" ``[double]`` Thermal conductivity
+     of fully dried bulk soil.
+   * `"unsaturated alpha unfrozen [-]`" ``[double]`` Interpolating exponent
+   * `"unsaturated alpha frozen [-]`" ``[double]`` Interpolating exponent
+   * `"saturated beta frozen [-]`" ``[double]`` **1.0** Interpolating exponent
+   * `"epsilon`" ``[double]`` **1e-10** Epsilon to keep saturations bounded away from 0.
 
 */
 
@@ -42,17 +47,22 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseWetDry : public ThermalConductivityThreePhase {
-
-public:
+ public:
   ThermalConductivityThreePhaseWetDry(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DSaturationLiquid(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp);
-  double DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp);
+  double
+  DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp);
+  double DThermalConductivity_DSaturationLiquid(double porosity,
+                                                double sat_liq,
+                                                double sat_ice,
+                                                double temp);
+  double
+  DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp);
+  double
+  DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -66,11 +76,11 @@ private:
 
  private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhaseWetDry> factory_;
-
+                                  ThermalConductivityThreePhaseWetDry>
+    factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

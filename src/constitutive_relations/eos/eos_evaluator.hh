@@ -1,9 +1,13 @@
 /*
-  License: BSD
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! EOSEvaluator is the interface between state/data and the model, an EOS.
 
+//! EOSEvaluator is the interface between state/data and the model, an EOS.
 #ifndef AMANZI_RELATIONS_EOS_EVALUATOR_HH_
 #define AMANZI_RELATIONS_EOS_EVALUATOR_HH_
 
@@ -15,7 +19,6 @@ namespace Amanzi {
 namespace Relations {
 
 class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   enum EOSMode { EOS_MODE_MASS, EOS_MODE_MOLAR, EOS_MODE_BOTH };
 
@@ -28,17 +31,18 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // ensures a given structure of all of my_keys
-  virtual void EnsureCompatibility_Structure_(State& S) override {
+  virtual void EnsureCompatibility_Structure_(State& S) override
+  {
     EnsureCompatibility_StructureSame_(S);
   }
 
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   void ParsePlistKeys_();
@@ -55,10 +59,10 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool updated_once_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EOSEvaluator> fac_;
+  static Utils::RegisteredFactory<Evaluator, EOSEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

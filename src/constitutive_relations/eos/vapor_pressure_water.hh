@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   ATS
 
   Saturated Vapor Pressure for vapor over water or ice, Sonntag (1990)
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_RELATIONS_EOS_WATER_VAPOR_PRESSURE_HH_
@@ -20,22 +26,21 @@ namespace Amanzi {
 namespace Relations {
 
 class VaporPressureWater : public VaporPressureRelation {
-
-public:
+ public:
   explicit VaporPressureWater(Teuchos::ParameterList& plist);
 
   virtual double SaturatedVaporPressure(double T);
   virtual double DSaturatedVaporPressureDT(double T);
 
-private:
+ private:
   Teuchos::ParameterList plist_;
   const double ka0_;
   const double ka_, kb_, kc_, kd_;
 
-  static Utils::RegisteredFactory<VaporPressureRelation,VaporPressureWater> factory_;
+  static Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

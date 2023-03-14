@@ -9,13 +9,13 @@ import h5py
 def alphabetize(datin, datout):
     for var in datin.keys():
         grp = datout.create_group(var)
-        keys = datin[var].keys()
-        keys.sort(lambda a,b: int.__cmp__(int(a), int(b)))
-        nints = len(keys[-1])
+        keys = list(datin[var].keys())
+        sorted_keys = sorted(keys, key=lambda a : int(a))
+        nints = len(sorted_keys[-1])
 
         fmt = "%0"+str(nints)+"d"
 
-        for k in keys:
+        for k in sorted_keys:
             knew = fmt%int(k)
             grp.create_dataset(knew, data=datin[var][k][:])
 

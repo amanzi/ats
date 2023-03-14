@@ -1,6 +1,9 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ahmad Jan (jana@ornl.gov)
            Ethan Coon (ecoon@ornl.gov)
 */
@@ -27,8 +30,9 @@ namespace Amanzi {
 namespace Flow {
 
 
-VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(
+  Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
@@ -46,28 +50,30 @@ VolumetricSnowPondedDepthEvaluator::VolumetricSnowPondedDepthEvaluator(Teuchos::
   }
 
   // my keys
-  vol_pd_key_ = Keys::readKey(plist, domain_surf_, "volumetric ponded depth", "volumetric_ponded_depth");
-  my_keys_.emplace_back(KeyTag{vol_pd_key_, tag});
+  vol_pd_key_ =
+    Keys::readKey(plist, domain_surf_, "volumetric ponded depth", "volumetric_ponded_depth");
+  my_keys_.emplace_back(KeyTag{ vol_pd_key_, tag });
   vol_sd_key_ = Keys::readKey(plist, domain_snow_, "volumetric snow depth", "volumetric_depth");
-  my_keys_.emplace_back(KeyTag{vol_sd_key_, tag});
+  my_keys_.emplace_back(KeyTag{ vol_sd_key_, tag });
 
   // dependencies
   pd_key_ = Keys::readKey(plist_, domain_surf_, "ponded depth key", "ponded_depth");
-  dependencies_.insert(KeyTag{pd_key_, tag});
+  dependencies_.insert(KeyTag{ pd_key_, tag });
   sd_key_ = Keys::readKey(plist_, domain_snow_, "snow depth key", "depth");
-  dependencies_.insert(KeyTag{sd_key_, tag});
+  dependencies_.insert(KeyTag{ sd_key_, tag });
 
-  delta_max_key_ = Keys::readKey(plist_, domain_surf_, "microtopographic relief", "microtopographic_relief");
-  dependencies_.insert(KeyTag{delta_max_key_, tag});
+  delta_max_key_ =
+    Keys::readKey(plist_, domain_surf_, "microtopographic relief", "microtopographic_relief");
+  dependencies_.insert(KeyTag{ delta_max_key_, tag });
 
   delta_ex_key_ = Keys::readKey(plist_, domain_surf_, "excluded volume", "excluded_volume");
-  dependencies_.insert(KeyTag{delta_ex_key_, tag});
+  dependencies_.insert(KeyTag{ delta_ex_key_, tag });
 }
 
 
 void
 VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
-                             const std::vector<CompositeVector*>& results)
+                                              const std::vector<CompositeVector*>& results)
 {
   // NOTE, we can only differentiate with respect to quantities that exist on
   // all entities, not just cell entities.
@@ -83,17 +89,17 @@ VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& pd = *pd_v->ViewComponent(comp,false);
-    const auto& del_max = *del_max_v->ViewComponent(internal_comp,false);
-    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp,false);
-    auto& vpd = *results[0]->ViewComponent(comp,false);
+    const auto& pd = *pd_v->ViewComponent(comp, false);
+    const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
+    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
+    auto& vpd = *results[0]->ViewComponent(comp, false);
 
     // note, snow depth does not have a boundary face component?
     if (comp == "boundary_face") {
       AMANZI_ASSERT(!results[1]->HasComponent(comp));
 
       int ncomp = vpd.MyLength();
-      for (int i=0; i!=ncomp; ++i) {
+      for (int i = 0; i != ncomp; ++i) {
         int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
         AMANZI_ASSERT(Microtopography::validParameters(del_max[0][ii], del_ex[0][ii]));
 
@@ -102,11 +108,11 @@ VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
       }
 
     } else if (comp == "cell") {
-      auto& vsd = *results[1]->ViewComponent(comp,false);
-      const auto& sd = *sd_v->ViewComponent(comp,false);
+      auto& vsd = *results[1]->ViewComponent(comp, false);
+      const auto& sd = *sd_v->ViewComponent(comp, false);
 
       int ncomp = vpd.MyLength();
-      for (int i=0; i!=ncomp; ++i) {
+      for (int i = 0; i != ncomp; ++i) {
         int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
         AMANZI_ASSERT(Microtopography::validParameters(del_max[0][ii], del_ex[0][ii]));
 
@@ -122,8 +128,11 @@ VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
 
 
 void
-VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& results)
+VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
   // NOTE, we can only differentiate with respect to quantities that exist on
@@ -132,13 +141,14 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
   // Not differentiating boundary faces... hopefully that is ok.
   const auto& pd = *S.GetPtr<CompositeVector>(pd_key_, tag)->ViewComponent("cell", false);
   const auto& sd = *S.GetPtr<CompositeVector>(sd_key_, tag)->ViewComponent("cell", false);
-  const auto& del_max = *S.GetPtr<CompositeVector>(delta_max_key_, tag)->ViewComponent("cell", false);
+  const auto& del_max =
+    *S.GetPtr<CompositeVector>(delta_max_key_, tag)->ViewComponent("cell", false);
   const auto& del_ex = *S.GetPtr<CompositeVector>(delta_ex_key_, tag)->ViewComponent("cell", false);
-  auto& vpd = *results[0]->ViewComponent("cell",false);
-  auto& vsd = *results[1]->ViewComponent("cell",false);
+  auto& vpd = *results[0]->ViewComponent("cell", false);
+  auto& vsd = *results[1]->ViewComponent("cell", false);
 
   if (wrt_key == pd_key_) {
-    for (int c=0; c!=vpd.MyLength(); ++c) {
+    for (int c = 0; c != vpd.MyLength(); ++c) {
       double sdc = std::max(0., sd[0][c]);
       double pdc = std::max(0., pd[0][c]);
       vpd[0][c] = Microtopography::dVolumetricDepth_dDepth(pdc, del_max[0][c], del_ex[0][c]);
@@ -146,13 +156,14 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(const State& S,
     }
   } else if (wrt_key == sd_key_) {
     vpd.PutScalar(0.);
-    for (int c=0; c!=vpd.MyLength(); ++c) {
+    for (int c = 0; c != vpd.MyLength(); ++c) {
       double sdc = std::max(0., sd[0][c]);
       double pdc = std::max(0., pd[0][c]);
       vsd[0][c] = Microtopography::dVolumetricDepth_dDepth(pdc + sdc, del_max[0][c], del_ex[0][c]);
     }
   } else {
-    Errors::Message msg("VolumetricSnowPondedDepthEvaluator: Not Implemented: no derivatives implemented other than depths.");
+    Errors::Message msg("VolumetricSnowPondedDepthEvaluator: Not Implemented: no derivatives "
+                        "implemented other than depths.");
     Exceptions::amanzi_throw(msg);
   }
 }
@@ -161,15 +172,14 @@ void
 VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   // Ensure my field exists.  Requirements should be already set.
-  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(
-    my_keys_.front().first, my_keys_.front().second);
+  const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                                        my_keys_.front().second);
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
   if (my_fac.Mesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
-    Teuchos::RCP<CompositeVectorSpace> dep_fac =
-        Teuchos::rcp(new CompositeVectorSpace(my_fac));
+    Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
@@ -196,5 +206,5 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 }
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

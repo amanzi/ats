@@ -1,11 +1,17 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   ATS
 
   Saturated Vapor Pressure for vapor over water or ice, Sonntag (1990)
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include <cmath>
@@ -16,7 +22,8 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-Utils::RegisteredFactory<VaporPressureRelation,VaporPressureWater> VaporPressureWater::factory_("water vapor over water/ice");
+Utils::RegisteredFactory<VaporPressureRelation, VaporPressureWater>
+  VaporPressureWater::factory_("water vapor over water/ice");
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi

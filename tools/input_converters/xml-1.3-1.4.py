@@ -141,14 +141,15 @@ def rh_to_vp(xml):
     """Converts relative humidity to vapor pressure."""
     import warnings
     for ev in asearch.findall_path(xml, ["state", "evaluators", "surface-relative_humidity"], no_skip=True):
-        try:
-            y_header = asearch.find_path(ev, ["function", "domain", "function", "function-tabular", "y header"], no_skip=True)
-        except aerrors.MissingXMLError:
-            warnings.warn("Unable to update relative_humidity --> vapor_pressure_air: this must be done manually.")
-        else:
-            warnings.warn("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
-            ev.setName("surface-vapor_pressure_air")
-            y_header.setValue("vapor pressure air [Pa]")
+        ev.setName("surface-vapor_pressure_air")
+        for fname, hname in zip(["function-tabular", "function-bilinear-and-time"], ["y header", "value header"]):
+            try:
+                y_header = asearch.find_path(ev, ["function", "domain", "function", fname, hname], no_skip=True)
+                y_header.setValue("vapor pressure air [Pa]")
+            except aerrors.MissingXMLError:
+                warnings.warn("Unable to update relative_humidity --> vapor_pressure_air: this must be done manually.")
+            else:
+                warnings.warn("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
 
 
 def pk_flow_reactive_transport(xml):
