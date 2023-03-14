@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Evaluates relative permeability using water retention models.
 /*!
 
@@ -45,7 +47,8 @@ Some additional parameters are available.
    KEYS:
 
    - `"rel perm`"
-   - `"saturation`"
+   - `"saturation_liquid`"
+   - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
@@ -57,45 +60,34 @@ Some additional parameters are available.
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
-#include "secondary_variable_field_evaluator.hh"
+#include "rel_perm_evaluator.hh"
+#include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-enum class BoundaryFrzCampbellRelPerm {
-  BOUNDARY_PRESSURE,
-  INTERIOR_PRESSURE,
-  HARMONIC_MEAN,
-  ARITHMETIC_MEAN,
-  ONE,
-  SURF_REL_PERM
-};
-
-class RelPermFrzCampbellEvaluator : public SecondaryVariableFieldEvaluator {
-
+class RelPermFrzCampbellEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   // constructor format for all derived classes
-  explicit
-  RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist);
+  explicit RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist);
 
-  RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<WRMPartition>& wrms);
+  RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
 
   RelPermFrzCampbellEvaluator(const RelPermFrzCampbellEvaluator& other) = default;
-  virtual Teuchos::RCP<FieldEvaluator> Clone() const;
-
-  virtual void EnsureCompatibility(const Teuchos::Ptr<State>& S);
+  virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
 
  protected:
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  // Required methods from SecondaryVariableFieldEvaluator
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
-  virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+  // Required methods from EvaluatorSecondaryMonotypeCV
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -110,7 +102,7 @@ class RelPermFrzCampbellEvaluator : public SecondaryVariableFieldEvaluator {
 
   bool is_dens_visc_;
   Key surf_domain_;
-  BoundaryFrzCampbellRelPerm boundary_krel_;
+  BoundaryRelPerm boundary_krel_;
 
   double perm_scale_;
   double min_val_;
@@ -118,10 +110,10 @@ class RelPermFrzCampbellEvaluator : public SecondaryVariableFieldEvaluator {
   double b_;
 
  private:
-  static Utils::RegisteredFactory<FieldEvaluator,RelPermFrzCampbellEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, RelPermFrzCampbellEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif
