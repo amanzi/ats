@@ -25,23 +25,30 @@ CanopyRadiationEvaluator::CanopyRadiationEvaluator(Teuchos::ParameterList& plist
   my_keys_.clear();
 
   if (Keys::in("shortwave", akey)) {
-    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", akey);
+    can_down_sw_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", akey);
   } else {
-    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", "downward_shortwave_radiation");
+    can_down_sw_key_ = Keys::readKey(plist_,
+                                     domain_canopy_,
+                                     "canopy downward shortwave radiation",
+                                     "downward_shortwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_sw_key_, tag });
 
   if (Keys::in("longwave", akey)) {
-    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", akey);
+    can_down_lw_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", akey);
   } else {
-    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", "downward_longwave_radiation");
+    can_down_lw_key_ = Keys::readKey(
+      plist_, domain_canopy_, "canopy downward longwave radiation", "downward_longwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_lw_key_, tag });
 
   if (Keys::in("balance", akey)) {
     rad_bal_can_key_ = Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", akey);
   } else {
-    rad_bal_can_key_ = Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", "radiation_balance");
+    rad_bal_can_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", "radiation_balance");
   }
   my_keys_.emplace_back(KeyTag{ rad_bal_can_key_, tag });
 
@@ -133,9 +140,9 @@ CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
 void
 CanopyRadiationEvaluator::EvaluatePartialDerivative_(const State& S,
-                                                      const Key& wrt_key,
-                                                      const Tag& wrt_tag,
-                                                      const std::vector<CompositeVector*>& results)
+                                                     const Key& wrt_key,
+                                                     const Tag& wrt_tag,
+                                                     const std::vector<CompositeVector*>& results)
 {
   for (const auto& res : results) res->PutScalar(0.);
 }
