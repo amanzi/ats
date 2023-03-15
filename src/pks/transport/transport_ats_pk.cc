@@ -817,18 +817,22 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt_MPC << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
+  S_->GetEvaluator(flux_key_, tag_next_).Update(*S_, name_);
 
   // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
-  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  flux_ = S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
   // why are we copying this?  This should result in constant flux, no need to copy? --ETC
   *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
 
-  S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
-  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
+  S_->GetEvaluator(saturation_key_, tag_next_).Update(*S_, name_);
+  ws_ = S_->Get<CompositeVector>(saturation_key_, tag_next_).ViewComponent("cell", false);
+  S_->GetEvaluator(saturation_key_, tag_current_).Update(*S_, name_);
+  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, tag_current_).ViewComponent("cell", false);
 
-  S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
+  S_->GetEvaluator(molar_density_key_, tag_next_).Update(*S_, name_);
+  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, tag_next_).ViewComponent("cell", false);
+  S_->GetEvaluator(molar_density_key_, tag_current_).Update(*S_, name_);
+  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, tag_current_).ViewComponent("cell", false);
 
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
@@ -842,8 +846,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid
-        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
-        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
+        S_->GetEvaluator(geochem_src_factor_key_, tag_next_).Update(*S_, name_);
+        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, tag_next_)
                             .ViewComponent("cell", false);
         Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
           Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
@@ -909,7 +913,12 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     mol_dens_next = mol_dens_;
   }
 
-  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, Tags::CURRENT).ptr());
+  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, tag_current_).ptr());
+  db_->WriteVector("sat_new", S_->GetPtr<CompositeVector>(saturation_key_, tag_next_).ptr());
+  db_->WriteVector("mol_dens_old", S_->GetPtr<CompositeVector>(molar_density_key_, tag_current_).ptr());
+  db_->WriteVector("mol_dens_new", S_->GetPtr<CompositeVector>(molar_density_key_, tag_next_).ptr());
+  db_->WriteVector("poro", S_->GetPtr<CompositeVector>(porosity_key_, tag_next_).ptr());
+
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
