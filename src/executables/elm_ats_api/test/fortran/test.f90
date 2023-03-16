@@ -49,11 +49,11 @@ program elm_test
 
     ! call ATS methods
     call ats_driver%setup()
-    call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, lat, lon, elev, surf_area_m2, dz)
+    !!call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
     call ats_driver%initialize()
-    call ats_driver%set_sources(infil, evap, tran, ncol, ncell)
+    !!call ats_driver%set_sources(infil, evap, tran, ncol, ncell)
     call ats_driver%advance_test()
-    call ats_driver%get_waterstate(surf_pres, soil_pres, satur, ncol, ncell)
+    !!call ats_driver%get_waterstate(surf_pres, soil_pres, satur, ncol, ncell)
 
     ! don't need to call ats_driver%delete now that final is used
 
