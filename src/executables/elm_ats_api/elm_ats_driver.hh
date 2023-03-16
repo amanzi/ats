@@ -67,9 +67,7 @@ public:
                      double * const depth);
 
   void setup();
-  void initialize(double t,
-                  double const * const p_atm,
-                  double const * const pressure);
+  void initialize();
 
   void set_soil_hydrologic_parameters(double const * const base_porosity,
           double const * const hydraulic_conductivity,
