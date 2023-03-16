@@ -23,7 +23,7 @@ called `"main`".  That list contains the following required elements:
 
     * `"cycle driver`" ``[coordinator-spec]``  See below.
     * `"mesh`" ``[mesh-typed-spec-list]`` A list of Mesh_ objects.
-    * `"regions`" ``[region-typedsublist-spec-list]`` A list of Region_ objects.
+    * `"regions`" ``[region-typedinline-spec-list]`` A list of Region_ objects.
     * `"visualization`" ``[visualization-spec-list]`` A list of Visualization_ objects.
     * `"observations`" ``[observation-spec-list]`` An list of Observation_ objects.
     * `"checkpoint`" ``[checkpoint-spec]`` A Checkpoint_ spec.

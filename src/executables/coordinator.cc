@@ -544,7 +544,8 @@ Coordinator::advance()
 }
 
 
-bool Coordinator::visualize(bool force)
+bool
+Coordinator::visualize(bool force)
 {
   // write visualization if requested
   bool dump = force;
@@ -564,7 +565,8 @@ bool Coordinator::visualize(bool force)
 }
 
 
-bool Coordinator::checkpoint(bool force)
+bool
+Coordinator::checkpoint(bool force)
 {
   int cycle = S_->get_cycle();
   double time = S_->get_time();
