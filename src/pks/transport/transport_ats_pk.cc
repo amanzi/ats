@@ -814,6 +814,12 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt_MPC << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
+  // NOTE: these "flow" variables are hard-coded as Tag::NEXT assuming that
+  // flow is supercycled relative to transport and therefore we must
+  // interpolate the flow variables from the "global" CURRENT+NEXT to the
+  // subcycled current + next.  This would be fixed by having evaluators that
+  // interpolate in time, allowing transport to not have to know how flow is
+  // being integrated... FIXME --etc
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
 
   // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
@@ -823,9 +829,13 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
+  S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
+  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
+  S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
+  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
   mol_dens_prev_ =
@@ -842,7 +852,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
-        // src_factor = water_source / molar_density_liquid
+        // src_factor = water_source / molar_density_liquid, both flow
+        // quantities, see note above.
         S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
         auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
                             .ViewComponent("cell", false);
@@ -890,6 +901,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   double dt_sum = 0.0;
   double dt_cycle;
+  Tag water_tag_current, water_tag_next;
   if (interpolate_ws) {
     dt_cycle = std::min(dt_stable, dt_MPC);
     InterpolateCellVector(*ws_prev_, *ws_, dt_shift, dt_global, *ws_subcycle_current);
@@ -902,12 +914,16 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     ws_next = ws_subcycle_next;
     mol_dens_current = mol_dens_subcycle_current;
     mol_dens_next = mol_dens_subcycle_next;
+    water_tag_current = tag_subcycle_current_;
+    water_tag_next = tag_subcycle_next_;
   } else {
     dt_cycle = dt_MPC;
     ws_current = ws_prev_;
     ws_next = ws_;
     mol_dens_current = mol_dens_prev_;
     mol_dens_next = mol_dens_;
+    water_tag_current = Tags::CURRENT;
+    water_tag_next = Tags::NEXT;
   }
 
   db_->WriteVector("sat_old",
