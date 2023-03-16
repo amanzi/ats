@@ -15,4 +15,4 @@ add_amanzi_executable(elm_ats_cc_test
   OUTPUT_NAME elm_ats_cc_test
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
 
-#add_subdirectory(fortran)
+add_subdirectory(fortran)
