@@ -103,6 +103,7 @@ struct GroundProperties {
   double albedo;            // [-]
   double emissivity;        // [-]
   double saturation_gas;    // [-]
+  double saturation_liq;    // [-]
   double roughness;         // [m] surface roughness of a bare domain
   double snow_death_rate;   // [kg/m^2/s] snow that must die this timestep, make it melt!
   double unfrozen_fraction; // [-] fraction of ground water that is unfrozen
