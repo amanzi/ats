@@ -287,9 +287,11 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
-
+  double u_star = met.Us / std::log(met.Z_Us / snow.roughness);
+  double Re0 = u_star * snow.roughness / 1.2e-5;
+  double KB = 10 * std::pow(Re0, 0.15) - (-1 * std::log(Re0) + 7);
   double Dhe_latent = WindFactor(
-    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
+    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
   eb.fQe = LatentHeat(Dhe_latent * Sqig,
                       params.density_air,
                       params.H_sublimation,
@@ -363,7 +365,10 @@ UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
+  double u_star = met.Us / std::log(met.Z_Us / surf.roughness);
+  double Re0 = u_star * surf.roughness / 1.2e-5;
+  double KB = 10 * std::pow(Re0, 0.15) - (-1 * std::log(Re0) + 7);
+  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, KB);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
 
