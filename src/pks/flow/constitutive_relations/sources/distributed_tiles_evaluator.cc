@@ -54,11 +54,16 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   dependencies_.insert(KeyTag{ pres_key_, tag });
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
+  mass_dens_key_ = Keys::readKey(plist, domain_, "mass density liquid", "mass_density_liquid");
   dependencies_.insert(KeyTag{ mol_dens_key_, tag });
 
   // other parameters
   num_ditches_ = plist.get<int>("number of ditches");
-  k_ = plist.get<double>("tile permeability [m^2]");
+  ka_ = plist.get<double>("permeability above [m^2]");
+  kb_ = plist.get<double>("permeability below [m^2]");  
+  d_ = plist.get<double>("equivalent distance to impermeable boundary [m]");
+  L_ = plist.get<double>("drain spacing [m]");
+  th_ = plist.get<double>("drain layer thickness [m]", -1.0);
   num_components_ = plist.get<int>("number of components", 1);
   p_enter_ = plist.get<double>("entering pressure [Pa]", 101325);
 }
@@ -67,11 +72,22 @@ void
 DistributedTilesRateEvaluator::Update_(State& S)
 {
   auto tag = my_keys_.front().second;
+  Key akey = my_keys_.front().first;
+  Key domain_name = Keys::getDomain(akey);
+  auto mesh = S.GetMesh(domain_name);
 
   double dt = S.Get<double>("dt", tag);
 
+
+  int z_index = mesh->space_dimension() - 1; 
+  const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  double gr = -gravity[z_index];
+
   const auto& pres = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
   const auto& dens = *S.Get<CompositeVector>(mol_dens_key_, tag).ViewComponent("cell", false);
+  const auto& mass_dens = *S.Get<CompositeVector>(mass_dens_key_, tag).ViewComponent("cell", false);
+  const auto& visc = *S.Get<CompositeVector>(visc_key_, tag).ViewComponent("cell", false);
+  
   const auto& cv =
     *S.Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag).ViewComponent("cell", false);
   const auto& sub_marks = *S.Get<CompositeVector>(catch_id_key_, tag).ViewComponent("cell", false);
@@ -102,7 +118,25 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
     for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
       if (sub_marks[0][c] > 0) {
-        double val = std::min(p_enter_ - pres[0][c], 0.0) * dens[0][c] * k_;
+        if (th_ < 0){
+          AmanziMesh::Entity_ID_List faces;
+          std::vector<int> dirs;
+          mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
+          double zmax = -1e+98;
+          double zmin =  1e+98;          
+          for (auto f : faces){
+            auto xf=mesh->face_centroid(f);
+            zmax = std::max(zmax, xf[z_index]);
+            zmin = std::min(zmin, xf[z_index]);              
+          }
+          th_ = zmax - zmin;
+          AMANZI_ASSERT(th_ > 1e-12);
+        }
+
+        
+        double diff_p = std::min(p_enter_ - 1.5*pres[0][c], 0.0);
+        double val = diff_p * dens[0][c] * (8.*kb_*d_)/(L_*L_*visc[0][c] *th_); //linear term [mol/(m^3 s)]
+        val += diff_p * diff_p * dens[0][c] * (ka_/ (visc[0][c] * mass_dens[0][c] * L_ * L_ * gr * th_)); // nonlinear term [mol/(m^3 s)]
 
         if (!factor_key_.empty()) {
           for (int i = 0; i < num_components_; ++i) {
