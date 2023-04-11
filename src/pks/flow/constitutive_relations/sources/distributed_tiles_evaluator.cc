@@ -52,11 +52,15 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   }
 
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
-  dependencies_.insert(KeyTag{ pres_key_, tag });
-  mol_dens_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
-  mass_dens_key_ = Keys::readKey(plist, domain_, "mass density liquid", "mass_density_liquid");
-  dependencies_.insert(KeyTag{ mol_dens_key_, tag });
+  mol_dens_key_ = Keys::readKey(plist, domain_, "molar density", "molar_density_liquid");
+  mass_dens_key_ = Keys::readKey(plist, domain_, "mass density", "mass_density_liquid");
+  visc_key_ = Keys::readKey(plist, domain_, "viscosity liquid", "viscosity_liquid");
+  dependencies_.insert(KeyTag{pres_key_, tag});
+  dependencies_.insert(KeyTag{mol_dens_key_, tag});
+  dependencies_.insert(KeyTag{visc_key_, tag});
+  dependencies_.insert(KeyTag{mass_dens_key_, tag});
 
+ 
   // other parameters
   num_ditches_ = plist.get<int>("number of ditches");
   ka_ = plist.get<double>("permeability above [m^2]");
