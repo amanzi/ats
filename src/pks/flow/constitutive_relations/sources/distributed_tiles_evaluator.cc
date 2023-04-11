@@ -42,7 +42,10 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
   dependencies_.insert(subsurface_marks_key_);
   pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   mol_dens_key_ = Keys::readKey(plist, domain_, "molar density", "molar_density_liquid");
+  vis_dens_key_ = Keys::readKey(plist, domain_, "viscosity liquid", "viscosity_liquid");
   dependencies_.insert(pres_key_);
+  dependencies_.insert(mol_dens_key_);
+  dependencies_.insert(vis_dens_key_);
 
   if (factor_key_ != "") dependencies_.insert(factor_key_);
   
