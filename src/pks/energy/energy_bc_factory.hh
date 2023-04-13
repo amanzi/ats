@@ -47,7 +47,7 @@ independently specify diffusive fluxes.  This can also be used in cases where
 the mass flux is prescribed to be zero (e.g. bottom boundaries, where this
 might be the geothermal gradient).
 
-Units are in [W m^-2].
+Units are in **[MW m^-2]**, noting the deviation from SI units!
 
 Example:
 
@@ -79,7 +79,7 @@ This boundary condition sets the total flux of energy, from both advection and
 diffusion.  This is not used all that often in real applications, but is common
 for benchmarks or other testing.
 
-Units are in [W m^-2].
+Units are in **[MW m^-2]**, noting the deviation from SI units!
 
 Example:
 

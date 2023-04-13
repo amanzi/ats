@@ -24,7 +24,7 @@ def valid_mesh_filename(domain, format=None):
 
 class VisFile:
     """Class managing the reading of ATS visualization files."""
-    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr'):
+    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr', version='dev'):
         """Create a VisFile object.
 
         Parameters
@@ -38,6 +38,11 @@ class VisFile:
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
+        time_unit : str, optional, default is 'yr'
+          Unit of time to convert times to.  One of 'yr', 'noleap', 'd', 'hr', or 's'
+        version : str or float, optional, default is 'dev'
+          Version of output file to parse, one of 'dev', 1.4, 1.3, ...
+        
 
         Returns
         -------
@@ -81,6 +86,7 @@ class VisFile:
         self.d = h5py.File(self.fname,'r')
         self.loadTimes()
         self.map = None
+        self.version = version
         
     def __enter__(self):
         return self
@@ -192,8 +198,8 @@ class VisFile:
         """
         if self.domain and '-' not in vname:
             vname = self.domain + '-' + vname
-        # if '.' not in vname:
-        #     vname = vname + '.cell.0'
+        if self.version != 'dev' and self.version < 1.4 and '.' not in vname:
+            vname = vname + '.cell.0'
         return vname
 
     def _get(self, vname, cycle):
