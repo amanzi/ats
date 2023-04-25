@@ -68,9 +68,12 @@ void ats_setup(ELM_ATSDriver_ptr ats)
 }
 
 // call driver initialize()
-void ats_initialize(ELM_ATSDriver_ptr ats)
+void ats_initialize(ELM_ATSDriver_ptr ats,
+                      double const * const t,
+                      double const * const patm,
+                      double const * const soilp)
 {
-  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize();
+  reinterpret_cast<ATS::ELM_ATSDriver*>(ats)->initialize(*t, patm, soilp);
 }
 
 
@@ -126,13 +129,14 @@ void ats_set_sources(ELM_ATSDriver_ptr ats,
 
 void ats_get_waterstate(ELM_ATSDriver_ptr ats,
                           double * const surface_ponded_depth,
+                          double * const water_table_depth,
                           double * const soil_pressure,
                           double * const soil_psi,
                           double * const sat_liq,
                           double * const sat_ice)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->get_waterstate(surface_ponded_depth, soil_pressure, soil_psi, sat_liq, sat_ice);
+    ->get_waterstate(surface_ponded_depth, water_table_depth, soil_pressure, soil_psi, sat_liq, sat_ice);
 }
 
 

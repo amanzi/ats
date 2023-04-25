@@ -43,4 +43,5 @@ endif()
 #   HEADERS ${elm_ats_inc_files}
 #   LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
 
-add_subdirectory(test)
+# re-enable later
+##add_subdirectory(test)

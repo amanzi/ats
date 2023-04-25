@@ -66,7 +66,10 @@ void ats_get_mesh_info(ELM_ATSDriver_ptr ats,
 void ats_setup(ELM_ATSDriver_ptr ats);
 
 // call driver initialize()
-void ats_initialize(ELM_ATSDriver_ptr ats);
+void ats_initialize(ELM_ATSDriver_ptr ats,
+                      double const * const t,
+                      double const * const patm,
+                      double const * const soilp);
 
 // set material parameters, which are constant in time
 void ats_set_soil_hydrologic_parameters(ELM_ATSDriver_ptr ats,
@@ -109,6 +112,7 @@ void ats_set_sources(ELM_ATSDriver_ptr ats,
 // soil_pressure & saturation are 1D arrays array of length (ncells)
 void ats_get_waterstate(ELM_ATSDriver_ptr ats,
                           double * const surface_ponded_depth,
+                          double * const water_table_depth,
                           double * const soil_pressure,
                           double * const soil_psi,
                           double * const sat_liq,

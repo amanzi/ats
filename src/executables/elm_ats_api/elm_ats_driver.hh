@@ -67,7 +67,10 @@ public:
                      double * const depth);
 
   void setup();
-  void initialize();
+
+  void initialize(double t,
+                  double const * const p_atm,
+                  double const * const pressure);
 
   void set_soil_hydrologic_parameters(double const * const base_porosity,
           double const * const hydraulic_conductivity,
@@ -83,6 +86,7 @@ public:
                              double const * const subsurface_transpiration);
 
   void get_waterstate(double * const surface_ponded_depth,
+                      double * const water_table_depth,
                       double * const soil_pressure,
                       double * const soil_psi,
                       double * const sat_liq,
@@ -120,9 +124,9 @@ public:
 
   Key base_poro_key_;
   Key perm_key_;
-  // Key ch_b_key_;
-  // Key ch_smpsat_key_;
-  // Key ch_sr_key_;
+  Key ch_b_key_;
+  Key ch_smpsat_key_;
+  Key ch_sr_key_;
 
   // Key poro_key_;
   Key root_frac_key_;
@@ -132,6 +136,7 @@ public:
   Key pot_infilt_key_;
 
   Key pd_key_;
+  Key wtd_key_;
   Key pres_key_;
   Key pc_key_;
   Key sat_liq_key_;
