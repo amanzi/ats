@@ -827,6 +827,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
 
+  S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
+  mol_dens_prev_ =
+    S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
+
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
   // this is locally created and has no evaluator -- should get a primary
@@ -906,7 +910,15 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     mol_dens_next = mol_dens_;
   }
 
-  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, Tags::CURRENT).ptr());
+  db_->WriteVector("sat_old",
+                   S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
+  db_->WriteVector("sat_new", S_->GetPtr<CompositeVector>(saturation_key_, water_tag_next).ptr());
+  db_->WriteVector("mol_dens_old",
+                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_current).ptr());
+  db_->WriteVector("mol_dens_new",
+                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_next).ptr());
+  db_->WriteVector("poro", S_->GetPtr<CompositeVector>(porosity_key_, Tags::NEXT).ptr());
+
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
