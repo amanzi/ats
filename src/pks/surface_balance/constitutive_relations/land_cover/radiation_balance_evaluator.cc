@@ -125,34 +125,33 @@ RadiationBalanceEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                            AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
-      // NOTE: emissivity = absorptivity, we use e to notate both
-      // Beer's law to find absorptivity of canopy
-      double e_can_sw = Relations::BeersLawAbsorptivity(lc.second.beers_k_sw, lai[0][c]);
-      double e_can_lw = Relations::BeersLawAbsorptivity(lc.second.beers_k_lw, lai[0][c]);
+      // Beer's law to find attenuation of radiation to surface in sw
+      double sw_atm_surf = Relations::BeersLaw(sw_in[0][c], lc.second.beers_k_sw, lai[0][c]);
+      double sw_atm_can = sw_in[0][c] - sw_atm_surf;
 
-      // sw atm to canopy and surface
-      double sw_atm_can = e_can_sw * sw_in[0][c];
-      double sw_atm_surf = sw_in[0][c] - sw_atm_can;
+      // Beer's law to find attenuation of radiation to surface in lw -- note
+      // this should be almost 0 for any LAI
+      double lw_atm_surf = Relations::BeersLaw(lw_in[0][c], lc.second.beers_k_lw, lai[0][c]);
+      double lw_atm_can = lw_in[0][c] - lw_atm_surf;
 
-      // lw atm to canopy and surface
-      double lw_atm_can = e_can_lw * lw_in[0][c];
-      double lw_atm_surf = lw_in[0][c] - lw_atm_can;
+      // smooth between lai = 0 (no canopy = no outgoing longwave) to lai = 1
+      // (lai of 1 approximately indicates the entire grid cell is covered in
+      // leaf area?)
+      double lai_factor = lai[0][c] < 1. ? lai[0][c] : 1.;
 
-      // lw out of each layer
+      // black-body radiation for LW out
       double lw_surf = Relations::OutgoingLongwaveRadiation(temp_surf[0][c], emiss[0][c]);
       double lw_snow = Relations::OutgoingLongwaveRadiation(temp_snow[0][c], emiss[1][c]);
-      double lw_can = Relations::OutgoingLongwaveRadiation(temp_canopy[0][c], e_can_lw);
+      double lw_can = lai_factor * Relations::OutgoingLongwaveRadiation(temp_canopy[0][c],
+              lc.second.emissivity_canopy);
 
-      // lw surface to canopy
-      double lw_surf_can = area_frac[0][c] * e_can_lw * lw_surf;
-      double lw_snow_can = area_frac[1][c] * e_can_lw * lw_snow;
-
-      // radiation balances -- see Figure 4.1 in CLM Tech Note
-      rad_bal_surf[0][c] = (1 - albedo[0][c]) * sw_atm_surf + lw_atm_surf + lw_can - lw_surf;
-      rad_bal_snow[0][c] = (1 - albedo[1][c]) * sw_atm_surf + lw_atm_surf + lw_can - lw_snow;
-
-      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * sw_atm_can
-        + lw_atm_can + lw_surf_can + lw_snow_can - 2 * lw_can; // up and down
+      rad_bal_surf[0][c] = (1-albedo[0][c])*sw_atm_surf + lw_atm_surf + lw_can - lw_surf;
+      rad_bal_snow[0][c] = (1-albedo[1][c])*sw_atm_surf + lw_atm_surf + lw_can - lw_snow;
+      rad_bal_can[0][c] = (1-lc.second.albedo_canopy)*sw_atm_can
+        + lw_atm_can
+        + lai_factor * area_frac[1][c] * lw_snow
+        + lai_factor * area_frac[0][c] * lw_surf
+        - 2*lw_can;
     }
   }
 }

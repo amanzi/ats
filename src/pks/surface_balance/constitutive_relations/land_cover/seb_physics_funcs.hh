@@ -46,10 +46,8 @@ double OutgoingLongwaveRadiation(double temp, double emissivity);
 
 //
 // Beer's law for radiation attenuation through a single-layer canopy
-//
-// Computes the effective absorptivity (equivalently, emissivity) of the layer.
 // ------------------------------------------------------------------------------------------
-double BeersLawAbsorptivity(double k_extinction, double lai);
+double BeersLaw(double sw_in, double k_extinction, double lai);
 
 //
 // Wind speed term D_he

@@ -74,9 +74,9 @@ double OutgoingLongwaveRadiation(double temp, double emissivity)
   return emissivity * c_stephan_boltzmann * std::pow(temp,4);
 }
 
-double BeersLawAbsorptivity(double k_extinction, double lai)
+double BeersLaw(double sw_in, double k_extinction, double lai)
 {
-  return 1 - std::exp(-k_extinction * lai);
+  return sw_in * std::exp(-k_extinction * lai);
 }
 
 
