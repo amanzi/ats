@@ -75,8 +75,6 @@ same region-based partitioning.
       cover type's bare ground, ranging from [0,1]
     * `"albedo of canopy [-]`" ``[double]``  **NaN** Albedo of the land cover type's
       canopy, ranging from [0,1]
-    * `"emissivity of canopy [-]`" ``[double]``  **NaN** Emissivity of the land
-      cover type's canopy, ranging from [0,1]
 
     * `"Beer's law extinction coefficient, shortwave [-]`"  ``[double]``  **NaN**
     * `"Beer's law extinction coefficient, longwave [-]`" ``[double]`` **NaN**
