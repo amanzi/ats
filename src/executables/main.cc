@@ -175,6 +175,12 @@ int main(int argc, char *argv[])
   if (!verbosity.empty())
     Amanzi::VerboseObject::global_default_level = opt_level;
 
+  if (Amanzi::VerboseObject::global_default_level != Teuchos::VERB_NONE &&
+      (rank == 0)) {
+    std::cout << "ATS version " << XSTR(ATS_VERSION) << ", Amanzi version " << XSTR(AMANZI_VERSION) << std::endl
+              << "================================================================================" << std::endl;
+  }
+
   // -- create simulator object and run
   ATS::SimulationDriver simulator;
   int ret = 0;

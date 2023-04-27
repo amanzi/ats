@@ -31,7 +31,6 @@ LandCover::LandCover(Teuchos::ParameterList& plist) :
   albedo_ground(plist.get<double>("albedo of bare ground [-]", NAN)),
   emissivity_ground(plist.get<double>("emissivity of bare ground [-]", NAN)),
   albedo_canopy(plist.get<double>("albedo of canopy [-]", NAN)),
-  emissivity_canopy(plist.get<double>("emissivity of canopy [-]", NAN)),
   beers_k_sw(plist.get<double>("Beer's law extinction coefficient, shortwave [-]", NAN)),
   beers_k_lw(plist.get<double>("Beer's law extinction coefficient, longwave [-]", NAN)),
   snow_transition_depth(plist.get<double>("snow transition depth [m]", NAN)),
@@ -117,8 +116,6 @@ void checkValid(const std::string& region, const LandCover& lc, const std::strin
     throwInvalid(region, "emissivity of bare ground [-]");
   if (parname == "albedo_ground" && std::isnan(lc.albedo_ground))
     throwInvalid(region, "albedo of bare ground [-]");
-  if (parname == "emissivity_canopy" && std::isnan(lc.emissivity_canopy))
-    throwInvalid(region, "emissivity of canopy [-]");
   if (parname == "albedo_canopy" && std::isnan(lc.albedo_canopy))
     throwInvalid(region, "albedo of canopy [-]");
 
