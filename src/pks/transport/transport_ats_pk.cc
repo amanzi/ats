@@ -853,6 +853,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   mol_dens_prev_ =
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
+  S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
+  mol_dens_prev_ =
+    S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
+
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
   // this is locally created and has no evaluator -- should get a primary
