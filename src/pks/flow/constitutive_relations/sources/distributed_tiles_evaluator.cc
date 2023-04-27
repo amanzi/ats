@@ -127,9 +127,9 @@ DistributedTilesRateEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
         }
 
         
-        double diff_p = std::min(p_enter_ - 1.5*pres[0][c], 0.0);
-        double val = diff_p * dens[0][c] * (8.*kb_*d_)/(L_*L_*visc[0][c] *th_); //linear term [mol/(m^3 s)]
-        val += diff_p * diff_p * dens[0][c] * (ka_/ (visc[0][c] * mass_dens[0][c] * L_ * L_ * gr * th_)); // nonlinear term [mol/(m^3 s)]
+        double diff_p = std::min(p_enter_ - pres[0][c], 0.0); //represents h_average difference 
+        double val = diff_p * dens[0][c] * (12.*kb_*d_)/(L_*L_*visc[0][c] *th_); //linear term [mol/(m^3 s)]
+        val -= 9. * diff_p * diff_p * dens[0][c] * (ka_/ (visc[0][c] * mass_dens[0][c] * L_ * L_ * gr * th_)); // nonlinear term [mol/(m^3 s)]
 
         if (factor_key_ != "") {
           const auto& factor = *S->GetFieldData(factor_key_)->ViewComponent("cell", false);
