@@ -10,14 +10,19 @@
 //! Evaluates a net radiation balance for ground and canopy.
 /*!
 
-
-
 Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
 a simple, single layer.
 
-Requires the use of LandCover types, for albedo and emissivity of the canopy
-itself, along with Beer's law coefficients.
+Requires the use of LandCover types, for albedo and Beer's law coefficients.
+
+This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
+radiation absorption.  In particular, long-wave is exactly as Figure 4.1c in CLM
+4.5 Tech Note.  The main difference comes in how absorptivity (which is equal
+to emissivity, epsilon in that document) is defined.  Here we use Beer's law
+which is an exponential decay with LAI.
+
+Unlike CLM 4.5, here we do not split shortwave into direct and diffuse light.
 
 Computes:
 
