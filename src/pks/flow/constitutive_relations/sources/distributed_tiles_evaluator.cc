@@ -28,8 +28,10 @@ DistributedTilesRateEvaluator::DistributedTilesRateEvaluator(Teuchos::ParameterL
 
   // there is no real good way to guess, so we just force the user to provide
   // if they want to override the defaults.
+
   acc_sources_key_ = Keys::readKey(plist, domain_, "accumulated source", "accumulated_source");
   dist_sources_key_ = Keys::readKey(plist, domain_, "distributed source", "distributed_source");
+
   if ((akey != acc_sources_key_) && (akey != dist_sources_key_)) {
     Errors::Message msg;
     msg << "DistributedTilesRateEvaluator: key requested \"" << akey
@@ -138,9 +140,9 @@ DistributedTilesRateEvaluator::Update_(State& S)
         }
 
         
-        double diff_p = std::min(p_enter_ - 1.5*pres[0][c], 0.0);
-        double val = diff_p * dens[0][c] * (8.*kb_*d_)/(L_*L_*visc[0][c] *th_); //linear term [mol/(m^3 s)]
-        val += diff_p * diff_p * dens[0][c] * (ka_/ (visc[0][c] * mass_dens[0][c] * L_ * L_ * gr * th_)); // nonlinear term [mol/(m^3 s)]
+        double diff_p = std::min(p_enter_ - pres[0][c], 0.0);
+        double val = diff_p * dens[0][c] * (12.*kb_*d_)/(L_*L_*visc[0][c] *th_); //linear term [mol/(m^3 s)]
+        val -= 9.0 * diff_p * diff_p * dens[0][c] * (ka_/ (visc[0][c] * mass_dens[0][c] * L_ * L_ * gr * th_)); // nonlinear term [mol/(m^3 s)]
 
         if (!factor_key_.empty()) {
           for (int i = 0; i < num_components_; ++i) {
