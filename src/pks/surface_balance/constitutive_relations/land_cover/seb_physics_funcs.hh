@@ -85,7 +85,7 @@ BeersLaw(double sw_in, double k_extinction, double lai);
 // Wind speed term D_he
 // ------------------------------------------------------------------------------------------
 double
-WindFactor(double Us, double Z_Us, double Z_rough, double c_von_Karman, double KB);
+WindFactor(double Us, double Z_Us, double Z_rough, double KB);
 
 //
 // Stability of convective overturning term Zeta AKA Sqig
