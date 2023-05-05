@@ -7,14 +7,14 @@
   Authors:
 */
 
-#include "rel_perm_frzcampbell_evaluator.hh"
+#include "rel_perm_frzBC_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, RelPermFrzCampbellEvaluator>
-  RelPermFrzCampbellEvaluator::factory_("FrzCampbell rel perm");
+Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator>
+  RelPermFrzBCEvaluator::factory_("FrzBC rel perm");
 
 } // namespace Flow
 } // namespace Amanzi

@@ -55,8 +55,8 @@ Some additional parameters are available.
 
 */
 
-#ifndef AMANZI_FLOWRELATIONS_REL_PERM_FrzCampbell_EVALUATOR_
-#define AMANZI_FLOWRELATIONS_REL_PERM_FrzCampbell_EVALUATOR_
+#ifndef AMANZI_FLOWRELATIONS_REL_PERM_FrzBC_EVALUATOR_
+#define AMANZI_FLOWRELATIONS_REL_PERM_FrzBC_EVALUATOR_
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
@@ -67,14 +67,14 @@ Some additional parameters are available.
 namespace Amanzi {
 namespace Flow {
 
-class RelPermFrzCampbellEvaluator : public EvaluatorSecondaryMonotypeCV {
+class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   // constructor format for all derived classes
-  explicit RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist);
+  explicit RelPermFrzBCEvaluator(Teuchos::ParameterList& plist);
 
-  RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
+  RelPermFrzBCEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
 
-  RelPermFrzCampbellEvaluator(const RelPermFrzCampbellEvaluator& other) = default;
+  RelPermFrzBCEvaluator(const RelPermFrzBCEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<WRMPartition> get_WRMs() { return wrms_; }
@@ -110,7 +110,7 @@ class RelPermFrzCampbellEvaluator : public EvaluatorSecondaryMonotypeCV {
   double b_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator, RelPermFrzCampbellEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator> factory_;
 };
 
 } // namespace Flow

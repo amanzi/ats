@@ -7,14 +7,14 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! RelPermFrzCampbellEvaluator: evaluates relative permeability using water retention models.
-#include "rel_perm_frzcampbell_evaluator.hh"
+//! RelPermFrzBCEvaluator: evaluates relative permeability using water retention models.
+#include "rel_perm_frzBC_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 // Constructor from ParameterList
-RelPermFrzCampbellEvaluator::RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist)
+RelPermFrzBCEvaluator::RelPermFrzBCEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist), min_val_(0.)
 {
   AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
@@ -24,7 +24,7 @@ RelPermFrzCampbellEvaluator::RelPermFrzCampbellEvaluator(Teuchos::ParameterList&
 }
 
 
-RelPermFrzCampbellEvaluator::RelPermFrzCampbellEvaluator(Teuchos::ParameterList& plist,
+RelPermFrzBCEvaluator::RelPermFrzBCEvaluator(Teuchos::ParameterList& plist,
                                                    const Teuchos::RCP<WRMPartition>& wrms)
   : EvaluatorSecondaryMonotypeCV(plist), wrms_(wrms), min_val_(0.)
 {
@@ -32,14 +32,14 @@ RelPermFrzCampbellEvaluator::RelPermFrzCampbellEvaluator(Teuchos::ParameterList&
 }
 
 Teuchos::RCP<Evaluator>
-RelPermFrzCampbellEvaluator::Clone() const
+RelPermFrzBCEvaluator::Clone() const
 {
-  return Teuchos::rcp(new RelPermFrzCampbellEvaluator(*this));
+  return Teuchos::rcp(new RelPermFrzBCEvaluator(*this));
 }
 
 
 void
-RelPermFrzCampbellEvaluator::InitializeFromPlist_()
+RelPermFrzBCEvaluator::InitializeFromPlist_()
 {
   // dependencies
   Key domain_name = Keys::getDomain(my_keys_.front().first);
@@ -108,7 +108,7 @@ RelPermFrzCampbellEvaluator::InitializeFromPlist_()
 
 // Special purpose EnsureCompatibility required because of surface rel perm.
 void
-RelPermFrzCampbellEvaluator::EnsureCompatibility_ToDeps_(State& S)
+RelPermFrzBCEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   Key my_key = my_keys_.front().first;
   Tag tag = my_keys_.front().second;
@@ -133,7 +133,7 @@ RelPermFrzCampbellEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
 
 void
-RelPermFrzCampbellEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
+RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(0.);
 
@@ -154,8 +154,10 @@ RelPermFrzCampbellEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
   int ncells = res_c.MyLength();
   for (unsigned int c = 0; c != ncells; ++c) {
+    int index = (*wrms_->first)[c];
+    double sat_res = wrms_->second[index]->residualSaturation();
     double coef = 1 - std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c])) + std::exp(-omega_);
-    res_c[0][c] = std::max(coef*std::pow(1-sat_gas_c[0][c], 3+2*b_), min_val_);
+    res_c[0][c] = std::max(coef*std::pow((1-sat_gas_c[0][c]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
@@ -178,24 +180,26 @@ RelPermFrzCampbellEvaluator::Evaluate_(const State& S, const std::vector<Composi
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
       mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
       AMANZI_ASSERT(cells.size() == 1);
-
+      
+      int index = (*wrms_->first)[cells[0]];
+      double sat_res = wrms_->second[index]->residualSaturation();
       double krel;
       double coef_b = 1 - std::exp(-omega_*(sat_bf[0][bf]+sat_gas_bf[0][bf])) + std::exp(-omega_);
       double coef_c = 1 - std::exp(-omega_*(sat_c[0][cells[0]]+sat_gas_c[0][cells[0]])) + std::exp(-omega_);
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
-        double krelb = std::max(coef_b*std::pow(1-sat_gas_bf[0][bf], 3+2*b_), min_val_);
-        double kreli = std::max(coef_c*std::pow(1-sat_gas_c[0][cells[0]], 3+2*b_), min_val_);
+        double krelb = std::max(coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+        double kreli = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
         krel = 1.0 / (1.0 / krelb + 1.0 / kreli);
       } else if (boundary_krel_ == BoundaryRelPerm::ARITHMETIC_MEAN) {
-        double krelb = std::max(coef_b*std::pow(1-sat_gas_bf[0][bf], 3+2*b_), min_val_);
-        double kreli = std::max(coef_c*std::pow(1-sat_gas_c[0][cells[0]], 3+2*b_), min_val_);
+        double krelb = std::max(coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+        double kreli = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
         krel = (krelb + kreli) / 2.0;
       } else if (boundary_krel_ == BoundaryRelPerm::INTERIOR_PRESSURE) {
-        krel = std::max(coef_c*std::pow(1-sat_gas_c[0][cells[0]], 3+2*b_), min_val_);
+        krel = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
       } else if (boundary_krel_ == BoundaryRelPerm::ONE) {
         krel = 1.;
       } else {
-        krel = coef_b*std::pow(1-sat_gas_bf[0][bf], 3+2*b_);
+        krel = coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_);
       }
       res_bf[0][bf] = std::max(krel, min_val_);
     }
@@ -255,7 +259,7 @@ RelPermFrzCampbellEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
 
 void
-RelPermFrzCampbellEvaluator::EvaluatePartialDerivative_(const State& S,
+RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
                                                      const Key& wrt_key,
                                                      const Tag& wrt_tag,
                                                      const std::vector<CompositeVector*>& result)
@@ -281,7 +285,9 @@ RelPermFrzCampbellEvaluator::EvaluatePartialDerivative_(const State& S,
 
     int ncells = res_c.MyLength();
     for (unsigned int c = 0; c != ncells; ++c) {
-      res_c[0][c] = omega_*std::pow((1.-sat_gas_c[0][c]), 2*b_+3)*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]));
+      int index = (*wrms_->first)[c];
+      double sat_res = wrms_->second[index]->residualSaturation();
+      res_c[0][c] = omega_*std::pow((1.-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+3)*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]));
       AMANZI_ASSERT(res_c[0][c] >= 0.);
     }
 
@@ -321,10 +327,12 @@ RelPermFrzCampbellEvaluator::EvaluatePartialDerivative_(const State& S,
 
     int ncells = res_c.MyLength();
     for (unsigned int c = 0; c != ncells; ++c) {
-      double p0 = (2*b_+3)*std::pow((1-sat_gas_c[0][c]), 2*b_+2);
-      double p1 = std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]))-std::exp(-omega_)-1.;
-      double p2 = omega_*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]))*std::pow(1.-sat_gas_c[0][c], 2*b_+3);
-      res_c[0][c] = p0*p1+p2;
+      int index = (*wrms_->first)[c];
+      double sat_res = wrms_->second[index]->residualSaturation();
+      double dbc_dsg = -(2*b_+3)/(1-sat_res)*std::pow((1-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+2);
+      double coef = 1-std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]))+std::exp(-omega_);
+      double dcoef_dsg = omega_*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]));
+      res_c[0][c] = dbc_dsg * coef + dcoef_dsg * std::pow((1.-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+3);
     }
 
     // -- Potentially evaluate the model on boundary faces as well.
