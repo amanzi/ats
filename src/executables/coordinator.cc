@@ -207,7 +207,8 @@ Coordinator::initialize()
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      if (S_->IsDeformableMesh(mesh->first)) { Amanzi::DeformCheckpointMesh(*S_, mesh->first); }
+      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first))
+        Amanzi::DeformCheckpointMesh(*S_, mesh->first);
     }
   }
 
