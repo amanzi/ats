@@ -81,9 +81,9 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   domain_surf_ = Keys::readDomainHint(*plist_, domain_subsurf_, "subsurface", "surface");
 
   // keys for fields in mesh info
-  //lat_key_ = Keys::readKey(*plist_, domain_surf_, "latitude", "latitude");
-  //lon_key_ = Keys::readKey(*plist_, domain_surf_, "longitude", "longitude");
-  //elev_key_ = Keys::readKey(*plist_, domain_surf_, "elevation", "elevation");
+  lat_key_ = Keys::readKey(*plist_, domain_surf_, "latitude", "latitude");
+  lon_key_ = Keys::readKey(*plist_, domain_surf_, "longitude", "longitude");
+  elev_key_ = Keys::readKey(*plist_, domain_surf_, "elevation", "elevation");
 
   // keys for initialize
   //pres_atm_key_ = Keys::readKey(*plist_, domain_surf_, "atmospheric_pressure", "atmospheric_pressure");
@@ -97,8 +97,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   ch_sr_key_ = Keys::readKey(*plist_, domain_subsurf_, "Clapp and Hornberger residual saturation", "clapp_horn_sr");
 
   // soil properties
-  //poro_key_ = Keys::readKey(*plist_, domain_subsurf_, "porosity", "porosity");
-  //root_frac_key_ = Keys::readKey(*plist_, domain_subsurf_, "rooting depth fraction", "rooting_depth_fraction");
+  poro_key_ = Keys::readKey(*plist_, domain_subsurf_, "porosity", "porosity");
+  root_frac_key_ = Keys::readKey(*plist_, domain_subsurf_, "rooting depth fraction", "rooting_depth_fraction");
 
   // potential sources
   pot_infilt_key_ = Keys::readKey(*plist_, domain_surf_, "potential infiltration mps", "potential_infiltration_mps");
@@ -110,10 +110,10 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   wtd_key_ = Keys::readKey(*plist_, domain_surf_, "water table depth", "water_table_depth");
   pc_key_ = Keys::readKey(*plist_, domain_subsurf_, "capillary pressure, air over liquid", "capillary_pressure_gas_liq");
   sat_liq_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation liquid", "saturation_liquid");
-  sat_ice_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation ice", "saturation_ice");
+  //sat_ice_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation ice", "saturation_ice");
 
   // water fluxes - pass to ELM - TODO
-  infilt_key_ = Keys::readKey(*plist_, domain_surf_, "infiltration", "surface_subsurface_flux");
+  infilt_key_ = Keys::readKey(*plist_, domain_surf_, "surface-subsurface flux", "surface_subsurface_flux");
   evap_key_ = Keys::readKey(*plist_, domain_surf_, "evaporation", "evaporation");
   trans_key_ = Keys::readKey(*plist_, domain_subsurf_, "transpiration", "transpiration");
 
@@ -122,6 +122,8 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   surf_mass_dens_key_ = Keys::readKey(*plist_, domain_surf_, "surface mass density", "mass_density_liquid");
   subsurf_mol_dens_key_ = Keys::readKey(*plist_, domain_subsurf_, "molar density", "molar_density_liquid");
   subsurf_mass_dens_key_ = Keys::readKey(*plist_, domain_subsurf_, "mass density", "mass_density_liquid");
+
+  total_trans_key_ = Keys::readKey(*plist_, domain_surf_, "total transpiration", "total_transpiration");
 
   // cell vol keys
   surf_cv_key_ = Keys::getKey(domain_surf_, "cell_volume");
@@ -153,26 +155,26 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
 void
 ELM_ATSDriver::setup()
 {
-
+  // Fields passed from ELM -> ATS - these are all ATS primary variables
   // potential fluxes (ELM -> ATS) These are in units of m/s
   requireAtNext(pot_infilt_key_, Amanzi::Tags::NEXT, *S_, pot_infilt_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(pot_evap_key_, Amanzi::Tags::NEXT, *S_, pot_evap_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(pot_trans_key_, Amanzi::Tags::NEXT, *S_, pot_trans_key_)
-    .SetMesh(mesh_surf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  // subsurface properties (ELM -> ATS)
+  // subsurface properties
   requireAtNext(base_poro_key_, Amanzi::Tags::NEXT, *S_, base_poro_key_)
-    .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(perm_key_, Amanzi::Tags::NEXT, *S_, perm_key_)
-    .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  // dynamic subsurface properties (ELM -> ATS)
-  //requireAtNext(root_frac_key_, Amanzi::Tags::NEXT, *S_, root_frac_key_)
-  //  .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
-  //requireAtNext(poro_key_, Amanzi::Tags::NEXT, *S_, poro_key_)
-  //  .SetMesh(mesh_subsurf_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  // dynamic subsurface properties
+  requireAtNext(root_frac_key_, Amanzi::Tags::NEXT, *S_, root_frac_key_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(poro_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1); // eventually pass ELM eff_porosity ?
 
   // Clapp and Hornberger water retention params (ELM -> ATS)
   requireAtNext(ch_b_key_, Amanzi::Tags::NEXT, *S_, ch_b_key_)
@@ -181,6 +183,19 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(ch_sr_key_, Amanzi::Tags::NEXT, *S_, ch_sr_key_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  // per-column ATS water state (ATS -> ELM)
+  requireAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(wtd_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  
+  requireAtNext(pc_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(sat_liq_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  //requireAtNext(sat_ice_key_, Amanzi::Tags::NEXT, *S_)
+  //  .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // mesh data?
   //  requireAtNext(lat_key_, Amanzi::Tags::NEXT, *S_)
@@ -194,47 +209,32 @@ ELM_ATSDriver::setup()
   //  requireAtNext(cv_key_, Amanzi::Tags::NEXT, *S_)
   //    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  // per-column ATS water state (ATS -> ELM)
-  requireAtNext(pd_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(wtd_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  // ATS subsurface water state (ATS -> ELM)
-  // NOTE: this is commented out until PK_Phys_Default modifies the state eval
-  // list in constructor -- otherwise this primary variable is not available
-  // yet. See amanzi/ats#167 --ETC
-  // requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(pc_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtNext(sat_liq_key_, Amanzi::Tags::NEXT, *S_)
-    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  //requireAtNext(sat_ice_key_, Amanzi::Tags::NEXT, *S_)
-  //  .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  // ATS fluxes (ATS -> ELM)
-  // NOTE: this is commented out until PK_Phys_Default modifies the state eval
-  // list in constructor -- otherwise this primary variable is not available
-  // yet. See amanzi/ats#167 --ETC
-  // requireAtNext(infilt_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  //requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
-  //  .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  //requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
-  //  .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
   // may not be necessary? any PK that utilizes this should already have density
-  // requireAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // requireAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // requireAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  // requireAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
-  //   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(surf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(surf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(subsurf_mol_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(subsurf_mass_dens_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  requireAtNext(total_trans_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   Coordinator::setup();
+
+  // NOTE: These must be called after Coordinator::setup() until PK_Phys_Default modifies the state eval
+  // list in constructor -- otherwise this primary variable is not available
+  // yet. See amanzi/ats#167 --ETC
+  requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
+    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(infilt_key_, Amanzi::Tags::NEXT, *S_)
+    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
+   .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 }
 
 
@@ -294,10 +294,16 @@ void ELM_ATSDriver::initialize(double t,
   S_->GetRecordW(pres_key_, Amanzi::Tags::NEXT, "flow").set_initialized();
 
   // set as zero and tag as initialized
-  //initZero_(root_frac_key_);
+  initZero_(root_frac_key_);
   initZero_(pot_infilt_key_);
   initZero_(pot_trans_key_);
   initZero_(pot_evap_key_);
+
+  initZero_(infilt_key_);
+  initZero_(trans_key_);
+  initZero_(evap_key_);
+
+  initZero_(total_trans_key_);
 
   // initialize ATS data, commit initial conditions
   Coordinator::initialize();
@@ -359,6 +365,7 @@ void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
   }
 } // advance()
 
+
 // simulates external timeloop with dt coming from calling model
 void ELM_ATSDriver::advance_test()
 {
@@ -386,7 +393,6 @@ void ELM_ATSDriver::set_soil_hydrologic_parameters(double const * const base_por
         double const * const clapp_horn_sr)
 {
   // convert Ksat to perm via rho * g / visc using default rho and visc values.
-  // TODO use actual density and viscosity
   copyToSub_(hydraulic_conductivity, perm_key_);
   auto& perm = *S_->GetW<CompositeVector>(perm_key_, Amanzi::Tags::NEXT, perm_key_)
     .ViewComponent("cell", false);
@@ -400,7 +406,11 @@ void ELM_ATSDriver::set_soil_hydrologic_parameters(double const * const base_por
 
   S_->GetRecordW(perm_key_, Amanzi::Tags::NEXT, perm_key_).set_initialized();
   S_->GetRecordW(base_poro_key_, Amanzi::Tags::NEXT, base_poro_key_).set_initialized();
+  S_->GetRecordW(ch_b_key_, Amanzi::Tags::NEXT, ch_b_key_).set_initialized();
+  S_->GetRecordW(ch_smpsat_key_, Amanzi::Tags::NEXT, ch_smpsat_key_).set_initialized();
+  S_->GetRecordW(ch_sr_key_, Amanzi::Tags::NEXT, ch_sr_key_).set_initialized();
 }
+
 
 void ELM_ATSDriver::set_veg_parameters(double const * const mafic_potential_full_turgor,
         double const * const mafic_potential_wilt_point)
@@ -417,7 +427,7 @@ void ELM_ATSDriver::set_soil_hydrologic_properties(double const * const effectiv
 
 void ELM_ATSDriver::set_veg_properties(double const * const rooting_fraction)
 {
-  //copyToSub_(rooting_fraction, root_frac_key_);
+  copyToSub_(rooting_fraction, root_frac_key_);
 }
 
 
@@ -458,9 +468,6 @@ ELM_ATSDriver::set_potential_sources(double const * const infiltration,
 }
 
 
-//
-// soil_potential and sat_ice are currently ignored/set to zero
-//
 void
 ELM_ATSDriver::get_waterstate(double * const ponded_depth,
         double * const wt_depth,
@@ -469,12 +476,38 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
         double * const sat_liq,
         double * const sat_ice)
 {
+  // convert saturations into [kg/m2] from [-]
+  S_->GetEvaluator(sat_liq_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
+  const auto& satl = *S_->Get<CompositeVector>(sat_liq_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  //S_->GetEvaluator(sat_ice_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
+  //const auto& sati = *S_->Get<CompositeVector>(sat_ice_key_, Amanzi::Tags::NEXT)
+  //  .ViewComponent("cell", false);
+
+  S_->GetEvaluator(poro_key_, Amanzi::Tags::NEXT).Update(*S_, poro_key_);
+  const auto& por = *S_->Get<CompositeVector>(poro_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  S_->GetEvaluator(subsurf_mass_dens_key_, Amanzi::Tags::NEXT).Update(*S_, subsurf_mass_dens_key_);
+  const auto& dens = *S_->Get<CompositeVector>(subsurf_mass_dens_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  // TODO look into ELM effective porosity, ATS ice density, ice saturation
+  for (int i=0; i!=ncolumns_; ++i) {
+    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      sat_liq[j * ncolumns_ + i] = satl[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]];
+      //sat_ice[j * ncolumns_ + i] = sati[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]];
+    }
+  }
+
+  // ponded depth[m], water table depth[m], soil pressure[Pa] and matric potential[Pa]
+  // TODO convert to ELM units here, not in ELM 
   copyFromSurf_(ponded_depth, pd_key_);
   copyFromSurf_(wt_depth, wtd_key_);
   copyFromSub_(soil_pressure, pres_key_);
   copyFromSub_(soil_potential, pc_key_);
-  copyFromSub_(sat_liq, sat_liq_key_);
-  //copyFromSub_(sat_ice, sat_ice_key_); // ??
 }
 
 
@@ -485,16 +518,53 @@ ELM_ATSDriver::get_water_fluxes(double * const infiltration,
         double * const net_subsurface_fluxes,
         double * const net_runon)
 {
-  copyFromSurf_(infiltration, infilt_key_); // confirm what this is used for --
-                                            // pot_infilt is assumed to be net
-                                            // surface fluxes not include evap,
-                                            // while this is actual
-                                            // infiltration --ETC
-  copyFromSurf_(evaporation, evap_key_);
+  // Convert and send ATS fluxes to ELM
 
-  // convert trans from mol/m^3/s to... ? --ETC
-  copyFromSurf_(transpiration, trans_key_);
+  // Flux units:          ATS             ELM
+  // surface-evaporation  [mol / m2 / s]  [mmH2o/s]
+  // surface-infiltration [mol / m2 / s]  [mmH2o/s]
+  // transpiration        [mol / m3 / s]  [mmH2o/s]
 
+  // Surface fluxes
+  S_->GetEvaluator(infilt_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
+  const auto& infilt = *S_->Get<CompositeVector>(infilt_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  S_->GetEvaluator(evap_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
+  const auto& evap = *S_->Get<CompositeVector>(evap_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  S_->GetEvaluator(surf_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, surf_mol_dens_key_);
+  const auto& surfdens = *S_->Get<CompositeVector>(surf_mol_dens_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  // convert mol/m2/s to mmH2O/s for ELM
+  for (int i=0; i!=ncolumns_; ++i) {
+    const double factor   = 1000.0 / surfdens[0][i];
+    infiltration[i] = infilt[0][i] * factor;
+    evaporation[i]  = evap[0][i] * factor;
+  }
+
+  // Subsurface flux
+  S_->GetEvaluator(trans_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
+  const auto& trans = *S_->Get<CompositeVector>(trans_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  S_->GetEvaluator(subsurf_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, subsurf_mol_dens_key_);
+  const auto& subsurfdens = *S_->Get<CompositeVector>(subsurf_mol_dens_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  // convert mol/m3/s to mmH2O/s by integrating over dz
+  for (int i=0; i!=ncolumns_; ++i) {
+    const auto& faces = mesh_subsurf_->faces_of_column(i);
+    const auto& cells = mesh_subsurf_->cells_of_column(i);
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      const double dz = mesh_subsurf_->face_centroid(faces[j])[2] - mesh_subsurf_->face_centroid(faces[j + 1])[2];
+      AMANZI_ASSERT(dz > 0.);
+      const double factor = 1000.0 * dz / subsurfdens[0][cells[j]];
+      transpiration[j * ncolumns_ + i] = trans[0][cells[j]] * factor;
+    }
+  }
   // unclear how to implement net_subsurface_fluxes and net_runon... --ETC
 }
 

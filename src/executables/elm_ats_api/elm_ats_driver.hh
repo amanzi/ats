@@ -128,7 +128,7 @@ public:
   Key ch_smpsat_key_;
   Key ch_sr_key_;
 
-  // Key poro_key_;
+  Key poro_key_;
   Key root_frac_key_;
 
   Key pot_evap_key_;
@@ -146,6 +146,8 @@ public:
   Key trans_key_;
   Key evap_key_;
 
+  Key total_trans_key_;
+
   Key surf_mol_dens_key_;
   Key surf_mass_dens_key_;
   Key subsurf_mol_dens_key_;
@@ -153,6 +155,8 @@ public:
 
   Key surf_cv_key_;
   Key cv_key_;
+
+  Key test;
 };
 
 
