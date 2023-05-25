@@ -21,7 +21,7 @@
 #include "wrm_permafrost_evaluator.hh"
 #include "rel_perm_evaluator.hh"
 #include "rel_perm_sutraice_evaluator.hh"
-#include "rel_perm_frzcampbell_evaluator.hh"
+#include "rel_perm_frzBC_evaluator.hh"
 #include "pk_helpers.hh"
 
 #include "permafrost.hh"
