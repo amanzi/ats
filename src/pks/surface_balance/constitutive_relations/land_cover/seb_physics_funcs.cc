@@ -37,7 +37,7 @@ CalcAlbedoSnow(double density_snow)
   } else {
     AlSnow = 0.6 - density_snow / 4600;
   }
-  return AlSnow;
+  return AlSnow + 0.07;
 }
 
 double
@@ -183,8 +183,9 @@ EvaporativeResistanceGround(const GroundProperties& surf,
   if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-    return EvaporativeResistanceCoef(
-      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
+//    return EvaporativeResistanceCoef(
+//      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
+    return EvaporativeResistanceCoefSellers(surf.saturation_liq);
   }
 }
 
@@ -220,6 +221,11 @@ EvaporativeResistanceCoef(double saturation_gas,
   return Rsoil;
 }
 
+double
+EvaporativeResistanceCoefSellers(double saturation_liq)
+{
+  return std::exp(8.206 - 4.255 * saturation_liq);
+}
 
 double
 SensibleHeat(double resistance_coef,
@@ -280,9 +286,11 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
-
+  double u_star = met.Us * c_von_Karman / std::log(met.Z_Us / CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness));
+  double Re0 = params.density_air * u_star * CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness) / params.dynamic_viscosity_air;
+  double KB = params.Da0_a * std::pow(Re0, params.Da0_b) - (params.Cd0_c * std::log(Re0) + params.Cd0_d);
   double Dhe_latent = WindFactor(
-    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
+    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
   eb.fQe = LatentHeat(Dhe_latent * Sqig,
                       params.density_air,
                       params.H_sublimation,
@@ -356,7 +364,10 @@ UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
+  double u_star = met.Us * c_von_Karman / std::log(met.Z_Us / surf.roughness);
+  double Re0 = params.density_air * u_star * surf.roughness / params.dynamic_viscosity_air;
+  double KB = params.Da0_a * std::pow(Re0, params.Da0_b) - (params.Cd0_c * std::log(Re0) + params.Cd0_d);
+  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, KB);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
 
