@@ -64,7 +64,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   int ncells = res.MyLength();
   for (int c=0; c!=ncells; ++c) {
     //if (hp < H_) {
-     res[0][c] = - mark[0][c] *  4.0 / 3.0 * energy_losses_coeff_ * pi * manhole_radius_ * sqrt(2.0 * gz) * pow(head[0][c],3.0/2.0) / manhole_area_;
+     res[0][c] = - mark[0][c] *  4.0 / 3.0 * energy_losses_coeff_ * pi * manhole_radius_ * sqrt(2.0 * gz) * pow(head[0][c],3.0/2.0);
           // } else if (H_ < hp[c] && hp < (H_ + head[0][c]) ){
           //res[0][c] = - energy_losses_coeff_ * manhole_area_ * sqrt(2.0 * gz) * sqrt(head[0][c] + H_ - hp[c]);   
           //} else if (hp > (H_ + head[0][c])) {

@@ -43,6 +43,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  
   double manhole_radius_;
   double energy_losses_coeff_; //at manhole
+
 //  double H_max_; //max height of pipe (considering a rectangular cross section)
 //  double H_; //surface elevation relative to the pipe flow hydraulic head
 
