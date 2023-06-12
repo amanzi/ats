@@ -39,7 +39,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
           const std::vector<CompositeVector*>& result) override;
 
  protected:
- Key surface_depth_key_, pipe_depth_key_, mask_key_;
+ Key surface_depth_key_, pressure_head_key_, mask_key_;
  
   double manhole_radius_;
   double energ_loss_coeff_; // energy losses coefficient at manhole
