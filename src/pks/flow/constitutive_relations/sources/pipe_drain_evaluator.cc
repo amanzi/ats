@@ -30,7 +30,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   surface_depth_key_ = Keys::readKey(plist_, domain_name, "ponded depth", "ponded_depth");
   dependencies_.insert(KeyTag{surface_depth_key_, tag});
 
-  pressure_head_key_ = Keys::readKey(plist_, domain_name, " pressure head", "pressure_head");
+  pressure_head_key_ = Keys::readKey(plist_, domain_name, "pressure head", "pressure_head");
   dependencies_.insert(KeyTag{pressure_head_key_, tag});
 
   mask_key_ = Keys::readKey(plist_, domain_name, "manhole locations", "manhole_locations");
