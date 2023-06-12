@@ -39,13 +39,11 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
           const std::vector<CompositeVector*>& result) override;
 
  protected:
- Key head_key_, mark_key_;
+ Key surface_depth_key_, pipe_depth_key_, mask_key_;
  
   double manhole_radius_;
-  double energy_losses_coeff_; //at manhole
-
-//  double H_max_; //max height of pipe (considering a rectangular cross section)
-//  double H_; //surface elevation relative to the pipe flow hydraulic head
+  double energ_loss_coeff_; // energy losses coefficient at manhole
+  double drain_length_; // drain conduit length
 
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;

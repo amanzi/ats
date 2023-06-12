@@ -3,8 +3,8 @@
 /*
   Evaluator for water drainage through a pipe network.
   This depends on:
-  1) flow depth above surface elevation
-  2) hydraulic head in the pipe network
+  1) flow depth above surface elevation (surface_depth_key_)
+  2) hydraulic head in the pipe network (pipe_depth_key_)
 
   Authors: Giacomo Capodaglio (gcapodaglio@lanl.gov)
 */
@@ -20,20 +20,21 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 {
 
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
-  energy_losses_coeff_ = plist.get<double>("energy losses coeff", 0.1);
-  //H_max_ = plist.get<double>("pipe max height", 0.1);
-  //H_ = plist.get<double>("bed flume height", 0.478);
+  energ_loss_coeff_ = plist.get<double>("energy losses coeff", 0.1);
+  drain_length_ = plist.get<double>("drain length", 0.478);
 
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 
   // my dependencies
-  head_key_ = Keys::readKey(plist_, domain_name, "ponded depth", "ponded_depth");
+  surface_depth_key_ = Keys::readKey(plist_, domain_name, "ponded depth", "ponded_depth");
+  dependencies_.insert(KeyTag{surface_depth_key_, tag});
 
-  dependencies_.insert(KeyTag{head_key_, tag});
+  pipe_depth_key_ = Keys::readKey(plist_, domain_name, "water depth", "water_depth");
+  dependencies_.insert(KeyTag{pipe_depth_key_, tag});
 
-  mark_key_ = Keys::readKey(plist_, domain_name, "manhole locations", "manhole_locations");
-  dependencies_.insert(KeyTag{mark_key_, tag});
+  mask_key_ = Keys::readKey(plist_, domain_name, "manhole locations", "manhole_locations");
+  dependencies_.insert(KeyTag{mask_key_, tag});
   
 }
 
@@ -50,26 +51,33 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& head = *S.GetPtr<CompositeVector>(head_key_, tag)
+  const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
       ->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& mark = *S.GetPtr<CompositeVector>(mark_key_, tag)
+  const Epetra_MultiVector& pipeDepth = *S.GetPtr<CompositeVector>(pipe_depth_key_, tag)
+      ->ViewComponent("cell",false);
+
+  const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
 
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-  double gz = -gravity[1]; 
+  double g = -gravity[1]; 
   double pi = 3.14159265359;
-  double manhole_area_ = pi * manhole_radius_ * manhole_radius_;
+  double mnhArea = pi * manhole_radius_ * manhole_radius_;
+  double mnhPerimeter = 2.0 * pi * manhole_radius_;   
+  double sqrtTwoG = sqrt(2.0 * g); 
 
   int ncells = res.MyLength();
   for (int c=0; c!=ncells; ++c) {
-    //if (hp < H_) {
-     res[0][c] = - mark[0][c] *  4.0 / 3.0 * energy_losses_coeff_ * pi * manhole_radius_ * sqrt(2.0 * gz) * pow(head[0][c],3.0/2.0);
-          // } else if (H_ < hp[c] && hp < (H_ + head[0][c]) ){
-          //res[0][c] = - energy_losses_coeff_ * manhole_area_ * sqrt(2.0 * gz) * sqrt(head[0][c] + H_ - hp[c]);   
-          //} else if (hp > (H_ + head[0][c])) {
-          //res[0][c] = energy_losses_coeff_ * manhole_area_ * sqrt(2.0 * gz) * sqrt(hp[c] - H_ - head[0][c]);
-       //}
+    if (pipeDepth[0][c] < drain_length_) {
+       res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
+    } 
+    else if (drain_length_ < pipeDepth[0][c] && pipeDepth[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+       res[0][c] = - mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG * sqrt(srfcDepth[0][c] + drain_length_ - pipeDepth[0][c]);   
+    } 
+    else if (pipeDepth[0][c] > (drain_length_ + srfcDepth[0][c])) {
+       res[0][c] = mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG * sqrt(pipeDepth[0][c] - drain_length_ - srfcDepth[0][c]);
+    }
   }
 
 }
@@ -79,27 +87,54 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  AMANZI_ASSERT(wrt_key == head_key_);
 
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
-  
-  const Epetra_MultiVector& head = *S.GetPtr<CompositeVector>(head_key_, tag)
-       ->ViewComponent("cell",false);
 
-    const Epetra_MultiVector& mark = *S.GetPtr<CompositeVector>(mark_key_, tag)
+  const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
+      ->ViewComponent("cell",false);
+
+  const Epetra_MultiVector& pipeDepth = *S.GetPtr<CompositeVector>(pipe_depth_key_, tag)
+      ->ViewComponent("cell",false);
+
+  const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
 
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-  double gz = -gravity[2];  // check this
+  double g = -gravity[1];
   double pi = 3.14159265359;
-  double manhole_area_ = pi * manhole_radius_ * manhole_radius_;
+  double mnhArea = pi * manhole_radius_ * manhole_radius_;
+  double mnhPerimeter = 2.0 * pi * manhole_radius_;
+  double sqrtTwoG = sqrt(2.0 * g);
 
-  if (wrt_key == head_key_) {
-     int ncells = res.MyLength();
+  int ncells = res.MyLength();
+  if (wrt_key == surface_depth_key_) {
      for (int c=0; c!=ncells; ++c) {
-       res[0][c] = - mark[0][c] *  2.0 * energy_losses_coeff_ * pi * manhole_radius_ * sqrt(2.0 * gz) * sqrt(head[0][c]) / manhole_area_;
+        if (pipeDepth[0][c] < drain_length_) {
+           res[0][c] = - mnhMask[0][c] * energ_loss_coeff_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
+        }
+        else if (drain_length_ < pipeDepth[0][c] && pipeDepth[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+           res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(srfcDepth[0][c] + drain_length_ - pipeDepth[0][c]);
+        }
+        else if (pipeDepth[0][c] > (drain_length_ + srfcDepth[0][c])) {
+           res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(pipeDepth[0][c] - drain_length_ - srfcDepth[0][c]);
+        }
+     }   
+  }
+  else if (wrt_key == pipe_depth_key_) {
+     for (int c=0; c!=ncells; ++c) {
+        if (pipeDepth[0][c] < drain_length_) {
+           res[0][c] = 0.0; 
+        }
+        else if (drain_length_ < pipeDepth[0][c] && pipeDepth[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+           res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(srfcDepth[0][c] + drain_length_ - pipeDepth[0][c]);
+        }
+        else if (pipeDepth[0][c] > (drain_length_ + srfcDepth[0][c])) {
+           res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(pipeDepth[0][c] - drain_length_ - srfcDepth[0][c]);
+        }
      }
-     
+  }
+  else {
+    AMANZI_ASSERT(0);
   }
 }
 
