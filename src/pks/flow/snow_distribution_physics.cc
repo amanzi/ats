@@ -49,14 +49,14 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 {
   // get these fields
   Teuchos::RCP<const CompositeVector> h1 = S_next_->GetPtr<CompositeVector>(key_);
-  Epetra_MultiVector h1_positive(*h1->ViewComponent("cell", false));
-  const auto& h1_v(*h1->ViewComponent("cell", false));
+  Epetra_MultiVector h1_positive(*h1->viewComponent("cell", false));
+  const auto& h1_v(*h1->viewComponent("cell", false));
   for (int c = 0; c != h1_positive.MyLength(); ++c)
     h1_positive[0][c] = h1_v[0][c] > 0. ? h1_v[0][c] : 0.;
 
   Teuchos::RCP<const CompositeVector> h0 = S_inter_->GetPtr<CompositeVector>(key_);
-  Epetra_MultiVector h0_positive(*h0->ViewComponent("cell", false));
-  const auto& h0_v(*h0->ViewComponent("cell", false));
+  Epetra_MultiVector h0_positive(*h0->viewComponent("cell", false));
+  const auto& h0_v(*h0->viewComponent("cell", false));
   for (int c = 0; c != h0_positive.MyLength(); ++c)
     h0_positive[0][c] = h0_v[0][c] > 0. ? h0_v[0][c] : 0.;
 
@@ -66,10 +66,10 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 
   // note 10 is for conversion from precip m SWE to actual m
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
-  g->ViewComponent("cell", false)
-    ->Multiply(10 * dt_factor_ / dt, *cv1->ViewComponent("cell", false), h1_positive, 1.);
-  g->ViewComponent("cell", false)
-    ->Multiply(-10 * dt_factor_ / dt, *cv1->ViewComponent("cell", false), h0_positive, 1.);
+  g->viewComponent("cell", false)
+    ->Multiply(10 * dt_factor_ / dt, *cv1->viewComponent("cell", false), h1_positive, 1.);
+  g->viewComponent("cell", false)
+    ->Multiply(-10 * dt_factor_ / dt, *cv1->viewComponent("cell", false), h0_positive, 1.);
 }
 
 } // namespace Flow

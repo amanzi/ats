@@ -25,17 +25,19 @@ PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<State>& S,
                                          const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
-{
-  key_ = Keys::readKey(*plist_, domain_, "primary variable");
+{}
 
-  // primary variable max change
-  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
+void
+PK_Physical_Default::ParseParameterList_() {
+  domain_ = plist_->get<std::string>("domain name", "domain");
+  mesh_ = S_->GetMesh(domain_);
+  PK_Physical::ParseParameterList_();
 }
+
 
 // -----------------------------------------------------------------------------
 // Construction of data.
 // -----------------------------------------------------------------------------
-
 void
 PK_Physical_Default::Setup()
 {
@@ -92,9 +94,8 @@ PK_Physical_Default::ValidStep()
     const CompositeVector& var_new = S_->Get<CompositeVector>(key_, tag_next_);
     const CompositeVector& var_old = S_->Get<CompositeVector>(key_, tag_current_);
     CompositeVector dvar(var_new);
-    dvar.Update(-1., var_old, 1.);
-    double change = 0.;
-    dvar.NormInf(&change);
+    dvar.update(-1., var_old, 1.);
+    double change = dvar.normInf();
     if (change > max_valid_change_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
         *vo_->os() << "Invalid time step, max primary variable change=" << change
@@ -140,13 +141,12 @@ PK_Physical_Default::Initialize()
     record.Initialize(ic_plist);
 
     // communicate just to make sure values are initialized for valgrind's sake
-    if (record.Get<CompositeVector>().Ghosted())
-      record.Get<CompositeVector>().ScatterMasterToGhosted();
+    record.Get<CompositeVector>().scatterMasterToGhosted();
     ChangedSolutionPK(tag_next_);
   }
 
   // Push the data into the solution.
-  solution_->SetData(record.GetPtrW<CompositeVector>(name()));
+  solution_->setData(record.GetPtrW<CompositeVector>(name()));
 };
 
 

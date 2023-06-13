@@ -70,15 +70,19 @@ class PK_Physical_Default : public PK_Physical {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
   virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
+  // BC access
+  Teuchos::RCP<Operators::BCs> GetBCs() { return bc_; }
+
+ protected:
+  virtual void ParseParameterList_() override;
+
  protected:
   // step validity
   double max_valid_change_;
 
-  // ENORM struct
-  typedef struct ENorm_t {
-    double value;
-    int gid;
-  } ENorm_t;
+  // boundary conditions
+  Teuchos::RCP<Operators::BCs> bc_;
+
 };
 
 } // namespace Amanzi

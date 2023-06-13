@@ -17,6 +17,7 @@
 
 namespace Amanzi {
 namespace Flow {
+namespace Relations {
 
 const double FLOW_WRM_TOLERANCE = 1e-10;
 
@@ -35,11 +36,11 @@ WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist) : plist_(plist)
 * Hermite interpolant of order 3. Formulas (3.11)-(3.12).
 ****************************************************************** */
 double
-WRMVanGenuchten::k_relative(double s)
+WRMVanGenuchten::k_relative(double s) const
 {
   if (s <= s0_) {
     double se = (s - sr_) / (1 - sr_);
-    if (function_ == FLOW_WRM_MUALEM) {
+    if (function_ == RelPermFunction_kind::MUALEM) {
       return pow(se, l_) * pow(1.0 - pow(1.0 - pow(se, 1.0 / m_), m_), 2.0);
     } else {
       return se * se * (1.0 - pow(1.0 - pow(se, 1.0 / m_), m_));
@@ -56,7 +57,7 @@ WRMVanGenuchten::k_relative(double s)
  * D Relative permeability / D capillary pressure pc.
  ****************************************************************** */
 double
-WRMVanGenuchten::d_k_relative(double s)
+WRMVanGenuchten::d_k_relative(double s) const
 {
   if (s <= s0_) {
     double se = (s - sr_) / (1 - sr_);
@@ -67,7 +68,7 @@ WRMVanGenuchten::d_k_relative(double s)
 
     double y = pow(1.0 - x, m_);
     double dkdse;
-    if (function_ == FLOW_WRM_MUALEM)
+    if (function_ == RelPermFunction_kind::MUALEM)
       dkdse = (1.0 - y) * (l_ * (1.0 - y) + 2 * x * y / (1.0 - x)) * pow(se, l_ - 1.0);
     else
       dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
@@ -86,7 +87,7 @@ WRMVanGenuchten::d_k_relative(double s)
  * Saturation formula (3.5)-(3.6).
  ****************************************************************** */
 double
-WRMVanGenuchten::saturation(double pc)
+WRMVanGenuchten::saturation(double pc) const
 {
   if (pc > pc0_) {
     return std::pow(1.0 + std::pow(alpha_ * pc, n_), -m_) * (1.0 - sr_) + sr_;
@@ -102,7 +103,7 @@ WRMVanGenuchten::saturation(double pc)
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
 double
-WRMVanGenuchten::d_saturation(double pc)
+WRMVanGenuchten::d_saturation(double pc) const
 {
   if (pc > pc0_) {
     return -m_ * n_ * std::pow(1.0 + std::pow(alpha_ * pc, n_), -m_ - 1.0) *
@@ -118,7 +119,7 @@ WRMVanGenuchten::d_saturation(double pc)
  * Pressure as a function of saturation.
  ****************************************************************** */
 double
-WRMVanGenuchten::capillaryPressure(double s)
+WRMVanGenuchten::capillaryPressure(double s) const
 {
   double se = (s - sr_) / (1.0 - sr_);
   se = std::min<double>(se, 1.0);
@@ -135,7 +136,7 @@ WRMVanGenuchten::capillaryPressure(double s)
  * Derivative of pressure formulat w.r.t. saturation.
  ****************************************************************** */
 double
-WRMVanGenuchten::d_capillaryPressure(double s)
+WRMVanGenuchten::d_capillaryPressure(double s) const
 {
   double se = (s - sr_) / (1.0 - sr_);
   se = std::min<double>(se, 1.0);
@@ -148,15 +149,52 @@ WRMVanGenuchten::d_capillaryPressure(double s)
   }
 }
 
+/* ******************************************************************
+* Suction formula: input is liquid saturation.
+****************************************************************** */
+double
+WRMVanGenuchten::suction_head(double s) const
+{
+  double se = (s - sr_) / (1 - sr_);
+  if (se > FLOW_WRM_TOLERANCE) {
+    return -(1. / alpha_) * pow(pow(se, -1. / m_) - 1, 1. - m_);
+  } else {
+    return -1e+10;
+  }
+}
+
+
+/* ******************************************************************
+ * D suction_head / D saturation
+ ****************************************************************** */
+double
+WRMVanGenuchten::d_suction_head(double s) const
+{
+  double se = (s - sr_) / (1 - sr_);
+
+  double x = pow(se, -1.0 / m_);
+  //  if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
+
+  double dpsidse;
+  //if (function_ == RelPermFunction_kind::MUALEM)
+  if (se > FLOW_WRM_TOLERANCE) {
+    dpsidse = ((m_ - 1) / (alpha_ * m_ * se)) * pow(x - 1, -m_) * x;
+  } else {
+    dpsidse = 0.;
+  }
+  return -dpsidse / (1 - sr_);
+}
+
+
 
 void
 WRMVanGenuchten::InitializeFromPlist_()
 {
   std::string fname = plist_.get<std::string>("Krel function name", "Mualem");
   if (fname == std::string("Mualem")) {
-    function_ = FLOW_WRM_MUALEM;
+    function_ = RelPermFunction_kind::MUALEM;
   } else if (fname == std::string("Burdine")) {
-    function_ = FLOW_WRM_BURDINE;
+    function_ = RelPermFunction_kind::BURDINE;
   } else {
     AMANZI_ASSERT(0);
   }
@@ -205,14 +243,14 @@ WRMVanGenuchten::InitializeFromPlist_()
   // map to n,m
   if (plist_.isParameter("van Genuchten m [-]")) {
     m_ = plist_.get<double>("van Genuchten m [-]");
-    if (function_ == FLOW_WRM_MUALEM) {
+    if (function_ == RelPermFunction_kind::MUALEM) {
       n_ = 1.0 / (1.0 - m_);
     } else {
       n_ = 2.0 / (1.0 - m_);
     }
   } else {
     n_ = plist_.get<double>("van Genuchten n [-]");
-    if (function_ == FLOW_WRM_MUALEM) {
+    if (function_ == RelPermFunction_kind::MUALEM) {
       m_ = 1.0 - 1.0 / n_;
     } else {
       m_ = 1.0 - 2.0 / n_;
@@ -226,41 +264,7 @@ WRMVanGenuchten::InitializeFromPlist_()
   if (pc0_ > 0.) { fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_)); }
 };
 
-/* ******************************************************************
-* Suction formula: input is liquid saturation.
-****************************************************************** */
-double
-WRMVanGenuchten::suction_head(double s)
-{
-  double se = (s - sr_) / (1 - sr_);
-  if (se > FLOW_WRM_TOLERANCE) {
-    return -(1. / alpha_) * pow(pow(se, -1. / m_) - 1, 1. - m_);
-  } else {
-    return -1e+10;
-  }
-}
 
-
-/* ******************************************************************
- * D suction_head / D saturation
- ****************************************************************** */
-double
-WRMVanGenuchten::d_suction_head(double s)
-{
-  double se = (s - sr_) / (1 - sr_);
-
-  double x = pow(se, -1.0 / m_);
-  //  if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
-
-  double dpsidse;
-  //if (function_ == FLOW_WRM_MUALEM)
-  if (se > FLOW_WRM_TOLERANCE) {
-    dpsidse = ((m_ - 1) / (alpha_ * m_ * se)) * pow(x - 1, -m_) * x;
-  } else {
-    dpsidse = 0.;
-  }
-  return -dpsidse / (1 - sr_);
-}
-
+} // namespace Relations
 } // namespace Flow
 } // namespace Amanzi

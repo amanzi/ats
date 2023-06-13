@@ -176,10 +176,10 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     for (CompositeVector::name_iterator comp = molar_dens->begin(); comp != molar_dens->end();
          ++comp) {
       for (int k = 0; k < num_dep; k++) {
-        dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
+        dep_vec[k] = dep_cv[k]->viewComponent(*comp, false).get();
       }
 
-      auto& dens_v = *(molar_dens->ViewComponent(*comp, false));
+      auto& dens_v = *(molar_dens->viewComponent(*comp, false));
       int count = dens_v.MyLength();
       for (int id = 0; id != count; ++id) {
         for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
@@ -193,18 +193,18 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     for (CompositeVector::name_iterator comp = mass_dens->begin(); comp != mass_dens->end();
          ++comp) {
       if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
-          molar_dens->HasComponent(*comp)) {
+          molar_dens->hasComponent(*comp)) {
         // calculate MassDensity from MolarDensity and molar mass.
         double M = eos_->MolarMass();
-        mass_dens->ViewComponent(*comp, false)
-          ->Update(M, *molar_dens->ViewComponent(*comp, false), 0.);
+        mass_dens->viewComponent(*comp, false)
+          ->Update(M, *molar_dens->viewComponent(*comp, false), 0.);
       } else {
         // evaluate MassDensity() directly
         for (int k = 0; k < num_dep; k++) {
-          dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
+          dep_vec[k] = dep_cv[k]->viewComponent(*comp, false).get();
         }
 
-        auto& dens_v = *(mass_dens->ViewComponent(*comp, false));
+        auto& dens_v = *(mass_dens->viewComponent(*comp, false));
         int count = dens_v.MyLength();
         for (int id = 0; id != count; ++id) {
           for (int k = 0; k < num_dep; k++) eos_params[k] = (*dep_vec[k])[0][id];
@@ -264,10 +264,10 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
     for (CompositeVector::name_iterator comp = molar_dens->begin(); comp != molar_dens->end();
          ++comp) {
       for (int k = 0; k < num_dep; k++) {
-        dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
+        dep_vec[k] = dep_cv[k]->viewComponent(*comp, false).get();
       }
 
-      auto& dens_v = *(molar_dens->ViewComponent(*comp, false));
+      auto& dens_v = *(molar_dens->viewComponent(*comp, false));
       int count = dens_v.MyLength();
 
       if (wrt_key == conc_key_) {
@@ -295,18 +295,18 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
     for (CompositeVector::name_iterator comp = mass_dens->begin(); comp != mass_dens->end();
          ++comp) {
       if (mode_ == EOS_MODE_BOTH && eos_->IsConstantMolarMass() &&
-          molar_dens->HasComponent(*comp)) {
+          molar_dens->hasComponent(*comp)) {
         // calculate MassDensity from MolarDensity and molar mass.
         double M = eos_->MolarMass();
-        mass_dens->ViewComponent(*comp, false)
-          ->Update(M, *molar_dens->ViewComponent(*comp, false), 0.);
+        mass_dens->viewComponent(*comp, false)
+          ->Update(M, *molar_dens->viewComponent(*comp, false), 0.);
       } else {
         // evaluate DMassDensity() directly
         for (int k = 0; k < num_dep; k++) {
-          dep_vec[k] = dep_cv[k]->ViewComponent(*comp, false).get();
+          dep_vec[k] = dep_cv[k]->viewComponent(*comp, false).get();
         }
 
-        auto& dens_v = *(mass_dens->ViewComponent(*comp, false));
+        auto& dens_v = *(mass_dens->viewComponent(*comp, false));
         int count = dens_v.MyLength();
 
         if (wrt_key == conc_key_) {

@@ -29,7 +29,6 @@ namespace Amanzi {
 // forward declaration
 class State;
 class Debugger;
-class CompositeVector;
 
 namespace Operators {
 

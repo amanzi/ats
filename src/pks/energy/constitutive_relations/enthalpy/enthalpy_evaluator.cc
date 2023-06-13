@@ -62,9 +62,9 @@ EnthalpyEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *n_l->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -85,7 +85,7 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
   // not implemented
   if (wrt_key == ie_key_) {
-    result[0]->PutScalar(1.);
+    result[0]->putScalar(1.);
   } else if (wrt_key == pres_key_) {
     AMANZI_ASSERT(include_work_);
 
@@ -93,8 +93,8 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
 
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *n_l->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -111,9 +111,9 @@ EnthalpyEvaluator::EvaluatePartialDerivative_(const State& S,
 
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& nl_v = *n_l->ViewComponent(*comp, false);
-      const Epetra_MultiVector& pres_v = *pres->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *n_l->viewComponent(*comp, false);
+      const Epetra_MultiVector& pres_v = *pres->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

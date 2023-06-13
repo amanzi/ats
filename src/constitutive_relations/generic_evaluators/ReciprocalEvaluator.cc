@@ -63,15 +63,15 @@ ReciprocalEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
   const auto& denom = S.Get<CompositeVector>(key_tag_denom->first, key_tag_denom->second);
 
   for (const auto& comp : *result[0]) {
-    Epetra_Vector& res_c = *(*result[0]->ViewComponent(comp, false))(0);
-    const Epetra_Vector& numer_c = *(*numer.ViewComponent(comp, false))(0);
-    const Epetra_Vector& denom_c = *(*denom.ViewComponent(comp, false))(0);
+    Epetra_Vector& res_c = *(*result[0]->viewComponent(comp, false))(0);
+    const Epetra_Vector& numer_c = *(*numer.viewComponent(comp, false))(0);
+    const Epetra_Vector& denom_c = *(*denom.viewComponent(comp, false))(0);
     res_c.ReciprocalMultiply(coef_, denom_c, numer_c, 0);
   }
 
   if (positive_) {
     for (const auto& comp : *result[0]) {
-      Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
+      Epetra_MultiVector& res_c = *result[0]->viewComponent(comp, false);
       for (int c = 0; c != res_c.MyLength(); ++c) { res_c[0][c] = std::max(res_c[0][c], 0.); }
     }
   }
@@ -97,9 +97,9 @@ ReciprocalEvaluator::EvaluatePartialDerivative_(const State& S,
     const auto& denom = S.Get<CompositeVector>(key_tag_denom->first, key_tag_denom->second);
 
     for (const auto& comp : *result[0]) {
-      Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
-      const Epetra_MultiVector& numer_c = *numer.ViewComponent(comp, false);
-      const Epetra_MultiVector& denom_c = *denom.ViewComponent(comp, false);
+      Epetra_MultiVector& res_c = *result[0]->viewComponent(comp, false);
+      const Epetra_MultiVector& numer_c = *numer.viewComponent(comp, false);
+      const Epetra_MultiVector& denom_c = *denom.viewComponent(comp, false);
       for (int c = 0; c != res_c.MyLength(); ++c)
         res_c[0][c] = -coef_ * numer_c[0][c] / (denom_c[0][c] * denom_c[0][c]);
     }
@@ -108,8 +108,8 @@ ReciprocalEvaluator::EvaluatePartialDerivative_(const State& S,
     const auto& denom = S.Get<CompositeVector>(key_tag_denom->first, key_tag_denom->second);
 
     for (const auto& comp : *result[0]) {
-      Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
-      const Epetra_MultiVector& denom_c = *denom.ViewComponent(comp, false);
+      Epetra_MultiVector& res_c = *result[0]->viewComponent(comp, false);
+      const Epetra_MultiVector& denom_c = *denom.viewComponent(comp, false);
       for (int c = 0; c != res_c.MyLength(); ++c) res_c[0][c] = -coef_ / denom_c[0][c];
     }
   }

@@ -50,9 +50,9 @@ UnfrozenEffectiveDepthEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> uf = S.GetPtr<CompositeVector>(uf_key_, tag);
 
   for (auto compname : *result[0]) {
-    auto& result_c = *result[0]->ViewComponent(compname, false);
-    const auto& depth_c = *depth->ViewComponent(compname, false);
-    const auto& uf_c = *uf->ViewComponent(compname, false);
+    auto& result_c = *result[0]->viewComponent(compname, false);
+    const auto& depth_c = *depth->viewComponent(compname, false);
+    const auto& uf_c = *uf->viewComponent(compname, false);
 
     for (int c = 0; c != result_c.MyLength(); ++c) {
       result_c[0][c] = depth_c[0][c] * std::pow(uf_c[0][c], alpha_);
@@ -74,9 +74,9 @@ UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
 
   if (wrt_key == depth_key_) {
     for (auto compname : *result[0]) {
-      auto& result_c = *result[0]->ViewComponent(compname, false);
-      const auto& depth_c = *depth->ViewComponent(compname, false);
-      const auto& uf_c = *uf->ViewComponent(compname, false);
+      auto& result_c = *result[0]->viewComponent(compname, false);
+      const auto& depth_c = *depth->viewComponent(compname, false);
+      const auto& uf_c = *uf->viewComponent(compname, false);
 
       for (int c = 0; c != result_c.MyLength(); ++c) {
         result_c[0][c] = std::pow(uf_c[0][c], alpha_);
@@ -84,9 +84,9 @@ UnfrozenEffectiveDepthEvaluator::EvaluatePartialDerivative_(
     }
   } else if (wrt_key == uf_key_) {
     for (auto compname : *result[0]) {
-      auto& result_c = *result[0]->ViewComponent(compname, false);
-      const auto& depth_c = *depth->ViewComponent(compname, false);
-      const auto& uf_c = *uf->ViewComponent(compname, false);
+      auto& result_c = *result[0]->viewComponent(compname, false);
+      const auto& depth_c = *depth->viewComponent(compname, false);
+      const auto& uf_c = *uf->viewComponent(compname, false);
 
       for (int c = 0; c != result_c.MyLength(); ++c) {
         result_c[0][c] = alpha_ * depth_c[0][c] * std::pow(uf_c[0][c], alpha_ - 1);

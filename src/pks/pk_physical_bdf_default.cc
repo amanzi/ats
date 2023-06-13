@@ -15,10 +15,40 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 ------------------------------------------------------------------------- */
 
 #include "boost/math/special_functions/fpclassify.hpp"
+
+#include "Reductions.hh"
 #include "pk_helpers.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
+
+// constructor
+PK_PhysicalBDF_Default::PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
+                       const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                       const Teuchos::RCP<State>& S,
+                       const Teuchos::RCP<TreeVector>& solution)
+  : PK(pk_tree, glist, S, solution),
+    PK_BDF_Default(pk_tree, glist, S, solution),
+    PK_Physical_Default(pk_tree, glist, S, solution)
+{}
+
+
+void
+PK_PhysicalBDF_Default::ParseParameterList_()
+{
+  // keys used here
+  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
+  cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
+
+  // tolerances for ErrorNorm
+  atol_ = plist_->get<double>("absolute error tolerance", 1.0);
+  rtol_ = plist_->get<double>("relative error tolerance", 1.0);
+  fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
+
+  PK_BDF_Default::ParseParameterList_();
+  PK_Physical_Default::ParseParameterList_();
+}
+
 
 // -----------------------------------------------------------------------------
 // Setup
@@ -30,30 +60,19 @@ PK_PhysicalBDF_Default::Setup()
   PK_Physical_Default::Setup();
   PK_BDF_Default::Setup();
 
-  // boundary conditions
-  bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
-
   // convergence criteria is based on a conserved quantity
-  if (conserved_key_.empty()) {
-    conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
-  }
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
-  // we also use a copy of the conserved quantity, as this is a better choice in the error norm
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
+
+  // we also use a copy of the conserved quantity, as this is a better choice
+  // in the error norm
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
-  // cell volume used throughout
-  if (cell_vol_key_.empty()) {
-    cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
-  }
+  // cell volume used for ErrorNorm
   requireAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
-
-  atol_ = plist_->get<double>("absolute error tolerance", 1.0);
-  rtol_ = plist_->get<double>("relative error tolerance", 1.0);
-  fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
 };
 
 
@@ -76,7 +95,8 @@ int
 PK_PhysicalBDF_Default::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
                                             Teuchos::RCP<TreeVector> Pu)
 {
-  *Pu = *u;
+  // default preconditioner is the identify
+  Pu->assign(*u);
   return 0;
 }
 
@@ -88,103 +108,74 @@ double
 PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
                                   Teuchos::RCP<const TreeVector> res)
 {
-  // Abs tol based on old conserved quantity -- we know these have been vetted
-  // at some level whereas the new quantity is some iterate, and may be
-  // anything from negative to overflow.
-  //  S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name()); // for the future...
-  const Epetra_MultiVector& conserved =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
-  const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
-
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_MEDIUM))
     *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
-  Teuchos::RCP<const CompositeVector> dvec = res->Data();
+  // Abs tol based on old conserved quantity -- we know these have been vetted
+  // at some level whereas the new quantity is some iterate, and may be
+  // anything from negative to overflow.
+  auto conserved = S_->Get<CompositeVector>(conserved_key_, tag_current_).viewComponent("cell", true);
+  auto cv = S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", true);
+
+  Teuchos::RCP<const CompositeVector> dvec = res->getData();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
-  Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-    Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-  const MPI_Comm& comm = mpi_comm_p->Comm();
+  double enorm_loc = 0;
+  for (const auto& comp : *dvec) {
+    Reductions::MaxLoc<double, GO> enorm_comp;
+    const auto dvec_v = dvec->viewComponent(comp, false);
 
-  double enorm_val = 0.0;
-  for (CompositeVector::name_iterator comp = dvec->begin(); comp != dvec->end(); ++comp) {
-    double enorm_comp = 0.0;
-    int enorm_loc = -1;
-    const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
-
-    if (*comp == "cell") {
+    if (comp == "cell") {
       // error done relative to extensive, conserved quantity
-      int ncells = dvec->size(*comp, false);
-      for (unsigned int c = 0; c != ncells; ++c) {
-        double enorm_c =
-          std::abs(h * dvec_v[0][c]) / (atol_ * cv[0][c] + rtol_ * std::abs(conserved[0][c]));
-        AMANZI_ASSERT((atol_ * cv[0][c] + rtol_ * std::abs(conserved[0][c])) > 0.);
+      int ncells = dvec_v.extent(0);
+      Kokkos::parallel_reduce("PK_PhysicalBDF_Default::ErrorNorm", ncells,
+              KOKKOS_LAMBDA(const int& c, Reductions::MaxLoc<double, GO>& lval) {
+                double enorm_c = std::abs(h * dvec_v(c,0)) / (atol_ * cv(c,0)
+                        + rtol_ * std::abs(conserved(c,0)));
+                Reductions::MaxLoc<double,GO> myval(enorm_c, c);
+                lval += myval;
+              }, enorm_comp);
 
-        if (enorm_c > enorm_comp) {
-          enorm_comp = enorm_c;
-          enorm_loc = c;
-        }
-      }
-
-    } else if (*comp == std::string("face")) {
+    } else if (comp == "face") {
       // error in flux -- relative to cell's extensive conserved quantity
-      int nfaces = dvec->size(*comp, false);
+      int nfaces = dvec_v.extent(0);
+      Kokkos::parallel_reduce("PK_PhysicalBDF_Default::ErrorNorm", nfaces,
+              KOKKOS_LAMBDA(const int& f, Reductions::MaxLoc<double, GO>& lval) {
+                auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
+                double cv_min =
+                  cells.size() == 1 ? cv(cells[0],0) : std::min(cv(cells[0],0), cv(cells[1],0));
+                double conserved_min = cells.size() == 1 ?
+                  conserved(cells[0],0) :
+                  std::min(conserved(cells[0],0), conserved(cells[1],0));
 
-      for (unsigned int f = 0; f != nfaces; ++f) {
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
-        double cv_min =
-          cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
-        double conserved_min = cells.size() == 1 ?
-                                 conserved[0][cells[0]] :
-                                 std::min(conserved[0][cells[0]], conserved[0][cells[1]]);
-
-        double enorm_f = fluxtol_ * h * std::abs(dvec_v[0][f]) /
+                double enorm_f = fluxtol_ * h * std::abs(dvec_v(f,0)) /
                          (atol_ * cv_min + rtol_ * std::abs(conserved_min));
-        AMANZI_ASSERT((atol_ * cv_min + rtol_ * std::abs(conserved_min)) > 0.);
-        if (enorm_f > enorm_comp) {
-          enorm_comp = enorm_f;
-          enorm_loc = f;
-        }
-      }
+                lval += Reductions::MaxLoc<double, GO>(enorm_f, f);
+              }, enorm_comp);
 
     } else {
-      // double norm;
-      // dvec_v.Norm2(&norm);
-      //      AMANZI_ASSERT(norm < 1.e-15);
+      // pass...
     }
 
     // Write out Inf norms too.
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-      double infnorm(0.);
-      dvec_v.NormInf(&infnorm);
+      double infnorm = dvec->getComponent(comp)->getVector(0)->normInf();
 
-      ENorm_t err;
-      ENorm_t l_err;
-      l_err.value = enorm_comp;
-      l_err.gid = dvec_v.Map().GID(enorm_loc);
-
-      int ierr;
-
-      ierr = MPI_Allreduce(&l_err, &err, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-      AMANZI_ASSERT(!ierr);
-      *vo_->os() << "  ENorm (" << *comp << ") = " << err.value << "[" << err.gid << "] ("
+      // now do the global reduction in Teuchos, first converting to GID from LID
+      enorm_comp.loc = dvec->getMap()->getComponentMap(comp)->getGlobalElement(enorm_comp.loc);
+      auto global_enorm_comp = Reductions::reduceAllLoc<double>(*dvec->getMap()->getComm(), enorm_comp);
+      *vo_->os() << "  ENorm (" << comp << ") = " << global_enorm_comp.val << "[" << global_enorm_comp.loc << "] ("
                  << infnorm << ")" << std::endl;
     }
 
-    enorm_val = std::max(enorm_val, enorm_comp);
+    enorm_loc = std::max(enorm_loc, enorm_comp.val);
   }
 
-  double enorm_val_l = enorm_val;
-
-  int ierr;
-  ierr = MPI_Allreduce(&enorm_val_l, &enorm_val, 1, MPI_DOUBLE, MPI_MAX, comm);
-  AMANZI_ASSERT(!ierr);
-  return enorm_val;
+  double enorm_global = 0;
+  Teuchos::reduceAll(*dvec->getMap()->getComm(), Teuchos::REDUCE_MAX, 1, &enorm_loc, &enorm_global);
+  return enorm_global;
 };
 
 

@@ -23,8 +23,8 @@ AdvectionDonorUpwind::AdvectionDonorUpwind(Teuchos::ParameterList& advect_plist,
                                            const Teuchos::RCP<const AmanziMesh::Mesh> mesh)
   : Advection(advect_plist, mesh)
 {
-  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->face_map(true)));
-  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->face_map(true)));
+  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE,true)));
+  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE,true)));
 };
 
 
@@ -42,12 +42,12 @@ AdvectionDonorUpwind::Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_
                             bool include_bc_fluxes){
 
   // Part 1: Collect fluxes in faces
-  { field_->ScatterMasterToGhosted("cell"); // communicate the cells
-const Epetra_MultiVector& field_c = *field_->ViewComponent("cell", true);
-Epetra_MultiVector& field_f = *field_->ViewComponent("face", true);
+  { field_->scatterMasterToGhosted("cell"); // communicate the cells
+const Epetra_MultiVector& field_c = *field_->viewComponent("cell", true);
+Epetra_MultiVector& field_f = *field_->viewComponent("face", true);
 
-flux_->ScatterMasterToGhosted("face");
-const Epetra_MultiVector& flux = *flux_->ViewComponent("face", true);
+flux_->scatterMasterToGhosted("face");
+const Epetra_MultiVector& flux = *flux_->viewComponent("face", true);
 
 unsigned int nfaces_ghosted = field_f.MyLength();
 for (unsigned int f = 0; f != nfaces_ghosted; ++f) { // loop over master and slave faces
@@ -61,12 +61,12 @@ for (unsigned int f = 0; f != nfaces_ghosted; ++f) { // loop over master and sla
 
 // Part 2: put fluxes in cell
 {
-  Epetra_MultiVector& field_c = *field_->ViewComponent("cell", false);
-  field_c.PutScalar(0.);
+  Epetra_MultiVector& field_c = *field_->viewComponent("cell", false);
+  field_c.putScalar(0.);
   unsigned int ncells_owned = field_c.MyLength();
 
   // no scatter required
-  const Epetra_MultiVector& field_f = *field_->ViewComponent("face", true);
+  const Epetra_MultiVector& field_f = *field_->viewComponent("face", true);
 
   unsigned int nfaces_ghosted = field_f.MyLength();
   for (unsigned int f = 0; f != nfaces_ghosted; ++f) { // loop over master and slave faces
@@ -94,12 +94,12 @@ AdvectionDonorUpwind::IdentifyUpwindCells_()
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> fdirs;
 
-  flux_->ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux_f = *flux_->ViewComponent("face", true);
+  flux_->scatterMasterToGhosted("face");
+  const Epetra_MultiVector& flux_f = *flux_->viewComponent("face", true);
 
-  unsigned int ncells_used = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::ALL);
+  unsigned int ncells_used = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
   for (unsigned int c = 0; c != ncells_used; ++c) {
-    mesh_->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    mesh_->getCellFacesAndDirections(c, &faces, &fdirs);
 
     for (unsigned int i = 0; i != faces.size(); ++i) {
       AmanziMesh::Entity_ID f = faces[i];

@@ -44,11 +44,11 @@ EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 
   // Update the residual with the accumulation of energy over the
   // timestep, on cells.
-  g->ViewComponent("cell", false)
+  g->viewComponent("cell", false)
     ->Update(1.0 / dt,
-             *e1->ViewComponent("cell", false),
+             *e1->viewComponent("cell", false),
              -1.0 / dt,
-             *e0->ViewComponent("cell", false),
+             *e0->viewComponent("cell", false),
              1.0);
 };
 
@@ -133,18 +133,18 @@ EnergyBase::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
+  Epetra_MultiVector& g_c = *g->viewComponent("cell", false);
 
   S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
 
   // external sources of energy
   if (is_source_term_) {
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false);
+      *S_->Get<CompositeVector>(source_key_, tag).viewComponent("cell", false);
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
@@ -201,9 +201,9 @@ EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
 {
   // in the diffusive flux condition, first update the boundary face temperatures for FV
   auto& T_vec = *S_->GetPtrW<CompositeVector>(key_, tag, name_);
-  if (T_vec.HasComponent("boundary_face")) {
-    Epetra_MultiVector& T_bf = *T_vec.ViewComponent("boundary_face", false);
-    const Epetra_MultiVector& T_c = *T_vec.ViewComponent("cell", false);
+  if (T_vec.hasComponent("boundary_face")) {
+    Epetra_MultiVector& T_bf = *T_vec.viewComponent("boundary_face", false);
+    const Epetra_MultiVector& T_c = *T_vec.viewComponent("cell", false);
 
     for (int bf = 0; bf != T_bf.MyLength(); ++bf) {
       AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
@@ -216,7 +216,7 @@ EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
         // diffusive flux BC
         AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
-        T_bf[0][bf] = (Acc(0, 0) * T_c[0][c] - bc_values()[f] * mesh_->face_area(f)) / Acc(0, 0);
+        T_bf[0][bf] = (Acc(0, 0) * T_c[0][c] - bc_values()[f] * mesh_->getFaceArea(f)) / Acc(0, 0);
       }
     }
   }
@@ -225,7 +225,7 @@ EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
   S_->GetEvaluator(enthalpy_key_, tag).Update(*S_, name_);
 
   const Epetra_MultiVector& enth_bf =
-    *S_->Get<CompositeVector>(enthalpy_key_, tag).ViewComponent("boundary_face", false);
+    *S_->Get<CompositeVector>(enthalpy_key_, tag).viewComponent("boundary_face", false);
 
   int nbfaces = enth_bf.MyLength();
   for (int bf = 0; bf != nbfaces; ++bf) {

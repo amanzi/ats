@@ -95,17 +95,17 @@ OverlandConductivityEvaluator::Evaluate_(const State& S,
   // not-cells.  These vectors are used in a wierd way on boundary faces,
   // getting the internal cell and using that.  This currently cannot be used
   // on any other components than "cell" and "boundary_face".
-  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
+  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
   for (const auto& comp : *result[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const Epetra_MultiVector& slope_v = *slope->ViewComponent(internal_comp, false);
-    const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp, false);
+    const Epetra_MultiVector& slope_v = *slope->viewComponent(internal_comp, false);
+    const Epetra_MultiVector& coef_v = *coef->viewComponent(internal_comp, false);
 
-    const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp, false);
+    const Epetra_MultiVector& depth_v = *depth->viewComponent(comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(comp, false);
 
     int ncomp = result[0]->size(comp, false);
     if (dt_swe_factor_ > 0) {
@@ -123,7 +123,7 @@ OverlandConductivityEvaluator::Evaluate_(const State& S,
 
     if (dens_) {
       const Epetra_MultiVector& dens_v =
-        *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp, false);
+        *S.Get<CompositeVector>(dens_key_, tag).viewComponent(comp, false);
       for (int i = 0; i != ncomp; ++i) result_v[0][i] *= dens_v[0][i];
     }
   }
@@ -144,7 +144,7 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
   Teuchos::RCP<const CompositeVector> coef = S.GetPtr<CompositeVector>(coef_key_, tag);
 
-  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
+  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
 
   if (wrt_key == mobile_depth_key_) {
     for (const auto& comp : *result[0]) {
@@ -152,11 +152,11 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
 
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(internal_comp, false);
-      const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp, false);
+      const Epetra_MultiVector& slope_v = *slope->viewComponent(internal_comp, false);
+      const Epetra_MultiVector& coef_v = *coef->viewComponent(internal_comp, false);
 
-      const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp, false);
+      const Epetra_MultiVector& depth_v = *depth->viewComponent(comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
       if (dt_swe_factor_ > 0.) {
@@ -176,7 +176,7 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
 
       if (dens_) {
         const Epetra_MultiVector& dens_v =
-          *S.Get<CompositeVector>(dens_key_, tag).ViewComponent(comp, false);
+          *S.Get<CompositeVector>(dens_key_, tag).viewComponent(comp, false);
         for (int i = 0; i != ncomp; ++i) { result_v[0][i] *= dens_v[0][i]; }
       }
     }
@@ -189,11 +189,11 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
 
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(internal_comp, false);
-      const Epetra_MultiVector& coef_v = *coef->ViewComponent(internal_comp, false);
+      const Epetra_MultiVector& slope_v = *slope->viewComponent(internal_comp, false);
+      const Epetra_MultiVector& coef_v = *coef->viewComponent(internal_comp, false);
 
-      const Epetra_MultiVector& depth_v = *depth->ViewComponent(comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(comp, false);
+      const Epetra_MultiVector& depth_v = *depth->viewComponent(comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
       if (dt_swe_factor_ > 0.) {
@@ -212,7 +212,7 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
 
   } else {
     // FIX ME -- need to add derivatives of conductivity model wrt slope, coef --etc
-    result[0]->PutScalar(0.);
+    result[0]->putScalar(0.);
   }
 }
 
@@ -226,15 +226,15 @@ OverlandConductivityEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac.Mesh() != Teuchos::null) {
+  if (my_fac.getMesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
-    if (dep_fac->HasComponent("boundary_face")) {
+    if (dep_fac->hasComponent("boundary_face")) {
       no_bf_dep_fac = Teuchos::rcp(new CompositeVectorSpace());
-      no_bf_dep_fac->SetMesh(dep_fac->Mesh())
+      no_bf_dep_fac->SetMesh(dep_fac->getMesh())
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {

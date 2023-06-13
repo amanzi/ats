@@ -20,15 +20,13 @@ namespace Amanzi {
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 1.
 ****************************************************************** */
-Teuchos::RCP<Functions::BoundaryFunction>
+std::string
 BCFactory::CreateWithFunction(const std::string& list_name, const std::string& function_name) const
 {
-  Teuchos::RCP<Functions::BoundaryFunction> bc =
-    Teuchos::rcp(new Functions::BoundaryFunction(mesh_));
-
+  std::string bc_name = "";
   if (plist_.isParameter(list_name)) {
     if (plist_.isSublist(list_name)) {
-      ProcessListWithFunction_(plist_.sublist(list_name), function_name, bc);
+      bc_name = ProcessListWithFunction_(plist_.sublist(list_name), function_name);
     } else {
       std::stringstream mstream;
       mstream << "BCFactory: " << list_name << " sublist error: not a sublist.";
@@ -36,21 +34,20 @@ BCFactory::CreateWithFunction(const std::string& list_name, const std::string& f
       Exceptions::amanzi_throw(m);
     }
   }
-  return bc;
+  return bc_name;
 }
 
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 1.
 ****************************************************************** */
-Teuchos::RCP<Functions::BoundaryFunction>
+std::string
 BCFactory::CreateWithoutFunction(const std::string& list_name) const
 {
-  Teuchos::RCP<Functions::BoundaryFunction> bc =
-    Teuchos::rcp(new Functions::BoundaryFunction(mesh_));
+  std::string bc_name = "";
 
   if (plist_.isParameter(list_name)) {
     if (plist_.isSublist(list_name)) {
-      ProcessListWithoutFunction_(plist_.sublist(list_name), bc);
+      bc_name = ProcessListWithoutFunction_(plist_.sublist(list_name));
     } else {
       std::stringstream mstream;
       mstream << "BCFactory: " << list_name << " sublist error: not a sublist.";
@@ -58,96 +55,91 @@ BCFactory::CreateWithoutFunction(const std::string& list_name) const
       Exceptions::amanzi_throw(m);
     }
   }
-  return bc;
+  return bc_name;
 }
 
 
-Teuchos::RCP<Functions::DynamicBoundaryFunction>
+std::string
 BCFactory::CreateDynamicFunction(const std::string& list_name) const
 {
-  std::vector<std::string> regions;
-  std::vector<std::string> bc_types;
-  std::vector<std::string> bc_functions;
-
-  Teuchos::RCP<Functions::BoundaryFunction> bc;
-
-  Teuchos::RCP<Functions::DynamicBoundaryFunction> bcs =
-    Teuchos::rcp(new Functions::DynamicBoundaryFunction(mesh_));
+  std::string bc_name = "";
 
   if (plist_.isParameter(list_name)) {
     if (plist_.isSublist(list_name)) {
-      if (plist_.sublist(list_name).isSublist("bcs")) {
-        const Teuchos::ParameterList& list = plist_.sublist(list_name).sublist("bcs");
-        // if (list.isParameter("regions")){
-        //   regions = list.get<Teuchos::Array<std::string> >("regions").toVector();
-        // } else {  // Parameter "regions" is missing.
-        //   m << "parameter \"regions\" is missing";
-        //   Errors::Message msg(m.str());
-        //   Exceptions::amanzi_throw(msg);
-        // }
-        if (list.isParameter("bc types")) {
-          bc_types = list.get<Teuchos::Array<std::string>>("bc types").toVector();
-        } else { // Parameter "regions" is missing.
-          Errors::Message msg;
-          msg << "parameter \"bc types\" is missing";
-          Exceptions::amanzi_throw(msg);
-        }
-        if (list.isParameter("bc functions")) {
-          bc_functions = list.get<Teuchos::Array<std::string>>("bc functions").toVector();
-        } else { // Parameter "regions" is missing.
-          Errors::Message msg("parameter \"bc functions\" is missing");
-          Exceptions::amanzi_throw(msg);
-        }
+      AMANZI_ASSERT(false);
+      
+      // if (plist_.sublist(list_name).isSublist("bcs")) {
+      //   const Teuchos::ParameterList& list = plist_.sublist(list_name).sublist("bcs");
+      //   // if (list.isParameter("regions")){
+      //   //   regions = list.get<Teuchos::Array<std::string> >("regions").toVector();
+      //   // } else {  // Parameter "regions" is missing.
+      //   //   m << "parameter \"regions\" is missing";
+      //   //   Errors::Message msg(m.str());
+      //   //   Exceptions::amanzi_throw(msg);
+      //   // }
+      //   if (list.isParameter("bc types")) {
+      //     bc_types = list.get<Teuchos::Array<std::string>>("bc types").toVector();
+      //   } else { // Parameter "regions" is missing.
+      //     Errors::Message msg;
+      //     msg << "parameter \"bc types\" is missing";
+      //     Exceptions::amanzi_throw(msg);
+      //   }
+      //   if (list.isParameter("bc functions")) {
+      //     bc_functions = list.get<Teuchos::Array<std::string>>("bc functions").toVector();
+      //   } else { // Parameter "regions" is missing.
+      //     Errors::Message msg("parameter \"bc functions\" is missing");
+      //     Exceptions::amanzi_throw(msg);
+      //   }
 
-        AMANZI_ASSERT(bc_types.size() == bc_functions.size());
+      //   AMANZI_ASSERT(bc_types.size() == bc_functions.size());
 
-        for (int i = 0; i < bc_types.size(); i++) {
-          bc = Teuchos::rcp(new Functions::BoundaryFunction(mesh_));
-          if (list.isParameter(bc_types[i])) {
-            if (list.isSublist(bc_types[i])) {
-              if ((bc_types[i] == "pressure") || (bc_types[i] == "water flux") ||
-                  (bc_types[i] == "seepage face pressure") ||
-                  (bc_types[i] == "seepage face head") || (bc_types[i] == "head") ||
-                  (bc_types[i] == "fixed level")) {
-                ProcessListWithFunction_(list.sublist(bc_types[i]), bc_functions[i], bc);
-              } else {
-                ProcessListWithoutFunction_(list.sublist(bc_types[i]), bc);
-              }
-            } else {
-              Errors::Message msg;
-              msg << "BCFactory: " << list_name << " sublist error: not a sublist.";
-              Exceptions::amanzi_throw(msg);
-            }
-          }
+      //   for (int i = 0; i < bc_types.size(); i++) {
+      //     bc = Teuchos::rcp(new Functions::BoundaryFunction(mesh_));
+      //     if (list.isParameter(bc_types[i])) {
+      //       if (list.isSublist(bc_types[i])) {
+      //         if ((bc_types[i] == "pressure") || (bc_types[i] == "water flux") ||
+      //             (bc_types[i] == "seepage face pressure") ||
+      //             (bc_types[i] == "seepage face head") || (bc_types[i] == "head") ||
+      //             (bc_types[i] == "fixed level")) {
+      //           ProcessListWithFunction_(list.sublist(bc_types[i]), bc_functions[i]);
+      //         } else {
+      //           ProcessListWithoutFunction_(list.sublist(bc_types[i]));
+      //         }
+      //       } else {
+      //         Errors::Message msg;
+      //         msg << "BCFactory: " << list_name << " sublist error: not a sublist.";
+      //         Exceptions::amanzi_throw(msg);
+      //       }
+      //     }
 
-          bcs->AddFunction(bc);
-        }
+      //     bcs->AddFunction(bc);
+      //   }
 
-      } else { // Parameter "regions" is missing.
-        Errors::Message msg;
-        msg << "sublist \"bcs \" is missing";
-        Exceptions::amanzi_throw(msg);
-      }
+      // } else { // Parameter "regions" is missing.
+      //   Errors::Message msg;
+      //   msg << "sublist \"bcs \" is missing";
+      //   Exceptions::amanzi_throw(msg);
+      // }
 
-      if (plist_.sublist(list_name).isSublist("switch function")) {
-        try {
-          ProcessSpecWithFunction_(plist_.sublist(list_name), "switch function", bcs);
-        } catch (Errors::Message& msg) {
-          Errors::Message m;
-          m << "in sublist "
-            << "switch function"
-            << ": " << msg.what();
-          Exceptions::amanzi_throw(m);
-        }
-      } else { // ERROR -- parameter is not a sublist
-        Errors::Message msg;
-        msg << "parameter \"switch function\" is not a sublist";
-        Exceptions::amanzi_throw(msg);
-      }
+      // if (plist_.sublist(list_name).isSublist("switch function")) {
+      //   try {
+      //     ProcessSpecWithFunction_(plist_.sublist(list_name), "switch function");
+      //   } catch (Errors::Message& msg) {
+      //     Errors::Message m;
+      //     m << "in sublist "
+      //       << "switch function"
+      //       << ": " << msg.what();
+      //     Exceptions::amanzi_throw(m);
+      //   }
+      // } else { // ERROR -- parameter is not a sublist
+      //   Errors::Message msg;
+      //   msg << "parameter \"switch function\" is not a sublist";
+      //   Exceptions::amanzi_throw(msg);
+      // }
     }
   }
 
-  return bcs;
+  return bc_name;
 }
 
 
@@ -166,10 +158,9 @@ BCFactory::CheckExplicitFlag(const std::string& list_name)
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 2.
 ****************************************************************** */
-void
+std::string
 BCFactory::ProcessListWithFunction_(const Teuchos::ParameterList& list,
-                                    const std::string& function_name,
-                                    const Teuchos::RCP<Functions::BoundaryFunction>& bc) const
+                                    const std::string& function_name) const
 {
   // Iterate through the BC specification sublists in the list.
   // All are expected to be sublists of identical structure.
@@ -178,7 +169,7 @@ BCFactory::ProcessListWithFunction_(const Teuchos::ParameterList& list,
     if (list.isSublist(name)) {
       Teuchos::ParameterList spec = list.sublist(name);
       try {
-        ProcessSpecWithFunction_(spec, function_name, bc);
+        return ProcessSpecWithFunction_(spec, function_name);
       } catch (Errors::Message& msg) {
         Errors::Message m;
         m << "in sublist " << spec.name().c_str() << ": " << msg.what();
@@ -192,10 +183,9 @@ BCFactory::ProcessListWithFunction_(const Teuchos::ParameterList& list,
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 3.
 ****************************************************************** */
-void
+std::string
 BCFactory::ProcessSpecWithFunction_(const Teuchos::ParameterList& list,
-                                    const std::string& function_name,
-                                    const Teuchos::RCP<Functions::BoundaryFunction>& bc) const
+                                    const std::string& function_name) const
 {
   std::stringstream m;
   std::vector<std::string> regions;
@@ -252,12 +242,11 @@ BCFactory::ProcessSpecWithFunction_(const Teuchos::ParameterList& list,
 }
 
 
-void
+std::string
 BCFactory::ProcessSpecWithFunctionRegions_(
   const Teuchos::ParameterList& list,
   const std::string& function_name,
-  std::vector<std::string>& regions,
-  const Teuchos::RCP<Functions::BoundaryFunction>& bc) const
+  std::vector<std::string>& regions) const
 {
   std::stringstream m;
 
@@ -300,9 +289,8 @@ BCFactory::ProcessSpecWithFunctionRegions_(
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 2.
 ****************************************************************** */
-void
-BCFactory::ProcessListWithoutFunction_(const Teuchos::ParameterList& list,
-                                       const Teuchos::RCP<Functions::BoundaryFunction>& bc) const
+std::string
+BCFactory::ProcessListWithoutFunction_(const Teuchos::ParameterList& list) const
 {
   // Iterate through the BC specification sublists in the list.
   // All are expected to be sublists of identical structure.
@@ -311,7 +299,7 @@ BCFactory::ProcessListWithoutFunction_(const Teuchos::ParameterList& list,
     if (list.isSublist(name)) {
       Teuchos::ParameterList spec = list.sublist(name);
       try {
-        ProcessSpecWithoutFunction_(spec, bc);
+        ProcessSpecWithoutFunction_(spec);
       } catch (Errors::Message& msg) {
         std::stringstream m;
         m << "in sublist " << spec.name().c_str() << ": " << msg.what();
@@ -326,9 +314,8 @@ BCFactory::ProcessListWithoutFunction_(const Teuchos::ParameterList& list,
 /* ******************************************************************
 * Process Dirichet BC (pressure), step 3.
 ****************************************************************** */
-void
-BCFactory::ProcessSpecWithoutFunction_(const Teuchos::ParameterList& list,
-                                       const Teuchos::RCP<Functions::BoundaryFunction>& bc) const
+std::string
+BCFactory::ProcessSpecWithoutFunction_(const Teuchos::ParameterList& list) const
 {
   Errors::Message m;
   std::vector<std::string> regions;

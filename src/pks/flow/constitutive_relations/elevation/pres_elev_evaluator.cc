@@ -56,7 +56,7 @@ PresElevEvaluator::EvaluatePartialDerivative_(const State& S,
                                               const Tag& wrt_tag,
                                               const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(1.0);
+  result[0]->putScalar(1.0);
 }
 
 } // namespace Flow

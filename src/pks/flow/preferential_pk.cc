@@ -83,12 +83,12 @@ Preferential::RequireNonlinearCoefficient_(const Key& key, const std::string& co
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "face", "grav" }, { AmanziMesh::FACE, AmanziMesh::FACE }, { 1, 1 });
+      ->SetComponents({ "face", "grav" }, { AmanziMesh::Entity_kind::FACE, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
   } else if (coef_location == "standard: cell") {
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "cell", "grav" }, { AmanziMesh::CELL, AmanziMesh::FACE }, { 1, 1 });
+      ->SetComponents({ "cell", "grav" }, { AmanziMesh::Entity_kind::CELL, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
   } else {
     Errors::Message message("Unknown upwind coefficient location in Preferential flow.");
     Exceptions::amanzi_throw(message);
@@ -110,8 +110,8 @@ Preferential::SetupPhysicalEvaluators_()
   requireAtNext(coef_grav_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 }
 
 
@@ -150,12 +150,12 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
 
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-      //if (!pres->HasComponent("face"))
+      //if (!pres->hasComponent("face"))
       face_matrix_diff_->ApplyBCs(true, true, true);
       face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
 
       if (clobber_boundary_flux_dir_) {
-        Epetra_MultiVector& flux_dir_f = *flux_dir->ViewComponent("face", false);
+        Epetra_MultiVector& flux_dir_f = *flux_dir->viewComponent("face", false);
 
         auto& markers = bc_markers();
         auto& values = bc_values();
@@ -163,12 +163,12 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
         for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
             AmanziMesh::Entity_ID_List cells;
-            mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+            cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
             AMANZI_ASSERT(cells.size() == 1);
             int c = cells[0];
             AmanziMesh::Entity_ID_List faces;
             std::vector<int> dirs;
-            mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+            mesh_->getCellFacesAndDirections(c, &faces, &dirs);
             int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
 
             flux_dir_f[0][f] = values[f] * dirs[i];
@@ -185,14 +185,14 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
 
     // // Move rel perm on boundary_faces into uw_rel_perm on faces
-    const Epetra_Import& vandelay = mesh_->exterior_face_importer();
-    const Epetra_MultiVector& rel_perm_bf = *rel_perm->ViewComponent("boundary_face", false);
+    const Epetra_Import& vandelay = mesh_->getBoundaryFaceImporter();
+    const Epetra_MultiVector& rel_perm_bf = *rel_perm->viewComponent("boundary_face", false);
     const Epetra_MultiVector& rel_perm_grav_bf =
-      *rel_perm_grav->ViewComponent("boundary_face", false);
+      *rel_perm_grav->viewComponent("boundary_face", false);
 
-    Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
+    Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
     uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
-    Epetra_MultiVector& uw_rel_perm_grav = *uw_rel_perm->ViewComponent("grav", false);
+    Epetra_MultiVector& uw_rel_perm_grav = *uw_rel_perm->viewComponent("grav", false);
     uw_rel_perm_grav.Export(rel_perm_grav_bf, vandelay, Insert);
 
     // Upwind, only overwriting boundary faces if the wind says to do so.
@@ -200,27 +200,27 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
     upwinding_->Update(*rel_perm, "cell", *uw_rel_perm, "grav", *S_);
 
     if (clobber_policy_ == "clobber") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
     } else if (clobber_policy_ == "max") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
       }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
+      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
       const Epetra_MultiVector& pres =
-        *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
+        *S_->Get<CompositeVector>(key_, tag).viewComponent("cell", false);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         AmanziMesh::Entity_ID_List fcells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
@@ -231,8 +231,8 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       }
     }
 
-    if (uw_rel_perm->HasComponent("face")) uw_rel_perm->ScatterMasterToGhosted("face");
-    if (uw_rel_perm->HasComponent("grav")) uw_rel_perm->ScatterMasterToGhosted("grav");
+    if (uw_rel_perm->hasComponent("face")) uw_rel_perm->scatterMasterToGhosted("face");
+    if (uw_rel_perm->hasComponent("grav")) uw_rel_perm->scatterMasterToGhosted("grav");
   }
 
   // debugging
@@ -260,17 +260,17 @@ Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
     if (!duw_coef_key_.empty()) {
       CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, name_);
-      duw_rel_perm.PutScalar(0.);
+      duw_rel_perm.putScalar(0.);
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
       upwinding_deriv_->Update(drel_perm, "cell", duw_rel_perm, "face", *S_);
       upwinding_deriv_->Update(drel_grav_perm, "cell", duw_rel_perm, "grav", *S_);
 
-      duw_rel_perm.ScatterMasterToGhosted("face");
-      duw_rel_perm.ScatterMasterToGhosted("grav");
+      duw_rel_perm.scatterMasterToGhosted("face");
+      duw_rel_perm.scatterMasterToGhosted("grav");
     } else {
-      drel_perm.ScatterMasterToGhosted("cell");
-      drel_grav_perm.ScatterMasterToGhosted("cell");
+      drel_perm.scatterMasterToGhosted("cell");
+      drel_grav_perm.scatterMasterToGhosted("cell");
     }
   }
 

@@ -56,17 +56,17 @@ VolumetricPondedDepthEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> pd_v = S.GetPtr<CompositeVector>(pd_key_, tag);
   Teuchos::RCP<const CompositeVector> del_max_v = S.GetPtr<CompositeVector>(delta_max_key_, tag);
   Teuchos::RCP<const CompositeVector> del_ex_v = S.GetPtr<CompositeVector>(delta_ex_key_, tag);
-  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
+  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
 
   for (const auto& comp : *result[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& pd = *pd_v->ViewComponent(comp, false);
-    const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
-    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
-    auto& res = *result[0]->ViewComponent(comp, false);
+    const auto& pd = *pd_v->viewComponent(comp, false);
+    const auto& del_max = *del_max_v->viewComponent(internal_comp, false);
+    const auto& del_ex = *del_ex_v->viewComponent(internal_comp, false);
+    auto& res = *result[0]->viewComponent(comp, false);
 
     int ncomp = result[0]->size(comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -89,7 +89,7 @@ VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> pd_v = S.GetPtr<CompositeVector>(pd_key_, tag);
   Teuchos::RCP<const CompositeVector> del_max_v = S.GetPtr<CompositeVector>(delta_max_key_, tag);
   Teuchos::RCP<const CompositeVector> del_ex_v = S.GetPtr<CompositeVector>(delta_ex_key_, tag);
-  const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
+  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
 
   if (wrt_key == pd_key_) {
     for (const auto& comp : *result[0]) {
@@ -97,10 +97,10 @@ VolumetricPondedDepthEvaluator::EvaluatePartialDerivative_(
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
 
-      const auto& pd = *pd_v->ViewComponent(comp, false);
-      const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
-      const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
-      auto& res = *result[0]->ViewComponent(comp, false);
+      const auto& pd = *pd_v->viewComponent(comp, false);
+      const auto& del_max = *del_max_v->viewComponent(internal_comp, false);
+      const auto& del_ex = *del_ex_v->viewComponent(internal_comp, false);
+      auto& res = *result[0]->viewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -127,15 +127,15 @@ VolumetricPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac.Mesh() != Teuchos::null) {
+  if (my_fac.getMesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
-    if (dep_fac->HasComponent("boundary_face")) {
+    if (dep_fac->hasComponent("boundary_face")) {
       no_bf_dep_fac = Teuchos::rcp(new CompositeVectorSpace());
-      no_bf_dep_fac->SetMesh(dep_fac->Mesh())
+      no_bf_dep_fac->SetMesh(dep_fac->getMesh())
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {

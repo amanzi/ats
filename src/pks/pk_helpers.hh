@@ -33,26 +33,26 @@ void
 applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u);
 
 
-// -----------------------------------------------------------------------------
-// Given a vector and a face ID, get the value at that location.
-//
-// Looks in the following order:
-//  -- face component
-//  -- boundary Dirichlet data
-//  -- boundary_face value (currently not used -- fix me --etc)
-//  -- internal cell
-// -----------------------------------------------------------------------------
-double
-getFaceOnBoundaryValue(AmanziMesh::Entity_ID f,
-                       const CompositeVector& u,
-                       const Operators::BCs& bcs);
+// // -----------------------------------------------------------------------------
+// // Given a vector and a face ID, get the value at that location.
+// //
+// // Looks in the following order:
+// //  -- face component
+// //  -- boundary Dirichlet data
+// //  -- boundary_face value (currently not used -- fix me --etc)
+// //  -- internal cell
+// // -----------------------------------------------------------------------------
+// double
+// getFaceOnBoundaryValue(AmanziMesh::Entity_ID f,
+//                        const CompositeVector& u,
+//                        const Operators::BCs& bcs);
 
 
-// -----------------------------------------------------------------------------
-// Get the directional int for a face that is on the boundary.
-// -----------------------------------------------------------------------------
-int
-getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
+// // -----------------------------------------------------------------------------
+// // Get the directional int for a face that is on the boundary.
+// // -----------------------------------------------------------------------------
+// int
+// getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f);
 
 
 // -----------------------------------------------------------------------------
@@ -102,43 +102,37 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
 // -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
-void
-convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
-                             int num_aqueous,
-                             const Epetra_MultiVector& tcc_ats,
-                             Epetra_MultiVector& tcc_amanzi);
+// void
+// convertConcentrationToAmanzi(const Epetra_MultiVector& mol_den,
+//                              int num_aqueous,
+//                              const Epetra_MultiVector& tcc_ats,
+//                              Epetra_MultiVector& tcc_amanzi);
 
-void
-convertConcentrationToATS(const Epetra_MultiVector& mol_den,
-                          int num_aqueous,
-                          const Epetra_MultiVector& tcc_ats,
-                          Epetra_MultiVector& tcc_amanzi);
+// void
+// convertConcentrationToATS(const Epetra_MultiVector& mol_den,
+//                           int num_aqueous,
+//                           const Epetra_MultiVector& tcc_ats,
+//                           Epetra_MultiVector& tcc_amanzi);
 
-bool
-advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
-                 double t_old,
-                 double t_new,
-                 bool reinit,
-                 const Epetra_MultiVector& mol_dens,
-                 Teuchos::RCP<Epetra_MultiVector> tcc,
-                 Teuchos::Time& timer);
-
-
-void
-copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh, CompositeVector& vec);
-void
-copyVectorToMeshCoordinates(const CompositeVector& vec, AmanziMesh::Mesh& mesh);
+// bool
+// advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+//                  double t_old,
+//                  double t_new,
+//                  bool reinit,
+//                  const Epetra_MultiVector& mol_dens,
+//                  Teuchos::RCP<Epetra_MultiVector> tcc,
+//                  Teuchos::Time& timer);
 
 
-// Compute pairs of value + location
-typedef struct ValLoc {
-  double value;
-  AmanziMesh::Entity_ID gid;
-} ENorm_t;
+// // Compute pairs of value + location
+// typedef struct ValLoc {
+//   double value;
+//   AmanziMesh::Entity_ID gid;
+// } ENorm_t;
 
-int
-commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global);
-ValLoc
-maxValLoc(const Epetra_Vector& vec);
+// int
+// commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global);
+// ValLoc
+// maxValLoc(const Epetra_Vector& vec);
 
 } // namespace Amanzi

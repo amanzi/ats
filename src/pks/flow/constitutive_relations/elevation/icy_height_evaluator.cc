@@ -54,18 +54,18 @@ IcyHeightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
   // -- copy the faces over directly
-  if (result[0]->HasComponent("face"))
-    *result[0]->ViewComponent("face", false) = *pres->ViewComponent("face", false);
+  if (result[0]->hasComponent("face"))
+    *result[0]->viewComponent("face", false) = *pres->viewComponent("face", false);
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
-  const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
+  const Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
+  const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
   const Epetra_MultiVector& rho_l =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& rho_i =
-    *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& eta =
-    *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->viewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -100,15 +100,15 @@ IcyHeightEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+  const Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
-    *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pres_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& rho_l =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& rho_i =
-    *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_ice_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& eta =
-    *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(unfrozen_frac_key_, tag)->viewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);

@@ -90,14 +90,14 @@ SurfaceIceEnergyEvaluator::Evaluate_(const State& S, const std::vector<Composite
   Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-    const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-    const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-    const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-    const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-    const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-    const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+    const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+    const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+    const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+    const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+    const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+    const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -126,14 +126,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   if (wrt_key == h_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -145,14 +145,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == eta_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -164,14 +164,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == nl_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -183,14 +183,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == ul_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -202,14 +202,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == ni_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -221,14 +221,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == ui_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -240,14 +240,14 @@ SurfaceIceEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == cv_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& h_v = *h->ViewComponent(*comp, false);
-      const Epetra_MultiVector& eta_v = *eta->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ul_v = *ul->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ui_v = *ui->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& h_v = *h->viewComponent(*comp, false);
+      const Epetra_MultiVector& eta_v = *eta->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& ul_v = *ul->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& ui_v = *ui->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

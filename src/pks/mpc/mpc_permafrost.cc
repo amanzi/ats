@@ -119,13 +119,13 @@ MPCPermafrost::Setup()
   if (pk0_method == "nlfv: bnd_faces" || pk0_method == "fv: bnd_faces") {
     cvs->SetMesh(domain_mesh_)
       ->SetGhosted()
-      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   } else {
     cvs->SetMesh(domain_mesh_)
       ->SetGhosted()
-      ->AddComponent("face", AmanziMesh::FACE, 1)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   dE_dp_block_ = Teuchos::rcp(new Operators::Operator_FaceCell(cvs, plist));
@@ -137,10 +137,10 @@ MPCPermafrost::Setup()
   // require the coupling fields, claim ownership
   requireAtNext(mass_exchange_key_, tag_next_, *S_, mass_exchange_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtNext(energy_exchange_key_, tag_next_, *S_, energy_exchange_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require in case the PK did not do so already
   requireAtNext(surf_pd_key_, tag_next_, *S_)
@@ -260,15 +260,15 @@ MPCPermafrost::Setup()
   {
     AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
     int ncells_surf =
-      surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+      surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->cell_map(false);
-      const auto& surf_cell_map = surf_mesh_->cell_map(false);
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
       AmanziMesh::Entity_ID_List surf_debug_cells;
       for (int sc = 0; sc != ncells_surf; ++sc) {
-        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
+        int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
         AmanziMesh::Entity_ID_List fcells;
-        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
@@ -281,15 +281,15 @@ MPCPermafrost::Setup()
   {
     AmanziMesh::Entity_ID_List debug_cells = domain_energy_pk_->debugger()->get_cells();
     int ncells_surf =
-      surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+      surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->cell_map(false);
-      const auto& surf_cell_map = surf_mesh_->cell_map(false);
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
       AmanziMesh::Entity_ID_List surf_debug_cells;
       for (int sc = 0; sc != ncells_surf; ++sc) {
-        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
+        int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
         AmanziMesh::Entity_ID_List fcells;
-        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
@@ -332,12 +332,12 @@ void
 MPCPermafrost::Initialize()
 {
   // initialize coupling terms
-  S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)->PutScalar(0.0);
+  S_->GetPtrW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)->putScalar(0.0);
   S_->GetRecordW(mass_exchange_key_, tag_next_, mass_exchange_key_).set_initialized();
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
   S_->GetPtrW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)
-    ->PutScalar(0.0);
+    ->putScalar(0.0);
   S_->GetRecordW(energy_exchange_key_, tag_next_, energy_exchange_key_).set_initialized();
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
@@ -415,8 +415,8 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // subsurface to surface.
   Epetra_MultiVector& source =
     *S_->GetW<CompositeVector>(mass_exchange_key_, tag_next_, mass_exchange_key_)
-       .ViewComponent("cell", false);
-  source = *g->SubVector(2)->Data()->ViewComponent("cell", false);
+       .viewComponent("cell", false);
+  source = *g->SubVector(2)->Data()->viewComponent("cell", false);
   changedEvaluatorPrimary(mass_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface residual, which uses this flux as a Neumann BC.
@@ -424,7 +424,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
     t_old, t_new, u_old->SubVector(0), u_new->SubVector(0), g->SubVector(0));
 
   // All surface to subsurface fluxes have been taken by the subsurface.
-  g->SubVector(2)->Data()->ViewComponent("cell", false)->PutScalar(0.);
+  g->SubVector(2)->Data()->getComponent("cell", false)->putScalar(0.);
 
   // Now that water fluxes are done, do energy.
   // Evaluate the surface energy residual
@@ -435,8 +435,8 @@ MPCPermafrost::FunctionalResidual(double t_old,
   // flux from subsurface to surface.
   Epetra_MultiVector& esource =
     *S_->GetW<CompositeVector>(energy_exchange_key_, tag_next_, energy_exchange_key_)
-       .ViewComponent("cell", false);
-  esource = *g->SubVector(3)->Data()->ViewComponent("cell", false);
+       .viewComponent("cell", false);
+  esource = *g->SubVector(3)->Data()->viewComponent("cell", false);
   changedEvaluatorPrimary(energy_exchange_key_, tag_next_, *S_);
 
   // Evaluate the subsurface energy residual.
@@ -444,7 +444,7 @@ MPCPermafrost::FunctionalResidual(double t_old,
     t_old, t_new, u_old->SubVector(1), u_new->SubVector(1), g->SubVector(1));
 
   // All energy fluxes have been taken by the subsurface.
-  g->SubVector(3)->Data()->ViewComponent("cell", false)->PutScalar(0.);
+  g->SubVector(3)->Data()->getComponent("cell", false)->putScalar(0.);
 }
 
 // -- Apply preconditioner

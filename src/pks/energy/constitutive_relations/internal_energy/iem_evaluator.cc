@@ -64,8 +64,8 @@ IEMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) { result_v[0][i] = iem_->InternalEnergy(temp_v[0][i]); }
@@ -84,8 +84,8 @@ IEMEvaluator::EvaluatePartialDerivative_(const State& S,
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) { result_v[0][i] = iem_->DInternalEnergyDT(temp_v[0][i]); }

@@ -89,7 +89,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   const std::string& pk_name = pk_tree_list.name(pk_item);
 
   // create the solution
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector(comm_));
+  auto empty_space = Teuchos::rcp(new Amanzi::TreeVectorSpace(comm_));
+  soln_ = Teuchos::rcp(new Amanzi::TreeVector(empty_space));
 
   // create the pk
   Amanzi::PKFactory pk_factory;
@@ -118,7 +119,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
           node_key, Amanzi::Tags::NEXT, node_key)
         .SetMesh(mesh->second.first)
         ->SetGhosted()
-        ->SetComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
+        ->SetComponent("node", Amanzi::AmanziMesh::Entity_kind::NODE, mesh->second.first->getSpaceDimension());
     }
 
     // writes region information
@@ -160,8 +161,8 @@ void
 Coordinator::initialize()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  int size = comm_->NumProc();
-  int rank = comm_->MyPID();
+  int size = comm_->getSize();
+  int rank = comm_->getRank();
 
   S_->set_time(Amanzi::Tags::CURRENT, t0_);
   S_->set_time(Amanzi::Tags::NEXT, t0_);
@@ -189,9 +190,9 @@ Coordinator::initialize()
   for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
       Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
-      copyMeshCoordinatesToVector(
-        *mesh->second.first,
-        S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
+      copyMeshCoordinatesToVector(*mesh->second.first,
+              Amanzi::AmanziMesh::Entity_kind::NODE,
+              S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
       S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
     }
   }
@@ -199,7 +200,8 @@ Coordinator::initialize()
   // Restart from checkpoint part 2:
   // -- load all other data
   if (restart_) {
-    Amanzi::ReadCheckpoint(comm_, *S_, restart_filename_);
+    Amanzi::Checkpoint chkp(restart_filename_, *S_);
+    chkp.read(*S_);
     t0_ = S_->get_time();
     cycle0_ = S_->get_cycle();
 
@@ -207,8 +209,11 @@ Coordinator::initialize()
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first))
-        Amanzi::DeformCheckpointMesh(*S_, mesh->first);
+      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
+        Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
+        copyVectorToMeshCoordinates(S_->Get<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT),
+                *mesh->second.first);
+      }
     }
   }
 
@@ -251,10 +256,8 @@ Coordinator::initialize()
         mesh_p = S_->GetMesh(domain_name + "_3d");
 
       // vis successful timesteps
-      auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p));
-      vis->set_name(domain_name);
-      vis->set_mesh(mesh_p);
-      vis->CreateFiles(false);
+      auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p, mesh_p, false));
+      vis->createFiles(false);
       visualization_.push_back(vis);
 
     } else if (Amanzi::Keys::isDomainSet(domain_name)) {
@@ -267,10 +270,8 @@ Coordinator::initialize()
         for (const auto& subdomain : *dset) {
           Teuchos::ParameterList sublist = vis_list->sublist(subdomain);
           sublist.set<std::string>("file name base", std::string("ats_vis_") + subdomain);
-          auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist));
-          vis->set_name(subdomain);
-          vis->set_mesh(S_->GetMesh(subdomain));
-          vis->CreateFiles(false);
+          auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist, S_->GetMesh(subdomain), false));
+          vis->createFiles(false);
           visualization_.push_back(vis);
         }
       } else {
@@ -278,11 +279,10 @@ Coordinator::initialize()
         auto domain_name_base = Amanzi::Keys::getDomainSetName(domain_name);
         if (!sublist_p->isParameter("file name base"))
           sublist_p->set("file name base", std::string("ats_vis_") + domain_name_base);
-        auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p));
-        vis->set_name(domain_name_base);
-        vis->set_domain_set(dset);
-        vis->set_mesh(dset->get_referencing_parent());
-        vis->CreateFiles(false);
+        auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p,
+                dset->getReferencingParent(), false));
+        vis->setDomainSet(dset);
+        vis->createFiles(false);
         visualization_.push_back(vis);
       }
     }
@@ -321,7 +321,7 @@ Coordinator::finalize()
 {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
   pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
-  checkpoint_->Write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
+  checkpoint_->write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
   for (const auto& obs : observations_) obs->Flush();
@@ -355,9 +355,9 @@ Coordinator::report_memory()
     double global_ncells(0.0);
     double local_ncells(0.0);
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      Epetra_Map cell_map = (mesh->second.first)->cell_map(false);
-      global_ncells += cell_map.NumGlobalElements();
-      local_ncells += cell_map.NumMyElements();
+      auto cell_map = (mesh->second.first)->getMap(Amanzi::AmanziMesh::Entity_kind::CELL,false);
+      global_ncells += cell_map->getGlobalNumElements();
+      local_ncells += cell_map->getLocalNumElements();
     }
 
     double mem = rss_usage();
@@ -367,15 +367,15 @@ Coordinator::report_memory()
 
     double max_percell(0.0);
     double min_percell(0.0);
-    comm_->MinAll(&percell, &min_percell, 1);
-    comm_->MaxAll(&percell, &max_percell, 1);
+    Teuchos::reduceAll(*comm_, Teuchos::REDUCE_MIN, 1, &percell, &min_percell);
+    Teuchos::reduceAll(*comm_, Teuchos::REDUCE_MAX, 1, &percell, &max_percell);
 
     double total_mem(0.0);
     double max_mem(0.0);
     double min_mem(0.0);
-    comm_->SumAll(&mem, &total_mem, 1);
-    comm_->MinAll(&mem, &min_mem, 1);
-    comm_->MaxAll(&mem, &max_mem, 1);
+    Teuchos::reduceAll(*comm_, Teuchos::REDUCE_SUM, 1, &mem, &total_mem);
+    Teuchos::reduceAll(*comm_, Teuchos::REDUCE_MIN, 1, &mem, &min_mem);
+    Teuchos::reduceAll(*comm_, Teuchos::REDUCE_MAX, 1, &mem, &max_mem);
 
     Teuchos::OSTab tab = vo_->getOSTab();
     *vo_->os() << "======================================================================"
@@ -506,7 +506,7 @@ Coordinator::advance()
   } else {
     // Failed the timestep.
     // Potentially write out failed timestep for debugging
-    for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
+    for (const auto& vis : failed_visualization_) vis->write(*S_);
 
     // copy from old time into new time to reset the timestep
     pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
@@ -518,23 +518,8 @@ Coordinator::advance()
         Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
         Teuchos::RCP<const Amanzi::CompositeVector> vc_vec =
           S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
-        vc_vec->ScatterMasterToGhosted();
-        const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
-
-        std::vector<int> node_ids(vc.MyLength());
-        Amanzi::AmanziGeometry::Point_List old_positions(vc.MyLength());
-        for (int n = 0; n != vc.MyLength(); ++n) {
-          node_ids[n] = n;
-          if (mesh->second.first->space_dimension() == 2) {
-            old_positions[n] = Amanzi::AmanziGeometry::Point(vc[0][n], vc[1][n]);
-          } else {
-            old_positions[n] = Amanzi::AmanziGeometry::Point(vc[0][n], vc[1][n], vc[2][n]);
-          }
-        }
-
-        // undeform the mesh
-        Amanzi::AmanziGeometry::Point_List final_positions;
-        mesh->second.first->deform(node_ids, old_positions, false, &final_positions);
+        vc_vec->scatterMasterToGhosted();
+        copyVectorToMeshCoordinates(*vc_vec, *mesh->second.first);
       }
     }
   }
@@ -560,7 +545,7 @@ Coordinator::visualize(bool force)
   if (dump) { pk_->CalculateDiagnostics(Amanzi::Tags::NEXT); }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(cycle, time)) { WriteVis(*vis, *S_); }
+    if (force || vis->DumpRequested(cycle, time)) { vis->write(*S_); }
   }
   return dump;
 }
@@ -573,7 +558,7 @@ Coordinator::checkpoint(bool force)
   double time = S_->get_time();
   bool dump = force;
   dump |= checkpoint_->DumpRequested(cycle, time);
-  if (dump) checkpoint_->Write(*S_);
+  if (dump) checkpoint_->write(*S_);
   return dump;
 }
 

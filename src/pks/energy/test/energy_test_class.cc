@@ -12,7 +12,7 @@
 EnergyTest::EnergyTest(Teuchos::ParameterList& plist_,
                        const Teuchos::RCP<AmanziMesh::Mesh>& mesh_,
                        int num_components_)
-  : mesh(mesh_), parameter_list(plist_), num_components(num_components_)
+  : mesh(mesh_), getParameterList(plist_), num_components(num_components_)
 {
   // create states
   Teuchos::ParameterList state_plist = parameter_list.get<Teuchos::ParameterList>("State");
@@ -57,7 +57,7 @@ EnergyTest::initialize_owned()
 
   int c_owned = temp->size("cell");
   for (int c = 0; c != c_owned; ++c) {
-    const AmanziGeometry::Point& xc = mesh->cell_centroid(c);
+    const AmanziGeometry::Point& xc = mesh->getCellCentroid(c);
     for (int lcv_comp = 0; lcv_comp != num_components; ++lcv_comp) {
       (*temp)("cell", lcv_comp, c) = my_f(xc, 0.0);
     }
@@ -68,12 +68,12 @@ EnergyTest::initialize_owned()
 void
 EnergyTest::initialize_water_flux()
 {
-  const Epetra_BlockMap& fmap = mesh->face_map(true);
+  const Epetra_BlockMap& fmap = mesh->getMap(AmanziMesh::Entity_kind::FACE,true);
   Teuchos::RCP<CompositeVector> water_flux = S0->GetFieldData("water_flux", "state");
 
   for (int f = fmap.MinLID(); f <= fmap.MaxLID(); f++) {
-    const AmanziGeometry::Point& normal = mesh->face_normal(f);
-    const AmanziGeometry::Point& fc = mesh->face_centroid(f);
+    const AmanziGeometry::Point& normal = mesh->getFaceNormal(f);
+    const AmanziGeometry::Point& fc = mesh->getFaceCentroid(f);
     (*water_flux)("face", f) = my_u(fc, 0.0) * normal;
   }
   S0->GetField("water_flux", "state")->set_initialized();
@@ -82,15 +82,15 @@ EnergyTest::initialize_water_flux()
 void
 EnergyTest::evaluate_error_temp(double t, double* L1, double* L2)
 {
-  const Epetra_BlockMap& cmap = mesh->cell_map(true);
+  const Epetra_BlockMap& cmap = mesh->getMap(AmanziMesh::Entity_kind::CELL,true);
   Teuchos::RCP<const CompositeVector> temp = S1->GetFieldData("temperature");
 
   double d;
   *L1 = 0.0;
   *L2 = 0.0;
   for (int c = cmap.MinLID(); c <= cmap.MaxLID(); c++) {
-    const AmanziGeometry::Point& xc = mesh->cell_centroid(c);
-    double volume = mesh->cell_volume(c);
+    const AmanziGeometry::Point& xc = mesh->getCellCentroid(c);
+    double volume = mesh->getCellVolume(c);
 
     for (int lcv_comp = 0; lcv_comp != num_components; ++lcv_comp) {
       d = (*temp)("cell", lcv_comp, c) - my_f(xc, t);

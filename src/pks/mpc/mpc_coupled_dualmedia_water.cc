@@ -81,10 +81,10 @@ MPCCoupledDualMediaWater::Initialize(const Teuchos::Ptr<State>& S)
   auto mesh_matrix = S_->GetMesh("domain");
   auto mesh_macropore = S_->GetMesh("macropore");
 
-  auto& mmap0 = solution_->SubVector(0)->SubVector(0)->Data()->ViewComponent("face", false)->Map();
-  auto& gmap0 = solution_->SubVector(0)->SubVector(0)->Data()->ViewComponent("face", true)->Map();
-  auto& mmap1 = solution_->SubVector(1)->Data()->ViewComponent("face", false)->Map();
-  auto& gmap1 = solution_->SubVector(1)->Data()->ViewComponent("face", true)->Map();
+  auto& mmap0 = solution_->SubVector(0)->SubVector(0)->Data()->viewComponent("face", false)->Map();
+  auto& gmap0 = solution_->SubVector(0)->SubVector(0)->Data()->viewComponent("face", true)->Map();
+  auto& mmap1 = solution_->SubVector(1)->Data()->viewComponent("face", false)->Map();
+  auto& gmap1 = solution_->SubVector(1)->Data()->viewComponent("face", true)->Map();
 
   auto cvs_matrix_faces = Teuchos::rcp(new CompositeVectorSpace());
   auto cvs_macropore_faces = Teuchos::rcp(new CompositeVectorSpace());
@@ -92,12 +92,12 @@ MPCCoupledDualMediaWater::Initialize(const Teuchos::Ptr<State>& S)
   cvs_matrix_faces->SetMesh(mesh_matrix)
     ->SetGhosted(true)
     ->AddComponent(
-      "face", AmanziMesh::FACE, Teuchos::rcpFromRef(mmap0), Teuchos::rcpFromRef(gmap0), 1);
+      "face", AmanziMesh::Entity_kind::FACE, Teuchos::rcpFromRef(mmap0), Teuchos::rcpFromRef(gmap0), 1);
 
   cvs_macropore_faces->SetMesh(mesh_macropore)
     ->SetGhosted(true)
     ->AddComponent(
-      "face", AmanziMesh::FACE, Teuchos::rcpFromRef(mmap1), Teuchos::rcpFromRef(gmap1), 1);
+      "face", AmanziMesh::Entity_kind::FACE, Teuchos::rcpFromRef(mmap1), Teuchos::rcpFromRef(gmap1), 1);
 
   // create a global problem
   // sub_pks_[0]->my_pde(Operators::PDE_DIFFUSION)->ApplyBCs(true, true, true);
@@ -147,7 +147,7 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
 
 
   // All surface to subsurface fluxes have been taken by the subsurface.
-  g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell", false)->PutScalar(0.);
+  g->SubVector(0)->SubVector(1)->Data()->getComponent("cell", false)->putScalar(0.);
 }
 
 // -- Apply preconditioner to u and returns the result in Pu.

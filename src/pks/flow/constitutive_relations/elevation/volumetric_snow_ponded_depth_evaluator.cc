@@ -82,21 +82,21 @@ VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> sd_v = S.GetPtr<CompositeVector>(sd_key_, tag);
   Teuchos::RCP<const CompositeVector> del_max_v = S.GetPtr<CompositeVector>(delta_max_key_, tag);
   Teuchos::RCP<const CompositeVector> del_ex_v = S.GetPtr<CompositeVector>(delta_ex_key_, tag);
-  const AmanziMesh::Mesh& mesh = *results[0]->Mesh();
+  const AmanziMesh::Mesh& mesh = *results[0]->getMesh();
 
   for (const auto& comp : *results[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& pd = *pd_v->ViewComponent(comp, false);
-    const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
-    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
-    auto& vpd = *results[0]->ViewComponent(comp, false);
+    const auto& pd = *pd_v->viewComponent(comp, false);
+    const auto& del_max = *del_max_v->viewComponent(internal_comp, false);
+    const auto& del_ex = *del_ex_v->viewComponent(internal_comp, false);
+    auto& vpd = *results[0]->viewComponent(comp, false);
 
     // note, snow depth does not have a boundary face component?
     if (comp == "boundary_face") {
-      AMANZI_ASSERT(!results[1]->HasComponent(comp));
+      AMANZI_ASSERT(!results[1]->hasComponent(comp));
 
       int ncomp = vpd.MyLength();
       for (int i = 0; i != ncomp; ++i) {
@@ -108,8 +108,8 @@ VolumetricSnowPondedDepthEvaluator::Evaluate_(const State& S,
       }
 
     } else if (comp == "cell") {
-      auto& vsd = *results[1]->ViewComponent(comp, false);
-      const auto& sd = *sd_v->ViewComponent(comp, false);
+      auto& vsd = *results[1]->viewComponent(comp, false);
+      const auto& sd = *sd_v->viewComponent(comp, false);
 
       int ncomp = vpd.MyLength();
       for (int i = 0; i != ncomp; ++i) {
@@ -139,13 +139,13 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(
   // all entities, not just cell entities.
   //
   // Not differentiating boundary faces... hopefully that is ok.
-  const auto& pd = *S.GetPtr<CompositeVector>(pd_key_, tag)->ViewComponent("cell", false);
-  const auto& sd = *S.GetPtr<CompositeVector>(sd_key_, tag)->ViewComponent("cell", false);
+  const auto& pd = *S.GetPtr<CompositeVector>(pd_key_, tag)->viewComponent("cell", false);
+  const auto& sd = *S.GetPtr<CompositeVector>(sd_key_, tag)->viewComponent("cell", false);
   const auto& del_max =
-    *S.GetPtr<CompositeVector>(delta_max_key_, tag)->ViewComponent("cell", false);
-  const auto& del_ex = *S.GetPtr<CompositeVector>(delta_ex_key_, tag)->ViewComponent("cell", false);
-  auto& vpd = *results[0]->ViewComponent("cell", false);
-  auto& vsd = *results[1]->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(delta_max_key_, tag)->viewComponent("cell", false);
+  const auto& del_ex = *S.GetPtr<CompositeVector>(delta_ex_key_, tag)->viewComponent("cell", false);
+  auto& vpd = *results[0]->viewComponent("cell", false);
+  auto& vsd = *results[1]->viewComponent("cell", false);
 
   if (wrt_key == pd_key_) {
     for (int c = 0; c != vpd.MyLength(); ++c) {
@@ -155,7 +155,7 @@ VolumetricSnowPondedDepthEvaluator::EvaluatePartialDerivative_(
       vsd[0][c] = Microtopography::dVolumetricDepth_dDepth(pdc + sdc, del_max[0][c], del_ex[0][c]);
     }
   } else if (wrt_key == sd_key_) {
-    vpd.PutScalar(0.);
+    vpd.putScalar(0.);
     for (int c = 0; c != vpd.MyLength(); ++c) {
       double sdc = std::max(0., sd[0][c]);
       double pdc = std::max(0., pd[0][c]);
@@ -177,15 +177,15 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac.Mesh() != Teuchos::null) {
+  if (my_fac.getMesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
-    if (dep_fac->HasComponent("boundary_face")) {
+    if (dep_fac->hasComponent("boundary_face")) {
       no_bf_dep_fac = Teuchos::rcp(new CompositeVectorSpace());
-      no_bf_dep_fac->SetMesh(dep_fac->Mesh())
+      no_bf_dep_fac->SetMesh(dep_fac->getMesh())
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {

@@ -53,14 +53,14 @@ CarbonSimple::Setup()
   }
   S_->Require<CompositeVector, CompositeVectorSpace>(cell_vol_key_, tag_current_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_current_);
 
   // diffusion
   if (is_diffusion_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(div_diff_flux_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(div_diff_flux_key_, tag_current_);
   }
 
@@ -68,7 +68,7 @@ CarbonSimple::Setup()
   if (is_source_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(source_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(source_key_, tag_current_);
   }
 
@@ -76,7 +76,7 @@ CarbonSimple::Setup()
   if (is_decomp_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(decomp_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(decomp_key_, tag_current_);
   }
 }
@@ -116,8 +116,8 @@ CarbonSimple::FunctionalTimeDerivative(const double t, const TreeVector& u, Tree
   // scale all by cell volume
   S_->GetEvaluator(cell_vol_key_, tag_current_).Update(*S_, name_);
   const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_current_).ViewComponent("cell", false);
-  Epetra_MultiVector& dudt_c = *dudt->ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_current_).viewComponent("cell", false);
+  Epetra_MultiVector& dudt_c = *dudt->viewComponent("cell", false);
   for (int c = 0; c != dudt_c.MyLength(); ++c) { dudt_c[0][c] *= cv[0][c]; }
 }
 
@@ -143,7 +143,7 @@ CarbonSimple::ApplyDiffusion_(const Teuchos::Ptr<CompositeVector>& g)
     g->Update(1., *diff, 0.);
     db_->WriteVector(" turbation rate", diff.ptr(), true);
   } else {
-    g->PutScalar(0.);
+    g->putScalar(0.);
   }
 }
 

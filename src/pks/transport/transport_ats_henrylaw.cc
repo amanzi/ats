@@ -62,7 +62,7 @@ Transport_ATS::PrepareAirWaterPartitioning_()
 void
 Transport_ATS::MakeAirWaterPartitioning_()
 {
-  Epetra_MultiVector& tcc_c = *tcc_tmp->ViewComponent("cell", false);
+  Epetra_MultiVector& tcc_c = *tcc_tmp->viewComponent("cell", false);
   const Epetra_MultiVector& sat_l = *ws_;
 
   for (int i = 0; i < num_gaseous; ++i) {

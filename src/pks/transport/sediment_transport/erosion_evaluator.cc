@@ -65,8 +65,8 @@ ErosionRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 {
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& vel =
-    *S.GetPtr<CompositeVector>(velocity_key_, tag)->ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
+    *S.GetPtr<CompositeVector>(velocity_key_, tag)->viewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->viewComponent("cell");
 
   for (int c = 0; c < vel.MyLength(); c++) {
     //double tau_0 = gamma_ * lambda_ * (sqrt(vel[0][c] * vel[0][c] + vel[1][c] * vel[1][c]));

@@ -37,21 +37,21 @@ AdvectedEnergySourceEvaluator::Evaluate_(const State& S,
 {
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& int_enth =
-    *S.GetPtr<CompositeVector>(internal_enthalpy_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(internal_enthalpy_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& ext_enth =
-    *S.GetPtr<CompositeVector>(external_enthalpy_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(external_enthalpy_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& water_source =
-    *S.GetPtr<CompositeVector>(water_source_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(water_source_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& cv =
-    *S.GetPtr<CompositeVector>(cell_vol_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(cell_vol_key_, tag)->viewComponent("cell", false);
 
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
 
   if (source_units_ == SOURCE_UNITS_METERS_PER_SECOND) {
     const Epetra_MultiVector& int_dens =
-      *S.GetPtr<CompositeVector>(internal_density_key_, tag)->ViewComponent("cell", false);
+      *S.GetPtr<CompositeVector>(internal_density_key_, tag)->viewComponent("cell", false);
     const Epetra_MultiVector& ext_dens =
-      *S.GetPtr<CompositeVector>(external_density_key_, tag)->ViewComponent("cell", false);
+      *S.GetPtr<CompositeVector>(external_density_key_, tag)->viewComponent("cell", false);
 
     unsigned int ncells = res.MyLength();
     for (unsigned int c = 0; c != ncells; ++c) {
@@ -85,7 +85,7 @@ AdvectedEnergySourceEvaluator::Evaluate_(const State& S,
 
   if (include_conduction_) {
     const Epetra_MultiVector& cond =
-      *S.GetPtr<CompositeVector>(conducted_source_key_, tag)->ViewComponent("cell", false);
+      *S.GetPtr<CompositeVector>(conducted_source_key_, tag)->viewComponent("cell", false);
     unsigned int ncells = res.MyLength();
     for (unsigned int c = 0; c != ncells; ++c) { res[0][c] += cond[0][c]; }
   }
@@ -100,10 +100,10 @@ AdvectedEnergySourceEvaluator::EvaluatePartialDerivative_(
 {
   Tag tag = my_keys_.front().second;
   if (include_conduction_ && wrt_key == conducted_source_key_) {
-    *result[0]->ViewComponent("cell", false) =
-      *S.GetPtr<CompositeVector>(cell_vol_key_, tag)->ViewComponent("cell", false);
+    *result[0]->viewComponent("cell", false) =
+      *S.GetPtr<CompositeVector>(cell_vol_key_, tag)->viewComponent("cell", false);
   } else {
-    result[0]->PutScalar(0.);
+    result[0]->putScalar(0.);
   }
 }
 

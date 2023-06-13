@@ -44,15 +44,15 @@ ExtractionEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
   auto& parent_vector = S.Get<CompositeVector>(dependency_key_, tag);
 
   for (const auto& comp : *result[0]) {
-    const Epetra_MultiVector& parent_vector_c = *parent_vector.ViewComponent(comp, false);
-    Epetra_MultiVector& result_c = *result[0]->ViewComponent(comp, false);
+    const Epetra_MultiVector& parent_vector_c = *parent_vector.viewComponent(comp, false);
+    Epetra_MultiVector& result_c = *result[0]->viewComponent(comp, false);
 
     AmanziMesh::Entity_kind entity = result[0]->Location(comp);
-    auto mesh = result[0]->Mesh();
+    auto mesh = result[0]->getMesh();
 
     for (int j = 0; j != result_c.NumVectors(); ++j) {
       for (int i = 0; i != result_c.MyLength(); ++i) {
-        result_c[j][i] = parent_vector_c[j][mesh->entity_get_parent(entity, i)];
+        result_c[j][i] = parent_vector_c[j][mesh->getEntityParent(entity, i)];
       }
     }
   }

@@ -87,13 +87,13 @@ LiquidIceWaterContentEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-    const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-    const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-    const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-    const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-    const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+    const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+    const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+    const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+    const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+    const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -122,13 +122,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == phi_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -140,13 +140,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == sl_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -158,13 +158,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == nl_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -176,13 +176,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == si_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -194,13 +194,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == ni_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -212,13 +212,13 @@ LiquidIceWaterContentEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == cv_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& phi_v = *phi->ViewComponent(*comp, false);
-      const Epetra_MultiVector& sl_v = *sl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& nl_v = *nl->ViewComponent(*comp, false);
-      const Epetra_MultiVector& si_v = *si->ViewComponent(*comp, false);
-      const Epetra_MultiVector& ni_v = *ni->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& phi_v = *phi->viewComponent(*comp, false);
+      const Epetra_MultiVector& sl_v = *sl->viewComponent(*comp, false);
+      const Epetra_MultiVector& nl_v = *nl->viewComponent(*comp, false);
+      const Epetra_MultiVector& si_v = *si->viewComponent(*comp, false);
+      const Epetra_MultiVector& ni_v = *ni->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

@@ -65,20 +65,20 @@ AlbedoThreeComponentEvaluator::Evaluate_(const State& S,
   auto tag = my_keys_.front().second;
 
   // collect dependencies
-  const auto& snow_dens = *S.Get<CompositeVector>(snow_dens_key_, tag).ViewComponent("cell", false);
+  const auto& snow_dens = *S.Get<CompositeVector>(snow_dens_key_, tag).viewComponent("cell", false);
   const auto& unfrozen_fraction =
-    *S.Get<CompositeVector>(unfrozen_fraction_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(unfrozen_fraction_key_, tag).viewComponent("cell", false);
 
   // collect output vecs
-  auto& albedo = *results[0]->ViewComponent("cell", false);
-  auto& emissivity = *results[1]->ViewComponent("cell", false);
+  auto& albedo = *results[0]->viewComponent("cell", false);
+  auto& emissivity = *results[1]->viewComponent("cell", false);
 
-  emissivity(2)->PutScalar(e_snow_);
+  emissivity(2)->putScalar(e_snow_);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
       // albedo of the snow
@@ -123,9 +123,9 @@ AlbedoThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

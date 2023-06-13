@@ -12,8 +12,8 @@ set(ats_pks_src_files
   pk_bdf_default.cc
   pk_physical_default.cc
   pk_physical_bdf_default.cc
-  pk_explicit_default.cc
-  bc_factory.cc
+  # pk_explicit_default.cc
+  # bc_factory.cc
   )
 
 set(ats_pks_inc_files
@@ -21,9 +21,9 @@ set(ats_pks_inc_files
   pk_bdf_default.hh
   pk_physical_default.hh
   pk_physical_bdf_default.hh
-  pk_explicit_default.hh
-  pk_physical_explicit_default.hh
-  bc_factory.hh
+  # pk_explicit_default.hh
+  # pk_physical_explicit_default.hh
+  # bc_factory.hh
   )
 
 file(GLOB ats_pks_inc_files "*.hh")
@@ -49,11 +49,11 @@ add_amanzi_library(ats_pks
 		   LINK_LIBS ${ats_pks_link_libs})
 
 
-add_subdirectory(energy)
+# add_subdirectory(energy)
 add_subdirectory(flow)
-add_subdirectory(transport)
-add_subdirectory(transport/sediment_transport)
-add_subdirectory(deform)
-add_subdirectory(surface_balance)
-add_subdirectory(biogeochemistry)
-add_subdirectory(mpc)
+# add_subdirectory(transport)
+# add_subdirectory(transport/sediment_transport)
+# add_subdirectory(deform)
+# add_subdirectory(surface_balance)
+# add_subdirectory(biogeochemistry)
+# add_subdirectory(mpc)

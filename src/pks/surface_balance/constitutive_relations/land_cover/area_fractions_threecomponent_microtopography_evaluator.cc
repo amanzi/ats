@@ -65,18 +65,18 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::Evaluate_(
   const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
 
   const Epetra_MultiVector& pd =
-    *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(ponded_depth_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& sd =
-    *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(snow_depth_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& vsd =
-    *S.Get<CompositeVector>(vol_snow_depth_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(vol_snow_depth_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& del_max =
-    *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(delta_max_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& del_ex =
-    *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(delta_ex_key_, tag).viewComponent("cell", false);
 
   for (int c = 0; c != res.MyLength(); ++c) {
     // calculate area of land
@@ -153,9 +153,9 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility_ToDeps_
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

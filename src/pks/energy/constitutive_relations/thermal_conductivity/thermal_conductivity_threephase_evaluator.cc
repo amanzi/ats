@@ -80,24 +80,24 @@ ThermalConductivityThreePhaseEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
   Teuchos::RCP<const CompositeVector> sat2 = S.GetPtr<CompositeVector>(sat2_key_, tag);
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
     AMANZI_ASSERT(*comp == "cell");
-    const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp, false);
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-    const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp, false);
-    const Epetra_MultiVector& sat2_v = *sat2->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& poro_v = *poro->viewComponent(*comp, false);
+    const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+    const Epetra_MultiVector& sat_v = *sat->viewComponent(*comp, false);
+    const Epetra_MultiVector& sat2_v = *sat2->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
          ++lcv) {
       std::string region_name = lcv->first;
-      if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+      if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
         // get the indices of the domain.
         AmanziMesh::Entity_ID_List id_list;
-        mesh->get_set_entities(
-          region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+        mesh->getSetEntities(
+          region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &id_list);
 
         // loop over indices
         for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
@@ -131,25 +131,25 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
   Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
   Teuchos::RCP<const CompositeVector> sat2 = S.GetPtr<CompositeVector>(sat2_key_, tag);
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
     AMANZI_ASSERT(*comp == "cell");
-    const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp, false);
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-    const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp, false);
-    const Epetra_MultiVector& sat2_v = *sat2->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& poro_v = *poro->viewComponent(*comp, false);
+    const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+    const Epetra_MultiVector& sat_v = *sat->viewComponent(*comp, false);
+    const Epetra_MultiVector& sat2_v = *sat2->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     if (wrt_key == poro_key_) {
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
           AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &id_list);
 
           // loop over indices
           for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
@@ -169,11 +169,11 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
           AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &id_list);
 
           // loop over indices
           for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
@@ -193,11 +193,11 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
           AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &id_list);
 
           // loop over indices
           for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
@@ -217,11 +217,11 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
           AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &id_list);
 
           // loop over indices
           for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
@@ -244,7 +244,7 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
 
   result[0]->Scale(1.e-6); // convert to MJ
 
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 }
 
 } // namespace Energy

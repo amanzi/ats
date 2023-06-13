@@ -224,13 +224,9 @@ Solves Richards equation:
 #ifndef PK_FLOW_RICHARDS_HH_
 #define PK_FLOW_RICHARDS_HH_
 
-#include "wrm_partition.hh"
-#include "BoundaryFunction.hh"
 #include "upwinding.hh"
 
 #include "EvaluatorPrimary.hh"
-#include "PDE_DiffusionFactory.hh"
-#include "PDE_Accumulation.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
 
@@ -238,10 +234,16 @@ namespace Amanzi {
 
 // forward declarations
 class MPCSubsurface;
-class PredictorDelegateBCFlux;
-namespace WhetStone {
-class Tensor;
-}
+// class PredictorDelegateBCFlux;
+
+namespace Operators {
+class PDE_DiffusionWithGravity;
+class PDE_Accumulation;
+} // namespace Operators
+
+namespace Functions {
+class MeshFunction;
+} // namespace Functions
 
 namespace Flow {
 
@@ -253,6 +255,7 @@ class Richards : public PK_PhysicalBDF_Default {
            const Teuchos::RCP<TreeVector>& solution);
 
   virtual ~Richards() {}
+  virtual void ParseParameterList_() override;
 
   // -- Set requirements of data and evaluators
   virtual void Setup() override;
@@ -291,7 +294,7 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
   // evaluating consistent faces for given BCs and cell values
-  virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
+  // virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   // methods used only for testing
   Teuchos::RCP<Operators::Operator> get_operator() { return matrix_; }
@@ -309,22 +312,15 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
 
-  virtual void UpdateVelocity_(const Tag& tag);
+  // virtual void UpdateVelocity_(const Tag& tag);
   virtual void InitializeHydrostatic_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
   virtual void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
-
-  // virtual void AddVaporDiffusionResidual_(const Tag& tag,
-  //         const Teuchos::Ptr<CompositeVector>& g);
-  // virtual void ComputeVaporDiffusionCoef(const Tag& tag,
-  //                                        Teuchos::RCP<CompositeVector>& vapor_diff,
-  //                                        std::string var_name);
 
   // -- accumulation term
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
@@ -336,9 +332,9 @@ class Richards : public PK_PhysicalBDF_Default {
   // Nonlinear version of CalculateConsistentFaces()
   // virtual void CalculateConsistentFacesForInfiltration_(
   //     const Teuchos::Ptr<CompositeVector>& u);
-  virtual bool ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u);
-  virtual bool ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u);
-  virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
+  // virtual bool ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u);
+  // virtual bool ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u);
+  // virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
 
   // virtual void PreconWC_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
@@ -374,10 +370,8 @@ class Richards : public PK_PhysicalBDF_Default {
   double surface_head_eps_;
 
   // permeability
-  Teuchos::RCP<std::vector<WhetStone::Tensor>> K_; // absolute permeability
   Teuchos::RCP<Operators::Upwinding> upwinding_;
   Teuchos::RCP<Operators::Upwinding> upwinding_deriv_;
-  Teuchos::RCP<Flow::WRMPartition> wrms_;
   bool upwind_from_prev_flux_;
 
   // mathematical operators
@@ -386,6 +380,7 @@ class Richards : public PK_PhysicalBDF_Default {
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
+  double perm_scale_;
 
   // flag to do jacobian and therefore coef derivs
   bool precon_used_;
@@ -394,33 +389,25 @@ class Richards : public PK_PhysicalBDF_Default {
   double iter_counter_time_;
   int jacobian_lag_;
 
-  // residual vector for vapor diffusion
-  Teuchos::RCP<CompositeVector> res_vapor;
-  // note PC is in PKPhysicalBDFBase
+  // boundary condition functions and data -- move data into State!
+  Teuchos::RCP<Functions::MeshFunction> bc_pressure_;
+  Teuchos::RCP<MultiPatch<double>> bc_pressure_data_;
 
-  // boundary condition data
-  Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_infilt_;
-  bool bc_seepage_infilt_explicit_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_infiltration_;
-  double bc_rho_water_;
+  Teuchos::RCP<Functions::MeshFunction> bc_flux_;
+  Teuchos::RCP<MultiPatch<double>> bc_flux_data_;
+
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_infilt_;
+  // bool bc_seepage_infilt_explicit_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_infiltration_;
+  // double bc_rho_water_;
 
   // delegates
   bool modify_predictor_bc_flux_;
   bool modify_predictor_first_bc_flux_;
-  Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
-
-  // is vapor turned on
-  bool vapor_diffusion_;
-
-  // permeability scaling and metadata
-  double perm_scale_;
-  int perm_tensor_rank_;
-  int num_perm_vals_;
+  // Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
 
   // limiters
   double p_limit_;
@@ -454,7 +441,7 @@ class Richards : public PK_PhysicalBDF_Default {
 
   // -- access methods
   virtual Teuchos::RCP<Operators::Operator>
-  my_operator(const Operators::OperatorType& type) override
+  my_operator(const Operators::Operator_kind& type) override
   {
     return matrix_;
   }

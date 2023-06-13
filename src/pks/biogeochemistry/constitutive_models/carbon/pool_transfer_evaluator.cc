@@ -68,15 +68,15 @@ PoolTransferEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
   if (!init_model_) InitModel_(S, result->NumVectors("cell"));
 
   Teuchos::RCP<const CompositeVector> carbon_cv = S->GetPtr<CompositeVector>(carbon_key_);
-  const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
+  const AmanziMesh::Mesh& mesh = *carbon_cv->getMesh();
 
-  const Epetra_MultiVector& C = *carbon_cv->ViewComponent("cell", false);
+  const Epetra_MultiVector& C = *carbon_cv->viewComponent("cell", false);
   const Epetra_MultiVector& k =
-    *S->GetPtr<CompositeVector>(decay_key_)->ViewComponent("cell", false);
-  Epetra_MultiVector& transfer_c = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& co2_c = *results[1]->ViewComponent("cell", false);
-  transfer_c.PutScalar(0.);
-  co2_c.PutScalar(0.);
+    *S->GetPtr<CompositeVector>(decay_key_)->viewComponent("cell", false);
+  Epetra_MultiVector& transfer_c = *results[0]->viewComponent("cell", false);
+  Epetra_MultiVector& co2_c = *results[1]->viewComponent("cell", false);
+  transfer_c.putScalar(0.);
+  co2_c.putScalar(0.);
 
   const MeshPartition& part = *S->GetMeshPartition(partition_key_);
   for (int c = 0; c != res_c.MyLength(); ++c) {

@@ -20,7 +20,7 @@
 #include "Teuchos_ParameterList.hpp"
 #include "Mesh.hh"
 #include "CompositeVector.hh"
-#include "BoundaryFunction.hh"
+#include "BCs.hh"
 
 namespace Amanzi {
 namespace Operators {
@@ -40,7 +40,7 @@ class Advection {
 
   Teuchos::RCP<CompositeVector> field() { return field_; }
 
-  virtual void Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
+  virtual void Apply(const Teuchos::RCP<Operators::BCs>& bc_flux,
                      bool include_bc_fluxes = true) = 0;
 
  protected:

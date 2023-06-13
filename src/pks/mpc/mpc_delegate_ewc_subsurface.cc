@@ -42,9 +42,9 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
   Teuchos::OSTab tab = vo_->getOSTab();
   // projected guesses for T and p
   Teuchos::RCP<CompositeVector> temp_guess = up->SubVector(1)->Data();
-  Epetra_MultiVector& temp_guess_c = *temp_guess->ViewComponent("cell", false);
+  Epetra_MultiVector& temp_guess_c = *temp_guess->viewComponent("cell", false);
   Teuchos::RCP<CompositeVector> pres_guess = up->SubVector(0)->Data();
-  Epetra_MultiVector& pres_guess_c = *pres_guess->ViewComponent("cell", false);
+  Epetra_MultiVector& pres_guess_c = *pres_guess->viewComponent("cell", false);
 
   const double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
@@ -61,9 +61,9 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
 
   // T, p at the previous step
   const Epetra_MultiVector& T1 =
-    *S_->GetPtr<CompositeVector>(temp_key_, tag_current_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(temp_key_, tag_current_)->viewComponent("cell", false);
   const Epetra_MultiVector& p1 =
-    *S_->GetPtr<CompositeVector>(pres_key_, tag_current_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(pres_key_, tag_current_)->viewComponent("cell", false);
 
   // project energy and water content
   double dt_next = S_->get_time(tag_next_) - S_->get_time(tag_current_);
@@ -72,15 +72,15 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
   // -- get wc and energy data
   const Epetra_MultiVector& wc0 = *wc_prev2_;
   const Epetra_MultiVector& wc1 =
-    *S_->GetPtr<CompositeVector>(wc_key_, tag_current_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(wc_key_, tag_current_)->viewComponent("cell", false);
   Epetra_MultiVector& wc2 =
-    *S_->GetPtrW<CompositeVector>(wc_key_, tag_next_, wc_key_)->ViewComponent("cell", false);
+    *S_->GetPtrW<CompositeVector>(wc_key_, tag_next_, wc_key_)->viewComponent("cell", false);
 
   const Epetra_MultiVector& e0 = *e_prev2_;
   const Epetra_MultiVector& e1 =
-    *S_->GetPtr<CompositeVector>(e_key_, tag_current_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(e_key_, tag_current_)->viewComponent("cell", false);
   Epetra_MultiVector& e2 =
-    *S_->GetPtrW<CompositeVector>(e_key_, tag_next_, e_key_)->ViewComponent("cell", false);
+    *S_->GetPtrW<CompositeVector>(e_key_, tag_next_, e_key_)->viewComponent("cell", false);
 
   // -- project
   wc2 = wc0;
@@ -91,9 +91,9 @@ MPCDelegateEWCSubsurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<Tre
 
   // -- extra data
   const Epetra_MultiVector& cv =
-    *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)->viewComponent("cell", false);
 
-  int rank = mesh_->get_comm()->MyPID();
+  int rank = mesh_->getComm()->MyPID();
   int ncells = wc0.MyLength();
   for (int c = 0; c != ncells; ++c) {
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
@@ -330,29 +330,29 @@ MPCDelegateEWCSubsurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos:
     *vo_->os() << "  Preconditioning using SmartEWC algorithm" << std::endl;
 
   // projected guesses for T and p
-  Epetra_MultiVector& dp_std = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
-  Epetra_MultiVector& dT_std = *Pu->SubVector(1)->Data()->ViewComponent("cell", false);
+  Epetra_MultiVector& dp_std = *Pu->SubVector(0)->Data()->viewComponent("cell", false);
+  Epetra_MultiVector& dT_std = *Pu->SubVector(1)->Data()->viewComponent("cell", false);
 
   // additional data required
   const Epetra_MultiVector& cv =
-    *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)->ViewComponent("cell", false);
+    *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)->viewComponent("cell", false);
   const double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // old values
   const Epetra_MultiVector& p_old =
-    *S_->Get<CompositeVector>(pres_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(pres_key_, tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& T_old =
-    *S_->Get<CompositeVector>(temp_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(temp_key_, tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& wc_old =
-    *S_->Get<CompositeVector>(wc_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(wc_key_, tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& e_old =
-    *S_->Get<CompositeVector>(e_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(e_key_, tag_next_).viewComponent("cell", false);
 
   // min change values... ewc is not useful near convergence
   double dT_min = 0.01;
   double dp_min = 100.;
 
-  int rank = mesh_->get_comm()->MyPID();
+  int rank = mesh_->getComm()->MyPID();
   int ncells = cv.MyLength();
   for (int c = 0; c != ncells; ++c) {
     // debugger

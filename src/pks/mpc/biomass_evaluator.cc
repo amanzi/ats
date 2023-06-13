@@ -145,13 +145,13 @@ void
 BiomassEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                                  const std::vector<Teuchos::Ptr<CompositeVector>>& results)
 {
-  Epetra_MultiVector& biomass = *results[0]->ViewComponent("cell");
-  Epetra_MultiVector& stem_density = *results[1]->ViewComponent("cell");
-  Epetra_MultiVector& stem_height = *results[2]->ViewComponent("cell");
-  Epetra_MultiVector& stem_diameter = *results[3]->ViewComponent("cell");
-  Epetra_MultiVector& plant_area = *results[4]->ViewComponent("cell");
+  Epetra_MultiVector& biomass = *results[0]->viewComponent("cell");
+  Epetra_MultiVector& stem_density = *results[1]->viewComponent("cell");
+  Epetra_MultiVector& stem_height = *results[2]->viewComponent("cell");
+  Epetra_MultiVector& stem_diameter = *results[3]->viewComponent("cell");
+  Epetra_MultiVector& plant_area = *results[4]->viewComponent("cell");
 
-  const Epetra_MultiVector& elev = *S->Get<CompositeVector>(elev_key_).ViewComponent("cell");
+  const Epetra_MultiVector& elev = *S->Get<CompositeVector>(elev_key_).viewComponent("cell");
 
   int ncells = biomass.MyLength();
 

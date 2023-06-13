@@ -99,10 +99,10 @@ IncidentShortwaveRadiationEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> qSWin = S.GetPtr<CompositeVector>(qSWin_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-    const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-    const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& slope_v = *slope->viewComponent(*comp, false);
+    const Epetra_MultiVector& aspect_v = *aspect->viewComponent(*comp, false);
+    const Epetra_MultiVector& qSWin_v = *qSWin->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
     double time = S.get_time();
 
     int ncomp = result[0]->size(*comp, false);
@@ -130,10 +130,10 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == slope_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& slope_v = *slope->viewComponent(*comp, false);
+      const Epetra_MultiVector& aspect_v = *aspect->viewComponent(*comp, false);
+      const Epetra_MultiVector& qSWin_v = *qSWin->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -145,10 +145,10 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == aspect_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& slope_v = *slope->viewComponent(*comp, false);
+      const Epetra_MultiVector& aspect_v = *aspect->viewComponent(*comp, false);
+      const Epetra_MultiVector& qSWin_v = *qSWin->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -160,10 +160,10 @@ IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == qSWin_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& slope_v = *slope->viewComponent(*comp, false);
+      const Epetra_MultiVector& aspect_v = *aspect->viewComponent(*comp, false);
+      const Epetra_MultiVector& qSWin_v = *qSWin->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

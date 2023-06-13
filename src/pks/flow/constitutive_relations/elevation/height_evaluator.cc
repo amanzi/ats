@@ -52,9 +52,9 @@ HeightEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   const auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
                                                                      my_keys_.front().second);
-  if (fac.Mesh() != Teuchos::null) {
+  if (fac.getMesh() != Teuchos::null) {
     CompositeVectorSpace dep_fac;
-    dep_fac.SetMesh(fac.Mesh())->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
+    dep_fac.SetMesh(fac.getMesh())->SetGhosted(true)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
   }
 }
@@ -69,14 +69,14 @@ HeightEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& 
   // this is rather hacky.  surface_pressure is a mixed field vector -- it has
   // pressure on cells and ponded depth on faces.
   // -- copy the faces over directly
-  if (result[0]->HasComponent("face") && pres->HasComponent("face"))
-    *result[0]->ViewComponent("face", false) = *pres->ViewComponent("face", false);
+  if (result[0]->hasComponent("face") && pres->hasComponent("face"))
+    *result[0]->viewComponent("face", false) = *pres->viewComponent("face", false);
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
-  const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
+  const Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
+  const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
   const Epetra_MultiVector& rho =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_key_, tag)->viewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -104,11 +104,11 @@ HeightEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
 
   // -- cells need the function eval
-  const Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+  const Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
-    *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pres_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& rho =
-    *S.GetPtr<CompositeVector>(dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(dens_key_, tag)->viewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);

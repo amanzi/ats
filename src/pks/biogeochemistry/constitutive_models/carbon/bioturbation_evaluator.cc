@@ -48,15 +48,15 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 {
   Tag tag = my_keys_.front().second;
   auto carbon_cv = S.GetPtr<CompositeVector>(carbon_key_, tag);
-  const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
+  const AmanziMesh::Mesh& mesh = *carbon_cv->getMesh();
 
-  const Epetra_MultiVector& carbon = *carbon_cv->ViewComponent("cell", false);
+  const Epetra_MultiVector& carbon = *carbon_cv->viewComponent("cell", false);
   const Epetra_MultiVector& diff =
-    *S.GetPtr<CompositeVector>(diffusivity_key_, tag)->ViewComponent("cell", false);
-  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(diffusivity_key_, tag)->viewComponent("cell", false);
+  Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
 
   // iterate over columns of the mesh
-  int ncolumns = mesh.num_columns();
+  int ncolumns = mesh.columns();
   for (int i = 0; i < ncolumns; ++i) {
     // grab the column
     const AmanziMesh::Entity_ID_List& col = mesh.cells_of_column(i);
@@ -67,14 +67,14 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
     // loop over column, getting cell index ci and cell c
     int ci = 0;
     for (AmanziMesh::Entity_ID_List::const_iterator c = col.begin(); c != col.end(); ++c, ++ci) {
-      double my_z = mesh.cell_centroid(*c)[2];
+      double my_z = mesh.getCellCentroid(*c)[2];
       double dz_up = 0.;
       double dz_dn = 0.;
 
       if (ci != 0) {
-        double my_z = mesh.cell_centroid(*c)[2];
+        double my_z = mesh.getCellCentroid(*c)[2];
         int c_up = col[ci - 1];
-        dz_up = mesh.cell_centroid(c_up)[2] - my_z;
+        dz_up = mesh.getCellCentroid(c_up)[2] - my_z;
 
         for (int p = 0; p != carbon.NumVectors(); ++p) {
           dC_up[p] = (diff[p][*c] + diff[p][c_up]) / 2. * (carbon[p][*c] - carbon[p][c_up]) / dz_up;
@@ -83,7 +83,7 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
       if (ci != col.size() - 1) {
         int c_dn = col[ci + 1];
-        dz_dn = mesh.cell_centroid(c_dn)[2] - my_z;
+        dz_dn = mesh.getCellCentroid(c_dn)[2] - my_z;
 
         for (int p = 0; p != carbon.NumVectors(); ++p) {
           dC_dn[p] = (diff[p][*c] + diff[p][c_dn]) / 2. * (carbon[p][c_dn] - carbon[p][*c]) / dz_up;

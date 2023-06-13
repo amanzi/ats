@@ -62,7 +62,7 @@ SuctionHeadEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
 {
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
-    wrms_->first->Initialize(result[0]->Mesh(), -1);
+    wrms_->first->Initialize(result[0]->getMesh(), -1);
     wrms_->first->Verify();
   }
 
@@ -70,8 +70,8 @@ SuctionHeadEvaluator::Evaluate_(const State& S, const std::vector<CompositeVecto
   // Evaluate suction.
   // -- Evaluate the model to calculate suction on cells.
   const Epetra_MultiVector& sat_c =
-    *S.GetPtr<CompositeVector>(sat_key_, tag)->ViewComponent("cell", false);
-  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(sat_key_, tag)->viewComponent("cell", false);
+  Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
 
   int ncells = res_c.MyLength();
   for (unsigned int c = 0; c != ncells; ++c) {
@@ -89,7 +89,7 @@ SuctionHeadEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
-    wrms_->first->Initialize(result[0]->Mesh(), -1);
+    wrms_->first->Initialize(result[0]->getMesh(), -1);
     wrms_->first->Verify();
   }
 
@@ -97,8 +97,8 @@ SuctionHeadEvaluator::EvaluatePartialDerivative_(const State& S,
   if (wrt_key == sat_key_) {
     // d(psi) / dsl
     const Epetra_MultiVector& sat_c =
-      *S.GetPtr<CompositeVector>(sat_key_, tag)->ViewComponent("cell", false);
-    Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+      *S.GetPtr<CompositeVector>(sat_key_, tag)->viewComponent("cell", false);
+    Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
 
     int ncells = res_c.MyLength();
     for (unsigned int c = 0; c != ncells; ++c) {

@@ -57,7 +57,7 @@ SnowDistribution::FunctionalResidual(double t_old,
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  res->putScalar(0.0);
 
 
 #if DEBUG_FLAG
@@ -204,12 +204,12 @@ SnowDistribution::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const
   Teuchos::OSTab tab = vo_->getOSTab();
 
   Teuchos::RCP<const CompositeVector> res = du->Data();
-  const Epetra_MultiVector& res_c = *res->ViewComponent("cell", false);
-  const Epetra_MultiVector& precip_c = *u->Data()->ViewComponent("cell", false);
+  const Epetra_MultiVector& res_c = *res->viewComponent("cell", false);
+  const Epetra_MultiVector& precip_c = *u->Data()->viewComponent("cell", false);
 
   const Epetra_MultiVector& cv =
     *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_, "cell_volume"))
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_inter_);
   std::vector<double> time(1, S_->get_time(tag_next_));
 
@@ -299,8 +299,8 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
   time[0] = t_old + dt_factor_;
   double Ps_new = (*precip_func_)(time);
   double Ps_mean = (Ps_new + Ps_old) / 2.;
-  S_inter_->GetW<CompositeVector>(key_, name_).PutScalar(Ps_mean);
-  S_next_->GetW<CompositeVector>(key_, name_).PutScalar(Ps_mean);
+  S_inter_->GetW<CompositeVector>(key_, name_).putScalar(Ps_mean);
+  S_next_->GetW<CompositeVector>(key_, name_).putScalar(Ps_mean);
 
   double my_dt = -1;
   double my_t_old = t_old;

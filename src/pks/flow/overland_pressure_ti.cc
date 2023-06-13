@@ -36,7 +36,7 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  res->putScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
@@ -132,8 +132,8 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   // tack on the variable change
   const Epetra_MultiVector& dh_dp =
     *S_->GetDerivative<CompositeVector>(pd_bar_key_, tag_next_, key_, tag_next_)
-       .ViewComponent("cell", false);
-  Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell", false);
+       .viewComponent("cell", false);
+  Epetra_MultiVector& Pu_c = *Pu->Data()->viewComponent("cell", false);
 
   unsigned int ncells = Pu_c.MyLength();
   for (unsigned int c = 0; c != ncells; ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
@@ -199,7 +199,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     Teuchos::RCP<const CompositeVector> pres_elev =
       S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
-    if (preconditioner_->RangeMap().HasComponent("face")) {
+    if (preconditioner_->RangeMap().hasComponent("face")) {
       flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     }
@@ -235,10 +235,10 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   //       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
   //   Key dkey = Keys::getDerivKey(source_key_,key_);
   //   const Epetra_MultiVector& dq_dp = *S_next_->GetPtr<CompositeVector>(dkey)
-  //       ->ViewComponent("cell",false);
+  //       ->viewComponent("cell",false);
 
   //   const Epetra_MultiVector& cv =
-  //       *S_next_->Get<CompositeVector>("surface-cell_volume").ViewComponent("cell",false);
+  //       *S_next_->Get<CompositeVector>("surface-cell_volume").viewComponent("cell",false);
 
   //   if (source_in_meters_) {
   //     // External source term is in [m water / s], not in [mols / s], so a
@@ -249,12 +249,12 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   //         ->HasFieldChanged(S_next_.ptr(), name_);
   //     const Epetra_MultiVector& nliq1 =
   //         *S_next_->GetPtr<CompositeVector>("surface-molar_density_liquid")
-  //         ->ViewComponent("cell",false);
+  //         ->viewComponent("cell",false);
   //     const Epetra_MultiVector& nliq1_s =
   //       *S_next_->GetPtr<CompositeVector>("surface-source_molar_density")
-  //         ->ViewComponent("cell",false);
+  //         ->viewComponent("cell",false);
   //     const Epetra_MultiVector& q = *S_next_->GetPtr<CompositeVector>(source_key_)
-  //         ->ViewComponent("cell",false);
+  //         ->viewComponent("cell",false);
 
   //     for (int c=0; c!=cv.MyLength(); ++c) {
   //       double s1 = q[0][c] > 0. ? dq_dp[0][c] * nliq1_s[0][c] : dq_dp[0][c] * nliq1[0][c];

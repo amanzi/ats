@@ -41,16 +41,16 @@ SubgridMobileDepthEvaluator::Evaluate_(const State& S, const std::vector<Composi
   Tag tag = my_keys_.front().second;
   auto depr_depth_v = S.GetPtr<CompositeVector>(depr_depth_key_, tag);
   auto depth_v = S.GetPtr<CompositeVector>(depth_key_, tag);
-  const auto& mesh = *result[0]->Mesh();
+  const auto& mesh = *result[0]->getMesh();
 
   for (const auto& comp : *result[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& depth = *depth_v->ViewComponent(comp, false);
-    const auto& depr_depth = *depr_depth_v->ViewComponent(internal_comp, false);
-    auto& res = *result[0]->ViewComponent(comp, false);
+    const auto& depth = *depth_v->viewComponent(comp, false);
+    const auto& depr_depth = *depr_depth_v->viewComponent(internal_comp, false);
+    auto& res = *result[0]->viewComponent(comp, false);
 
     int ncomp = result[0]->size(comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -70,12 +70,12 @@ SubgridMobileDepthEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
   auto depr_depth_v = S.GetPtr<CompositeVector>(depr_depth_key_, tag);
   auto depth_v = S.GetPtr<CompositeVector>(depth_key_, tag);
-  const auto& mesh = *result[0]->Mesh();
+  const auto& mesh = *result[0]->getMesh();
 
   if (wrt_key == depth_key_) {
-    result[0]->PutScalar(1.);
+    result[0]->putScalar(1.);
   } else {
-    result[0]->PutScalar(-1.);
+    result[0]->putScalar(-1.);
   }
 }
 
@@ -89,15 +89,15 @@ SubgridMobileDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // If my requirements have not yet been set, we'll have to hope they
   // get set by someone later.  For now just defer.
-  if (my_fac.Mesh() != Teuchos::null) {
+  if (my_fac.getMesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     Teuchos::RCP<CompositeVectorSpace> dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
-    if (dep_fac->HasComponent("boundary_face")) {
+    if (dep_fac->hasComponent("boundary_face")) {
       no_bf_dep_fac = Teuchos::rcp(new CompositeVectorSpace());
-      no_bf_dep_fac->SetMesh(dep_fac->Mesh())
+      no_bf_dep_fac->SetMesh(dep_fac->getMesh())
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {

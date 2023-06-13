@@ -74,7 +74,7 @@ EnergyBase::FunctionalResidual(double t_old,
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  res->putScalar(0.0);
 
   // diffusion term, implicit
   ApplyDiffusion_(tag_next_, res.ptr());
@@ -196,9 +196,9 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
   S_->GetEvaluator(conserved_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
   const auto& de_dT =
     *S_->GetDerivativePtr<CompositeVector>(conserved_key_, tag_next_, key_, tag_next_)
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
   CompositeVector acc(S_->GetPtr<CompositeVector>(conserved_key_, tag_next_)->Map());
-  auto& acc_c = *acc.ViewComponent("cell", false);
+  auto& acc_c = *acc.viewComponent("cell", false);
 
 
 #if DEBUG_FLAG
@@ -211,7 +211,7 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
   if (coupled_to_subsurface_via_temp_ || coupled_to_subsurface_via_flux_) {
     // do not add in de/dT if the height is 0
     const auto& pres = *S_->Get<CompositeVector>(Keys::getKey(domain_, "pressure"), tag_next_)
-                          .ViewComponent("cell", false);
+                          .viewComponent("cell", false);
     const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     for (unsigned int c = 0; c != ncells; ++c) {
@@ -227,7 +227,7 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
     } else {
       if (decoupled_from_subsurface_) {
         const auto& uf_c =
-          *S_->Get<CompositeVector>(uf_key_, tag_next_).ViewComponent("cell", false);
+          *S_->Get<CompositeVector>(uf_key_, tag_next_).viewComponent("cell", false);
         for (unsigned int c = 0; c != ncells; ++c) {
           acc_c[0][c] = std::max(de_dT[0][c] / h, 1.e-1 * uf_c[0][c]) + 1.e-6;
         }
@@ -280,12 +280,12 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
   //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
   // not used ?? jjb
   const Epetra_MultiVector& conserved =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
+    *S_->Get<CompositeVector>(conserved_key_, tag_current_).viewComponent("cell", true);
   //S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());
   const Epetra_MultiVector& wc =
-    *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
+    *S_->Get<CompositeVector>(wc_key_, tag_current_).viewComponent("cell", true);
   const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", true);
 
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
@@ -295,7 +295,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();
@@ -304,7 +304,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
   for (CompositeVector::name_iterator comp = dvec->begin(); comp != dvec->end(); ++comp) {
     double enorm_comp = 0.0;
     int enorm_loc = -1;
-    const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
+    const Epetra_MultiVector& dvec_v = *dvec->viewComponent(*comp, false);
 
     if (*comp == std::string("cell")) {
       // error done in two parts, relative to mass but absolute in
@@ -328,7 +328,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
 
       for (unsigned int f = 0; f != nfaces; ++f) {
         AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
+        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double mass_min = cells.size() == 1 ? wc[0][cells[0]] / cv[0][cells[0]] :

@@ -85,14 +85,14 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
 {
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
-    wrms_->first->Initialize(results[0]->Mesh(), -1);
+    wrms_->first->Initialize(results[0]->getMesh(), -1);
     wrms_->first->Verify();
   }
 
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& sat_c = *results[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
-    *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->viewComponent("cell", false);
 
   // calculate cell values
   AmanziMesh::Entity_ID ncells = sat_c.MyLength();
@@ -101,15 +101,15 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
   }
 
   // Potentially do face values as well.
-  if (results[0]->HasComponent("boundary_face")) {
-    Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face", false);
+  if (results[0]->hasComponent("boundary_face")) {
+    Epetra_MultiVector& sat_bf = *results[0]->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pres_bf =
-      *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->viewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
     AmanziMesh::Entity_ID_List cells;
 
     // calculate boundary face values
@@ -117,7 +117,7 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];
@@ -129,12 +129,12 @@ WRMEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
   if (calc_other_sat_) {
     for (CompositeVector::name_iterator comp = results[1]->begin(); comp != results[1]->end();
          ++comp) {
-      if (results[0]->HasComponent(*comp)) {
+      if (results[0]->hasComponent(*comp)) {
         // sat_g = 1 - sat_l
-        results[1]->ViewComponent(*comp, false)->PutScalar(1.);
+        results[1]->getComponent(*comp, false)->putScalar(1.);
         results[1]
-          ->ViewComponent(*comp, false)
-          ->Update(-1, *results[0]->ViewComponent(*comp, false), 1.);
+          ->viewComponent(*comp, false)
+          ->Update(-1, *results[0]->viewComponent(*comp, false), 1.);
       } else {
         // sat_l not available on this component, loop and call the model
 
@@ -155,14 +155,14 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
-    wrms_->first->Initialize(results[0]->Mesh(), -1);
+    wrms_->first->Initialize(results[0]->getMesh(), -1);
     wrms_->first->Verify();
   }
 
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& sat_c = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& sat_c = *results[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres_c =
-    *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->viewComponent("cell", false);
 
   // calculate cell values
   AmanziMesh::Entity_ID ncells = sat_c.MyLength();
@@ -171,15 +171,15 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 
   // Potentially do face values as well.
-  if (results[0]->HasComponent("boundary_face")) {
-    Epetra_MultiVector& sat_bf = *results[0]->ViewComponent("boundary_face", false);
+  if (results[0]->hasComponent("boundary_face")) {
+    Epetra_MultiVector& sat_bf = *results[0]->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pres_bf =
-      *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(cap_pres_key_, tag)->viewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
     AmanziMesh::Entity_ID_List cells;
 
     // calculate boundary face values
@@ -187,7 +187,7 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];
@@ -199,11 +199,11 @@ WRMEvaluator::EvaluatePartialDerivative_(const State& S,
   if (calc_other_sat_) {
     for (CompositeVector::name_iterator comp = results[1]->begin(); comp != results[1]->end();
          ++comp) {
-      if (results[0]->HasComponent(*comp)) {
+      if (results[0]->hasComponent(*comp)) {
         // d_sat_g =  - d_sat_l
         results[1]
-          ->ViewComponent(*comp, false)
-          ->Update(-1, *results[0]->ViewComponent(*comp, false), 0.);
+          ->viewComponent(*comp, false)
+          ->Update(-1, *results[0]->viewComponent(*comp, false), 0.);
       } else {
         // sat_l not available on this component, loop and call the model
 

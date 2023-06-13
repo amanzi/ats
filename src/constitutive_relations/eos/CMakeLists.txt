@@ -8,7 +8,6 @@
 set(ats_eos_src_files
   eos_factory.cc
   eos_evaluator.cc
-  eos_constant.cc
   eos_linear.cc
   eos_ideal_gas.cc
   eos_water.cc
@@ -17,7 +16,6 @@ set(ats_eos_src_files
   eos_sw.cc
   viscosity_evaluator.cc
   viscosity_relation_factory.cc
-  viscosity_constant.cc
   viscosity_water.cc
   molar_fraction_gas_evaluator.cc
   vapor_pressure_relation_factory.cc

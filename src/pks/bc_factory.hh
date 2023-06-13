@@ -78,24 +78,30 @@ DIRICHLET_TYPE and DIRICHLET_FUNCTION_NAME.
 
 #include "Point.hh"
 #include "Mesh.hh"
-#include "BoundaryFunction.hh"
-#include "DynamicBoundaryFunction.hh"
 
 namespace Amanzi {
 
 class BCFactory {
  public:
-  BCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh, const Teuchos::ParameterList& plist)
-    : mesh_(mesh), plist_(plist)
+  BCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
+            const Teuchos::RCP<State>& S,
+            const std::string& bc_key,
+            const Tag& tag,
+            const Teuchos::RCP<Teuchos::ParameterList>& plist)
+    : mesh_(mesh),
+      S_(S),
+      bc_key_(bc_key),
+      tag_(tag),
+      plist_(plist)
   {}
 
-  Teuchos::RCP<Functions::BoundaryFunction>
+  std::string
   CreateWithFunction(const std::string& list_name, const std::string& function_name) const;
 
-  Teuchos::RCP<Functions::BoundaryFunction>
+  std::string
   CreateWithoutFunction(const std::string& list_name) const;
 
-  Teuchos::RCP<Functions::DynamicBoundaryFunction>
+  std::string
   CreateDynamicFunction(const std::string& list_name) const;
 
   bool CheckExplicitFlag(const std::string& list_name);
@@ -122,7 +128,11 @@ class BCFactory {
 
  private:
   const Teuchos::RCP<const AmanziMesh::Mesh>& mesh_;
-  Teuchos::ParameterList plist_;
+  Teuchos::RCP<Teuchos::ParameterList> plist_;
+  Teuchos::RCP<State> S_;
+  std::string bc_key_;
+  Tag tag_;
+
 };
 
 } // namespace Amanzi

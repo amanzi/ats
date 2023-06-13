@@ -12,6 +12,8 @@ Steady state solution of Richards equation
 
 */
 
+#include "PDE_DiffusionWithGravity.hh"
+
 #include "richards_steadystate.hh"
 
 namespace Amanzi {
@@ -45,7 +47,7 @@ RichardsSteadyState::FunctionalResidual(double t_old,
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
-  Teuchos::RCP<CompositeVector> u = u_new->Data();
+  Teuchos::RCP<CompositeVector> u = u_new->getData();
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
@@ -65,11 +67,11 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
-  db_->WriteBoundaryConditions(bc_markers(), bc_values());
+//  db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
   // zero out residual
-  Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  Teuchos::RCP<CompositeVector> res = g->getData();
+  res->putScalar(0.0);
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
@@ -133,7 +135,7 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   // Recreate mass matrices
   if (!deform_key_.empty() &&
       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
-    preconditioner_diff_->SetTensorCoefficient(K_);
+    preconditioner_diff_->SetTensorCoefficient(S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT));
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
@@ -147,7 +149,7 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   UpdateBoundaryConditions_(tag_next_);
 
   // Zero out the preconditioner and local matrices
-  preconditioner_->Init();
+  preconditioner_->Zero();
 
   // fill local matrices
   // -- gravity fluxes
@@ -171,14 +173,14 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
 
   // -- fill local matrices
-  preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
+  preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- update with Jacobian terms
   if (jacobian_ && iter_ >= jacobian_lag_) {
     Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
-    preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
-    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
+    preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
+    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
 
   // -- update preconditioner with source term derivatives if needed

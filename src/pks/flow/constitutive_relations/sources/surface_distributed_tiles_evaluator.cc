@@ -63,14 +63,14 @@ SurfDistributedTilesRateEvaluator::Update_(State& S)
   auto tag = key_tag.second;
   double dt = S.Get<double>("dt", tag);
 
-  const auto& catch_id = *S.Get<CompositeVector>(catch_id_key_, tag).ViewComponent("cell", false);
+  const auto& catch_id = *S.Get<CompositeVector>(catch_id_key_, tag).viewComponent("cell", false);
   const auto& catch_frac =
-    *S.Get<CompositeVector>(catch_frac_key_, tag).ViewComponent("cell", false);
-  const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(catch_frac_key_, tag).viewComponent("cell", false);
+  const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
   const auto& acc_sources_vec = S.Get<Teuchos::Array<double>>(acc_sources_key_, tag);
 
   auto& surf_src =
-    *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).ViewComponent("cell");
+    *S.GetW<CompositeVector>(key_tag.first, tag, key_tag.first).viewComponent("cell");
   double total = 0.0;
 
   AmanziMesh::Entity_ID ncells = catch_id.MyLength();

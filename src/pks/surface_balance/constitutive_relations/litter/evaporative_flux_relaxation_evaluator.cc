@@ -91,11 +91,11 @@ EvaporativeFluxRelaxationEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> cv = S.GetPtr<CompositeVector>(cv_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
-    const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
-    const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
-    const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& wc_v = *wc->viewComponent(*comp, false);
+    const Epetra_MultiVector& rho_v = *rho->viewComponent(*comp, false);
+    const Epetra_MultiVector& L_v = *L->viewComponent(*comp, false);
+    const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -121,11 +121,11 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == wc_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
-      const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
-      const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& wc_v = *wc->viewComponent(*comp, false);
+      const Epetra_MultiVector& rho_v = *rho->viewComponent(*comp, false);
+      const Epetra_MultiVector& L_v = *L->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -138,11 +138,11 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == rho_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
-      const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
-      const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& wc_v = *wc->viewComponent(*comp, false);
+      const Epetra_MultiVector& rho_v = *rho->viewComponent(*comp, false);
+      const Epetra_MultiVector& L_v = *L->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -154,11 +154,11 @@ EvaporativeFluxRelaxationEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == thickness_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& wc_v = *wc->ViewComponent(*comp, false);
-      const Epetra_MultiVector& rho_v = *rho->ViewComponent(*comp, false);
-      const Epetra_MultiVector& L_v = *L->ViewComponent(*comp, false);
-      const Epetra_MultiVector& cv_v = *cv->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& wc_v = *wc->viewComponent(*comp, false);
+      const Epetra_MultiVector& rho_v = *rho->viewComponent(*comp, false);
+      const Epetra_MultiVector& L_v = *L->viewComponent(*comp, false);
+      const Epetra_MultiVector& cv_v = *cv->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

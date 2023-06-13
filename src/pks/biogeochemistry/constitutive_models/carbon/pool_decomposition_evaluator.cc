@@ -54,12 +54,12 @@ PoolDecompositionEvaluator::EvaluateField_(const Teuchos::Ptr<State>& S,
                                            const Teuchos::Ptr<CompositeVector>& result)
 {
   Teuchos::RCP<const CompositeVector> carbon_cv = S->GetPtr<CompositeVector>(carbon_key_);
-  const AmanziMesh::Mesh& mesh = *carbon_cv->Mesh();
+  const AmanziMesh::Mesh& mesh = *carbon_cv->getMesh();
 
-  const Epetra_MultiVector& C = *carbon_cv->ViewComponent("cell", false);
+  const Epetra_MultiVector& C = *carbon_cv->viewComponent("cell", false);
   const Epetra_MultiVector& k =
-    *S->GetPtr<CompositeVector>(decay_key_)->ViewComponent("cell", false);
-  Epetra_MultiVector& res_c = *result->ViewComponent("cell", false);
+    *S->GetPtr<CompositeVector>(decay_key_)->viewComponent("cell", false);
+  Epetra_MultiVector& res_c = *result->viewComponent("cell", false);
   res_c.Multiply(1., C, k, 0.);
 }
 

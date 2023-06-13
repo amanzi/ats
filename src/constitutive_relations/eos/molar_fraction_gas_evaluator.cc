@@ -49,8 +49,8 @@ MolarFractionGasEvaluator::Evaluate_(const State& S, const std::vector<Composite
 
   // evaluate p_s / p_atm
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
+    const Epetra_MultiVector& temp_v = *(temp->viewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->viewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
     for (int id = 0; id != count; ++id) {
@@ -76,8 +76,8 @@ MolarFractionGasEvaluator::EvaluatePartialDerivative_(const State& S,
 
   // evaluate d/dT( p_s / p_atm )
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
+    const Epetra_MultiVector& temp_v = *(temp->viewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->viewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
     for (int id = 0; id != count; ++id) {

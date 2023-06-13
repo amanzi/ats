@@ -60,19 +60,19 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
                                          const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  const Epetra_MultiVector& z = *S.Get<CompositeVector>(z_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& z = *S.Get<CompositeVector>(z_key_, tag).viewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& surf_cv =
-    *S.Get<CompositeVector>(surf_cv_key_, tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+    *S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 
   auto& subsurf_mesh = *S.GetMesh(domain_sub_);
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    surf_mesh.getSetEntities(
+      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     for (int sc : lc_ids) {
       double column_total = 0.;
@@ -101,7 +101,7 @@ RootingDepthFractionEvaluator::EvaluatePartialDerivative_(
   const std::vector<CompositeVector*>& result)
 {
   // this should only change if the mesh deforms.  don't do that!
-  result[0]->PutScalar(0.);
+  result[0]->putScalar(0.);
 }
 
 
@@ -124,7 +124,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   CompositeVectorSpace dep_fac_one;
   dep_fac_one.SetMesh(S.GetMesh(domain))
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S.Require<CompositeVector, CompositeVectorSpace>(z_key_, tag).Update(dep_fac_one);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac_one);
@@ -132,7 +132,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   CompositeVectorSpace surf_fac_one;
   surf_fac_one.SetMesh(S.GetMesh(Keys::getDomain(surf_cv_key_)))
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(surf_cv_key_, tag).Update(surf_fac_one);
 }
 

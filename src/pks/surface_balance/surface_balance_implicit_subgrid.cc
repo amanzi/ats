@@ -59,22 +59,22 @@ ImplicitSubgrid::Setup()
   // requirements: things I use
   requireAtNext(new_snow_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: other primary variables
   requireAtNext(snow_dens_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
 
   requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
 
   requireAtNext(snow_age_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_age_key_, tag_current_, *S_, name_);
 }
 
@@ -98,7 +98,7 @@ ImplicitSubgrid::Initialize()
       // initialize density to fresh powder, age to 0
       Relations::ModelParams params;
       S_->GetW<CompositeVector>(snow_dens_key_, tag_next_, name_)
-        .PutScalar(params.density_freshsnow);
+        .putScalar(params.density_freshsnow);
       S_->GetRecordW(snow_dens_key_, tag_next_, name_).set_initialized();
     }
   }
@@ -112,12 +112,12 @@ ImplicitSubgrid::Initialize()
         .Initialize(plist_->sublist("initial condition snow age"));
     } else {
       // initialize age to fresh powder, age to 0
-      S_->GetW<CompositeVector>(snow_age_key_, tag_next_, name_).PutScalar(0.);
+      S_->GetW<CompositeVector>(snow_age_key_, tag_next_, name_).putScalar(0.);
       S_->GetRecordW(snow_age_key_, tag_next_, name_).set_initialized();
     }
   }
 
-  S_->GetW<CompositeVector>(snow_death_rate_key_, tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>(snow_death_rate_key_, tag_next_, name_).putScalar(0.);
   S_->GetRecordW(snow_death_rate_key_, tag_next_, name_).set_initialized();
 }
 
@@ -127,7 +127,7 @@ ImplicitSubgrid::ModifyPredictor(double h,
                                  Teuchos::RCP<const TreeVector> u0,
                                  Teuchos::RCP<TreeVector> u)
 {
-  Epetra_MultiVector& u_vec = *u->Data()->ViewComponent("cell", false);
+  Epetra_MultiVector& u_vec = *u->Data()->viewComponent("cell", false);
   for (int c = 0; c != u_vec.MyLength(); ++c) { u_vec[0][c] = std::max(0., u_vec[0][c]); }
   return true;
 }
@@ -144,8 +144,8 @@ ImplicitSubgrid::ModifyCorrection(double h,
 
   // modify correction to enforce nonnegativity
   int n_modified = 0;
-  const Epetra_MultiVector& snow_depth = *u->Data()->ViewComponent("cell", false);
-  Epetra_MultiVector& dsnow_depth = *du->Data()->ViewComponent("cell", false);
+  const Epetra_MultiVector& snow_depth = *u->Data()->viewComponent("cell", false);
+  Epetra_MultiVector& dsnow_depth = *du->Data()->viewComponent("cell", false);
   for (int c = 0; c != snow_depth.MyLength(); ++c) {
     if (snow_depth[0][c] - dsnow_depth[0][c] < 0.) {
       dsnow_depth[0][c] = snow_depth[0][c];
@@ -173,18 +173,18 @@ ImplicitSubgrid::FunctionalResidual(double t_old,
   // first calculate the "snow death rate", or rate of snow SWE that must melt over this
   // timestep if the snow is to go to zero.
   auto& snow_death_rate =
-    *S_->GetW<CompositeVector>(snow_death_rate_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(snow_death_rate_key_, tag_next_, name_).viewComponent("cell", false);
   S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
   const auto& cell_volume =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
-  snow_death_rate.PutScalar(0.);
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
+  snow_death_rate.putScalar(0.);
 
   //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name_);
   S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
   const auto& swe_old_v =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(conserved_key_, tag_current_).viewComponent("cell", false);
   const auto& swe_new_v =
-    *S_->Get<CompositeVector>(conserved_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(conserved_key_, tag_next_).viewComponent("cell", false);
   for (int c = 0; c != snow_death_rate.MyLength(); ++c) {
     if (swe_new_v[0][c] <= 0.) {
       snow_death_rate[0][c] = swe_old_v[0][c] / (t_new - t_old) / cell_volume[0][c];
@@ -200,22 +200,22 @@ ImplicitSubgrid::FunctionalResidual(double t_old,
 
   // now fill the role of age/density evaluator, as these depend upon old and new values
   const auto& snow_age_old =
-    *S_->Get<CompositeVector>(snow_age_key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(snow_age_key_, tag_current_).viewComponent("cell", false);
   auto& snow_age_new =
-    *S_->GetW<CompositeVector>(snow_age_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(snow_age_key_, tag_next_, name_).viewComponent("cell", false);
 
   const auto& snow_dens_old =
-    *S_->Get<CompositeVector>(snow_dens_key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(snow_dens_key_, tag_current_).viewComponent("cell", false);
   auto& snow_dens_new =
-    *S_->GetW<CompositeVector>(snow_dens_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(snow_dens_key_, tag_next_, name_).viewComponent("cell", false);
 
   S_->GetEvaluator(new_snow_key_, tag_next_).Update(*S_, name_);
   const auto& new_snow =
-    *S_->Get<CompositeVector>(new_snow_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(new_snow_key_, tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
   const auto& source =
-    *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
 
   Relations::ModelParams params;
   double dt_days = (t_new - t_old) / 86400.;

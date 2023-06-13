@@ -55,9 +55,9 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   CompositeVector* slope = results[1];
   CompositeVector* aspect = results[2];
 
-  aspect->PutScalar(0.); // no aspect to a column mesh?
-  Epetra_MultiVector& elev_c = *elev->ViewComponent("cell", false);
-  Epetra_MultiVector& slope_c = *slope->ViewComponent("cell", false);
+  aspect->putScalar(0.); // no aspect to a column mesh?
+  Epetra_MultiVector& elev_c = *elev->viewComponent("cell", false);
+  Epetra_MultiVector& slope_c = *slope->viewComponent("cell", false);
 
   // Set the elevation on cells by getting the corresponding face and its
   // centroid.
@@ -65,25 +65,25 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   std::vector<AmanziGeometry::Point> my_centroid;
 
   auto domain_set = S.GetDomainSet(dset_name_);
-  const Epetra_Map& cell_map = S.GetMesh(surface_domain_)->cell_map(false);
+  const Epetra_Map& cell_map = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,false);
 
   AMANZI_ASSERT(domain_set->size() == cell_map.NumMyElements());
   AMANZI_ASSERT(domain_set->size() == elev_c.MyLength());
   for (const auto& domain : *domain_set) {
     int gid = Keys::getDomainSetIndex<int>(domain);
     int c = cell_map.LID(gid);
-    auto coord = S.GetMesh(domain)->face_centroid(0); // 0 is the id of top face of the column mesh
+    auto coord = S.GetMesh(domain)->getFaceCentroid(0); // 0 is the id of top face of the column mesh
     elev_c[0][c] = coord[2];
   }
 
   // Now get slope
-  elev->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell", true);
+  elev->scatterMasterToGhosted("cell");
+  const Epetra_MultiVector& elev_ngb_c = *elev->viewComponent("cell", true);
 
   // get all cell centroids
   for (int c = 0; c != ncells; ++c) {
-    int id = S.GetMesh(surface_domain_)->cell_map(true).GID(c);
-    AmanziGeometry::Point P1 = S.GetMesh(surface_domain_)->cell_centroid(c);
+    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,true).GID(c);
+    AmanziGeometry::Point P1 = S.GetMesh(surface_domain_)->getCellCentroid(c);
     P1.set(P1[0], P1[1], elev_ngb_c[0][c]);
     my_centroid.push_back(P1);
   }
@@ -92,19 +92,19 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   for (int c = 0; c != ncells; c++) {
     AmanziMesh::Entity_ID_List nadj_cellids;
     S.GetMesh(surface_domain_)
-      ->cell_get_face_adj_cells(c, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
-    int nface_pcell = S.GetMesh(surface_domain_)->cell_get_num_faces(c);
+      ->AmanziMesh::MeshAlgorithms::getCellFaceAdjacentCells(c, AmanziMesh::Parallel_kind::ALL, &nadj_cellids);
+    int nface_pcell = S.GetMesh(surface_domain_)->getCellNumFaces(c);
 
     int ngb_cells = nadj_cellids.size();
     std::vector<AmanziGeometry::Point> ngb_centroids(ngb_cells);
 
     // get the neighboring cell's centroids
     for (unsigned i = 0; i < ngb_cells; i++) {
-      AmanziGeometry::Point P2 = S.GetMesh(surface_domain_)->cell_centroid(nadj_cellids[i]);
+      AmanziGeometry::Point P2 = S.GetMesh(surface_domain_)->getCellCentroid(nadj_cellids[i]);
       ngb_centroids[i].set(P2[0], P2[1], elev_ngb_c[0][nadj_cellids[i]]);
     }
 
-    int id = S.GetMesh(surface_domain_)->cell_map(false).GID(c);
+    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
     Key my_name = Keys::getDomainInSet(dset_name_, id);
 
     std::vector<AmanziGeometry::Point> Normal;
@@ -119,7 +119,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
         Normal.push_back(N);
       }
 
-      AmanziGeometry::Point fnor = S.GetMesh(my_name)->face_normal(0); //0 is the id of top face
+      AmanziGeometry::Point fnor = S.GetMesh(my_name)->getFaceNormal(0); //0 is the id of top face
       Nor_avg = (nface_pcell - Normal.size()) * fnor;
       for (int i = 0; i < Normal.size(); i++) Nor_avg += Normal[i];
 
@@ -135,14 +135,14 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     }
   }
 
-  if (elev->HasComponent("face")) {
-    Epetra_MultiVector& elev_f = *elev->ViewComponent("face", false);
-    const Epetra_MultiVector& elev_ngb_c = *elev->ViewComponent("cell", true);
+  if (elev->hasComponent("face")) {
+    Epetra_MultiVector& elev_f = *elev->viewComponent("face", false);
+    const Epetra_MultiVector& elev_ngb_c = *elev->viewComponent("cell", true);
     int nfaces = elev_f.MyLength();
 
     for (int f = 0; f != nfaces; ++f) {
       AmanziMesh::Entity_ID_List nadj_cellids;
-      S.GetMesh(surface_domain_)->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &nadj_cellids);
+      nadj_cellids = S.GetMesh(surface_domain_)->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       double ef = 0;
       for (int i = 0; i < nadj_cellids.size(); i++) { ef += elev_ngb_c[0][nadj_cellids[i]]; }
       elev_f[0][f] = ef / nadj_cellids.size();

@@ -46,7 +46,7 @@ OverlandFlow::FunctionalResidual(double t_old,
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  res->putScalar(0.0);
 
 #if DEBUG_FLAG
   if (vo_->os_OK(Teuchos::VERB_HIGH))
@@ -172,7 +172,7 @@ OverlandFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, 
   Teuchos::RCP<const CompositeVector> dcond = Teuchos::null;
 
   if (jacobian_) {
-    if (preconditioner_->RangeMap().HasComponent("face")) {
+    if (preconditioner_->RangeMap().hasComponent("face")) {
       Key dkey = Keys::getDerivKey(Keys::getKey(domain_, "upwind_overland_conductivity"), key_);
       dcond = S_next_->GetPtr<CompositeVector>(dkey);
     } else {
@@ -188,7 +188,7 @@ OverlandFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, 
   if (jacobian_) {
     Teuchos::RCP<const CompositeVector> pres_elev = Teuchos::null;
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
-    if (preconditioner_->RangeMap().HasComponent("face")) {
+    if (preconditioner_->RangeMap().hasComponent("face")) {
       flux = S_next_->GetPtrW<CompositeVector>("surface-water_flux", name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     } else {
@@ -225,9 +225,9 @@ double
 OverlandFlow::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res)
 {
   const Epetra_MultiVector& pd =
-    *S_next_->GetPtr<CompositeVector>(key_)->ViewComponent("cell", true);
+    *S_next_->GetPtr<CompositeVector>(key_)->viewComponent("cell", true);
   const Epetra_MultiVector& cv =
-    *S_next_->GetPtr<CompositeVector>(cell_vol_key_)->ViewComponent("cell", true);
+    *S_next_->GetPtr<CompositeVector>(cell_vol_key_)->viewComponent("cell", true);
 
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
@@ -241,7 +241,7 @@ OverlandFlow::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const Tre
   for (CompositeVector::name_iterator comp = dvec->begin(); comp != dvec->end(); ++comp) {
     double enorm_comp = 0.0;
     int enorm_loc = -1;
-    const Epetra_MultiVector& dvec_v = *dvec->ViewComponent(*comp, false);
+    const Epetra_MultiVector& dvec_v = *dvec->viewComponent(*comp, false);
 
     if (*comp == std::string("cell")) {
       // error done relative to extensive, conserved quantity
@@ -267,11 +267,11 @@ OverlandFlow::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const Tre
         *S_next_
            ->GetPtrW<CompositeVector>(
              Keys::getDerivKey(Keys::getKey(domain_, "upwind_overland_conductivity"), key_))
-           ->ViewComponent("face", false);
+           ->viewComponent("face", false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
         AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
+        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double conserved_min = cells.size() == 1 ? pd[0][cells[0]] * cv[0][cells[0]] :

@@ -55,17 +55,17 @@ OverlandPressureMulticomponentWaterContentEvaluator::Evaluate_(
   const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres =
-    *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pres_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& molar_dens =
-    *S.GetPtr<CompositeVector>(molar_dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(molar_dens_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& mass_dens =
-    *S.GetPtr<CompositeVector>(mass_dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(mass_dens_key_, tag)->viewComponent("cell", false);
 
 
   const Epetra_MultiVector& cv =
-    *S.GetPtr<CompositeVector>(cv_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(cv_key_, tag)->viewComponent("cell", false);
 
   const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -104,16 +104,16 @@ OverlandPressureMulticomponentWaterContentEvaluator::EvaluatePartialDerivative_(
   Tag tag = my_keys_.front().second;
   AMANZI_ASSERT(wrt_key == pres_key_);
 
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
   const Epetra_MultiVector& pres =
-    *S.GetPtr<CompositeVector>(pres_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pres_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& molar_dens =
-    *S.GetPtr<CompositeVector>(molar_dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(molar_dens_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& mass_dens =
-    *S.GetPtr<CompositeVector>(mass_dens_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(mass_dens_key_, tag)->viewComponent("cell", false);
 
   const Epetra_MultiVector& cv =
-    *S.GetPtr<CompositeVector>(cv_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(cv_key_, tag)->viewComponent("cell", false);
 
   const double& p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -137,7 +137,7 @@ OverlandPressureMulticomponentWaterContentEvaluator::EvaluatePartialDerivative_(
       }
     }
   } else {
-    res.PutScalar(0.);
+    res.putScalar(0.);
   }
 }
 

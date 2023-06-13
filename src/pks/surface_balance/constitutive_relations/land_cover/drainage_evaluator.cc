@@ -69,11 +69,11 @@ DrainageEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 {
   Tag tag = my_keys_.front().second;
   // Pull dependencies out of state.
-  const Epetra_MultiVector& wc = *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& ai = *S.Get<CompositeVector>(ai_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& wc = *S.Get<CompositeVector>(wc_key_, tag).viewComponent("cell", false);
+  const Epetra_MultiVector& ai = *S.Get<CompositeVector>(ai_key_, tag).viewComponent("cell", false);
 
-  Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& res_drainage_c = *results[0]->viewComponent("cell", false);
+  Epetra_MultiVector& res_fracwet_c = *results[1]->viewComponent("cell", false);
 
   // evaluate the model
   for (int c = 0; c != res_drainage_c.MyLength(); ++c) {
@@ -107,11 +107,11 @@ DrainageEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
 
   // Pull dependencies out of state.
-  const Epetra_MultiVector& wc = *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& ai = *S.Get<CompositeVector>(ai_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& wc = *S.Get<CompositeVector>(wc_key_, tag).viewComponent("cell", false);
+  const Epetra_MultiVector& ai = *S.Get<CompositeVector>(ai_key_, tag).viewComponent("cell", false);
 
-  Epetra_MultiVector& res_drainage_c = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& res_fracwet_c = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& res_drainage_c = *results[0]->viewComponent("cell", false);
+  Epetra_MultiVector& res_fracwet_c = *results[1]->viewComponent("cell", false);
 
   if (wrt_key == wc_key_) {
     for (int c = 0; c != res_drainage_c.MyLength(); ++c) {

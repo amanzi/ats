@@ -349,8 +349,11 @@ namespace Flow {
 class FlowBCFactory : public Amanzi::BCFactory {
  public:
   FlowBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
-                const Teuchos::ParameterList& plist)
-    : Amanzi::BCFactory(mesh, plist)
+                const Teuchos::RCP<State>& S,
+                const std::string& bc_key,
+                const Tag& tag,
+                const Teuchos::RCP<Teuchos::ParameterList>& plist)
+    : Amanzi::BCFactory(mesh, S, bc_key, tag, plist)
   {}
 
   Teuchos::RCP<Functions::BoundaryFunction> CreatePressure() const

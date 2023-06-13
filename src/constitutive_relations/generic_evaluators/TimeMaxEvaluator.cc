@@ -44,17 +44,17 @@ TimeMaxEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
 {
   if (!evaluated_once_) {
     if (operator_ == "max") {
-      result[0]->PutScalar(-1.e16);
+      result[0]->putScalar(-1.e16);
     } else {
-      result[0]->PutScalar(1.e16);
+      result[0]->putScalar(1.e16);
     }
     evaluated_once_ = true;
   }
 
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
   const Epetra_MultiVector& dep =
     *S.Get<CompositeVector>(dependencies_.front().first, dependencies_.front().second)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
 
   if (operator_ == "max") {
     for (int c = 0; c != res.MyLength(); ++c) { res[0][c] = std::max(res[0][c], dep[0][c]); }

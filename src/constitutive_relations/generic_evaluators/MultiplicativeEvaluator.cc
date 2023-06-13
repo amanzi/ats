@@ -55,15 +55,15 @@ void
 MultiplicativeEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   AMANZI_ASSERT(dependencies_.size() >= 1);
-  result[0]->PutScalar(coef_);
+  result[0]->putScalar(coef_);
 
   for (const auto& lcv_name : *result[0]) {
     // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
-    auto& res_c = *(result[0]->ViewComponent(lcv_name, false));
+    auto& res_c = *(result[0]->viewComponent(lcv_name, false));
     int i = 0;
     for (const auto& key_tag : dependencies_) {
       const auto& dep_v =
-        *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).ViewComponent(lcv_name, false))(
+        *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).viewComponent(lcv_name, false))(
           dofs_[i]);
       res_c.Multiply(1, dep_v, res_c, 0.);
       i++;
@@ -83,16 +83,16 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
                                                     const Tag& wrt_tag,
                                                     const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(coef_);
+  result[0]->putScalar(coef_);
 
   for (const auto& lcv_name : *result[0]) {
     // note, this multiply is done with Vectors, not MultiVectors, to allow DoFs
-    auto& res_c = *(result[0]->ViewComponent(lcv_name, false));
+    auto& res_c = *(result[0]->viewComponent(lcv_name, false));
     int i = 0;
     for (const auto& key_tag : dependencies_) {
       if ((key_tag.first != wrt_key) || (key_tag.second != wrt_tag)) {
         const auto& dep_v =
-          *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).ViewComponent(lcv_name, false))(
+          *(*S.Get<CompositeVector>(key_tag.first, key_tag.second).viewComponent(lcv_name, false))(
             dofs_[i]);
         res_c.Multiply(1, dep_v, res_c, 0.);
         i++;
@@ -101,7 +101,7 @@ MultiplicativeEvaluator::EvaluatePartialDerivative_(const State& S,
 
     if (positive_) {
       const auto& value_c = *S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second)
-                               .ViewComponent(lcv_name, false);
+                               .viewComponent(lcv_name, false);
       for (int c = 0; c != res_c.MyLength(); ++c) {
         for (int i = 0; i != res_c.NumVectors(); ++i) {
           if (value_c[i][c] == 0) { res_c[i][c] = 0.; }
@@ -122,7 +122,7 @@ MultiplicativeEvaluator::EnsureCompatibility_ToDeps_(State& S)
     // If my requirements have not yet been set, we'll have to hope they
     // get set by someone later.  For now just defer.
     auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(my_key, my_tag);
-    if (my_fac.Mesh() != Teuchos::null) {
+    if (my_fac.getMesh() != Teuchos::null) {
       // Create an unowned factory to check my dependencies.
       CompositeVectorSpace dep_fac(my_fac);
       dep_fac.SetOwned(false);
@@ -144,7 +144,7 @@ MultiplicativeEvaluator::EnsureCompatibility_ToDeps_(State& S)
         } else {
           // may have different shape, just update mesh
           // just have to hope that # of dofs and stencil is set later
-          fac.SetMesh(dep_fac.Mesh());
+          fac.SetMesh(dep_fac.getMesh());
         }
       }
     }

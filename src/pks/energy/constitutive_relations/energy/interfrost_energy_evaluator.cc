@@ -65,32 +65,32 @@ InterfrostEnergyEvaluator::Evaluate_(const State& S, const std::vector<Composite
 {
   auto tag = my_keys_.front().second;
   const Epetra_MultiVector& s_l =
-    *S.Get<CompositeVector>("saturation_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("saturation_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& n_l =
-    *S.Get<CompositeVector>("molar_density_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("molar_density_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_l =
-    *S.Get<CompositeVector>("internal_energy_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& pres =
-    *S.Get<CompositeVector>("pressure", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("pressure", tag).viewComponent("cell", false);
 
   const Epetra_MultiVector& s_i =
-    *S.Get<CompositeVector>("saturation_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("saturation_ice", tag).viewComponent("cell", false);
   const Epetra_MultiVector& n_i =
-    *S.Get<CompositeVector>("molar_density_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("molar_density_ice", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_i =
-    *S.Get<CompositeVector>("internal_energy_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_ice", tag).viewComponent("cell", false);
 
   const Epetra_MultiVector& phi =
-    *S.Get<CompositeVector>("porosity", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("porosity", tag).viewComponent("cell", false);
   const Epetra_MultiVector& phib =
-    *S.Get<CompositeVector>("base_porosity", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("base_porosity", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_rock =
-    *S.Get<CompositeVector>("internal_energy_rock", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_rock", tag).viewComponent("cell", false);
   const Epetra_MultiVector& rho_rock =
-    *S.Get<CompositeVector>("density_rock", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("density_rock", tag).viewComponent("cell", false);
   const Epetra_MultiVector& cell_volume =
-    *S.Get<CompositeVector>("cell_volume", tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+    *S.Get<CompositeVector>("cell_volume", tag).viewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 
   int ncells = result[0]->size("cell", false);
   for (int c = 0; c != ncells; ++c) {
@@ -111,32 +111,32 @@ InterfrostEnergyEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   auto tag = my_keys_.front().second;
   const Epetra_MultiVector& s_l =
-    *S.Get<CompositeVector>("saturation_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("saturation_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& n_l =
-    *S.Get<CompositeVector>("molar_density_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("molar_density_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_l =
-    *S.Get<CompositeVector>("internal_energy_liquid", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_liquid", tag).viewComponent("cell", false);
   const Epetra_MultiVector& pres =
-    *S.Get<CompositeVector>("pressure", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("pressure", tag).viewComponent("cell", false);
 
   const Epetra_MultiVector& s_i =
-    *S.Get<CompositeVector>("saturation_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("saturation_ice", tag).viewComponent("cell", false);
   const Epetra_MultiVector& n_i =
-    *S.Get<CompositeVector>("molar_density_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("molar_density_ice", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_i =
-    *S.Get<CompositeVector>("internal_energy_ice", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_ice", tag).viewComponent("cell", false);
 
   const Epetra_MultiVector& phi =
-    *S.Get<CompositeVector>("porosity", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("porosity", tag).viewComponent("cell", false);
   const Epetra_MultiVector& phib =
-    *S.Get<CompositeVector>("base_porosity", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("base_porosity", tag).viewComponent("cell", false);
   const Epetra_MultiVector& u_rock =
-    *S.Get<CompositeVector>("internal_energy_rock", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("internal_energy_rock", tag).viewComponent("cell", false);
   const Epetra_MultiVector& rho_rock =
-    *S.Get<CompositeVector>("density_rock", tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>("density_rock", tag).viewComponent("cell", false);
   const Epetra_MultiVector& cell_volume =
-    *S.Get<CompositeVector>("cell_volume", tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+    *S.Get<CompositeVector>("cell_volume", tag).viewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 
   if (wrt_key == "porosity") {
     for (unsigned int c = 0; c != result[0]->size("cell"); ++c) {

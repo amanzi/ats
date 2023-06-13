@@ -31,7 +31,6 @@ This is the same as Richards equation, but turns off the accumulation term.
 #include "TreeVector.hh"
 #include "State.hh"
 #include "upwinding.hh"
-#include "BoundaryFunction.hh"
 
 #include "PK_Factory.hh"
 #include "richards.hh"

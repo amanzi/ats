@@ -67,9 +67,9 @@ IEMWaterVaporEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
   Teuchos::RCP<const CompositeVector> mol_frac = S.GetPtr<CompositeVector>(mol_frac_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-    const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+    const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+    const Epetra_MultiVector& molfrac_v = *mol_frac->viewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -92,9 +92,9 @@ IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
   if (wrt_key == temp_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+      const Epetra_MultiVector& molfrac_v = *mol_frac->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -104,9 +104,9 @@ IEMWaterVaporEvaluator::EvaluatePartialDerivative_(const State& S,
   } else if (wrt_key == mol_frac_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& temp_v = *temp->ViewComponent(*comp, false);
-      const Epetra_MultiVector& molfrac_v = *mol_frac->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
+      const Epetra_MultiVector& temp_v = *temp->viewComponent(*comp, false);
+      const Epetra_MultiVector& molfrac_v = *mol_frac->viewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

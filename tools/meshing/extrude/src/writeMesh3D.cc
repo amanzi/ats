@@ -40,7 +40,7 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename)
   std::vector<std::vector<int>> block_face_counts;
 
   int new_id = 0;
-  std::vector<int> cell_map(m.cell2face.size(), -1);
+  std::vector<int> getMap(AmanziMesh::Entity_kind::CELL,m.cell2face.size(), -1);
   for (auto sid : set_ids) {
     std::vector<int> block;
     std::vector<int> face_counts;

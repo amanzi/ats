@@ -163,9 +163,9 @@ PermafrostModel::UpdateModel(const Teuchos::Ptr<State>& S, int c)
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
   rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "density_rock"), tag_)
-                  .ViewComponent("cell"))[0][c];
+                  .viewComponent("cell"))[0][c];
   poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "base_porosity"), tag_)
-              .ViewComponent("cell"))[0][c];
+              .viewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
   if (!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];

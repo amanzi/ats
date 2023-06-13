@@ -21,7 +21,6 @@
 namespace Amanzi {
 
 class State;
-class CompositeVector;
 
 namespace Operators {
 

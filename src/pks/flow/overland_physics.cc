@@ -70,11 +70,11 @@ OverlandFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
     S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_, "cell_volume"));
 
   // Water content only has cells, while the residual has cells and faces.
-  g->ViewComponent("cell", false)
-    ->Multiply(1.0 / dt, *wc1->ViewComponent("cell", false), *cv->ViewComponent("cell", false), 1.);
-  g->ViewComponent("cell", false)
+  g->viewComponent("cell", false)
+    ->Multiply(1.0 / dt, *wc1->viewComponent("cell", false), *cv->viewComponent("cell", false), 1.);
+  g->viewComponent("cell", false)
     ->Multiply(
-      -1.0 / dt, *wc0->ViewComponent("cell", false), *cv->ViewComponent("cell", false), 1.);
+      -1.0 / dt, *wc0->viewComponent("cell", false), *cv->viewComponent("cell", false), 1.);
 };
 
 
@@ -84,17 +84,17 @@ OverlandFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 void
 OverlandFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
 {
-  Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
+  Epetra_MultiVector& g_c = *g->viewComponent("cell", false);
 
   const Epetra_MultiVector& cv1 =
     *S_next_->GetPtrW<CompositeVector>(Keys::getKey(domain_, "cell_volume"))
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
 
   if (is_source_term_) {
     // Add in external source term.
     S_next_->GetEvaluator(source_key_)->HasFieldChanged(S_next_.ptr(), name_);
     const Epetra_MultiVector& source1 =
-      *S_next_->Get<CompositeVector>(source_key_).ViewComponent("cell", false);
+      *S_next_->Get<CompositeVector>(source_key_).viewComponent("cell", false);
 
     g_c.Multiply(-1., source1, cv1, 1.);
   }

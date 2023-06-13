@@ -109,6 +109,9 @@ class PK_BDF_Default : public PK_BDF {
   virtual void ChangedSolution() override = 0;
   virtual void ChangedSolution(const Tag& tag) = 0;
 
+ protected:
+  virtual void ParseParameterList_() override;
+
  protected:                      // data
   bool assemble_preconditioner_; // preconditioner assembly control
   bool strongly_coupled_;        // if we are coupled, no need to make a TI

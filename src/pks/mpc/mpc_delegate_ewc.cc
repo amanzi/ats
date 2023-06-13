@@ -117,21 +117,21 @@ MPCDelegateEWC::initialize()
 
   if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
     const Epetra_MultiVector& wc =
-      *S_->GetPtr<CompositeVector>(wc_key_, tag_next_)->ViewComponent("cell", false);
+      *S_->GetPtr<CompositeVector>(wc_key_, tag_next_)->viewComponent("cell", false);
     const Epetra_MultiVector& e =
-      *S_->GetPtr<CompositeVector>(e_key_, tag_next_)->ViewComponent("cell", false);
+      *S_->GetPtr<CompositeVector>(e_key_, tag_next_)->viewComponent("cell", false);
 
     wc_prev2_ = Teuchos::rcp(new Epetra_MultiVector(wc));
     e_prev2_ = Teuchos::rcp(new Epetra_MultiVector(e));
-    wc_prev2_->PutScalar(0.);
-    e_prev2_->PutScalar(0.);
+    wc_prev2_->putScalar(0.);
+    e_prev2_->putScalar(0.);
 
     time_prev2_ = S_->get_time(tag_next_);
   }
 
   // initialize the Jacobian
   if (precon_type_ == PRECON_EWC || precon_type_ == PRECON_SMART_EWC) {
-    int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     jac_.resize(ncells, WhetStone::Tensor(2, 2));
   }
 
@@ -159,8 +159,8 @@ MPCDelegateEWC::commit_state()
 {
   if (predictor_type_ == PREDICTOR_EWC || predictor_type_ == PREDICTOR_SMART_EWC) {
     // stash water content and energy in S_work.
-    *wc_prev2_ = *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", false);
-    *e_prev2_ = *S_->Get<CompositeVector>(e_key_, tag_current_).ViewComponent("cell", false);
+    *wc_prev2_ = *S_->Get<CompositeVector>(wc_key_, tag_current_).viewComponent("cell", false);
+    *e_prev2_ = *S_->Get<CompositeVector>(e_key_, tag_current_).viewComponent("cell", false);
     time_prev2_ = S_->get_time(tag_current_);
   }
 }
@@ -221,24 +221,24 @@ MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, 
   S_->GetEvaluator(e_key_, tag_next_).UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
   const Epetra_MultiVector& dedT =
     *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, temp_key_, tag_next_)
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
 
   S_->GetEvaluator(e_key_, tag_next_).UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
   const Epetra_MultiVector& dedp =
     *S_->GetDerivativePtr<CompositeVector>(e_key_, tag_next_, pres_key_, tag_next_)
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
 
   S_->GetEvaluator(wc_key_, tag_next_).UpdateDerivative(*S_, "ewc", temp_key_, tag_next_);
   const Epetra_MultiVector& dwcdT =
     *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, temp_key_, tag_next_)
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
 
   S_->GetEvaluator(wc_key_, tag_next_).UpdateDerivative(*S_, "ewc", pres_key_, tag_next_);
   const Epetra_MultiVector& dwcdp =
     *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, pres_key_, tag_next_)
-       ->ViewComponent("cell", false);
+       ->viewComponent("cell", false);
 
-  int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells; ++c) {
     jac_[c](0, 0) = dwcdp[0][c];
     jac_[c](0, 1) = dwcdT[0][c];

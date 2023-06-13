@@ -142,20 +142,20 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
 {
   // Initialize the MeshPartition
   if (!permafrost_models_->first->initialized()) {
-    permafrost_models_->first->Initialize(results[0]->Mesh(), -1);
+    permafrost_models_->first->Initialize(results[0]->getMesh(), -1);
     permafrost_models_->first->Verify();
   }
 
   // Cell values
-  Epetra_MultiVector& satg_c = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell", false);
-  Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell", false);
+  Epetra_MultiVector& satg_c = *results[0]->viewComponent("cell", false);
+  Epetra_MultiVector& satl_c = *results[1]->viewComponent("cell", false);
+  Epetra_MultiVector& sati_c = *results[2]->viewComponent("cell", false);
 
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& pc_liq_c =
-    *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& pc_ice_c =
-    *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->viewComponent("cell", false);
 
   double sats[3];
   int ncells = satg_c.MyLength();
@@ -168,19 +168,19 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
   }
 
   // Potentially do face values as well, though only for saturation_liquid?
-  if (results[0]->HasComponent("boundary_face")) {
-    Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face", false);
+  if (results[0]->hasComponent("boundary_face")) {
+    Epetra_MultiVector& satg_bf = *results[0]->viewComponent("boundary_face", false);
+    Epetra_MultiVector& satl_bf = *results[1]->viewComponent("boundary_face", false);
+    Epetra_MultiVector& sati_bf = *results[2]->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pc_liq_bf =
-      *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pc_ice_bf =
-      *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->viewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
     AmanziMesh::Entity_ID_List cells;
 
     // calculate boundary face values
@@ -188,7 +188,7 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int i = (*permafrost_models_->first)[cells[0]];
@@ -209,20 +209,20 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   // Initialize the MeshPartition
   if (!permafrost_models_->first->initialized()) {
-    permafrost_models_->first->Initialize(results[0]->Mesh(), -1);
+    permafrost_models_->first->Initialize(results[0]->getMesh(), -1);
     permafrost_models_->first->Verify();
   }
 
   // Cell values
-  Epetra_MultiVector& satg_c = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& satl_c = *results[1]->ViewComponent("cell", false);
-  Epetra_MultiVector& sati_c = *results[2]->ViewComponent("cell", false);
+  Epetra_MultiVector& satg_c = *results[0]->viewComponent("cell", false);
+  Epetra_MultiVector& satl_c = *results[1]->viewComponent("cell", false);
+  Epetra_MultiVector& sati_c = *results[2]->viewComponent("cell", false);
 
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& pc_liq_c =
-    *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->viewComponent("cell", false);
   const Epetra_MultiVector& pc_ice_c =
-    *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->ViewComponent("cell", false);
+    *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->viewComponent("cell", false);
 
   double dsats[3];
   if (wrt_key == pc_liq_key_) {
@@ -251,19 +251,19 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 
   // Potentially do face values as well, though only for saturation_liquid?
-  if (results[0]->HasComponent("boundary_face")) {
-    Epetra_MultiVector& satg_bf = *results[0]->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& satl_bf = *results[1]->ViewComponent("boundary_face", false);
-    Epetra_MultiVector& sati_bf = *results[2]->ViewComponent("boundary_face", false);
+  if (results[0]->hasComponent("boundary_face")) {
+    Epetra_MultiVector& satg_bf = *results[0]->viewComponent("boundary_face", false);
+    Epetra_MultiVector& satl_bf = *results[1]->viewComponent("boundary_face", false);
+    Epetra_MultiVector& sati_bf = *results[2]->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pc_liq_bf =
-      *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(pc_liq_key_, tag)->viewComponent("boundary_face", false);
     const Epetra_MultiVector& pc_ice_bf =
-      *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->ViewComponent("boundary_face", false);
+      *S.GetPtr<CompositeVector>(pc_ice_key_, tag)->viewComponent("boundary_face", false);
 
     // Need to get boundary face's inner cell to specify the WRM.
-    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& face_map = mesh->face_map(false);
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
+    Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
     AmanziMesh::Entity_ID_List cells;
 
     if (wrt_key == pc_liq_key_) {
@@ -272,7 +272,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];
@@ -289,7 +289,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];

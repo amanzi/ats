@@ -22,7 +22,6 @@
 namespace Amanzi {
 
 class State;
-class CompositeVector;
 
 namespace Operators {
 
@@ -43,13 +42,13 @@ class UpwindPotentialDifference : public Upwinding {
                                     const CompositeVector& overlap,
                                     CompositeVector& face_coef) const;
 
-  virtual void UpdateDerivatives(
-    const Teuchos::Ptr<State>& S,
-    std::string potential_key,
-    const CompositeVector& dconductivity,
-    const std::vector<int>& bc_markers,
-    const std::vector<double>& bc_values,
-    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const override;
+  // virtual void UpdateDerivatives(
+  //   const Teuchos::Ptr<State>& S,
+  //   std::string potential_key,
+  //   const CompositeVector& dconductivity,
+  //   const std::vector<int>& bc_markers,
+  //   const std::vector<double>& bc_values,
+  //   std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const override;
 
   virtual std::string CoefficientLocation() const override { return "upwind: face"; }
 

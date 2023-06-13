@@ -47,7 +47,7 @@ Transport_ATS::CalculateDispersionTensor_(const Epetra_MultiVector& water_flux,
   WhetStone::Polynomial poly(dim, 1);
 
   for (int c = 0; c < ncells_owned; ++c) {
-    mesh_->cell_get_faces(c, &faces);
+    faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
     std::vector<WhetStone::Polynomial> flux(nfaces);
@@ -90,7 +90,7 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
     std::vector<AmanziMesh::Entity_ID> block;
     for (int r = 0; r < (spec->regions).size(); r++) {
       std::string region = (spec->regions)[r];
-      mesh_->get_set_entities(region, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &block);
+      mesh_->getSetEntities(region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &block);
 
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
@@ -139,7 +139,7 @@ Transport_ATS::CalculateAxiSymmetryDirection()
   axi_symmetry_.resize(ncells_owned, -1);
   if (S_->HasRecord(permeability_key_, tag_next_)) {
     const Epetra_MultiVector& perm =
-      *S_->Get<CompositeVector>(permeability_key_, tag_next_).ViewComponent("cell");
+      *S_->Get<CompositeVector>(permeability_key_, tag_next_).viewComponent("cell");
 
     if (perm.NumVectors() == 3) {
       for (int c = 0; c < ncells_owned; ++c) {

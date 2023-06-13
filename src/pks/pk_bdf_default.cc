@@ -21,6 +21,14 @@ BDF.
 
 namespace Amanzi {
 
+void
+PK_BDF_Default::ParseParameterList_()
+{
+  // preconditioner assembly
+  assemble_preconditioner_ = plist_->get<bool>("assemble preconditioner", true);
+  strongly_coupled_ = plist_->get<bool>("strongly coupled PK", false);
+}
+
 
 // -----------------------------------------------------------------------------
 // Setup
@@ -28,11 +36,6 @@ namespace Amanzi {
 void
 PK_BDF_Default::Setup()
 {
-  // preconditioner assembly
-  assemble_preconditioner_ = plist_->get<bool>("assemble preconditioner", true);
-  strongly_coupled_ = plist_->get<bool>("strongly coupled PK", false);
-
-
   if (!strongly_coupled_) {
     Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
 
@@ -58,10 +61,10 @@ PK_BDF_Default::Initialize()
     // set up the timestepping algorithm
     // -- construct the time integrator
     //   Note, this is done here and not in setup because solution is not ready in setup
-    Teuchos::ParameterList& bdf_plist = plist_->sublist("time integrator");
-    bdf_plist.sublist("verbose object")
+    auto bdf_plist = Teuchos::sublist(plist_, "time integrator");
+    bdf_plist->sublist("verbose object")
       .setParametersNotAlreadySet(plist_->sublist("verbose object"));
-    bdf_plist.sublist("verbose object").set("name", name() + "_TI");
+    bdf_plist->sublist("verbose object").set("name", name() + "_TI");
 
     time_stepper_ =
       Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(*this, bdf_plist, solution_, S_));
@@ -78,7 +81,7 @@ PK_BDF_Default::Initialize()
 
     // -- initialize time derivative
     auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
-    solution_dot->PutScalar(0.0);
+    solution_dot->putScalar(0.0);
 
     // -- set initial state
     time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);

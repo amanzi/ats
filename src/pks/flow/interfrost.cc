@@ -26,15 +26,15 @@ Interfrost::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
   S_->GetEvaluator(key_, tag_current_).Update(*S_, name_);
 
   const Epetra_MultiVector& pres1 =
-    *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(key_, tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& pres0 =
-    *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(key_, tag_current_).viewComponent("cell", false);
   const Epetra_MultiVector& cv1 =
-    *S_->Get<CompositeVector>("cell_volume", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("cell_volume", tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& dThdp =
-    *S_->Get<CompositeVector>("DThetaDp_coef", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("DThetaDp_coef", tag_next_).viewComponent("cell", false);
 
-  Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
+  Epetra_MultiVector& g_c = *g->viewComponent("cell", false);
   for (int c = 0; c != g_c.MyLength(); ++c) {
     g_c[0][c] += cv1[0][c] * dThdp[0][c] * (pres1[0][c] - pres0[0][c]) / dt;
   }
@@ -70,7 +70,7 @@ Interfrost::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
   auto rel_perm_modified = Teuchos::rcp(new CompositeVector(rel_perm));
   *rel_perm_modified = rel_perm;
   {
-    Epetra_MultiVector& rel_perm_mod_f = *rel_perm_modified->ViewComponent("face", false);
+    Epetra_MultiVector& rel_perm_mod_f = *rel_perm_modified->viewComponent("face", false);
     unsigned int nfaces = rel_perm_mod_f.MyLength();
     for (unsigned int f = 0; f != nfaces; ++f) {
       rel_perm_mod_f[0][f] = std::max(rel_perm_mod_f[0][f], 1.e-18);
@@ -119,18 +119,18 @@ Interfrost::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 
   // -- and the extra interfrost deriv
   S_->GetEvaluator("DThetaDp_coef", tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-  const Epetra_MultiVector& dwc_dp_vec = *dwc_dp->ViewComponent("cell", false);
+  const Epetra_MultiVector& dwc_dp_vec = *dwc_dp->viewComponent("cell", false);
   const Epetra_MultiVector& dThdp_coef =
-    *S_->Get<CompositeVector>("DThetaDp_coef", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("DThetaDp_coef", tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& d_dThdp_coef_dp =
     *S_->GetDerivative<CompositeVector>("dDThetaDp_coef", tag_next_, key_, tag_next_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   const Epetra_MultiVector& pres0 =
-    *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(key_, tag_current_).viewComponent("cell", false);
   const Epetra_MultiVector& pres1 =
-    *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(key_, tag_next_).viewComponent("cell", false);
   const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>("cell_volume", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("cell_volume", tag_next_).viewComponent("cell", false);
 
   // -- update the cell-cell block
   auto& Acc_cells = *preconditioner_acc_->local_op(0)->diag;
@@ -157,7 +157,7 @@ Interfrost::SetupPhysicalEvaluators_()
   // in addition, require DThetaDP_coef, the specific storage term in Interfrost model
   S_->Require<CompositeVector, CompositeVectorSpace>("DThetaDp_coef", tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator("DThetaDp_coef", tag_next_);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     "DThetaDp_coef", tag_next_, key_, tag_next_);

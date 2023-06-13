@@ -39,7 +39,7 @@ AdvectionDiffusion::FunctionalResidual(double t_old,
 
   // get access to the solution
   Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  res->putScalar(0.0);
 
   // diffusion term, implicit
   ApplyDiffusion_(S_next_, res);
@@ -72,7 +72,7 @@ AdvectionDiffusion::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "Precon application:" << std::endl;
     *vo_->os() << "  u: " << (*u->Data())("cell", 0);
-    if (u->Data()->HasComponent("face")) *vo_->os() << "  f: " << (*u->Data())("face", 80);
+    if (u->Data()->hasComponent("face")) *vo_->os() << "  f: " << (*u->Data())("face", 80);
     *vo_->os() << std::endl;
   }
 
@@ -80,7 +80,7 @@ AdvectionDiffusion::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "  Pu: " << (*Pu->Data())("cell", 0);
-    if (Pu->Data()->HasComponent("face")) *vo_->os() << "  f: " << (*Pu->Data())("face", 80);
+    if (Pu->Data()->hasComponent("face")) *vo_->os() << "  f: " << (*Pu->Data())("face", 80);
     *vo_->os() << std::endl;
   }
 
@@ -111,7 +111,7 @@ AdvectionDiffusion::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector
   Teuchos::RCP<const CompositeVector> cell_volume = S_next_->GetFieldData("cell_volume");
 
   CompositeVector du(cell_volume->Map());
-  du.PutScalar(1.);
+  du.putScalar(1.);
   preconditioner_acc_->AddAccumulationTerm(du, h, "cell");
 
   // update with advection terms

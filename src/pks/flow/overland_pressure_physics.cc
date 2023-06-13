@@ -21,7 +21,7 @@ OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<Composi
 {
   auto& markers = bc_markers();
   auto& values = bc_values();
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
   // update the rel perm according to the scheme of choice.
   UpdatePermeabilityData_(tag);
@@ -73,11 +73,11 @@ OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
   }
 
   // Water content only has cells, while the residual has cells and faces.
-  g->ViewComponent("cell", false)
+  g->viewComponent("cell", false)
     ->Update(1.0 / dt,
-             *wc1->ViewComponent("cell", false),
+             *wc1->viewComponent("cell", false),
              -1.0 / dt,
-             *wc0->ViewComponent("cell", false),
+             *wc0->viewComponent("cell", false),
              1.0);
 };
 
@@ -88,17 +88,17 @@ OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 void
 OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
 {
-  Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
+  Epetra_MultiVector& g_c = *g->viewComponent("cell", false);
 
   S_->GetEvaluator(cv_key_, tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& cv1 =
-    *S_->Get<CompositeVector>(cv_key_, tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(cv_key_, tag_next_).viewComponent("cell", false);
 
   if (is_source_term_) {
     // Add in external source term.
     S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
+      *S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
 
     if (source_in_meters_) {
@@ -108,9 +108,9 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       S_->GetEvaluator(source_molar_dens_key_, tag_next_).Update(*S_, name_);
 
       const Epetra_MultiVector& nliq1 =
-        *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
+        *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
       const Epetra_MultiVector& nliq1_s =
-        *S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).ViewComponent("cell", false);
+        *S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
 
       int ncells = g_c.MyLength();
       for (int c = 0; c != ncells; ++c) {
@@ -131,7 +131,7 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_);
 
     // source term is in units of [mol / s]
-    g_c.Update(-1., *source1->ViewComponent("cell", false), 1.);
+    g_c.Update(-1., *source1->viewComponent("cell", false), 1.);
   }
 };
 

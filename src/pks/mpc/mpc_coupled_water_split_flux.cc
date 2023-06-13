@@ -86,24 +86,24 @@ MPCCoupledWaterSplitFlux::Setup()
         Tag ds_tag_next = get_ds_tag_next_(domain);
         S_->Require<CompositeVector, CompositeVectorSpace>(p_key, ds_tag_next, p_key)
           .SetMesh(S_->GetMesh(domain))
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+          ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
         requireEvaluatorPrimary(p_key, ds_tag_next, *S_);
       }
     } else {
       S_->Require<CompositeVector, CompositeVectorSpace>(
           p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       requireEvaluatorPrimary(p_lateral_flow_source_, tags_[1].second, *S_);
     }
 
     // also need conserved quantities at old and new times
     S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].second)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].first)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].second);
     //S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].first);
   }
@@ -132,7 +132,7 @@ MPCCoupledWaterSplitFlux::Initialize()
   S_->GetRecordW(p_primary_variable_star_, tags_[0].second, p_owner).set_initialized();
 
   auto& pstar = *S_->Get<CompositeVector>(p_primary_variable_star_, tags_[0].second)
-                   .ViewComponent("cell", false);
+                   .viewComponent("cell", false);
 
   // set the fluxes as initialized -- they will get set by later calls to
   // CopyStarToPrimary, so no need for values, but do need to toggle the flag.
@@ -232,9 +232,9 @@ MPCCoupledWaterSplitFlux::CopyPrimaryToStar_Standard_()
   // copy p primary variable
   auto p_owner = S_->GetRecord(p_primary_variable_star_, tags_[0].second).owner();
   auto& p_star = *S_->GetW<CompositeVector>(p_primary_variable_star_, tags_[0].second, p_owner)
-                    .ViewComponent("cell", false);
+                    .viewComponent("cell", false);
   const auto& p =
-    *S_->Get<CompositeVector>(p_primary_variable_, tags_[1].second).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>(p_primary_variable_, tags_[1].second).viewComponent("cell", false);
   for (int c = 0; c != p_star.MyLength(); ++c) {
     if (p[0][c] <= 101325.0) {
       p_star[0][c] = 101325.;
@@ -256,13 +256,13 @@ MPCCoupledWaterSplitFlux::CopyPrimaryToStar_DomainSet_()
   // copy p primary variables into star primary variable
   auto p_owner = S_->GetRecord(p_primary_variable_star_, tags_[0].second).owner();
   auto& p_star = *S_->GetW<CompositeVector>(p_primary_variable_star_, tags_[0].second, p_owner)
-                    .ViewComponent("cell", false);
+                    .viewComponent("cell", false);
 
   auto ds_iter = domain_set.begin();
   for (int c = 0; c != p_star.MyLength(); ++c) {
     Key p_key = Keys::getKey(*ds_iter, p_primary_variable_suffix_);
     Tag ds_tag_next = get_ds_tag_next_(*ds_iter);
-    const auto& p = *S_->Get<CompositeVector>(p_key, ds_tag_next).ViewComponent("cell", false);
+    const auto& p = *S_->Get<CompositeVector>(p_key, ds_tag_next).viewComponent("cell", false);
     AMANZI_ASSERT(p.MyLength() == 1);
     if (p[0][0] <= 101325.0) {
       p_star[0][c] = 101325.;
@@ -283,16 +283,16 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Pressure_()
 {
   // copy p primary variables from star primary variable
   const auto& p_star = *S_->GetPtr<CompositeVector>(p_primary_variable_star_, tags_[0].second)
-                          ->ViewComponent("cell", false);
+                          ->viewComponent("cell", false);
   const auto& WC_star = *S_->GetPtr<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                           ->ViewComponent("cell", false);
+                           ->viewComponent("cell", false);
 
   auto p_owner = S_->GetRecord(p_primary_variable_, tags_[1].first).owner();
   auto& p = *S_->GetW<CompositeVector>(p_primary_variable_, tags_[1].first, p_owner)
-               .ViewComponent("cell", false);
+               .viewComponent("cell", false);
   auto& WC =
     *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, p_conserved_variable_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
 
   double p_atm_plus_eps = 101325. + 1.e-7;
   for (int c = 0; c != p_star.MyLength(); ++c) {
@@ -329,19 +329,19 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Flux_()
   // -- grab the data, difference
   auto& q_div =
     *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                -1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(
     1.0,
-    *S_->Get<CompositeVector>(cv_key_, tags_[1].second).ViewComponent("cell", false),
+    *S_->Get<CompositeVector>(cv_key_, tags_[1].second).viewComponent("cell", false),
     q_div,
     0.);
 
@@ -362,35 +362,35 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_Standard_Hybrid_()
   // -- grab the data, difference
   auto& q_div =
     *S_->GetW<CompositeVector>(p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                -1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                0.);
 
   // -- scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(
     1.0,
-    *S_->Get<CompositeVector>(cv_key_, tags_[1].second).ViewComponent("cell", false),
+    *S_->Get<CompositeVector>(cv_key_, tags_[1].second).viewComponent("cell", false),
     q_div,
     0.);
 
   // grab the pressure and temp from the star system as well
   const auto& p_star = *S_->GetPtr<CompositeVector>(p_primary_variable_star_, tags_[0].second)
-                          ->ViewComponent("cell", false);
+                          ->viewComponent("cell", false);
   const auto& WC_star = *S_->GetPtr<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                           ->ViewComponent("cell", false);
+                           ->viewComponent("cell", false);
 
   // and from the surface system
   auto p_owner = S_->GetRecord(p_primary_variable_, tags_[1].first).owner();
   auto& p = *S_->GetW<CompositeVector>(p_primary_variable_, tags_[1].first, p_owner)
-               .ViewComponent("cell", false);
+               .viewComponent("cell", false);
   auto& WC =
     *S_->GetW<CompositeVector>(p_conserved_variable_, tags_[1].first, p_conserved_variable_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
 
   // in the case of water loss, use pressure.  in the case of water gain, use flux.
   for (int c = 0; c != p_star.MyLength(); ++c) {
@@ -429,7 +429,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Pressure_()
 
   // copy p primary variables into star primary variable
   const auto& p_star = *S_->GetPtr<CompositeVector>(p_primary_variable_star_, tags_[0].second)
-                          ->ViewComponent("cell", false);
+                          ->viewComponent("cell", false);
 
   auto ds_iter = domain_set.begin();
   for (int c = 0; c != p_star.MyLength(); ++c) {
@@ -440,7 +440,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Pressure_()
       Key p_key = Keys::getKey(*ds_iter, p_primary_variable_suffix_);
       auto p_owner = S_->GetRecord(p_key, ds_tag_current).owner();
       auto& p =
-        *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).ViewComponent("cell", false);
+        *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).viewComponent("cell", false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
@@ -468,18 +468,18 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Flux_()
 
   // grab the data, difference
   Epetra_MultiVector q_div(*S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                              .ViewComponent("cell", false));
+                              .viewComponent("cell", false));
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                -1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(
     1.0,
-    *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell", false),
+    *S_->Get<CompositeVector>(cv_key_, tags_[0].second).viewComponent("cell", false),
     q_div,
     0.);
 
@@ -489,7 +489,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Flux_()
     Tag ds_tag_next = get_ds_tag_next_(*ds_iter);
     Key p_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
     auto p_owner = S_->GetRecord(p_key, ds_tag_next).owner();
-    (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).ViewComponent("cell", false))[0][0] =
+    (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).viewComponent("cell", false))[0][0] =
       q_div[0][c];
     changedEvaluatorPrimary(p_key, ds_tag_next, *S_);
     ++ds_iter;
@@ -508,24 +508,24 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
 
   // grab the data, difference
   Epetra_MultiVector q_div(*S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                              .ViewComponent("cell", false));
+                              .viewComponent("cell", false));
   q_div.Update(1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].second)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                -1.0 / dt,
                *S_->Get<CompositeVector>(p_conserved_variable_star_, tags_[0].first)
-                  .ViewComponent("cell", false),
+                  .viewComponent("cell", false),
                0.);
   // scale by cell volume as this will get rescaled in the source calculation
   q_div.ReciprocalMultiply(
     1.0,
-    *S_->Get<CompositeVector>(cv_key_, tags_[0].second).ViewComponent("cell", false),
+    *S_->Get<CompositeVector>(cv_key_, tags_[0].second).viewComponent("cell", false),
     q_div,
     0.);
 
   // copy p primary variables into star primary variable
   const auto& p_star = *S_->GetPtr<CompositeVector>(p_primary_variable_star_, tags_[0].second)
-                          ->ViewComponent("cell", false);
+                          ->viewComponent("cell", false);
 
   // in the case of water loss, use pressure.  in the case of water gain, use flux.
   auto ds_iter = domain_set.begin();
@@ -537,7 +537,7 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
       Key p_key = Keys::getKey(*ds_iter, p_primary_variable_suffix_);
       auto p_owner = S_->GetRecord(p_key, ds_tag_current).owner();
       auto& p =
-        *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).ViewComponent("cell", false);
+        *S_->GetW<CompositeVector>(p_key, ds_tag_current, p_owner).viewComponent("cell", false);
       AMANZI_ASSERT(p.MyLength() == 1);
       p[0][0] = p_star[0][c];
 
@@ -552,14 +552,14 @@ MPCCoupledWaterSplitFlux::CopyStarToPrimary_DomainSet_Hybrid_()
       // set the lateral flux to 0
       Key p_lf_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
       (*S_->GetW<CompositeVector>(p_lf_key, ds_tag_next, p_lf_key)
-          .ViewComponent("cell", false))[0][0] = 0.;
+          .viewComponent("cell", false))[0][0] = 0.;
       changedEvaluatorPrimary(p_lf_key, ds_tag_next, *S_);
 
     } else {
       // use flux
       Key p_key = Keys::getKey(*ds_iter, p_lateral_flow_source_suffix_);
       auto p_owner = S_->GetRecord(p_key, ds_tag_next).owner();
-      (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).ViewComponent("cell", false))[0][0] =
+      (*S_->GetW<CompositeVector>(p_key, ds_tag_next, p_owner).viewComponent("cell", false))[0][0] =
         q_div[0][c];
       changedEvaluatorPrimary(p_key, ds_tag_next, *S_);
     }

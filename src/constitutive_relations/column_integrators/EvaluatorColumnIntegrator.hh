@@ -81,11 +81,11 @@ EvaluatorColumnIntegrator<Parser, Integrator>::EnsureCompatibility_ToDeps_(State
 {
   const auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
                                                                      my_keys_.front().second);
-  if (fac.Mesh() != Teuchos::null) {
+  if (fac.getMesh() != Teuchos::null) {
     CompositeVectorSpace dep_fac;
-    dep_fac.SetMesh(fac.Mesh()->parent())
+    dep_fac.SetMesh(fac.getMesh()->getParentMesh())
       ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (const auto& dep : dependencies_) {
       if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
@@ -120,12 +120,12 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   std::vector<const Epetra_MultiVector*> deps;
   for (const auto& dep : dependencies_) {
     deps.emplace_back(
-      S.Get<CompositeVector>(dep.first, dep.second).ViewComponent("cell", false).get());
+      S.Get<CompositeVector>(dep.first, dep.second).viewComponent("cell", false).get());
   }
-  auto mesh = result[0]->Mesh()->parent();
+  auto mesh = result[0]->getMesh()->getParentMesh();
   Integrator integrator(plist_, deps, &*mesh);
 
-  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
 
   for (int col = 0; col != res.MyLength(); ++col) {
     // for each column, loop over cells calling the integrator until stop is

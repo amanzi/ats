@@ -40,13 +40,13 @@ AdvectionDiffusion::AddAccumulation_(Teuchos::RCP<CompositeVector> g)
   AMANZI_ASSERT(dt > 0.);
 
   //  --   g <-- g - (cv*h)_t0/dt
-  g->ViewComponent("cell", false)
+  g->viewComponent("cell", false)
     ->Multiply(
-      -1. / dt, *cv0->ViewComponent("cell", false), *temp0->ViewComponent("cell", false), 1.);
+      -1. / dt, *cv0->viewComponent("cell", false), *temp0->viewComponent("cell", false), 1.);
   //  --   g <-- g + (cv*h)_t1/dt
-  g->ViewComponent("cell", false)
+  g->viewComponent("cell", false)
     ->Multiply(
-      1. / dt, *cv1->ViewComponent("cell", false), *temp1->ViewComponent("cell", false), 1.);
+      1. / dt, *cv1->viewComponent("cell", false), *temp1->viewComponent("cell", false), 1.);
 };
 
 

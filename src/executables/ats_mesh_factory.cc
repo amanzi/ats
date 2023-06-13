@@ -19,7 +19,6 @@
 #include "MeshAudit.hh"
 #include "MeshFactory.hh"
 #include "MeshLogicalFactory.hh"
-#include "MeshColumn.hh"
 #include "MeshSurfaceCell.hh"
 #include "GeometricModel.hh"
 
@@ -70,9 +69,9 @@ createMeshFromFile(const std::string& mesh_name,
     // potentially build columns
     if (mesh_plist.isParameter("build columns from set")) {
       std::string regionname = mesh_plist.get<std::string>("build columns from set");
-      mesh->build_columns(regionname);
+      mesh->buildColumns({regionname});
     } else if (mesh_plist.get("build columns", true)) {
-      mesh->build_columns();
+      mesh->buildColumns();
     }
 
     // verify
@@ -120,9 +119,9 @@ createMeshGenerated(const std::string& mesh_name,
     // build columns
     if (mesh_plist.isParameter("build columns from set")) {
       std::string regionname = mesh_plist.get<std::string>("build columns from set");
-      mesh->build_columns(regionname);
+      mesh->buildColumns({regionname});
     } else if (mesh_plist.get("build columns", false)) {
-      mesh->build_columns();
+      mesh->buildColumns();
     }
 
     // verify
@@ -153,17 +152,18 @@ createMeshLogical(const std::string& mesh_name,
 
 {
   Teuchos::ParameterList& mesh_logical_plist = mesh_plist.sublist("logical mesh parameters");
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
   // -- from logical mesh file, has its own factory
-  AmanziMesh::MeshLogicalFactory fac(comm, gm);
+  AmanziMesh::MeshFactory fac(comm, gm, mesh_factory_plist);
 
   Teuchos::RCP<AmanziMesh::Mesh> mesh = Teuchos::null;
   if (mesh_logical_plist.isParameter("read from file")) {
     auto filename = mesh_logical_plist.get<std::string>("read from file");
     auto my_list_in_other_file = Teuchos::getParametersFromXmlFile(filename);
-    mesh = fac.Create(*my_list_in_other_file);
+    mesh = fac.createLogical(*my_list_in_other_file);
   } else {
-    mesh = fac.Create(mesh_logical_plist);
+    mesh = fac.createLogical(mesh_logical_plist);
   }
 
   if (mesh != Teuchos::null) { checkVerifyMesh(mesh_plist, mesh); }
@@ -261,7 +261,7 @@ createMeshSurface(const std::string& mesh_name,
 
   if (S.HasMesh(parent_name)) {
     auto parent = S.GetMesh(parent_name);
-    auto comm = parent->get_comm();
+    auto comm = parent->getComm();
 
     // get the regions
     std::vector<std::string> regions;
@@ -285,11 +285,11 @@ createMeshSurface(const std::string& mesh_name,
     Teuchos::RCP<AmanziMesh::Mesh> surface3D_mesh = Teuchos::null;
 
     // construct a 3D submanifold mesh if needed and the flattened surface mesh
-    if (parent->manifold_dimension() == 3) {
-      surface3D_mesh = factory.create(parent, regions, AmanziMesh::FACE, false, true, false);
-      mesh = factory.create(parent, regions, AmanziMesh::FACE, true, true, false);
+    if (parent->getManifoldDimension() == 3) {
+      surface3D_mesh = factory.create(parent, regions, AmanziMesh::Entity_kind::FACE, false);
+      mesh = factory.create(parent, regions, AmanziMesh::Entity_kind::FACE, true);
     } else {
-      mesh = factory.create(parent, regions, AmanziMesh::CELL, true, true, false);
+      mesh = factory.create(parent, regions, AmanziMesh::Entity_kind::CELL, true);
     }
 
     bool deformable = mesh_plist.get<bool>("deformable mesh", false);
@@ -357,7 +357,7 @@ createMeshExtracted(const std::string& mesh_name,
 
   if (S.HasMesh(parent_name)) {
     auto parent = S.GetMesh(parent_name);
-    auto comm = parent->get_comm();
+    auto comm = parent->getComm();
 
     // get the regions
     std::vector<std::string> regions;
@@ -375,7 +375,7 @@ createMeshExtracted(const std::string& mesh_name,
     AmanziMesh::MeshFactory factory(comm, gm, mesh_factory_plist);
 
     // construct the extracted mesh
-    mesh = factory.create(parent, regions, AmanziMesh::CELL, false, true, false);
+    mesh = factory.create(parent, regions, AmanziMesh::Entity_kind::CELL, false);
     bool deformable = mesh_plist.get<bool>("deformable mesh", false);
 
     // register with state
@@ -403,25 +403,34 @@ createMeshColumn(const std::string& mesh_name,
                  VerboseObject& vo)
 {
   Teuchos::ParameterList& mesh_column_plist = mesh_plist.sublist("column parameters");
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
+
+  // vo
+  if (mesh_plist.isSublist("verbose object"))
+    mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
 
   AmanziMesh::Entity_ID lid = mesh_column_plist.get<AmanziMesh::Entity_ID>("entity LID");
   auto parent_name = mesh_column_plist.get<std::string>("parent domain", "domain");
+
   if (vo.os_OK(Teuchos::VERB_HIGH)) {
     *vo.os() << "  Constructing MeshColumn of name " << mesh_name << " with parent " << parent_name
              << std::endl;
   }
   auto parent = S.GetMesh(parent_name);
-  auto parent_list = Teuchos::rcp(new Teuchos::ParameterList(*parent->parameter_list()));
-  auto mesh = AmanziMesh::createColumnMesh(parent, lid, parent_list);
+  auto parent_list = Teuchos::rcp(new Teuchos::ParameterList(*parent->getParameterList()));
+
+  // create the MSTK factory
+  AmanziMesh::MeshFactory factory(getCommSelf(), gm, mesh_factory_plist);
+  auto mesh = factory.createColumn(parent, lid, parent_list);
   bool deformable = mesh_plist.get<bool>("deformable mesh", false);
 
   // build columns and verify
   if (mesh != Teuchos::null) {
     if (mesh_plist.isParameter("build columns from set")) {
       std::string regionname = mesh_plist.get<std::string>("build columns from set");
-      mesh->build_columns(regionname);
+      mesh->buildColumns({regionname});
     } else if (mesh_plist.get("build columns", false)) {
-      mesh->build_columns();
+      mesh->buildColumns();
     }
     checkVerifyMesh(mesh_plist, mesh);
   }
@@ -446,6 +455,7 @@ createMeshColumnSurface(const std::string& mesh_name,
                         VerboseObject& vo)
 {
   Teuchos::ParameterList& mesh_column_surf_plist = mesh_plist.sublist("column surface parameters");
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
   std::string parent_name = mesh_column_surf_plist.get<std::string>("parent domain");
   if (Keys::isDomainSet(parent_name)) {
@@ -457,11 +467,13 @@ createMeshColumnSurface(const std::string& mesh_name,
   }
 
   auto parent = S.GetMesh(parent_name);
-  std::string surface_region = mesh_column_surf_plist.get<std::string>("surface region", "surface");
   if (vo.os_OK(Teuchos::VERB_HIGH))
     *vo.os() << "  Constructing MeshSurfaceCell of name " << mesh_name << " with parent "
              << parent_name << std::endl;
-  auto mesh = Teuchos::rcp(new AmanziMesh::MeshSurfaceCell(parent, surface_region));
+
+  // create the MSTK factory
+  AmanziMesh::MeshFactory factory(getCommSelf(), gm, mesh_factory_plist);
+  auto mesh = factory.createSurfaceCell(parent);
   bool deformable = mesh_plist.get<bool>("deformable mesh", false);
 
   checkVerifyMesh(mesh_plist, mesh);
@@ -527,7 +539,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
 
   // get the indexing info
   auto regions = ds_list.get<Teuchos::Array<std::string>>("regions").toVector();
-  auto entity_kind = AmanziMesh::entity_kind(ds_list.get<std::string>("entity kind"));
+  auto entity_kind = AmanziMesh::createEntityKind(ds_list.get<std::string>("entity kind"));
   std::string indexing_parent_name = ds_list.get<std::string>("indexing parent domain", "domain");
 
   if (S.HasMesh(indexing_parent_name)) {
@@ -547,21 +559,20 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
     // for each subdomain, create a referencing map, a map from subdomain to reference mesh
     std::vector<std::string> subdomains;
     std::vector<int> lids;
-    std::map<std::string, Teuchos::RCP<const std::vector<int>>> reference_maps;
+    std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> reference_maps;
 
     // if aliased, we deal with domain sets specially
     std::string alias_target;
 
     // create the subdomains, indexed over entities
     for (const auto& region : regions) {
-      AmanziMesh::Entity_ID_List region_ents;
-      indexing_parent_mesh->get_set_entities(
-        region, entity_kind, AmanziMesh::Parallel_type::OWNED, &region_ents);
-      const auto& map = indexing_parent_mesh->map(entity_kind, false);
+      auto region_ents = indexing_parent_mesh->getSetEntities(
+        region, entity_kind, AmanziMesh::Parallel_kind::OWNED);
+      const auto& map = indexing_parent_mesh->getMap(entity_kind, false);
 
       for (const AmanziMesh::Entity_ID& lid : region_ents) {
         // subdomain name
-        AmanziMesh::Entity_ID gid = map.GID(lid);
+        AmanziMesh::Entity_ID gid = map->getGlobalElement(lid);
         std::string subdomain = std::to_string(gid);
         subdomains.push_back(subdomain);
         std::string full_subdomain_name = Keys::getDomainInSet(mesh_name, subdomain);
@@ -583,13 +594,13 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
         if (!subdomain_param_list.isParameter("entity LID"))
           subdomain_param_list.set("entity LID", lid);
         if (!subdomain_param_list.isParameter("entity kind"))
-          subdomain_param_list.set("entity kind", AmanziMesh::entity_kind_string(entity_kind));
+          subdomain_param_list.set("entity kind", AmanziMesh::to_string(entity_kind));
         if (!subdomain_param_list.isParameter("parent domain"))
           subdomain_param_list.set("parent domain", indexing_parent_name);
 
         // construct
         auto subdomain_mesh =
-          createMesh(subdomain_list, indexing_parent_mesh->get_comm(), gm, S, vo);
+          createMesh(subdomain_list, indexing_parent_mesh->getComm(), gm, S, vo);
 
         // create maps to the reference mesh
         if (is_reference_mesh) {
@@ -625,11 +636,11 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
           mesh_name, indexing_parent_mesh, subdomains, reference_mesh, reference_maps));
       } else {
         auto ref_domain_set = S.GetDomainSet(alias_target);
-        AMANZI_ASSERT(ref_domain_set->get_referencing_parent() == reference_mesh);
-        auto reference_maps = ref_domain_set->get_subdomain_maps();
+        AMANZI_ASSERT(ref_domain_set->getReferencingParent() == reference_mesh);
+        auto reference_maps = ref_domain_set->getSubdomainMaps();
 
         // these maps are all indexed by the target name, update to the aliased name.
-        std::map<std::string, Teuchos::RCP<const std::vector<int>>> new_reference_maps;
+        std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> new_reference_maps;
         for (const auto& key_val : reference_maps) {
           KeyTriple old_ds;
           Keys::splitDomainSet(key_val.first, old_ds);
@@ -686,7 +697,7 @@ createDomainSetRegions(const std::string& mesh_name_pristine,
     // for each subdomain, create a referencing map, a map from subdomain to reference mesh
     std::vector<std::string> subdomains;
     std::vector<int> lids;
-    std::map<std::string, Teuchos::RCP<const std::vector<int>>> reference_maps;
+    std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> reference_maps;
 
     // create the subdomains, indexed over entities
     for (const auto& subdomain : regions) {
@@ -710,7 +721,7 @@ createDomainSetRegions(const std::string& mesh_name_pristine,
         subdomain_param_list.set("region", subdomain);
 
       // construct
-      auto subdomain_mesh = createMesh(subdomain_list, indexing_parent_mesh->get_comm(), gm, S, vo);
+      auto subdomain_mesh = createMesh(subdomain_list, indexing_parent_mesh->getComm(), gm, S, vo);
 
       if (subdomain_mesh != Teuchos::null) {
         subdomains.push_back(subdomain);
@@ -719,7 +730,7 @@ createDomainSetRegions(const std::string& mesh_name_pristine,
         if (is_reference_mesh) {
           // construct map into the reference mesh
           if (subdomain_mesh_type == "extracted" || subdomain_mesh_type == "column") {
-            reference_maps[full_subdomain_name] = createMapToParent(*subdomain_mesh);
+            reference_maps[full_subdomain_name] = AmanziMesh::createMapToParent(*subdomain_mesh);
           } else if (subdomain_mesh_type == "surface") {
             AMANZI_ASSERT(reference_mesh != Teuchos::null);
             reference_maps[full_subdomain_name] =
@@ -794,12 +805,12 @@ checkVerifyMesh(Teuchos::ParameterList& mesh_plist, Teuchos::RCP<const AmanziMes
   AMANZI_ASSERT(!mesh.is_null());
   bool verify = mesh_plist.get<bool>("verify mesh", false);
   if (verify) {
-    int num_procs = mesh->get_comm()->NumProc();
-    int rank = mesh->get_comm()->MyPID();
+    int num_procs = mesh->getComm()->getSize();
+    int rank = mesh->getComm()->getRank();
 
     if (rank == 0) std::cout << "Verifying mesh with Mesh Audit..." << std::endl;
     if (num_procs == 1) {
-      MeshAudit mesh_auditor(mesh);
+      AmanziMesh::MeshAudit mesh_auditor(mesh);
       int status = mesh_auditor.Verify();
       if (status == 0) {
         std::cout << "Mesh Audit confirms that mesh is ok" << std::endl;
@@ -816,13 +827,13 @@ checkVerifyMesh(Teuchos::ParameterList& mesh_plist, Teuchos::RCP<const AmanziMes
         std::cout << "Writing Mesh Audit output to " << ofile.str() << ", etc." << std::endl;
 
       int ierr = 0, aerr = 0;
-      MeshAudit mesh_auditor(mesh, ofs);
+      AmanziMesh::MeshAudit mesh_auditor(mesh, ofs);
       int status = mesh_auditor.Verify(); // check the mesh
       if (status != 0) ierr = 1;
 
-      mesh->get_comm()->SumAll(&ierr, &aerr, 1);
+      Teuchos::reduceAll(*mesh->getComm(), Teuchos::REDUCE_SUM, 1, &ierr, &aerr);
       if (aerr == 0) {
-        if (mesh->get_comm()->MyPID() == 0)
+        if (mesh->getComm()->getRank() == 0)
           std::cout << "Mesh Audit confirms that mesh is ok" << std::endl;
       } else {
         Errors::Message msg("Mesh Audit could not verify correctness of mesh.");
@@ -872,10 +883,10 @@ createMeshes(Teuchos::ParameterList& global_list,
   // if (global_list.isSublist("visualization columns")) {
   //   auto surface_mesh = S.GetMesh("surface");
   //   Teuchos::ParameterList& vis_ss_plist = global_list.sublist("visualization columns");
-  //   int nc = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  //   int nc = surface_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   //   for (int c=0; c!=nc; ++c){
-  //     int id = surface_mesh->cell_map(false).GID(c);
+  //     int id = surface_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
   //     std::stringstream name_ss;
   //     name_ss << "column_" << id;
   //     vis_ss_plist.set("file name base", "visdump_"+name_ss.str());
@@ -888,9 +899,9 @@ createMeshes(Teuchos::ParameterList& global_list,
   // if (global_list.isSublist("visualization surface cells")) {
   //   auto surface_mesh = S.GetMesh("surface");
   //   Teuchos::ParameterList& vis_sf_plist = global_list.sublist("visualization surface cells");
-  //   int nc = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  //   int nc = surface_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   //   for (int c=0; c!=nc; ++c){
-  //     int id = surface_mesh->cell_map(false).GID(c);
+  //     int id = surface_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
   //     std::stringstream name_ss, name_sf;
   //     name_sf << "surface_column_" << id;
   //     vis_sf_plist.set("file name base", "visdump_"+name_sf.str());

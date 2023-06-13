@@ -9,6 +9,8 @@
 
 #include "Op.hh"
 #include "richards.hh"
+#include "PDE_DiffusionWithGravity.hh"
+#include "PDE_Accumulation.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -32,12 +34,12 @@ Richards::FunctionalResidual(double t_old,
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // zero out residual
-  Teuchos::RCP<CompositeVector> res = g->Data();
-  res->PutScalar(0.0);
+  Teuchos::RCP<CompositeVector> res = g->getData();
+  res->putScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
-  Teuchos::RCP<CompositeVector> u = u_new->Data();
+  Teuchos::RCP<CompositeVector> u = u_new->getData();
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
@@ -55,7 +57,7 @@ Richards::FunctionalResidual(double t_old,
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
-  db_->WriteBoundaryConditions(bc_markers(), bc_values());
+  // db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
@@ -116,9 +118,9 @@ Richards::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<Tre
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
 
   // Apply the preconditioner
-  db_->WriteVector("p_res", u->Data().ptr(), true);
-  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
-  db_->WriteVector("PC*p_res", Pu->Data().ptr(), true);
+  db_->WriteVector("p_res", u->getData().ptr(), true);
+  int ierr = preconditioner_->applyInverse(*u->getData(), *Pu->getData());
+  db_->WriteVector("PC*p_res", Pu->getData().ptr(), true);
 
   return (ierr > 0) ? 0 : 1;
 };
@@ -137,7 +139,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   // Recreate mass matrices
   if (!deform_key_.empty() &&
       S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
-    preconditioner_diff_->SetTensorCoefficient(K_);
+    preconditioner_diff_->SetTensorCoefficient(S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT));
 
   // update state with the solution up.
   if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
@@ -177,15 +179,15 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   preconditioner_diff_->SetScalarCoefficient(rel_perm, dkrdp);
 
   // -- local matries, primary term
-  preconditioner_->Init();
-  preconditioner_diff_->UpdateMatrices(Teuchos::null, up->Data().ptr());
+  preconditioner_->Zero();
+  preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
   preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- local matries, Jacobian term
   if (jacobian_ && iter_ >= jacobian_lag_) {
     Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
-    preconditioner_diff_->UpdateFlux(up->Data().ptr(), flux.ptr());
-    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->Data().ptr());
+    preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
+    preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
 
   // Update the preconditioner with accumulation terms.

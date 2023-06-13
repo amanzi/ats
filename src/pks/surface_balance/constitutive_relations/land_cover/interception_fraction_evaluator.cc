@@ -90,15 +90,15 @@ InterceptionFractionEvaluator::Evaluate_(const State& S,
 
   for (CompositeVector::name_iterator comp = results[0]->begin(); comp != results[0]->end();
        ++comp) {
-    const Epetra_MultiVector& ai_v = *ai->ViewComponent(*comp, false);
-    const Epetra_MultiVector& rain_v = *rain->ViewComponent(*comp, false);
-    const Epetra_MultiVector& snow_v = *snow->ViewComponent(*comp, false);
-    const Epetra_MultiVector& drainage_v = *drainage->ViewComponent(*comp, false);
-    const Epetra_MultiVector& air_temp_v = *air_temp->ViewComponent(*comp, false);
+    const Epetra_MultiVector& ai_v = *ai->viewComponent(*comp, false);
+    const Epetra_MultiVector& rain_v = *rain->viewComponent(*comp, false);
+    const Epetra_MultiVector& snow_v = *snow->viewComponent(*comp, false);
+    const Epetra_MultiVector& drainage_v = *drainage->viewComponent(*comp, false);
+    const Epetra_MultiVector& air_temp_v = *air_temp->viewComponent(*comp, false);
 
-    Epetra_MultiVector& inter_v = *results[0]->ViewComponent(*comp, false);
-    Epetra_MultiVector& tfr_v = *results[1]->ViewComponent(*comp, false);
-    Epetra_MultiVector& tfs_v = *results[2]->ViewComponent(*comp, false);
+    Epetra_MultiVector& inter_v = *results[0]->viewComponent(*comp, false);
+    Epetra_MultiVector& tfr_v = *results[1]->viewComponent(*comp, false);
+    Epetra_MultiVector& tfs_v = *results[2]->viewComponent(*comp, false);
 
     for (int i = 0; i != inter_v.MyLength(); ++i) {
       double coef = model_->InterceptionFraction(ai_v[0][i]);
@@ -131,15 +131,15 @@ InterceptionFractionEvaluator::EvaluatePartialDerivative_(
 
     for (CompositeVector::name_iterator comp = results[0]->begin(); comp != results[0]->end();
          ++comp) {
-      const Epetra_MultiVector& ai_v = *ai->ViewComponent(*comp, false);
-      const Epetra_MultiVector& rain_v = *rain->ViewComponent(*comp, false);
-      const Epetra_MultiVector& snow_v = *snow->ViewComponent(*comp, false);
-      const Epetra_MultiVector& drainage_v = *drainage->ViewComponent(*comp, false);
-      const Epetra_MultiVector& air_temp_v = *air_temp->ViewComponent(*comp, false);
+      const Epetra_MultiVector& ai_v = *ai->viewComponent(*comp, false);
+      const Epetra_MultiVector& rain_v = *rain->viewComponent(*comp, false);
+      const Epetra_MultiVector& snow_v = *snow->viewComponent(*comp, false);
+      const Epetra_MultiVector& drainage_v = *drainage->viewComponent(*comp, false);
+      const Epetra_MultiVector& air_temp_v = *air_temp->viewComponent(*comp, false);
 
-      Epetra_MultiVector& inter_v = *results[0]->ViewComponent(*comp, false);
-      Epetra_MultiVector& tfr_v = *results[1]->ViewComponent(*comp, false);
-      Epetra_MultiVector& tfs_v = *results[2]->ViewComponent(*comp, false);
+      Epetra_MultiVector& inter_v = *results[0]->viewComponent(*comp, false);
+      Epetra_MultiVector& tfr_v = *results[1]->viewComponent(*comp, false);
+      Epetra_MultiVector& tfs_v = *results[2]->viewComponent(*comp, false);
 
       for (int i = 0; i != inter_v.MyLength(); ++i) {
         inter_v[0][i] = 0.;

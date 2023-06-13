@@ -169,9 +169,9 @@ set_met_data(const Epetra_MultiVector& qSW,
   Epetra_MultiVector precip(pRain);
   precip.Update(1000., pSnow, 1000.); // converts m/s --> mm/s
   Epetra_MultiVector wind_y(wind_u);
-  wind_y.PutScalar(0.);
+  wind_y.putScalar(0.);
   Epetra_MultiVector patm_v(vp_air);
-  patm_v.PutScalar(patm);
+  patm_v.putScalar(patm);
 
   ats_to_clm_met_data(
     qSW[0], qLW[0], precip[0], air_temp[0], vp_air[0], wind_u[0], wind_y[0], patm_v[0]);

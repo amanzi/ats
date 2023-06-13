@@ -90,28 +90,28 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
 
   // on the subsurface
   const Epetra_MultiVector& f_wp =
-    *S.Get<CompositeVector>(f_wp_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(f_wp_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& f_root =
-    *S.Get<CompositeVector>(f_root_key_, tag).ViewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(f_root_key_, tag).viewComponent("cell", false);
+  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
 
   // on the surface
   const Epetra_MultiVector& potential_trans =
-    *S.Get<CompositeVector>(potential_trans_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(potential_trans_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& surf_cv =
-    *S.Get<CompositeVector>(surf_cv_key_, tag).ViewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+    *S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 
   double p_atm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   auto& subsurf_mesh = *S.GetMesh(domain_sub_);
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
-  result_v.PutScalar(0.);
+  result_v.putScalar(0.);
   for (const auto& region_lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    surf_mesh.getSetEntities(
+      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     if (TranspirationPeriod_(
           S.get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
@@ -154,7 +154,7 @@ TranspirationDistributionEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(
+  result[0]->putScalar(
     0.); // this would be a nontrivial calculation, as it is technically nonlocal due to rescaling issues?
 }
 
@@ -174,7 +174,7 @@ TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh
   CompositeVectorSpace dep_fac;
-  dep_fac.SetMesh(S.GetMesh(domain))->AddComponent("cell", AmanziMesh::CELL, 1);
+  dep_fac.SetMesh(S.GetMesh(domain))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(f_wp_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac);
@@ -182,7 +182,7 @@ TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // -- next those on the surface mesh
   CompositeVectorSpace surf_fac;
   surf_fac.SetMesh(S.GetMesh(Keys::getDomain(surf_cv_key_)))
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(potential_trans_key_, tag).Update(surf_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(surf_cv_key_, tag).Update(surf_fac);
 }

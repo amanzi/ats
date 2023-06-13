@@ -77,7 +77,7 @@ SnowSkinPotentialEvaluator::EvaluatePartialDerivative_(const State& S,
                                                        const std::vector<CompositeVector*>& result)
 {
   AMANZI_ASSERT(0);
-  result[0]->PutScalar(1.0);
+  result[0]->putScalar(1.0);
 }
 
 } // namespace Flow

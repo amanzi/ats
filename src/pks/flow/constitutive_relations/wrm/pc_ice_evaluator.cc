@@ -58,9 +58,9 @@ PCIceEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& r
 
   // evaluate pc
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
-    const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp, false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
+    const Epetra_MultiVector& temp_v = *(temp->viewComponent(*comp, false));
+    const Epetra_MultiVector& dens_v = *(dens->viewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->viewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
     for (int id = 0; id != count; ++id) {
@@ -89,9 +89,9 @@ PCIceEvaluator::EvaluatePartialDerivative_(const State& S,
     // evaluate d/dT( pc )
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
-      const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp, false));
-      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
+      const Epetra_MultiVector& temp_v = *(temp->viewComponent(*comp, false));
+      const Epetra_MultiVector& dens_v = *(dens->viewComponent(*comp, false));
+      Epetra_MultiVector& result_v = *(result[0]->viewComponent(*comp, false));
 
       int count = result[0]->size(*comp);
       for (int id = 0; id != count; ++id) {
@@ -102,9 +102,9 @@ PCIceEvaluator::EvaluatePartialDerivative_(const State& S,
     // evaluate d/drho( pc )
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
-      const Epetra_MultiVector& dens_v = *(dens->ViewComponent(*comp, false));
-      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
+      const Epetra_MultiVector& temp_v = *(temp->viewComponent(*comp, false));
+      const Epetra_MultiVector& dens_v = *(dens->viewComponent(*comp, false));
+      Epetra_MultiVector& result_v = *(result[0]->viewComponent(*comp, false));
 
       int count = result[0]->size(*comp);
       for (int id = 0; id != count; ++id) {

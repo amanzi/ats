@@ -59,19 +59,19 @@ TrappingRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 {
   Tag tag = my_keys_.front().second;
 
-  const Epetra_MultiVector& vel = *S.Get<CompositeVector>(velocity_key_, tag).ViewComponent("cell");
-  const Epetra_MultiVector& tcc = *S.Get<CompositeVector>(sediment_key_, tag).ViewComponent("cell");
+  const Epetra_MultiVector& vel = *S.Get<CompositeVector>(velocity_key_, tag).viewComponent("cell");
+  const Epetra_MultiVector& tcc = *S.Get<CompositeVector>(sediment_key_, tag).viewComponent("cell");
   const Epetra_MultiVector& depth =
-    *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell");
+    *S.Get<CompositeVector>(ponded_depth_key_, tag).viewComponent("cell");
   const Epetra_MultiVector& bio_n =
-    *S.Get<CompositeVector>("surface-stem_density", tag).ViewComponent("cell");
+    *S.Get<CompositeVector>("surface-stem_density", tag).viewComponent("cell");
   const Epetra_MultiVector& bio_d =
-    *S.Get<CompositeVector>("surface-stem_diameter", tag).ViewComponent("cell");
+    *S.Get<CompositeVector>("surface-stem_diameter", tag).viewComponent("cell");
   const Epetra_MultiVector& bio_h =
-    *S.Get<CompositeVector>("surface-stem_height", tag).ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
+    *S.Get<CompositeVector>("surface-stem_height", tag).viewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->viewComponent("cell");
 
-  result_c.PutScalar(0.);
+  result_c.putScalar(0.);
 
   for (int c = 0; c < result_c.MyLength(); c++) {
     for (int j = 0; j < bio_n.NumVectors(); j++) {

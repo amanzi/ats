@@ -15,7 +15,6 @@ van Genuchten's water retention curve.
 .. _WRM-van-Genuchten-spec
 .. admonition:: WRM-van-Genuchten-spec
 
-    * `"region`" ``[string]`` Region to which this applies
     * `"van Genuchten alpha [Pa^-1]`" ``[double]`` van Genuchten's alpha
 
     ONE OF:
@@ -38,8 +37,6 @@ Example:
 .. code-block:: xml
 
     <ParameterList name="moss" type="ParameterList">
-      <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM type" type="string" value="van Genuchten" />
       <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="0.002" />
       <Parameter name="van Genuchten m [-]" type="double" value="0.2" />
       <Parameter name="residual saturation [-]" type="double" value="0.0" />
@@ -54,26 +51,32 @@ Example:
 #include "Teuchos_ParameterList.hpp"
 #include "Spline.hh"
 
-#include "wrm.hh"
-#include "Factory.hh"
-
 namespace Amanzi {
 namespace Flow {
+namespace Relations {
 
-class WRMVanGenuchten : public WRM {
+enum class RelPermFunction_kind {
+  MUALEM,
+  BURDINE
+};
+
+
+class WRMVanGenuchten {
  public:
+  static const std::string name;
+
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
 
   // required methods from the base class
-  double k_relative(double saturation);
-  double d_k_relative(double saturation);
-  double saturation(double pc);
-  double d_saturation(double pc);
-  double capillaryPressure(double saturation);
-  double d_capillaryPressure(double saturation);
-  double residualSaturation() { return sr_; }
-  double suction_head(double saturation);
-  double d_suction_head(double saturation);
+  double k_relative(double saturation) const;
+  double d_k_relative(double saturation) const;
+  double saturation(double pc) const;
+  double d_saturation(double pc) const;
+  double capillaryPressure(double saturation) const;
+  double d_capillaryPressure(double saturation) const;
+  double residualSaturation() const { return sr_; }
+  double suction_head(double saturation) const;
+  double d_suction_head(double saturation) const;
 
  private:
   void InitializeFromPlist_();
@@ -86,17 +89,18 @@ class WRMVanGenuchten : public WRM {
   double alpha_;
   double sr_; // van Genuchten residual saturation
 
-  int function_;
+  RelPermFunction_kind function_;
   double s0_; // regularization threshold in saturation
   Amanzi::Utils::Spline fit_kr_;
 
   double pc0_;
   Amanzi::Utils::Spline fit_s_;
 
-
-  static Utils::RegisteredFactory<WRM, WRMVanGenuchten> factory_;
 };
 
+inline const std::string WRMVanGenuchten::name = "van Genuchten";
+
+} // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
 

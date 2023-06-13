@@ -44,10 +44,10 @@ void
 OrganicMatterRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  const Epetra_MultiVector& bio = *S.Get<CompositeVector>(biomass_key_, tag).ViewComponent("cell");
-  Epetra_MultiVector& result_c = *result[0]->ViewComponent("cell");
+  const Epetra_MultiVector& bio = *S.Get<CompositeVector>(biomass_key_, tag).viewComponent("cell");
+  Epetra_MultiVector& result_c = *result[0]->viewComponent("cell");
 
-  result_c.PutScalar(0.);
+  result_c.putScalar(0.);
   for (int c = 0; c < result_c.MyLength(); c++) {
     for (int j = 0; j < bio.NumVectors(); j++) { result_c[0][c] += Q_on_Bmax_ * bio[j][c]; }
   }

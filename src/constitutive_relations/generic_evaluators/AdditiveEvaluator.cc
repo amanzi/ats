@@ -55,7 +55,7 @@ AdditiveEvaluator::Clone() const
 void
 AdditiveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(shift_);
+  result[0]->putScalar(shift_);
 
   for (const auto& key_tag : dependencies_) {
     const CompositeVector& dep = S.Get<CompositeVector>(key_tag.first, key_tag.second);
@@ -65,7 +65,7 @@ AdditiveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
   if (positive_) {
     for (const auto& name : *result[0]) {
-      auto& res = *result[0]->ViewComponent(name, false);
+      auto& res = *result[0]->viewComponent(name, false);
       for (int i = 0; i != res.MyLength(); ++i) res[0][i] = std::max(res[0][i], 0.);
     }
   }
@@ -77,13 +77,13 @@ AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
                                               const Tag& wrt_tag,
                                               const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
+  result[0]->putScalar(coefs_[Keys::getKey(wrt_key, wrt_tag)]);
 
   if (positive_) {
     const auto& value = S.Get<CompositeVector>(my_keys_.front().first, my_keys_.front().second);
     for (const auto& name : *result[0]) {
-      auto& res = *result[0]->ViewComponent(name, false);
-      const auto& value_v = *value.ViewComponent(name, false);
+      auto& res = *result[0]->viewComponent(name, false);
+      const auto& value_v = *value.viewComponent(name, false);
       for (int i = 0; i != res.MyLength(); ++i) {
         if (value_v[0][i] == 0.0) { res[0][i] = 0.; }
       }

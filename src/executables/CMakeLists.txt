@@ -77,10 +77,10 @@ set(ats_inc_files
 set(amanzi_link_libs
   operators
   pks
-  geochemrxns
-  geochembase
-  geochemutil
-  geochemsolvers
+  # geochemrxns
+  # geochembase
+  # geochemutil
+  # geochemsolvers
   state
   whetstone
   time_integration
@@ -88,7 +88,6 @@ set(amanzi_link_libs
   dbg       
   data_structures
   mesh
-  mesh_audit
   mesh_functions
   functions
   geometry
@@ -96,29 +95,27 @@ set(amanzi_link_libs
   output
   mesh_mstk
   mesh_logical
-  chemistry_pk
+  # chemistry_pk
   #mpc_tree
-  transport
+  # transport
   )
   
 set(ats_link_libs
   ats_operators
-  ats_generic_evals
-  ats_column_integrator
-  ats_surf_subsurf
-  ats_eos
+  # ats_generic_evals
+  # ats_column_integrator
+  # ats_surf_subsurf
+  # ats_eos
   ats_pks
-  ats_transport
+  # ats_transport
   #ats_sed_transport  
-  ats_energy
-  ats_energy_relations
+  # ats_energy
   ats_flow
-  ats_flow_relations
-  ats_deform
-  ats_bgc
-  ats_surface_balance
-  ats_mpc
-  ats_mpc_relations
+  # ats_deform
+  # ats_bgc
+  # ats_surface_balance
+  # ats_mpc
+  # ats_mpc_relations
   )
 
 
@@ -169,11 +166,11 @@ if (BUILD_TESTS)
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
   add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
 
-  # test for coupled water preconditioners
-  add_amanzi_test(executable_coupled_water executable_coupled_water
-    KIND int
-    SOURCE test/Main.cc test/executable_coupled_water.cc
-    LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+  # # test for coupled water preconditioners
+  # add_amanzi_test(executable_coupled_water executable_coupled_water
+  #   KIND int
+  #   SOURCE test/Main.cc test/executable_coupled_water.cc
+  #   LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
 
 endif()
 

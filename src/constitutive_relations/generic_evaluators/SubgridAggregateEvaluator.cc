@@ -37,16 +37,16 @@ void
 SubgridAggregateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   auto ds = S.GetDomainSet(source_domain_);
-  Epetra_MultiVector& result_v = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
 
   auto dep = dependencies_.begin();
   std::vector<const Epetra_MultiVector*> sources;
   for (const auto& subdomain : *ds) {
     sources.push_back(
-      S.Get<CompositeVector>(dep->first, dep->second).ViewComponent("cell", false).get());
+      S.Get<CompositeVector>(dep->first, dep->second).viewComponent("cell", false).get());
     ++dep;
   }
-  ds->DoImport(sources, result_v);
+  ds->doImport(sources, result_v);
 }
 
 void
@@ -55,7 +55,7 @@ SubgridAggregateEvaluator::EvaluatePartialDerivative_(const State& S,
                                                       const Tag& wrt_tag,
                                                       const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(1.);
+  result[0]->putScalar(1.);
 }
 
 
@@ -65,7 +65,7 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
   if (dependencies_.size() == 0) {
     auto ds = S.GetDomainSet(source_domain_);
     Tag dep_tag = Keys::readTag(plist_, my_keys_.front().second);
-    if (ds->get_referencing_parent() == Teuchos::null) {
+    if (ds->getReferencingParent() == Teuchos::null) {
       Errors::Message msg;
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_
           << "\" does not have a referencing parent but must have one to aggregate.";
@@ -89,11 +89,11 @@ SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
   auto ds = S.GetDomainSet(source_domain_);
   auto& dep_fac = S.Require<CompositeVector, CompositeVectorSpace>(dependencies_.front().first,
                                                                    dependencies_.front().second);
-  if (dep_fac.HasComponent("cell")) {
+  if (dep_fac.hasComponent("cell")) {
     S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
                                                      my_keys_.front().second)
-      .SetMesh(ds->get_referencing_parent())
-      ->AddComponent("cell", AmanziMesh::CELL, dep_fac.NumVectors("cell"));
+      .SetMesh(ds->getReferencingParent())
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, dep_fac.NumVectors("cell"));
   }
 
   if (S.GetRecordSet(dependencies_.front().first).subfieldnames()) {
@@ -109,14 +109,14 @@ SubgridAggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
                                                                my_keys_.front().second);
-  if (fac.HasComponent("cell")) {
+  if (fac.hasComponent("cell")) {
     int num_vectors = fac.NumVectors("cell");
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S,
                                                               {
                                                                 "cell",
                                                               },
                                                               {
-                                                                AmanziMesh::CELL,
+                                                                AmanziMesh::Entity_kind::CELL,
                                                               },
                                                               {
                                                                 num_vectors,

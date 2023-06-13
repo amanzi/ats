@@ -61,19 +61,19 @@ EvaporationDownregulationEvaluator::Evaluate_(const State& S,
 {
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& sat_gas =
-    *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(sat_gas_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& poro =
-    *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(poro_key_, tag).viewComponent("cell", false);
   const Epetra_MultiVector& pot_evap =
-    *S.Get<CompositeVector>(pot_evap_key_, tag).ViewComponent("cell", false);
-  Epetra_MultiVector& surf_evap = *result[0]->ViewComponent("cell", false);
+    *S.Get<CompositeVector>(pot_evap_key_, tag).viewComponent("cell", false);
+  Epetra_MultiVector& surf_evap = *result[0]->viewComponent("cell", false);
   auto& sub_mesh = *S.GetMesh(domain_sub_);
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    surf_mesh.getSetEntities(
+      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     for (AmanziMesh::Entity_ID sc : lc_ids) {
       auto c = sub_mesh.cells_of_column(sc)[0];
@@ -94,20 +94,20 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
   Tag tag = my_keys_.front().second;
   if (wrt_key == pot_evap_key_) {
     const Epetra_MultiVector& sat_gas =
-      *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+      *S.Get<CompositeVector>(sat_gas_key_, tag).viewComponent("cell", false);
     const Epetra_MultiVector& poro =
-      *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
+      *S.Get<CompositeVector>(poro_key_, tag).viewComponent("cell", false);
     const Epetra_MultiVector& pot_evap =
-      *S.Get<CompositeVector>(pot_evap_key_, tag).ViewComponent("cell", false);
-    Epetra_MultiVector& surf_evap = *result[0]->ViewComponent("cell", false);
+      *S.Get<CompositeVector>(pot_evap_key_, tag).viewComponent("cell", false);
+    Epetra_MultiVector& surf_evap = *result[0]->viewComponent("cell", false);
     auto& sub_mesh = *S.GetMesh(domain_sub_);
     auto& surf_mesh = *S.GetMesh(domain_surf_);
 
     for (const auto& region_model : models_) {
       AmanziMesh::Entity_ID_List lc_ids;
-      surf_mesh.get_set_entities(region_model.first,
+      surf_mesh.getSetEntities(region_model.first,
                                  AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_type::OWNED,
+                                 AmanziMesh::Parallel_kind::OWNED,
                                  &lc_ids);
       for (AmanziMesh::Entity_ID sc : lc_ids) {
         auto c = sub_mesh.cells_of_column(sc)[0];

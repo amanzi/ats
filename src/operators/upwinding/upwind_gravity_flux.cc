@@ -61,39 +61,45 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
   std::vector<int> dirs;
   double flow_eps = 1.e-10;
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.getMesh();
 
   // initialize the face coefficients
-  face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  face_coef.getComponent(face_component, true)->putScalar(0.0);
+  if (face_coef.hasComponent("cell")) {
+    face_coef.getComponent("cell", true)->putScalar(1.0);
+  }
 
-  // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
+  // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or
   // not) bordering an owned cell.  This is the necessary data for
   // making the local matrices in MFD, so there is no need to
   // communicate the resulting face coeficients.
 
   // communicate ghosted cells
-  cell_coef.ScatterMasterToGhosted(cell_component);
+  cell_coef.scatterMasterToGhosted(cell_component);
 
-  Epetra_MultiVector& face_coef_v = *face_coef.ViewComponent(face_component, true);
-  const Epetra_MultiVector& cell_coef_v = *cell_coef.ViewComponent(cell_component, true);
+  {
+    auto face_coef_v = face_coef.viewComponent(face_component, true);
+    const auto cell_coef_v = cell_coef.viewComponent(cell_component, true);
 
+    int nfaces_local = face_coef_v.extent(0);
+    // NOTE -- this needs a new algorithm -- not continuous
+    AMANZI_ASSERT(false);
+    // Kokkos::parallel_for("upwind_gravity_flux", nfaces_local,
+    //                      KOKKOS_LAMBDA(const int& f) {
+    //                        auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    //                        int c0 = fcells(0);
+    //                        int orientation = 0;
+    //                        auto normal = mesh->getFaceNormal(f, c0, &orientation);
 
-  for (unsigned int c = 0; c != cell_coef.size(cell_component, true); ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
-    AmanziGeometry::Point Kgravity = (*K_)[c] * gravity;
+    //                        AmanziGeometry::Point Kgravity = (*K_)[c0] * gravity;
 
-    for (unsigned int n = 0; n != faces.size(); ++n) {
-      int f = faces[n];
-
-      const AmanziGeometry::Point& normal = mesh->face_normal(f);
-      if ((normal * Kgravity) * dirs[n] >= flow_eps) {
-        face_coef_v[0][f] = cell_coef_v[0][c];
-      } else if (std::abs((normal * Kgravity) * dirs[n]) < flow_eps) {
-        face_coef_v[0][f] += cell_coef_v[0][c] / 2.;
-      }
-    }
+    //                        auto grav_flux = normal * Kgravity;
+    //                        if (grav_flux >= flow_eps) {
+    //                          face_coef_v[0][f] = cell_coef_v[0][c0];
+    //                        } else if (grav_flux ) {
+    //                          face_coef_v[0][f] += cell_coef_v[0][c] / 2.;
+    //   });
   }
 };
 

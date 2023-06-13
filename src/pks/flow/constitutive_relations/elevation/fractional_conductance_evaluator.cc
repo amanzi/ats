@@ -58,20 +58,20 @@ FractionalConductanceEvaluator::Evaluate_(const State& S,
     S.GetPtr<CompositeVector>(depr_depth_key_, tag);
   Teuchos::RCP<const CompositeVector> mobile_depth_v =
     S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
-  const auto& mesh = *result[0]->Mesh();
+  const auto& mesh = *result[0]->getMesh();
 
   for (const auto& comp : *result[0]) {
     AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
     bool is_internal_comp = comp == "boundary_face";
     Key internal_comp = is_internal_comp ? "cell" : comp;
 
-    const auto& vpd = *vpd_v->ViewComponent(comp, false);
-    const auto& mobile_depth = *mobile_depth_v->ViewComponent(comp, false);
+    const auto& vpd = *vpd_v->viewComponent(comp, false);
+    const auto& mobile_depth = *mobile_depth_v->viewComponent(comp, false);
 
-    const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
-    const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
-    const auto& depr_depth = *depr_depth_v->ViewComponent(internal_comp, false);
-    auto& res = *result[0]->ViewComponent(comp, false);
+    const auto& del_max = *del_max_v->viewComponent(internal_comp, false);
+    const auto& del_ex = *del_ex_v->viewComponent(internal_comp, false);
+    const auto& depr_depth = *depr_depth_v->viewComponent(internal_comp, false);
+    auto& res = *result[0]->viewComponent(comp, false);
 
     int ncomp = result[0]->size(comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -103,7 +103,7 @@ FractionalConductanceEvaluator::EvaluatePartialDerivative_(
     S.GetPtr<CompositeVector>(depr_depth_key_, tag);
   Teuchos::RCP<const CompositeVector> mobile_depth_v =
     S.GetPtr<CompositeVector>(mobile_depth_key_, tag);
-  const auto& mesh = *result[0]->Mesh();
+  const auto& mesh = *result[0]->getMesh();
 
   if (wrt_key == mobile_depth_key_) {
     for (const auto& comp : *result[0]) {
@@ -111,13 +111,13 @@ FractionalConductanceEvaluator::EvaluatePartialDerivative_(
       bool is_internal_comp = comp == "boundary_face";
       Key internal_comp = is_internal_comp ? "cell" : comp;
 
-      const auto& vpd = *vpd_v->ViewComponent(comp, false);
-      const auto& mobile_depth = *mobile_depth_v->ViewComponent(comp, false);
+      const auto& vpd = *vpd_v->viewComponent(comp, false);
+      const auto& mobile_depth = *mobile_depth_v->viewComponent(comp, false);
 
-      const auto& del_max = *del_max_v->ViewComponent(internal_comp, false);
-      const auto& del_ex = *del_ex_v->ViewComponent(internal_comp, false);
-      const auto& depr_depth = *depr_depth_v->ViewComponent(internal_comp, false);
-      auto& res = *result[0]->ViewComponent(comp, false);
+      const auto& del_max = *del_max_v->viewComponent(internal_comp, false);
+      const auto& del_ex = *del_ex_v->viewComponent(internal_comp, false);
+      const auto& depr_depth = *depr_depth_v->viewComponent(internal_comp, false);
+      auto& res = *result[0]->viewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -133,8 +133,8 @@ FractionalConductanceEvaluator::EvaluatePartialDerivative_(
     }
   } else if (wrt_key == vpd_key_) {
     for (const auto& comp : *result[0]) {
-      const auto& mobile_depth = *mobile_depth_v->ViewComponent(comp, false);
-      auto& res = *result[0]->ViewComponent(comp, false);
+      const auto& mobile_depth = *mobile_depth_v->viewComponent(comp, false);
+      auto& res = *result[0]->viewComponent(comp, false);
 
       int ncomp = result[0]->size(comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -160,15 +160,15 @@ FractionalConductanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
   Tag my_tag = my_keys_.front().second;
   const auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(my_key, my_tag);
 
-  if (my_fac.Mesh() != Teuchos::null) {
+  if (my_fac.getMesh() != Teuchos::null) {
     // Create an unowned factory to check my dependencies.
     auto dep_fac = Teuchos::rcp(new CompositeVectorSpace(my_fac));
     dep_fac->SetOwned(false);
 
     Teuchos::RCP<CompositeVectorSpace> no_bf_dep_fac;
-    if (dep_fac->HasComponent("boundary_face")) {
+    if (dep_fac->hasComponent("boundary_face")) {
       no_bf_dep_fac = Teuchos::rcp(new CompositeVectorSpace());
-      no_bf_dep_fac->SetMesh(dep_fac->Mesh())
+      no_bf_dep_fac->SetMesh(dep_fac->getMesh())
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {

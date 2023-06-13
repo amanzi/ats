@@ -149,10 +149,10 @@ MPCSurface::Setup()
 
     // -- derivatives of energy with respect to pressure
     if (dE_dp_block_ == Teuchos::null) {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
     }
 
     preconditioner_->set_operator_block(0, 1, dWC_dT_block_);
@@ -324,8 +324,8 @@ MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
     // tack on the variable change from h to p
     const Epetra_MultiVector& dh_dp =
       *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
-         ->ViewComponent("cell", false);
-    Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
+         ->viewComponent("cell", false);
+    Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->viewComponent("cell", false);
 
     for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
   }

@@ -50,145 +50,121 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
                                                      CompositeVector& face_coef,
                                                      const Teuchos::Ptr<Debugger>& db) const
 {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.getMesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
   // communicate needed ghost values
-  cell_coef.ScatterMasterToGhosted("cell");
+  cell_coef.scatterMasterToGhosted("cell");
 
   // pull out vectors
-  const Epetra_MultiVector& flux_v = *flux.ViewComponent("face", false);
-  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face", false);
-  const Epetra_MultiVector& coef_cells = *cell_coef.ViewComponent("cell", true);
+  {
+    const auto flux_v = flux.viewComponent("face", false);
+    auto coef_faces = face_coef.viewComponent("face", false);
+    const auto coef_cells = cell_coef.viewComponent("cell", true);
 
-  // Identify upwind/downwind cells for each local face.  Note upwind/downwind
-  // may be a ghost cell.
-  Epetra_IntVector upwind_cell(*face_coef.ComponentMap("face", true));
-  upwind_cell.PutValue(-1);
-  Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face", true));
-  downwind_cell.PutValue(-1);
+    int nfaces_local = coef_faces.extent(0);
+    Kokkos::parallel_for("upwind_flux_harmonic_mean", nfaces_local,
+                         KOKKOS_LAMBDA(const int& f) {
+                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
-  int nfaces_local = flux.size("face", false);
+                           int uw = -1, dw = -1;
+                           int c0 = fcells(0);
+                           int orientation = 0;
+                           mesh->getFaceNormal(f, c0, &orientation);
+                           if (flux_v(f,0) * orientation > 0) {
+                             uw = c0;
+                             if (fcells.size() == 2) dw = fcells(1);
+                           } else {
+                             dw = c0;
+                             if (fcells.size() == 2) uw = fcells(1);
+                           }
+                           AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
-  int ncells = cell_coef.size("cell", true);
-  for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+                           double coefs[2];
+                           // uw coef
+                           if (uw == -1) {
+                             coefs[0] = coef_faces(f,0);
+                           } else {
+                             coefs[0] = coef_cells(uw,0);
+                           }
 
-    for (unsigned int n = 0; n != faces.size(); ++n) {
-      int f = faces[n];
+                           // dw coef
+                           if (dw == -1) {
+                             coefs[1] = coef_faces(f,0);
+                           } else {
+                             coefs[1] = coef_cells(dw,0);
+                           }
 
-      if (f < nfaces_local) {
-        if (flux_v[0][f] * fdirs[n] > 0) {
-          upwind_cell[f] = c;
-        } else if (flux_v[0][f] * fdirs[n] < 0) {
-          downwind_cell[f] = c;
-        } else {
-          // We don't care, but we have to get one into upwind and the other
-          // into downwind.
-          if (upwind_cell[f] == -1) {
-            upwind_cell[f] = c;
-          } else {
-            downwind_cell[f] = c;
-          }
-        }
-      }
-    }
+                           AMANZI_ASSERT(!(coefs[0] < 0.0) || (coefs[1] < 0.0));
+
+                           // Determine the size of the overlap region, a smooth transition region
+                           // near zero flux
+                           double flow_eps = flux_eps_;
+
+                           // Fixed coefficient in the scaling of the arithmetic mean
+                           double amean_order_of_supression = 15.0;
+
+                           // Determine the coefficient
+                           if (dw == -1) {
+                             coef_faces(f,0) = coefs[1];
+                           } else if (uw == -1) {
+                             coef_faces(f,0) = coefs[0];
+                           } else {
+                             double dist[2];
+                             dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+                             dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+
+                             double hmean = 0.0;
+                             if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
+                               hmean = (dist[0] + dist[1]) / (dist[0] / coefs[0] + dist[1] / coefs[1]);
+
+                             double coef_face = hmean;
+                             double amean = (dist[0] * coefs[0] + dist[1] * coefs[1]) / (dist[0] + dist[1]);
+
+                             double coef_jump = 0.0;
+                             double amean_scaling[2];
+                             if (coefs[0] != coefs[1]) {
+                               amean_scaling[0] = (coefs[0] > 1e-15) ? std::pow(10.0,
+                                       -amean_order_of_supression * coefs[1] *
+                                       (coefs[0] + coefs[1]) /
+                                       std::pow(coefs[0] - coefs[1], 2.0)) :
+                                 0.0;
+                               amean_scaling[1] = (coefs[1] > 1e-15) ? std::pow(10.0,
+                                       -amean_order_of_supression * coefs[0] *
+                                       (coefs[0] + coefs[1]) /
+                                       std::pow(coefs[0] - coefs[1], 2.0)) :
+                                 0.0;
+
+                               coef_face += amean * amean_scaling[0];
+                               coef_jump = amean * std::abs(amean_scaling[0] - amean_scaling[1]);
+                             }
+
+                             if ((std::abs(flux_v(f,0)) < flow_eps) && (coef_jump > 1e-15)) {
+                               double param = std::abs(flux_v(f,0)) / flow_eps;
+                               double alt_coef_face = hmean + amean * amean_scaling[1];
+                               coef_faces(f,0) = param * coef_face + (1 - param) * alt_coef_face;
+                             } else {
+                               coef_faces(f,0) = coef_face;
+                             }
+                           }
+                         });
   }
-
-  // Determine the face coefficient of local faces.
-  // These parameters may be key to a smooth convergence rate near zero flux.
-  double coefs[2];
-
-  int nfaces = face_coef.size("face", false);
-  for (int f = 0; f != nfaces; ++f) {
-    int uw = upwind_cell[f];
-    int dw = downwind_cell[f];
-    AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
-
-    // uw coef
-    if (uw == -1) {
-      coefs[0] = coef_faces[0][f];
-    } else {
-      coefs[0] = coef_cells[0][uw];
-    }
-
-    // dw coef
-    if (dw == -1) {
-      coefs[1] = coef_faces[0][f];
-    } else {
-      coefs[1] = coef_cells[0][dw];
-    }
-
-    bool negative_coef = (coefs[0] < 0.0) || (coefs[1] < 0.0);
-    AMANZI_ASSERT(!negative_coef);
-
-    // Determine the size of the overlap region, a smooth transition region
-    // near zero flux
-    double flow_eps = flux_eps_;
-
-    //Fixed coefficient in the scaling of the arithmetic mean
-    double amean_order_of_supression = 15.0;
-
-    // Determine the coefficient
-    if (dw == -1)
-      coef_faces[0][f] = coefs[1];
-    else if (uw == -1)
-      coef_faces[0][f] = coefs[0];
-    else {
-      double dist[2];
-      dist[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
-      dist[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
-
-      double hmean = 0.0;
-      if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
-        hmean = (dist[0] + dist[1]) / (dist[0] / coefs[0] + dist[1] / coefs[1]);
-
-      double coef_face = hmean;
-      double amean = (dist[0] * coefs[0] + dist[1] * coefs[1]) / (dist[0] + dist[1]);
-
-      double coef_jump = 0.0;
-      double amean_scaling[2];
-      if (coefs[0] != coefs[1]) {
-        amean_scaling[0] = (coefs[0] > 1e-15) ? std::pow(10.0,
-                                                         -amean_order_of_supression * coefs[1] *
-                                                           (coefs[0] + coefs[1]) /
-                                                           std::pow(coefs[0] - coefs[1], 2.0)) :
-                                                0.0;
-        amean_scaling[1] = (coefs[1] > 1e-15) ? std::pow(10.0,
-                                                         -amean_order_of_supression * coefs[0] *
-                                                           (coefs[0] + coefs[1]) /
-                                                           std::pow(coefs[0] - coefs[1], 2.0)) :
-                                                0.0;
-
-        coef_face += amean * amean_scaling[0];
-        coef_jump = amean * std::abs(amean_scaling[0] - amean_scaling[1]);
-      }
-
-      if ((std::abs(flux_v[0][f]) < flow_eps) && (coef_jump > 1e-15)) {
-        double param = std::abs(flux_v[0][f]) / flow_eps;
-        double alt_coef_face = hmean + amean * amean_scaling[1];
-        coef_faces[0][f] = param * coef_face + (1 - param) * alt_coef_face;
-      } else
-        coef_faces[0][f] = coef_face;
-    }
-  }
+  face_coef.scatterMasterToGhosted("face");
 };
 
 
-void
-UpwindFluxHarmonicMean::UpdateDerivatives(
-  const Teuchos::Ptr<State>& S,
-  std::string potential_key,
-  const CompositeVector& dconductivity,
-  const std::vector<int>& bc_markers,
-  const std::vector<double>& bc_values,
-  std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const
-{
-  AMANZI_ASSERT(0);
-}
+// void
+// UpwindFluxHarmonicMean::UpdateDerivatives(
+//   const Teuchos::Ptr<State>& S,
+//   std::string potential_key,
+//   const CompositeVector& dconductivity,
+//   const std::vector<int>& bc_markers,
+//   const std::vector<double>& bc_values,
+//   std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const
+// {
+//   AMANZI_ASSERT(0);
+// }
 } // namespace Operators
 } // namespace Amanzi

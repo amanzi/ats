@@ -17,7 +17,6 @@
 #ifndef AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 #define AMANZI_UPWINDING_GRAVITYFLUX_SCHEME_
 
-#include "Epetra_Vector.h"
 #include "Tensor.hh"
 
 #include "upwinding.hh"
@@ -25,7 +24,6 @@
 namespace Amanzi {
 
 class State;
-class CompositeVector;
 
 namespace Operators {
 

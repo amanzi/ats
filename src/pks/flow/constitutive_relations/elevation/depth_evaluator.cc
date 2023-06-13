@@ -31,8 +31,8 @@ DepthEvaluator::Update_(State& S)
     for (auto& comp : result) {
       if (comp == "cell") {
         // evaluate depths
-        Epetra_MultiVector& depth = *result.ViewComponent("cell", false);
-        const AmanziMesh::Mesh& mesh = *result.Mesh();
+        Epetra_MultiVector& depth = *result.viewComponent("cell", false);
+        const AmanziMesh::Mesh& mesh = *result.getMesh();
         DepthModel(mesh, depth);
       } else {
         Errors::Message message;

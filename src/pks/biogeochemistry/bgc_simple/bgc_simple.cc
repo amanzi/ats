@@ -96,20 +96,20 @@ BGCSimple::Setup()
 
   // set sizes
   num_pfts_ = pft_names.size();
-  num_cols_ = mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   pfts_old_.resize(num_cols_);
   pfts_.resize(num_cols_);
   for (unsigned int col = 0; col != num_cols_; ++col) {
-    int f = mesh_surf_->entity_get_parent(AmanziMesh::CELL, col);
+    int f = mesh_surf_->getEntityParent(AmanziMesh::Entity_kind::CELL, col);
     auto& col_iter = mesh_->cells_of_column(col);
     std::size_t ncol_cells = col_iter.size();
 
     // unclear which this should be:
     // -- col area is the true face area
-    double col_area = mesh_->face_area(f);
+    double col_area = mesh_->getFaceArea(f);
     // -- col area is the projected face area
-    // double col_area = mesh_surf_->cell_volume(col);
+    // double col_area = mesh_surf_->getCellVolume(col);
 
     if (ncells_per_col_ < 0) {
       ncells_per_col_ = ncol_cells;
@@ -146,74 +146,74 @@ BGCSimple::Setup()
   // requirements: primary variable
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pools_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pools_);
 
   // requirements: other primary variables
   S_->Require<CompositeVector, CompositeVectorSpace>(trans_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(trans_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(shaded_sw_key_, tag_next_, name_)
     .SetMesh(mesh_surf_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(shaded_sw_key_, tag_next_, *S_);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(total_lai_key_, tag_next_, name_)
     .SetMesh(mesh_surf_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(total_lai_key_, tag_next_, *S_);
 
   // requirement: diagnostics
   S_->Require<CompositeVector, CompositeVectorSpace>("co2_decomposition", tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-total_biomass", tag_next_, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts_);
   S_->GetRecordSetW("surface-total_biomass").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-leaf_biomass", tag_next_, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts_);
   S_->GetRecordSetW("surface-leaf_biomass").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-leaf_area_index", tag_next_, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts_);
   S_->GetRecordSetW("surface-leaf_area_index").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-c_sink_limit", tag_next_, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts_);
   S_->GetRecordSetW("surface-c_sink_limit").set_subfieldnames(pft_names);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(
       "surface-veg_total_transpiration", tag_next_, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, num_pfts_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_pfts_);
   S_->GetRecordSetW("surface-veg_total_transpiration").set_subfieldnames(pft_names);
 
   // requirement: temp of each cell
   S_->RequireEvaluator("temperature", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("temperature", tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirement: pressure
   S_->RequireEvaluator("pressure", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("pressure", tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: surface cell volume
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-cell_volume", tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator("surface-cell_volume", tag_next_);
 
   // requirements: Met data
@@ -221,27 +221,27 @@ BGCSimple::Setup()
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-incoming_shortwave_radiation",
                                                      tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator("surface-air_temperature", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-air_temperature", tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator("surface-vapor_pressure_air", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-vapor_pressure_air", tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator("surface-wind_speed", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-wind_speed", tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator("surface-co2_concentration", tag_next_);
   S_->Require<CompositeVector, CompositeVectorSpace>("surface-co2_concentration", tag_next_)
     .SetMesh(mesh_surf_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 // -- Initialize owned (dependent) variables.
@@ -251,22 +251,22 @@ BGCSimple::Initialize()
   PK_Physical_Default::Initialize();
 
   // diagnostic variable
-  S_->GetW<CompositeVector>("co2_decomposition", tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>("co2_decomposition", tag_next_, name_).putScalar(0.);
   S_->GetRecordW("co2_decomposition", tag_next_, name_).set_initialized();
 
-  S_->GetW<CompositeVector>("surface-c_sink_limit", tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>("surface-c_sink_limit", tag_next_, name_).putScalar(0.);
   S_->GetRecordW("surface-c_sink_limit", tag_next_, name_).set_initialized();
 
-  S_->GetW<CompositeVector>(trans_key_, tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>(trans_key_, tag_next_, name_).putScalar(0.);
   S_->GetRecordW(trans_key_, tag_next_, name_).set_initialized();
 
-  S_->GetW<CompositeVector>("surface-total_biomass", tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>("surface-total_biomass", tag_next_, name_).putScalar(0.);
   S_->GetRecordW("surface-total_biomass", tag_next_, name_).set_initialized();
 
-  S_->GetW<CompositeVector>("surface-leaf_area_index", tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>("surface-leaf_area_index", tag_next_, name_).putScalar(0.);
   S_->GetRecordW("surface-leaf_area_index", tag_next_, name_).set_initialized();
 
-  S_->GetW<CompositeVector>("surface-veg_total_transpiration", tag_next_, name_).PutScalar(0.);
+  S_->GetW<CompositeVector>("surface-veg_total_transpiration", tag_next_, name_).putScalar(0.);
   S_->GetRecordW("surface-veg_total_transpiration", tag_next_, name_).set_initialized();
 
   // potentially initial aboveground vegetation data
@@ -281,10 +281,10 @@ BGCSimple::Initialize()
         // -- copy into PFTs
         Epetra_MultiVector& bio =
           *S_->GetPtrW<CompositeVector>("surface-leaf_biomass", tag_next_, name_)
-             ->ViewComponent("cell", false);
+             ->viewComponent("cell", false);
 
         int num_cols_ =
-          mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+          mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
         for (int col = 0; col != num_cols_; ++col) {
           for (int i = 0; i != bio.NumVectors(); ++i) { pfts_old_[col][i]->Bleaf = bio[i][col]; }
         }
@@ -292,7 +292,7 @@ BGCSimple::Initialize()
     }
 
     if (!leaf_biomass_field.initialized()) {
-      S_->GetW<CompositeVector>("surface-leaf_biomass", tag_next_, name_).PutScalar(0.);
+      S_->GetW<CompositeVector>("surface-leaf_biomass", tag_next_, name_).putScalar(0.);
       leaf_biomass_field.set_initialized();
     }
   }
@@ -304,9 +304,9 @@ BGCSimple::Initialize()
 
   S_->GetEvaluator("temperature", tag_next_).Update(*S_, name_);
   const Epetra_Vector& temp =
-    *(*S_->Get<CompositeVector>("temperature", tag_next_).ViewComponent("cell", false))(0);
+    *(*S_->Get<CompositeVector>("temperature", tag_next_).viewComponent("cell", false))(0);
 
-  int num_cols_ = mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int col = 0; col != num_cols_; ++col) {
     FieldToColumn_(col, temp, col_temp.ptr());
     ColDepthDz_(col, col_depth.ptr(), col_dz.ptr());
@@ -332,7 +332,7 @@ BGCSimple::CommitStep(double told, double tnew, const Tag& tag)
   // the step as succesful.
   double dt = tnew - told;
 
-  int num_cols_ = mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int col = 0; col != num_cols_; ++col) {
     for (int i = 0; i != num_pfts_; ++i) { *pfts_old_[col][i] = *pfts_[col][i]; }
   }
@@ -355,64 +355,64 @@ BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   // this timestep.  This is hackery to get around the fact that PFTs are not
   // (but should be) in state.
   AmanziMesh::Entity_ID num_cols_ =
-    mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (AmanziMesh::Entity_ID col = 0; col != num_cols_; ++col) {
     for (int i = 0; i != num_pfts_; ++i) { *pfts_[col][i] = *pfts_old_[col][i]; }
   }
 
   // grab the required fields
   Epetra_MultiVector& sc_pools =
-    *S_->GetW<CompositeVector>(key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(key_, tag_next_, name_).viewComponent("cell", false);
   Epetra_MultiVector& co2_decomp =
-    *S_->GetW<CompositeVector>("co2_decomposition", tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>("co2_decomposition", tag_next_, name_).viewComponent("cell", false);
   Epetra_MultiVector& trans =
-    *S_->GetW<CompositeVector>(trans_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(trans_key_, tag_next_, name_).viewComponent("cell", false);
   Epetra_MultiVector& sw =
-    *S_->GetW<CompositeVector>(shaded_sw_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(shaded_sw_key_, tag_next_, name_).viewComponent("cell", false);
   Epetra_MultiVector& biomass =
     *S_->GetW<CompositeVector>("surface-total_biomass", tag_next_, name_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   Epetra_MultiVector& leafbiomass =
     *S_->GetW<CompositeVector>("surface-leaf_biomass", tag_next_, name_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   Epetra_MultiVector& csink = *S_->GetW<CompositeVector>("surface-c_sink_limit", tag_next_, name_)
-                                 .ViewComponent("cell", false);
+                                 .viewComponent("cell", false);
   Epetra_MultiVector& total_lai =
-    *S_->GetW<CompositeVector>(total_lai_key_, tag_next_, name_).ViewComponent("cell", false);
+    *S_->GetW<CompositeVector>(total_lai_key_, tag_next_, name_).viewComponent("cell", false);
   Epetra_MultiVector& lai = *S_->GetW<CompositeVector>("surface-leaf_area_index", tag_next_, name_)
-                               .ViewComponent("cell", false);
+                               .viewComponent("cell", false);
   Epetra_MultiVector& total_transpiration =
     *S_->GetW<CompositeVector>("surface-veg_total_transpiration", tag_next_, name_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
 
   S_->GetEvaluator("temperature", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& temp =
-    *S_->Get<CompositeVector>("temperature", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("temperature", tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator("pressure", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& pres =
-    *S_->Get<CompositeVector>("pressure", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("pressure", tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator("surface-incoming_shortwave_radiation", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& qSWin =
     *S_->Get<CompositeVector>("surface-incoming_shortwave_radiation", tag_next_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
 
   S_->GetEvaluator("surface-air_temperature", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& air_temp =
-    *S_->Get<CompositeVector>("surface-air_temperature", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("surface-air_temperature", tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator("surface-vapor_pressure_air", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& vp_air =
-    *S_->Get<CompositeVector>("surface-vapor_pressure_air", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("surface-vapor_pressure_air", tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator("surface-wind_speed", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& wind_speed =
-    *S_->Get<CompositeVector>("surface-wind_speed", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("surface-wind_speed", tag_next_).viewComponent("cell", false);
 
   S_->GetEvaluator("surface-co2_concentration", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& co2 =
-    *S_->Get<CompositeVector>("surface-co2_concentration", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("surface-co2_concentration", tag_next_).viewComponent("cell", false);
 
   // note that this is used as the column area, which is maybe not always
   // right.  Likely correct for soil carbon calculations and incorrect for
@@ -420,7 +420,7 @@ BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   // correct?)
   S_->GetEvaluator("surface-cell_volume", tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& scv =
-    *S_->Get<CompositeVector>("surface-cell_volume", tag_next_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("surface-cell_volume", tag_next_).viewComponent("cell", false);
 
   // Create workspace arrays (these should be removed when data is correctly oriented).
   auto temp_c = Teuchos::rcp(new Epetra_SerialDenseVector(ncells_per_col_));
@@ -433,7 +433,7 @@ BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_SerialDenseVector trans_c(ncells_per_col_);
   double sw_c(0.);
 
-  total_lai.PutScalar(0.);
+  total_lai.putScalar(0.);
 
   // loop over columns and apply the model
   for (AmanziMesh::Entity_ID col = 0; col != num_cols_; ++col) {
@@ -448,7 +448,7 @@ BGCSimple::AdvanceStep(double t_old, double t_new, bool reinit)
 
     // -- serious cache thrash... --etc
     for (std::size_t i = 0; i != col_iter.size(); ++i) {
-      AmanziGeometry::Point centroid = mesh_->cell_centroid(col_iter[i]);
+      AmanziGeometry::Point centroid = mesh_->getCellCentroid(col_iter[i]);
       //      std::cout << "Col iter col=" << col << ", index i=" << i << ", cell=" << col_iter[i] << " at " << centroid << std::endl;
       for (int p = 0; p != soil_carbon_pools_[col][i]->nPools; ++p) {
         soil_carbon_pools_[col][i]->SOM[p] = sc_pools[p][col_iter[i]];
@@ -551,29 +551,29 @@ BGCSimple::ColDepthDz_(AmanziMesh::Entity_ID col,
                        Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                        Teuchos::Ptr<Epetra_SerialDenseVector> dz)
 {
-  AmanziMesh::Entity_ID f_above = mesh_surf_->entity_get_parent(AmanziMesh::CELL, col);
+  AmanziMesh::Entity_ID f_above = mesh_surf_->getEntityParent(AmanziMesh::Entity_kind::CELL, col);
   auto& col_iter = mesh_->cells_of_column(col);
   ncells_per_col_ = col_iter.size();
 
-  AmanziGeometry::Point surf_centroid = mesh_->face_centroid(f_above);
+  AmanziGeometry::Point surf_centroid = mesh_->getFaceCentroid(f_above);
   AmanziGeometry::Point neg_z(3);
   neg_z.set(0., 0., -1);
 
   for (std::size_t i = 0; i != col_iter.size(); ++i) {
     // depth centroid
-    (*depth)[i] = surf_centroid[2] - mesh_->cell_centroid(col_iter[i])[2];
+    (*depth)[i] = surf_centroid[2] - mesh_->getCellCentroid(col_iter[i])[2];
 
     // dz
     // -- find face_below
     AmanziMesh::Entity_ID_List faces;
     std::vector<int> dirs;
-    mesh_->cell_get_faces_and_dirs(col_iter[i], &faces, &dirs);
+    mesh_->getCellFacesAndDirections(col_iter[i], &faces, &dirs);
 
-    // -- mimics implementation of build_columns() in Mesh
+    // -- mimics implementation of buildColumns() in Mesh
     double mindp = 999.0;
     AmanziMesh::Entity_ID f_below = -1;
     for (std::size_t j = 0; j != faces.size(); ++j) {
-      AmanziGeometry::Point normal = mesh_->face_normal(faces[j]);
+      AmanziGeometry::Point normal = mesh_->getFaceNormal(faces[j]);
       if (dirs[j] == -1) normal *= -1;
       normal /= AmanziGeometry::norm(normal);
 
@@ -585,7 +585,7 @@ BGCSimple::ColDepthDz_(AmanziMesh::Entity_ID col,
     }
 
     // -- fill the val
-    (*dz)[i] = mesh_->face_centroid(f_above)[2] - mesh_->face_centroid(f_below)[2];
+    (*dz)[i] = mesh_->getFaceCentroid(f_above)[2] - mesh_->getFaceCentroid(f_below)[2];
     AMANZI_ASSERT((*dz)[i] > 0.);
     f_above = f_below;
   }

@@ -117,7 +117,7 @@ ThermalRichardsModel::UpdateModel(const Teuchos::Ptr<State>& S)
   // update scalars
   rho_rock_ = *S->GetScalarData("rho_rock");
   p_atm_ = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
-  poro_ = (*S->Get<CompositeVector>("base_porosity").ViewComponent("cell"))[0][c];
+  poro_ = (*S->Get<CompositeVector>("base_porosity").viewComponent("cell"))[0][c];
 
   AMANZI_ASSERT(IsSetUp_());
 }

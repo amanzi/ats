@@ -47,14 +47,14 @@ AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
                                               const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  auto mesh = result[0]->Mesh();
-  auto& res = *result[0]->ViewComponent("cell", false);
-  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
+  auto mesh = result[0]->getMesh();
+  auto& res = *result[0]->viewComponent("cell", false);
+  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).viewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
       // calculate area of land
@@ -82,7 +82,7 @@ AreaFractionsTwoComponentEvaluator::Evaluate_(const State& S,
     if (std::abs(1 - res[0][c] - res[1][c]) > 1e-10) nerr++;
   }
   int nerr_global = 0;
-  mesh->get_comm()->SumAll(&nerr, &nerr_global, 1);
+  mesh->getComm()->SumAll(&nerr, &nerr_global, 1);
   if (nerr_global > 0) {
     Errors::Message msg("AreaFractionsTwoComponent: land cover types do not cover the mesh.");
     Exceptions::amanzi_throw(msg);
@@ -96,7 +96,7 @@ AreaFractionsTwoComponentEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  result[0]->PutScalar(0.);
+  result[0]->putScalar(0.);
   // Errors::Message msg("NotImplemented: AreaFractionsTwoComponentEvaluator currently does not provide derivatives.");
   // Exceptions::amanzi_throw(msg);
 }
@@ -119,9 +119,9 @@ AreaFractionsTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

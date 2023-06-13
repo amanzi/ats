@@ -32,7 +32,7 @@ InterfrostEnergy::SetupPhysicalEvaluators_()
   S_->Require<CompositeVector, CompositeVectorSpace>("DEnergyDT_coef", tag_next_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator("DEnergyDT_coef", tag_next_);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     "DEnergyDT_coef", tag_next_, key_, tag_next_);
@@ -53,13 +53,13 @@ InterfrostEnergy::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
   S_->GetEvaluator(key_, tag_current_).Update(*S_, name_);
 
   // get the energy at each time
-  const auto& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
+  const auto& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
   const auto& dEdT_coef =
-    *S_->Get<CompositeVector>("DEnergyDT_coef", tag_next_).ViewComponent("cell", false);
-  const auto& T1 = *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
-  const auto& T0 = *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("DEnergyDT_coef", tag_next_).viewComponent("cell", false);
+  const auto& T1 = *S_->Get<CompositeVector>(key_, tag_next_).viewComponent("cell", false);
+  const auto& T0 = *S_->Get<CompositeVector>(key_, tag_current_).viewComponent("cell", false);
 
-  auto& g_c = *g->ViewComponent("cell", false);
+  auto& g_c = *g->viewComponent("cell", false);
 
   // Update the residual with the accumulation of energy over the
   // timestep, on cells.
@@ -101,12 +101,12 @@ InterfrostEnergy::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   S_->GetEvaluator("DEnergyDT_coef", tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
   const auto& dcoef_dT =
     *S_->GetDerivative<CompositeVector>("DEnergyDT_coef", tag_next_, key_, tag_next_)
-       .ViewComponent("cell", false);
+       .viewComponent("cell", false);
   const auto& coef =
-    *S_->Get<CompositeVector>("DEnergyDT_coef", tag_next_).ViewComponent("cell", false);
-  const auto& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
-  const auto& T1 = *S_->Get<CompositeVector>(key_, tag_next_).ViewComponent("cell", false);
-  const auto& T0 = *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
+    *S_->Get<CompositeVector>("DEnergyDT_coef", tag_next_).viewComponent("cell", false);
+  const auto& cv = *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
+  const auto& T1 = *S_->Get<CompositeVector>(key_, tag_next_).viewComponent("cell", false);
+  const auto& T0 = *S_->Get<CompositeVector>(key_, tag_current_).viewComponent("cell", false);
 
 #if DEBUG_FLAG
   db_->WriteVector("    de_dT", S_->Get<CompositeVector>("DEnergyDT_coef", tag_next_).ptr());

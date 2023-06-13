@@ -70,15 +70,15 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
   double dt = S.Get<double>("dt", tag);
 
-  const auto& pres = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
-  const auto& dens = *S.Get<CompositeVector>(mol_dens_key_, tag).ViewComponent("cell", false);
+  const auto& pres = *S.Get<CompositeVector>(pres_key_, tag).viewComponent("cell", false);
+  const auto& dens = *S.Get<CompositeVector>(mol_dens_key_, tag).viewComponent("cell", false);
   const auto& cv =
-    *S.Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag).ViewComponent("cell", false);
-  const auto& sub_marks = *S.Get<CompositeVector>(catch_id_key_, tag).ViewComponent("cell", false);
+    *S.Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag).viewComponent("cell", false);
+  const auto& sub_marks = *S.Get<CompositeVector>(catch_id_key_, tag).viewComponent("cell", false);
 
   auto& sub_sink = *S.GetW<CompositeVector>(dist_sources_key_, tag, dist_sources_key_)
-                      .ViewComponent("cell", false);
-  sub_sink.PutScalar(0);
+                      .viewComponent("cell", false);
+  sub_sink.putScalar(0);
 
   auto& acc_src_vec = S.GetW<Teuchos::Array<double>>(acc_sources_key_, tag, acc_sources_key_);
   for (int lcv = 0; lcv != num_ditches_; ++lcv) acc_src_vec[lcv] = 0.;
@@ -89,7 +89,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
 
   if (!factor_key_.empty()) {
     num_vectors =
-      S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)->NumVectors();
+      S.GetPtr<CompositeVector>(factor_key_, tag)->viewComponent("cell", false)->NumVectors();
     AMANZI_ASSERT(num_vectors == sub_sink.NumVectors());
     AMANZI_ASSERT(num_vectors == num_components_);
   }
@@ -97,7 +97,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
   if (std::abs(dt) > 1e-13) {
     const Epetra_MultiVector* factor = nullptr;
     if (!factor_key_.empty()) {
-      factor = &(*(S.GetPtr<CompositeVector>(factor_key_, tag)->ViewComponent("cell", false)));
+      factor = &(*(S.GetPtr<CompositeVector>(factor_key_, tag)->viewComponent("cell", false)));
     }
 
     for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
@@ -123,7 +123,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
   total = 0.;
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) { total += sub_sink[0][c] * cv[0][c]; }
 
-  Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();

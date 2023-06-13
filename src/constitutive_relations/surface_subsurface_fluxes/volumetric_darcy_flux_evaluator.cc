@@ -58,16 +58,16 @@ Volumetric_FluxEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 {
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& darcy_flux =
-    *S.Get<CompositeVector>(flux_key_, tag).ViewComponent("face", false);
+    *S.Get<CompositeVector>(flux_key_, tag).viewComponent("face", false);
   const Epetra_MultiVector& molar_density =
-    *S.Get<CompositeVector>(dens_key_, tag).ViewComponent("cell", false);
-  Epetra_MultiVector& res_v = *result[0]->ViewComponent("face", false);
+    *S.Get<CompositeVector>(dens_key_, tag).viewComponent("cell", false);
+  Epetra_MultiVector& res_v = *result[0]->viewComponent("face", false);
 
-  const auto& mesh = *result[0]->Mesh();
-  int nfaces_owned = mesh.num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  const auto& mesh = *result[0]->getMesh();
+  int nfaces_owned = mesh.getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   AmanziMesh::Entity_ID_List cells;
   for (int f = 0; f < nfaces_owned; f++) {
-    mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    cells = mesh.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     double n_liq = 0.;
     for (int c = 0; c < cells.size(); c++) n_liq += molar_density[0][c];
     n_liq /= cells.size();

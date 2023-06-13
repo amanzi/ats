@@ -69,11 +69,7 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
   PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                          const Teuchos::RCP<State>& S,
-                         const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, glist, S, solution),
-      PK_BDF_Default(pk_tree, glist, S, solution),
-      PK_Physical_Default(pk_tree, glist, S, solution)
-  {}
+                         const Teuchos::RCP<TreeVector>& solution);
 
   virtual void Setup() override;
 
@@ -112,21 +108,17 @@ class PK_PhysicalBDF_Default : public PK_BDF_Default, public PK_Physical_Default
   // PC operator access
   Teuchos::RCP<Operators::Operator> preconditioner() { return preconditioner_; }
 
-  // BC access
-  std::vector<int>& bc_markers() { return bc_->bc_model(); }
-  std::vector<double>& bc_values() { return bc_->bc_value(); }
-  Teuchos::RCP<Operators::BCs> BCs() { return bc_; }
+ protected:
+  virtual void ParseParameterList_() override;
 
  protected:
   // PC
   Teuchos::RCP<Operators::Operator> preconditioner_;
 
-  // BCs
-  Teuchos::RCP<Operators::BCs> bc_;
-
   // error criteria
   Key conserved_key_;
   Key cell_vol_key_;
+  Key bc_key_;
   double atol_, rtol_, fluxtol_;
 };
 

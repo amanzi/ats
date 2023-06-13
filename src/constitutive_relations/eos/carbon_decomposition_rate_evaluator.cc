@@ -52,13 +52,13 @@ void
 CarbonDecomposeRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& res_c = *result[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& res_c = *result[0]->viewComponent("cell", false);
   AMANZI_ASSERT(res_c.MyLength() == 0); // this PK only valid on column mesh
 
-  const auto& temp_c = *S.Get<CompositeVector>(temp_key_, tag).ViewComponent("cell", false);
-  const auto& pres_c = *S.Get<CompositeVector>(pres_key_, tag).ViewComponent("cell", false);
-  const auto& por_c = *S.Get<CompositeVector>(por_key_, tag).ViewComponent("cell", false);
-  const auto& depth_c = *S.Get<CompositeVector>(depth_key_, tag).ViewComponent("cell", false);
+  const auto& temp_c = *S.Get<CompositeVector>(temp_key_, tag).viewComponent("cell", false);
+  const auto& pres_c = *S.Get<CompositeVector>(pres_key_, tag).viewComponent("cell", false);
+  const auto& por_c = *S.Get<CompositeVector>(por_key_, tag).viewComponent("cell", false);
+  const auto& depth_c = *S.Get<CompositeVector>(depth_key_, tag).viewComponent("cell", false);
 
   for (int c = 0; c != res_c.MyLength(); ++c) {
     if (temp_c[0][c] >= 273.15) {

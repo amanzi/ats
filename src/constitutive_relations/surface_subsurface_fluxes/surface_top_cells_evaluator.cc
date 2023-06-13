@@ -44,19 +44,19 @@ SurfaceTopCellsEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 {
   auto tag = my_keys_.front().second;
   Teuchos::RCP<const CompositeVector> sub_vector = S.GetPtr<CompositeVector>(dependency_key_, tag);
-  const Epetra_MultiVector& sub_vector_cells = *sub_vector->ViewComponent("cell", false);
-  Epetra_MultiVector& result_cells = *result[0]->ViewComponent("cell", false);
+  const Epetra_MultiVector& sub_vector_cells = *sub_vector->viewComponent("cell", false);
+  Epetra_MultiVector& result_cells = *result[0]->viewComponent("cell", false);
 
 
   int ncells_surf =
-    result[0]->Mesh()->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    result[0]->getMesh()->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int c = 0; c != ncells_surf; ++c) {
     // get the face on the subsurface mesh
-    AmanziMesh::Entity_ID f = result[0]->Mesh()->entity_get_parent(AmanziMesh::CELL, c);
+    AmanziMesh::Entity_ID f = result[0]->getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 
     // get the cell interior to the face
     AmanziMesh::Entity_ID_List cells;
-    sub_vector->Mesh()->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    cells = sub_vector->getMesh()->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     AMANZI_ASSERT(cells.size() == 1);
 
     result_cells[0][c] = sub_vector_cells[0][cells[0]];
@@ -70,7 +70,7 @@ SurfaceTopCellsEvaluator::EnsureCompatibility_ToDeps_(State& S)
   auto domain_name = Keys::getDomain(my_keys_.front().first);
 
   CompositeVectorSpace fac;
-  fac.SetMesh(S.GetMesh(domain_name)->parent())->AddComponent("cell", AmanziMesh::CELL, 1);
+  fac.SetMesh(S.GetMesh(domain_name)->getParentMesh())->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
 }
 

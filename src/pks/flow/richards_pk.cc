@@ -6,27 +6,22 @@
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
-
-#include "Epetra_Import.h"
-
-#include "flow_bc_factory.hh"
-
+#include "Reductions.hh"
 #include "Point.hh"
+#include "DataStructuresHelpers.hh"
 
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
 #include "upwind_total_flux.hh"
-#include "upwind_gravity_flux.hh"
+//#include "upwind_gravity_flux.hh"
 
-#include "CompositeVectorFunction.hh"
-#include "CompositeVectorFunctionFactory.hh"
-
-#include "predictor_delegate_bc_flux.hh"
-#include "wrm_evaluator.hh"
-#include "rel_perm_evaluator.hh"
-#include "richards_water_content_evaluator.hh"
+//#include "predictor_delegate_bc_flux.hh"
+#include "MeshFunction.hh"
 #include "OperatorDefs.hh"
-#include "BoundaryFlux.hh"
+#include "PDE_DiffusionWithGravity.hh"
+#include "PDE_DiffusionFactory.hh"
+#include "PDE_Accumulation.hh"
+//#include "BoundaryFlux.hh"
 #include "pk_helpers.hh"
 
 #include "richards.hh"
@@ -53,7 +48,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     modify_predictor_first_bc_flux_(false),
     upwind_from_prev_flux_(false),
     clobber_boundary_flux_dir_(false),
-    vapor_diffusion_(false),
     perm_scale_(1.),
     jacobian_(false),
     jacobian_lag_(0),
@@ -64,7 +58,11 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .5 * .1 * 55000.); // phi * s * nl
+}
 
+void
+Richards::ParseParameterList_()
+{
   // get field names
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved", "water_content");
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
@@ -127,56 +125,28 @@ Richards::SetupRichardsFlow_()
   // Get data for special-case entities.
   S_->Require<CompositeVector, CompositeVectorSpace>(cell_vol_key_, tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
 
   // Set up Operators
-  // -- boundary conditions
-  Teuchos::ParameterList bc_plist = plist_->sublist("boundary conditions", true);
-  FlowBCFactory bc_factory(mesh_, bc_plist);
-  bc_pressure_ = bc_factory.CreatePressure();
-  bc_head_ = bc_factory.CreateHead();
-  bc_level_ = bc_factory.CreateFixedLevel();
-  bc_flux_ = bc_factory.CreateMassFlux();
-  bc_seepage_ = bc_factory.CreateSeepageFacePressure();
-  bc_seepage_->Compute(0.); // compute at t=0 to set up
-  std::tie(bc_seepage_infilt_explicit_, bc_seepage_infilt_) =
-    bc_factory.CreateSeepageFacePressureWithInfiltration();
-  bc_seepage_infilt_->Compute(0.); // compute at t=0 to set up
-  bc_rho_water_ = bc_plist.get<double>("hydrostatic water density [kg m^-3]", 1000.);
+  // -- Boundary conditions
+  auto bc_plist = Teuchos::sublist(plist_, "boundary conditions");
 
-  // -- linear tensor coefficients
-  // permeability type - scalar or tensor?
-  Teuchos::ParameterList& perm_list = S_->GetEvaluatorList(perm_key_);
-  std::string perm_type = perm_list.get<std::string>("permeability type", "scalar");
-  if (perm_type == "scalar") {
-    perm_tensor_rank_ = 1;
-    num_perm_vals_ = 1;
-  } else if (perm_type == "horizontal and vertical") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = 2;
-  } else if (perm_type == "diagonal tensor") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = mesh_->space_dimension();
-  } else if (perm_type == "full tensor") {
-    perm_tensor_rank_ = 2;
-    num_perm_vals_ = (mesh_->space_dimension() == 3) ? 6 : 3;
-  } else {
-    Errors::Message message(
-      "`permeability type` must be one of the following: \"scalar\", \"diagonal tensor\", \"full "
-      "tensor\", or \"horizontal and vertical\".");
-    Exceptions::amanzi_throw(message);
-  }
+  // Dirichlet
+  bc_pressure_ = Teuchos::rcp(new Functions::MeshFunction(bc_plist->sublist("pressure"),
+          mesh_, "boundary pressure [Pa]", AmanziMesh::Entity_kind::FACE, Operators::OPERATOR_BC_DIRICHLET));
+  bc_pressure_data_ = Teuchos::rcp(new MultiPatch<double>(*bc_pressure_->createMPS()));
+
+  // Neumann
+  bc_flux_ = Teuchos::rcp(new Functions::MeshFunction(bc_plist->sublist("water flux"),
+          mesh_, "outward water flux [mol m^-2 s^-1]", AmanziMesh::Entity_kind::FACE, Operators::OPERATOR_BC_NEUMANN));
+  bc_flux_data_ = Teuchos::rcp(new MultiPatch<double>(*bc_flux_->createMPS()));
+
+  // overall container
+  bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
   if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
-
-  // data allocation -- move to State!
-  unsigned int c_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  K_ = Teuchos::rcp(new std::vector<WhetStone::Tensor>(c_owned));
-  for (unsigned int c = 0; c != c_owned; ++c) {
-    (*K_)[c].Init(mesh_->space_dimension(), perm_tensor_rank_);
-  }
 
   // -- nonlinear coefficients/upwinding
   // if coupled to the surface, how do we deal with the surface face
@@ -193,14 +163,16 @@ Richards::SetupRichardsFlow_()
   }
   clobber_boundary_flux_dir_ =
     plist_->get<bool>("clobber boundary flux direction for upwinding", false);
+  AMANZI_ASSERT(clobber_boundary_flux_dir_ == false);
 
   // what upwinding method to use
   std::string method_name =
     plist_->get<std::string>("relative permeability method", "upwind with Darcy flux");
-  if (method_name == "upwind with gravity") {
-    upwinding_ = Teuchos::rcp(new Operators::UpwindGravityFlux(name_, tag_next_, K_));
-    Krel_method_ = Operators::UPWIND_METHOD_GRAVITY;
-  } else if (method_name == "cell centered") {
+  // if (method_name == "upwind with gravity") {
+  //   upwinding_ = Teuchos::rcp(new Operators::UpwindGravityFlux(name_, tag_next_, K_));
+  //   Krel_method_ = Operators::UPWIND_METHOD_GRAVITY;
+  // } else if (method_name == "cell centered") {
+  if (method_name == "cell centered") {
     upwinding_ = Teuchos::rcp(new Operators::UpwindCellCentered(name_, tag_next_));
     Krel_method_ = Operators::UPWIND_METHOD_CENTERED;
   } else if (method_name == "upwind with Darcy flux") {
@@ -239,7 +211,7 @@ Richards::SetupRichardsFlow_()
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- create the operators for the preconditioner
   //    diffusion
@@ -312,24 +284,6 @@ Richards::SetupRichardsFlow_()
   preconditioner_acc_ =
     Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
-  // // -- vapor diffusion terms
-  // vapor_diffusion_ = plist_->get<bool>("include vapor diffusion", false);
-  // if (vapor_diffusion_){
-  //   AMANZI_ASSERT(0); // untested!
-
-  //   // Create the vapor diffusion vectors
-  //   S_->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_pressure", tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
-  //       ->SetComponent("cell", AmanziMesh::CELL, 1);
-  //   S_->GetRecordW("vapor_diffusion_pressure",name_)->set_io_vis(true);
-
-  //   S_->Require<CompositeVector,CompositeVectorSpace>("vapor_diffusion_temperature", tag_next_,  name_).SetMesh(mesh_)->SetGhosted()
-  //     ->SetComponent("cell", AmanziMesh::CELL, 1);
-  //   S_->GetRecordW("vapor_diffusion_temperature",name_)->set_io_vis(true);
-
-  //   // operator for the vapor diffusion terms
-  //   matrix_vapor_ = Operators::CreateMatrixMFD(mfd_plist, mesh_);
-  // }
-
   // -- source terms
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_) {
@@ -340,7 +294,7 @@ Richards::SetupRichardsFlow_()
 
     requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     if (source_term_is_differentiable_) {
       // require derivative of source
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -357,7 +311,7 @@ Richards::SetupRichardsFlow_()
       Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", "surface_subsurface_flux");
     S_->Require<CompositeVector, CompositeVectorSpace>(ss_flux_key_, tag_next_)
       .SetMesh(S_->GetMesh(domain_surf))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   // -- coupling done by a Dirichlet condition
@@ -381,26 +335,28 @@ Richards::SetupRichardsFlow_()
   //  NOTE: no need to require evaluator for p here, either at the old or new
   //  times, as this was done in pk_physical.  All we have to do is set the
   //  structure.
-  CompositeVectorSpace matrix_cvs = matrix_->RangeMap();
+  const CompositeSpace& matrix_cvs = *matrix_->getRangeMap();
   compute_boundary_values_ = plist_->get<bool>("compute boundary values", false);
-  if (compute_boundary_values_)
-    matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .Update(matrix_cvs)
     ->SetGhosted();
+  if (compute_boundary_values_) {
+    S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
+      .AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
+  }
 
   // -- flux is managed here as a primary variable
   requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- also need a velocity, but only for vis/diagnostics, so might as well
   // -- only keep at NEXT
   requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 3);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
 
   // Globalization and other timestep control flags
   // -- predictors
@@ -410,6 +366,12 @@ Richards::SetupRichardsFlow_()
   modify_predictor_first_bc_flux_ =
     plist_->get<bool>("modify predictor for initial flux BCs", false);
   modify_predictor_wc_ = plist_->get<bool>("modify predictor via water content", false);
+
+  // NOT YET IMPLEMENTED!
+  AMANZI_ASSERT(!modify_predictor_with_consistent_faces_);
+  AMANZI_ASSERT(!modify_predictor_bc_flux_);
+  AMANZI_ASSERT(!modify_predictor_first_bc_flux_);
+  AMANZI_ASSERT(!modify_predictor_wc_);
 
   // -- correctors
   p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
@@ -429,17 +391,15 @@ Richards::SetupRichardsFlow_()
 void
 Richards::SetupPhysicalEvaluators_()
 {
-  // -- Absolute permeability.
-  requireAtNext(perm_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
+  // -- permeability tensor
+  S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_);
+  S_->RequireEvaluator(perm_key_, tag_next_);
 
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     conserved_key_, tag_next_, key_, tag_next_);
 
@@ -451,11 +411,11 @@ Richards::SetupPhysicalEvaluators_()
   requireAtNext(sat_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtNext(sat_gas_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
@@ -465,25 +425,25 @@ Richards::SetupPhysicalEvaluators_()
   requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // -- get the WRM models
-  auto wrm_eval = dynamic_cast<Flow::WRMEvaluator*>(&wrm);
-  AMANZI_ASSERT(wrm_eval != nullptr);
-  wrms_ = wrm_eval->get_WRMs();
+  // auto wrm_eval = dynamic_cast<Flow::WRMEvaluator*>(&wrm);
+  // AMANZI_ASSERT(wrm_eval != nullptr);
+  // wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
   requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
   requireAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 
@@ -497,12 +457,12 @@ Richards::RequireNonlinearCoefficient_(const Key& key, const std::string& coef_l
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   } else if (coef_location == "standard: cell") {
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   } else {
     Errors::Message message("Unknown upwind coefficient location in Richards flow.");
     Exceptions::amanzi_throw(message);
@@ -525,47 +485,38 @@ Richards::Initialize()
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
-  S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, name_).PutScalar(1.0);
+  S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, name_).putScalar(1.0);
   S_->GetRecordW(uw_coef_key_, tag_next_, name_).set_initialized();
 
   if (!duw_coef_key_.empty()) {
-    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, name_).PutScalar(1.0);
+    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, name_).putScalar(1.0);
     S_->GetRecordW(duw_coef_key_, tag_next_, name_).set_initialized();
   }
 
-  S_->GetW<CompositeVector>(flux_key_, tag_next_, name()).PutScalar(0.0);
+  S_->GetW<CompositeVector>(flux_key_, tag_next_, name()).putScalar(0.0);
   S_->GetRecordW(flux_key_, tag_next_, name()).set_initialized();
   changedEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
-  S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name()).PutScalar(0.0);
+  S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name()).putScalar(0.0);
   S_->GetRecordW(flux_dir_key_, tag_next_, name()).set_initialized();
-  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).PutScalar(0.0);
+  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).putScalar(0.0);
   S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
-
-  // absolute perm
-  SetAbsolutePermeabilityTensor_(tag_next_);
 
   // operators
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   matrix_diff_->SetGravity(g);
   matrix_diff_->SetBCs(bc_, bc_);
-  matrix_diff_->SetTensorCoefficient(K_);
+  auto K = S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT);
+  matrix_diff_->SetTensorCoefficient(K);
 
   preconditioner_diff_->SetGravity(g);
   preconditioner_diff_->SetBCs(bc_, bc_);
-  preconditioner_diff_->SetTensorCoefficient(K_);
+  preconditioner_diff_->SetTensorCoefficient(K);
 
   face_matrix_diff_->SetGravity(g);
   face_matrix_diff_->SetBCs(bc_, bc_);
-  face_matrix_diff_->SetTensorCoefficient(K_);
+  face_matrix_diff_->SetTensorCoefficient(K);
   face_matrix_diff_->SetScalarCoefficient(Teuchos::null, Teuchos::null);
-
-  // if (vapor_diffusion_){
-  //   //vapor diffusion
-  //   matrix_vapor_->CreateMFDmassMatrices(Teuchos::null);
-  //   // residual vector for vapor diffusion
-  //   res_vapor = Teuchos::rcp(new CompositeVector(*S_->GetPtr<CompositeVector>(key_)));
-  // }
 };
 
 
@@ -574,105 +525,107 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 {
   // constant head over the surface
   if (plist_->sublist("initial condition").isParameter("hydrostatic head [m]")) {
-    double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
-    double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
-    int ncols = mesh_->num_columns(false);
+    AMANZI_ASSERT(false);
+//     double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
+//     double rho =
+//       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+//     int ncols = mesh_->columns(false);
 
-    const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-    int z_index = mesh_->space_dimension() - 1;
-    double g = -gvec[z_index];
-    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+//     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+//     int z_index = mesh_->getSpaceDimension() - 1;
+//     double g = -gvec[z_index];
+//     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    // set pressure on the column of faces and cells
-    Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
-    Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
-    if (pres->HasComponent("face"))
-      flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face", false)));
+//     // set pressure on the column of faces and cells
+//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
+//     Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
+//     if (pres->hasComponent("face"))
+//       flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face", false)));
 
-    { // context for viewcomponent -- do cells
-      Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-      Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
-      if (pres->HasComponent("face")) { pres_f = pres->ViewComponent("face", false); }
+//     { // context for viewcomponent -- do cells
+//       Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+//       Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
+//       if (pres->hasComponent("face")) { pres_f = pres->viewComponent("face", false); }
 
-      int ncells_per = -1;
-      for (int col = 0; col != ncols; ++col) {
-        auto& col_cells = mesh_->cells_of_column(col);
-        if (ncells_per < 0) ncells_per = col_cells.size();
-        AMANZI_ASSERT(col_cells.size() == ncells_per);
-        auto& col_faces = mesh_->faces_of_column(col);
-        AMANZI_ASSERT(col_faces.size() == col_cells.size() + 1);
-        double z_wt = mesh_->face_centroid(col_faces[0])[z_index] + head_wt;
+//       int ncells_per = -1;
+//       for (int col = 0; col != ncols; ++col) {
+//         auto& col_cells = mesh_->cells_of_column(col);
+//         if (ncells_per < 0) ncells_per = col_cells.size();
+//         AMANZI_ASSERT(col_cells.size() == ncells_per);
+//         auto& col_faces = mesh_->faces_of_column(col);
+//         AMANZI_ASSERT(col_faces.size() == col_cells.size() + 1);
+//         double z_wt = mesh_->getFaceCentroid(col_faces[0])[z_index] + head_wt;
 
-        if (pres_f.get()) {
-          (*pres_f)[0][col_faces[0]] = p_atm + rho * g * head_wt;
-          (*flags)[col_faces[0]] = 1;
-        }
-        for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
-          AmanziMesh::Entity_ID c = col_cells[lcv_c];
-          AmanziMesh::Entity_ID f = col_faces[lcv_c + 1];
-          pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->cell_centroid(c)[z_index]);
-          if (pres_f.get()) {
-            (*pres_f)[0][f] = p_atm + rho * g * (z_wt - mesh_->face_centroid(f)[z_index]);
-            (*flags)[f] = 1;
-          }
-        }
-      }
-    }
+//         if (pres_f.get()) {
+//           (*pres_f)[0][col_faces[0]] = p_atm + rho * g * head_wt;
+//           (*flags)[col_faces[0]] = 1;
+//         }
+//         for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
+//           AmanziMesh::Entity_ID c = col_cells[lcv_c];
+//           AmanziMesh::Entity_ID f = col_faces[lcv_c + 1];
+//           pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+//           if (pres_f.get()) {
+//             (*pres_f)[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+//             (*flags)[f] = 1;
+//           }
+//         }
+//       }
+//     }
 
-    if (pres->HasComponent("face")) {
-      // communicate, then deal with horizontal-normal faces
-      pres->ScatterMasterToGhosted("cell");
-      {
-        const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-        Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-        for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
-          if (!(*flags)[f]) {
-            AmanziMesh::Entity_ID_List f_cells;
-            mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &f_cells);
-            if (f_cells.size() == 1) {
-              // boundary face, use the cell value as the water table is
-              // assumed to parallel the cell structure
-              pres_f[0][f] = pres_c[0][f_cells[0]];
-              (*flags)[f] = 1;
-            } else {
-              AMANZI_ASSERT(f_cells.size() == 2);
-              // interpolate between cells
-              pres_f[0][f] = (pres_c[0][f_cells[0]] + pres_c[0][f_cells[1]]) / 2.;
-              (*flags)[f] = 1;
-            }
-          }
-        }
-      }
-    }
-    S_->GetRecordW(key_, tag, name()).set_initialized();
+//     if (pres->hasComponent("face")) {
+//       // communicate, then deal with horizontal-normal faces
+//       pres->scatterMasterToGhosted("cell");
+//       {
+//         const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+//         Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+//         for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
+//           if (!(*flags)[f]) {
+//             AmanziMesh::Entity_ID_List f_cells;
+//             f_cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//             if (f_cells.size() == 1) {
+//               // boundary face, use the cell value as the water table is
+//               // assumed to parallel the cell structure
+//               pres_f[0][f] = pres_c[0][f_cells[0]];
+//               (*flags)[f] = 1;
+//             } else {
+//               AMANZI_ASSERT(f_cells.size() == 2);
+//               // interpolate between cells
+//               pres_f[0][f] = (pres_c[0][f_cells[0]] + pres_c[0][f_cells[1]]) / 2.;
+//               (*flags)[f] = 1;
+//             }
+//           }
+//         }
+//       }
+//     }
+//     S_->GetRecordW(key_, tag, name()).set_initialized();
   }
 
   // constant head datum
   if (plist_->sublist("initial condition").isParameter("hydrostatic water level [m]")) {
-    double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
-    double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    AMANZI_ASSERT(false);
+//     double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
+//     double rho =
+//       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
 
-    int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-    double g = -gravity[z_index];
+//     int z_index = mesh_->getSpaceDimension() - 1;
+//     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+//     double g = -gravity[z_index];
 
-    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+//     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
-    Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-    for (int c = 0; c != pres_c.MyLength(); ++c) {
-      pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->cell_centroid(c)[z_index]);
-    }
+//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
+//     Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+//     for (int c = 0; c != pres_c.MyLength(); ++c) {
+//       pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+//     }
 
-    if (pres->HasComponent("face")) {
-      Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-      for (int f = 0; f != pres_f.MyLength(); ++f) {
-        pres_f[0][f] = p_atm + rho * g * (z_wt - mesh_->face_centroid(f)[z_index]);
-      }
-    }
-    S_->GetRecordW(key_, tag, name()).set_initialized();
+//     if (pres->hasComponent("face")) {
+//       Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+//       for (int f = 0; f != pres_f.MyLength(); ++f) {
+//         pres_f[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+//       }
+//     }
+//     S_->GetRecordW(key_, tag, name()).set_initialized();
   }
 }
 
@@ -709,36 +662,36 @@ Richards::ValidStep()
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
-    const Epetra_MultiVector& sl_new =
-      *S_->GetPtr<CompositeVector>(sat_key_, tag_next_)->ViewComponent("cell", false);
-    const Epetra_MultiVector& sl_old =
-      *S_->GetPtr<CompositeVector>(sat_key_, tag_current_)->ViewComponent("cell", false);
-    Epetra_MultiVector dsl(sl_new);
-    dsl.Update(-1., sl_old, 1.);
-    auto change = maxValLoc(*dsl(0));
+    const Vector_type& sl_new =
+      *S_->Get<CompositeVector>(sat_key_, tag_next_).getComponent("cell", false)->getVector(0);
+    const Vector_type& sl_old =
+      *S_->Get<CompositeVector>(sat_key_, tag_current_).getComponent("cell", false)->getVector(0);
+    Vector_type dsl(sl_new);
+    dsl.update(-1., sl_old, 1.);
+    auto change = Reductions::reduceAllMaxLoc(dsl);
 
-    if (change.value > sat_change_limit_) {
+    if (change.val > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max sl change=" << change.value
-                   << " > limit=" << sat_change_limit_ << " at cell GID " << change.gid
+        *vo_->os() << "Invalid time step, max sl change=" << change.val
+                   << " > limit=" << sat_change_limit_ << " at cell GID " << change.loc
                    << std::endl;
       return false;
     }
   }
 
   if (S_->HasRecordSet(sat_ice_key_) && (sat_ice_change_limit_ > 0.0)) {
-    const Epetra_MultiVector& si_new =
-      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_next_)->ViewComponent("cell", false);
-    const Epetra_MultiVector& si_old =
-      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_current_)->ViewComponent("cell", false);
-    Epetra_MultiVector dsi(si_new);
-    dsi.Update(-1., si_old, 1.);
-    auto change = maxValLoc(*dsi(0));
+    const Vector_type& si_new =
+      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_next_)->getComponent("cell", false)->getVector(0);
+    const Vector_type& si_old =
+      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_current_)->getComponent("cell", false)->getVector(0);
+    Vector_type dsi(si_new);
+    dsi.update(-1., si_old, 1.);
+    auto change = Reductions::reduceAllMaxLoc(dsi);
 
-    if (change.value > sat_ice_change_limit_) {
+    if (change.val > sat_ice_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
-        *vo_->os() << "Invalid time step, max si change=" << change.value
-                   << " > limit=" << sat_ice_change_limit_ << " at cell GID " << change.gid
+        *vo_->os() << "Invalid time step, max si change=" << change.val
+                   << " > limit=" << sat_ice_change_limit_ << " at cell GID " << change.loc
                    << std::endl;
       return false;
     }
@@ -774,7 +727,7 @@ Richards::CalculateDiagnostics(const Tag& tag)
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
-  UpdateVelocity_(tag);
+  // UpdateVelocity_(tag);
 };
 
 
@@ -806,34 +759,36 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag);
 
       if (!deform_key_.empty() &&
-          S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir"))
-        face_matrix_diff_->SetTensorCoefficient(K_);
+          S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) {
+        auto K = S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT);
+        face_matrix_diff_->SetTensorCoefficient(K);
+      }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
       face_matrix_diff_->ApplyBCs(true, true, true);
       face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
 
-      if (clobber_boundary_flux_dir_) {
-        Epetra_MultiVector& flux_dir_f = *flux_dir->ViewComponent("face", false);
+      // if (clobber_boundary_flux_dir_) {
+      //   Epetra_MultiVector& flux_dir_f = *flux_dir->viewComponent("face", false);
 
-        auto& markers = bc_markers();
-        auto& values = bc_values();
+      //   auto& markers = bc_markers();
+      //   auto& values = bc_values();
 
-        for (int f = 0; f != markers.size(); ++f) {
-          if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-            AmanziMesh::Entity_ID_List cells;
-            mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-            AMANZI_ASSERT(cells.size() == 1);
-            int c = cells[0];
-            AmanziMesh::Entity_ID_List faces;
-            std::vector<int> dirs;
-            mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
-            int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
+      //   for (int f = 0; f != markers.size(); ++f) {
+      //     if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
+      //       AmanziMesh::Entity_ID_List cells;
+      //       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      //       AMANZI_ASSERT(cells.size() == 1);
+      //       int c = cells[0];
+      //       AmanziMesh::Entity_ID_List faces;
+      //       std::vector<int> dirs;
+      //       mesh_->getCellFacesAndDirections(c, &faces, &dirs);
+      //       int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
 
-            flux_dir_f[0][f] = values[f] * dirs[i];
-          }
-        }
-      }
+      //       flux_dir_f[0][f] = values[f] * dirs[i];
+      //     }
+      //   }
+      // }
     }
 
     update_perm |= update_dir;
@@ -844,46 +799,48 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
 
     // Move rel perm on boundary_faces into uw_rel_perm on faces
-    const Epetra_Import& vandelay = mesh_->exterior_face_importer();
-    const Epetra_MultiVector& rel_perm_bf = *rel_perm->ViewComponent("boundary_face", false);
+    const auto& vandelay = mesh_->getBoundaryFaceImporter();
+    const auto& rel_perm_bf = *rel_perm->getComponent("boundary_face", false);
     {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
+      auto& uw_rel_perm_f = *uw_rel_perm->getComponent("face", false);
+      uw_rel_perm_f.doExport(rel_perm_bf, vandelay, Tpetra::CombineMode::INSERT);
     }
 
     // Upwind, only overwriting boundary faces if the wind says to do so.
     upwinding_->Update(*rel_perm, *uw_rel_perm, *S_);
 
     if (clobber_policy_ == "clobber") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
+      auto& uw_rel_perm_f = *uw_rel_perm->getComponent("face", false);
+      uw_rel_perm_f.doExport(rel_perm_bf, vandelay, Tpetra::CombineMode::INSERT);
     } else if (clobber_policy_ == "max") {
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
-      for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
-        auto f = fmap.LID(bfmap.GID(bf));
-        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
-      }
+      AMANZI_ASSERT(false);
+      // Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
+      // const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      // const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      // for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
+      //   auto f = fmap.LID(bfmap.GID(bf));
+      //   if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
+      // }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
-      Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const Epetra_MultiVector& pres =
-        *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
-      for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
-        auto f = fmap.LID(bfmap.GID(bf));
-        AmanziMesh::Entity_ID_List fcells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
-        AMANZI_ASSERT(fcells.size() == 1);
-        if (pres[0][fcells[0]] < 101225.) {
-          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
-        } else if (pres[0][fcells[0]] < 101325.) {
-          double frac = (101325. - pres[0][fcells[0]]) / 100.;
-          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf] * frac + uw_rel_perm_f[0][f] * (1 - frac);
-        }
-      }
+      AMANZI_ASSERT(false);
+      // Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->viewComponent("face", false);
+      // const Epetra_MultiVector& pres =
+      //   *S_->Get<CompositeVector>(key_, tag).viewComponent("cell", false);
+      // const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      // const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      // for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
+      //   auto f = fmap.LID(bfmap.GID(bf));
+      //   AmanziMesh::Entity_ID_List fcells;
+      //   fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      //   AMANZI_ASSERT(fcells.size() == 1);
+      //   if (pres[0][fcells[0]] < 101225.) {
+      //     uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
+      //   } else if (pres[0][fcells[0]] < 101325.) {
+      //     double frac = (101325. - pres[0][fcells[0]]) / 100.;
+      //     uw_rel_perm_f[0][f] = rel_perm_bf[0][bf] * frac + uw_rel_perm_f[0][f] * (1 - frac);
+      //   }
+      // }
     }
   }
 
@@ -908,7 +865,7 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
     if (!duw_coef_key_.empty()) {
       // must also upwind
       CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, name_);
-      duw_rel_perm.PutScalar(0.);
+      duw_rel_perm.putScalar(0.);
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
       upwinding_deriv_->Update(drel_perm, duw_rel_perm, *S_);
@@ -927,12 +884,12 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 void
 Richards::ComputeBoundaryConditions_(const Tag& tag)
 {
-  bc_pressure_->Compute(S_->get_time(tag));
-  bc_head_->Compute(S_->get_time(tag));
-  bc_level_->Compute(S_->get_time(tag));
-  bc_flux_->Compute(S_->get_time(tag));
-  bc_seepage_->Compute(S_->get_time(tag));
-  bc_seepage_infilt_->Compute(S_->get_time(tag));
+  bc_pressure_->Compute(S_->get_time(tag), *bc_pressure_data_);
+  // bc_head_->Compute(S_->get_time(tag));
+  // bc_level_->Compute(S_->get_time(tag));
+  bc_flux_->Compute(S_->get_time(tag), *bc_flux_data_);
+  // bc_seepage_->Compute(S_->get_time(tag));
+  // bc_seepage_infilt_->Compute(S_->get_time(tag));
 }
 
 
@@ -945,14 +902,16 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
-  auto& markers = bc_markers();
-  auto& values = bc_values();
+  // Initialize
+  // ------------------------------------
+  // -- init to NONE
+  bc_->model()->getComponent("face", false)->putScalar(Operators::OPERATOR_BC_NONE);
+  bc_->value()->getComponent("face", false)->putScalar(0.0);
 
-  // initialize all to 0
-  for (unsigned int n = 0; n != markers.size(); ++n) {
-    markers[n] = Operators::OPERATOR_BC_NONE;
-    values[n] = 0.0;
-  }
+  // -- boundary faces to 0 FLUX
+  MultiPatchSpace bfs(mesh_, false, Operators::OPERATOR_BC_NEUMANN);
+  bfs.addPatch("all", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
+  Functions::Impl::copyFlags(bfs, *bc_->model());
 
   // count for debugging
   std::vector<int> bc_counts;
@@ -961,304 +920,283 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   // Dirichlet-type boundary conditions
   // -------------------------------------
   // pressure boundary conditions -- the primary
-  bc_counts.push_back(bc_pressure_->size());
+  Functions::Impl::copyFlags(bc_pressure_data_->space, *bc_->model());
+  copyMultiPatchToCompositeVector(*bc_pressure_data_, "face", *bc_->value());
+  bc_counts.push_back(bc_pressure_data_->space.size());
   bc_names.push_back(key_);
-  for (const auto& bc : *bc_pressure_) {
-    int f = bc.first;
-#ifdef ENABLE_DBC
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-    AMANZI_ASSERT(cells.size() == 1);
-#endif
-    markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-    values[f] = bc.second;
-  }
 
-  // head boundary conditions
-  bc_counts.push_back(bc_head_->size());
-  bc_names.push_back("head");
-  if (bc_head_->size() > 0) {
-    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-    double g = -gravity[z_index];
+  // // head boundary conditions
+  // bc_counts.push_back(bc_head_->size());
+  // bc_names.push_back("head");
+  // if (bc_head_->size() > 0) {
+  //   double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  //   int z_index = mesh_->getSpaceDimension() - 1;
+  //   const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  //   double g = -gravity[z_index];
 
-    for (const auto& bc : *bc_head_) {
-      int f = bc.first;
+  //   for (const auto& bc : *bc_head_) {
+  //     int f = bc.first;
 
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
+  //     AmanziMesh::Entity_ID_List cells;
+  //     cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+  //     AMANZI_ASSERT(cells.size() == 1);
 
-      // we need to find the elevation of the surface, but finding the top edge
-      // of this stack of faces is not possible currently.  The best approach
-      // is instead to work with the cell.
-      int col = mesh_->column_ID(cells[0]);
-      double z_surf = mesh_->face_centroid(mesh_->faces_of_column(col)[0])[z_index];
-      double z_wt = bc.second + z_surf;
+  //     // we need to find the elevation of the surface, but finding the top edge
+  //     // of this stack of faces is not possible currently.  The best approach
+  //     // is instead to work with the cell.
+  //     int col = mesh_->column_ID(cells[0]);
+  //     double z_surf = mesh_->getFaceCentroid(mesh_->faces_of_column(col)[0])[z_index];
+  //     double z_wt = bc.second + z_surf;
 
-      markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      // note, here the cell centroid's z is used to relate to the column's top
-      // face centroid, specifically NOT the boundary face's centroid.
-      values[f] = p_atm + bc_rho_water_ * g * (z_wt - mesh_->cell_centroid(cells[0])[z_index]);
-    }
-  }
+  //     markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+  //     // note, here the cell centroid's z is used to relate to the column's top
+  //     // face centroid, specifically NOT the boundary face's centroid.
+  //     values[f] = p_atm + bc_rho_water_ * g * (z_wt - mesh_->getCellCentroid(cells[0])[z_index]);
+  //   }
+  // }
 
-  // fixed level head boundary conditions
-  bc_counts.push_back(bc_head_->size());
-  bc_names.push_back("head");
-  if (bc_level_->size() > 0) {
-    double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    int z_index = mesh_->space_dimension() - 1;
-    const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-    double g = -gravity[z_index];
+  // // fixed level head boundary conditions
+  // bc_counts.push_back(bc_head_->size());
+  // bc_names.push_back("head");
+  // if (bc_level_->size() > 0) {
+  //   double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  //   int z_index = mesh_->getSpaceDimension() - 1;
+  //   const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+  //   double g = -gravity[z_index];
 
-    for (const auto& bc : *bc_level_) {
-      int f = bc.first;
-      markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      values[f] = p_atm + bc_rho_water_ * g * (bc.second - mesh_->face_centroid(f)[z_index]);
-    }
-  }
+  //   for (const auto& bc : *bc_level_) {
+  //     int f = bc.first;
+  //     markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+  //     values[f] = p_atm + bc_rho_water_ * g * (bc.second - mesh_->getFaceCentroid(f)[z_index]);
+  //   }
+  // }
 
   // Neumann type boundary conditions
   // -------------------------------------
-  const Epetra_MultiVector& rel_perm =
-    *S_->Get<CompositeVector>(uw_coef_key_, tag).ViewComponent("face", false);
-
-  // standard Neumann flux BCs
-  bc_counts.push_back(bc_flux_->size());
+  Functions::Impl::copyFlags(bc_flux_data_->space, *bc_->model());
+  copyMultiPatchToCompositeVector(*bc_flux_data_, "face", *bc_->value());
+  bc_counts.push_back(bc_flux_data_->space.size());
   bc_names.push_back(flux_key_);
 
-  if (!infiltrate_only_if_unfrozen_) {
-    for (const auto& bc : *bc_flux_) {
-      int f = bc.first;
-#ifdef ENABLE_DBC
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
-#endif
-      markers[f] = Operators::OPERATOR_BC_NEUMANN;
-      values[f] = bc.second;
-      if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
-    }
+//   const Epetra_MultiVector& rel_perm =
+//     *S_->Get<CompositeVector>(uw_coef_key_, tag).viewComponent("face", false);
 
-  } else {
-    // Neumann boundary conditions that turn off if temp < freezing
-    const Epetra_MultiVector& temp =
-      *S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "temperature"), tag)
-         ->ViewComponent("face");
-    for (const auto& bc : *bc_flux_) {
-      int f = bc.first;
-#ifdef ENABLE_DBC
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
-#endif
-      markers[f] = Operators::OPERATOR_BC_NEUMANN;
-      if (temp[0][f] > 273.15) {
-        values[f] = bc.second;
-        if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
-      } else {
-        values[f] = 0.;
-      }
-    }
-  }
+//   // standard Neumann flux BCs
+//   bc_counts.push_back(bc_flux_->size());
+//   bc_names.push_back(flux_key_);
 
-  // seepage face -- pressure <= specified value (usually 101325), outward water flux >= 0
-  S_->Get<CompositeVector>(flux_key_, tag).ScatterMasterToGhosted("face");
-  const Epetra_MultiVector& flux =
-    *S_->Get<CompositeVector>(flux_key_, tag).ViewComponent("face", true);
+//   if (!infiltrate_only_if_unfrozen_) {
+//     for (const auto& bc : *bc_flux_) {
+//       int f = bc.first;
+// #ifdef ENABLE_DBC
+//       AmanziMesh::Entity_ID_List cells;
+//       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//       AMANZI_ASSERT(cells.size() == 1);
+// #endif
+//       markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//       values[f] = bc.second;
+//       if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
+//     }
 
-  const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-  Teuchos::RCP<const CompositeVector> u = S_->GetPtr<CompositeVector>(key_, tag);
-  double seepage_tol = 10.;
+//   } else {
+//     // Neumann boundary conditions that turn off if temp < freezing
+//     const Epetra_MultiVector& temp =
+//       *S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "temperature"), tag)
+//          ->viewComponent("face");
+//     for (const auto& bc : *bc_flux_) {
+//       int f = bc.first;
+// #ifdef ENABLE_DBC
+//       AmanziMesh::Entity_ID_List cells;
+//       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//       AMANZI_ASSERT(cells.size() == 1);
+// #endif
+//       markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//       if (temp[0][f] > 273.15) {
+//         values[f] = bc.second;
+//         if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
+//       } else {
+//         values[f] = 0.;
+//       }
+//     }
+//   }
 
-  bc_counts.push_back(bc_seepage_->size());
-  bc_names.push_back("standard seepage");
-  for (const auto& bc : *bc_seepage_) {
-    int f = bc.first;
-#ifdef ENABLE_DBC
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-    AMANZI_ASSERT(cells.size() == 1);
-#endif
+//   // seepage face -- pressure <= specified value (usually 101325), outward water flux >= 0
+//   S_->Get<CompositeVector>(flux_key_, tag).scatterMasterToGhosted("face");
+//   const Epetra_MultiVector& flux =
+//     *S_->Get<CompositeVector>(flux_key_, tag).viewComponent("face", true);
 
-    //double boundary_pressure = std::max(getFaceOnBoundaryValue(f, *u, *bc_), 101325.); // does not make sense to seep from nonsaturated cells
-    double boundary_pressure =
-      getFaceOnBoundaryValue(f, *u, *bc_); // does not make sense to seep from nonsaturated cells
-    double boundary_flux = flux[0][f] * getBoundaryDirection(*mesh_, f);
-    if (boundary_pressure > bc.second) {
-      markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      values[f] = bc.second;
-    } else if (boundary_pressure < bc.second - seepage_tol) {
-      markers[f] = Operators::OPERATOR_BC_NEUMANN;
-      values[f] = 0.;
-    } else if (boundary_flux >= 0.) {
-      markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      values[f] = bc.second;
-    } else {
-      markers[f] = Operators::OPERATOR_BC_NEUMANN;
-      values[f] = 0.;
-    }
-  }
+//   const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+//   Teuchos::RCP<const CompositeVector> u = S_->GetPtr<CompositeVector>(key_, tag);
+//   double seepage_tol = 10.;
 
-  // seepage face -- pressure <= p_atm, outward water flux is specified
-  bc_counts.push_back(bc_seepage_infilt_->size());
-  bc_names.push_back("seepage with infiltration");
-  {
-    Tag seepage_tag;
-    if (bc_seepage_infilt_explicit_) {
-      seepage_tag = tag_current_;
-    } else {
-      seepage_tag = tag;
-    }
-    const Epetra_MultiVector& flux =
-      *S_->Get<CompositeVector>(flux_key_, seepage_tag).ViewComponent("face", true);
-    Teuchos::RCP<const CompositeVector> u = S_->GetPtr<CompositeVector>(key_, seepage_tag);
+//   bc_counts.push_back(bc_seepage_->size());
+//   bc_names.push_back("standard seepage");
+//   for (const auto& bc : *bc_seepage_) {
+//     int f = bc.first;
+// #ifdef ENABLE_DBC
+//     AmanziMesh::Entity_ID_List cells;
+//     cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     AMANZI_ASSERT(cells.size() == 1);
+// #endif
 
-    int i = 0;
-    for (const auto& bc : *bc_seepage_infilt_) {
-      int f = bc.first;
-#ifdef ENABLE_DBC
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
-#endif
+//     //double boundary_pressure = std::max(getFaceOnBoundaryValue(f, *u, *bc_), 101325.); // does not make sense to seep from nonsaturated cells
+//     double boundary_pressure =
+//       getFaceOnBoundaryValue(f, *u, *bc_); // does not make sense to seep from nonsaturated cells
+//     double boundary_flux = flux[0][f] * getBoundaryDirection(*mesh_, f);
+//     if (boundary_pressure > bc.second) {
+//       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+//       values[f] = bc.second;
+//     } else if (boundary_pressure < bc.second - seepage_tol) {
+//       markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//       values[f] = 0.;
+//     } else if (boundary_flux >= 0.) {
+//       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+//       values[f] = bc.second;
+//     } else {
+//       markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//       values[f] = 0.;
+//     }
+//   }
 
-      double flux_seepage_tol = std::abs(bc.second) * .001;
-      double boundary_pressure = getFaceOnBoundaryValue(f, *u, *bc_);
-      double boundary_flux = flux[0][f] * getBoundaryDirection(*mesh_, f);
-      if (i == 0)
-        std::cout << "BFlux = " << boundary_flux
-                  << " with constraint = " << bc.second - flux_seepage_tol << std::endl;
+//   // seepage face -- pressure <= p_atm, outward water flux is specified
+//   bc_counts.push_back(bc_seepage_infilt_->size());
+//   bc_names.push_back("seepage with infiltration");
+//   {
+//     Tag seepage_tag;
+//     if (bc_seepage_infilt_explicit_) {
+//       seepage_tag = tag_current_;
+//     } else {
+//       seepage_tag = tag;
+//     }
+//     const Epetra_MultiVector& flux =
+//       *S_->Get<CompositeVector>(flux_key_, seepage_tag).viewComponent("face", true);
+//     Teuchos::RCP<const CompositeVector> u = S_->GetPtr<CompositeVector>(key_, seepage_tag);
 
-      if (boundary_flux < bc.second - flux_seepage_tol && boundary_pressure > p_atm + seepage_tol) {
-        // both constraints are violated, either option should push things in the right direction
-        markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-        values[f] = p_atm;
-        if (i == 0)
-          std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
-                    << flux[0][f] * getBoundaryDirection(*mesh_, f)
-                    << " resulted in DIRICHLET pressure " << p_atm << std::endl;
+//     int i = 0;
+//     for (const auto& bc : *bc_seepage_infilt_) {
+//       int f = bc.first;
+// #ifdef ENABLE_DBC
+//       AmanziMesh::Entity_ID_List cells;
+//       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//       AMANZI_ASSERT(cells.size() == 1);
+// #endif
 
-      } else if (boundary_flux >= bc.second - flux_seepage_tol &&
-                 boundary_pressure > p_atm - seepage_tol) {
-        // max pressure condition violated
-        markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-        values[f] = p_atm;
-        if (i == 0)
-          std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
-                    << flux[0][f] * getBoundaryDirection(*mesh_, f)
-                    << " resulted in DIRICHLET pressure " << p_atm << std::endl;
+//       double flux_seepage_tol = std::abs(bc.second) * .001;
+//       double boundary_pressure = getFaceOnBoundaryValue(f, *u, *bc_);
+//       double boundary_flux = flux[0][f] * getBoundaryDirection(*mesh_, f);
+//       if (i == 0)
+//         std::cout << "BFlux = " << boundary_flux
+//                   << " with constraint = " << bc.second - flux_seepage_tol << std::endl;
 
-      } else if (boundary_flux < bc.second - flux_seepage_tol &&
-                 boundary_pressure <= p_atm + seepage_tol) {
-        // max infiltration violated
-        markers[f] = Operators::OPERATOR_BC_NEUMANN;
-        values[f] = bc.second;
-        if (i == 0)
-          std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
-                    << flux[0][f] * getBoundaryDirection(*mesh_, f) << " resulted in NEUMANN flux "
-                    << bc.second << std::endl;
+//       if (boundary_flux < bc.second - flux_seepage_tol && boundary_pressure > p_atm + seepage_tol) {
+//         // both constraints are violated, either option should push things in the right direction
+//         markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+//         values[f] = p_atm;
+//         if (i == 0)
+//           std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
+//                     << flux[0][f] * getBoundaryDirection(*mesh_, f)
+//                     << " resulted in DIRICHLET pressure " << p_atm << std::endl;
 
-      } else if (boundary_flux >= bc.second - flux_seepage_tol &&
-                 boundary_pressure <= p_atm - seepage_tol) {
-        // both conditions are valid
-        markers[f] = Operators::OPERATOR_BC_NEUMANN;
-        values[f] = bc.second;
-        if (i == 0)
-          std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
-                    << flux[0][f] * getBoundaryDirection(*mesh_, f) << " resulted in NEUMANN flux "
-                    << bc.second << std::endl;
+//       } else if (boundary_flux >= bc.second - flux_seepage_tol &&
+//                  boundary_pressure > p_atm - seepage_tol) {
+//         // max pressure condition violated
+//         markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+//         values[f] = p_atm;
+//         if (i == 0)
+//           std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
+//                     << flux[0][f] * getBoundaryDirection(*mesh_, f)
+//                     << " resulted in DIRICHLET pressure " << p_atm << std::endl;
 
-      } else {
-        AMANZI_ASSERT(0);
-      }
-      i++;
-    }
-  }
+//       } else if (boundary_flux < bc.second - flux_seepage_tol &&
+//                  boundary_pressure <= p_atm + seepage_tol) {
+//         // max infiltration violated
+//         markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//         values[f] = bc.second;
+//         if (i == 0)
+//           std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
+//                     << flux[0][f] * getBoundaryDirection(*mesh_, f) << " resulted in NEUMANN flux "
+//                     << bc.second << std::endl;
 
-  // surface coupling
-  bc_counts.push_back(0);
-  bc_names.push_back("surface coupling (head)");
+//       } else if (boundary_flux >= bc.second - flux_seepage_tol &&
+//                  boundary_pressure <= p_atm - seepage_tol) {
+//         // both conditions are valid
+//         markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//         values[f] = bc.second;
+//         if (i == 0)
+//           std::cout << "BC PRESSURE ON SEEPAGE = " << boundary_pressure << " with flux "
+//                     << flux[0][f] * getBoundaryDirection(*mesh_, f) << " resulted in NEUMANN flux "
+//                     << bc.second << std::endl;
 
-  if (coupled_to_surface_via_head_) {
-    // Face is Dirichlet with value of surface head
-    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh("surface");
-    const Epetra_MultiVector& head =
-      *S_->GetPtr<CompositeVector>("surface_pressure", tag)->ViewComponent("cell", false);
+//       } else {
+//         AMANZI_ASSERT(0);
+//       }
+//       i++;
+//     }
+//   }
 
-    unsigned int ncells_surface = head.MyLength();
-    bc_counts[bc_counts.size() - 1] = ncells_surface;
+//   // surface coupling
+//   bc_counts.push_back(0);
+//   bc_names.push_back("surface coupling (head)");
 
-    for (unsigned int c = 0; c != ncells_surface; ++c) {
-      // -- get the surface cell's equivalent subsurface face
-      AmanziMesh::Entity_ID f = surface->entity_get_parent(AmanziMesh::CELL, c);
-#ifdef ENABLE_DBC
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
-#endif
-      // -- set that value to dirichlet
-      markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      values[f] = head[0][c];
-    }
-  }
+//   if (coupled_to_surface_via_head_) {
+//     // Face is Dirichlet with value of surface head
+//     Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh("surface");
+//     const Epetra_MultiVector& head =
+//       *S_->GetPtr<CompositeVector>("surface_pressure", tag)->viewComponent("cell", false);
 
-  // surface coupling
-  bc_counts.push_back(0);
-  bc_names.push_back("surface coupling (flux)");
-  if (coupled_to_surface_via_flux_) {
-    // Face is Neumann with value of surface residual
-    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_flux_key_));
-    const Epetra_MultiVector& ss_flux =
-      *S_->Get<CompositeVector>(ss_flux_key_, tag).ViewComponent("cell", false);
-    unsigned int ncells_surface = ss_flux.MyLength();
-    bc_counts[bc_counts.size() - 1] = ncells_surface;
-    for (unsigned int c = 0; c != ncells_surface; ++c) {
-      // -- get the surface cell's equivalent subsurface face
-      AmanziMesh::Entity_ID f = surface->entity_get_parent(AmanziMesh::CELL, c);
-#ifdef ENABLE_DBC
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      AMANZI_ASSERT(cells.size() == 1);
-#endif
-      // -- set that value to Neumann
-      markers[f] = Operators::OPERATOR_BC_NEUMANN;
+//     unsigned int ncells_surface = head.MyLength();
+//     bc_counts[bc_counts.size() - 1] = ncells_surface;
 
-      // NOTE: the flux provided by the coupler is in units of mols / s, where
-      //       as Neumann BCs are in units of mols / s / A.  The right A must
-      //       be chosen, as it is the subsurface mesh's face area, not the
-      //       surface mesh's cell area.
-      values[f] = ss_flux[0][c] / mesh_->face_area(f);
+//     for (unsigned int c = 0; c != ncells_surface; ++c) {
+//       // -- get the surface cell's equivalent subsurface face
+//       AmanziMesh::Entity_ID f = surface->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+// #ifdef ENABLE_DBC
+//       AmanziMesh::Entity_ID_List cells;
+//       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//       AMANZI_ASSERT(cells.size() == 1);
+// #endif
+//       // -- set that value to dirichlet
+//       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+//       values[f] = head[0][c];
+//     }
+//   }
 
-      if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
-    }
-  }
+//   // surface coupling
+//   bc_counts.push_back(0);
+//   bc_names.push_back("surface coupling (flux)");
+//   if (coupled_to_surface_via_flux_) {
+//     // Face is Neumann with value of surface residual
+//     Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_flux_key_));
+//     const Epetra_MultiVector& ss_flux =
+//       *S_->Get<CompositeVector>(ss_flux_key_, tag).viewComponent("cell", false);
+//     unsigned int ncells_surface = ss_flux.MyLength();
+//     bc_counts[bc_counts.size() - 1] = ncells_surface;
+//     for (unsigned int c = 0; c != ncells_surface; ++c) {
+//       // -- get the surface cell's equivalent subsurface face
+//       AmanziMesh::Entity_ID f = surface->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+// #ifdef ENABLE_DBC
+//       AmanziMesh::Entity_ID_List cells;
+//       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//       AMANZI_ASSERT(cells.size() == 1);
+// #endif
+//       // -- set that value to Neumann
+//       markers[f] = Operators::OPERATOR_BC_NEUMANN;
 
-  // mark all remaining boundary conditions as zero flux conditions
-  AmanziMesh::Entity_ID_List cells;
-  int n_default = 0;
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
-  for (int f = 0; f < nfaces_owned; f++) {
-    if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-      int ncells = cells.size();
+//       // NOTE: the flux provided by the coupler is in units of mols / s, where
+//       //       as Neumann BCs are in units of mols / s / A.  The right A must
+//       //       be chosen, as it is the subsurface mesh's face area, not the
+//       //       surface mesh's cell area.
+//       values[f] = ss_flux[0][c] / mesh_->getFaceArea(f);
 
-      if (ncells == 1) {
-        n_default++;
-        markers[f] = Operators::OPERATOR_BC_NEUMANN;
-        values[f] = 0.0;
-      }
-    }
-  }
-  bc_names.push_back("default (zero flux)");
-  bc_counts.push_back(n_default);
+//       if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
+//     }
+//   }
+
 
   // report on counts
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     std::vector<int> bc_counts_global(bc_counts.size(), 0);
-    mesh_->get_comm()->SumAll(&bc_counts[0], &bc_counts_global[0], bc_counts.size());
+    Teuchos::reduceAll(*mesh_->getComm(), Teuchos::REDUCE_SUM, (int) bc_counts.size(), &bc_counts[0], &bc_counts_global[0]);
 
     *vo_->os() << "  BCs applied:" << std::endl;
 
@@ -1278,78 +1216,78 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
   // update boundary conditions
   ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
-  db_->WriteBoundaryConditions(bc_markers(), bc_values());
+  // db_->WriteBoundaryConditions(bc_->model(), bc_->value());
 
   // push Dirichlet data into predictor
-  applyDirichletBCs(*bc_, *u->Data());
+  applyDirichletBCs(*bc_, *u->getData());
 
   bool changed(false);
-  if (modify_predictor_bc_flux_ ||
-      (modify_predictor_first_bc_flux_ && ((S_->Get<int>("cycle", Tags::DEFAULT) == 0) ||
-                                           (S_->Get<int>("cycle", Tags::DEFAULT) == 1)))) {
-    changed |= ModifyPredictorFluxBCs_(h, u);
-  }
+  // if (modify_predictor_bc_flux_ ||
+  //     (modify_predictor_first_bc_flux_ && ((S_->Get<int>("cycle", Tags::DEFAULT) == 0) ||
+  //                                          (S_->Get<int>("cycle", Tags::DEFAULT) == 1)))) {
+  //   changed |= ModifyPredictorFluxBCs_(h, u);
+  // }
 
-  if (modify_predictor_wc_) { changed |= ModifyPredictorWC_(h, u); }
+  // if (modify_predictor_wc_) { changed |= ModifyPredictorWC_(h, u); }
 
-  if (modify_predictor_with_consistent_faces_) { changed |= ModifyPredictorConsistentFaces_(h, u); }
+  // if (modify_predictor_with_consistent_faces_) { changed |= ModifyPredictorConsistentFaces_(h, u); }
   return changed;
 }
 
 
-bool
-Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
-{
-  if (!u->Data()->HasComponent("face")) return false;
+// bool
+// Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
+// {
+//   if (!u->getData()->hasComponent("face")) return false;
 
-  auto& markers = bc_markers();
-  auto& values = bc_values();
+//   auto& markers = bc_markers();
+//   auto& values = bc_values();
 
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  modifications to deal with nonlinearity at flux BCs" << std::endl;
+//   Teuchos::OSTab tab = vo_->getOSTab();
+//   if (vo_->os_OK(Teuchos::VERB_EXTREME))
+//     *vo_->os() << "  modifications to deal with nonlinearity at flux BCs" << std::endl;
 
-  if (flux_predictor_ == Teuchos::null) {
-    flux_predictor_ =
-      Teuchos::rcp(new PredictorDelegateBCFlux(S_, mesh_, matrix_diff_, wrms_, &markers, &values));
-  }
+//   if (flux_predictor_ == Teuchos::null) {
+//     flux_predictor_ =
+//       Teuchos::rcp(new PredictorDelegateBCFlux(S_, mesh_, matrix_diff_, wrms_, &markers, &values));
+//   }
 
-  UpdatePermeabilityData_(tag_next_);
-  Teuchos::RCP<const CompositeVector> rel_perm =
-    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
+//   UpdatePermeabilityData_(tag_next_);
+//   Teuchos::RCP<const CompositeVector> rel_perm =
+//     S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
 
-  matrix_->Init();
-  matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
-  Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
-  matrix_diff_->SetDensity(rho);
-  matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-  //matrix_diff_->ApplyBCs(true, true, true);
+//   matrix_->Init();
+//   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
+//   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
+//   Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
+//   matrix_diff_->SetDensity(rho);
+//   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
+//   //matrix_diff_->ApplyBCs(true, true, true);
 
-  flux_predictor_->ModifyPredictor(h, u);
-  ChangedSolution(); // mark the solution as changed, as modifying with
-                     // consistent faces will then get the updated boundary
-                     // conditions
-  return true;
-}
+//   flux_predictor_->ModifyPredictor(h, u);
+//   ChangedSolution(); // mark the solution as changed, as modifying with
+//                      // consistent faces will then get the updated boundary
+//                      // conditions
+//   return true;
+// }
 
-bool
-Richards::ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u)
-{
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  modifications for consistent face pressures." << std::endl;
+// bool
+// Richards::ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u)
+// {
+//   Teuchos::OSTab tab = vo_->getOSTab();
+//   if (vo_->os_OK(Teuchos::VERB_EXTREME))
+//     *vo_->os() << "  modifications for consistent face pressures." << std::endl;
 
-  CalculateConsistentFaces(u->Data().ptr());
-  return true;
-}
+//   CalculateConsistentFaces(u->getData().ptr());
+//   return true;
+// }
 
-bool
-Richards::ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u)
-{
-  AMANZI_ASSERT(0);
-  return false;
-}
+// bool
+// Richards::ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u)
+// {
+//   AMANZI_ASSERT(0);
+//   return false;
+// }
 
 
 // void Richards::CalculateConsistentFacesForInfiltration_(
@@ -1384,54 +1322,54 @@ Richards::ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u)
 //   flux_predictor_->ModifyPredictor(u);
 // }
 
-void
-Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
-{
-  if (!u->HasComponent("face")) return; // not need
+// void
+// Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
+// {
+//   if (!u->hasComponent("face")) return; // not need
 
-  // VerboseObject stuff.
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "  Modifying predictor for consistent faces" << std::endl;
+//   // VerboseObject stuff.
+//   Teuchos::OSTab tab = vo_->getOSTab();
+//   if (vo_->os_OK(Teuchos::VERB_EXTREME))
+//     *vo_->os() << "  Modifying predictor for consistent faces" << std::endl;
 
-  // average cells to faces to give a reasonable initial guess
-  u->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& u_c = *u->ViewComponent("cell", true);
-  Epetra_MultiVector& u_f = *u->ViewComponent("face", false);
+//   // average cells to faces to give a reasonable initial guess
+//   u->scatterMasterToGhosted("cell");
+//   const Epetra_MultiVector& u_c = *u->viewComponent("cell", true);
+//   Epetra_MultiVector& u_f = *u->viewComponent("face", false);
 
-  int f_owned = u_f.MyLength();
-  for (int f = 0; f != f_owned; ++f) {
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
-    int ncells = cells.size();
+//   int f_owned = u_f.MyLength();
+//   for (int f = 0; f != f_owned; ++f) {
+//     AmanziMesh::Entity_ID_List cells;
+//     cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     int ncells = cells.size();
 
-    double face_value = 0.0;
-    for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
-    u_f[0][f] = face_value / ncells;
-  }
-  ChangedSolution();
+//     double face_value = 0.0;
+//     for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
+//     u_f[0][f] = face_value / ncells;
+//   }
+//   ChangedSolution();
 
-  // Using the old BCs, so should use the old rel perm?
-  // update the rel perm according to the scheme of choice
-  //  UpdatePermeabilityData_(tag_next_);
-  Teuchos::RCP<const CompositeVector> rel_perm =
-    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
+//   // Using the old BCs, so should use the old rel perm?
+//   // update the rel perm according to the scheme of choice
+//   //  UpdatePermeabilityData_(tag_next_);
+//   Teuchos::RCP<const CompositeVector> rel_perm =
+//     S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
 
-  S_->GetEvaluator(mass_dens_key_, tag_next_).Update(*S_, name_);
-  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
+//   S_->GetEvaluator(mass_dens_key_, tag_next_).Update(*S_, name_);
+//   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
 
-  // Update the preconditioner with darcy and gravity fluxes
-  matrix_->Init();
-  matrix_diff_->SetDensity(rho);
-  matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-  matrix_diff_->UpdateMatrices(Teuchos::null, u);
-  matrix_diff_->ApplyBCs(true, true, true);
+//   // Update the preconditioner with darcy and gravity fluxes
+//   matrix_->Init();
+//   matrix_diff_->SetDensity(rho);
+//   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
+//   matrix_diff_->UpdateMatrices(Teuchos::null, u);
+//   matrix_diff_->ApplyBCs(true, true, true);
 
-  // derive the consistent faces, involves a solve
-  db_->WriteVector(" p_cf guess:", u.ptr(), true);
-  matrix_diff_->UpdateConsistentFaces(*u);
-  db_->WriteVector(" p_cf soln:", u.ptr(), true);
-}
+//   // derive the consistent faces, involves a solve
+//   db_->WriteVector(" p_cf guess:", u.ptr(), true);
+//   matrix_diff_->UpdateConsistentFaces(*u);
+//   db_->WriteVector(" p_cf soln:", u.ptr(), true);
+// }
 
 
 // /* ******************************************************************
@@ -1439,7 +1377,7 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 // ****************************************************************** */
 // void Richards::ClipHydrostaticPressure(double pmin, Epetra_MultiVector& p)
 // {
-//   int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+//   int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 //   for (int c = 0; c < ncells_owned; c++) p[0][c] = std::max(p[0][c], pmin);
 // }
 
@@ -1453,97 +1391,97 @@ Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Checking admissibility..." << std::endl;
 
-  // For some reason, wandering PKs break most frequently with an unreasonable
-  // pressure.  This simply tries to catch that before it happens.
-  Teuchos::RCP<const CompositeVector> pres = up->Data();
-  double minT, maxT;
+  // // For some reason, wandering PKs break most frequently with an unreasonable
+  // // pressure.  This simply tries to catch that before it happens.
+  // Teuchos::RCP<const CompositeVector> pres = up->getData();
+  // double minT, maxT;
 
-  const Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
-  double minT_c(1.e15), maxT_c(-1.e15);
-  int min_c(-1), max_c(-1);
-  for (int c = 0; c != pres_c.MyLength(); ++c) {
-    if (pres_c[0][c] < minT_c) {
-      minT_c = pres_c[0][c];
-      min_c = c;
-    }
-    if (pres_c[0][c] > maxT_c) {
-      maxT_c = pres_c[0][c];
-      max_c = c;
-    }
-  }
+  // const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+  // double minT_c(1.e15), maxT_c(-1.e15);
+  // int min_c(-1), max_c(-1);
+  // for (int c = 0; c != pres_c.MyLength(); ++c) {
+  //   if (pres_c[0][c] < minT_c) {
+  //     minT_c = pres_c[0][c];
+  //     min_c = c;
+  //   }
+  //   if (pres_c[0][c] > maxT_c) {
+  //     maxT_c = pres_c[0][c];
+  //     max_c = c;
+  //   }
+  // }
 
-  double minT_f(1.e15), maxT_f(-1.e15);
-  int min_f(-1), max_f(-1);
-  if (pres->HasComponent("face")) {
-    const Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-    for (int f = 0; f != pres_f.MyLength(); ++f) {
-      if (pres_f[0][f] < minT_f) {
-        minT_f = pres_f[0][f];
-        min_f = f;
-      }
-      if (pres_f[0][f] > maxT_f) {
-        maxT_f = pres_f[0][f];
-        max_f = f;
-      }
-    }
-    minT = std::min(minT_c, minT_f);
-    maxT = std::max(maxT_c, maxT_f);
+  // double minT_f(1.e15), maxT_f(-1.e15);
+  // int min_f(-1), max_f(-1);
+  // if (pres->hasComponent("face")) {
+  //   const Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+  //   for (int f = 0; f != pres_f.MyLength(); ++f) {
+  //     if (pres_f[0][f] < minT_f) {
+  //       minT_f = pres_f[0][f];
+  //       min_f = f;
+  //     }
+  //     if (pres_f[0][f] > maxT_f) {
+  //       maxT_f = pres_f[0][f];
+  //       max_f = f;
+  //     }
+  //   }
+  //   minT = std::min(minT_c, minT_f);
+  //   maxT = std::max(maxT_c, maxT_f);
 
-  } else {
-    minT = minT_c;
-    maxT = maxT_c;
-  }
+  // } else {
+  //   minT = minT_c;
+  //   maxT = maxT_c;
+  // }
 
-  double minT_l = minT;
-  double maxT_l = maxT;
-  mesh_->get_comm()->MaxAll(&maxT_l, &maxT, 1);
-  mesh_->get_comm()->MinAll(&minT_l, &minT, 1);
+  // double minT_l = minT;
+  // double maxT_l = maxT;
+  // mesh_->getComm()->MaxAll(&maxT_l, &maxT, 1);
+  // mesh_->getComm()->MinAll(&minT_l, &minT, 1);
 
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    *vo_->os() << "    Admissible p? (min/max): " << minT << ",  " << maxT << std::endl;
-  }
+  // if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  //   *vo_->os() << "    Admissible p? (min/max): " << minT << ",  " << maxT << std::endl;
+  // }
 
-  if (minT < -1.e9 || maxT > 1.e8) {
-    if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-      *vo_->os() << " is not admissible, as it is not within bounds of constitutive models:"
-                 << std::endl;
+  // if (minT < -1.e9 || maxT > 1.e8) {
+  //   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
+  //     *vo_->os() << " is not admissible, as it is not within bounds of constitutive models:"
+  //                << std::endl;
 
-      Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
-      Teuchos::RCP<const MpiComm_type> mpi_comm_p =
-        Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
-      const MPI_Comm& comm = mpi_comm_p->Comm();
+  //     Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
+  //     Teuchos::RCP<const MpiComm_type> mpi_comm_p =
+  //       Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
+  //     const MPI_Comm& comm = mpi_comm_p->Comm();
 
-      ENorm_t global_minT_c, local_minT_c;
-      ENorm_t global_maxT_c, local_maxT_c;
+  //     ENorm_t global_minT_c, local_minT_c;
+  //     ENorm_t global_maxT_c, local_maxT_c;
 
-      local_minT_c.value = minT_c;
-      local_minT_c.gid = pres_c.Map().GID(min_c);
-      local_maxT_c.value = maxT_c;
-      local_maxT_c.gid = pres_c.Map().GID(max_c);
+  //     local_minT_c.value = minT_c;
+  //     local_minT_c.gid = pres_c.Map().GID(min_c);
+  //     local_maxT_c.value = maxT_c;
+  //     local_maxT_c.gid = pres_c.Map().GID(max_c);
 
-      MPI_Allreduce(&local_minT_c, &global_minT_c, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-      MPI_Allreduce(&local_maxT_c, &global_maxT_c, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-      *vo_->os() << "   cells (min/max): [" << global_minT_c.gid << "] " << global_minT_c.value
-                 << ", [" << global_maxT_c.gid << "] " << global_maxT_c.value << std::endl;
+  //     MPI_Allreduce(&local_minT_c, &global_minT_c, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
+  //     MPI_Allreduce(&local_maxT_c, &global_maxT_c, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
+  //     *vo_->os() << "   cells (min/max): [" << global_minT_c.gid << "] " << global_minT_c.value
+  //                << ", [" << global_maxT_c.gid << "] " << global_maxT_c.value << std::endl;
 
-      if (pres->HasComponent("face")) {
-        const Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
-        ENorm_t global_minT_f, local_minT_f;
-        ENorm_t global_maxT_f, local_maxT_f;
+  //     if (pres->hasComponent("face")) {
+  //       const Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+  //       ENorm_t global_minT_f, local_minT_f;
+  //       ENorm_t global_maxT_f, local_maxT_f;
 
-        local_minT_f.value = minT_f;
-        local_minT_f.gid = pres_f.Map().GID(min_f);
-        local_maxT_f.value = maxT_f;
-        local_maxT_f.gid = pres_f.Map().GID(max_f);
+  //       local_minT_f.value = minT_f;
+  //       local_minT_f.gid = pres_f.Map().GID(min_f);
+  //       local_maxT_f.value = maxT_f;
+  //       local_maxT_f.gid = pres_f.Map().GID(max_f);
 
-        MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
-        MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
-        *vo_->os() << "   faces (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value
-                   << ", [" << global_maxT_f.gid << "] " << global_maxT_f.value << std::endl;
-      }
-    }
-    return false;
-  }
+  //       MPI_Allreduce(&local_minT_f, &global_minT_f, 1, MPI_DOUBLE_INT, MPI_MINLOC, comm);
+  //       MPI_Allreduce(&local_maxT_f, &global_maxT_f, 1, MPI_DOUBLE_INT, MPI_MAXLOC, comm);
+  //       *vo_->os() << "   faces (min/max): [" << global_minT_f.gid << "] " << global_minT_f.value
+  //                  << ", [" << global_maxT_f.gid << "] " << global_maxT_f.value << std::endl;
+  //     }
+  //   }
+  //   return false;
+  // }
   return true;
 }
 
@@ -1559,111 +1497,111 @@ Richards::ModifyCorrection(double h,
   // if the primary variable has boundary face, this is for upwinding rel
   // perms and is never actually used.  Make sure it does not go to undefined
   // pressures.
-  if (du->Data()->HasComponent("boundary_face")) {
-    du->Data()->ViewComponent("boundary_face")->PutScalar(0.);
+  if (du->getData()->hasComponent("boundary_face")) {
+    du->getData()->getComponent("boundary_face")->putScalar(0.);
   }
 
-  // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
-       ++comp) {
-    Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
-    double max, l2;
-    du_c.NormInf(&max);
-    du_c.Norm2(&l2);
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-      *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
-                 << std::endl;
-    }
-  }
+  // // debugging -- remove me! --etc
+  // for (CompositeVector::name_iterator comp = du->getData()->begin(); comp != du->getData()->end();
+  //      ++comp) {
+  //   Epetra_MultiVector& du_c = *du->getData()->viewComponent(*comp, false);
+  //   double max, l2;
+  //   du_c.NormInf(&max);
+  //   du_c.Norm2(&l2);
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  //     *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
+  //                << std::endl;
+  //   }
+  // }
 
-  // limit by capping corrections when they cross atmospheric pressure
-  // (where pressure derivatives are discontinuous)
-  int my_limited = 0;
-  int n_limited_spurt = 0;
-  if (patm_limit_ > 0.) {
-    double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
-         ++comp) {
-      Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
-      const Epetra_MultiVector& u_c = *u->Data()->ViewComponent(*comp, false);
+  // // limit by capping corrections when they cross atmospheric pressure
+  // // (where pressure derivatives are discontinuous)
+  // int my_limited = 0;
+  // int n_limited_spurt = 0;
+  // if (patm_limit_ > 0.) {
+  //   double patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  //   for (CompositeVector::name_iterator comp = du->getData()->begin(); comp != du->getData()->end();
+  //        ++comp) {
+  //     Epetra_MultiVector& du_c = *du->getData()->viewComponent(*comp, false);
+  //     const Epetra_MultiVector& u_c = *u->getData()->viewComponent(*comp, false);
 
-      for (int c = 0; c != du_c.MyLength(); ++c) {
-        if ((u_c[0][c] < patm) && (u_c[0][c] - du_c[0][c] > patm + patm_limit_)) {
-          du_c[0][c] = u_c[0][c] - (patm + patm_limit_);
-          my_limited++;
-        } else if ((u_c[0][c] > patm) && (u_c[0][c] - du_c[0][c] < patm - patm_limit_)) {
-          du_c[0][c] = u_c[0][c] - (patm - patm_limit_);
-          my_limited++;
-        }
-      }
-    }
-    mesh_->get_comm()->MaxAll(&my_limited, &n_limited_spurt, 1);
-  }
+  //     for (int c = 0; c != du_c.MyLength(); ++c) {
+  //       if ((u_c[0][c] < patm) && (u_c[0][c] - du_c[0][c] > patm + patm_limit_)) {
+  //         du_c[0][c] = u_c[0][c] - (patm + patm_limit_);
+  //         my_limited++;
+  //       } else if ((u_c[0][c] > patm) && (u_c[0][c] - du_c[0][c] < patm - patm_limit_)) {
+  //         du_c[0][c] = u_c[0][c] - (patm - patm_limit_);
+  //         my_limited++;
+  //       }
+  //     }
+  //   }
+  //   mesh_->getComm()->MaxAll(&my_limited, &n_limited_spurt, 1);
+  // }
 
-  if (n_limited_spurt > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
-  }
+  // if (n_limited_spurt > 0) {
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
+  // }
 
-  // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
-       ++comp) {
-    Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
-    double max, l2;
-    du_c.NormInf(&max);
-    du_c.Norm2(&l2);
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-      *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
-                 << std::endl;
-    }
-  }
+  // // debugging -- remove me! --etc
+  // for (CompositeVector::name_iterator comp = du->getData()->begin(); comp != du->getData()->end();
+  //      ++comp) {
+  //   Epetra_MultiVector& du_c = *du->getData()->viewComponent(*comp, false);
+  //   double max, l2;
+  //   du_c.NormInf(&max);
+  //   du_c.Norm2(&l2);
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  //     *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
+  //                << std::endl;
+  //   }
+  // }
 
-  // Limit based on a max pressure change
-  my_limited = 0;
-  int n_limited_change = 0;
-  if (p_limit_ >= 0.) {
-    for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
-         ++comp) {
-      Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
+  // // Limit based on a max pressure change
+  // my_limited = 0;
+  // int n_limited_change = 0;
+  // if (p_limit_ >= 0.) {
+  //   for (CompositeVector::name_iterator comp = du->getData()->begin(); comp != du->getData()->end();
+  //        ++comp) {
+  //     Epetra_MultiVector& du_c = *du->getData()->viewComponent(*comp, false);
 
-      double max;
-      du_c.NormInf(&max);
-      if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-        *vo_->os() << "Max pressure correction (" << *comp << ") = " << max << std::endl;
-      }
+  //     double max;
+  //     du_c.NormInf(&max);
+  //     if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  //       *vo_->os() << "Max pressure correction (" << *comp << ") = " << max << std::endl;
+  //     }
 
-      for (int c = 0; c != du_c.MyLength(); ++c) {
-        if (std::abs(du_c[0][c]) > p_limit_) {
-          du_c[0][c] = ((du_c[0][c] > 0) - (du_c[0][c] < 0)) * p_limit_;
-          my_limited++;
-        }
-      }
-    }
+  //     for (int c = 0; c != du_c.MyLength(); ++c) {
+  //       if (std::abs(du_c[0][c]) > p_limit_) {
+  //         du_c[0][c] = ((du_c[0][c] > 0) - (du_c[0][c] < 0)) * p_limit_;
+  //         my_limited++;
+  //       }
+  //     }
+  //   }
 
-    mesh_->get_comm()->MaxAll(&my_limited, &n_limited_change, 1);
-  }
+  //   mesh_->getComm()->MaxAll(&my_limited, &n_limited_change, 1);
+  // }
 
-  // debugging -- remove me! --etc
-  for (CompositeVector::name_iterator comp = du->Data()->begin(); comp != du->Data()->end();
-       ++comp) {
-    Epetra_MultiVector& du_c = *du->Data()->ViewComponent(*comp, false);
-    double max, l2;
-    du_c.NormInf(&max);
-    du_c.Norm2(&l2);
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-      *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
-                 << std::endl;
-    }
-  }
+  // // debugging -- remove me! --etc
+  // for (CompositeVector::name_iterator comp = du->getData()->begin(); comp != du->getData()->end();
+  //      ++comp) {
+  //   Epetra_MultiVector& du_c = *du->getData()->viewComponent(*comp, false);
+  //   double max, l2;
+  //   du_c.NormInf(&max);
+  //   du_c.Norm2(&l2);
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+  //     *vo_->os() << "Linf, L2 pressure correction (" << *comp << ") = " << max << ", " << l2
+  //                << std::endl;
+  //   }
+  // }
 
-  if (n_limited_change > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
-  }
+  // if (n_limited_change > 0) {
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
+  // }
 
-  if (n_limited_spurt > 0) {
-    return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED_LAG_BACKTRACKING;
-  } else if (n_limited_change > 0) {
-    return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED;
-  }
+  // if (n_limited_spurt > 0) {
+  //   return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED_LAG_BACKTRACKING;
+  // } else if (n_limited_change > 0) {
+  //   return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED;
+  // }
 
   return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
 }

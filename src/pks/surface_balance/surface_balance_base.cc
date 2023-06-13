@@ -59,14 +59,14 @@ SurfaceBalanceBase::Setup()
   //  structure.
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: source terms from above
   if (is_source_) {
     if (theta_ > 0) {
       requireAtNext(source_key_, tag_next_, *S_)
         .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
       if (is_source_differentiable_ && !source_finite_difference_
           // this cannot work in general yet, see amanzi/ats#167
@@ -75,7 +75,7 @@ SurfaceBalanceBase::Setup()
         S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
             source_key_, tag_next_, key_, tag_next_)
           .SetMesh(mesh_)
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
         // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
         // The mesh should get set by the evaluator, but when
         // the evaluator isn't actually differentiable, it
@@ -85,7 +85,7 @@ SurfaceBalanceBase::Setup()
     if (theta_ < 1) {
       requireAtCurrent(source_key_, tag_current_, *S_, name_)
         .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 
@@ -94,7 +94,7 @@ SurfaceBalanceBase::Setup()
   if (conserved_quantity_) {
     requireAtNext(conserved_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
       conserved_key_, tag_next_, key_, tag_next_);
 
@@ -286,7 +286,7 @@ SurfaceBalanceBase::ModifyPredictor(double h,
   if (modify_predictor_positivity_preserving_) {
     int n_modified = 0;
     for (auto compname : *u->Data()) {
-      auto& u_c = *u->Data()->ViewComponent(compname, false);
+      auto& u_c = *u->Data()->viewComponent(compname, false);
       for (int i = 0; i != u_c.MyLength(); ++i) {
         if (u_c[0][i] < 0.) {
           n_modified++;

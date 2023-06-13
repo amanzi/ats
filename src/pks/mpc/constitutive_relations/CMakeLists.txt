@@ -41,8 +41,8 @@ set(ats_mpc_relations_link_libs
   solvers
   state
   ats_eos
-  ats_flow_relations
-  ats_energy_relations
+  ats_flow
+  ats_energy
   )
 
 

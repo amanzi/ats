@@ -132,16 +132,16 @@ MPCCoupledReactiveTransport::Initialize()
   // for, e.g., salinity intrusion problems where water density is a function
   // of concentration itself, but should work for all other problems?
   Teuchos::RCP<Epetra_MultiVector> tcc_surf =
-    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").viewComponent("cell", true);
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
-    S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
+    S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).viewComponent("cell", true);
 
   Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").viewComponent("cell", true);
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
+    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).viewComponent("cell", true);
 
   int num_aqueous = chemistry_pk_surf_->num_aqueous_components();
   convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
@@ -196,10 +196,10 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
 
   // Chemistry on the surface
   Teuchos::RCP<Epetra_MultiVector> tcc_surf =
-    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_surf_key_, tag_next_, "state").viewComponent("cell", true);
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
-    S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
+    S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).viewComponent("cell", true);
   fail = advanceChemistry(
     chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
   changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
@@ -214,10 +214,10 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
 
   // Chemistry in the subsurface
   Teuchos::RCP<Epetra_MultiVector> tcc =
-    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").ViewComponent("cell", true);
+    S_->GetW<CompositeVector>(tcc_key_, tag_next_, "state").viewComponent("cell", true);
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
-    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
+    S_->Get<CompositeVector>(mol_dens_key_, tag_next_).viewComponent("cell", true);
   fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
   changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (fail) {

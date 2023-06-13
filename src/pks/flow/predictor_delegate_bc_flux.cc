@@ -25,7 +25,7 @@ namespace Flow {
 bool
 PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
 {
-  Epetra_MultiVector& u_f = *u->ViewComponent("face", false);
+  Epetra_MultiVector& u_f = *u->viewComponent("face", false);
 
   int nfaces = bc_values_->size();
   for (int f = 0; f != nfaces; ++f) {
@@ -48,14 +48,14 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
 {
   // inner cell and its water retention model
   AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 
   // that cell's faces
   AmanziMesh::Entity_ID_List faces;
   std::vector<int> dirs;
-  mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+  mesh_->getCellFacesAndDirections(c, &faces, &dirs);
 
   // index within that cell's faces
   unsigned int n = std::find(faces.begin(), faces.end(), f) - faces.begin();
@@ -69,9 +69,9 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
 
   // collect physics
   const auto& wrm = wrms_->second[(*wrms_->first)[c]];
-  const auto& pres_f = *pres->ViewComponent("face", false);
-  const auto& pres_c = *pres->ViewComponent("cell", false);
-  const auto& rhs_f = *matrix_->global_operator()->rhs()->ViewComponent("face", false);
+  const auto& pres_f = *pres->viewComponent("face", false);
+  const auto& pres_c = *pres->viewComponent("cell", false);
+  const auto& rhs_f = *matrix_->global_operator()->rhs()->viewComponent("face", false);
 
   // unscale the Aff for my cell with rel perm
   double Krel = wrm->k_relative(wrm->saturation(101325. - pres_f[0][f]));
@@ -84,7 +84,7 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
   }
 
   // gravity flux
-  double bc_flux = mesh_->face_area(f) * (*bc_values_)[f];
+  double bc_flux = mesh_->getFaceArea(f) * (*bc_values_)[f];
   double gflux = rhs_f[0][faces[n]] / Krel;
 
 #if DEBUG_FLAG
@@ -178,7 +178,7 @@ PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   std::cout << "  Converged to " << lambda << " in " << actual_it << " steps." << std::endl;
 
   AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 

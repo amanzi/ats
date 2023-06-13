@@ -119,18 +119,18 @@ void
 PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
-  const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).ViewComponent("cell", false);
-  const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).ViewComponent("cell", false);
-  const auto& rad = *S.Get<CompositeVector>(rad_key_, tag).ViewComponent("cell", false);
+  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).viewComponent("cell", false);
+  const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).viewComponent("cell", false);
+  const auto& elev = *S.Get<CompositeVector>(elev_key_, tag).viewComponent("cell", false);
+  const auto& rad = *S.Get<CompositeVector>(rad_key_, tag).viewComponent("cell", false);
 
-  auto mesh = result[0]->Mesh();
-  auto& res = *result[0]->ViewComponent("cell", false);
+  auto mesh = result[0]->getMesh();
+  auto& res = *result[0]->viewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
 
     double alpha = 0.;
     bool is_snow = false;
@@ -168,7 +168,7 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
   // apply a limiter if requested
   if (limiter_) {
-    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).ViewComponent("cell", false);
+    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).viewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter(limiter_dof_)->MaxValue(&limiter_max);
@@ -180,7 +180,7 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
   }
   if (one_minus_limiter_) {
     const auto& limiter =
-      *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
+      *S.Get<CompositeVector>(one_minus_limiter_key_, tag).viewComponent("cell", false);
 #ifdef ENABLE_DBC
     double limiter_max, limiter_min;
     limiter(one_minus_limiter_dof_)->MaxValue(&limiter_max);
@@ -201,20 +201,20 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
 {
   Tag tag = my_keys_.front().second;
   if (limiter_ && wrt_key == limiter_key_) {
-    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).ViewComponent("cell", false);
+    const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).viewComponent("cell", false);
     const auto& evap_val =
-      *S.Get<CompositeVector>(my_keys_.front().first, tag).ViewComponent("cell", false);
-    auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
+      *S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
+    auto& res_c = *(*result[0]->viewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(1, *limiter(limiter_dof_), *evap_val(0), 0);
     for (int c = 0; c != res_c.MyLength(); ++c) {
       if (limiter[limiter_dof_][c] < 1.e-5) { res_c[c] = 0.; }
     }
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
     const auto& limiter =
-      *S.Get<CompositeVector>(one_minus_limiter_key_, tag).ViewComponent("cell", false);
+      *S.Get<CompositeVector>(one_minus_limiter_key_, tag).viewComponent("cell", false);
     const auto& evap_val =
-      *S.Get<CompositeVector>(my_keys_.front().first, tag).ViewComponent("cell", false);
-    auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
+      *S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
+    auto& res_c = *(*result[0]->viewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(-1, *limiter(one_minus_limiter_dof_), *evap_val(0), 0);
     for (int c = 0; c != res_c.MyLength(); ++c) {
       if (limiter[one_minus_limiter_dof_][c] < 1.e-5) { res_c[c] = 0.; }
@@ -236,13 +236,13 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
       if (dep.first == limiter_key_) {
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, limiter_nvecs_);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, limiter_nvecs_);
       } else if (dep.first == one_minus_limiter_key_) {
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, one_minus_limiter_nvecs_);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, one_minus_limiter_nvecs_);
       } else {
-        fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+        fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
     }
   }

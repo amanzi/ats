@@ -117,13 +117,13 @@ struct CoupledWaterProblem {
     *soln2 = *soln;
 
     dsoln = Teuchos::rcp(new TreeVector(*soln));
-    dsoln->PutScalar(0.);
+    dsoln->putScalar(0.);
 
     res = Teuchos::rcp(new TreeVector(*soln));
-    res->PutScalar(0.);
+    res->putScalar(0.);
 
     res2 = Teuchos::rcp(new TreeVector(*soln));
-    res2->PutScalar(0.);
+    res2->putScalar(0.);
 
     // stash pointers to the sub-pks
     pk_richards = Teuchos::rcp_dynamic_cast<Flow::Richards>(pk->get_subpk(0));
@@ -177,8 +177,8 @@ SUITE(EXECUTABLE_COUPLED_WATER)
 
     // Now perturb and eval residual again
     // -- PC1: change a cell value
-    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-    (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->viewComponent("cell", false)->MyLength());
+    (*dsoln->SubVector(0)->Data()->viewComponent("cell", false))[0][c] = eps;
     soln->Update(1, *dsoln, 1);
 
     // -- mark pressure as changed
@@ -199,7 +199,7 @@ SUITE(EXECUTABLE_COUPLED_WATER)
     std::cout << std::endl
               << "APPLY PC" << std::endl
               << "--------------------------------------------------" << std::endl;
-    res->PutScalar(0.);
+    res->putScalar(0.);
     pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
     CopySubsurfaceToSurface(*res->SubVector(0)->Data(), *res->SubVector(1)->Data());
 
@@ -245,8 +245,8 @@ SUITE(EXECUTABLE_COUPLED_WATER)
 
     // Now perturb and eval residual again
     // -- PC1: change a cell value
-    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-    (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->viewComponent("cell", false)->MyLength());
+    (*dsoln->SubVector(0)->Data()->viewComponent("cell", false))[0][c] = eps;
     soln->Update(1, *dsoln, 1);
 
     // -- mark pressure as changed
@@ -270,7 +270,7 @@ SUITE(EXECUTABLE_COUPLED_WATER)
     std::cout << std::endl
               << "APPLY PC" << std::endl
               << "--------------------------------------------------" << std::endl;
-    res->PutScalar(0.);
+    res->putScalar(0.);
     pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
     CopySubsurfaceToSurface(*res->SubVector(0)->Data(), *res->SubVector(1)->Data());
 
@@ -320,8 +320,8 @@ SUITE(EXECUTABLE_COUPLED_WATER)
 
     // Now perturb and eval residual again
     // -- PC1: change a cell value
-    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-    (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->viewComponent("cell", false)->MyLength());
+    (*dsoln->SubVector(0)->Data()->viewComponent("cell", false))[0][c] = eps;
     soln->Update(1, *dsoln, 1);
 
     // -- mark pressure as changed
@@ -346,7 +346,7 @@ SUITE(EXECUTABLE_COUPLED_WATER)
     std::cout << std::endl
               << "APPLY PC" << std::endl
               << "--------------------------------------------------" << std::endl;
-    res->PutScalar(0.);
+    res->putScalar(0.);
     pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
     CopySubsurfaceToSurface(*res->SubVector(0)->Data(), *res->SubVector(1)->Data());
 
@@ -397,8 +397,8 @@ SUITE(EXECUTABLE_COUPLED_WATER)
 
     // Now perturb and eval residual again
     // -- PC1: change a cell value
-    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-    (*dsoln->SubVector(0)->Data()->ViewComponent("cell", false))[0][c] = eps;
+    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->viewComponent("cell", false)->MyLength());
+    (*dsoln->SubVector(0)->Data()->viewComponent("cell", false))[0][c] = eps;
     soln->Update(1, *dsoln, 1);
 
     // -- mark pressure as changed
@@ -423,7 +423,7 @@ SUITE(EXECUTABLE_COUPLED_WATER)
     std::cout << std::endl
               << "APPLY PC" << std::endl
               << "--------------------------------------------------" << std::endl;
-    res->PutScalar(0.);
+    res->putScalar(0.);
     pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
 
     db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
@@ -474,8 +474,8 @@ SUITE(EXECUTABLE_COUPLED_WATER)
 
     // Now perturb and eval residual again
     // -- PC1: change a cell value
-    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->ViewComponent("cell", false)->MyLength());
-    (*dsoln->SubVector(0)->Data()->ViewComponent("face", false))[0][f] = eps;
+    CHECK_EQUAL(5 * 25, dsoln->SubVector(0)->Data()->viewComponent("cell", false)->MyLength());
+    (*dsoln->SubVector(0)->Data()->viewComponent("face", false))[0][f] = eps;
     soln->Update(1, *dsoln, 1);
     CopySubsurfaceToSurface(*soln->SubVector(0)->Data(), *soln->SubVector(1)->Data());
 
@@ -501,7 +501,7 @@ SUITE(EXECUTABLE_COUPLED_WATER)
     std::cout << std::endl
               << "APPLY PC" << std::endl
               << "--------------------------------------------------" << std::endl;
-    res->PutScalar(0.);
+    res->putScalar(0.);
     pk->preconditioner()->Apply(*dsoln->SubVector(0)->Data(), *res->SubVector(0)->Data());
 
     db->WriteVector("dres", res2->SubVector(0)->Data().ptr(), true);
