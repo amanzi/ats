@@ -40,10 +40,11 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
  Key surface_depth_key_, pressure_head_key_, mask_key_;
+ Key sw_domain_name_, pipe_domain_name_;
  
-  double manhole_radius_;
-  double energ_loss_coeff_; // energy losses coefficient at manhole
-  double drain_length_; // drain conduit length
+ double manhole_radius_;
+ double energ_loss_coeff_; // energy losses coefficient at manhole
+ double drain_length_; // drain conduit length
 
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;
