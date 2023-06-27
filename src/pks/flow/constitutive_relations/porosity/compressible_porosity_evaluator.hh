@@ -27,7 +27,7 @@ converge.
 .. _compressible-porosity-evaluator-spec
 .. admonition:: compressible-porosity-evaluator-spec
 
-   * `"compressible porosity model parameters`" ``[compressible-porosity-model-spec-list]``
+   * `"compressible porosity model parameters`" ``[compressible-porosity-standard-model-spec-list]``
 
    KEYS:
 

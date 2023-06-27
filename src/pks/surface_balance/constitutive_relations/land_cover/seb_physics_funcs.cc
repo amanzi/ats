@@ -84,11 +84,10 @@ OutgoingLongwaveRadiation(double temp, double emissivity)
 }
 
 double
-BeersLaw(double sw_in, double k_extinction, double lai)
+BeersLawAbsorptivity(double k_extinction, double lai)
 {
-  return sw_in * std::exp(-k_extinction * lai);
+  return 1 - std::exp(-k_extinction * lai);
 }
-
 
 double
 WindFactor(double Us, double Z_Us, double Z_rough, double KB)

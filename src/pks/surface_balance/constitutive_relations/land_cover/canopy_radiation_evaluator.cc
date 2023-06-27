@@ -25,23 +25,30 @@ CanopyRadiationEvaluator::CanopyRadiationEvaluator(Teuchos::ParameterList& plist
   my_keys_.clear();
 
   if (Keys::in("shortwave", akey)) {
-    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", akey);
+    can_down_sw_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", akey);
   } else {
-    can_down_sw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward shortwave radiation", "downward_shortwave_radiation");
+    can_down_sw_key_ = Keys::readKey(plist_,
+                                     domain_canopy_,
+                                     "canopy downward shortwave radiation",
+                                     "downward_shortwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_sw_key_, tag });
 
   if (Keys::in("longwave", akey)) {
-    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", akey);
+    can_down_lw_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", akey);
   } else {
-    can_down_lw_key_ = Keys::readKey(plist_, domain_canopy_, "canopy downward longwave radiation", "downward_longwave_radiation");
+    can_down_lw_key_ = Keys::readKey(
+      plist_, domain_canopy_, "canopy downward longwave radiation", "downward_longwave_radiation");
   }
   my_keys_.emplace_back(KeyTag{ can_down_lw_key_, tag });
 
   if (Keys::in("balance", akey)) {
     rad_bal_can_key_ = Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", akey);
   } else {
-    rad_bal_can_key_ = Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", "radiation_balance");
+    rad_bal_can_key_ =
+      Keys::readKey(plist_, domain_canopy_, "canopy radiation balance", "radiation_balance");
   }
   my_keys_.emplace_back(KeyTag{ rad_bal_can_key_, tag });
 
@@ -85,7 +92,7 @@ CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 {
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& down_sw = *results[0]->ViewComponent("cell", false);
-  Epetra_MultiVector& down_lw = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& down_lw = *results[1]->ViewComponent("cell", false);
   Epetra_MultiVector& rad_bal_can = *results[2]->ViewComponent("cell", false);
 
   const Epetra_MultiVector& sw_in =
@@ -105,27 +112,28 @@ CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
       lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
-      // Beer's law to find attenuation of radiation to surface in sw
-      double sw_atm_surf = Relations::BeersLaw(sw_in[0][c], lc.second.beers_k_sw, lai[0][c]);
-      double sw_atm_can = sw_in[0][c] - sw_atm_surf;
+      // NOTE: emissivity = absorptivity, we use e to notate both
+      // Beer's law to find absorptivity of canopy
+      double e_can_sw = Relations::BeersLawAbsorptivity(lc.second.beers_k_sw, lai[0][c]);
+      double e_can_lw = Relations::BeersLawAbsorptivity(lc.second.beers_k_lw, lai[0][c]);
 
-      // Beer's law to find attenuation of radiation to surface in lw -- note
-      // this should be almost 0 for any LAI
-      double lw_atm_surf = Relations::BeersLaw(lw_in[0][c], lc.second.beers_k_lw, lai[0][c]);
-      double lw_atm_can = lw_in[0][c] - lw_atm_surf;
+      // sw atm to canopy and surface
+      double sw_atm_can = e_can_sw * sw_in[0][c];
+      double sw_atm_surf = sw_in[0][c] - sw_atm_can;
 
-      // smooth between lai = 0 (no canopy = no outgoing longwave) to lai = 1
-      // (lai of 1 approximately indicates the entire grid cell is covered in
-      // leaf area?)
-      double lai_factor = lai[0][c] < 1. ? lai[0][c] : 1.;
+      // lw atm to canopy and surface
+      double lw_atm_can = e_can_lw * lw_in[0][c];
+      double lw_atm_surf = lw_in[0][c] - lw_atm_can;
 
       // black-body radiation for LW out
-      double lw_can = lai_factor * Relations::OutgoingLongwaveRadiation(
-                                     temp_canopy[0][c], lc.second.emissivity_canopy);
-
+      double lw_can = Relations::OutgoingLongwaveRadiation(temp_canopy[0][c], e_can_lw);
       down_sw[0][c] = sw_atm_surf;
       down_lw[0][c] = lw_atm_surf + lw_can;
-      // factor of 2 is for upward and downward longwave emission -- is this right?
+
+      // factor of 2 is for upward and downward longwave emission NOTE: this is
+      // missing surface-to-canopy LW radiation, which is included externally
+      // with another evaluator as it is calculated later in the surface
+      // balance evaluator.
       rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * sw_atm_can + lw_atm_can - 2 * lw_can;
     }
   }
@@ -133,9 +141,9 @@ CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
 void
 CanopyRadiationEvaluator::EvaluatePartialDerivative_(const State& S,
-                                                      const Key& wrt_key,
-                                                      const Tag& wrt_tag,
-                                                      const std::vector<CompositeVector*>& results)
+                                                     const Key& wrt_key,
+                                                     const Tag& wrt_tag,
+                                                     const std::vector<CompositeVector*>& results)
 {
   for (const auto& res : results) res->PutScalar(0.);
 }

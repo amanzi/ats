@@ -45,9 +45,9 @@ class Coordinator {
   void report_memory();
 
   bool advance();
-  bool visualize(bool force=false);
-  bool checkpoint(bool force=false);
-  double get_dt(bool after_fail=false);
+  bool visualize(bool force = false);
+  bool checkpoint(bool force = false);
+  double get_dt(bool after_fail = false);
 
  protected:
   void InitializeFromPlist_();

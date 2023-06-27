@@ -207,7 +207,8 @@ Coordinator::initialize()
     S_->set_time(Amanzi::Tags::NEXT, t0_);
 
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      if (S_->IsDeformableMesh(mesh->first)) { Amanzi::DeformCheckpointMesh(*S_, mesh->first); }
+      if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first))
+        Amanzi::DeformCheckpointMesh(*S_, mesh->first);
     }
   }
 
@@ -544,7 +545,8 @@ Coordinator::advance()
 }
 
 
-bool Coordinator::visualize(bool force)
+bool
+Coordinator::visualize(bool force)
 {
   // write visualization if requested
   bool dump = force;
@@ -564,7 +566,8 @@ bool Coordinator::visualize(bool force)
 }
 
 
-bool Coordinator::checkpoint(bool force)
+bool
+Coordinator::checkpoint(bool force)
 {
   int cycle = S_->get_cycle();
   double time = S_->get_time();

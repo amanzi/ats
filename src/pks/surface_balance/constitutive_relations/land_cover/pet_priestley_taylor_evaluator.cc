@@ -19,7 +19,7 @@ namespace Relations {
 namespace PriestleyTaylor {
 
 // Convert all units to SI
-// input temperature [K], output latent heat [J/kg] 
+// input temperature [K], output latent heat [J/kg]
 double
 latentHeatVaporization_water(double temp_air)
 {
@@ -38,11 +38,11 @@ latentHeatVaporization_snow(double temp_air)
 double
 psychrometricConstant(double lh_vap, double elev)
 {
-  double elev_ft = elev * 3.281;               // ft
-  double lh_vap_calg = lh_vap / 1000 / 4.184;  // cal/g
+  double elev_ft = elev * 3.281;              // ft
+  double lh_vap_calg = lh_vap / 1000 / 4.184; // cal/g
   double psy_kpaC = 1.6286 * (101.3 - (0.003215 * elev_ft)) / lh_vap_calg;
-                                               // Kpa/C
-  return psy_kpaC * 1000;                      // Pa/C
+  // Kpa/C
+  return psy_kpaC * 1000; // Pa/C
 }
 
 // input temperature [K], output slope [Pa/C]
@@ -50,11 +50,11 @@ double
 vaporPressureSlope(double temp_air)
 {
   double tempC = temp_air - 273.15;                            // C
-  double vp_sat = Relations::SaturatedVaporPressure(temp_air); // Pa 
+  double vp_sat = Relations::SaturatedVaporPressure(temp_air); // Pa
   return 4098 * vp_sat / std::pow(tempC + 237.3, 2);           // Pa/C
 }
 
-// input temperature [K], output heat flux [W/m^2] 
+// input temperature [K], output heat flux [W/m^2]
 double
 groundHeatFlux(double temp_ground, double temp_air)
 {
