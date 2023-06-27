@@ -39,11 +39,11 @@ Morphology_PK::Morphology_PK(Teuchos::ParameterList& pk_tree_or_fe_list,
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
 double
-Morphology_PK::get_dt()
+Morphology_PK::getDt()
 {
   if (dt_MPC_ < 0) {
-    double dt = Amanzi::PK_MPCSubcycled_ATS::get_dt();
-    set_dt(dt);
+    double dt = Amanzi::PK_MPCSubcycled_ATS::getDt();
+    setDt(dt);
     return dt;
   } else {
     return dt_MPC_;
@@ -246,14 +246,14 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   S_inter_->set_intermediate_time(t_old);
   S_next_->set_intermediate_time(t_old);
   double dt_done = 0;
-  double dt_next = flow_pk_->get_dt();
+  double dt_next = flow_pk_->getDt();
   double t_DNS_end = t_old + dt_step / MSF_; // end of direct numerical simulation
 
   bool done = false;
   int ncycles = 0;
 
   while (!done) {
-    dt_next = flow_pk_->get_dt();
+    dt_next = flow_pk_->getDt();
     if (t_old + dt_done + dt_next > t_DNS_end) { dt_next = t_DNS_end - t_old - dt_done; }
 
     fail = true;
@@ -265,7 +265,7 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
       if (fail) {
         if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH) *vo_->os() << "Master step is failed\n";
-        dt_next = flow_pk_->get_dt();
+        dt_next = flow_pk_->getDt();
       }
     }
 
@@ -275,7 +275,7 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
     flow_pk_->CommitStep(t_old + dt_done, t_old + dt_done + dt_next, S_next_);
 
     //S_next_->WriteStatistics(vo_);
-    slave_dt_ = sed_transport_pk_->get_dt();
+    slave_dt_ = sed_transport_pk_->getDt();
     if (slave_dt_ > master_dt_) slave_dt_ = master_dt_;
     if (vo_->getVerbLevel() >= Teuchos::VERB_HIGH)
       *vo_->os() << "Slave dt=" << slave_dt_ << " Master dt=" << master_dt_ << "\n";

@@ -36,10 +36,10 @@ WeakMPC::WeakMPC(Teuchos::ParameterList& pk_tree,
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
 double
-WeakMPC::get_dt()
+WeakMPC::getDt()
 {
   double dt = std::numeric_limits<double>::max();
-  for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
+  for (auto& pk : sub_pks_) dt = std::min(dt, pk->getDt());
   return dt;
 };
 
@@ -48,9 +48,9 @@ WeakMPC::get_dt()
 // Set timestep for sub PKs
 // -----------------------------------------------------------------------------
 void
-WeakMPC::set_dt(double dt)
+WeakMPC::setDt(double dt)
 {
-  for (auto& pk : sub_pks_) pk->set_dt(dt);
+  for (auto& pk : sub_pks_) pk->setDt(dt);
 };
 
 // -----------------------------------------------------------------------------

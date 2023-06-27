@@ -37,7 +37,7 @@ class RelativePermeabilityModel {
   static const std::string name;
 
   RelativePermeabilityModel(Teuchos::ParameterList& plist)
-    : model_(plist)
+    : model_(plist.sublist("model parameters"))
   {
     my_key_ = Keys::cleanPListName(plist);
     auto domain = Keys::getDomain(my_key_);
@@ -48,7 +48,7 @@ class RelativePermeabilityModel {
                 const std::vector<View_type>& res,
                 const State& s) {
     res_ = res[0];
-    s_ = deps[1];
+    s_ = deps[0];
   }
 
   KeyVector getMyKeys() const { return { my_key_ }; }

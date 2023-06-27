@@ -66,7 +66,7 @@ ATSDriver::cycle_driver()
   }
 
   // get the intial timestep
-  double dt = get_dt(false);
+  double dt = getDt(false);
   S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
 
   // visualization at IC
@@ -119,7 +119,7 @@ ATSDriver::cycle_driver()
           checkpoint(); // checkpoint with the new dt
         }
 
-        dt = get_dt(fail);
+        dt = getDt(fail);
       } // while not finished
 
 #if !DEBUG_MODE

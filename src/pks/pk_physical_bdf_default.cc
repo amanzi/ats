@@ -23,13 +23,13 @@ PKPhysicalBase and BDF methods of PK_BDF_Default.
 namespace Amanzi {
 
 // constructor
-PK_PhysicalBDF_Default::PK_PhysicalBDF_Default(Teuchos::ParameterList& pk_tree,
-                       const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                       const Teuchos::RCP<State>& S,
-                       const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution),
-    PK_BDF_Default(pk_tree, glist, S, solution),
-    PK_Physical_Default(pk_tree, glist, S, solution)
+PK_PhysicalBDF_Default::PK_PhysicalBDF_Default(const Comm_ptr_type& comm,
+        Teuchos::ParameterList& pk_tree,
+        const Teuchos::RCP<Teuchos::ParameterList>& glist,
+        const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S),
+    PK_BDF_Default(comm, pk_tree, glist, S),
+    PK_Physical_Default(comm, pk_tree, glist, S)
 {}
 
 

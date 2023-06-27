@@ -168,7 +168,7 @@ MPCSurface::Setup()
     surf_ewc_list->set("PK name", name_);
     surf_ewc_list->set("domain name", domain_);
     ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
-    ewc_->set_tags(tag_current_, tag_next_);
+    ewc_->setTags(tag_current_, tag_next_);
     Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
     ewc_->set_model(model);
     ewc_->setup();
@@ -188,10 +188,10 @@ MPCSurface::Initialize()
   }
 }
 
-//void MPCSurface::set_tags(const Tag& tag_current, const Tag& tag_next)
+//void MPCSurface::setTags(const Tag& tag_current, const Tag& tag_next)
 //{
-//  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
-//  if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
+//  StrongMPC<PK_PhysicalBDF_Default>::setTags(tag_current, tag_next);
+//  if (ewc_ != Teuchos::null) ewc_->setTags(tag_current, tag_next);
 //}
 
 void

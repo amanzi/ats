@@ -30,9 +30,9 @@ class MPCWeakSubdomain : public MPC<PK> {
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt() override;
-  virtual void set_dt(double dt) override;
-  virtual void set_tags(const Tag& current, const Tag& next) override;
+  virtual double getDt() override;
+  virtual void setDt(double dt) override;
+  virtual void setTags(const Tag& current, const Tag& next) override;
 
   virtual void Setup() override;
   virtual void Initialize() override;
@@ -64,7 +64,7 @@ class MPCWeakSubdomain : public MPC<PK> {
 
   Comm_ptr_type comm_;
   bool subcycled_;
-  double subcycled_target_dt_;
+  double subcycled_targetDt_;
   double cycle_dt_;
   Key ds_name_;
 

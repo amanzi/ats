@@ -392,7 +392,7 @@ MPCSubsurface::Setup()
     sub_ewc_list->set("PK name", name_);
     sub_ewc_list->set("domain name", domain_name_);
     ewc_ = Teuchos::rcp(new MPCDelegateEWCSubsurface(*sub_ewc_list, S_));
-    ewc_->set_tags(tag_current_, tag_next_);
+    ewc_->setTags(tag_current_, tag_next_);
 
     Teuchos::RCP<EWCModelBase> model;
     if (S_->HasRecordSet("internal_energy_gas")) {
@@ -481,10 +481,10 @@ MPCSubsurface::Initialize()
 
 
 void
-MPCSubsurface::set_tags(const Tag& tag_current, const Tag& tag_next)
+MPCSubsurface::setTags(const Tag& tag_current, const Tag& tag_next)
 {
-  StrongMPC<PK_PhysicalBDF_Default>::set_tags(tag_current, tag_next);
-  if (ewc_ != Teuchos::null) ewc_->set_tags(tag_current, tag_next);
+  StrongMPC<PK_PhysicalBDF_Default>::setTags(tag_current, tag_next);
+  if (ewc_ != Teuchos::null) ewc_->setTags(tag_current, tag_next);
 }
 
 

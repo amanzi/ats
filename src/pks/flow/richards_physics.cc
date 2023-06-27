@@ -44,12 +44,12 @@ Richards::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g
 
   Teuchos::RCP<const CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-  matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
   changedEvaluatorPrimary(flux_key_, tag, *S_);
+  matrix_diff_->ApplyBCs(true, true, true);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);

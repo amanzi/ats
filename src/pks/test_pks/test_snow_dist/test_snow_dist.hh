@@ -47,7 +47,7 @@ class TestSnowDist : public PKPhysicalBase {
   // -- advance via one of a few methods
   virtual bool advance(double dt);
 
-  double get_dt()
+  double getDt()
   {
     return 24 * 60 * 60.0; // 1 day
   }

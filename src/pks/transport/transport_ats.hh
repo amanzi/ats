@@ -321,9 +321,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Setup() override;
   virtual void Initialize() override;
 
-  virtual double get_dt() override;
-  virtual void set_dt(double dt) override{};
-  virtual void set_tags(const Tag& current, const Tag& next) override;
+  virtual double getDt() override;
+  virtual void setDt(double dt) override{};
+  virtual void setTags(const Tag& current, const Tag& next) override;
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;

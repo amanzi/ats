@@ -74,8 +74,8 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
-  virtual double get_dt();
-  virtual void set_dt(double dt){};
+  virtual double getDt();
+  virtual void setDt(double dt){};
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);

@@ -48,8 +48,8 @@ class SurfaceBalanceCLM : public PK_Physical_Default {
   // -- Calculate any diagnostics prior to doing vis
   virtual void CalculateDiagnostics(const Tag& tag) override {}
 
-  virtual void set_dt(double dt) override { AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4); }
-  virtual double get_dt() override { return dt_; }
+  virtual void setDt(double dt) override { AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4); }
+  virtual double getDt() override { return dt_; }
 
   // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms

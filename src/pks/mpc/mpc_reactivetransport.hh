@@ -34,7 +34,7 @@ class MPCReactiveTransport : public WeakMPC {
                        const Teuchos::RCP<TreeVector>& soln);
 
   // PK methods
-  virtual double get_dt() override;
+  virtual double getDt() override;
   virtual void Setup() override;
   virtual void Initialize() override;
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;

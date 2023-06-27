@@ -57,6 +57,7 @@ main(int argc, char* argv[])
 #endif
 
   Teuchos::GlobalMPISession mpiSession(&argc, &argv, 0);
+  Kokkos::initialize();
   int rank = mpiSession.getRank();
 
   std::string input_filename;
@@ -192,16 +193,20 @@ main(int argc, char* argv[])
 
 
   // create the top level driver and run simulation
-  ATS::ATSDriver driver(plist, comm);
   int ret = 0;
-  try {
-    ret = driver.run();
-  } catch (std::string& s) {
-    if (rank == 0) { std::cerr << "ERROR:" << std::endl << s << std::endl; }
-    return 1;
-  } catch (int& ierr) {
-    if (rank == 0) { std::cerr << "ERROR: unknown error code " << ierr << std::endl; }
-    return ierr;
+  {
+    ATS::ATSDriver driver(plist, comm);
+    try {
+      ret = driver.run();
+    } catch (std::string& s) {
+      if (rank == 0) { std::cerr << "ERROR:" << std::endl << s << std::endl; }
+      Kokkos::finalize();
+      ret = 1;
+    } catch (int& ierr) {
+      if (rank == 0) { std::cerr << "ERROR: unknown error code " << ierr << std::endl; }
+      ret = ierr;
+    }
   }
+  Kokkos::finalize();
   return ret;
 }

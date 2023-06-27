@@ -249,13 +249,16 @@ namespace Flow {
 
 class Richards : public PK_PhysicalBDF_Default {
  public:
-  Richards(Teuchos::ParameterList& pk_tree,
+  Richards(const Comm_ptr_type& comm,
+           Teuchos::ParameterList& pk_tree,
            const Teuchos::RCP<Teuchos::ParameterList>& plist,
-           const Teuchos::RCP<State>& S,
-           const Teuchos::RCP<TreeVector>& solution);
+           const Teuchos::RCP<State>& S);
 
   virtual ~Richards() {}
   virtual void ParseParameterList_() override;
+
+  static const std::string type;
+  virtual const std::string& getType() const override { return type; }
 
   // -- Set requirements of data and evaluators
   virtual void Setup() override;

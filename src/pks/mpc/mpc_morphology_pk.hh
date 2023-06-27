@@ -35,8 +35,8 @@ class Morphology_PK : public PK_MPCSubcycled_ATS {
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt();
-  //virtual void set_dt(double dt);
+  virtual double getDt();
+  //virtual void setDt(double dt);
   virtual void Setup(const Teuchos::Ptr<State>& S);
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 

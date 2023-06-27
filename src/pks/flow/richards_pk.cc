@@ -32,13 +32,14 @@ namespace Flow {
 // -------------------------------------------------------------
 // Constructor
 // -------------------------------------------------------------
+const std::string Richards::type = "richards flow";
 
-Richards::Richards(Teuchos::ParameterList& pk_tree,
+Richards::Richards(const Comm_ptr_type& comm,
+                   Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                   const Teuchos::RCP<State>& S,
-                   const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution),
-    PK_PhysicalBDF_Default(pk_tree, glist, S, solution),
+                   const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S),
+    PK_PhysicalBDF_Default(comm, pk_tree, glist, S),
     coupled_to_surface_via_head_(false),
     coupled_to_surface_via_flux_(false),
     infiltrate_only_if_unfrozen_(false),
@@ -63,6 +64,12 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 void
 Richards::ParseParameterList_()
 {
+  // set some defaults for inherited PKs
+  if (!plist_->isParameter("conserved quantity key suffix"))
+    plist_->set<std::string>("conserved quantity key suffix", "water_content");
+
+  PK_PhysicalBDF_Default::ParseParameterList_();
+
   // get field names
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved", "water_content");
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
@@ -84,19 +91,6 @@ Richards::ParseParameterList_()
 
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
-
-  // all manipulation of evaluator lists should happen in constructors (pre-setup)
-  // -- WRM: This deals with deprecated location for the WRM list (in the PK).
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "WRM");
-  }
-  if (S_->GetEvaluatorList(coef_key_).numParams() == 0) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
 
   // scaling for permeability for better "nondimensionalization"
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
@@ -392,7 +386,9 @@ void
 Richards::SetupPhysicalEvaluators_()
 {
   // -- permeability tensor
-  S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_);
+  auto& tv_fac = S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_);
+  tv_fac.getMap().SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(perm_key_, tag_next_);
 
   // -- water content, and evaluator, and derivative for PC
@@ -493,14 +489,14 @@ Richards::Initialize()
     S_->GetRecordW(duw_coef_key_, tag_next_, name_).set_initialized();
   }
 
-  S_->GetW<CompositeVector>(flux_key_, tag_next_, name()).putScalar(0.0);
-  S_->GetRecordW(flux_key_, tag_next_, name()).set_initialized();
+  S_->GetW<CompositeVector>(flux_key_, tag_next_, getName()).putScalar(0.0);
+  S_->GetRecordW(flux_key_, tag_next_, getName()).set_initialized();
   changedEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
-  S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, name()).putScalar(0.0);
-  S_->GetRecordW(flux_dir_key_, tag_next_, name()).set_initialized();
-  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, name()).putScalar(0.0);
-  S_->GetRecordW(velocity_key_, Tags::NEXT, name()).set_initialized();
+  S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, getName()).putScalar(0.0);
+  S_->GetRecordW(flux_dir_key_, tag_next_, getName()).set_initialized();
+  S_->GetW<CompositeVector>(velocity_key_, Tags::NEXT, getName()).putScalar(0.0);
+  S_->GetRecordW(velocity_key_, Tags::NEXT, getName()).set_initialized();
 
   // operators
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -537,7 +533,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 //     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
 //     // set pressure on the column of faces and cells
-//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
+//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
 //     Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
 //     if (pres->hasComponent("face"))
 //       flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face", false)));
@@ -597,7 +593,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 //         }
 //       }
 //     }
-//     S_->GetRecordW(key_, tag, name()).set_initialized();
+//     S_->GetRecordW(key_, tag, getName()).set_initialized();
   }
 
   // constant head datum
@@ -613,7 +609,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 
 //     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name());
+//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
 //     Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
 //     for (int c = 0; c != pres_c.MyLength(); ++c) {
 //       pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
@@ -625,7 +621,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 //         pres_f[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
 //       }
 //     }
-//     S_->GetRecordW(key_, tag, name()).set_initialized();
+//     S_->GetRecordW(key_, tag, getName()).set_initialized();
   }
 }
 
@@ -722,11 +718,13 @@ Richards::CalculateDiagnostics(const Tag& tag)
   matrix_diff_->SetDensity(rho);
   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-  matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
+
+  // apply bcs
+  matrix_diff_->ApplyBCs(true, true, true);
   // UpdateVelocity_(tag);
 };
 
@@ -765,8 +763,8 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-      face_matrix_diff_->ApplyBCs(true, true, true);
       face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
+      face_matrix_diff_->ApplyBCs(true, true, true);
 
       // if (clobber_boundary_flux_dir_) {
       //   Epetra_MultiVector& flux_dir_f = *flux_dir->viewComponent("face", false);
@@ -909,9 +907,16 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   bc_->value()->getComponent("face", false)->putScalar(0.0);
 
   // -- boundary faces to 0 FLUX
-  MultiPatchSpace bfs(mesh_, false, Operators::OPERATOR_BC_NEUMANN);
-  bfs.addPatch("all", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  Functions::Impl::copyFlags(bfs, *bc_->model());
+  {
+    auto bc_model_view = bc_->bc_model();
+    auto nbf = mesh_->getNumEntities(AmanziMesh::Entity_kind::BOUNDARY_FACE,
+            AmanziMesh::Parallel_kind::ALL);
+    Kokkos::parallel_for("Richards zero Neumann", nbf,
+                         KOKKOS_LAMBDA(const int& bf) {
+                           auto f = AmanziMesh::getBoundaryFaceFace(*mesh_, bf);
+                           bc_model_view(f) = Operators::OPERATOR_BC_NEUMANN;
+                         });
+  }
 
   // count for debugging
   std::vector<int> bc_counts;

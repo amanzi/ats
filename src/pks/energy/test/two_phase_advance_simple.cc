@@ -67,7 +67,7 @@ TEST(ADVANCE_WITH_SIMPLE)
 
   double L1, L2;
   while (T < 1.0) {
-    double dT = test.EPK->get_dt();
+    double dT = test.EPK->getDt();
     test.EPK->advance(dT);
     T += dT;
     iter++;

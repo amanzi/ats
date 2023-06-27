@@ -19,11 +19,12 @@ Steady state solution of Richards equation
 namespace Amanzi {
 namespace Flow {
 
-RichardsSteadyState::RichardsSteadyState(Teuchos::ParameterList& pk_tree,
-                                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                                         const Teuchos::RCP<State>& S,
-                                         const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), Richards(pk_tree, glist, S, solution)
+RichardsSteadyState::RichardsSteadyState(const Comm_ptr_type& comm,
+        Teuchos::ParameterList& pk_tree,
+        const Teuchos::RCP<Teuchos::ParameterList>& glist,
+        const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S),
+    Richards(comm, pk_tree, glist, S)
 {}
 
 
@@ -40,6 +41,10 @@ RichardsSteadyState::FunctionalResidual(double t_old,
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
+  db_->WriteVector("p_new", S_->GetPtr<CompositeVector>(key_, Tags::NEXT).ptr(), true);
+  db_->WriteVector("sl_old", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::DEFAULT).ptr(), true);
+  db_->WriteVector("sl_new", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::NEXT).ptr(), true);
+  db_->WriteVector("sg_new", S_->GetPtr<CompositeVector>("saturation_gas", Tags::NEXT).ptr(), true);
 
   double h = t_new - t_old;
   AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4 * h);
@@ -95,9 +100,6 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   }
   vnames.push_back("poro");
   vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
-  vnames.push_back("perm_K");
-  vecs.push_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.push_back("k_rel");
   vecs.push_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.push_back("wind");
@@ -174,7 +176,6 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
 
   // -- fill local matrices
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
-  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- update with Jacobian terms
   if (jacobian_ && iter_ >= jacobian_lag_) {
@@ -182,6 +183,7 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
     preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
+  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- update preconditioner with source term derivatives if needed
   AddSourcesToPrecon_(h);

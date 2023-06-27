@@ -54,11 +54,11 @@ class MPCPermafrost : public MPCSubsurface {
                 const Teuchos::RCP<TreeVector>& soln);
 
 
-  virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
+  virtual void setTags(const Tag& tag_current, const Tag& tag_next) override;
 
   virtual void Setup() override;
   virtual void Initialize() override;
-  //virtual void set_tags(const Tag& tag_current, const Tag& tag_next);
+  //virtual void setTags(const Tag& tag_current, const Tag& tag_next);
 
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 

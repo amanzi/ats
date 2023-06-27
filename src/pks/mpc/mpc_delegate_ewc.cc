@@ -144,7 +144,7 @@ MPCDelegateEWC::initialize()
 // Set state tags.
 // -----------------------------------------------------------------------------
 void
-MPCDelegateEWC::set_tags(const Tag& tag_current, const Tag& tag_next)
+MPCDelegateEWC::setTags(const Tag& tag_current, const Tag& tag_next)
 {
   tag_current_ = tag_current;
   tag_next_ = tag_next;

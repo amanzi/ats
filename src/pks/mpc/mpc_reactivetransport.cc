@@ -109,10 +109,10 @@ MPCReactiveTransport::Initialize()
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
 double
-MPCReactiveTransport::get_dt()
+MPCReactiveTransport::getDt()
 {
-  double dTtran = transport_pk_->get_dt();
-  double dTchem = chemistry_pk_->get_dt();
+  double dTtran = transport_pk_->getDt();
+  double dTchem = chemistry_pk_->getDt();
 
   if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
   return dTchem;

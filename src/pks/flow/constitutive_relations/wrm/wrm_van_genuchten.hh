@@ -75,8 +75,6 @@ class WRMVanGenuchten {
   double capillaryPressure(double saturation) const;
   double d_capillaryPressure(double saturation) const;
   double residualSaturation() const { return sr_; }
-  double suction_head(double saturation) const;
-  double d_suction_head(double saturation) const;
 
  private:
   void InitializeFromPlist_();

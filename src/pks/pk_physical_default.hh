@@ -39,11 +39,9 @@ all leaves of the PK tree will inherit from `PKPhysicalBase`.
 #define ATS_PK_PHYSICAL_BASE_HH_
 
 #include "Teuchos_ParameterList.hpp"
-#include "TreeVector.hh"
 
 #include "Debugger.hh"
 
-#include "EvaluatorPrimary.hh"
 #include "PK.hh"
 #include "PK_Physical.hh"
 
@@ -51,10 +49,10 @@ namespace Amanzi {
 
 class PK_Physical_Default : public PK_Physical {
  public:
-  PK_Physical_Default(Teuchos::ParameterList& pk_tree,
+  PK_Physical_Default(const Comm_ptr_type& comm,
+                      Teuchos::ParameterList& pk_tree,
                       const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                      const Teuchos::RCP<State>& S,
-                      const Teuchos::RCP<TreeVector>& solution);
+                      const Teuchos::RCP<State>& S);
 
   // Virtual destructor
   virtual ~PK_Physical_Default() = default;

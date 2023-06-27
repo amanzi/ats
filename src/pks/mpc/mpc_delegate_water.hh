@@ -85,7 +85,7 @@ class MPCDelegateWater {
 
   void set_db(const Teuchos::RCP<Debugger>& db) { db_ = db; }
 
-  void set_tags(const Tag& tag_current, const Tag& tag_next)
+  void setTags(const Tag& tag_current, const Tag& tag_next)
   {
     tag_current_ = tag_current;
     tag_next_ = tag_next;

@@ -247,7 +247,7 @@ MPCPermafrost::Setup()
   if (plist_->isSublist("water delegate")) {
     Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
     water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_subsurf_));
-    water_->set_tags(tag_current_, tag_next_);
+    water_->setTags(tag_current_, tag_next_);
     water_->set_indices(0, 2, 1, 3);
     water_->set_db(surf_db_);
   }
@@ -321,7 +321,7 @@ MPCPermafrost::Setup()
     surf_ewc_list->set("PK name", name_);
     surf_ewc_list->set("domain name", domain_surf_);
     surf_ewc_ = Teuchos::rcp(new MPCDelegateEWCSurface(*surf_ewc_list, S_));
-    surf_ewc_->set_tags(tag_current_, tag_next_);
+    surf_ewc_->setTags(tag_current_, tag_next_);
     Teuchos::RCP<EWCModelBase> model = Teuchos::rcp(new SurfaceIceModel());
     surf_ewc_->set_model(model);
     surf_ewc_->setup();
@@ -348,22 +348,22 @@ MPCPermafrost::Initialize()
   if (S_->GetRecord(surf_pres_key_, tag_next_).initialized()) {
     CopySurfaceToSubsurface(
       S_->Get<CompositeVector>(surf_pres_key_, tag_next_),
-      S_->GetW<CompositeVector>(pres_key_, tag_next_, domain_flow_pk_->name()));
+      S_->GetW<CompositeVector>(pres_key_, tag_next_, domain_flow_pk_->getName()));
   } else {
     CopySubsurfaceToSurface(
       S_->Get<CompositeVector>(pres_key_, tag_next_),
-      S_->GetW<CompositeVector>(surf_pres_key_, tag_next_, surf_flow_pk_->name()));
-    S_->GetRecordW(surf_pres_key_, tag_next_, surf_flow_pk_->name()).set_initialized();
+      S_->GetW<CompositeVector>(surf_pres_key_, tag_next_, surf_flow_pk_->getName()));
+    S_->GetRecordW(surf_pres_key_, tag_next_, surf_flow_pk_->getName()).set_initialized();
   }
   if (S_->GetRecord(surf_temp_key_, tag_next_).initialized()) {
     CopySurfaceToSubsurface(
       S_->Get<CompositeVector>(surf_temp_key_, tag_next_),
-      S_->GetW<CompositeVector>(temp_key_, tag_next_, domain_energy_pk_->name()));
+      S_->GetW<CompositeVector>(temp_key_, tag_next_, domain_energy_pk_->getName()));
   } else {
     CopySubsurfaceToSurface(
       S_->Get<CompositeVector>(temp_key_, tag_next_),
-      S_->GetW<CompositeVector>(surf_temp_key_, tag_next_, surf_energy_pk_->name()));
-    S_->GetRecordW(surf_temp_key_, tag_next_, surf_energy_pk_->name()).set_initialized();
+      S_->GetW<CompositeVector>(surf_temp_key_, tag_next_, surf_energy_pk_->getName()));
+    S_->GetRecordW(surf_temp_key_, tag_next_, surf_energy_pk_->getName()).set_initialized();
   }
 
   if (surf_ewc_ != Teuchos::null) surf_ewc_->initialize();
@@ -376,11 +376,11 @@ MPCPermafrost::Initialize()
 
 
 void
-MPCPermafrost::set_tags(const Tag& tag_current, const Tag& tag_next)
+MPCPermafrost::setTags(const Tag& tag_current, const Tag& tag_next)
 {
-  MPCSubsurface::set_tags(tag_current, tag_next);
-  if (water_.get()) water_->set_tags(tag_current, tag_next);
-  if (surf_ewc_ != Teuchos::null) surf_ewc_->set_tags(tag_current, tag_next);
+  MPCSubsurface::setTags(tag_current, tag_next);
+  if (water_.get()) water_->setTags(tag_current, tag_next);
+  if (surf_ewc_ != Teuchos::null) surf_ewc_->setTags(tag_current, tag_next);
 }
 
 

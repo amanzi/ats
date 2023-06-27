@@ -107,9 +107,9 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 }
 
 void
-Transport_ATS::set_tags(const Tag& current, const Tag& next)
+Transport_ATS::setTags(const Tag& current, const Tag& next)
 {
-  PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
+  PK_PhysicalExplicit<Epetra_Vector>::setTags(current, next);
   if (subcycling_) {
     tag_subcycle_current_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_current") };
     tag_subcycle_next_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_next") };
@@ -788,7 +788,7 @@ Transport_ATS::StableTimeStep()
 * Estimate returns last time step unless it is zero.
 ******************************************************************* */
 double
-Transport_ATS::get_dt()
+Transport_ATS::getDt()
 {
   if (subcycling_) {
     return std::numeric_limits<double>::max();
@@ -851,7 +851,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     for (auto& src : srcs_) {
-      if (src->name() == "alquimia source") {
+      if (src->getName() == "alquimia source") {
         // src_factor = water_source / molar_density_liquid, both flow
         // quantities, see note above.
         S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
@@ -866,7 +866,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
     for (auto& bc : bcs_) {
-      if (bc->name() == "alquimia bc") {
+      if (bc->getName() == "alquimia bc") {
         Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
           Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
         bc_alq->set_conversion(1000.0, mol_dens_, true);
@@ -1616,7 +1616,7 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       if (c >= ncells_owned) continue;
 
 
-      if (srcs_[m]->name() == "domain coupling" && n0 == 0) {
+      if (srcs_[m]->getName() == "domain coupling" && n0 == 0) {
         (*conserve_qty_)[num_vectors - 2][c] += values[num_vectors - 2];
       }
 
@@ -1667,7 +1667,7 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
         if (num_vectors == 1) imap = 0;
 
         if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {
-          if (srcs_[m]->name() == "domain coupling") {
+          if (srcs_[m]->getName() == "domain coupling") {
             const Epetra_MultiVector& flux_interface_ =
               *S_->Get<CompositeVector>(coupled_flux_key, Tags::NEXT).viewComponent("cell", false);
             val = std::max(val, fabs(flux_interface_[0][c]));

@@ -57,7 +57,7 @@ class DivGradTest : public PKPhysicalBase {
 
   virtual bool advance(double dt) { return true; }
 
-  virtual double get_dt() { return 1.e99; }
+  virtual double getDt() { return 1.e99; }
 
  protected:
   // boundary condition members

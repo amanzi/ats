@@ -47,7 +47,7 @@ class Coordinator {
   bool advance();
   bool visualize(bool force = false);
   bool checkpoint(bool force = false);
-  double get_dt(bool after_fail = false);
+  double getDt(bool after_fail = false);
 
  protected:
   void InitializeFromPlist_();
@@ -57,7 +57,6 @@ class Coordinator {
 
   // states
   Teuchos::RCP<Amanzi::State> S_;
-  Teuchos::RCP<Amanzi::TreeVector> soln_;
 
   // time step manager
   Teuchos::RCP<Amanzi::TimeStepManager> tsm_;

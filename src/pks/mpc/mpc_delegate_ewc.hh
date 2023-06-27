@@ -105,7 +105,7 @@ class MPCDelegateEWC {
   virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
   void set_model(const Teuchos::RCP<EWCModel>& model) { model_ = model; }
-  void set_tags(const Tag& tag_current, const Tag& tag_next);
+  void setTags(const Tag& tag_current, const Tag& tag_next);
 
  protected:
   virtual bool modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVector> up) = 0;

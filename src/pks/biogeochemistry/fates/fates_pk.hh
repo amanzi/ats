@@ -114,9 +114,9 @@ class FATES_PK : public PK_Physical_Default {
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
 
   // -- provide a timestep size
-  virtual double get_dt();
+  virtual double getDt();
 
-  virtual void set_dt(double dt) { dt_ = dt; }
+  virtual void setDt(double dt) { dt_ = dt; }
 
  protected:
   void

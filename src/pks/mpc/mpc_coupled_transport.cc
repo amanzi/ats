@@ -27,8 +27,8 @@ MPCCoupledTransport::MPCCoupledTransport(Teuchos::ParameterList& pk_tree,
 void
 MPCCoupledTransport::Setup()
 {
-  name_ss_ = sub_pks_[0]->name();
-  name_surf_ = sub_pks_[1]->name();
+  name_ss_ = sub_pks_[0]->getName();
+  name_surf_ = sub_pks_[1]->getName();
 
   // see bug amanzi/ats#125 this is probably backwards
   pk_ss_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(sub_pks_[0]);

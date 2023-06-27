@@ -181,7 +181,6 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   // -- local matries, primary term
   preconditioner_->Zero();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
-  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- local matries, Jacobian term
   if (jacobian_ && iter_ >= jacobian_lag_) {
@@ -189,6 +188,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
     preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
+  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives

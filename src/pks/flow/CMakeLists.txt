@@ -90,7 +90,11 @@ add_amanzi_library(ats_flow
 		   LINK_LIBS ${ats_flow_link_libs})
 
 
-register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/flow_relations_reg.hh"
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/water_content/flow_relations_water_content_reg.hh"
+  LISTNAME ATS_FLOW_RELATIONS_REG)
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/porosity/flow_relations_porosity_reg.hh"
+  LISTNAME ATS_FLOW_RELATIONS_REG)
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/wrm/flow_relations_wrm_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
 
 generate_evaluators_registration_header(

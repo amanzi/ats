@@ -37,9 +37,9 @@ class MPCSubcycled : public MPC<PK> {
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt() override;
-  virtual void set_dt(double dt) override;
-  virtual void set_tags(const Tag& current, const Tag& next) override;
+  virtual double getDt() override;
+  virtual void setDt(double dt) override;
+  virtual void setTags(const Tag& current, const Tag& next) override;
 
   virtual void Setup() override;
   virtual void Initialize() override;
@@ -53,7 +53,7 @@ class MPCSubcycled : public MPC<PK> {
   bool AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit);
 
   Teuchos::Array<int> subcycling_;
-  double dt_, target_dt_;
+  double dt_, targetDt_;
   std::vector<double> dts_;
   std::vector<std::pair<Tag, Tag>> tags_;
 

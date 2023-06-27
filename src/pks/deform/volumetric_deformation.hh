@@ -146,9 +146,9 @@ class VolumetricDeformation : public PK_Physical_Default {
   // -- advance via one of a few methods
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  virtual double get_dt() override { return dt_max_; }
+  virtual double getDt() override { return dt_max_; }
 
-  virtual void set_dt(double dt) override {}
+  virtual void setDt(double dt) override {}
 
  private:
   // strategy for calculating nodal deformation given change in cell volume

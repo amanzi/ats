@@ -39,12 +39,12 @@ class WeakMPC : public MPC<PK> {
 
   // PK methods
   // -- dt is the minimum of the sub pks
-  virtual double get_dt() override;
+  virtual double getDt() override;
 
   // -- advance each sub pk dt.
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  virtual void set_dt(double dt) override;
+  virtual void setDt(double dt) override;
 
  private:
   // factory registration

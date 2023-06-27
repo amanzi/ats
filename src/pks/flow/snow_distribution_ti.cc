@@ -306,7 +306,7 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
   double my_t_old = t_old;
   double my_t_new = t_old;
   while (my_t_old < t_old + dt_factor_) {
-    my_dt = PK_PhysicalBDF_Default::get_dt();
+    my_dt = PK_PhysicalBDF_Default::getDt();
     my_t_new = std::min(my_t_old + my_dt, t_old + dt_factor_);
 
     S_next_->set_time(my_t_new);

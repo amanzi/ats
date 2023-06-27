@@ -368,7 +368,7 @@ StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u)
 
     if (!sub_pks_[i]->IsAdmissible(pk_u)) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
-        *vo_->os() << "PK " << sub_pks_[i]->name() << " is not admissible." << std::endl;
+        *vo_->os() << "PK " << sub_pks_[i]->getName() << " is not admissible." << std::endl;
 
       return false;
     }

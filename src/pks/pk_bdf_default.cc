@@ -64,8 +64,10 @@ PK_BDF_Default::Initialize()
     auto bdf_plist = Teuchos::sublist(plist_, "time integrator");
     bdf_plist->sublist("verbose object")
       .setParametersNotAlreadySet(plist_->sublist("verbose object"));
-    bdf_plist->sublist("verbose object").set("name", name() + "_TI");
+    bdf_plist->sublist("verbose object").set("name", getName() + "_TI");
 
+    solution_ = Teuchos::rcp(new TreeVector(getSolutionSpace()));
+    State_to_Solution(tag_next_, *solution_);
     time_stepper_ =
       Teuchos::rcp(new BDF1_TI<TreeVector, TreeVectorSpace>(*this, bdf_plist, solution_, S_));
 
@@ -80,11 +82,11 @@ PK_BDF_Default::Initialize()
     }
 
     // -- initialize time derivative
-    auto solution_dot = Teuchos::rcp(new TreeVector(*solution_));
-    solution_dot->putScalar(0.0);
+    auto soln_dot = Teuchos::rcp(new TreeVector(*solution_));
+    soln_dot->putScalar(0.0);
 
     // -- set initial state
-    time_stepper_->SetInitialState(S_->get_time(), solution_, solution_dot);
+    time_stepper_->SetInitialState(S_->get_time(), solution_, soln_dot);
   }
 };
 
@@ -93,7 +95,7 @@ PK_BDF_Default::Initialize()
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
 double
-PK_BDF_Default::get_dt()
+PK_BDF_Default::getDt()
 {
   if (!strongly_coupled_)
     return S_->Get<double>("dt_internal", Tag(name_));
@@ -102,7 +104,7 @@ PK_BDF_Default::get_dt()
 }
 
 void
-PK_BDF_Default::set_dt(double dt)
+PK_BDF_Default::setDt(double dt)
 {
   if (!strongly_coupled_) S_->Assign("dt_internal", Tag(name_), name_, dt);
 }
@@ -135,6 +137,9 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
+  std::cout << "P_new1 = "
+            << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
+            << std::endl;
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
@@ -150,7 +155,13 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   double dt_solver = -1;
   bool fail = false;
   try {
+    std::cout << "P_new2 = "
+              << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
+              << std::endl;
     fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
+    std::cout << "P_new3 = "
+              << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
+              << std::endl;
 
     if (!fail) {
       // check step validity
@@ -182,7 +193,7 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   } catch (Errors::TimeStepCrash& e) {
     // inject more information into the crash message
     std::stringstream msg_str;
-    msg_str << "TimeStepCrash in PK: \"" << name() << "\"" << std::endl
+    msg_str << "TimeStepCrash in PK: \"" << getName() << "\"" << std::endl
             << "  at t = " << t_old << " with dt = " << dt << std::endl
             << "  error message: " << std::endl
             << std::endl

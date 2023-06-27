@@ -40,7 +40,7 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
   // check whether we are subcycling
   subcycled_ = plist_->template get<bool>("subcycle", false);
   if (subcycled_) {
-    subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
+    subcycled_targetDt_ = plist_->template get<double>("subcycling target time step [s]");
   }
 };
 
@@ -49,14 +49,14 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
 double
-MPCWeakSubdomain::get_dt()
+MPCWeakSubdomain::getDt()
 {
   double dt = std::numeric_limits<double>::max();
 
   if (subcycled_) {
-    dt = subcycled_target_dt_;
+    dt = subcycled_targetDt_;
   } else {
-    for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
+    for (auto& pk : sub_pks_) dt = std::min(dt, pk->getDt());
     double dt_local = dt;
     solution_->Comm()->MinAll(&dt_local, &dt, 1);
   }
@@ -67,12 +67,12 @@ MPCWeakSubdomain::get_dt()
 // Set timestep for sub PKs
 // -----------------------------------------------------------------------------
 void
-MPCWeakSubdomain::set_dt(double dt)
+MPCWeakSubdomain::setDt(double dt)
 {
   if (subcycled_) {
     cycle_dt_ = dt;
   } else {
-    for (auto& pk : sub_pks_) pk->set_dt(dt);
+    for (auto& pk : sub_pks_) pk->setDt(dt);
   }
 };
 
@@ -81,10 +81,10 @@ MPCWeakSubdomain::set_dt(double dt)
 // Set tags for this and for subcycling
 // -----------------------------------------------------------------------------
 void
-MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
+MPCWeakSubdomain::setTags(const Tag& current, const Tag& next)
 {
   if (subcycled_) {
-    PK::set_tags(current, next);
+    PK::setTags(current, next);
 
     const auto& ds = S_->GetDomainSet(ds_name_);
     int i = 0;
@@ -92,11 +92,11 @@ MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
       // create tags for subcycling
       Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
       Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
-      sub_pks_[i]->set_tags(tag_subcycle_current, tag_subcycle_next);
+      sub_pks_[i]->setTags(tag_subcycle_current, tag_subcycle_next);
       ++i;
     }
   } else {
-    MPC<PK>::set_tags(current, next);
+    MPC<PK>::setTags(current, next);
   }
 }
 
@@ -187,7 +187,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
     double t_inner = t_old;
     try { // must catch non-collective throws for TimeStepCrash
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
-        *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
+        *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->getName() << "\"" << std::endl;
 
       bool done = false;
       Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
@@ -195,7 +195,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
 
       S_->set_time(tag_subcycle_current, t_old);
       while (!done) {
-        dt_inner = std::min(sub_pks_[i]->get_dt(), t_new - t_inner);
+        dt_inner = std::min(sub_pks_[i]->getDt(), t_new - t_inner);
         S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
         S_->set_time(tag_subcycle_next, t_inner + dt_inner);
         bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
@@ -209,7 +209,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         if (fail_inner || !valid_inner) {
           sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
 
-          dt_inner = sub_pks_[i]->get_dt();
+          dt_inner = sub_pks_[i]->getDt();
           S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
           if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -223,7 +223,7 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
           S_->set_time(tag_subcycle_current, S_->get_time(tag_subcycle_next));
           S_->advance_cycle(tag_subcycle_next);
 
-          dt_inner = sub_pks_[i]->get_dt();
+          dt_inner = sub_pks_[i]->getDt();
           if (vo_->os_OK(Teuchos::VERB_EXTREME))
             *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
         }

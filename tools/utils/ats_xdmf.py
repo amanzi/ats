@@ -99,9 +99,18 @@ class VisFile:
 
     def loadTimes(self):
         """(Re-)loads the list of cycles and times."""
-        a_field = next(iter(self.d.keys()))
+        a_field = None
+        for k in self.d.keys():
+            if len(self.d[k].keys()) > 0:
+                a_field = k
+                break
+        if a_field is None:
+            raise RuntimeError('Cannot find a single vector-based key...')
+        else:
+            print('using key', a_field)
+
         self.cycles = list(sorted(self.d[a_field].keys(), key=int))
-        self.times = np.array([self.d[a_field][cycle].attrs['Time'] for cycle in self.cycles]) * self.time_factor
+        self.times = np.array([self.d['time'].attrs[cycle] for cycle in self.cycles]) * self.time_factor
 
     def filterIndices(self, indices):
         """Filter based on the index into the current set of cycles.

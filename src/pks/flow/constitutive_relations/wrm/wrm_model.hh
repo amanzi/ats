@@ -38,35 +38,58 @@ class WRMModel {
   static const std::string name;
 
   WRMModel(Teuchos::ParameterList& plist)
-    : model_(plist)
+    : model_(plist.sublist("model parameters"))
   {
-    my_key_ = Keys::cleanPListName(plist);
-    auto domain = Keys::getDomain(my_key_);
-    pc_key_ = Keys::readKey(plist, domain, "capillary pressure", "capillary_pressure_liq_atm");
+    // my keys are for saturation, note that order matters, liquid -> gas
+    Key akey = Keys::cleanPListName(plist);
+    Key domain_name = Keys::getDomain(akey);
+
+    std::size_t liq_pos = akey.find("liquid");
+    std::size_t gas_pos = akey.find("gas");
+    if (liq_pos != std::string::npos) {
+      sl_key_ = akey;
+      Key otherkey = akey.substr(0, liq_pos) + "gas" + akey.substr(liq_pos + 6);
+      sg_key_ = Keys::readKey(plist, domain_name, "other saturation", otherkey);
+
+    } else if (gas_pos != std::string::npos) {
+      sl_key_ = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
+      sl_key_ = Keys::readKey(plist, domain_name, "saturation", sl_key_);
+      sg_key_ = akey;
+
+    } else {
+      sl_key_ = Keys::readKey(plist, domain_name, "saturation");
+      sg_key_ = Keys::readKey(plist, domain_name, "other saturation");
+    }
+
+    pc_key_ = Keys::readKey(plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq");
   }
 
   void setViews(const std::vector<cView_type>& deps,
                 const std::vector<View_type>& res,
                 const State& s) {
-    res_ = res[0];
-    pc_ = deps[1];
+    sl_ = res[0];
+    sg_ = res[1];
+    pc_ = deps[0];
   }
 
-  KeyVector getMyKeys() const { return { my_key_ }; }
+  KeyVector getMyKeys() const { return { sl_key_, sg_key_ }; }
   KeyVector getDependencies() const { return { pc_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    res_(i,0) = model_.saturation(pc_(i,0));
+    sl_(i,0) = model_.saturation(pc_(i,0));
+    sg_(i,0) = 1 - sl_(i,0);
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    res_(i,0) = model_.d_saturation(pc_(i,0));
+    sl_(i,0) = model_.d_saturation(pc_(i,0));
+    sg_(i,0) = -sl_(i,0);
   }
 
  private:
-  View_type res_;
+  View_type sl_, sg_;
   cView_type pc_;
-  Key my_key_, pc_key_;
+  Key pc_key_;
+  Key sl_key_, sg_key_;
 
   WRM_type model_;
 };

@@ -51,7 +51,7 @@ SedimentTransport_PK::SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<TreeVector>& soln)
   : S_(S), soln_(soln)
 {
-  name_ = Keys::cleanPListName(pk_tree.name());
+  name_ = Keys::cleanPListName(pk_tree.getName());
 
   // Create miscaleneous lists.
   Teuchos::RCP<Teuchos::ParameterList> pk_list = Teuchos::sublist(glist, "PKs", true);
@@ -683,7 +683,7 @@ SedimentTransport_PK::StableTimeStep()
 * Estimate returns last time step unless it is zero.
 ******************************************************************* */
 double
-SedimentTransport_PK::get_dt()
+SedimentTransport_PK::getDt()
 {
   if (subcycling_) {
     return 1e+99;
@@ -1409,7 +1409,7 @@ SedimentTransport_PK::ComputeAddSourceTerms(double tp,
         if (num_vectors == 1) imap = 0;
 
         double value;
-        if (srcs_[m]->name() == "domain coupling") {
+        if (srcs_[m]->getName() == "domain coupling") {
           value = values[k];
         } else {
           value = mesh_->getCellVolume(c) * values[k];
@@ -1452,7 +1452,7 @@ SedimentTransport_PK::Sinks2TotalOutFlux(Epetra_MultiVector& tcc,
         if (num_vectors == 1) imap = 0;
 
         if ((values[k] < 0) && (tcc[imap][c] > 0)) {
-          if (srcs_[m]->name() == "domain coupling") {
+          if (srcs_[m]->getName() == "domain coupling") {
             // if (values[k]<0) {
             val = std::max(val, fabs(values[k]) / tcc[imap][c]);
             //}

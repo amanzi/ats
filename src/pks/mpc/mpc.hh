@@ -71,7 +71,7 @@ class MPC : virtual public PK {
   virtual void Initialize() override;
 
   // -- setters/getters
-  virtual void set_tags(const Tag& current, const Tag& next) override;
+  virtual void setTags(const Tag& current, const Tag& next) override;
 
   // additional getter
   virtual Teuchos::RCP<PK_t> get_subpk(int i);
@@ -138,14 +138,14 @@ MPC<PK_t>::Initialize()
 
 
 // -----------------------------------------------------------------------------
-// loop over sub-PKs, calling set_tags
+// loop over sub-PKs, calling setTags
 // -----------------------------------------------------------------------------
 template <class PK_t>
 void
-MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
+MPC<PK_t>::setTags(const Tag& current, const Tag& next)
 {
-  PK::set_tags(current, next);
-  for (auto& pk : sub_pks_) pk->set_tags(current, next);
+  PK::setTags(current, next);
+  for (auto& pk : sub_pks_) pk->setTags(current, next);
 }
 
 
@@ -239,7 +239,7 @@ MPC<PK_t>::ValidStep()
     bool valid = pk->ValidStep();
     if (!valid) {
       if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-        *vo_->os() << "Invalid time step, sub_pk: " << pk->name() << " is invalid." << std::endl;
+        *vo_->os() << "Invalid time step, sub_pk: " << pk->getName() << " is invalid." << std::endl;
       return valid;
     }
   }

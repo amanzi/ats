@@ -82,7 +82,7 @@ MPCCoupledWater::Setup()
   // set up the Water delegate
   Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
   water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_ss_));
-  water_->set_tags(tag_current_, tag_next_);
+  water_->setTags(tag_current_, tag_next_);
   water_->set_indices(0, 1);
 
   // grab the debuggers
@@ -132,7 +132,7 @@ MPCCoupledWater::Initialize()
   CopySubsurfaceToSurface(S_->Get<CompositeVector>(Keys::getKey(domain_ss_, "pressure"), tag_next_),
                           S_->GetW<CompositeVector>(Keys::getKey(domain_surf_, "pressure"),
                                                     tag_next_,
-                                                    sub_pks_[1]->name()));
+                                                    sub_pks_[1]->getName()));
 
   // Initialize my timestepper.
   PK_BDF_Default::Initialize();
@@ -385,7 +385,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
 
 //   // new ponded depth
 //   Teuchos::RCP<TreeVector> tv_p = Teuchos::rcp(new TreeVector());
-//   Teuchos::RCP<CompositeVector> cv_p = S_next_->GetPtrW<CompositeVector>("surface-pressure", sub_pks_[1]->name());
+//   Teuchos::RCP<CompositeVector> cv_p = S_next_->GetPtrW<CompositeVector>("surface-pressure", sub_pks_[1]->getName());
 //   cv_p->viewComponent("cell",false)->Update(-1., surf_Pp_c, 1.);
 //   tv_p->SetData(cv_p);
 
@@ -418,7 +418,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
 //   }
 
 //   // revert solution so we don't break things
-//   S_next_->GetPtrW<CompositeVector>("surface-pressure",sub_pks_[1]->name())
+//   S_next_->GetPtrW<CompositeVector>("surface-pressure",sub_pks_[1]->getName())
 //       ->viewComponent("cell",false)->Update(1., surf_Pp_c, 1.);
 //   sub_pks_[1]->ChangedSolution();
 // }

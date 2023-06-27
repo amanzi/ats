@@ -14,7 +14,7 @@
 //#include "ats_energy_pks_registration.hh"
 //#include "ats_energy_relations_registration.hh"
 #include "ats_flow_pks_registration.hh"
-//#include "ats_flow_relations_registration.hh"
+#include "ats_flow_relations_registration.hh"
 //#include "ats_deformation_registration.hh"
 //#include "ats_bgc_registration.hh"
 //#include "ats_surface_balance_registration.hh"

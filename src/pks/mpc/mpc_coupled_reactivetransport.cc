@@ -167,10 +167,10 @@ MPCCoupledReactiveTransport::Initialize()
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
 double
-MPCCoupledReactiveTransport::get_dt()
+MPCCoupledReactiveTransport::getDt()
 {
-  double dTtran = coupled_transport_pk_->get_dt();
-  double dTchem = coupled_chemistry_pk_->get_dt();
+  double dTtran = coupled_transport_pk_->getDt();
+  double dTchem = coupled_chemistry_pk_->getDt();
 
   if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
   return dTchem;
@@ -190,7 +190,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   bool fail = coupled_transport_pk_->AdvanceStep(t_old, t_new, reinit);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-      *vo_->os() << coupled_transport_pk_->name() << " failed." << std::endl;
+      *vo_->os() << coupled_transport_pk_->getName() << " failed." << std::endl;
     return fail;
   }
 
@@ -205,7 +205,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-      *vo_->os() << chemistry_pk_surf_->name() << " failed." << std::endl;
+      *vo_->os() << chemistry_pk_surf_->getName() << " failed." << std::endl;
     return fail;
   } else {
     transport_pk_surf_->debugger()->WriteCellVector("tcc (chem)", *tcc_surf);
@@ -222,7 +222,7 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-      *vo_->os() << chemistry_pk_->name() << " failed." << std::endl;
+      *vo_->os() << chemistry_pk_->getName() << " failed." << std::endl;
     return fail;
   } else {
     transport_pk_->debugger()->WriteCellVector("tcc (chem)", *tcc);

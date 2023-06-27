@@ -20,18 +20,24 @@
 
 namespace Amanzi {
 
-PK_Physical_Default::PK_Physical_Default(Teuchos::ParameterList& pk_tree,
-                                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                                         const Teuchos::RCP<State>& S,
-                                         const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution), PK_Physical(pk_tree, glist, S, solution)
+PK_Physical_Default::PK_Physical_Default(const Comm_ptr_type& comm,
+        Teuchos::ParameterList& pk_tree,
+        const Teuchos::RCP<Teuchos::ParameterList>& glist,
+        const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S),
+    PK_Physical(comm, pk_tree, glist, S)
 {}
 
 void
 PK_Physical_Default::ParseParameterList_() {
   domain_ = plist_->get<std::string>("domain name", "domain");
   mesh_ = S_->GetMesh(domain_);
+
+  key_ = Keys::readKey(*plist_, domain_, "primary variable");
   PK_Physical::ParseParameterList_();
+
+  // primary variable max change
+  max_valid_change_ = plist_->get<double>("max valid change", -1.0);
 }
 
 
@@ -124,7 +130,7 @@ void
 PK_Physical_Default::Initialize()
 {
   // Get the record
-  Record& record = S_->GetRecordW(key_, tag_next_, name());
+  Record& record = S_->GetRecordW(key_, tag_next_, getName());
 
   // Initialize the data
   if (!record.initialized()) {
@@ -132,7 +138,7 @@ PK_Physical_Default::Initialize()
     // -- Get the IC function plist.
     if (!plist_->isSublist("initial condition")) {
       Errors::Message message;
-      message << name() << " has no initial condition parameter list.";
+      message << getName() << " has no initial condition parameter list.";
       Exceptions::amanzi_throw(message);
     }
 
@@ -144,9 +150,6 @@ PK_Physical_Default::Initialize()
     record.Get<CompositeVector>().scatterMasterToGhosted();
     ChangedSolutionPK(tag_next_);
   }
-
-  // Push the data into the solution.
-  solution_->setData(record.GetPtrW<CompositeVector>(name()));
 };
 
 

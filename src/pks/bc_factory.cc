@@ -172,7 +172,7 @@ BCFactory::ProcessListWithFunction_(const Teuchos::ParameterList& list,
         return ProcessSpecWithFunction_(spec, function_name);
       } catch (Errors::Message& msg) {
         Errors::Message m;
-        m << "in sublist " << spec.name().c_str() << ": " << msg.what();
+        m << "in sublist " << spec.getName().c_str() << ": " << msg.what();
         Exceptions::amanzi_throw(m);
       }
     }
@@ -302,7 +302,7 @@ BCFactory::ProcessListWithoutFunction_(const Teuchos::ParameterList& list) const
         ProcessSpecWithoutFunction_(spec);
       } catch (Errors::Message& msg) {
         std::stringstream m;
-        m << "in sublist " << spec.name().c_str() << ": " << msg.what();
+        m << "in sublist " << spec.getName().c_str() << ": " << msg.what();
         Errors::Message lmsg(m.str());
         Exceptions::amanzi_throw(lmsg);
       }

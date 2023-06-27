@@ -110,7 +110,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u);
 
   // Choose a time step compatible with physics.
-  virtual double get_dt() { return dt_factor_; }
+  virtual double getDt() { return dt_factor_; }
 
   // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms

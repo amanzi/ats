@@ -353,7 +353,7 @@ FATES_PK::Initialize(const Teuchos::Ptr<State>& S)
 }
 
 double
-FATES_PK::get_dt()
+FATES_PK::getDt()
 {
   dt_ =
     std::min(t_photosynthesis_ + dt_photosynthesis_ - S_->get_time(tag_inter_), dt_photosynthesis_);

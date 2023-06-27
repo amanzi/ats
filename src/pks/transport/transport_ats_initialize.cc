@@ -52,17 +52,17 @@ Transport_ATS::InitializeAll_()
 
     int nblocks = 0;
     for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {
-      if (dlist.isSublist(dlist.name(i))) nblocks++;
+      if (dlist.isSublist(dlist.getName(i))) nblocks++;
     }
 
     mat_properties_.resize(nblocks);
 
     int iblock = 0;
     for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {
-      if (dlist.isSublist(dlist.name(i))) {
+      if (dlist.isSublist(dlist.getName(i))) {
         mat_properties_[iblock] = Teuchos::rcp(new MaterialProperties());
 
-        Teuchos::ParameterList& model_list = dlist.sublist(dlist.name(i));
+        Teuchos::ParameterList& model_list = dlist.sublist(dlist.getName(i));
 
         mat_properties_[iblock]->tau[0] = model_list.get<double>("aqueous tortuosity", 0.0);
         mat_properties_[iblock]->tau[1] = model_list.get<double>("gaseous tortuosity", 0.0);

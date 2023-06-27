@@ -53,7 +53,7 @@ class CapillaryPressureLiquidAtmModel {
   void setViews(const std::vector<cView_type>& deps,
                 const std::vector<View_type>& res,
                 const State& s) {
-    p_atm_ = s.Get<double>("atmospheric pressure", Tags::DEFAULT);
+    p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
     res_ = res[0];
     p_ = deps[0];
   }

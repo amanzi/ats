@@ -42,10 +42,10 @@ class RichardsSteadyState : public Richards {
  public:
   // Constructors.
 
-  RichardsSteadyState(Teuchos::ParameterList& FElist,
+  RichardsSteadyState(const Comm_ptr_type& comm,
+                      Teuchos::ParameterList& FElist,
                       const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                      const Teuchos::RCP<State>& S,
-                      const Teuchos::RCP<TreeVector>& solution);
+                      const Teuchos::RCP<State>& S);
 
   // Virtual destructor
   virtual ~RichardsSteadyState() override {}

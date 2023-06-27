@@ -112,8 +112,8 @@ class BGCSimple : public PK_Physical_Default {
   virtual void Initialize() override;
 
   // -- provide a timestep size
-  virtual double get_dt() override { return dt_; }
-  virtual void set_dt(double dt) override { dt_ = dt; }
+  virtual double getDt() override { return dt_; }
+  virtual void setDt(double dt) override { dt_ = dt; }
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;

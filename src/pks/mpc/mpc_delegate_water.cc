@@ -67,7 +67,7 @@ MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& p
   }
 
   // create the VO
-  vo_ = Teuchos::rcp(new VerboseObject(plist->name(), *plist_));
+  vo_ = Teuchos::rcp(new VerboseObject(plist->getName(), *plist_));
 }
 
 

@@ -88,7 +88,7 @@ struct CoupledWaterProblem {
     S->require_time(Tags::CURRENT);
     S->require_time(Tags::NEXT);
 
-    pk->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+    pk->setTags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
     pk->Setup();
     S->Setup();
 

@@ -88,13 +88,9 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   Teuchos::ParameterList::ConstIterator pk_item = pk_tree_list.begin();
   const std::string& pk_name = pk_tree_list.name(pk_item);
 
-  // create the solution
-  auto empty_space = Teuchos::rcp(new Amanzi::TreeVectorSpace(comm_));
-  soln_ = Teuchos::rcp(new Amanzi::TreeVector(empty_space));
-
   // create the pk
   Amanzi::PKFactory pk_factory;
-  pk_ = pk_factory.CreatePK(pk_name, pk_tree_list, plist_, S_, soln_);
+  pk_ = pk_factory.CreatePK(pk_name, comm_, pk_tree_list, plist_, S_);
 
   // create the checkpointing
   Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
@@ -151,7 +147,7 @@ Coordinator::setup()
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
-  pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+  pk_->setTags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
@@ -257,7 +253,6 @@ Coordinator::initialize()
 
       // vis successful timesteps
       auto vis = Teuchos::rcp(new Amanzi::Visualization(*sublist_p, mesh_p, false));
-      vis->createFiles(false);
       visualization_.push_back(vis);
 
     } else if (Amanzi::Keys::isDomainSet(domain_name)) {
@@ -271,7 +266,6 @@ Coordinator::initialize()
           Teuchos::ParameterList sublist = vis_list->sublist(subdomain);
           sublist.set<std::string>("file name base", std::string("ats_vis_") + subdomain);
           auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist, S_->GetMesh(subdomain), false));
-          vis->createFiles(false);
           visualization_.push_back(vis);
         }
       } else {
@@ -280,9 +274,7 @@ Coordinator::initialize()
         if (!sublist_p->isParameter("file name base"))
           sublist_p->set("file name base", std::string("ats_vis_") + domain_name_base);
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p,
-                dset->getReferencingParent(), false));
-        vis->setDomainSet(dset);
-        vis->createFiles(false);
+                dset->getReferencingParent(), false, dset));
         visualization_.push_back(vis);
       }
     }
@@ -460,10 +452,10 @@ Coordinator::InitializeFromPlist_()
 // acquire the chosen timestep size
 // -----------------------------------------------------------------------------
 double
-Coordinator::get_dt(bool after_fail)
+Coordinator::getDt(bool after_fail)
 {
   // get the physical step size
-  double dt = pk_->get_dt();
+  double dt = pk_->getDt();
   double dt_pk = dt;
   if (dt < 0.) return dt;
 

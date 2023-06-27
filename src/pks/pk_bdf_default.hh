@@ -52,11 +52,12 @@ namespace Amanzi {
 
 class PK_BDF_Default : public PK_BDF {
  public:
-  PK_BDF_Default(Teuchos::ParameterList& pk_tree,
+  PK_BDF_Default(const Comm_ptr_type& comm,
+                 Teuchos::ParameterList& pk_tree,
                  const Teuchos::RCP<Teuchos::ParameterList>& glist,
-                 const Teuchos::RCP<State>& S,
-                 const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, glist, S, solution), PK_BDF(pk_tree, glist, S, solution)
+                 const Teuchos::RCP<State>& S)
+    : PK(comm, pk_tree, glist, S),
+      PK_BDF(comm, pk_tree, glist, S)
   {}
 
   // Virtual destructor
@@ -70,9 +71,9 @@ class PK_BDF_Default : public PK_BDF {
   virtual void Initialize() override;
 
   // -- Choose a time step compatible with physics.
-  virtual double get_dt() override;
+  virtual double getDt() override;
 
-  virtual void set_dt(double dt) override;
+  virtual void setDt(double dt) override;
 
   // -- Advance from state S0 to state S1 at time S0.time + dt.
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
@@ -116,7 +117,8 @@ class PK_BDF_Default : public PK_BDF {
   bool assemble_preconditioner_; // preconditioner assembly control
   bool strongly_coupled_;        // if we are coupled, no need to make a TI
 
-  // timestep control
+  // timestep control, solution vector
+  Teuchos::RCP<TreeVector> solution_;
   Teuchos::RCP<BDF1_TI<TreeVector, TreeVectorSpace>> time_stepper_;
 
   // timing
