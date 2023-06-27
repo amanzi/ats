@@ -221,11 +221,6 @@ EvaporativeResistanceCoef(double saturation_gas,
   return Rsoil;
 }
 
-double
-EvaporativeResistanceCoefSellers(double saturation_liq)
-{
-  return std::exp(8.206 - 4.255 * saturation_liq);
-}
 
 double
 SensibleHeat(double resistance_coef,
