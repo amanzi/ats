@@ -31,7 +31,6 @@ double
 CalcAlbedoSnow(double density_snow)
 {
   double AlSnow;
-  //  432.23309912785146
   if (density_snow <= 432.23309912785146) {
     AlSnow = 1.0 - 0.247 * std::pow(0.16 + 110 * std::pow(density_snow / 1000, 4), 0.5);
   } else {
@@ -183,16 +182,22 @@ EvaporativeResistanceGround(const GroundProperties& surf,
   if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-    return EvaporativeResistanceCoef(
-      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
+    if (surf.rs_method == "sakagucki_zeng") {
+      return EvaporativeResistanceCoefSakaguckiZeng(
+        surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
+    } else if (surf.rs_method == "sellers") {
+      return EvaporativeResistanceSellers(surf.saturation_liq);
+    } else {
+      throw("Currently support {sakagucki_zeng, sellers}");
+    }
   }
 }
 
 double
-EvaporativeResistanceCoef(double saturation_gas,
-                          double porosity,
-                          double dessicated_zone_thickness,
-                          double Clapp_Horn_b)
+EvaporativeResistanceCoefSakaguckiZeng(double saturation_gas,
+                                       double porosity,
+                                       double dessicated_zone_thickness,
+                                       double Clapp_Horn_b)
 {
   double Rsoil;
   if (saturation_gas == 0.) {
@@ -220,6 +225,11 @@ EvaporativeResistanceCoef(double saturation_gas,
   return Rsoil;
 }
 
+double
+EvaporativeResistanceCoefSellers(double saturation_liq)
+{
+  return std::exp(8.206 - 4.255 * saturation_liq);
+}
 
 double
 SensibleHeat(double resistance_coef,

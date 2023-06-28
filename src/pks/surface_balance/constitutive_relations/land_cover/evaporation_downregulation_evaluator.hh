@@ -23,6 +23,7 @@ Hornberger b.
    KEYS:
 
    - `"saturation gas`" **DOMAIN_SUB-saturation_gas**
+   - `"saturation liquid`" **DOMAIN_SUB-saturation_liquid**
    - `"porosity`" **DOMAIN_SUB-porosity**
    - `"potential evaporation`" **DOMAIN_SUB-potential_evaporation**
 
@@ -60,6 +61,7 @@ class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
   void InitializeFromPlist_();
 
   Key sat_gas_key_;
+  Key sat_liq_key_;
   Key poro_key_;
   Key pot_evap_key_;
 

@@ -41,10 +41,11 @@ EvaporationDownregulationEvaluator::InitializeFromPlist_()
   domain_surf_ = Keys::getDomain(my_keys_.front().first);
   domain_sub_ = Keys::readDomainHint(plist_, domain_surf_, "surface", "domain");
 
-  // sat gas and porosity on subsurface
+  // sat gas, sat liquid, and porosity on subsurface
   sat_gas_key_ = Keys::readKey(plist_, domain_sub_, "saturation gas", "saturation_gas");
   dependencies_.insert(KeyTag{ sat_gas_key_, tag });
-
+  sat_liq_key_ = Keys::readKey(plist_, domain_sub_, "saturation liquid", "saturation_liquid");
+  dependencies_.insert(KeyTag{ sat_liq_key_, tag });
   poro_key_ = Keys::readKey(plist_, domain_sub_, "porosity", "porosity");
   dependencies_.insert(KeyTag{ poro_key_, tag });
 
@@ -62,6 +63,8 @@ EvaporationDownregulationEvaluator::Evaluate_(const State& S,
   Tag tag = my_keys_.front().second;
   const Epetra_MultiVector& sat_gas =
     *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& sat_liq =
+    *S.Get<CompositeVector>(sat_liq_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& poro =
     *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& pot_evap =
@@ -78,7 +81,7 @@ EvaporationDownregulationEvaluator::Evaluate_(const State& S,
     for (AmanziMesh::Entity_ID sc : lc_ids) {
       auto c = sub_mesh.cells_of_column(sc)[0];
       surf_evap[0][sc] =
-        region_model.second->Evaporation(sat_gas[0][c], poro[0][c], pot_evap[0][sc]);
+        region_model.second->Evaporation(sat_gas[0][c], poro[0][c], pot_evap[0][sc], sat_liq[0][c]);
     }
   }
 }
@@ -95,6 +98,8 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == pot_evap_key_) {
     const Epetra_MultiVector& sat_gas =
       *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+    const Epetra_MultiVector& sat_liq =
+      *S.Get<CompositeVector>(sat_liq_key_, tag).ViewComponent("cell", false);
     const Epetra_MultiVector& poro =
       *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
     const Epetra_MultiVector& pot_evap =
@@ -112,7 +117,7 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
       for (AmanziMesh::Entity_ID sc : lc_ids) {
         auto c = sub_mesh.cells_of_column(sc)[0];
         surf_evap[0][sc] = region_model.second->DEvaporationDPotentialEvaporation(
-          sat_gas[0][c], poro[0][c], pot_evap[0][sc]);
+          sat_gas[0][c], poro[0][c], pot_evap[0][sc], sat_liq[0][c]);
       }
     }
   }
@@ -134,6 +139,9 @@ EvaporationDownregulationEvaluator::EnsureCompatibility_ToDeps_(State& S)
       .SetMesh(S.GetMesh(domain_sub_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S.Require<CompositeVector, CompositeVectorSpace>(sat_gas_key_, tag)
+      .SetMesh(S.GetMesh(domain_sub_))
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    S.Require<CompositeVector, CompositeVectorSpace>(sat_liq_key_, tag)
       .SetMesh(S.GetMesh(domain_sub_))
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S.Require<CompositeVector, CompositeVectorSpace>(pot_evap_key_, tag)

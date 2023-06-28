@@ -40,6 +40,7 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
     water_transition_depth(plist.get<double>("water transition depth [m]", NAN)),
     dessicated_zone_thickness(plist.get<double>("dessicated zone thickness [m]", NAN)),
     clapp_horn_b(plist.get<double>("Clapp and Hornberger b [-]", NAN)),
+    rs_method(plist.get<std::string>("Soil resistance method", NAN)),
     roughness_ground(plist.get<double>("roughness length of bare ground [m]", NAN)),
     roughness_snow(plist.get<double>("roughness length of snow [m]", NAN)),
     mannings_n(plist.get<double>("Manning's n [?]", NAN))
@@ -136,6 +137,8 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
     throwInvalid(region, "dessicated zone thickness [m]");
   if (parname == "clapp_horn_b" && std::isnan(lc.clapp_horn_b))
     throwInvalid(region, "Clapp and Hornberger b [-]");
+  if (parname == "rs_method" && std::isnan(lc.rs_method))
+    throwInvalid(region, "Soil resistance method");
   if (parname == "roughness_ground" && std::isnan(lc.roughness_ground))
     throwInvalid(region, "roughness length of bare ground [m]");
   if (parname == "roughness_snow" && std::isnan(lc.roughness_snow))

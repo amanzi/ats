@@ -156,6 +156,8 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   // -- subsurface properties for evaporating bare soil
   sat_gas_key_ = Keys::readKey(plist, domain_ss_, "gas saturation", "saturation_gas");
   dependencies_.insert(KeyTag{ sat_gas_key_, tag });
+  sat_liq_key_ = Keys::readKey(plist, domain_ss_, "liquid saturation", "saturation_liquid");
+  dependencies_.insert(KeyTag{ sat_liq_key_, tag });
   poro_key_ = Keys::readKey(plist, domain_ss_, "porosity", "porosity");
   dependencies_.insert(KeyTag{ poro_key_, tag });
   ss_pres_key_ = Keys::readKey(plist, domain_ss_, "subsurface pressure", "pressure");
@@ -208,6 +210,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
 
   // collect subsurface properties
   const auto& sat_gas = *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
+  const auto& sat_liq = *S.Get<CompositeVector>(sat_liq_key_, tag).ViewComponent("cell", false);
   const auto& poro = *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
   const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell", false);
 
@@ -284,11 +287,13 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
         surf.clapp_horn_b = lc.second.clapp_horn_b;
+        surf.rs_method = lc.second.rs_method;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
         surf.ponded_depth = 0.; // by definition
         surf.porosity = poro[0][cells[0]];
         surf.saturation_gas = sat_gas[0][cells[0]];
+        surf.saturation_liq = sat_liq[0][cells[0]];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
 
@@ -354,7 +359,8 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
+        surf.clapp_horn_b = lc.second.clapp_horn_b;  
+        surf.rs_method = lc.second.rs_method;       // does not matter
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
         surf.ponded_depth = std::max(lc.second.water_transition_depth, ponded_depth[0][c]);
@@ -426,6 +432,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
         surf.clapp_horn_b = lc.second.clapp_horn_b;
+        surf.rs_method = lc.second.rs_method;             // does not matter
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
         surf.ponded_depth = 0;                            // does not matter
@@ -634,7 +641,8 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                    "roughness_ground",
                                    "water_transition_depth",
                                    "dessicated_zone_thickness",
-                                   "clapp_horn_b" });
+                                   "clapp_horn_b",
+                                   "rs_method"});
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;
