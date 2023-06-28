@@ -131,9 +131,6 @@ EvaporativeResistanceCoef(double saturation_gas,
                           double dessicated_zone_thickness,
                           double Clapp_Horn_b);
 
-double
-EvaporativeResistanceCoefSellers(double saturation_liq);
-
 //
 // Basic sensible heat.
 // ------------------------------------------------------------------------------------------

@@ -183,9 +183,8 @@ EvaporativeResistanceGround(const GroundProperties& surf,
   if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-//    return EvaporativeResistanceCoef(
-//      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
-    return EvaporativeResistanceCoefSellers(surf.saturation_liq);
+    return EvaporativeResistanceCoef(
+      surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
   }
 }
 
