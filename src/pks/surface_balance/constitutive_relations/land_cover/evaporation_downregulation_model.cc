@@ -37,10 +37,11 @@ EvaporationDownregulationModel::EvaporationDownregulationModel(const LandCover& 
 double
 EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_evap, double sl) const
 {
+  double rsoil;
   if (rs_method_ == "sellers") {
-    double rsoil = Relations::EvaporativeResistanceCoefSellers(sl);
+    rsoil = Relations::EvaporativeResistanceCoefSellers(sl);
   } else {
-    double rsoil = Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_);
+    rsoil = Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_);
   }
   return pot_evap / (1. + rsoil);
 }
