@@ -286,7 +286,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
           surf.pressure = surf_pres[0][c];
           surf.porosity = 1.;
           surf.saturation_gas = 0.;
-          surf.saturation_liq = 1.;
+          surf.saturation_liq = sat_liq[0][cells[0]];
         } else {
           double factor = std::max(ponded_depth[0][c], 0.) / lc.second.water_transition_depth;
           surf.pressure = factor * surf_pres[0][c] + (1 - factor) * ss_pres[0][cells[0]];
@@ -376,7 +376,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         surf.ponded_depth = ponded_depth[0][c];
         surf.porosity = 1.;
         surf.saturation_gas = 0.;
-        surf.saturation_liq = 1.;
+        surf.saturation_liq = sat_liq[0][cells[0]];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.roughness = lc.second.roughness_ground;
         if (model_1p1_)

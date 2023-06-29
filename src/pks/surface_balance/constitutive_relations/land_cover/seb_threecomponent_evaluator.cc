@@ -366,6 +366,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.ponded_depth = std::max(lc.second.water_transition_depth, ponded_depth[0][c]);
         surf.porosity = 1.;
         surf.saturation_gas = 0.;
+        surf.saturation_liq = sat_liq[0][cells[0]];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
 
@@ -437,6 +438,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.albedo = sg_albedo[2][c];
         surf.ponded_depth = 0;                            // does not matter
         surf.saturation_gas = 0.;                         // does not matter
+        surf.saturation_liq = sat_liq[0][cells[0]];       // does not matter
         surf.porosity = 1.;                               // does not matter
         surf.unfrozen_fraction = unfrozen_fraction[0][c]; // does not matter
         surf.water_transition_depth = lc.second.water_transition_depth;
