@@ -186,7 +186,7 @@ EvaporativeResistanceGround(const GroundProperties& surf,
       return EvaporativeResistanceCoefSakaguckiZeng(
         surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
     } else if (surf.rs_method == "sellers") {
-      return EvaporativeResistanceSellers(surf.saturation_liq);
+      return EvaporativeResistanceCoefSellers(surf.saturation_liq);
     } else {
       throw("Currently support {sakagucki_zeng, sellers}");
     }

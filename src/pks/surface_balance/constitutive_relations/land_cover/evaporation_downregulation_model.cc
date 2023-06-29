@@ -37,7 +37,7 @@ double
 EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_evap, double sl) const
 {
   if (rs_method_ == "sellers") {
-    double rsoil = Relations::EvaporativeResistanceSellers(sl);
+    double rsoil = Relations::EvaporativeResistanceCoefSellers(sl);
   } else {
     double rsoil = Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_);
   }
@@ -76,7 +76,7 @@ EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg,
                                                                   double sl) const
 {
   if (rs_method_ == "sellers") {
-    return 1. / (1. + Relations::EvaporativeResistanceSellers(sl));
+    return 1. / (1. + Relations::EvaporativeResistanceCoefSellers(sl));
   } else {
     return 1. / (1. + Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_));
   }
