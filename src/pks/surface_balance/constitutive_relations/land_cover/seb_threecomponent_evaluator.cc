@@ -360,7 +360,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
         surf.clapp_horn_b = lc.second.clapp_horn_b;  
-        surf.rs_method = lc.second.rs_method;       // does not matter
+        surf.rs_method = lc.second.rs_method;
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
         surf.ponded_depth = std::max(lc.second.water_transition_depth, ponded_depth[0][c]);
