@@ -30,6 +30,7 @@ EvaporationDownregulationModel::EvaporationDownregulationModel(const LandCover& 
 {
   dess_dz_ = lc.dessicated_zone_thickness;
   Clapp_Horn_b_ = lc.clapp_horn_b;
+  rs_method_ = lc.rs_method;
 }
 
 // main method
