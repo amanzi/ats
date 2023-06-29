@@ -50,6 +50,7 @@ class EvaporationDownregulationModel {
 
   double DEvaporationDSaturationGas(double sg, double poro, double pot_evap, double sl) const;
   double DEvaporationDPorosity(double sg, double poro, double pot_evap, double sl) const;
+  double DEvaporationDSaturationLiquid(double sg, double poro, double pot_evap, double sl) const;
   double DEvaporationDPotentialEvaporation(double sg, double poro, double pot_evap, double sl) const;
 
  protected:
