@@ -111,6 +111,7 @@ struct GroundProperties {
   double density_w;         // density [kg/m^3]
   double dz;                // [m]
   double clapp_horn_b;      // [-]
+  std::string rs_method;    // options: {sakagucki_zeng, sellers}
   double albedo;            // [-]
   double emissivity;        // [-]
   double saturation_gas;    // [-]
@@ -130,8 +131,10 @@ struct GroundProperties {
       albedo(NaN),
       emissivity(NaN),
       saturation_gas(NaN),
+      saturation_liq(NaN),
       roughness(NaN),
       clapp_horn_b(3),
+      rs_method("sakagucki_zeng"),
       snow_death_rate(0.),
       unfrozen_fraction(0.),
       water_transition_depth(0.01)

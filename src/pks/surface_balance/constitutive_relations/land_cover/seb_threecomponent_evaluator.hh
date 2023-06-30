@@ -75,6 +75,7 @@ gravity- and wind-driven redistributions, respectively.
    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
    - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
+   - `"liquid saturation`" **DOMAIN_SS-saturation_liquid** [-] subsurface liquid saturation
    - `"porosity`" [-] subsurface porosity
    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
