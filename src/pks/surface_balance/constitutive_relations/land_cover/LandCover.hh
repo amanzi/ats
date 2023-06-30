@@ -111,7 +111,7 @@ same region-based partitioning.
       and/or refactored, we must provide this value.  When in doubt, just use
       1.
 
-    * `"Soil resistance method`" ``[string]`` **NAN** This denotes what model to use
+    * `"soil resistance method`" ``[string]`` **NAN** This denotes what model to use
       to calculate soil resistance. Currently support {sakagucki_zeng, sellers}.
 
     * `"roughness length of bare ground [m]`" ``[double]`` **NaN** Roughness length of

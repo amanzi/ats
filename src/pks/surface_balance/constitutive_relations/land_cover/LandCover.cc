@@ -40,7 +40,7 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
     water_transition_depth(plist.get<double>("water transition depth [m]", NAN)),
     dessicated_zone_thickness(plist.get<double>("dessicated zone thickness [m]", NAN)),
     clapp_horn_b(plist.get<double>("Clapp and Hornberger b [-]", NAN)),
-    rs_method(plist.get<std::string>("Soil resistance method", "sakagucki_zeng")),
+    rs_method(plist.get<std::string>("soil resistance method", "sakagucki_zeng")),
     roughness_ground(plist.get<double>("roughness length of bare ground [m]", NAN)),
     roughness_snow(plist.get<double>("roughness length of snow [m]", NAN)),
     mannings_n(plist.get<double>("Manning's n [?]", NAN))
