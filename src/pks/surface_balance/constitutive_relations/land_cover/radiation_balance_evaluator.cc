@@ -167,10 +167,9 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       rad_bal_surf[0][c] = (1 - albedo[0][c]) * sw_atm_surf + lw_down - lw_up_surf;
       rad_bal_snow[0][c] = (1 - albedo[1][c]) * sw_atm_surf + lw_down - lw_up_snow;
 
-      rad_bal_can[0][c] =  (1 - lc.second.albedo_canopy) * sw_atm_can
-        + lw_atm_can - 2 * lw_can
-        + area_frac[0][c] * e_can_lw * lw_up_surf
-        + area_frac[1][c] * e_can_lw * lw_up_snow;
+      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * sw_atm_can + lw_atm_can - 2 * lw_can +
+                          area_frac[0][c] * e_can_lw * lw_up_surf +
+                          area_frac[1][c] * e_can_lw * lw_up_snow;
     }
   }
 }

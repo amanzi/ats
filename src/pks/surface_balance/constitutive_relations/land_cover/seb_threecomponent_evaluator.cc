@@ -359,7 +359,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;  
+        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.rs_method = lc.second.rs_method;
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
@@ -433,7 +433,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.density_w = mass_dens[0][c];
         surf.dz = lc.second.dessicated_zone_thickness;
         surf.clapp_horn_b = lc.second.clapp_horn_b;
-        surf.rs_method = lc.second.rs_method;             // does not matter
+        surf.rs_method = lc.second.rs_method; // does not matter
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
         surf.ponded_depth = 0;                            // does not matter
@@ -644,7 +644,7 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                    "water_transition_depth",
                                    "dessicated_zone_thickness",
                                    "clapp_horn_b",
-                                   "rs_method"});
+                                   "rs_method" });
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;

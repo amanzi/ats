@@ -35,7 +35,10 @@ EvaporationDownregulationModel::EvaporationDownregulationModel(const LandCover& 
 
 // main method
 double
-EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_evap, double sl) const
+EvaporationDownregulationModel::Evaporation(double sg,
+                                            double poro,
+                                            double pot_evap,
+                                            double sl) const
 {
   double rsoil;
   if (rs_method_ == "sellers") {
@@ -56,8 +59,10 @@ EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg,
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDPorosity(double sg, double poro, 
-                                                      double pot_evap, double sl) const
+EvaporationDownregulationModel::DEvaporationDPorosity(double sg,
+                                                      double poro,
+                                                      double pot_evap,
+                                                      double sl) const
 {
   return 0.;
 }
@@ -80,7 +85,8 @@ EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg,
   if (rs_method_ == "sellers") {
     return 1. / (1. + Relations::EvaporativeResistanceCoefSellers(sl));
   } else {
-    return 1. / (1. + Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_));
+    return 1. / (1. + Relations::EvaporativeResistanceCoefSakaguckiZeng(
+                        sg, poro, dess_dz_, Clapp_Horn_b_));
   }
 }
 

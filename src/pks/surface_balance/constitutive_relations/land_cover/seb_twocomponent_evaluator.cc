@@ -583,7 +583,7 @@ SEBTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                    "snow_transition_depth",
                                    "dessicated_zone_thickness",
                                    "clapp_horn_b",
-                                   "rs_method"});
+                                   "rs_method" });
 
     CompositeVectorSpace domain_fac;
     domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
