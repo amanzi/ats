@@ -436,8 +436,8 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.rs_method = lc.second.rs_method; // does not matter
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
-        surf.ponded_depth = 0;                            // does not matter
-        surf.saturation_gas = 0.;                         // does not matter
+        surf.ponded_depth = 0;    // does not matter
+        surf.saturation_gas = 0.; // does not matter
         surf.saturation_liq = sat_liq[0][cells[0]];
         surf.porosity = 1.;                               // does not matter
         surf.unfrozen_fraction = unfrozen_fraction[0][c]; // does not matter

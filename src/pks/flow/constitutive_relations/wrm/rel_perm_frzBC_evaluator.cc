@@ -25,7 +25,7 @@ RelPermFrzBCEvaluator::RelPermFrzBCEvaluator(Teuchos::ParameterList& plist)
 
 
 RelPermFrzBCEvaluator::RelPermFrzBCEvaluator(Teuchos::ParameterList& plist,
-                                                   const Teuchos::RCP<WRMPartition>& wrms)
+                                             const Teuchos::RCP<WRMPartition>& wrms)
   : EvaluatorSecondaryMonotypeCV(plist), wrms_(wrms), min_val_(0.)
 {
   InitializeFromPlist_();
@@ -156,8 +156,9 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
   for (unsigned int c = 0; c != ncells; ++c) {
     int index = (*wrms_->first)[c];
     double sat_res = wrms_->second[index]->residualSaturation();
-    double coef = 1 - std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c])) + std::exp(-omega_);
-    res_c[0][c] = std::max(coef*std::pow((1-sat_gas_c[0][c]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+    double coef = 1 - std::exp(-omega_ * (sat_c[0][c] + sat_gas_c[0][c])) + std::exp(-omega_);
+    res_c[0][c] = std::max(
+      coef * std::pow((1 - sat_gas_c[0][c] - sat_res) / (1 - sat_res), 3 + 2 * b_), min_val_);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
@@ -180,26 +181,38 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
       mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
       AMANZI_ASSERT(cells.size() == 1);
-      
+
       int index = (*wrms_->first)[cells[0]];
       double sat_res = wrms_->second[index]->residualSaturation();
       double krel;
-      double coef_b = 1 - std::exp(-omega_*(sat_bf[0][bf]+sat_gas_bf[0][bf])) + std::exp(-omega_);
-      double coef_c = 1 - std::exp(-omega_*(sat_c[0][cells[0]]+sat_gas_c[0][cells[0]])) + std::exp(-omega_);
+      double coef_b =
+        1 - std::exp(-omega_ * (sat_bf[0][bf] + sat_gas_bf[0][bf])) + std::exp(-omega_);
+      double coef_c =
+        1 - std::exp(-omega_ * (sat_c[0][cells[0]] + sat_gas_c[0][cells[0]])) + std::exp(-omega_);
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
-        double krelb = std::max(coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
-        double kreli = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+        double krelb =
+          std::max(coef_b * std::pow((1 - sat_gas_bf[0][bf] - sat_res) / (1 - sat_res), 3 + 2 * b_),
+                   min_val_);
+        double kreli = std::max(
+          coef_c * std::pow((1 - sat_gas_c[0][cells[0]] - sat_res) / (1 - sat_res), 3 + 2 * b_),
+          min_val_);
         krel = 1.0 / (1.0 / krelb + 1.0 / kreli);
       } else if (boundary_krel_ == BoundaryRelPerm::ARITHMETIC_MEAN) {
-        double krelb = std::max(coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
-        double kreli = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+        double krelb =
+          std::max(coef_b * std::pow((1 - sat_gas_bf[0][bf] - sat_res) / (1 - sat_res), 3 + 2 * b_),
+                   min_val_);
+        double kreli = std::max(
+          coef_c * std::pow((1 - sat_gas_c[0][cells[0]] - sat_res) / (1 - sat_res), 3 + 2 * b_),
+          min_val_);
         krel = (krelb + kreli) / 2.0;
       } else if (boundary_krel_ == BoundaryRelPerm::INTERIOR_PRESSURE) {
-        krel = std::max(coef_c*std::pow((1-sat_gas_c[0][cells[0]]-sat_res)/(1-sat_res), 3+2*b_), min_val_);
+        krel = std::max(
+          coef_c * std::pow((1 - sat_gas_c[0][cells[0]] - sat_res) / (1 - sat_res), 3 + 2 * b_),
+          min_val_);
       } else if (boundary_krel_ == BoundaryRelPerm::ONE) {
         krel = 1.;
       } else {
-        krel = coef_b*std::pow((1-sat_gas_bf[0][bf]-sat_res)/(1-sat_res), 3+2*b_);
+        krel = coef_b * std::pow((1 - sat_gas_bf[0][bf] - sat_res) / (1 - sat_res), 3 + 2 * b_);
       }
       res_bf[0][bf] = std::max(krel, min_val_);
     }
@@ -260,9 +273,9 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
 void
 RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
-                                                     const Key& wrt_key,
-                                                     const Tag& wrt_tag,
-                                                     const std::vector<CompositeVector*>& result)
+                                                  const Key& wrt_key,
+                                                  const Tag& wrt_tag,
+                                                  const std::vector<CompositeVector*>& result)
 {
   // Initialize the MeshPartition
   if (!wrms_->first->initialized()) {
@@ -287,7 +300,9 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
     for (unsigned int c = 0; c != ncells; ++c) {
       int index = (*wrms_->first)[c];
       double sat_res = wrms_->second[index]->residualSaturation();
-      res_c[0][c] = omega_*std::pow((1.-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+3)*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]));
+      res_c[0][c] = omega_ *
+                    std::pow((1. - sat_gas_c[0][c] - sat_res) / (1 - sat_res), 2 * b_ + 3) *
+                    std::exp(-omega_ * (sat_c[0][c] + sat_gas_c[0][c]));
       AMANZI_ASSERT(res_c[0][c] >= 0.);
     }
 
@@ -329,10 +344,13 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
     for (unsigned int c = 0; c != ncells; ++c) {
       int index = (*wrms_->first)[c];
       double sat_res = wrms_->second[index]->residualSaturation();
-      double dbc_dsg = -(2*b_+3)/(1-sat_res)*std::pow((1-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+2);
-      double coef = 1-std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]))+std::exp(-omega_);
-      double dcoef_dsg = omega_*std::exp(-omega_*(sat_c[0][c]+sat_gas_c[0][c]));
-      res_c[0][c] = dbc_dsg * coef + dcoef_dsg * std::pow((1.-sat_gas_c[0][c]-sat_res)/(1-sat_res), 2*b_+3);
+      double dbc_dsg = -(2 * b_ + 3) / (1 - sat_res) *
+                       std::pow((1 - sat_gas_c[0][c] - sat_res) / (1 - sat_res), 2 * b_ + 2);
+      double coef = 1 - std::exp(-omega_ * (sat_c[0][c] + sat_gas_c[0][c])) + std::exp(-omega_);
+      double dcoef_dsg = omega_ * std::exp(-omega_ * (sat_c[0][c] + sat_gas_c[0][c]));
+      res_c[0][c] =
+        dbc_dsg * coef +
+        dcoef_dsg * std::pow((1. - sat_gas_c[0][c] - sat_res) / (1 - sat_res), 2 * b_ + 3);
     }
 
     // -- Potentially evaluate the model on boundary faces as well.
