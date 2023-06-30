@@ -22,6 +22,7 @@ EvaporationDownregulationModel::EvaporationDownregulationModel(Teuchos::Paramete
 {
   dess_dz_ = plist.get<double>("dessicated zone thickness [m]", 0.1);
   Clapp_Horn_b_ = plist.get<double>("Clapp and Hornberger b of surface soil [-]", 1.0);
+  rs_method_ = plist.get<std::string>("Soil resistance method", "sakagucki_zeng");
 }
 
 // Constructor from LandCover
@@ -29,26 +30,48 @@ EvaporationDownregulationModel::EvaporationDownregulationModel(const LandCover& 
 {
   dess_dz_ = lc.dessicated_zone_thickness;
   Clapp_Horn_b_ = lc.clapp_horn_b;
+  rs_method_ = lc.rs_method;
 }
 
 // main method
 double
-EvaporationDownregulationModel::Evaporation(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::Evaporation(double sg,
+                                            double poro,
+                                            double pot_evap,
+                                            double sl) const
 {
-  double rsoil = Relations::EvaporativeResistanceCoef(sg, poro, dess_dz_, Clapp_Horn_b_);
+  double rsoil;
+  if (rs_method_ == "sellers") {
+    rsoil = Relations::EvaporativeResistanceCoefSellers(sl);
+  } else {
+    rsoil = Relations::EvaporativeResistanceCoefSakaguckiZeng(sg, poro, dess_dz_, Clapp_Horn_b_);
+  }
   return pot_evap / (1. + rsoil);
 }
 
 double
 EvaporationDownregulationModel::DEvaporationDSaturationGas(double sg,
                                                            double poro,
-                                                           double pot_evap) const
+                                                           double pot_evap,
+                                                           double sl) const
 {
   return 0.;
 }
 
 double
-EvaporationDownregulationModel::DEvaporationDPorosity(double sg, double poro, double pot_evap) const
+EvaporationDownregulationModel::DEvaporationDPorosity(double sg,
+                                                      double poro,
+                                                      double pot_evap,
+                                                      double sl) const
+{
+  return 0.;
+}
+
+double
+EvaporationDownregulationModel::DEvaporationDSaturationLiquid(double sg,
+                                                              double poro,
+                                                              double pot_evap,
+                                                              double sl) const
 {
   return 0.;
 }
@@ -56,9 +79,15 @@ EvaporationDownregulationModel::DEvaporationDPorosity(double sg, double poro, do
 double
 EvaporationDownregulationModel::DEvaporationDPotentialEvaporation(double sg,
                                                                   double poro,
-                                                                  double pot_evap) const
+                                                                  double pot_evap,
+                                                                  double sl) const
 {
-  return 1. / (1. + Relations::EvaporativeResistanceCoef(sg, poro, dess_dz_, Clapp_Horn_b_));
+  if (rs_method_ == "sellers") {
+    return 1. / (1. + Relations::EvaporativeResistanceCoefSellers(sl));
+  } else {
+    return 1. / (1. + Relations::EvaporativeResistanceCoefSakaguckiZeng(
+                        sg, poro, dess_dz_, Clapp_Horn_b_));
+  }
 }
 
 } // namespace Relations

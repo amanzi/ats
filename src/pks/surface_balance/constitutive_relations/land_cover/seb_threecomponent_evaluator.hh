@@ -75,6 +75,7 @@ gravity- and wind-driven redistributions, respectively.
    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
    - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
+   - `"liquid saturation`" **DOMAIN_SS-saturation_liquid** [-] subsurface liquid saturation
    - `"porosity`" [-] subsurface porosity
    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
@@ -144,7 +145,7 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key ponded_depth_key_, unfrozen_fraction_key_;
   Key sg_albedo_key_, sg_emissivity_key_, area_frac_key_;
   Key surf_temp_key_, surf_pres_key_;
-  Key sat_gas_key_, poro_key_, ss_pres_key_;
+  Key sat_gas_key_, sat_liq_key_, poro_key_, ss_pres_key_;
   Key mol_dens_key_, mass_dens_key_;
 
   Key melt_key_, evap_key_;

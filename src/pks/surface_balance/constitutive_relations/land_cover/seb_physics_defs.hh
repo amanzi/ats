@@ -100,9 +100,11 @@ struct GroundProperties {
   double density_w;         // density [kg/m^3]
   double dz;                // [m]
   double clapp_horn_b;      // [-]
+  std::string rs_method;    // options: {sakagucki_zeng, sellers}
   double albedo;            // [-]
   double emissivity;        // [-]
   double saturation_gas;    // [-]
+  double saturation_liq;    // [-]
   double roughness;         // [m] surface roughness of a bare domain
   double snow_death_rate;   // [kg/m^2/s] snow that must die this timestep, make it melt!
   double unfrozen_fraction; // [-] fraction of ground water that is unfrozen
@@ -118,8 +120,10 @@ struct GroundProperties {
       albedo(NaN),
       emissivity(NaN),
       saturation_gas(NaN),
+      saturation_liq(NaN),
       roughness(NaN),
       clapp_horn_b(3),
+      rs_method("sakagucki_zeng"),
       snow_death_rate(0.),
       unfrozen_fraction(0.),
       water_transition_depth(0.01)
