@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Bo Gao (gaob@ornl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov), Bo Gao (gaob@ornl.gov)
 */
 
 //! Evaluates relative permeability using water retention models.
@@ -47,7 +47,7 @@ Some additional parameters are available.
    KEYS:
 
    - `"rel perm`"
-   - `"saturation_liquid`"
+   - `"saturation_ice`"
    - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)

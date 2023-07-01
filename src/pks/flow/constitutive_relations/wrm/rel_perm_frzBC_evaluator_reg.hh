@@ -4,7 +4,7 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors:
+  Authors: Ethan Coon (ecoon@lanl.gov), Bo Gao (gaob@ornl.gov)
 */
 
 #include "rel_perm_frzBC_evaluator.hh"
@@ -14,7 +14,7 @@ namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator>
-  RelPermFrzBCEvaluator::factory_("FrzBC rel perm");
+  RelPermFrzBCEvaluator::factory_("Brooks-Corey based high frozen rel perm");
 
 } // namespace Flow
 } // namespace Amanzi
