@@ -144,11 +144,16 @@ PK_Physical_Default::Initialize()
 
     // -- Calculate the IC.
     Teuchos::ParameterList ic_plist = plist_->sublist("initial condition");
+    ic_plist.setName(key_);
     record.Initialize(ic_plist);
+
+    // debug
+    db_->WriteVector(key_ + " IC", record.GetPtr<CompositeVector>().ptr(), true);
 
     // communicate just to make sure values are initialized for valgrind's sake
     record.Get<CompositeVector>().scatterMasterToGhosted();
     ChangedSolutionPK(tag_next_);
+
   }
 };
 

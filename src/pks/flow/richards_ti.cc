@@ -79,9 +79,9 @@ Richards::FunctionalResidual(double t_old,
   vnames.emplace_back("poro");
   vecs.emplace_back(
     S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
-  vnames.emplace_back("perm_K");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
+  // vnames.emplace_back("perm_K");
+  // vecs.emplace_back(
+  //   S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.emplace_back("k_rel");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.emplace_back("wind");
@@ -171,6 +171,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
     } else {
       dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
+    dkrdp->print(std::cout);
   }
 
   // -- primary term
@@ -181,6 +182,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
   // -- local matries, primary term
   preconditioner_->Zero();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, up->getData().ptr());
+  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // -- local matries, Jacobian term
   if (jacobian_ && iter_ >= jacobian_lag_) {
@@ -188,7 +190,6 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
     preconditioner_diff_->UpdateFlux(up->getData().ptr(), flux.ptr());
     preconditioner_diff_->UpdateMatricesNewtonCorrection(flux.ptr(), up->getData().ptr());
   }
-  preconditioner_diff_->ApplyBCs(true, true, true);
 
   // Update the preconditioner with accumulation terms.
   // -- update the accumulation derivatives

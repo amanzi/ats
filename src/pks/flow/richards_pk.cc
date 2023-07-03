@@ -49,7 +49,7 @@ Richards::Richards(const Comm_ptr_type& comm,
     modify_predictor_first_bc_flux_(false),
     upwind_from_prev_flux_(false),
     clobber_boundary_flux_dir_(false),
-    perm_scale_(1.),
+    // perm_scale_(1.),
     jacobian_(false),
     jacobian_lag_(0),
     iter_(0),
@@ -93,8 +93,8 @@ Richards::ParseParameterList_()
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 
   // scaling for permeability for better "nondimensionalization"
-  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  // perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
+  // S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
 }
 
 // -------------------------------------------------------------
@@ -502,6 +502,8 @@ Richards::Initialize()
   const AmanziGeometry::Point& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   matrix_diff_->SetGravity(g);
   matrix_diff_->SetBCs(bc_, bc_);
+
+  S_->GetEvaluator(perm_key_, Tags::DEFAULT).Update(*S_, name_);
   auto K = S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT);
   matrix_diff_->SetTensorCoefficient(K);
 
@@ -758,13 +760,14 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
 
       if (!deform_key_.empty() &&
           S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " flux dir")) {
+        S_->GetEvaluator(perm_key_, Tags::DEFAULT).Update(*S_, name_ + " flux_dir");
         auto K = S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT);
         face_matrix_diff_->SetTensorCoefficient(K);
       }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-      face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
       face_matrix_diff_->ApplyBCs(true, true, true);
+      face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
 
       // if (clobber_boundary_flux_dir_) {
       //   Epetra_MultiVector& flux_dir_f = *flux_dir->viewComponent("face", false);
