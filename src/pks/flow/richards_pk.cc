@@ -93,8 +93,9 @@ Richards::ParseParameterList_()
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 
   // scaling for permeability for better "nondimensionalization"
-  // perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
-  // S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
+  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  S_->GetEvaluatorList(perm_key_).set<double>("rescaling factor", perm_scale_);
 }
 
 // -------------------------------------------------------------

@@ -383,7 +383,7 @@ class Richards : public PK_PhysicalBDF_Default {
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
-  // double perm_scale_;
+  double perm_scale_;
 
   // flag to do jacobian and therefore coef derivs
   bool precon_used_;
