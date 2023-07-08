@@ -102,7 +102,7 @@ RelPermFrzBCEvaluator::InitializeFromPlist_()
   min_val_ = plist_.get<double>("minimum rel perm cutoff", 0.);
   perm_scale_ = plist_.get<double>("permeability rescaling");
   omega_ = plist_.get<double>("scale dependent parameter", 2.0);
-  b_ = plist_.get<double>("clapp hornberger b", 2.0);
+  b_ = plist_.get<double>("Clapp and Hornberger b", 2.0);
 }
 
 
