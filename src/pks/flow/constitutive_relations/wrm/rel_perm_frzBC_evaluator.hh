@@ -10,13 +10,20 @@
 //! Evaluates relative permeability using water retention models.
 /*!
 
+This is an empirical relative permeability model according to Niu and Yang (2006). 
+This model is based on Brooks-Corey relative permeability model and an additional
+coefficient term is added to account for the effect of soil ice. This model is 
+used for freezing conditions to make snowmelt water infiltrate deeper. See paper
+Agnihotri et al. (2023) for discussions about the influence of relative permeability 
+model on discharge under freezing conditions.
+
 Uses a list of regions and water retention models on those regions to evaluate
-relative permeability, typically as a function of liquid saturation.
+relative permeability, typically as a function of liquid saturation and gas saturation.
 
 Most of the parameters are provided to the WRM model, and not the evaluator.
 Typically these share lists to ensure the same water retention curves, and this
 one is updated with the parameters of the WRM evaluator.  This is handled by
-flow PKs.
+flow PKs. 
 
 Some additional parameters are available.
 
@@ -42,12 +49,17 @@ Some additional parameters are available.
      and K_sat is very small.  To avoid roundoff propagation issues, rescaling
      this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
+   * `"omega`" ``[double]`` A scale dependent parameter in the relative permeability model. 
+     See paper Niu & Yang (2006) for details about the model. Set it to 2-3 should be good.
+
+   * `"b`" ``[double]`` Clapp-Hornberger b parameter.
+
    * `"WRM parameters`" ``[wrm-typedinline-spec-list]``  List (by region) of WRM specs.
 
    KEYS:
 
    - `"rel perm`"
-   - `"saturation_ice`"
+   - `"saturation_liquid`"
    - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
@@ -95,7 +107,6 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<WRMPartition> wrms_;
   Key sat_key_;
   Key sat_gas_key_;
-  Key sat_ice_key_;
   Key dens_key_;
   Key visc_key_;
   Key surf_rel_perm_key_;
