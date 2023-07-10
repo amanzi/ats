@@ -19,7 +19,8 @@ Agnihotri et al. (2023) for discussions about the influence of relative permeabi
 model on discharge under freezing conditions.
 
 .. math::
-   k_{rel} = .... \omega
+   k_{rel} = ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
+   F_{frz} = \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
 Note this implementation is currently a bit inconsistent in that it uses WRMs
 to get the residual saturation, and uses a global value for b, the Clapp and
