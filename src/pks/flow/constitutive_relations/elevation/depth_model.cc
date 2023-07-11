@@ -17,51 +17,51 @@
 namespace Amanzi {
 namespace Flow {
 
-
 void
-DepthModel(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
+computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
 {
   depth.PutScalar(-1);
   AMANZI_ASSERT(depth.MyLength() ==
                 mesh.num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
-  for (int c = 0; c != depth.MyLength(); ++c) {
-    if (depth[0][c] <= 0.) { DepthModel_Cell(c, mesh, depth); }
+  int d = mesh.space_dimension() - 1;
+  for (int col = 0; col != mesh.num_columns(); ++col) {
+    const auto& col_faces = mesh.faces_of_column(col);
+    const auto& col_cells = mesh.cells_of_column(col);
+    double top_z = mesh.face_centroid(col_faces[0])[d];
+    for (int i = 0; i != col_cells.size(); ++i) {
+      double cell_z =
+        (mesh.face_centroid(col_faces[i])[d] + mesh.face_centroid(col_faces[i + 1])[d]) / 2;
+      depth[0][col_cells[i]] = top_z - cell_z;
+    }
   }
+
+  double mv;
+  depth.MinValue(&mv);
+  AMANZI_ASSERT(mv > 0.);
 }
 
 
 void
-DepthModel_Cell(int c, const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
+computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
 {
-  int z_dim = mesh.space_dimension() - 1;
-  int c_above = mesh.cell_get_cell_above(c);
-  if (c_above == -1) {
-    // top cell, find the face above
-    AmanziMesh::Entity_ID_List faces;
-    std::vector<int> dirs;
-    mesh.cell_get_faces_and_dirs(c, &faces, &dirs);
-    int f_above = -1;
-    for (auto f : faces) {
-      AmanziGeometry::Point face_normal = mesh.face_normal(f, false, c);
-      face_normal /= AmanziGeometry::norm(face_normal);
-      if (face_normal[z_dim] > 1.e-10) {
-        f_above = f;
-        break;
-      }
+  depth.PutScalar(-1);
+  AMANZI_ASSERT(depth.MyLength() ==
+                mesh.num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
+  int d = mesh.space_dimension() - 1;
+  for (int col = 0; col != mesh.num_columns(); ++col) {
+    const auto& col_faces = mesh.faces_of_column(col);
+    const auto& col_cells = mesh.cells_of_column(col);
+    double top_z = mesh.face_centroid(col_faces[0])[d];
+    for (int i = 0; i != col_cells.size(); ++i) {
+      double cell_z = mesh.cell_centroid(col_cells[i])[d];
+      depth[0][col_cells[i]] = top_z - cell_z;
     }
-
-    // get the depth
-    depth[0][c] = mesh.face_centroid(f_above)[z_dim] - mesh.cell_centroid(c)[z_dim];
-    return;
   }
 
-  if (depth[0][c_above] <= 0) { DepthModel_Cell(c_above, mesh, depth); }
-  AMANZI_ASSERT(depth[0][c_above] > 0.);
-  depth[0][c] =
-    depth[0][c_above] + mesh.cell_centroid(c_above)[z_dim] - mesh.cell_centroid(c)[z_dim];
-  return;
+  double mv;
+  depth.MinValue(&mv);
+  AMANZI_ASSERT(mv > 0.);
 }
-
 
 } // namespace Flow
 } // namespace Amanzi
