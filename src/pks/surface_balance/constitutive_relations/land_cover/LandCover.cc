@@ -133,10 +133,14 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
     throwInvalid(region, "snow transition depth [m]");
   if (parname == "water_transition_depth" && std::isnan(lc.water_transition_depth))
     throwInvalid(region, "water transition depth [m]");
-  if (parname == "dessicated_zone_thickness" && std::isnan(lc.dessicated_zone_thickness))
-    throwInvalid(region, "dessicated zone thickness [m]");
-  if (parname == "clapp_horn_b" && std::isnan(lc.clapp_horn_b))
-    throwInvalid(region, "Clapp and Hornberger b [-]");
+
+  if (parname == "rs_method" && lc.rs_method == std::string("sakagucki_zeng")) {
+    if (parname == "dessicated_zone_thickness" && std::isnan(lc.dessicated_zone_thickness))
+      throwInvalid(region, "dessicated zone thickness [m]");
+    if (parname == "clapp_horn_b" && std::isnan(lc.clapp_horn_b))
+      throwInvalid(region, "Clapp and Hornberger b [-]");
+  }
+
   if (parname == "roughness_ground" && std::isnan(lc.roughness_ground))
     throwInvalid(region, "roughness length of bare ground [m]");
   if (parname == "roughness_snow" && std::isnan(lc.roughness_snow))
