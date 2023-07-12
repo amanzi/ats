@@ -59,7 +59,6 @@ method 2.
 
    KEYS:
 
-   - `"Brooks-Corey based rel perm`"
    - `"saturation_liquid`"
    - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)

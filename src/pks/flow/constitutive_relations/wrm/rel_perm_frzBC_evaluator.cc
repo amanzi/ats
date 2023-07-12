@@ -9,8 +9,8 @@
 */
 
 //! Evaluates relative permeability using an empirical model for frozen conditions.
-#include "rel_perm_frzBC_evaluator.hh"
 #include "rel_perm_brooks_corey_freezing_coeff.hh"
+#include "rel_perm_frzBC_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -185,9 +185,9 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
       int index = (*wrms_->first)[cells[0]];
       double sat_res = wrms_->second[index]->residualSaturation();
       double krel;
+
       double coef_b = BrooksCoreyFrzCoef::frzcoef(sat_bf[0][bf], sat_gas_bf[0][bf], omega_);
-      double coef_c = 
-          BrooksCoreyFrzCoef::frzcoef(sat_c[0][cells[0]], sat_gas_c[0][cells[0]], omega_);
+      double coef_c =BrooksCoreyFrzCoef::frzcoef(sat_c[0][cells[0]], sat_gas_c[0][cells[0]], omega_);
 
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
         double krelb =
