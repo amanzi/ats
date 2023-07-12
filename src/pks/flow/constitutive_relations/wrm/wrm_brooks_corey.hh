@@ -73,18 +73,17 @@ class WRMBrooksCorey : public WRM {
 
   Teuchos::ParameterList& plist_;
 
-  double lambda_, p_sat_;  // Brooks and Corey parameters: lambda, p_sat
-  double sr_;  // residual saturation
-  double b_;  // frequently used constant, clapp-hornberger b = 1/lambda
+  double lambda_, p_sat_; // Brooks and Corey parameters: lambda, p_sat
+  double sr_;             // residual saturation
+  double b_;              // frequently used constant, clapp-hornberger b = 1/lambda
 
   double s0_; // regularization threshold in saturation
   Amanzi::Utils::Spline fit_kr_;
 
-  static Utils::RegisteredFactory<WRM,WRMBrooksCorey> factory_;
-
+  static Utils::RegisteredFactory<WRM, WRMBrooksCorey> factory_;
 };
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

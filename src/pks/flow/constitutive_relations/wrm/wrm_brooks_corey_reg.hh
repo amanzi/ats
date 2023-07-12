@@ -13,7 +13,7 @@
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<WRM,WRMBrooksCorey> WRMBrooksCorey::factory_("Brooks-Corey");
+Utils::RegisteredFactory<WRM, WRMBrooksCorey> WRMBrooksCorey::factory_("Brooks-Corey");
 
 } // namespace Flow
 } // namespace Amanzi

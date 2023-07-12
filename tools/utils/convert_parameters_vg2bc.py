@@ -1,3 +1,8 @@
+"""Computes Brooks-Corey water retention curve parameters given a set
+of van Genuchten parameters, using the method of Lenhard et al. (1989)
+or Ma et al. (1999) method 2.
+"""
+
 from argparse import ArgumentParser
 from plot_wrm import *
 import numpy as np
@@ -37,9 +42,10 @@ def plot_vg_and_bc(alpha, n, sr, smoothing_interval_sat=0.05):
     ax[0].plot(sat, kr_bc)
     ax[0].set_xlabel('Saturation')
     ax[0].set_ylabel('Relative permeability')
-    ax[1].plot(sat, pc_vg, label='van Genuchten')
-    ax[1].plot(sat, pc_bc, label='Brooks-Corey, \nlambda={:.2f}, \
-               \nclapp_horn_b={:.2f}, \np_sat={:.2f} Pa'.format(1/clapp_horn_b, clapp_horn_b, p_sat))
+    ax[1].plot(sat, pc_vg, label='van Genuchten, \n  alpha={:.2g}, \
+               \n  n={:.2f}'.format(alpha, n))
+    ax[1].plot(sat, pc_bc, label='Brooks-Corey, \n  lambda={:.2f}, \
+               \n  clapp_horn_b={:.2f}, \n  p_sat={:.2f} Pa'.format(1/clapp_horn_b, clapp_horn_b, p_sat))
                
     ax[1].set_yscale('log')
     ax[1].set_xlabel('Saturation')
@@ -48,11 +54,11 @@ def plot_vg_and_bc(alpha, n, sr, smoothing_interval_sat=0.05):
     
     
 def get_args():
-    parser = ArgumentParser()
+    parser = ArgumentParser(description=__doc__)
     parser.add_argument('alpha', type=float, help='van Genuchten alpha [Pa^-1]')
     parser.add_argument('n', type=float, help='van Genuchten n')
     parser.add_argument('--sr', type=float, help='residual saturation')
-    parser.add_argument('--smooth_sat', type=float, help='smoothing_interval_sat')
+    parser.add_argument('--smooth_sat', type=float, default=0, help='smoothing_interval_sat')
     parser.add_argument('--plot', action='store_true', help='plot van Genuchten vs. Brooks-Corey')
     args = parser.parse_args()
     return args
@@ -67,6 +73,3 @@ if __name__ == "__main__":
     if args.plot:
         plot_vg_and_bc(args.alpha, args.n, args.sr, args.smooth_sat)
         plt.show()
-    
-    
-    

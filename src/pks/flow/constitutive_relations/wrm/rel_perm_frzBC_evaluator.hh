@@ -124,4 +124,3 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Flow
 } // namespace Amanzi
-

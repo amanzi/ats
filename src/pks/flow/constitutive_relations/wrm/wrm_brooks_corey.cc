@@ -27,8 +27,8 @@ WRMBrooksCorey::WRMBrooksCorey(Teuchos::ParameterList& plist) : plist_(plist)
 };
 
 
-void 
-WRMBrooksCorey::InitializeFromPlist_() 
+void
+WRMBrooksCorey::InitializeFromPlist_()
 {
   lambda_ = plist_.get<double>("Brooks Corey lambda [-]");
   b_ = 1. / lambda_; // clapp hornberger b
@@ -45,7 +45,7 @@ WRMBrooksCorey::InitializeFromPlist_()
  * The original curve is regulized on interval (s0, 1) using the
  * Hermite interpolant of order 3. Formulas (3.11)-(3.12).
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::k_relative(double s)
 {
   if (s <= s0_) {
@@ -62,7 +62,7 @@ WRMBrooksCorey::k_relative(double s)
 /* ******************************************************************
  * D Relative permeability / D saturation
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::d_k_relative(double s)
 {
   if (s <= s0_) {
@@ -71,7 +71,7 @@ WRMBrooksCorey::d_k_relative(double s)
     return dkdse / (1. - sr_);
   } else if (s == 1.) {
     return 0.0;
-  } else{
+  } else {
     return fit_kr_.Derivative(s);
   }
 }
@@ -80,7 +80,7 @@ WRMBrooksCorey::d_k_relative(double s)
 /* ******************************************************************
  * Saturation formula (3.5)-(3.8).
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::saturation(double pc)
 {
   if (pc <= p_sat_) {
@@ -94,10 +94,10 @@ WRMBrooksCorey::saturation(double pc)
 /* ******************************************************************
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::d_saturation(double pc)
 {
-  if ( pc <= p_sat_) {
+  if (pc <= p_sat_) {
     return 0.;
   } else {
     return -(1. - sr_) * lambda_ * pow(p_sat_ / pc, lambda_) / pc;
@@ -108,7 +108,7 @@ WRMBrooksCorey::d_saturation(double pc)
 /* ******************************************************************
  * Pressure as a function of saturation, formula (3.9).
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::capillaryPressure(double s)
 {
   double se = (s - sr_) / (1. - sr_);
@@ -121,7 +121,7 @@ WRMBrooksCorey::capillaryPressure(double s)
 /* ******************************************************************
  * Derivative of pressure formulat w.r.t. saturation.
  ****************************************************************** */
-double 
+double
 WRMBrooksCorey::d_capillaryPressure(double s)
 {
   double se = (s - sr_) / (1. - sr_);

@@ -158,7 +158,7 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
     int index = (*wrms_->first)[c];
     double sat_res = wrms_->second[index]->residualSaturation();
     double coef = BrooksCoreyFrzCoef::frzcoef(sat_c[0][c], sat_gas_c[0][c], omega_);
-    res_c[0][c] = std::max(wrms_->second[index]->k_relative(1. - sat_gas_c[0][c]) * coef,  min_val_);
+    res_c[0][c] = std::max(wrms_->second[index]->k_relative(1. - sat_gas_c[0][c]) * coef, min_val_);
   }
 
   // -- Potentially evaluate the model on boundary faces as well.
@@ -187,7 +187,8 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
       double krel;
 
       double coef_b = BrooksCoreyFrzCoef::frzcoef(sat_bf[0][bf], sat_gas_bf[0][bf], omega_);
-      double coef_c =BrooksCoreyFrzCoef::frzcoef(sat_c[0][cells[0]], sat_gas_c[0][cells[0]], omega_);
+      double coef_c =
+        BrooksCoreyFrzCoef::frzcoef(sat_c[0][cells[0]], sat_gas_c[0][cells[0]], omega_);
 
       if (boundary_krel_ == BoundaryRelPerm::HARMONIC_MEAN) {
         double krelb =

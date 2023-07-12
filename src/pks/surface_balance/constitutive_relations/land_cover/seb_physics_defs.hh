@@ -60,10 +60,10 @@ struct ModelParams {
       evap_transition_width(100.),   // transition on evaporation from surface to
                                      // evaporation from subsurface [m],
                                      // THIS IS DEPRECATED
-      KB(0.),                        // a paramter denoting the log ratio of momentum roughness length
-                                     // to vapor roughness length for vapor flux or 
-                                     // to thermal roughness length for sensible heat flux.
-      // Da0_a, Da0_b, Cd0_c, Cd0_d are fitting parameters in the formulization of the log ratio 
+      KB(0.), // a paramter denoting the log ratio of momentum roughness length
+              // to vapor roughness length for vapor flux or
+              // to thermal roughness length for sensible heat flux.
+      // Da0_a, Da0_b, Cd0_c, Cd0_d are fitting parameters in the formulization of the log ratio
       // of momentum roughness length to the vapor roughness length for vapor flux [-]. Setting
       // Da0_a = Cd0_c = Cd0_d = 0 means momentum roughness length = vapor roughness length.
       Da0_a(0.),
