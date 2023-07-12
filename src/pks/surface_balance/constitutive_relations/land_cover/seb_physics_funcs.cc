@@ -290,9 +290,26 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = SaturatedVaporPressure(snow.temp);
-
+  // KB here is to formulize the log ration between momentum roughness length and vapor roughness length
+  // to add the effect of surface microtopography. Details see Gao et al. 2021 (WRR) Eq.(17) and similar
+  // studies by Mölder & Lindroth 2001 (Agricultural and Forest Meteorology) but in heat transport. 
+  // Theories see Chapter 4 of book [Brutsaert, W. (1982). Evaporation into the atmosphere: Theory, 
+  // history, and applications]. Da0_a, Da0_b, Cd0_c, Cd0_d here are four fitting coefficients in the 
+  // formulization. There are several different values proposed by different studies (see Brutsaert 1982). 
+  // In Gao et al. (2021), these four coefficients are determined by lab experiments. 
+  // If set Da0_a, Cd0_c, Cd0_d to 0, it means that vapor roughness length is assumed equal to momentum 
+  // roughness length. Currently, this approach still needs testing or other formulization approaches 
+  // may also be added later for testing. So keep Da0_a = Cd0_c = Cd0_d = 0 for users.
+  double u_star =
+    met.Us * c_von_Karman /
+    std::log(met.Z_Us / CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness));
+  double Re0 = params.density_air * u_star *
+               CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness) /
+               params.dynamic_viscosity_air;
+  double KB =
+    (params.Da0_a * std::pow(Re0, params.Da0_b) - (params.Cd0_c * std::log(Re0) + params.Cd0_d)) * c_von_Karman;
   double Dhe_latent = WindFactor(
-    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), 0.);
+    met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
   eb.fQe = LatentHeat(Dhe_latent * Sqig,
                       params.density_air,
                       params.H_sublimation,
@@ -366,7 +383,11 @@ UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
 
   // latent heat
   double vapor_pressure_skin = VaporPressureGround(surf, params);
-  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, 0.);
+  double u_star = met.Us * c_von_Karman / std::log(met.Z_Us / surf.roughness);
+  double Re0 = params.density_air * u_star * surf.roughness / params.dynamic_viscosity_air;
+  double KB =
+    (params.Da0_a * std::pow(Re0, params.Da0_b) - (params.Cd0_c * std::log(Re0) + params.Cd0_d)) * c_von_Karman;
+  double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, KB);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
   double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
 
