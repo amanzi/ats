@@ -22,10 +22,13 @@ model on discharge under freezing conditions.
    k_{rel} = ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
    F_{frz} = \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
-Note this implementation is currently a bit inconsistent in that it uses WRMs
-to get the residual saturation, and uses a global value for b, the Clapp and
-Hornberger parameter (equivalent to 1/lambda in Brooks & Corey).  This will be
-fixed shortly (see ticket #196) to make b spatially variable by WRM.
+Under freezing conditions, it is recommended to call Brooks-Corey based relative 
+permeability corrected by ice content. This model needs Brooks-Corey parameters:
+Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa), and residual 
+saturation. The reciprocal of Brooks-Corey lambda is Clapp-Hornberger b. Use tool
+`"convert_paramters_vg2bc.py`" to convert van Genuchten parameters to Brooks-Corey 
+paramters. The conversion method is referred to Lenhard et al. (1989) or Ma et al. (1999)
+method 2. 
 
 .. _rel-perm-evaluator-spec
 .. admonition:: rel-perm-evaluator-spec
@@ -52,13 +55,10 @@ fixed shortly (see ticket #196) to make b spatially variable by WRM.
    * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model. 
      See paper Niu & Yang (2006) for details about the model. Typical values range from 2-3.
 
-   * `"Clapp and Hornberger b [-]`" ``[double]`` **2.0** Clapp-Hornberger b parameter.
-
-   * `"WRM parameters`" ``[wrm-typedinline-spec-list]``  List (by region) of WRM specs.
+   * `"WRM parameters`" ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs.
 
    KEYS:
 
-   - `"rel perm`"
    - `"saturation_liquid`"
    - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
@@ -117,7 +117,6 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
   double perm_scale_;
   double min_val_;
   double omega_;
-  double b_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator> factory_;
