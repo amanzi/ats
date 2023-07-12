@@ -1,36 +1,69 @@
 /*
-This is the flow component of the Amanzi code. 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-Copyright 2010-2012 held jointly by LANS/LANL, LBNL, and PNNL. 
-Amanzi is released under the three-clause BSD License. 
-The terms of use and "as is" disclaimer for this license are 
-provided in the top-level COPYRIGHT file.
-
-Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+           Bo Gao (gaob@ornl.gov)
 */
 
-#ifndef FLOWRELATIONS_WRM_BROOKS_COREY_
-#define FLOWRELATIONS_WRM_BROOKS_COREY_
+//! WRMBrooksCorey : water retention model using Brooks Corey's parameterization
+/*!
+
+Brooks-Corey's water retention curve, typically used to determine relative
+permeability under freezing conditions by converting van Genuchten parameters
+to Brooks-Corey parameters.
+
+.. _WRM-Brooks-Corey-spec
+.. admonition:: WRM-Brooks-Corey-spec
+
+    * `"region`" ``[string]`` Region to which this applies
+    * `"Brooks Corey lambda [-]`" ``[double]`` Brooks Corey's lambda
+    * `"Brooks Corey saturated matric suction [Pa]`" ``[double]`` Brooks Corey 
+    saturated matric suction in Pa
+
+    END
+
+    * `"residual saturation [-]`" ``[double]`` **0.0**
+    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="moss" type="ParameterList">
+      <Parameter name="region" type="string" value="moss" />
+      <Parameter name="WRM type" type="string" value="Brooks-Corey" />
+      <Parameter name="Brooks Corey lambda [-]" type="double" value="0.5" />
+      <Parameter name="Brooks Corey saturated matric suction [Pa]" type="double" value="1.e3" />
+      <Parameter name="residual saturation [-]" type="double" value="0.0" />
+      <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
+    </ParameterList>
+
+*/
+
+#ifndef ATS_FLOWRELATIONS_WRM_BROOKS_COREY_
+#define ATS_FLOWRELATIONS_WRM_BROOKS_COREY_
 
 #include "Teuchos_ParameterList.hpp"
+#include "Spline.hh"
+
 #include "wrm.hh"
-#include "factory.hh"
+#include "Factory.hh"
 
 namespace Amanzi {
 namespace Flow {
-namespace FlowRelations {
 
 class WRMBrooksCorey : public WRM {
  public:
   explicit WRMBrooksCorey(Teuchos::ParameterList& plist);
 
   // required methods from the base class
-  double k_relative(double pc);
-  double d_k_relative(double pc);
-
+  double k_relative(double saturation);
+  double d_k_relative(double saturation);
   double saturation(double pc);
   double d_saturation(double pc);
-
   double capillaryPressure(double saturation);
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
@@ -38,16 +71,14 @@ class WRMBrooksCorey : public WRM {
  private:
   void InitializeFromPlist_();
 
- private:
-
   Teuchos::ParameterList& plist_;
 
-  double lambda_, l_, alpha_;  // Brooks and Corey parameters: lambda, alpha
+  double lambda_, p_sat_;  // Brooks and Corey parameters: lambda, p_sat
   double sr_;  // residual saturation
-  int function_;
+  double b_;  // frequently used constant, clapp-hornberger b = 1/lambda
 
-  double pc0_;  // regularization threshold (usually 0 to 500 Pa)
-  double a_, b_, factor_, pc_bubble_;  // frequently used constant
+  double s0_; // regularization threshold in saturation
+  Amanzi::Utils::Spline fit_kr_;
 
   static Utils::RegisteredFactory<WRM,WRMBrooksCorey> factory_;
 
@@ -55,7 +86,5 @@ class WRMBrooksCorey : public WRM {
 
 }  // namespace
 }  // namespace
-}  // namespace
-
 
 #endif

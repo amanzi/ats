@@ -4,21 +4,31 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Bo Gao (gaob@ornl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
+           Bo Gao (gaob@ornl.gov)
 */
 
-//! Evaluates relative permeability using water retention models.
+//! Evaluates relative permeability using an empirical model for frozen conditions.
 /*!
 
-Uses a list of regions and water retention models on those regions to evaluate
-relative permeability, typically as a function of liquid saturation.
+This is an empirical relative permeability model according to Niu and Yang (2006). 
+This model is based on Brooks-Corey relative permeability model and an additional
+coefficient term is added to account for the effect of soil ice. This model is 
+used for freezing conditions to make snowmelt water infiltrate deeper. See paper
+Agnihotri et al. (2023) for discussions about the influence of relative permeability 
+model on discharge under freezing conditions.
 
-Most of the parameters are provided to the WRM model, and not the evaluator.
-Typically these share lists to ensure the same water retention curves, and this
-one is updated with the parameters of the WRM evaluator.  This is handled by
-flow PKs.
+.. math::
+   k_{rel} = ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
+   F_{frz} = \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
-Some additional parameters are available.
+Under freezing conditions, it is recommended to call Brooks-Corey based relative 
+permeability corrected by ice content. This model needs Brooks-Corey parameters:
+Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa), and residual 
+saturation. The reciprocal of Brooks-Corey lambda is Clapp-Hornberger b. Use tool
+`"convert_paramters_vg2bc.py`" to convert van Genuchten parameters to Brooks-Corey 
+paramters. The conversion method is referred to Lenhard et al. (1989) or Ma et al. (1999)
+method 2. 
 
 .. _rel-perm-evaluator-spec
 .. admonition:: rel-perm-evaluator-spec
@@ -42,11 +52,14 @@ Some additional parameters are available.
      and K_sat is very small.  To avoid roundoff propagation issues, rescaling
      this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
-   * `"WRM parameters`" ``[wrm-typedinline-spec-list]``  List (by region) of WRM specs.
+   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model. 
+     See paper Niu & Yang (2006) for details about the model. Typical values range from 2-3.
+
+   * `"WRM parameters`" ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs.
 
    KEYS:
 
-   - `"rel perm`"
+   - `"Brooks-Corey based rel perm`"
    - `"saturation_liquid`"
    - `"saturation_gas`"
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
@@ -55,8 +68,7 @@ Some additional parameters are available.
 
 */
 
-#ifndef AMANZI_FLOWRELATIONS_REL_PERM_FrzBC_EVALUATOR_
-#define AMANZI_FLOWRELATIONS_REL_PERM_FrzBC_EVALUATOR_
+#pragma once
 
 #include "wrm.hh"
 #include "wrm_partition.hh"
@@ -95,7 +107,6 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<WRMPartition> wrms_;
   Key sat_key_;
   Key sat_gas_key_;
-  Key sat_ice_key_;
   Key dens_key_;
   Key visc_key_;
   Key surf_rel_perm_key_;
@@ -107,7 +118,6 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
   double perm_scale_;
   double min_val_;
   double omega_;
-  double b_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator> factory_;
@@ -116,4 +126,3 @@ class RelPermFrzBCEvaluator : public EvaluatorSecondaryMonotypeCV {
 } // namespace Flow
 } // namespace Amanzi
 
-#endif
