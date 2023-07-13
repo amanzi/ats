@@ -11,12 +11,12 @@ on:
       - ats-*
 
 jobs:
-  build_test:
+  buildx_test:
     runs-on: ubuntu-latest
     name: Build and test with Docker
     steps:
     - name: Check out the Amanzi repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: amanzi/amanzi
         ref: master
@@ -51,20 +51,26 @@ jobs:
         echo "ats-regression-tests branch = ${{env.ATS_TESTS_BRANCH}}";
         echo "Tag reference = ${{env.ATS_BRANCH_TAG}}"
         echo "TPLs version = ${{env.AMANZI_TPLS_VER}}"
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
     - name: Login to Docker Hub
       uses: docker/login-action@v1
       with:
         username: ${{secrets.DOCKERHUB_USERNAME}}
         password: ${{secrets.DOCKERHUB_PASSWORD}}
-    - name: Docker build
-      id: docker
-      working-directory: Docker
-      run:
-        docker build --build-arg amanzi_branch=${{env.AMANZI_BRANCH}} --build-arg ats_branch=${{env.ATS_BRANCH}} --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} --build-arg amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}} -t metsi/ats:${{env.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
-    - name: Docker push
-      working-directory: Docker
-      run:
-        docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest
+    - name: Build and push multiarch image
+      uses: docker/build-push-action@v3
+      with:
+        tags: metsi/ats:${{env.ATS_BRANCH_TAG}}-latest
+        platforms: linux/amd64,linux/arm64
+        push: true
+        build-args: |
+          amanzi_branch=${{env.AMANZI_BRANCH}}
+          ats_branch=${{env.ATS_BRANCH}}
+          amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}}
+        file: Dockerfile-ATS-build
     - name: Run tests
       id: tests
       working-directory: Docker
