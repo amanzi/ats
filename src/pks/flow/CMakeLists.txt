@@ -25,6 +25,9 @@ set(ats_flow_src_files
   richards_ti.cc
   richards_physics.cc
   richards_steadystate.cc
+  # overland_pressure_pk.cc
+  # overland_pressure_physics.cc
+  # overland_pressure_ti.cc
 )
 
                  
@@ -32,9 +35,6 @@ set(ats_flow_src_files
   # predictor_delegate_bc_flux.cc
   # permafrost_pk.cc
   # interfrost.cc
-  # overland_pressure_pk.cc
-  # overland_pressure_physics.cc
-  # overland_pressure_ti.cc
   #  overland_pk.cc
   #  overland_physics.cc
   #  overland_ti.cc
@@ -53,13 +53,13 @@ set(ats_flow_inc_files
 
   richards.hh
   richards_steadystate.hh
+  overland_pressure.hh
 )
 
   # flow_bc_factory.hh
   # predictor_delegate_bc_flux.hh
   # permafrost.hh
   # interfrost.hh
-  # overland_pressure.hh
   # overland.hh
   # icy_overland.hh
   # snow_distribution.hh

@@ -311,7 +311,6 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual void RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location);
 
   // boundary condition members
-  void ComputeBoundaryConditions_(const Tag& tag);
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
@@ -391,21 +390,6 @@ class Richards : public PK_PhysicalBDF_Default {
   int iter_;
   double iter_counter_time_;
   int jacobian_lag_;
-
-  // boundary condition functions and data -- move data into State!
-  Teuchos::RCP<Functions::MeshFunction> bc_pressure_;
-  Teuchos::RCP<MultiPatch<double>> bc_pressure_data_;
-
-  Teuchos::RCP<Functions::MeshFunction> bc_flux_;
-  Teuchos::RCP<MultiPatch<double>> bc_flux_data_;
-
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_infilt_;
-  // bool bc_seepage_infilt_explicit_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_infiltration_;
-  // double bc_rho_water_;
 
   // delegates
   bool modify_predictor_bc_flux_;

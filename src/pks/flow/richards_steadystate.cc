@@ -70,7 +70,6 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
-  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 //  db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
@@ -147,7 +146,6 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
   if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(tag_next_);
 
   // update boundary conditions
-  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
   // Zero out the preconditioner and local matrices

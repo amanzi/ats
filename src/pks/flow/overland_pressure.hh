@@ -202,6 +202,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
 
  protected:
   // setup methods
+  virtual void ParseParameterList_();
   virtual void SetupOverlandFlow_();
   virtual void SetupPhysicalEvaluators_();
 
@@ -231,14 +232,8 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
  protected:
-  friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 
-  enum FluxUpdateMode {
-    UPDATE_FLUX_ITERATION = 0,
-    UPDATE_FLUX_TIMESTEP = 1,
-    UPDATE_FLUX_VIS = 2,
-    UPDATE_FLUX_NEVER = 3
-  };
+  friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 
   // keys
   Key potential_key_;
@@ -251,7 +246,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Key wc_bar_key_;
   Key cond_key_;
   Key uw_cond_key_;
-  Key dcond_key_;
   Key duw_cond_key_;
   Key mass_dens_key_;
   Key molar_dens_key_;
@@ -261,13 +255,11 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Key ss_flux_key_;
 
   // control switches
-  bool standalone_mode_; // domain mesh == surface mesh
-  FluxUpdateMode update_flux_;
   Operators::UpwindMethod upwind_method_;
 
   bool is_source_term_;
   bool source_in_meters_;
-  bool source_only_if_unfrozen_;
+  // bool source_only_if_unfrozen_;
 
   bool modify_predictor_with_consistent_faces_;
   bool symmetric_;
@@ -303,20 +295,28 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   bool precon_scaled_;
 
   // boundary condition data
-  Teuchos::RCP<Functions::BoundaryFunction> bc_zero_gradient_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_head_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_pressure_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_critical_depth_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_tidal_;
-  Teuchos::RCP<Functions::DynamicBoundaryFunction> bc_dynamic_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_;
+  Teuchos::RCP<Functions::MeshFunction> bc_head_;
+  Teuchos::RCP<MultiPatch<double>> bc_head_data_;
 
-  // needed physical models
-  Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
+  Teuchos::RCP<Functions::MeshFunction> bc_flux_;
+  Teuchos::RCP<MultiPatch<double>> bc_flux_data_;
+
+  Teuchos::RCP<Functions::MeshFunction> bc_zero_gradient_;
+
+  Teuchos::RCP<Functions::MeshFunction> bc_seepage_head_;
+  Teuchos::RCP<MultiPatch<double>> bc_seepage_head_data_;
+
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_zero_gradient_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_head_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_pressure_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_critical_depth_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_tidal_;
+  // Teuchos::RCP<Functions::DynamicBoundaryFunction> bc_dynamic_;
+  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_;
 
   // factory registration
   static RegisteredPKFactory<OverlandPressureFlow> reg_;

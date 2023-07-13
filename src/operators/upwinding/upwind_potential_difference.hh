@@ -17,6 +17,7 @@
 #ifndef AMANZI_UPWINDING_POTENTIALDIFFERENCE_SCHEME_
 #define AMANZI_UPWINDING_POTENTIALDIFFERENCE_SCHEME_
 
+#include "Tag.hh"
 #include "upwinding.hh"
 
 namespace Amanzi {
