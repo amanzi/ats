@@ -61,7 +61,7 @@ jobs:
         username: ${{secrets.DOCKERHUB_USERNAME}}
         password: ${{secrets.DOCKERHUB_PASSWORD}}
     - name: Build and push multiarch image
-      uses: docker/build-push-action@v3
+      uses: docker/build-push-action@v4
       with:
         tags: metsi/ats:${{env.ATS_BRANCH_TAG}}-latest
         platforms: linux/amd64,linux/arm64
@@ -71,6 +71,7 @@ jobs:
           ats_branch=${{env.ATS_BRANCH}}
           amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}}
         file: Docker/Dockerfile-ATS-build
+        context: ./Docker
     - name: Run tests
       id: tests
       working-directory: Docker
