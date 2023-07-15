@@ -502,8 +502,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
       // undamp and cap the surface
       for (unsigned int cs = 0; cs != ncells_surf; ++cs) {
         AmanziMesh::Entity_ID f = surf_mesh->entity_get_parent(AmanziMesh::CELL, cs);
-        double p_old = GetDomainFaceValue(*domain_pnew, f);
-        ;
+        double p_old = GetDomainFaceValue(*domain_pold, f);
         double p_new = GetDomainFaceValue(*domain_pnew, f);
         p_new = (p_new - p_old) / damp + p_old;
         if ((p_new > patm + cap_size_) && (p_old < patm)) {
