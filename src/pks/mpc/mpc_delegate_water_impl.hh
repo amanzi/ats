@@ -432,7 +432,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           // first over
           double new_value = patm + cap_size_;
           domain_pnew_f.set<FaceEntity>(f, new_value);
-          surf_pnew_c[0][cs] = patm + new_value;
+          surf_pnew_c[0][cs] = new_value;
           if (vo_->os_OK(Teuchos::VERB_HIGH))
             std::cout << "  CAPPING THE SPURT (1st over) (sc=" << surf_mesh_->cell_map(false).GID(cs)
                       << "): p_old = " << p_old << ", p_new = " << p_new
