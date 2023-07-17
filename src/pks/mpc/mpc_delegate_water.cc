@@ -27,9 +27,12 @@ MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& p
     i_Tsurf_(-1),
     domain_ss_(domain_ss),
     domain_surf_(domain_surf),
-    domain_mesh_(S->GetMesh(domain_ss_)),
-    surf_mesh_(S->GetMesh(domain_surf_))
+    domain_mesh_(S->GetMesh(domain_ss)),
+    surf_mesh_(S->GetMesh(domain_surf))
 {
+  AMANZI_ASSERT(domain_ss_ != domain_surf_);
+  AMANZI_ASSERT(surf_mesh_->parent() == domain_mesh_);
+
   // predictor control
   modify_predictor_heuristic_ = plist_->get<bool>("modify predictor with heuristic", false);
   modify_predictor_spurt_damping_ =

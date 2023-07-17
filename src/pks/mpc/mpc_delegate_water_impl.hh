@@ -60,11 +60,11 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
 
     std::string face_entity = AmanziMesh::entity_kind_string(FaceEntity);
     Teuchos::RCP<const CompositeVector> domain_u = u->SubVector(i_domain_)->Data();
-    DomainFaceGetter domain_u_f(*surf_mesh_, *domain_u->ViewComponent(face_entity, false));
+    DomainFaceGetter domain_u_f(*domain_mesh_, *domain_u->ViewComponent(face_entity, false));
 
     Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
     Epetra_MultiVector& domain_Pu_c = *domain_Pu->ViewComponent("cell", false);
-    DomainFaceGetter domain_Pu_f(*surf_mesh_, *domain_Pu->ViewComponent(face_entity, false));
+    DomainFaceGetter domain_Pu_f(*domain_mesh_, *domain_Pu->ViewComponent(face_entity, false));
 
     int ncells_surf = surf_mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
     for (int cs = 0; cs != ncells_surf; ++cs) {
@@ -111,10 +111,10 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
 
     std::string face_entity = AmanziMesh::entity_kind_string(FaceEntity);
     Teuchos::RCP<const CompositeVector> domain_u = u->SubVector(i_domain_)->Data();
-    DomainFaceGetter domain_u_f(*surf_mesh_, *domain_u->ViewComponent(face_entity, false));
+    DomainFaceGetter domain_u_f(*domain_mesh_, *domain_u->ViewComponent(face_entity, false));
 
     Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-    DomainFaceSetter domain_Pu_f(*surf_mesh_, *domain_Pu->ViewComponent(face_entity, false));
+    DomainFaceSetter domain_Pu_f(*domain_mesh_, *domain_Pu->ViewComponent(face_entity, false));
 
     int ncells_surf = surf_mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
     for (int cs = 0; cs != ncells_surf; ++cs) {
@@ -136,7 +136,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
       } else if ((p_new < patm) && (p_old > patm)) {
         // strange attempt to kick NKA when it goes back under?
         // double p_corrected = p_old - (patm - cap_size_);
-        // SetDomainFaceValue(*domain_Pu, f, p_corrected);
+        // domain_Pu_f.set<FaceEntity>(f, p_corrected);
         n_modified++;
         if (vo_->os_OK(Teuchos::VERB_HIGH))
           std::cout << "  INVERSE SPURT (sc=" << surf_mesh_->cell_map(false).GID(cs)
@@ -424,7 +424,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
       // undamp and cap the surface
       for (unsigned int cs = 0; cs != ncells_surf; ++cs) {
         AmanziMesh::Entity_ID f = surf_mesh_->entity_get_parent(AmanziMesh::CELL, cs);
-        double p_old = domain_pold_f.get<FaceEntity>(f);
+        double p_old = domain_pold_f.get<FaceEntity>(f); // THIS IS THE BUG <<<------
         double p_new = domain_pnew_f.get<FaceEntity>(f);
 
         p_new = (p_new - p_old) / damp + p_old;
