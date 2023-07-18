@@ -135,9 +135,9 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
     throwInvalid(region, "water transition depth [m]");
 
   if (parname == "rs_method" && lc.rs_method == std::string("sakagucki_zeng")) {
-    if (parname == "dessicated_zone_thickness" && std::isnan(lc.dessicated_zone_thickness))
+    if (std::isnan(lc.dessicated_zone_thickness))
       throwInvalid(region, "dessicated zone thickness [m]");
-    if (parname == "clapp_horn_b" && std::isnan(lc.clapp_horn_b))
+    if (std::isnan(lc.clapp_horn_b))
       throwInvalid(region, "Clapp and Hornberger b [-]");
   }
 
