@@ -72,9 +72,14 @@ jobs:
           amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}}
         file: Docker/Dockerfile-ATS-build
         context: ./Docker
-    - name: Run tests
-      id: tests
+    - name: Run amd64 tests
+      id: tests_amd64
       working-directory: Docker
       run:
         docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
+    - name: Run arm64 tests
+      id: tests_arm64
+      working-directory: Docker
+      run:
+        docker run --platform=linux/arm64 --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
         
