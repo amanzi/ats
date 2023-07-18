@@ -49,7 +49,7 @@ class Coordinator {
 
   bool advance();
   bool visualize(bool force = false);
-  bool observe();
+  void observe();
   bool checkpoint(bool force = false);
   double get_dt(bool after_fail = false);
 

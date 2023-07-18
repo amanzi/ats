@@ -611,7 +611,7 @@ Coordinator::visualize(bool force)
 }
 
 
-bool
+void
 Coordinator::observe()
 {
   Teuchos::TimeMonitor timer(*timers_.at("4c: observe"));
