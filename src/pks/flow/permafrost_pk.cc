@@ -41,13 +41,13 @@ Permafrost::SetupPhysicalEvaluators_()
   requireAtNext(perm_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, num_perm_vals_);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_perm_vals_);
 
   // -- water content, and evaluator, and derivative for PC
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     conserved_key_, tag_next_, key_, tag_next_);
 
@@ -74,18 +74,18 @@ Permafrost::SetupPhysicalEvaluators_()
   requireAtNext(sat_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
   requireAtNext(sat_gas_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
   requireAtNext(sat_ice_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
@@ -99,8 +99,8 @@ Permafrost::SetupPhysicalEvaluators_()
   requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // -- get the WRM models
   auto wrm_eval = dynamic_cast<Flow::WRMPermafrostEvaluator*>(&wrm);
@@ -111,13 +111,13 @@ Permafrost::SetupPhysicalEvaluators_()
   requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
   requireAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 } // namespace Flow

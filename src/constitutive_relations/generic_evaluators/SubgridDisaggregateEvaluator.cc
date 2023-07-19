@@ -39,7 +39,7 @@ SubgridDisaggregateEvaluator::Evaluate_(const State& S, const std::vector<Compos
 {
   auto tag = my_keys_.front().second;
   auto ds = S.GetDomainSet(domain_set_);
-  ds->DoExport(domain_index_,
+  ds->doExport(domain_index_,
                *S.Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false),
                *result[0]->ViewComponent("cell", false));
 }
@@ -64,7 +64,7 @@ SubgridDisaggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (my_fac.HasComponent("cell")) {
     int num_vectors = my_fac.NumVectors("cell");
     CompositeVectorSpace fac;
-    fac.SetMesh(S.GetMesh(source_domain_))->AddComponent("cell", AmanziMesh::CELL, num_vectors);
+    fac.SetMesh(S.GetMesh(source_domain_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_vectors);
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
   }
 }

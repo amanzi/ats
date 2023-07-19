@@ -42,12 +42,11 @@ Transport_ATS::CalculateDispersionTensor_(const Epetra_MultiVector& water_flux,
   for (int c = 0; c < ncells_owned; c++) D_[c].Init(dim, 1);
 
   AmanziGeometry::Point velocity(dim);
-  AmanziMesh::Entity_ID_List faces;
   WhetStone::MFD3D_Diffusion mfd3d(mesh_);
   WhetStone::Polynomial poly(dim, 1);
 
   for (int c = 0; c < ncells_owned; ++c) {
-    mesh_->cell_get_faces(c, &faces);
+    auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
     std::vector<WhetStone::Polynomial> flux(nfaces);
@@ -87,21 +86,20 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
   for (int mb = 0; mb < mat_properties_.size(); mb++) {
     Teuchos::RCP<MaterialProperties> spec = mat_properties_[mb];
 
-    std::vector<AmanziMesh::Entity_ID> block;
     for (int r = 0; r < (spec->regions).size(); r++) {
       std::string region = (spec->regions)[r];
-      mesh_->get_set_entities(region, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &block);
+      auto block = mesh_->getSetEntities(region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
-        for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] +=
-            md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c] * mol_density[0][*c];
+        for (const auto& c: block) {
+          D_[c] +=
+            md * spec->tau[phase] * porosity[0][c] * saturation[0][c] * mol_density[0][c];
         }
       } else if (phase == TRANSPORT_PHASE_GAS) {
-        for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]) *
-                    mol_density[0][*c];
+        for (const auto& c: block) {
+          D_[c] += md * spec->tau[phase] * porosity[0][c] * (1.0 - saturation[0][c]) *
+                    mol_density[0][c];
         }
       }
     }

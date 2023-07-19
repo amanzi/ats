@@ -54,7 +54,7 @@ HeightEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                                                      my_keys_.front().second);
   if (fac.Mesh() != Teuchos::null) {
     CompositeVectorSpace dep_fac;
-    dep_fac.SetMesh(fac.Mesh())->SetGhosted(true)->AddComponent("cell", AmanziMesh::CELL, 1);
+    dep_fac.SetMesh(fac.Mesh())->SetGhosted(true)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, dep_fac);
   }
 }

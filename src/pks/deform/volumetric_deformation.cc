@@ -104,19 +104,19 @@ VolumetricDeformation::Setup()
   // Save both non-const deformable versions of the meshes and create storage
   // for the vertex coordinates.  These are saved to be able to create the
   // deformed mesh after restart, and additionally must be checkpointed.
-  int dim = mesh_->space_dimension();
+  int dim = mesh_->getSpaceDimension();
   mesh_nc_ = S_->GetDeformableMesh(domain_);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(vertex_loc_key_, tag_next_, vertex_loc_key_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("node", AmanziMesh::NODE, dim);
+    ->SetComponent("node", AmanziMesh::Entity_kind::NODE, dim);
   if (tag_next_ != Amanzi::Tags::NEXT) {
     S_->Require<CompositeVector, CompositeVectorSpace>(
         vertex_loc_key_, Amanzi::Tags::NEXT, vertex_loc_key_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("node", AmanziMesh::NODE, dim);
+      ->SetComponent("node", AmanziMesh::Entity_kind::NODE, dim);
   }
 
   // note this mesh is never deformed in this PK as all movement is vertical
@@ -130,13 +130,13 @@ VolumetricDeformation::Setup()
         vertex_loc_surf3d_key_, tag_next_, vertex_loc_surf3d_key_)
       .SetMesh(surf3d_mesh_)
       ->SetGhosted()
-      ->SetComponent("node", AmanziMesh::NODE, dim);
+      ->SetComponent("node", AmanziMesh::Entity_kind::NODE, dim);
     if (tag_next_ != Amanzi::Tags::NEXT) {
       S_->Require<CompositeVector, CompositeVectorSpace>(
           vertex_loc_surf3d_key_, Amanzi::Tags::NEXT, vertex_loc_surf3d_key_)
         .SetMesh(mesh_)
         ->SetGhosted()
-        ->SetComponent("node", AmanziMesh::NODE, dim);
+        ->SetComponent("node", AmanziMesh::Entity_kind::NODE, dim);
     }
   }
 
@@ -144,14 +144,14 @@ VolumetricDeformation::Setup()
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_current_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Create storage and a function for cell volume change
   //
   // Note, this is purely work space and need not be kept, but we put it in
   // state for debugging purposes.
   auto& cv_fac = S_->Require<CompositeVector, CompositeVectorSpace>(del_cv_key_, tag_next_, name_);
-  cv_fac.SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  cv_fac.SetMesh(mesh_)->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   switch (deform_mode_) {
   case (DEFORM_MODE_DVDT): {
@@ -167,19 +167,19 @@ VolumetricDeformation::Setup()
     requireAtNext(sat_liq_key_, tag_next_, *S_);
     requireAtCurrent(sat_liq_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     requireAtNext(sat_ice_key_, tag_next_, *S_);
     requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     requireAtNext(sat_gas_key_, tag_next_, *S_);
     requireAtCurrent(sat_gas_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     requireAtNext(poro_key_, tag_next_, *S_);
     requireAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
   }
   default: {
@@ -198,7 +198,7 @@ VolumetricDeformation::Setup()
   requireAtNext(cv_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require a copy at the old tag
   requireAtCurrent(cv_key_, tag_current_, *S_, name_);
@@ -217,18 +217,18 @@ VolumetricDeformation::Setup()
 
     // // create storage for the nodal deformation
     // S_->RequireField(Keys::getKey(domain_,"nodal_dz"), name_)->SetMesh(mesh_)->SetGhosted()
-    //     ->SetComponent("node", AmanziMesh::NODE, 1);
+    //     ->SetComponent("node", AmanziMesh::Entity_kind::NODE, 1);
     break;
   }
 
   case (DEFORM_STRATEGY_MSTK): {
     requireAtCurrent(sat_ice_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     requireAtCurrent(poro_key_, tag_current_, *S_, name_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
   }
 
@@ -244,13 +244,13 @@ VolumetricDeformation::Setup()
     requireAtNext(nodal_dz_key_, tag_next_, *S_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("node", AmanziMesh::NODE, 3);
+      ->SetComponent("node", AmanziMesh::Entity_kind::NODE, 3);
 
     // create cell-based storage for deformation of the face above the cell
     S_->Require<CompositeVector, CompositeVectorSpace>(face_above_dz_key_, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     break;
   }
   default: {
@@ -365,11 +365,10 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       *S_->Get<CompositeVector>(key_, tag_current_).ViewComponent("cell", false);
 
     Epetra_MultiVector& dcell_vol_c = *dcell_vol_vec->ViewComponent("cell", false);
-    int dim = mesh_->space_dimension();
+    int dim = mesh_->getSpaceDimension();
 
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->get_set_entities(
-      deform_region_, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &cells);
+    auto cells = mesh_->getSetEntities(
+      deform_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : cells) {
       double frac = 0.;
@@ -421,11 +420,10 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 
     Epetra_MultiVector& dcell_vol_c = *dcell_vol_vec->ViewComponent("cell", false);
     dcell_vol_c.PutScalar(0.);
-    int dim = mesh_->space_dimension();
+    int dim = mesh_->getSpaceDimension();
 
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->get_set_entities(
-      deform_region_, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &cells);
+    auto cells = mesh_->getSetEntities(
+      deform_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     double time_factor = dt > time_scale_ ? 1 : dt / time_scale_;
     for (auto c : cells) {
@@ -462,9 +460,8 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
   if (strategy_ == DEFORM_STRATEGY_GLOBAL_OPTIMIZATION || strategy_ == DEFORM_STRATEGY_MSTK) {
     // set up the fixed list
     fixed_node_list = Teuchos::rcp(new AmanziMesh::Entity_ID_List());
-    AmanziMesh::Entity_ID_List nodes;
-    mesh_->get_set_entities(
-      "bottom face", AmanziMesh::NODE, AmanziMesh::Parallel_type::OWNED, &nodes);
+    auto nodes = mesh_->getSetEntities(
+      "bottom face", AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
     for (auto n : nodes) fixed_node_list->push_back(n);
   }
 
@@ -488,11 +485,11 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       const Epetra_MultiVector& dcell_vol_c = *dcell_vol_vec->ViewComponent("cell", true);
 
       // data needed in vectors
-      int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::ALL);
-      int nnodes = mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::ALL);
+      int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+      int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
       std::vector<double> target_cell_vols(ncells);
       std::vector<double> min_cell_vols(ncells);
-      int dim = mesh_->space_dimension();
+      int dim = mesh_->getSpaceDimension();
       double min_height = std::numeric_limits<double>::max();
 
       for (int c = 0; c != ncells; ++c) {
@@ -505,7 +502,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
                     << "V, V_target, V_min " << cv[0][c] << " " << target_cell_vols[c] << " "
                     << min_cell_vols[c] << std::endl;
 #endif
-          auto centroid = mesh_->cell_centroid(c);
+          auto centroid = mesh_->getCellCentroid(c);
           min_height = std::min(min_height, centroid[dim - 1]);
           AMANZI_ASSERT(min_cell_vols[c] <= target_cell_vols[c]);
 
@@ -518,11 +515,13 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       AmanziMesh::Entity_ID_List below_node_list;
       for (unsigned int n = 0; n != nnodes; ++n) {
         AmanziGeometry::Point nc(3);
-        mesh_->node_get_coordinates(n, &nc);
+        nc = mesh_->getNodeCoordinate(n);
         if (nc[dim - 1] < min_height) below_node_list.emplace_back(n);
       }
-
-      mesh_nc_->deform(target_cell_vols, min_cell_vols, below_node_list, true);
+      
+      Errors::Message mesg("Volumetric Deformation not implemented in Amanzi");
+      Exceptions::amanzi_throw(mesg);
+      //mesh_nc_->deform(target_cell_vols, min_cell_vols, below_node_list, true);
       deformed_this_step_ = true;
       break;
     }
@@ -537,11 +536,11 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         Epetra_MultiVector& nodal_dz = *nodal_dz_vec.ViewComponent("node", "true");
         nodal_dz.PutScalar(0.);
 
-        int ncols = mesh_->num_columns(false);
-        int z_index = mesh_->space_dimension() - 1;
+        int ncols = mesh_->columns.num_columns_owned;
+        int z_index = mesh_->getSpaceDimension() - 1;
         for (int col = 0; col != ncols; ++col) {
-          auto& col_cells = mesh_->cells_of_column(col);
-          auto& col_faces = mesh_->faces_of_column(col);
+          auto col_cells = mesh_->columns.getCells(col);
+          auto col_faces = mesh_->columns.getFaces(col);
           AMANZI_ASSERT(col_faces.size() == col_cells.size() + 1);
 
           // iterate up the column accumulating face displacements
@@ -551,7 +550,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
             int f_above = col_faces[ci];
 
             double dz =
-              mesh_->face_centroid(f_above)[z_index] - mesh_->face_centroid(f_below)[z_index];
+              mesh_->getFaceCentroid(f_above)[z_index] - mesh_->getFaceCentroid(f_below)[z_index];
             face_displacement += -dz * dcell_vol_c[0][col_cells[ci]] / cv[0][col_cells[ci]];
 
             AMANZI_ASSERT(face_displacement >= 0.);
@@ -565,8 +564,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
 #endif
 
             // shove the face changes into the nodal averages
-            Entity_ID_List nodes;
-            mesh_->face_get_nodes(f_above, &nodes);
+            auto nodes = mesh_->getFaceNodes(f_above);
             for (auto n : nodes) {
               nodal_dz[0][n] += face_displacement;
               nodal_dz[1][n] += dz;
@@ -589,18 +587,17 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       }
 
       // deform the mesh
-      Entity_ID_List node_ids(nodal_dz.MyLength());
-      AmanziGeometry::Point_List new_positions(nodal_dz.MyLength());
+      AmanziMesh::Entity_ID_View node_ids("node_ids", nodal_dz.MyLength());
+      AmanziMesh::Point_View new_positions("new_positions", nodal_dz.MyLength());
       for (int n = 0; n != nodal_dz.MyLength(); ++n) {
         node_ids[n] = n;
-        mesh_->node_get_coordinates(n, &new_positions[n]);
+        new_positions[n] = mesh_->getNodeCoordinate(n);
         AMANZI_ASSERT(nodal_dz[0][n] >= 0.);
         new_positions[n][2] -= nodal_dz[0][n];
       }
 
-      AmanziGeometry::Point_List final_positions;
       for (auto& p : new_positions) { AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.); }
-      mesh_nc_->deform(node_ids, new_positions, true, &final_positions);
+      AmanziMesh::MeshAlgorithms::deform(*mesh_nc_, node_ids, new_positions);
       deformed_this_step_ = true;
       // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
       break;
@@ -615,23 +612,22 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
     if (surf3d_mesh_nc_ != Teuchos::null) {
       // done on ALL to avoid lack of communication issues in deform
       int nsurfnodes =
-        surf3d_mesh_nc_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::ALL);
+        surf3d_mesh_nc_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
 
-      Entity_ID_List surface_nodeids;
-      AmanziGeometry::Point_List surface_newpos;
+      AmanziMesh::Entity_ID_View surface_nodeids("surface_nodeids", nsurfnodes);
+      AmanziMesh::Point_View surface_newpos("surface_newpos", nsurfnodes);
 
       for (int i = 0; i != nsurfnodes; ++i) {
         // get the coords of the node
-        AmanziMesh::Entity_ID pnode = surf3d_mesh_nc_->entity_get_parent(AmanziMesh::NODE, i);
-        int dim = mesh_->space_dimension();
+        AmanziMesh::Entity_ID pnode = surf3d_mesh_nc_->getEntityParent(AmanziMesh::Entity_kind::NODE, i);
+        int dim = mesh_->getSpaceDimension();
         AmanziGeometry::Point coord_domain(dim);
-        mesh_->node_get_coordinates(pnode, &coord_domain);
+        coord_domain = mesh_->getNodeCoordinate(pnode);
 
-        surface_nodeids.push_back(i);
-        surface_newpos.push_back(coord_domain);
+        surface_nodeids[i] = i;
+        surface_newpos[i] = coord_domain;
       }
-      AmanziGeometry::Point_List surface_finpos;
-      surf3d_mesh_nc_->deform(surface_nodeids, surface_newpos, false, &surface_finpos);
+      AmanziMesh::MeshAlgorithms::deform(*surf3d_mesh_nc_, surface_nodeids, surface_newpos);
     }
 
     // Note, this order is intentionally odd.  The deforming cell volume

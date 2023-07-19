@@ -97,8 +97,8 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
   double slope_regularization = slope_regularization_;
   double manning_exp = manning_exp_;
 
-  const auto& face_map = mesh->face_map(false);
-  const auto& bface_map = mesh->exterior_face_map(false);
+  const auto& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+  const auto& bface_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
 
   // Determine the face coefficient of local faces.
   //
@@ -109,8 +109,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
   // always true for FV, maybe not for MFD.
   int nfaces = face_coef.size("face", false);
   for (int f = 0; f != nfaces; ++f) {
-    AmanziMesh::Entity_ID_List fcells;
-    mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+    auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     AMANZI_ASSERT(fcells.size() > 0);
 
     double denom[2] = { 0., 0. };
@@ -119,7 +118,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
     double elev[2] = { 0., 0. };
     double dens[2] = { 0., 0. };
 
-    weight[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(fcells[0]));
+    weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(fcells[0]));
     denom[0] = manning_coef_v[0][fcells[0]] *
                std::sqrt(std::max(slope_v[0][fcells[0]], slope_regularization));
     pres_elev[0] = pd_v[0][fcells[0]] + elev_v[0][fcells[0]];
@@ -127,7 +126,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
     dens[0] = dens_v[0][fcells[0]];
 
     if (fcells.size() > 1) {
-      weight[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(fcells[1]));
+      weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(fcells[1]));
       denom[1] = manning_coef_v[0][fcells[1]] *
                  std::sqrt(std::max(slope_v[0][fcells[1]], slope_regularization));
       pres_elev[1] = pd_v[0][fcells[1]] + elev_v[0][fcells[1]];

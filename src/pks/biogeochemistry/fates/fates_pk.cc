@@ -58,7 +58,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!surface_only_) mesh_ = S->GetMesh();
 
 
-  mesh_->build_columns();
+  mesh_->buildColumns();
   //  soil_part_name_ = plist_->get<std::string>("soil partition name");
 
   int iulog = 10;
@@ -123,7 +123,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   // requirements: primary variable
   S->Require<CompositeVector, CompositeVectorSpace>(key_, Tags::NEXT, name_)
     .SetMesh(mesh_surf_)
-    ->SetComponent("cell", AmanziMesh::CELL, nlevsclass_);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, nlevsclass_);
 
   patchno_ = plist_->get<int>("number of patches", 1);
   nlevdecomp_ = plist_->get<int>("number of decomposition levels", 1);
@@ -131,19 +131,19 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   // met_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_met");
   // if (!S->HasField(met_decomp_key_)){
   //   S->Require<CompositeVector,CompositeVectorSpace>(met_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
-  //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
+  //     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, nlevdecomp_);
   // }
 
   // cel_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_cel");
   // if (!S->HasField(cel_decomp_key_)){
   //   S->Require<CompositeVector,CompositeVectorSpace>(cel_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
-  //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
+  //     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, nlevdecomp_);
   // }
 
   // lig_decomp_key_ = Keys::getKey(domain_surf_,"decomp_cpools_lig");
   // if (!S->HasField(lig_decomp_key_)){
   //   S->Require<CompositeVector,CompositeVectorSpace>(lig_decomp_key_, Tags::NEXT,  name_).SetMesh(mesh_surf_)
-  //     ->SetComponent("cell", AmanziMesh::CELL, nlevdecomp_);
+  //     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, nlevdecomp_);
   // }
 
 
@@ -151,7 +151,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(precip_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(precip_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(precip_key_);
   }
 
@@ -159,7 +159,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(air_temp_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(air_temp_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(air_temp_key_);
   }
 
@@ -167,7 +167,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(vp_air_key_)) {
     S->RequireField(vp_air_key_, "state")
       ->SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireFieldEvaluator(vp_air_key_);
   }
 
@@ -175,7 +175,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(wind_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(wind_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(wind_key_);
   }
 
@@ -183,7 +183,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(co2a_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(co2a_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(co2a_key_);
   }
 
@@ -191,7 +191,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(longwave_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(longwave_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(longwave_key_);
   }
 
@@ -199,7 +199,7 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
   if (!S->HasField(incident_rad_key_)) {
     S->Require<CompositeVector, CompositeVectorSpace>(incident_rad_key_, Tags::NEXT, "state")
       .SetMesh(mesh_surf_)
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S->RequireEvaluator(incident_rad_key_);
   }
 
@@ -208,28 +208,28 @@ FATES_PK::Setup(const Teuchos::Ptr<State>& S)
     if (!S->HasField(poro_key_)) {
       S->Require<CompositeVector, CompositeVectorSpace>(poro_key_, Tags::NEXT, "state")
         .SetMesh(mesh_)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       S->RequireEvaluator(poro_key_);
     }
     soil_temp_key_ = Keys::getKey("domain", "temperature");
     if (!S->HasField(soil_temp_key_)) {
       S->Require<CompositeVector, CompositeVectorSpace>(soil_temp_key_, Tags::NEXT, "state")
         .SetMesh(mesh_)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       S->RequireEvaluator(soil_temp_key_);
     }
     sat_key_ = Keys::readKey(*plist_, "domain", "saturation", "saturation_liquid");
     if (!S->HasField(sat_key_)) {
       S->Require<CompositeVector, CompositeVectorSpace>(sat_key_, Tags::NEXT, "state")
         .SetMesh(mesh_)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       S->RequireEvaluator(sat_key_);
     }
     suc_key_ = Keys::readKey(*plist_, "domain", "suction", "suction_head");
     if (!S->HasField(suc_key_)) {
       S->Require<CompositeVector, CompositeVectorSpace>(suc_key_, Tags::NEXT, "state")
         .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       S->RequireEvaluator(suc_key_);
     }
   }
@@ -243,7 +243,7 @@ FATES_PK::Initialize(const Teuchos::Ptr<State>& S)
 {
   PK_Physical_Default::Initialize(S);
 
-  ncells_owned_ = mesh_surf_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  ncells_owned_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   site_.resize(ncells_owned_);
 
   t_photosynthesis_ = S->get_time();
@@ -270,9 +270,9 @@ FATES_PK::Initialize(const Teuchos::Ptr<State>& S)
       // FieldToColumn_(col, poro, col_poro.ptr());
       // ColDepthDz_(col, col_depth.ptr(), col_dz.ptr());
 
-      int f = mesh_surf_->entity_get_parent(AmanziMesh::CELL, col);
+      int f = mesh_surf_->getEntityParent(AmanziMesh::Entity_kind::CELL, col);
 
-      auto& col_iter = mesh_->cells_of_column(col);
+      auto& col_iter = mesh_->columns.getCells(col);
       std::size_t ncol_cells = col_iter.size();
       if (ncells_per_col_ < 0) {
         ncells_per_col_ = ncol_cells;
@@ -613,7 +613,7 @@ FATES_PK::FieldToColumn_(AmanziMesh::Entity_ID col,
                          double* col_vec,
                          int ncol)
 {
-  auto& col_iter = mesh_->cells_of_column(col);
+  auto& col_iter = mesh_->columns.getCells(col);
   for (std::size_t i = 0; i != col_iter.size(); ++i) { col_vec[i] = vec[col_iter[i]]; }
 }
 
@@ -623,30 +623,30 @@ FATES_PK::ColDepthDz_(AmanziMesh::Entity_ID col,
                       Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                       Teuchos::Ptr<Epetra_SerialDenseVector> dz)
 {
-  AmanziMesh::Entity_ID f_above = mesh_surf_->entity_get_parent(AmanziMesh::CELL, col);
+  AmanziMesh::Entity_ID f_above = mesh_surf_->getEntityParent(AmanziMesh::Entity_kind::CELL, col);
 
-  auto& col_iter = mesh_->cells_of_column(col);
+  auto& col_iter = mesh_->columns.getCells(col);
   ncells_per_col_ = col_iter.size();
 
-  AmanziGeometry::Point surf_centroid = mesh_->face_centroid(f_above);
+  AmanziGeometry::Point surf_centroid = mesh_->getFaceCentroid(f_above);
   AmanziGeometry::Point neg_z(3);
   neg_z.set(0., 0., -1);
 
   for (std::size_t i = 0; i != col_iter.size(); ++i) {
     // depth centroid
-    (*depth)[i] = surf_centroid[2] - mesh_->cell_centroid(col_iter[i])[2];
+    (*depth)[i] = surf_centroid[2] - mesh_->getCellCentroid(col_iter[i])[2];
 
     // dz
     // -- find face_below
     AmanziMesh::Entity_ID_List faces;
     std::vector<int> dirs;
-    mesh_->cell_get_faces_and_dirs(col_iter[i], &faces, &dirs);
+    mesh_->getCellFacesAndDirections(col_iter[i], &faces, &dirs);
 
-    // -- mimics implementation of build_columns() in Mesh
+    // -- mimics implementation of buildColumns() in Mesh
     double mindp = 999.0;
     AmanziMesh::Entity_ID f_below = -1;
     for (std::size_t j = 0; j != faces.size(); ++j) {
-      AmanziGeometry::Point normal = mesh_->face_normal(faces[j]);
+      AmanziGeometry::Point normal = mesh_->getFaceNormal(faces[j]);
       if (dirs[j] == -1) normal *= -1;
       normal /= AmanziGeometry::norm(normal);
 
@@ -658,7 +658,7 @@ FATES_PK::ColDepthDz_(AmanziMesh::Entity_ID col,
     }
 
     // -- fill the val
-    (*dz)[i] = mesh_->face_centroid(f_above)[2] - mesh_->face_centroid(f_below)[2];
+    (*dz)[i] = mesh_->getFaceCentroid(f_above)[2] - mesh_->getFaceCentroid(f_below)[2];
     AMANZI_ASSERT((*dz)[i] > 0.);
     f_above = f_below;
   }

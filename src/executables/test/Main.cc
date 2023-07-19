@@ -16,9 +16,14 @@
 #include "ats_registration_files.hh"
 #include "VerboseObject_objs.hh"
 
+#include "Kokkos_Core.hpp"
+
 int
 main(int argc, char* argv[])
 {
+  Kokkos::initialize(argc, argv); 
   Teuchos::GlobalMPISession mpiSession(&argc, &argv);
-  return UnitTest::RunAllTests();
+  auto result = UnitTest::RunAllTests();
+  Kokkos::finalize();
+  return result; 
 }

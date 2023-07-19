@@ -153,9 +153,9 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::EnsureCompatibility_ToDeps_
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

@@ -47,15 +47,12 @@ Teuchos::RCP<PredictorDelegateBCFlux::FluxBCFunctor>
 PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const CompositeVector>& pres)
 {
   // inner cell and its water retention model
-  AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 
   // that cell's faces
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
-  mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+  const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
   // index within that cell's faces
   unsigned int n = std::find(faces.begin(), faces.end(), f) - faces.begin();
@@ -84,7 +81,7 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
   }
 
   // gravity flux
-  double bc_flux = mesh_->face_area(f) * (*bc_values_)[f];
+  double bc_flux = mesh_->getFaceArea(f) * (*bc_values_)[f];
   double gflux = rhs_f[0][faces[n]] / Krel;
 
 #if DEBUG_FLAG
@@ -178,7 +175,7 @@ PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   std::cout << "  Converged to " << lambda << " in " << actual_it << " steps." << std::endl;
 
   AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 

@@ -31,7 +31,7 @@ PK_PhysicalBDF_Default::Setup()
   PK_BDF_Default::Setup();
 
   // boundary conditions
-  bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
+  bc_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // convergence criteria is based on a conserved quantity
   if (conserved_key_.empty()) {
@@ -39,7 +39,7 @@ PK_PhysicalBDF_Default::Setup()
   }
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
@@ -49,7 +49,7 @@ PK_PhysicalBDF_Default::Setup()
   }
   requireAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
 
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
@@ -105,7 +105,7 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();
@@ -135,8 +135,7 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
       int nfaces = dvec->size(*comp, false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double conserved_min = cells.size() == 1 ?

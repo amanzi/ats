@@ -83,12 +83,12 @@ Preferential::RequireNonlinearCoefficient_(const Key& key, const std::string& co
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "face", "grav" }, { AmanziMesh::FACE, AmanziMesh::FACE }, { 1, 1 });
+      ->SetComponents({ "face", "grav" }, { AmanziMesh::Entity_kind::FACE, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
   } else if (coef_location == "standard: cell") {
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "cell", "grav" }, { AmanziMesh::CELL, AmanziMesh::FACE }, { 1, 1 });
+      ->SetComponents({ "cell", "grav" }, { AmanziMesh::Entity_kind::CELL, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
   } else {
     Errors::Message message("Unknown upwind coefficient location in Preferential flow.");
     Exceptions::amanzi_throw(message);
@@ -110,8 +110,8 @@ Preferential::SetupPhysicalEvaluators_()
   requireAtNext(coef_grav_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 }
 
 
@@ -162,13 +162,10 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
 
         for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-            AmanziMesh::Entity_ID_List cells;
-            mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+            auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
             AMANZI_ASSERT(cells.size() == 1);
             int c = cells[0];
-            AmanziMesh::Entity_ID_List faces;
-            std::vector<int> dirs;
-            mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+            const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
             int i = std::find(faces.begin(), faces.end(), f) - faces.begin();
 
             flux_dir_f[0][f] = values[f] * dirs[i];
@@ -185,7 +182,7 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
 
     // // Move rel perm on boundary_faces into uw_rel_perm on faces
-    const Epetra_Import& vandelay = mesh_->exterior_face_importer();
+    const Epetra_Import& vandelay = mesh_->getBoundaryFaceImporter();
     const Epetra_MultiVector& rel_perm_bf = *rel_perm->ViewComponent("boundary_face", false);
     const Epetra_MultiVector& rel_perm_grav_bf =
       *rel_perm_grav->ViewComponent("boundary_face", false);
@@ -204,8 +201,8 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
     } else if (clobber_policy_ == "max") {
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
@@ -215,12 +212,11 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       const Epetra_MultiVector& pres =
         *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
-      const auto& fmap = mesh_->face_map(true);
-      const auto& bfmap = mesh_->exterior_face_map(true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        AmanziMesh::Entity_ID_List fcells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];

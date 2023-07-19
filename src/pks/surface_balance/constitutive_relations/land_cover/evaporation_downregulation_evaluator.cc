@@ -74,12 +74,11 @@ EvaporationDownregulationEvaluator::Evaluate_(const State& S,
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (AmanziMesh::Entity_ID sc : lc_ids) {
-      auto c = sub_mesh.cells_of_column(sc)[0];
+      auto c = sub_mesh.columns.getCells(sc)[0];
       surf_evap[0][sc] =
         region_model.second->Evaporation(sat_gas[0][c], poro[0][c], pot_evap[0][sc], sat_liq[0][c]);
     }
@@ -109,13 +108,11 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
     auto& surf_mesh = *S.GetMesh(domain_surf_);
 
     for (const auto& region_model : models_) {
-      AmanziMesh::Entity_ID_List lc_ids;
-      surf_mesh.get_set_entities(region_model.first,
+      auto lc_ids = surf_mesh.getSetEntities(region_model.first,
                                  AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_type::OWNED,
-                                 &lc_ids);
+                                 AmanziMesh::Parallel_kind::OWNED);
       for (AmanziMesh::Entity_ID sc : lc_ids) {
-        auto c = sub_mesh.cells_of_column(sc)[0];
+        auto c = sub_mesh.columns.getCells(sc)[0];
         surf_evap[0][sc] = region_model.second->DEvaporationDPotentialEvaporation(
           sat_gas[0][c], poro[0][c], pot_evap[0][sc], sat_liq[0][c]);
       }

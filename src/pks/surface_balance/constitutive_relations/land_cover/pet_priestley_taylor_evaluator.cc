@@ -128,9 +128,8 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
   auto& res = *result[0]->ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     double alpha = 0.;
     bool is_snow = false;
@@ -236,13 +235,13 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
       if (dep.first == limiter_key_) {
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, limiter_nvecs_);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, limiter_nvecs_);
       } else if (dep.first == one_minus_limiter_key_) {
         fac.SetMesh(S.GetMesh(domain_))
           ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, one_minus_limiter_nvecs_);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, one_minus_limiter_nvecs_);
       } else {
-        fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+        fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
     }
   }

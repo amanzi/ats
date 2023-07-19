@@ -257,15 +257,13 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
 
   unsigned int ncells = water_source.MyLength();
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh.get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh.getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // get the top cell
-      AmanziMesh::Entity_ID subsurf_f = mesh.entity_get_parent(AmanziMesh::CELL, c);
-      AmanziMesh::Entity_ID_List cells;
-      mesh_ss.face_get_cells(subsurf_f, AmanziMesh::Parallel_type::OWNED, &cells);
+      AmanziMesh::Entity_ID subsurf_f = mesh.getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+      auto cells = mesh_ss.getFaceCells(subsurf_f, AmanziMesh::Parallel_kind::OWNED);
       AMANZI_ASSERT(cells.size() == 1);
 
       // met data structure
@@ -317,7 +315,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         water_source[0][c] += area_fracs[0][c] * flux.M_surf;
         energy_source[0][c] += area_fracs[0][c] * flux.E_surf * 1.e-6; // convert to MW/m^2
 
-        double area_to_volume = mesh.cell_volume(c) / mesh_ss.cell_volume(cells[0]);
+        double area_to_volume = mesh.getCellVolume(c) / mesh_ss.getCellVolume(cells[0]);
         double ss_water_source_l =
           flux.M_subsurf * area_to_volume * mol_dens[0][c]; // convert from m/m^2/s to mol/m^3/s
         ss_water_source[0][cells[0]] += area_fracs[0][c] * ss_water_source_l;
@@ -390,7 +388,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         water_source[0][c] += area_fracs[1][c] * flux.M_surf;
         energy_source[0][c] += area_fracs[1][c] * flux.E_surf * 1.e-6;
 
-        double area_to_volume = mesh.cell_volume(c) / mesh_ss.cell_volume(cells[0]);
+        double area_to_volume = mesh.getCellVolume(c) / mesh_ss.getCellVolume(cells[0]);
         double ss_water_source_l =
           flux.M_subsurf * area_to_volume * mol_dens[0][c]; // convert from m/m^2/s to mol/m^3/s
         ss_water_source[0][cells[0]] += area_fracs[1][c] * ss_water_source_l;
@@ -648,22 +646,22 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;
-    domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+    domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_3;
     domain_fac_3.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 3);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
 
     CompositeVectorSpace domain_fac_ss;
     domain_fac_ss.SetMesh(S.GetMesh(domain_ss_))
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_snow;
     domain_fac_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (const auto& dep : dependencies_) {
       auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, tag);
@@ -692,17 +690,17 @@ SEBThreeComponentEvaluator::EnsureCompatibility_Structure_(State& S)
     CompositeVectorSpace domain_fac_owned;
     domain_fac_owned.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_snow;
     domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_ss;
     domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (const auto& key_tag : my_keys_) {
       if (Keys::getDomain(key_tag.first) == domain_) {

@@ -135,9 +135,8 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
   auto mesh = results[0]->Mesh();
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // NOTE: emissivity = absorptivity, we use e to notate both

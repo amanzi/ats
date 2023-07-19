@@ -57,7 +57,6 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
 
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
-  AmanziMesh::Entity_ID_List cells;
   std::vector<int> dirs;
   double eps = 1.e-16;
 
@@ -75,7 +74,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
 
   int nfaces = face_coef.size("face", false);
   for (unsigned int f = 0; f != nfaces; ++f) {
-    mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
 
     if (cells.size() == 1) {
       if (potential_f != Teuchos::null) {
@@ -149,7 +148,7 @@ UpwindPotentialDifference::UpdateDerivatives(
   // Grab mesh and allocate space
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = dconductivity.Mesh();
   unsigned int nfaces_owned =
-    mesh->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+    mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   Jpp_faces->resize(nfaces_owned);
 
   // workspace
@@ -157,8 +156,7 @@ UpwindPotentialDifference::UpdateDerivatives(
   double p[2];
 
   for (unsigned int f = 0; f != nfaces_owned; ++f) {
-    AmanziMesh::Entity_ID_List cells;
-    mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     int mcells = cells.size();
 
     // create the local matrix
@@ -174,7 +172,7 @@ UpwindPotentialDifference::UpdateDerivatives(
         double dp = p[0] - p[1];
 
         if (p[0] > p[1]) {
-          (*Jpp)(0, 0) = dp * mesh->face_area(f) * dK_dp[0];
+          (*Jpp)(0, 0) = dp * mesh->getFaceArea(f) * dK_dp[0];
         } else {
           (*Jpp)(0, 0) = 0.;
         }
@@ -219,8 +217,8 @@ UpwindPotentialDifference::UpdateDerivatives(
         dK_dp[1] = param * dcell_v[0][cells[1]];
       }
 
-      (*Jpp)(0, 0) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[0];
-      (*Jpp)(0, 1) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[1];
+      (*Jpp)(0, 0) = (p[0] - p[1]) * mesh->getFaceArea(f) * dK_dp[0];
+      (*Jpp)(0, 1) = (p[0] - p[1]) * mesh->getFaceArea(f) * dK_dp[1];
       (*Jpp)(1, 0) = -(*Jpp)(0, 0);
       (*Jpp)(1, 1) = -(*Jpp)(0, 1);
     }

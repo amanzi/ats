@@ -21,7 +21,7 @@ OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<Composi
 {
   auto& markers = bc_markers();
   auto& values = bc_values();
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
   // update the rel perm according to the scheme of choice.
   UpdatePermeabilityData_(tag);

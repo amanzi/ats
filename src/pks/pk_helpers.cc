@@ -42,8 +42,8 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
   if (u.HasComponent("boundary_face")) {
     Epetra_MultiVector& u_bf = *u.ViewComponent("boundary_face", false);
     const Epetra_MultiVector& u_c = *u.ViewComponent("cell", false);
-    const Epetra_Map& vandalay_map = u.Mesh()->exterior_face_map(false);
-    const Epetra_Map& face_map = u.Mesh()->face_map(false);
+    const Epetra_Map& vandalay_map = u.Mesh()->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = u.Mesh()->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     for (int bf = 0; bf != u_bf.MyLength(); ++bf) {
       AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
@@ -88,12 +88,9 @@ getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const 
 int
 getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
 {
-  AmanziMesh::Entity_ID_List cells;
-  mesh.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  auto cells = mesh.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
   AMANZI_ASSERT(cells.size() == 1);
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
-  mesh.cell_get_faces_and_dirs(cells[0], &faces, &dirs);
+  const auto& [faces, dirs] = mesh.getCellFacesAndDirections(cells[0]);
   return dirs[std::find(faces.begin(), faces.end(), f) - faces.begin()];
 }
 
@@ -290,10 +287,10 @@ copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh, CompositeVector& vec)
 {
   Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
 
-  int ndim = mesh.space_dimension();
+  int ndim = mesh.getSpaceDimension();
   AmanziGeometry::Point nc;
   for (int i = 0; i != nodes.MyLength(); ++i) {
-    mesh.node_get_coordinates(i, &nc);
+    nc = mesh.getNodeCoordinate(i);
     for (int j = 0; j != ndim; ++j) nodes[j][i] = nc[j];
   }
 }
@@ -302,19 +299,19 @@ void
 copyVectorToMeshCoordinates(const CompositeVector& vec, AmanziMesh::Mesh& mesh)
 {
   const Epetra_MultiVector& nodes = *vec.ViewComponent("node", true);
-  int ndim = mesh.space_dimension();
+  int ndim = mesh.getSpaceDimension();
 
-  std::vector<int> node_ids(nodes.MyLength());
-  Amanzi::AmanziGeometry::Point_List new_positions(nodes.MyLength());
+  Amanzi::AmanziMesh::Entity_ID_View node_ids("node_ids", nodes.MyLength());
+  Amanzi::AmanziMesh::Point_View new_positions("new_positions", nodes.MyLength());
   for (int n = 0; n != nodes.MyLength(); ++n) {
     node_ids[n] = n;
-    if (mesh.space_dimension() == 2) {
+    if (mesh.getSpaceDimension() == 2) {
       new_positions[n] = Amanzi::AmanziGeometry::Point{ nodes[0][n], nodes[1][n] };
     } else {
       new_positions[n] = Amanzi::AmanziGeometry::Point{ nodes[0][n], nodes[1][n], nodes[2][n] };
     }
   }
-  mesh.deform(node_ids, new_positions);
+  Amanzi::AmanziMesh::MeshAlgorithms::deform(mesh, node_ids, new_positions);
 }
 
 int

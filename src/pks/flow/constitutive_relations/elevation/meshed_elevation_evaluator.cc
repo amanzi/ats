@@ -97,22 +97,22 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   // Get the elevation and slope values from the domain mesh.
   Key domain = Keys::getDomain(my_keys_.front().first);
   const auto& surface_mesh = S.GetMesh(domain);
-  const auto& parent_mesh = surface_mesh->parent();
+  const auto& parent_mesh = surface_mesh->getParentMesh();
   AMANZI_ASSERT(parent_mesh != Teuchos::null);
-  AMANZI_ASSERT(parent_mesh->space_dimension() == 3);
+  AMANZI_ASSERT(parent_mesh->getSpaceDimension() == 3);
 
-  if (parent_mesh->manifold_dimension() == 3) {
+  if (parent_mesh->getManifoldDimension() == 3) {
     // surface mesh is extraction
     int ncells = elev_c.MyLength();
     for (int c = 0; c != ncells; ++c) {
       // Set the elevation on cells by getting the corresponding face and its
       // centroid.
-      auto domain_face = surface_mesh->entity_get_parent(AmanziMesh::CELL, c);
-      elev_c[0][c] = parent_mesh->face_centroid(domain_face, true)[2];
+      auto domain_face = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+      elev_c[0][c] = parent_mesh->getFaceCentroid(domain_face)[2];
 
       // Set the slope and aspect using the upward normal of the corresponding
       // face.
-      AmanziGeometry::Point normal = parent_mesh->face_normal(domain_face);
+      AmanziGeometry::Point normal = parent_mesh->getFaceNormal(domain_face);
       Impl::slope_aspect(normal, slope_c[0][c], aspect_c[0][c]);
     }
 
@@ -120,39 +120,37 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     // averaging.
     if (elev->HasComponent("face")) {
       Epetra_MultiVector& elev_f = *elev->ViewComponent("face", false);
-      AmanziMesh::Entity_ID_List surface_nodes(2);
       AmanziMesh::Entity_ID node0, node1;
       AmanziGeometry::Point coord0(3);
       AmanziGeometry::Point coord1(3);
 
       int nfaces = elev_f.MyLength();
       for (int f = 0; f != nfaces; ++f) {
-        surface_mesh->face_get_nodes(f, &surface_nodes);
-        node0 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[0]);
-        node1 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[1]);
-        parent_mesh->node_get_coordinates(node0, &coord0);
-        parent_mesh->node_get_coordinates(node1, &coord1);
+        auto surface_nodes = surface_mesh->getFaceNodes(f);
+        node0 = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::NODE, surface_nodes[0]);
+        node1 = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::NODE, surface_nodes[1]);
+        coord0 = parent_mesh->getNodeCoordinate(node0);
+        coord1 = parent_mesh->getNodeCoordinate(node1);
         elev_f[0][f] = (coord0[2] + coord1[2]) / 2.0;
       }
     }
 
     if (elev->HasComponent("boundary_face")) {
-      const Epetra_Map& vandalay_map = surface_mesh->exterior_face_map(false);
-      const Epetra_Map& face_map = surface_mesh->face_map(false);
+      const Epetra_Map& vandalay_map = surface_mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+      const Epetra_Map& face_map = surface_mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
       Epetra_MultiVector& elev_bf = *elev->ViewComponent("boundary_face", false);
 
-      AmanziMesh::Entity_ID_List surface_nodes(2);
       AmanziMesh::Entity_ID node0, node1;
       AmanziGeometry::Point coord0(3);
       AmanziGeometry::Point coord1(3);
 
       for (int bf = 0; bf != elev_bf.MyLength(); ++bf) {
         AmanziMesh::Entity_ID f = AmanziMesh::getBoundaryFaceFace(*surface_mesh, bf);
-        surface_mesh->face_get_nodes(f, &surface_nodes);
-        node0 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[0]);
-        node1 = surface_mesh->entity_get_parent(AmanziMesh::NODE, surface_nodes[1]);
-        parent_mesh->node_get_coordinates(node0, &coord0);
-        parent_mesh->node_get_coordinates(node1, &coord1);
+        auto surface_nodes = surface_mesh->getFaceNodes(f);
+        node0 = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::NODE, surface_nodes[0]);
+        node1 = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::NODE, surface_nodes[1]);
+        coord0 = parent_mesh->getNodeCoordinate(node0);
+        coord1 = parent_mesh->getNodeCoordinate(node1);
         elev_bf[0][bf] = (coord0[2] + coord1[2]) / 2.0;
       }
     }
@@ -163,20 +161,19 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     for (int c = 0; c != ncells; ++c) {
       // Set the elevation on cells by getting the corresponding face and its
       // centroid.
-      auto domain_cell = surface_mesh->entity_get_parent(AmanziMesh::CELL, c);
-      elev_c[0][c] = parent_mesh->cell_centroid(domain_cell, true)[2];
+      auto domain_cell = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+      elev_c[0][c] = parent_mesh->getCellCentroid(domain_cell)[2];
 
       // Figure out the upward normal using edges.
       // -- faces of the cell
       AmanziGeometry::Point normal(0., 0., 0.);
-      AmanziMesh::Entity_ID_List faces;
-      parent_mesh->cell_get_faces(domain_cell, &faces);
+      auto faces = parent_mesh->getCellFaces(domain_cell);
 
       // -- Get the normals of all faces of the surface cell.
       int count = faces.size();
       std::vector<AmanziGeometry::Point> normals(count);
       for (int lcv = 0; lcv != count; ++lcv) {
-        normals[lcv] = parent_mesh->face_normal(faces[lcv], false, domain_cell);
+        normals[lcv] = parent_mesh->getFaceNormal(faces[lcv], domain_cell);
       }
 
       // -- Average the cross product of successive faces to get a cell normal.
@@ -200,8 +197,8 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
       int nfaces = elev_f.MyLength();
       for (int f = 0; f != nfaces; ++f) {
         // Note that a surface face is a surface mesh's face.
-        AmanziMesh::Entity_ID domain_face = surface_mesh->entity_get_parent(AmanziMesh::FACE, f);
-        AmanziGeometry::Point x = parent_mesh->face_centroid(domain_face, true);
+        AmanziMesh::Entity_ID domain_face = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::FACE, f);
+        AmanziGeometry::Point x = parent_mesh->getFaceCentroid(domain_face);
         elev_f[0][f] = x[2];
       }
     }

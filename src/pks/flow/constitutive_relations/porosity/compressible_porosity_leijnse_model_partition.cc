@@ -37,7 +37,7 @@ createCompressiblePorosityLeijnseModelPartition(Teuchos::ParameterList& plist)
   }
 
   Teuchos::RCP<Functions::MeshPartition> part =
-    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL, region_list));
+    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::Entity_kind::CELL, region_list));
 
   return Teuchos::rcp(new CompressiblePorosityLeijnseModelPartition(part, mlist));
 }

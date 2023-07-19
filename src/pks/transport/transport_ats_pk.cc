@@ -101,7 +101,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
   dissolution_ = plist_->get<bool>("allow dissolution", false);
   max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
-  dim = mesh_->space_dimension();
+  dim = mesh_->getSpaceDimension();
 
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
@@ -169,13 +169,13 @@ Transport_ATS::Setup()
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, num_components);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
   requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
-  requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Raw data, no evaluator?
   //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
@@ -184,7 +184,7 @@ Transport_ATS::Setup()
   requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::CELL, num_components);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
 
   // This vector stores the conserved amount (in mols) of ncomponent
@@ -202,7 +202,7 @@ Transport_ATS::Setup()
   requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::CELL, num_components + 2);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(primary_names);
 
   // dependencies:
@@ -211,7 +211,7 @@ Transport_ATS::Setup()
   if (abs_perm) {
     requireAtNext(permeability_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, dim);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, dim);
   }
 
   // HACK ALERT -- FIXME --ETC
@@ -230,14 +230,14 @@ Transport_ATS::Setup()
   requireAtNext(flux_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
 
   // -- water saturation
   requireAtNext(saturation_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   // Require a copy of saturation at the old time tag
   requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
   if (subcycling_) {
@@ -251,12 +251,12 @@ Transport_ATS::Setup()
   requireAtNext(porosity_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   requireAtNext(molar_density_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
   if (subcycling_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(
@@ -273,7 +273,7 @@ Transport_ATS::Setup()
     requireAtNext(water_src_key_, Tags::NEXT, *S_)
       .SetMesh(mesh_)
       ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
 
@@ -290,7 +290,7 @@ Transport_ATS::Setup()
       requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 
@@ -299,7 +299,7 @@ Transport_ATS::Setup()
     requireAtNext(water_src_key_, Tags::NEXT, *S_)
       .SetMesh(mesh_)
       ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
   }
@@ -319,7 +319,7 @@ Transport_ATS::Setup()
           requireAtNext(solute_src_key_, Tags::NEXT, *S_)
             .SetMesh(mesh_)
             ->SetGhosted(true)
-            ->AddComponent("cell", AmanziMesh::CELL, num_components);
+            ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
           S_->Require<CompositeVector, CompositeVectorSpace>(
             solute_src_key_, tag_next_, solute_src_key_);
         }
@@ -361,7 +361,7 @@ Transport_ATS::Initialize()
   bc_scaling = 0.0;
 
   Teuchos::OSTab tab = vo_->getOSTab();
-  MyPID = mesh_->get_comm()->MyPID();
+  MyPID = mesh_->getComm()->MyPID();
 
   // initialize missed fields
   InitializeFields_();
@@ -406,17 +406,17 @@ Transport_ATS::Initialize()
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   Policy(tag_next_);
 
-  ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  ncells_wghost = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::ALL);
-  nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
-  nfaces_wghost = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
-  nnodes_wghost = mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::ALL);
+  ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  ncells_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+  nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  nfaces_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+  nnodes_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
 
   // extract control parameters
   InitializeAll_();
 
   // upwind
-  const Epetra_Map& fmap_wghost = mesh_->face_map(true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
   upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   IdentifyUpwindCells();
@@ -453,7 +453,7 @@ Transport_ATS::Initialize()
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "fields", AmanziMesh::FACE, Kxy, tag_current_);
+            factory.Create(bc_list, "fields", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
 
           for (int i = 0; i < num_components; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -472,7 +472,7 @@ Transport_ATS::Initialize()
 
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "boundary concentration", AmanziMesh::FACE, Kxy, tag_current_);
+            factory.Create(bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
 
           for (int i = 0; i < num_components; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -484,7 +484,7 @@ Transport_ATS::Initialize()
         } else {
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
-            bc_list, "boundary concentration function", AmanziMesh::FACE, Kxy, tag_current_);
+            bc_list, "boundary concentration function", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
           bc->set_state(S_);
 
           std::vector<std::string> tcc_names =
@@ -552,7 +552,7 @@ Transport_ATS::Initialize()
         if (src_type == "domain coupling") {
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "fields", AmanziMesh::CELL, Kxy);
+            factory.Create(src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy);
 
           for (int i = 0; i < num_components; i++) {
             src->tcc_names().push_back(component_names_[i]);
@@ -563,7 +563,7 @@ Transport_ATS::Initialize()
         } else if (src_type == "field") {
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "field", AmanziMesh::CELL, Kxy);
+            factory.Create(src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy);
 
           for (int i = 0; i < component_names_.size(); i++) {
             src->tcc_names().push_back(component_names_[i]);
@@ -574,7 +574,7 @@ Transport_ATS::Initialize()
         } else {
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
           Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "source function", AmanziMesh::CELL, Kxy, tag_current_);
+            factory.Create(src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
           std::vector<std::string> tcc_names =
             src_list.get<Teuchos::Array<std::string>>("component names").toVector();
@@ -693,7 +693,7 @@ Transport_ATS::StableTimeStep()
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ScatterMasterToGhosted("face");
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
 
-  Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->cell_map(false)));
+  Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->getMap(AmanziMesh::Entity_kind::CELL,false)));
   IdentifyUpwindCells();
 
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
@@ -720,7 +720,7 @@ Transport_ATS::StableTimeStep()
     double outflux = total_outflux[c];
 
     if ((outflux > 0) && ((*ws_prev_)[0][c] > 0) && ((*ws_)[0][c] > 0) && ((*phi_)[0][c] > 0)) {
-      vol = mesh_->cell_volume(c);
+      vol = mesh_->getCellVolume(c);
       dt_cell = vol * (*mol_dens_)[0][c] * (*phi_)[0][c] *
                 std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
     }
@@ -753,7 +753,7 @@ Transport_ATS::StableTimeStep()
 
     double tmp_package[6];
     if (cell_map->GID(cmin_dt) == cmin_dt_unique) {
-      const AmanziGeometry::Point& p = mesh_->cell_centroid(cmin_dt);
+      const AmanziGeometry::Point& p = mesh_->getCellCentroid(cmin_dt);
 
       min_pid = comm.MyPID();
       tmp_package[0] = ws_min_dt;
@@ -938,7 +938,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     for (int i = 0; i < num_aqueous + num_gaseous; i++) {
       mass_solutes_stepstart_[i] = tcc_prev[i][c] * vol_phi_ws_den;
     }
@@ -1056,7 +1056,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
   if (flag_dispersion_ || flag_diffusion) {
     // default boundary conditions (none inside domain and Neumann on its boundary)
     Teuchos::RCP<Operators::BCs> bc_dummy =
-      Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::FACE, WhetStone::DOF_Type::SCALAR));
+      Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
     auto& bc_model = bc_dummy->bc_model();
     auto& bc_value = bc_dummy->bc_value();
     PopulateBoundaryData(bc_model, bc_value, -1);
@@ -1070,7 +1070,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
     op1->SetBCs(bc_dummy, bc_dummy);
     Teuchos::RCP<Operators::Operator> op = op1->global_operator();
     Teuchos::RCP<Operators::PDE_Accumulation> op2 =
-      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, op));
+      Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, op));
 
     const CompositeVectorSpace& cvs = op1->global_operator()->DomainMap();
     CompositeVector sol(cvs), factor(cvs), factor0(cvs), source(cvs), zero(cvs);
@@ -1117,7 +1117,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
         Epetra_MultiVector& rhs_cell = *op->rhs()->ViewComponent("cell");
         for (int c = 0; c < ncells_owned; c++) {
           double tmp =
-            mesh_->cell_volume(c) * (*ws_)[0][c] * (*phi_)[0][c] * (*mol_dens_)[0][c] / dt_MPC;
+            mesh_->getCellVolume(c) * (*ws_)[0][c] * (*phi_)[0][c] * (*mol_dens_)[0][c] / dt_MPC;
           rhs_cell[0][c] = tcc_next[i][c] * tmp;
         }
       }
@@ -1139,8 +1139,8 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
         if (tcc_tmp->HasComponent("boundary_face")) {
           Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->ViewComponent("boundary_face", false);
           Epetra_MultiVector& sol_faces = *sol.ViewComponent("face", false);
-          const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-          const Epetra_Map& face_map = mesh_->face_map(false);
+          const Epetra_Map& vandalay_map = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+          const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
           int nbfaces = tcc_tmp_bf.MyLength();
           for (int bf = 0; bf != nbfaces; ++bf) {
             AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
@@ -1260,7 +1260,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     (*conserve_qty_)[num_components + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect; i++) {
@@ -1282,7 +1282,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   db_->WriteCellVector("cons (start)", *conserve_qty_);
   tmp1 = mass_current;
-  mesh_->get_comm()->SumAll(&tmp1, &mass_current, 1);
+  mesh_->getComm()->SumAll(&tmp1, &mass_current, 1);
 
   // advance all components at once
   for (int f = 0; f < nfaces_wghost; f++) { // loop over master and slave faces
@@ -1303,7 +1303,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         (*conserve_qty_)[i][c1] -= tcc_flux;
         if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;
-        //AmanziGeometry::Point normal = mesh_->face_normal(f);
+        //AmanziGeometry::Point normal = mesh_->getFaceNormal(f);
       }
       (*conserve_qty_)[num_components + 1][c1] -= dt_ * u;
 
@@ -1367,7 +1367,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   // recover concentration from new conservative state
   for (int c = 0; c < ncells_owned; c++) {
     double water_new =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
     double water_sink =
       (*conserve_qty_)[num_components]
                       [c]; // water at the new time + outgoing domain coupling source
@@ -1409,7 +1409,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   }
 
   tmp1 = mass_final;
-  mesh_->get_comm()->SumAll(&tmp1, &mass_final, 1);
+  mesh_->getComm()->SumAll(&tmp1, &mass_final, 1);
 
   // update mass balance
   for (int i = 0; i < mass_solutes_exact_.size(); i++) {
@@ -1433,7 +1433,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
 
   // work memory
-  const Epetra_Map& cmap_wghost = mesh_->cell_map(true);
+  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
 
   // distribute vector of concentrations
   tcc->ScatterMasterToGhosted("cell");
@@ -1442,9 +1442,9 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
 
   // Epetra_Vector ws_ratio(Copy, *ws_current, 0);
   // for (int c = 0; c < ncells_owned; c++) {
-  //   double vol_phi_ws_den_next = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+  //   double vol_phi_ws_den_next = mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
   //   if (vol_phi_ws_den_next > water_tolerance_)  {
-  //     double vol_phi_ws_den_current = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+  //     double vol_phi_ws_den_current = mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
   //     if (vol_phi_ws_den_current > water_tolerance_) {
   //       ws_ratio[c] = ( (*ws_current)[0][c] * (*mol_dens_current)[0][c] )
   //                   / ( (*ws_next)[0][c]   * (*mol_dens_next)[0][c]   );
@@ -1462,7 +1462,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   // prepopulate with initial water for better debugging
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den_current =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     (*conserve_qty_)[num_components + 1][c] = vol_phi_ws_den_current;
   }
 
@@ -1478,7 +1478,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   for (int c = 0; c < ncells_owned; c++) {
     double water_old = (*conserve_qty_)[num_components + 1][c];
     double water_new =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
     double water_sink = (*conserve_qty_)[num_components][c];
     double water_total = water_sink + water_new;
     (*conserve_qty_)[num_components][c] = water_total;
@@ -1524,7 +1524,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
 
   // work memory
-  const Epetra_Map& cmap_wghost = mesh_->cell_map(true);
+  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
   Epetra_Vector f_component(cmap_wghost); //,  f_component2(cmap_wghost);
 
   // distribute old vector of concentrations
@@ -1573,7 +1573,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
       tcc_next[i][c] = (tcc_next[i][c] + value) / 2;
       if (tcc_next[i][c] < 0) {
         double vol_phi_ws_den =
-          mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+          mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
         (*solid_qty_)[i][c] += abs(tcc_next[i][c]) * vol_phi_ws_den;
         tcc_next[i][c] = 0.;
       }
@@ -1626,7 +1626,7 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
 
         int imap = i;
         if (num_vectors == 1) imap = 0;
-        double value = mesh_->cell_volume(c) * values[k];
+        double value = mesh_->getCellVolume(c) * values[k];
         cons_qty[imap][c] += dtp * value;
         mass_solutes_source_[i] += value;
       }
@@ -1698,9 +1698,8 @@ Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
     bc_value[i] = 0.0;
   }
 
-  AmanziMesh::Entity_ID_List cells;
   for (int f = 0; f < nfaces_wghost; f++) {
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;
   }
 
@@ -1738,10 +1737,8 @@ Transport_ATS::IdentifyUpwindCells()
     (*downwind_cell_)[f] = -1;
   }
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
   for (int c = 0; c < ncells_wghost; c++) {
-    mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+    const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
     for (int i = 0; i < faces.size(); i++) {
       int f = faces[i];
@@ -1765,10 +1762,9 @@ Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flu
                                       Teuchos::RCP<const Epetra_MultiVector> molar_density,
                                       Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux)
 {
-  AmanziMesh::Entity_ID_List cells;
 
   for (int f = 0; f < nfaces_wghost; f++) {
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     double n_liq = 0.;
     for (int c = 0; c < cells.size(); c++) n_liq += (*molar_density)[0][c];
     n_liq /= cells.size();

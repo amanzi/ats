@@ -53,7 +53,7 @@ ThreePhase::Initialize()
     double r_sq = std::pow(0.5099, 2);
     Epetra_MultiVector& temp_c = *temp->ViewComponent("cell", false);
     for (int c = 0; c != temp_c.MyLength(); ++c) {
-      AmanziGeometry::Point centroid = mesh_->cell_centroid(c);
+      AmanziGeometry::Point centroid = mesh_->getCellCentroid(c);
       double circle_y = centroid[1] >= 0.5 ? 1.1 : -0.1;
 
       double dist = std::pow(centroid[0] - 0.5, 2) + std::pow(centroid[1] - circle_y, 2);

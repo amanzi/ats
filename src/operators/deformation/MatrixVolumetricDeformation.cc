@@ -94,7 +94,7 @@ MatrixVolumetricDeformation::ApplyRHS(
   // -- Fix the bottom nodes, they may not move
   Epetra_MultiVector& rhs_n = *x_node->ViewComponent("node", false);
   unsigned int nnodes_owned =
-    mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::OWNED);
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
   for (AmanziMesh::Entity_ID_List::const_iterator n = fixed_nodes->begin(); n != fixed_nodes->end();
        ++n) {
     if (*n < nnodes_owned) rhs_n[0][*n] = 0;
@@ -123,17 +123,17 @@ MatrixVolumetricDeformation::PreAssemble_()
 
   // Domain and Range: matrix inverse solves the problem, given dV, what is
   // dnode_z that results in that dV.  Therefore, A * dnode_z = dV
-  const Epetra_Map& cell_map = mesh_->cell_map(false);
-  const Epetra_Map& node_map = mesh_->node_map(false);
-  const Epetra_Map& node_map_wghost = mesh_->node_map(true);
+  const Epetra_Map& cell_map = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE,false);
+  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE,true);
 
   range_ = Teuchos::rcp(new CompositeVectorSpace());
-  range_->SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  range_->SetMesh(mesh_)->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   domain_ = Teuchos::rcp(new CompositeVectorSpace());
-  domain_->SetMesh(mesh_)->SetComponent("node", AmanziMesh::NODE, 1);
+  domain_->SetMesh(mesh_)->SetComponent("node", AmanziMesh::Entity_kind::NODE, 1);
 
-  unsigned int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  unsigned int nnodes = mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::OWNED);
+  unsigned int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  unsigned int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
 
 
   // == Create dVdz ==
@@ -145,20 +145,20 @@ MatrixVolumetricDeformation::PreAssemble_()
     for (int n = 0; n != nnz; ++n) values[n] = 0.;
 
     AmanziMesh::Entity_ID_List nodes;
-    mesh_->cell_get_nodes(c, &nodes);
+    nodes = mesh_->getCellNodes(c);
     AMANZI_ASSERT(nodes.size() == nnz);
 
     // determine the upward/downward faces
     AmanziMesh::Entity_ID_List faces;
-    mesh_->cell_get_faces(c, &faces);
+    faces = mesh_->getCellFaces(c);
 
     int my_up_n = -1;
     int my_down_n = -1;
     for (int n = 0; n != faces.size(); ++n) {
-      if (mesh_->face_normal(faces[n], false, c)[2] > eps) {
+      if (mesh_->getFaceNormal(faces[n], c)[2] > eps) {
         AMANZI_ASSERT(my_up_n < 0);
         my_up_n = n;
-      } else if (mesh_->face_normal(faces[n], false, c)[2] < -eps) {
+      } else if (mesh_->getFaceNormal(faces[n], c)[2] < -eps) {
         AMANZI_ASSERT(my_down_n < 0);
         my_down_n = n;
       }
@@ -166,15 +166,15 @@ MatrixVolumetricDeformation::PreAssemble_()
     AMANZI_ASSERT(my_up_n >= 0);
     AMANZI_ASSERT(my_down_n >= 0);
 
-    // Determine the perpendicular area (remember, face_normal() is weighted
+    // Determine the perpendicular area (remember, getFaceNormal() is weighted
     // by face area already).
-    double perp_area_up = std::abs(mesh_->face_normal(faces[my_up_n])[2]);
-    double perp_area_down = std::abs(mesh_->face_normal(faces[my_down_n])[2]);
+    double perp_area_up = std::abs(mesh_->getFaceNormal(faces[my_up_n])[2]);
+    double perp_area_down = std::abs(mesh_->getFaceNormal(faces[my_down_n])[2]);
     AMANZI_ASSERT(std::abs(perp_area_up - perp_area_down) < 1.e-6);
 
     // loop over nodes in the top face, setting the Jacobian
     AmanziMesh::Entity_ID_List nodes_up;
-    mesh_->face_get_nodes(faces[my_up_n], &nodes_up);
+    nodes_up = mesh_->getFaceNodes(faces[my_up_n]);
     for (int n = 0; n != nodes_up.size(); ++n) {
       values[n] = perp_area_up / (nnz / 2.);
       indices[n] = node_map_wghost.GID(nodes_up[n]);
@@ -182,7 +182,7 @@ MatrixVolumetricDeformation::PreAssemble_()
 
     // loop over nodes in the bottom face, setting the Jacobian
     AmanziMesh::Entity_ID_List nodes_down;
-    mesh_->face_get_nodes(faces[my_down_n], &nodes_down);
+    nodes_down = mesh_->getFaceNodes(faces[my_down_n]);
     int nnz_half = nnz / 2;
     for (int n = 0; n != nodes_down.size(); ++n) {
       values[n + nnz_half] = -perp_area_up / (nnz / 2.);
@@ -210,7 +210,7 @@ MatrixVolumetricDeformation::PreAssemble_()
   max_nnode_neighbors_ = 0;
   for (unsigned int no = 0; no != nnodes; ++no) {
     AmanziMesh::Entity_ID_List cells;
-    mesh_->node_get_cells(no, AmanziMesh::Parallel_type::ALL, &cells);
+    cells = mesh_->getNodeCells(no, AmanziMesh::Parallel_kind::ALL);
     // THIS IS VERY SPECIFIC TO GEOMETRY!
 #if MESH_TYPE
     int nnode_neighbors = (cells.size() / 2 + 1) * 3;
@@ -250,10 +250,10 @@ MatrixVolumetricDeformation::PreAssemble_()
     // determine the set of node neighbors
     std::set<int> neighbors;
     AmanziMesh::Entity_ID_List faces;
-    mesh_->node_get_faces(n, AmanziMesh::Parallel_type::ALL, &faces);
+    mesh_->node_get_faces(n, AmanziMesh::Parallel_kind::ALL, &faces);
     for (AmanziMesh::Entity_ID_List::const_iterator f = faces.begin(); f != faces.end(); ++f) {
       AmanziMesh::Entity_ID_List neighbor_nodes;
-      mesh_->face_get_nodes(*f, &neighbor_nodes);
+      neighbor_nodes = mesh_->getFaceNodes(*f);
       neighbors.insert(neighbor_nodes.begin(), neighbor_nodes.end());
     }
 
@@ -263,7 +263,7 @@ MatrixVolumetricDeformation::PreAssemble_()
     // apply the stencil
     int nneighbors = neighbors.size() + 1;
     AmanziGeometry::Point center(3);
-    mesh_->node_get_coordinates(n, &center);
+    center = mesh_->getNodeCoordinate(n);
     node_indices[0] = node_map.GID(n);
     node_values[0] = 0.;
 
@@ -272,7 +272,7 @@ MatrixVolumetricDeformation::PreAssemble_()
       node_indices[lcv] = node_map_wghost.GID(*hn);
 
       AmanziGeometry::Point coord(3);
-      mesh_->node_get_coordinates(*hn, &coord);
+      coord = mesh_->getNodeCoordinate(*hn);
       double smoothing = smoothing_ / AmanziGeometry::norm(center - coord);
       node_values[0] += smoothing;
       node_values[lcv] = -smoothing;
@@ -317,9 +317,9 @@ MatrixVolumetricDeformation::Assemble(
 
   // Domain and Range: matrix inverse solves the problem, given dV, what is
   // dnode_z that results in that dV.  Therefore, A * dnode_z = dV
-  const Epetra_Map& node_map = mesh_->node_map(false);
-  const Epetra_Map& node_map_wghost = mesh_->node_map(true);
-  unsigned int nnodes = mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::OWNED);
+  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE,false);
+  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE,true);
+  unsigned int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
 
   // reset to non-fixed operator.
   if (operator_ == Teuchos::null) {

@@ -59,7 +59,7 @@ MPCCoupledWater::Setup()
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
@@ -95,23 +95,24 @@ MPCCoupledWater::Setup()
   // figure out what the corresponding cell of the surface system is.
   // Therefore, for all debug cells of the subsurface, if that cell is in the
   // top layer of cells, we add the corresponding face's surface cell.
-  AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
+  auto debug_cells = domain_db_->get_cells();
 
   int ncells_surf =
-    surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+    surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   if (debug_cells.size() > 0) {
-    const auto& domain_cell_map = domain_mesh_->cell_map(false);
-    const auto& surf_cell_map = surf_mesh_->cell_map(false);
-    AmanziMesh::Entity_ID_List surf_debug_cells;
+    const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+    const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+    AmanziMesh::Entity_ID_List surf_debug_cells_v;
     for (int sc = 0; sc != ncells_surf; ++sc) {
-      int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
-      AmanziMesh::Entity_ID_List fcells;
-      domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+      auto fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(fcells.size() == 1);
       auto gid = domain_cell_map.GID(fcells[0]);
       if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
-        surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+        surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
     }
+    AmanziMesh::Entity_ID_View surf_debug_cells;
+    vectorToView(surf_debug_cells, surf_debug_cells_v); 
     if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
   }
 }
@@ -378,7 +379,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
   double p_atm = S_->Get<double>("atmospheric_pressure", Tags::NEXT);
   for (int c = 0; c != u_surf_cell.MyLength(); ++c) {
     if (u_surf_cell[0][c] > p_atm) {
-      auto f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, c);
+      auto f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
       res_surf_cell[0][c] = res_face[0][f];
       res_face[0][f] = 0.;
     }

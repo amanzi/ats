@@ -55,9 +55,8 @@ AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
   const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // calculate area of land
@@ -132,7 +131,7 @@ AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
     if (std::abs(1 - res[0][c] - res[1][c] - res[2][c]) > 1e-10) nerr++;
   }
   int nerr_global = 0;
-  mesh->get_comm()->SumAll(&nerr, &nerr_global, 1);
+  mesh->getComm()->SumAll(&nerr, &nerr_global, 1);
   if (nerr_global > 0) {
     Errors::Message msg("AreaFractionsTwoComponent: land cover types do not cover the mesh.");
     Exceptions::amanzi_throw(msg);
@@ -158,9 +157,9 @@ AreaFractionsThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
   for (auto& dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

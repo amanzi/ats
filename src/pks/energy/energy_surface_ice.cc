@@ -76,26 +76,26 @@ EnergySurfaceIce::SetupPhysicalEvaluators_()
 
     S_->Require<CompositeVector, CompositeVectorSpace>(key_ss, tag_next_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- ensure enthalpy exists at the new time
     requireAtNext(enthalpy_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     // -- and on the subsurface
     requireAtNext(Keys::getKey(domain_ss_, "enthalpy"), tag_next_, *S_)
       .SetMesh(S_->GetMesh(domain_ss_))
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   if (coupled_to_subsurface_via_temp_) {
     // -- energy source term from subsurface
     S_->Require<CompositeVector, CompositeVectorSpace>("surface_subsurface_energy_flux", tag_next_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireEvaluator("surface_subsurface_energy_flux", tag_next_);
   }
 }
@@ -132,13 +132,13 @@ EnergySurfaceIce::Initialize()
 
       Teuchos::RCP<const CompositeVector> subsurf_temp =
         S_->GetPtr<CompositeVector>(key_ss, tag_next_);
-      auto ncells_surface = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+      auto ncells_surface = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       if (subsurf_temp->HasComponent("face")) {
         const Epetra_MultiVector& temp = *subsurf_temp->ViewComponent("face", false);
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
-          AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
+          AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
           surf_temp[0][c] = temp[0][f];
         }
       } else if (subsurf_temp->HasComponent("boundary_face")) {
@@ -147,8 +147,8 @@ EnergySurfaceIce::Initialize()
 
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
-          AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
-          int bf = mesh_domain->exterior_face_map(false).LID(mesh_domain->face_map(false).GID(f));
+          AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false).LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f));
           if (bf >= 0) surf_temp[0][c] = temp[0][bf];
         }
       }
@@ -166,9 +166,9 @@ EnergySurfaceIce::Initialize()
         S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
       Epetra_MultiVector& surf_temp = *surf_temp_cv->ViewComponent("cell", false);
 
-      auto ncells_surface = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+      auto ncells_surface = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (unsigned int c = 0; c != ncells_surface; ++c) {
-        int id = mesh_->cell_map(false).GID(c);
+        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
         std::stringstream name;
         name << "surface_column_" << id;
         const Epetra_MultiVector& temp =
@@ -218,7 +218,6 @@ EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector
       *S_->Get<CompositeVector>(Keys::getKey(domain_, "ponded_depth"), tag)
          .ViewComponent("cell", false);
 
-    AmanziMesh::Entity_ID_List cells;
     unsigned int ncells = g_c.MyLength();
     const auto& mesh_ss = *S_->GetMesh(domain_ss_);
     for (unsigned int c = 0; c != ncells; ++c) {
@@ -227,8 +226,8 @@ EnergySurfaceIce::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector
       // upwind the enthalpy
       if (flux > 0.) { // exfiltration
         // get the subsurface's enthalpy
-        AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
-        mesh_ss.face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+        auto cells = mesh_ss.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
 
         AMANZI_ASSERT(cells.size() == 1);
         g_c[0][c] -= flux * enth_subsurf[0][cells[0]];

@@ -179,16 +179,15 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
-    AmanziMesh::Entity_ID_List cells;
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     // calculate boundary face values
     int nbfaces = satg_bf.MyLength();
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int i = (*permafrost_models_->first)[cells[0]];
@@ -262,9 +261,8 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->Mesh();
-    const Epetra_Map& face_map = mesh->face_map(false);
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    AmanziMesh::Entity_ID_List cells;
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
 
     if (wrt_key == pc_liq_key_) {
       // calculate boundary face values
@@ -272,7 +270,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];
@@ -289,7 +287,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];

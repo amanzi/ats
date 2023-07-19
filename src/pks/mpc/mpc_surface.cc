@@ -149,10 +149,10 @@ MPCSurface::Setup()
 
     // -- derivatives of energy with respect to pressure
     if (dE_dp_block_ == Teuchos::null) {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
     }
 
     preconditioner_->set_operator_block(0, 1, dWC_dT_block_);

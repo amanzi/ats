@@ -1,3 +1,4 @@
+
 /*
   Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
@@ -93,13 +94,11 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
   Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face", true));
   downwind_cell.PutValue(-1);
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
   int nfaces_local = flux.size("face", false);
 
   int ncells = cell_coef.size("cell", true);
   for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    const auto& [faces, fdirs] = mesh->getCellFacesAndDirections(c);
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
@@ -158,8 +157,8 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
       denom[0] = manning_coef_v[0][uw] * std::sqrt(std::max(slope_v[0][uw], slope_regularization));
       denom[1] = manning_coef_v[0][dw] * std::sqrt(std::max(slope_v[0][dw], slope_regularization));
       double dist[2];
-      dist[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
-      dist[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
+      dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+      dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
 
       denominator = (dist[0] + dist[1]) / (dist[0] / denom[0] + dist[1] / denom[1]);
     }

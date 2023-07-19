@@ -102,7 +102,7 @@ MPCSubsurface::Setup()
   S_->Require<CompositeVector, CompositeVectorSpace>(rho_key_, tag_next_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(rho_key_, tag_next_);
 
   // see amanzi/ats#167
@@ -167,7 +167,7 @@ MPCSubsurface::Setup()
     std::vector<AmanziMesh::Entity_kind> locations2(2);
     std::vector<std::string> names2(2);
     std::vector<int> num_dofs2(2, 1);
-    locations2[0] = AmanziMesh::CELL;
+    locations2[0] = AmanziMesh::Entity_kind::CELL;
     names2[0] = "cell";
 
     // Create the block for derivatives of mass conservation with respect to temperature
@@ -183,7 +183,7 @@ MPCSubsurface::Setup()
         S_->Require<CompositeVector, CompositeVectorSpace>(duw_krdT_key_, tag_next_, name_)
           .SetMesh(mesh_)
           ->SetGhosted()
-          ->SetComponent("face", AmanziMesh::FACE, 1);
+          ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
         S_->GetRecordW(duw_krdT_key_, tag_next_, name_).set_io_vis(false);
 
         upwinding_dkrdT_ = Teuchos::rcp(
@@ -211,10 +211,10 @@ MPCSubsurface::Setup()
     // see amanzi/ats#167
     // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
     if (dWC_dT_block_ == Teuchos::null) {
-      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
+      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dWC_dT_block_ = dWC_dT_->global_operator();
     } else {
-      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dWC_dT_block_));
+      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
     }
     // }
 
@@ -232,7 +232,7 @@ MPCSubsurface::Setup()
         S_->Require<CompositeVector, CompositeVectorSpace>(duw_tcdp_key_, tag_next_, name_)
           .SetMesh(mesh_)
           ->SetGhosted()
-          ->SetComponent("face", AmanziMesh::FACE, 1);
+          ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
         S_->GetRecordW(duw_tcdp_key_, tag_next_, name_).set_io_vis(false);
 
         upwinding_dkappa_dp_ =
@@ -305,7 +305,7 @@ MPCSubsurface::Setup()
 
       // -- now the field
       names2[1] = "boundary_face";
-      locations2[1] = AmanziMesh::BOUNDARY_FACE;
+      locations2[1] = AmanziMesh::Entity_kind::BOUNDARY_FACE;
       S_->Require<CompositeVector, CompositeVectorSpace>(hkr_key_, tag_next_)
         .SetMesh(mesh_)
         ->SetGhosted()
@@ -315,7 +315,7 @@ MPCSubsurface::Setup()
       S_->Require<CompositeVector, CompositeVectorSpace>(uw_hkr_key_, tag_next_, name_)
         .SetMesh(mesh_)
         ->SetGhosted()
-        ->SetComponent("face", AmanziMesh::FACE, 1);
+        ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
       S_->GetRecordW(uw_hkr_key_, tag_next_, name_).set_io_vis(false);
 
       S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
@@ -339,14 +339,14 @@ MPCSubsurface::Setup()
 
       if (!is_fv_) {
         // -- and the upwinded field
-        locations2[1] = AmanziMesh::FACE;
+        locations2[1] = AmanziMesh::Entity_kind::FACE;
         names2[1] = "face";
 
         S_->Require<CompositeVector, CompositeVectorSpace>(
             Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_)
           .SetMesh(mesh_)
           ->SetGhosted()
-          ->SetComponent("face", AmanziMesh::FACE, 1);
+          ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
         S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_, name_)
           .set_io_vis(false);
 
@@ -354,7 +354,7 @@ MPCSubsurface::Setup()
             Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_)
           .SetMesh(mesh_)
           ->SetGhosted()
-          ->SetComponent("face", AmanziMesh::FACE, 1);
+          ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
         S_->GetRecordW(Keys::getDerivKey(uw_hkr_key_, temp_key_), tag_next_, name_)
           .set_io_vis(false);
 
@@ -370,10 +370,10 @@ MPCSubsurface::Setup()
     // see amanzi/ats#167
     // if (S_->GetEvaluator(wc_key_, tag_next_).IsDifferentiableWRT(*S_, temp_key_, tag_next_)) {
     if (dE_dp_block_ == Teuchos::null) {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
     }
     // }
 
@@ -614,14 +614,14 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
 
       enth_kr_uw->ViewComponent("face", false)
         ->Export(
-          *enth_kr->ViewComponent("boundary_face", false), mesh_->exterior_face_importer(), Insert);
+          *enth_kr->ViewComponent("boundary_face", false), mesh_->getBoundaryFaceImporter(), Insert);
       upwinding_hkr_->Update(*enth_kr, *enth_kr_uw, *S_);
 
       // -- stick zeros in the boundary faces
       Epetra_MultiVector enth_kr_bf(*enth_kr->ViewComponent("boundary_face", false));
       enth_kr_bf.PutScalar(0.0);
       enth_kr_uw->ViewComponent("face", false)
-        ->Export(enth_kr_bf, mesh_->exterior_face_importer(), Insert);
+        ->Export(enth_kr_bf, mesh_->getBoundaryFaceImporter(), Insert);
 
       if (is_fv_) {
         denth_kr_dp_uw =
@@ -645,11 +645,11 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
         // -- copy boundary faces into upwinded vector
         denth_kr_dp_uw_nc->ViewComponent("face", false)
           ->Export(*denth_kr_dp->ViewComponent("boundary_face", false),
-                   mesh_->exterior_face_importer(),
+                   mesh_->getBoundaryFaceImporter(),
                    Insert);
         denth_kr_dT_uw_nc->ViewComponent("face", false)
           ->Export(*denth_kr_dT->ViewComponent("boundary_face", false),
-                   mesh_->exterior_face_importer(),
+                   mesh_->getBoundaryFaceImporter(),
                    Insert);
 
         // -- upwind
@@ -660,9 +660,9 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
         Epetra_MultiVector enth_kr_bf(*enth_kr->ViewComponent("boundary_face", false));
         enth_kr_bf.PutScalar(0.0);
         denth_kr_dp_uw_nc->ViewComponent("face", false)
-          ->Export(enth_kr_bf, mesh_->exterior_face_importer(), Insert);
+          ->Export(enth_kr_bf, mesh_->getBoundaryFaceImporter(), Insert);
         denth_kr_dT_uw_nc->ViewComponent("face", false)
-          ->Export(enth_kr_bf, mesh_->exterior_face_importer(), Insert);
+          ->Export(enth_kr_bf, mesh_->getBoundaryFaceImporter(), Insert);
 
         denth_kr_dp_uw =
           S_->GetPtr<CompositeVector>(Keys::getDerivKey(uw_hkr_key_, pres_key_), tag_next_);

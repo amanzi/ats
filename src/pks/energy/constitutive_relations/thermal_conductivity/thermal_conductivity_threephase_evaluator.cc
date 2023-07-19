@@ -93,17 +93,15 @@ ThermalConductivityThreePhaseEvaluator::Evaluate_(const State& S,
     for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
          ++lcv) {
       std::string region_name = lcv->first;
-      if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+      if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
         // get the indices of the domain.
-        AmanziMesh::Entity_ID_List id_list;
-        mesh->get_set_entities(
-          region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+        auto id_list = mesh->getSetEntities(
+          region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
         // loop over indices
-        for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
-             ++id) {
-          result_v[0][*id] = lcv->second->ThermalConductivity(
-            poro_v[0][*id], sat_v[0][*id], sat2_v[0][*id], temp_v[0][*id]);
+        for (const auto& id: id_list) {
+          result_v[0][id] = lcv->second->ThermalConductivity(
+            poro_v[0][id], sat_v[0][id], sat2_v[0][id], temp_v[0][id]);
         }
       } else {
         std::stringstream m;
@@ -145,17 +143,15 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
-          AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          auto id_list = mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
           // loop over indices
-          for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
-               ++id) {
-            result_v[0][*id] = lcv->second->DThermalConductivity_DPorosity(
-              poro_v[0][*id], sat_v[0][*id], sat2_v[0][*id], temp_v[0][*id]);
+          for (const auto& id: id_list) {
+            result_v[0][id] = lcv->second->DThermalConductivity_DPorosity(
+              poro_v[0][id], sat_v[0][id], sat2_v[0][id], temp_v[0][id]);
           }
         } else {
           std::stringstream m;
@@ -169,17 +165,15 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
-          AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          auto id_list = mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
           // loop over indices
-          for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
-               ++id) {
-            result_v[0][*id] = lcv->second->DThermalConductivity_DSaturationLiquid(
-              poro_v[0][*id], sat_v[0][*id], sat2_v[0][*id], temp_v[0][*id]);
+          for (const auto& id : id_list) {
+            result_v[0][id] = lcv->second->DThermalConductivity_DSaturationLiquid(
+              poro_v[0][id], sat_v[0][id], sat2_v[0][id], temp_v[0][id]);
           }
         } else {
           std::stringstream m;
@@ -193,17 +187,15 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
-          AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          auto id_list = mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
           // loop over indices
-          for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
-               ++id) {
-            result_v[0][*id] = lcv->second->DThermalConductivity_DSaturationIce(
-              poro_v[0][*id], sat_v[0][*id], sat2_v[0][*id], temp_v[0][*id]);
+          for (const auto& id: id_list) {
+            result_v[0][id] = lcv->second->DThermalConductivity_DSaturationIce(
+              poro_v[0][id], sat_v[0][id], sat2_v[0][id], temp_v[0][id]);
           }
         } else {
           std::stringstream m;
@@ -217,17 +209,15 @@ ThermalConductivityThreePhaseEvaluator::EvaluatePartialDerivative_(
       for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
            ++lcv) {
         std::string region_name = lcv->first;
-        if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
+        if (mesh->isValidSetName(region_name, AmanziMesh::Entity_kind::CELL)) {
           // get the indices of the domain.
-          AmanziMesh::Entity_ID_List id_list;
-          mesh->get_set_entities(
-            region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+          auto id_list = mesh->getSetEntities(
+            region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
           // loop over indices
-          for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
-               ++id) {
-            result_v[0][*id] = lcv->second->DThermalConductivity_DTemperature(
-              poro_v[0][*id], sat_v[0][*id], sat2_v[0][*id], temp_v[0][*id]);
+          for (const auto& id: id_list) {
+            result_v[0][id] = lcv->second->DThermalConductivity_DTemperature(
+              poro_v[0][id], sat_v[0][id], sat2_v[0][id], temp_v[0][id]);
           }
         } else {
           std::stringstream m;

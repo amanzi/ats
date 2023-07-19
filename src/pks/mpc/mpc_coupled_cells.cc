@@ -80,10 +80,10 @@ MPCCoupledCells::Setup()
   // create coupling blocks and push them into the preconditioner...
   S_->Require<CompositeVector, CompositeVectorSpace>(A_key_, tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->Require<CompositeVector, CompositeVectorSpace>(y2_key_, tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(A_key_, tag_next_);
   S_->RequireEvaluator(y2_key_, tag_next_);
 
@@ -101,10 +101,10 @@ MPCCoupledCells::Setup()
 
   S_->Require<CompositeVector, CompositeVectorSpace>(B_key_, tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->Require<CompositeVector, CompositeVectorSpace>(y1_key_, tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(B_key_, tag_next_);
   S_->RequireEvaluator(y1_key_, tag_next_);
 

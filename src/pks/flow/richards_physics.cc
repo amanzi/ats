@@ -140,7 +140,7 @@ Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
     *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
   unsigned int ncells = perm.MyLength();
   unsigned int ndofs = perm.NumVectors();
-  int space_dim = mesh_->space_dimension();
+  int space_dim = mesh_->getSpaceDimension();
   if (ndofs == 1) { // isotropic
     for (unsigned int c = 0; c != ncells; ++c) { (*K_)[c](0, 0) = perm[0][c] * perm_scale_; }
   } else if (ndofs == 2 && space_dim == 3) {
@@ -192,17 +192,16 @@ Richards::UpdateVelocity_(const Tag& tag)
   Epetra_MultiVector& velocity =
     *S_->GetW<CompositeVector>(velocity_key_, tag, name_).ViewComponent("cell", true);
 
-  int d(mesh_->space_dimension());
+  int d(mesh_->getSpaceDimension());
   AmanziGeometry::Point local_velocity(d);
 
   Teuchos::LAPACK<int, double> lapack;
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
   double rhs[d];
 
-  int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  AmanziMesh::Entity_ID_List faces;
+  int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells_owned; ++c) {
-    mesh_->cell_get_faces(c, &faces);
+    auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
     for (int i = 0; i != d; ++i) rhs[i] = 0.0;
@@ -210,8 +209,8 @@ Richards::UpdateVelocity_(const Tag& tag)
 
     for (int n = 0; n != nfaces; ++n) { // populate least-square matrix
       int f = faces[n];
-      const AmanziGeometry::Point& normal = mesh_->face_normal(f);
-      double area = mesh_->face_area(f);
+      const AmanziGeometry::Point& normal = mesh_->getFaceNormal(f);
+      double area = mesh_->getFaceArea(f);
 
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux[0][f];

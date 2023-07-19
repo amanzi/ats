@@ -32,8 +32,8 @@ DivGradTest::setup(const Teuchos::Ptr<State>& S)
   std::vector<AmanziMesh::Entity_kind> locations2(2);
   std::vector<std::string> names2(2);
   std::vector<int> num_dofs2(2, 1);
-  locations2[0] = AmanziMesh::CELL;
-  locations2[1] = AmanziMesh::FACE;
+  locations2[0] = AmanziMesh::Entity_kind::CELL;
+  locations2[1] = AmanziMesh::Entity_kind::FACE;
   names2[0] = "cell";
   names2[1] = "face";
 
@@ -46,12 +46,12 @@ DivGradTest::setup(const Teuchos::Ptr<State>& S)
   S->RequireEvaluator("cell_volume");
 
   // Create the absolute permeability tensor.
-  int c_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int c_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   Teuchos::RCP<std::vector<WhetStone::Tensor>> K =
     Teuchos::rcp(new std::vector<WhetStone::Tensor>(c_owned));
   for (int c = 0; c != c_owned; ++c) {
-    (*K)[c].Init(mesh_->space_dimension(), 1);
+    (*K)[c].Init(mesh_->getSpaceDimension(), 1);
     (*K)[c](0, 0) = 1.0;
   }
 
@@ -95,7 +95,7 @@ DivGradTest::initialize(const Teuchos::Ptr<State>& S)
   S->Get<CompositeVector>(key_).ScatterMasterToGhosted("face");
 
   // initialize boundary conditions
-  int nfaces = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
+  int nfaces = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
   bc_markers_.resize(nfaces, Operators::OPERATOR_BC_NONE);
   bc_values_.resize(nfaces, 0.0);
 
@@ -182,7 +182,7 @@ DivGradTest::TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres)
   int nfaces = pres->size("face");
   for (int f = 0; f != nfaces; ++f) {
     AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
+    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
 
     if (cells.size() == 1) {
       if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {
@@ -190,8 +190,8 @@ DivGradTest::TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres)
       } else {
         if (bc_markers_[f] == Operators::OPERATOR_BC_NONE) { bc_values_[f] = 0.0; }
 
-        AmanziGeometry::Point fpoint = mesh_->face_centroid(f);
-        AmanziGeometry::Point cpoint = mesh_->cell_centroid(cells[0]);
+        AmanziGeometry::Point fpoint = mesh_->getFaceCentroid(f);
+        AmanziGeometry::Point cpoint = mesh_->getCellCentroid(cells[0]);
         double dx = std::sqrt((fpoint - cpoint) * (fpoint - cpoint));
 
         double dp = std::abs(bc_values_[f]) * dx;

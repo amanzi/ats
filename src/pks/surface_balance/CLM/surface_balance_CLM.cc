@@ -105,29 +105,29 @@ SurfaceBalanceCLM::Setup()
   // -- snow depth
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: other primary variables
   // -- surface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
   S_->Require<CompositeVector, CompositeVectorSpace>(surf_water_src_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(surf_water_src_key_, tag_next_, *S_);
 
   // -- subsurface water source  -- note we keep old and new in case of Crank-Nicholson Richards PK
   S_->Require<CompositeVector, CompositeVectorSpace>(ss_water_src_key_, tag_next_, name_)
     .SetMesh(subsurf_mesh)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(ss_water_src_key_, tag_next_, *S_);
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
 
   // Set up the CLM object
-  ATS::CLM::init(subsurf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED),
-                 mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED),
+  ATS::CLM::init(subsurf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
+                 mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
                  2,
-                 mesh_->get_comm()->MyPID(),
+                 mesh_->getComm()->MyPID(),
                  3);
 }
 
@@ -141,128 +141,128 @@ SurfaceBalanceCLM::SetupDependencies_(const Tag& tag)
   // requirements: energy balance diagnostic variables.  Only at the new time.
   // No evaluators for now?
   // S_->Require<CompositeVector,CompositeVectorSpace>(evap_flux_key_, tag_next_, name_)
-  //   .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::CELL, 1);
+  //   .SetMesh(mesh_)->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   // S_->GetRecord(evap_flux_key_, tag_next_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(qE_lh_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(qE_lh_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(qE_sh_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(qE_sh_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(qE_lw_out_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(qE_lw_out_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(qE_cond_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(qE_cond_key_, tag_next_, name_).set_io_checkpoint(false);
 
   // requirements: other diagnostics
   S_->Require<CompositeVector, CompositeVectorSpace>(snow_swe_key_, tag_next_, name_)
     .SetMesh(snow_mesh)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(snow_swe_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(can_wc_key_, tag_next_, name_)
     .SetMesh(can_mesh)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(can_wc_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(surf_temp_key_, tag_next_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(surf_temp_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(soil_temp_key_, tag_next_, name_)
     .SetMesh(subsurf_mesh)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(soil_temp_key_, tag_next_, name_).set_io_checkpoint(false);
 
   S_->Require<CompositeVector, CompositeVectorSpace>(can_temp_key_, tag_next_, name_)
     .SetMesh(can_mesh)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->GetRecordW(can_temp_key_, tag_next_, name_).set_io_checkpoint(false);
 
   // requirements: independent variables (data from MET)
   S_->RequireEvaluator(met_sw_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_sw_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_lw_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_lw_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_air_temp_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_air_temp_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_vp_air_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_vp_air_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_wind_speed_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_wind_speed_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_prain_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_prain_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S_->RequireEvaluator(met_psnow_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(met_psnow_key_, tag)
     .SetMesh(snow_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: soil state
   S_->RequireEvaluator(pres_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(pres_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(sl_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(sl_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: soil properties
   S_->RequireEvaluator(poro_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(poro_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(sand_frac_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(sand_frac_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(silt_frac_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(silt_frac_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(clay_frac_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(clay_frac_key_, tag)
     .SetMesh(subsurf_mesh)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: surface properties
   S_->RequireEvaluator(color_index_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(color_index_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(pft_index_key_, tag);
   S_->Require<CompositeVector, CompositeVectorSpace>(pft_index_key_, tag)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 }
 
 
@@ -289,7 +289,7 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
 
   // lat/lon
   auto latlon = plist_->get<Teuchos::Array<double>>("latitude,longitude [degrees]");
-  int ncols = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncols = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   double latlon_arr[ncols][2];
   for (int i = 0; i != ncols; ++i) {
     latlon_arr[i][0] = latlon[0];
@@ -324,13 +324,13 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
   // CLM setup stage
   ATS::CLM::setup_begin();
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
-  Epetra_MultiVector dz(subsurf_mesh->cell_map(false), 1);
+  Epetra_MultiVector dz(subsurf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
   for (int col = 0; col != ncols; ++col) {
-    auto& faces = subsurf_mesh->faces_of_column(col);
-    auto& cells = subsurf_mesh->cells_of_column(col);
+    auto& faces = subsurf_mesh->columns.getFaces(col);
+    auto& cells = subsurf_mesh->columns.getCells(col);
     for (int i = 0; i != cells.size(); ++i) {
       dz[0][cells[i]] =
-        subsurf_mesh->face_centroid(faces[i])[2] - subsurf_mesh->face_centroid(faces[i + 1])[2];
+        subsurf_mesh->getFaceCentroid(faces[i])[2] - subsurf_mesh->getFaceCentroid(faces[i + 1])[2];
       AMANZI_ASSERT(dz[0][cells[i]] > 0.);
     }
   }
@@ -371,7 +371,7 @@ SurfaceBalanceCLM::AdvanceStep(double t_old, double t_new, bool reinit)
 
   bool debug = false;
   Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
-  int rank = mesh_->get_comm()->MyPID();
+  int rank = mesh_->getComm()->MyPID();
   double dt = t_new - t_old;
   AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4);
 

@@ -83,8 +83,6 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
   Epetra_IntVector downwind_cell(*face_coef.ComponentMap(face_component, true));
   downwind_cell.PutValue(-1);
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
   int nfaces_local = flux.size("face", false);
 
   bool has_cells = face_coef.HasComponent("cell");
@@ -93,7 +91,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
   int ncells = cell_coef.size(cell_component, true);
   for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    const auto& [faces, fdirs] = mesh->getCellFacesAndDirections(c);
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
@@ -203,7 +201,7 @@ UpwindTotalFlux::UpdateDerivatives(
   // Grab mesh and allocate space
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = dconductivity.Mesh();
   unsigned int nfaces_owned =
-    mesh->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+    mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   Jpp_faces->resize(nfaces_owned);
 
   // workspace
@@ -213,17 +211,14 @@ UpwindTotalFlux::UpdateDerivatives(
 
   // Identify upwind/downwind cells for each local face.  Note upwind/downwind
   // may be a ghost cell.
-  Epetra_IntVector upwind_cell(mesh->face_map(true));
+  Epetra_IntVector upwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE,true));
   upwind_cell.PutValue(-1);
-  Epetra_IntVector downwind_cell(mesh->face_map(true));
+  Epetra_IntVector downwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE,true));
   downwind_cell.PutValue(-1);
-
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
 
   int ncells = dcell_v.MyLength();
   for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    const auto& [faces, fdirs] = mesh->getCellFacesAndDirections(c);
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
@@ -252,8 +247,7 @@ UpwindTotalFlux::UpdateDerivatives(
     int dw = downwind_cell[f];
     AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
-    AmanziMesh::Entity_ID_List cells;
-    mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     int mcells = cells.size();
 
     // uw coef
@@ -313,7 +307,7 @@ UpwindTotalFlux::UpdateDerivatives(
         p[1] = bc_values[f];
         double dp = p[0] - p[1];
 
-        (*Jpp)(0, 0) = dp * mesh->face_area(f) * dK_dp[0];
+        (*Jpp)(0, 0) = dp * mesh->getFaceArea(f) * dK_dp[0];
       } else {
         (*Jpp)(0, 0) = 0.;
       }
@@ -322,8 +316,8 @@ UpwindTotalFlux::UpdateDerivatives(
       p[0] = pres_v[0][cells[0]];
       p[1] = pres_v[0][cells[1]];
 
-      (*Jpp)(0, 0) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[0];
-      (*Jpp)(0, 1) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[1];
+      (*Jpp)(0, 0) = (p[0] - p[1]) * mesh->getFaceArea(f) * dK_dp[0];
+      (*Jpp)(0, 1) = (p[0] - p[1]) * mesh->getFaceArea(f) * dK_dp[1];
       (*Jpp)(1, 0) = -(*Jpp)(0, 0);
       (*Jpp)(1, 1) = -(*Jpp)(0, 1);
     }

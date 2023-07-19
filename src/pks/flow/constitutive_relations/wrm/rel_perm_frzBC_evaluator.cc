@@ -125,7 +125,7 @@ RelPermFrzBCEvaluator::EnsureCompatibility_ToDeps_(State& S)
       } else {
         CompositeVectorSpace surf_kr_fac;
         surf_kr_fac.SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
         S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(surf_kr_fac);
       }
     }
@@ -170,16 +170,15 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
     Epetra_MultiVector& res_bf = *result[0]->ViewComponent("boundary_face", false);
 
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     // Evaluate the model to calculate krel.
-    AmanziMesh::Entity_ID_List cells;
     int nbfaces = res_bf.MyLength();
     for (unsigned int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];
@@ -222,14 +221,14 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
     Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = S.GetMesh(surf_domain_);
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     unsigned int nsurf_cells =
-      surf_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+      surf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     for (unsigned int sc = 0; sc != nsurf_cells; ++sc) {
       // need to map from surface quantity on cells to subsurface boundary_face quantity
-      AmanziMesh::Entity_ID f = surf_mesh->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       AmanziMesh::Entity_ID bf = vandelay_map.LID(face_map.GID(f));
 
       res_bf[0][bf] = std::max(surf_kr[0][sc], min_val_);

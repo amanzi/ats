@@ -22,15 +22,15 @@ computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& 
 {
   depth.PutScalar(-1);
   AMANZI_ASSERT(depth.MyLength() ==
-                mesh.num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
-  int d = mesh.space_dimension() - 1;
-  for (int col = 0; col != mesh.num_columns(); ++col) {
-    const auto& col_faces = mesh.faces_of_column(col);
-    const auto& col_cells = mesh.cells_of_column(col);
-    double top_z = mesh.face_centroid(col_faces[0])[d];
+                mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+  int d = mesh.getSpaceDimension() - 1;
+  for (int col = 0; col != mesh.columns.num_columns_owned; ++col) {
+    const auto& col_faces = mesh.columns.getFaces(col);
+    const auto& col_cells = mesh.columns.getCells(col);
+    double top_z = mesh.getFaceCentroid(col_faces[0])[d];
     for (int i = 0; i != col_cells.size(); ++i) {
       double cell_z =
-        (mesh.face_centroid(col_faces[i])[d] + mesh.face_centroid(col_faces[i + 1])[d]) / 2;
+        (mesh.getFaceCentroid(col_faces[i])[d] + mesh.getFaceCentroid(col_faces[i + 1])[d]) / 2;
       depth[0][col_cells[i]] = top_z - cell_z;
     }
   }
@@ -46,14 +46,14 @@ computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& dept
 {
   depth.PutScalar(-1);
   AMANZI_ASSERT(depth.MyLength() ==
-                mesh.num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED));
-  int d = mesh.space_dimension() - 1;
-  for (int col = 0; col != mesh.num_columns(); ++col) {
-    const auto& col_faces = mesh.faces_of_column(col);
-    const auto& col_cells = mesh.cells_of_column(col);
-    double top_z = mesh.face_centroid(col_faces[0])[d];
+                mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+  int d = mesh.getSpaceDimension() - 1;
+  for (int col = 0; col != mesh.columns.num_columns_owned; ++col) {
+    const auto& col_faces = mesh.columns.getFaces(col);
+    const auto& col_cells = mesh.columns.getCells(col);
+    double top_z = mesh.getFaceCentroid(col_faces[0])[d];
     for (int i = 0; i != col_cells.size(); ++i) {
-      double cell_z = mesh.cell_centroid(col_cells[i])[d];
+      double cell_z = mesh.getCellCentroid(col_cells[i])[d];
       depth[0][col_cells[i]] = top_z - cell_z;
     }
   }

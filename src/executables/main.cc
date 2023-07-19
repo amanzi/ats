@@ -213,5 +213,8 @@ main(int argc, char* argv[])
     }
   }
   Teuchos::TimeMonitor::summarize(teuchos_comm.ptr(), std::cout);
+  }
+  Kokkos::finalize(); 
   return ret;
 }
+  

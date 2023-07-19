@@ -92,12 +92,12 @@ MPCCoupledDualMediaWater::Initialize(const Teuchos::Ptr<State>& S)
   cvs_matrix_faces->SetMesh(mesh_matrix)
     ->SetGhosted(true)
     ->AddComponent(
-      "face", AmanziMesh::FACE, Teuchos::rcpFromRef(mmap0), Teuchos::rcpFromRef(gmap0), 1);
+      "face", AmanziMesh::Entity_kind::FACE, Teuchos::rcpFromRef(mmap0), Teuchos::rcpFromRef(gmap0), 1);
 
   cvs_macropore_faces->SetMesh(mesh_macropore)
     ->SetGhosted(true)
     ->AddComponent(
-      "face", AmanziMesh::FACE, Teuchos::rcpFromRef(mmap1), Teuchos::rcpFromRef(gmap1), 1);
+      "face", AmanziMesh::Entity_kind::FACE, Teuchos::rcpFromRef(mmap1), Teuchos::rcpFromRef(gmap1), 1);
 
   // create a global problem
   // sub_pks_[0]->my_pde(Operators::PDE_DIFFUSION)->ApplyBCs(true, true, true);

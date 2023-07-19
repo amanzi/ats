@@ -99,15 +99,14 @@ ManningCoefficientLitterEvaluator::Evaluate_(const State& S,
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
-    AmanziMesh::Entity_ID_List cells;
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     int ncomp = result[0]->size("boundary_face", false);
     for (int bf = 0; bf != ncomp; ++bf) {
       // given a boundary face, we need the internal cell to choose the right model
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*models_->first)[cells[0]];
@@ -164,16 +163,15 @@ ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
-    const Epetra_Map& vandelay_map = mesh->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh->face_map(false);
-    AmanziMesh::Entity_ID_List cells;
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
 
     int ncomp = result[0]->size("boundary_face", false);
     if (wrt_key == ld_key_) {
       for (int bf = 0; bf != ncomp; ++bf) {
         // given a boundary face, we need the internal cell to choose the right model
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int index = (*models_->first)[cells[0]];
@@ -185,7 +183,7 @@ ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(
       for (int bf = 0; bf != ncomp; ++bf) {
         // given a boundary face, we need the internal cell to choose the right model
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(cells.size() == 1);
 
         int index = (*models_->first)[cells[0]];
@@ -230,7 +228,7 @@ createManningCoefPartition(Teuchos::ParameterList& plist)
   }
 
   Teuchos::RCP<Functions::MeshPartition> part =
-    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL, region_list));
+    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::Entity_kind::CELL, region_list));
 
   return Teuchos::rcp(new ManningCoefPartition(part, models));
 }

@@ -131,7 +131,7 @@ MPCDelegateEWC::initialize()
 
   // initialize the Jacobian
   if (precon_type_ == PRECON_EWC || precon_type_ == PRECON_SMART_EWC) {
-    int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+    int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     jac_.resize(ncells, WhetStone::Tensor(2, 2));
   }
 
@@ -238,7 +238,7 @@ MPCDelegateEWC::update_precon_ewc_(double t, Teuchos::RCP<const TreeVector> up, 
     *S_->GetDerivativePtr<CompositeVector>(wc_key_, tag_next_, pres_key_, tag_next_)
        ->ViewComponent("cell", false);
 
-  int ncells = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells; ++c) {
     jac_[c](0, 0) = dwcdp[0][c];
     jac_[c](0, 1) = dwcdT[0][c];

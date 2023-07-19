@@ -86,24 +86,24 @@ MPCCoupledWaterSplitFlux::Setup()
         Tag ds_tag_next = get_ds_tag_next_(domain);
         S_->Require<CompositeVector, CompositeVectorSpace>(p_key, ds_tag_next, p_key)
           .SetMesh(S_->GetMesh(domain))
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+          ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
         requireEvaluatorPrimary(p_key, ds_tag_next, *S_);
       }
     } else {
       S_->Require<CompositeVector, CompositeVectorSpace>(
           p_lateral_flow_source_, tags_[1].second, p_lateral_flow_source_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       requireEvaluatorPrimary(p_lateral_flow_source_, tags_[1].second, *S_);
     }
 
     // also need conserved quantities at old and new times
     S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].second)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->Require<CompositeVector, CompositeVectorSpace>(p_conserved_variable_star_, tags_[0].first)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].second);
     //S_->RequireEvaluator(p_conserved_variable_star_, tags_[0].first);
   }
