@@ -85,12 +85,9 @@ public:
                              double const * const elm_evaporation,
                              double const * const elm_transpiration);
 
-  void get_waterstate(double * const surface_ponded_depth,
-                      double * const water_table_depth,
-                      double * const soil_pressure,
-                      double * const soil_psi,
-                      double * const sat_liq,
-                      double * const sat_ice);
+  void get_waterstate(double * const ponded_depth,
+                      double * const wt_depth,
+                      double * const sat_liq);
 
   void get_water_fluxes(double * const soil_infiltration,
                         double * const evaporation,
@@ -100,6 +97,8 @@ public:
 
  private:
   void init_pressure_from_wc_(double const * const elm_water_content);
+  void init_pressure_from_wt_(double const depth_to_wt);
+  std::vector<double> calcDZ_();
 
   void copyToSurf_(double const * const in, const Key& key, Key owner="");
   void copyToSub_(double const * const in, const Key& key, Key owner="");

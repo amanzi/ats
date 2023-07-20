@@ -130,13 +130,10 @@ void ats_set_sources(ELM_ATSDriver_ptr ats,
 void ats_get_waterstate(ELM_ATSDriver_ptr ats,
                           double * const surface_ponded_depth,
                           double * const water_table_depth,
-                          double * const soil_pressure,
-                          double * const soil_psi,
-                          double * const sat_liq,
-                          double * const sat_ice)
+                          double * const sat_liq)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
-    ->get_waterstate(surface_ponded_depth, water_table_depth, soil_pressure, soil_psi, sat_liq, sat_ice);
+    ->get_waterstate(surface_ponded_depth, water_table_depth, sat_liq);
 }
 
 

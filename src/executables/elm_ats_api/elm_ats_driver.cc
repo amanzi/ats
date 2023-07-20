@@ -293,7 +293,17 @@ void ELM_ATSDriver::initialize(double t,
   Coordinator::initialize();
 
   // initialize pressure field
-  ELM_ATSDriver::init_pressure_from_wc_(elm_water_content);
+  //ELM_ATSDriver::init_pressure_from_wc_(elm_water_content);
+  ELM_ATSDriver::init_pressure_from_wt_(5.0);
+
+  // mark pressure as changed and update face values
+  changedEvaluatorPrimary(pres_key_, Amanzi::Tags::NEXT, *S_);
+  DeriveFaceValuesFromCellValues(S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow"));
+  S_->GetRecordW(pres_key_, Amanzi::Tags::NEXT, "flow").set_initialized();
+
+  // update saturation and water content
+  S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT).Update(*S_, sat_key_);
+  S_->GetEvaluator(wc_key_, Amanzi::Tags::NEXT).Update(*S_, wc_key_);
 
   // set as zero and tag as initialized
   initZero_(root_frac_key_);
@@ -308,79 +318,6 @@ void ELM_ATSDriver::initialize(double t,
   // visualization at IC -- TODO remove this or place behind flag
   visualize();
   checkpoint();
-}
-
-// use incoming water content to initialize pressure field
-void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_content)
-{
-  // gravity, atmospheric pressure, and liquid water density
-  // hardwired for now
-  const double g = 9.80665;
-  const double p_atm = 101325.0;
-  const double rho = 1000.0;
-
-  // evaluators
-  S_->GetEvaluator(subsurf_mass_dens_key_, Amanzi::Tags::NEXT).Update(*S_, subsurf_mass_dens_key_);
-  const auto& mass_d = *S_->Get<CompositeVector>(subsurf_mass_dens_key_, Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-  S_->GetEvaluator(poro_key_, Amanzi::Tags::NEXT).Update(*S_, poro_key_);
-  const auto& por = *S_->Get<CompositeVector>(poro_key_, Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-  S_->GetEvaluator(cv_key_, Amanzi::Tags::NEXT).Update(*S_, cv_key_);
-  const auto& volume = *S_->Get<CompositeVector>(cv_key_, Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-  S_->GetEvaluator(surf_cv_key_, Amanzi::Tags::NEXT).Update(*S_, surf_cv_key_);
-  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Amanzi::Tags::NEXT)
-    .ViewComponent("cell", false);
-
-  // writable to pressure
-  auto& pres = *S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow")
-    .ViewComponent("cell", false);
-
-  // WRM model
-  auto& wrm_eval = S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT);
-  auto wrm_ptr = dynamic_cast<Amanzi::Flow::WRMEvaluator*>(&wrm_eval);
-  AMANZI_ASSERT(wrm_ptr != nullptr);
-  auto wrms_ = wrm_ptr->get_WRMs();
-  AMANZI_ASSERT(wrms_->second.size() == 1); // only supports one WRM for now
-  Teuchos::RCP<Flow::WRM> wrm_ = wrms_->second[0];
-
-  // initialize pressure field from ELM water content
-  // per-column hydrostatic pressure in areas of continuous total saturation
-  // unsaturated areas are considered to be in contact with atmosphere
-  for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
-    int top_sat_idx = -1;
-    double sat_depth = 0.0;
-    for (int j=0; j!=ncells_per_col_; ++j) {
-      // convert ELM water content (kg/m2] to saturation of pore space (0 to 1) [-]
-      // VWC  =  elm_wc  *  1/dz    *  1/porosity  *  1/mass density
-      // [-]  =  [kg/m2] *  [m^-1]  *  [-]         *  [m3/kg]
-      const double dz = volume[0][cells_of_col[j]] / area[0][i];
-      const double factor = 1 / (dz * por[0][cells_of_col[j]] * mass_d[0][cells_of_col[j]]);
-      const double satl = elm_water_content[j * ncolumns_ + i] * factor;
-      if (satl < 1.0) {
-        pres[0][cells_of_col[j]] = p_atm - wrm_->capillaryPressure(satl);
-        top_sat_idx = -1;
-      } else {
-        if (top_sat_idx == -1) {
-          top_sat_idx = j;
-          sat_depth = 0.0;
-        }
-        sat_depth += dz;
-        pres[0][cells_of_col[j]] = p_atm + rho * g * (sat_depth - dz/2);
-      }
-    }
-  }
-
-  // mark pressure as changed and update face values
-  changedEvaluatorPrimary(pres_key_, Amanzi::Tags::NEXT, *S_);
-  DeriveFaceValuesFromCellValues(S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow"));
-  S_->GetRecordW(pres_key_, Amanzi::Tags::NEXT, "flow").set_initialized();
-
-  // update saturation and water content
-  S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT).Update(*S_, sat_key_);
-  S_->GetEvaluator(wc_key_, Amanzi::Tags::NEXT).Update(*S_, wc_key_);
 }
 
 
@@ -437,6 +374,7 @@ void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
 
 
 // simulates external timeloop with dt coming from calling model
+// for testing
 void ELM_ATSDriver::advance_test()
 {
   while (S_->get_time() < t1_) {
@@ -500,35 +438,37 @@ void ELM_ATSDriver::set_veg_properties(double const * const rooting_fraction)
 
 
 void
-ELM_ATSDriver::set_potential_sources(double const * const elm_surface_input,
+ELM_ATSDriver::set_potential_sources(double const * const elm_surface_source,
                                      double const * const elm_evaporation,
                                      double const * const elm_transpiration)
 {
-  // ELM's infiltration, evaporation, and transpiration are in units of mm s^-1
+  // infiltration, evaporation, and transpiration
+  // ELM's fluxes are in units of mm s^-1 (or kg m^-2 s^-1)
   // ATS units are in mol m^-2 s^-1
-
   // kg / m2 / s  * m3/kg * mol/m3 = mol m^-2 s^-1
   // or
   // mm / s       *  m/mm * mol/m3 = mol m^-2 s^-1
-  auto& in = *S_->GetW<CompositeVector>(pot_infilt_key_, Amanzi::Tags::NEXT, pot_infilt_key_)
+
+  auto& input = *S_->GetW<CompositeVector>(pot_infilt_key_, Amanzi::Tags::NEXT, pot_infilt_key_)
     .ViewComponent("cell", false);
-  auto& ev = *S_->GetW<CompositeVector>(pot_evap_key_, Amanzi::Tags::NEXT, pot_evap_key_)
+  auto& evap = *S_->GetW<CompositeVector>(pot_evap_key_, Amanzi::Tags::NEXT, pot_evap_key_)
     .ViewComponent("cell", false);
-  auto& tr = *S_->GetW<CompositeVector>(pot_trans_key_, Amanzi::Tags::NEXT, pot_trans_key_)
+  auto& trans = *S_->GetW<CompositeVector>(pot_trans_key_, Amanzi::Tags::NEXT, pot_trans_key_)
     .ViewComponent("cell", false);
-  AMANZI_ASSERT(in.MyLength() == ncolumns_);
-  AMANZI_ASSERT(ev.MyLength() == ncolumns_);
-  AMANZI_ASSERT(tr.MyLength() == ncolumns_);
+  AMANZI_ASSERT(input.MyLength() == ncolumns_);
+  AMANZI_ASSERT(evap.MyLength() == ncolumns_);
+  AMANZI_ASSERT(trans.MyLength() == ncolumns_);
 
   S_->GetEvaluator(surf_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, surf_mol_dens_key_);
   const auto& surf_d = *S_->Get<CompositeVector>(surf_mol_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
+  const double m_per_mm{0.001};
   for (int i=0; i!=ncolumns_; ++i) {
-    const double factor = 0.001 * surf_d[0][i];
-    in[0][i] = elm_surface_input[i] * factor;
-    ev[0][i] = elm_evaporation[i]  * factor;
-    tr[0][i] = elm_transpiration[i]  * factor;
+    const double factor = m_per_mm * surf_d[0][i];
+    input[0][i] = elm_surface_source[i] * factor;
+    evap[0][i] = elm_evaporation[i]  * factor;
+    trans[0][i] = elm_transpiration[i]  * factor;
   }
 
   changedEvaluatorPrimary(pot_infilt_key_, Amanzi::Tags::NEXT, *S_);
@@ -540,10 +480,7 @@ ELM_ATSDriver::set_potential_sources(double const * const elm_surface_input,
 void
 ELM_ATSDriver::get_waterstate(double * const ponded_depth,
         double * const wt_depth,
-        double * const soil_water_potential,
-        double * const matric_potential,
-        double * const sat_liq,
-        double * const sat_ice) // remove?
+        double * const sat_liq)
 {
   // convert saturation into [kg/m2] from [-]
   S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT).Update(*S_, sat_key_);
@@ -558,13 +495,14 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
   const auto& dens = *S_->Get<CompositeVector>(subsurf_mass_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
+  auto dz = calcDZ_();
+
   // TODO look into ELM effective porosity, ATS ice density, ice saturation
   for (int i=0; i!=ncolumns_; ++i) {
     const auto& faces = mesh_subsurf_->faces_of_column(i);
     const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      const double dz = mesh_subsurf_->face_centroid(faces[j])[2] - mesh_subsurf_->face_centroid(faces[j + 1])[2];
-      sat_liq[j * ncolumns_ + i] = satl[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]] * dz;
+      sat_liq[j * ncolumns_ + i] = satl[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]] * dz[j];
     }
   }
 
@@ -579,28 +517,6 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
   // water table depth
   S_->GetEvaluator(wtd_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
   copyFromSurf_(wt_depth, wtd_key_);
-
-  // Soil matric potential
-  // convert ATS Pa to -mmH2O
-//  int z_index = mesh_subsurf_->space_dimension() - 1;
-//  const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Amanzi::Tags::DEFAULT);
-//  const double g_inv = 1.0 / gravity[z_index]; // should be -9.80665 m s^-2
-//    
-//  S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
-//   const auto& pres = *S_->Get<CompositeVector>(pres_key_, Amanzi::Tags::NEXT)
-//     .ViewComponent("cell", false);
-//  
-//  S_->GetEvaluator(pc_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
-//  const auto& pc = *S_->Get<CompositeVector>(pc_key_, Amanzi::Tags::NEXT)
-//    .ViewComponent("cell", false);
-//
-//  for (int i=0; i!=ncolumns_; ++i) {
-//    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
-//    for (int j=0; j!=ncells_per_col_; ++j) {
-//      matric_potential[j * ncolumns_ + i] = pc[0][cells_of_col[j]] * g_inv;
-//      soil_water_potential[j * ncolumns_ + i] = 0.101325 - 1.e-6 * pres[0][cells_of_col[j]];
-//    }
-//  }
 }
 
 
@@ -612,7 +528,6 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
         double * const net_runon)
 {
   // Convert and send ATS fluxes to ELM
-
   // Flux units:          ATS             ELM
   // surface-evaporation  [mol / m2 / s]  [mmH2o/s]
   // surface-infiltration [mol / m2 / s]  [mmH2o/s]
@@ -622,17 +537,15 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
   S_->GetEvaluator(infilt_key_, Amanzi::Tags::NEXT).Update(*S_, infilt_key_);
   const auto& infilt = *S_->Get<CompositeVector>(infilt_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
-
   S_->GetEvaluator(evap_key_, Amanzi::Tags::NEXT).Update(*S_, evap_key_);
   const auto& evap = *S_->Get<CompositeVector>(evap_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
-
   S_->GetEvaluator(surf_mol_dens_key_, Amanzi::Tags::NEXT).Update(*S_, surf_mol_dens_key_);
   const auto& surfdens = *S_->Get<CompositeVector>(surf_mol_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
   // convert mol/m2/s to mmH2O/s for ELM
-    // mol/m2/s * m3/mol  = m/s * mm/m = mm/s
+  // mol/m2/s * m3/mol  = m/s * mm/m = mm/s
   for (int i=0; i!=ncolumns_; ++i) {
     const double mm_per_mol = 1000.0 / surfdens[0][i];
     surf_subsurf_flx[i] = infilt[0][i] * mm_per_mol;
@@ -648,19 +561,128 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
   const auto& subsurfdens = *S_->Get<CompositeVector>(subsurf_mol_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
-  // convert mol/m3/s to mmH2O/s by integrating over dz - NO?
-  // treat the same as surface fluxes?
+  auto dz = calcDZ_();
+
+  // convert mol/m3/s to mmH2O/s for ELM
+  // mol/m3/s * m3/mol * m * mm/m = mm/s
   for (int i=0; i!=ncolumns_; ++i) {
     const auto& faces = mesh_subsurf_->faces_of_column(i);
     const auto& cells = mesh_subsurf_->cells_of_column(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      double dz = mesh_subsurf_->face_centroid(faces[j])[2] - mesh_subsurf_->face_centroid(faces[j + 1])[2];
-      AMANZI_ASSERT(dz > 0.);
-      const double factor = dz * 1000.0 / subsurfdens[0][cells[j]];
+      const double factor = dz[j] * 1000.0 / subsurfdens[0][cells[j]];
       transpiration[j * ncolumns_ + i] = trans[0][cells[j]] * factor;
     }
   }
   // unclear how to implement net_subsurface_fluxes and net_runon... --ETC
+}
+
+
+// use prescribed WT depth to initialize terrain-following hydrostatic pressure field
+void ELM_ATSDriver::init_pressure_from_wt_(double const depth_to_wt)
+{
+  // atmospheric pressure and density-gravity factor
+  // hardwired for now
+  const double p_atm = 101325.0;
+  const double rho_g = 9806.65;
+
+  // writable to pressure
+  auto& pres = *S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow")
+    .ViewComponent("cell", false);
+
+  auto dz = calcDZ_();
+  // apply hydrostatic pressure on each column
+  for (int i=0; i!=ncolumns_; ++i) {
+    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    double cell_bottom{0.0};
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      cell_bottom += dz[j];
+      double cell_center = cell_bottom - dz[j]/2;
+      pres[0][cells_of_col[j]] = p_atm + rho_g * (cell_center - depth_to_wt);
+    }
+  }
+}
+
+// use incoming water content to initialize pressure field
+void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_content)
+{
+  // atmospheric pressure and density-gravity factor
+  // hardwired for now
+  const double p_atm = 101325.0;
+  const double rho_g = 9806.65;
+
+  // evaluators
+  S_->GetEvaluator(subsurf_mass_dens_key_, Amanzi::Tags::NEXT).Update(*S_, subsurf_mass_dens_key_);
+  const auto& mass_d = *S_->Get<CompositeVector>(subsurf_mass_dens_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+  S_->GetEvaluator(poro_key_, Amanzi::Tags::NEXT).Update(*S_, poro_key_);
+  const auto& por = *S_->Get<CompositeVector>(poro_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+  S_->GetEvaluator(cv_key_, Amanzi::Tags::NEXT).Update(*S_, cv_key_);
+
+  // writable to pressure
+  auto& pres = *S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow")
+    .ViewComponent("cell", false);
+
+  // WRM model
+  auto& wrm_eval = S_->GetEvaluator(sat_key_, Amanzi::Tags::NEXT);
+  auto wrm_ptr = dynamic_cast<Amanzi::Flow::WRMEvaluator*>(&wrm_eval);
+  AMANZI_ASSERT(wrm_ptr != nullptr);
+  auto wrms_ = wrm_ptr->get_WRMs();
+  AMANZI_ASSERT(wrms_->second.size() == 1); // only supports one WRM for now
+  Teuchos::RCP<Flow::WRM> wrm_ = wrms_->second[0];
+
+  auto dz = calcDZ_();
+
+  // initialize pressure field from ELM water content
+  // per-column hydrostatic pressure in areas of continuous total saturation
+  // unsaturated areas are considered to be in contact with atmosphere
+  for (int i=0; i!=ncolumns_; ++i) {
+    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    int top_sat_idx{-1};
+    double sat_depth{0.0};
+    for (int j=0; j!=ncells_per_col_; ++j) {
+      // convert ELM water content [kg/m2] to saturation of pore space (0 to 1) [-]
+      // VWC  =  elm_wc  *  1/dz    *  1/porosity  *  1/mass density
+      // [-]  =  [kg/m2] *  [m^-1]  *  [-]         *  [m3/kg]
+      const double factor = 1 / (dz[j] * por[0][cells_of_col[j]] * mass_d[0][cells_of_col[j]]);
+      double satl = elm_water_content[j * ncolumns_ + i] * factor;
+      if (j > 9) satl = 1.0; // hardwire bottom 5 layers (ELM's bedrock) as fully saturated
+      if (satl < 1.0) {
+        pres[0][cells_of_col[j]] = p_atm - wrm_->capillaryPressure(satl);
+        top_sat_idx = -1;
+      } else {
+        if (top_sat_idx == -1) {
+          top_sat_idx = j;
+          sat_depth = 0.0;
+        }
+        sat_depth += dz[j];
+        pres[0][cells_of_col[j]] = p_atm + rho_g * (sat_depth - dz[j]/2);
+      }
+    }
+  }
+}
+
+
+// calculate dz for each cell in column
+// only use this if all columns have identical vertical spacing
+// returns a vector of length ncells_per_column
+std::vector<double> ELM_ATSDriver::calcDZ_()
+{
+  // use volume/area to calculate dz
+  S_->GetEvaluator(cv_key_, Amanzi::Tags::NEXT).Update(*S_, cv_key_);
+  const auto& volume = *S_->Get<CompositeVector>(cv_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+  S_->GetEvaluator(surf_cv_key_, Amanzi::Tags::NEXT).Update(*S_, surf_cv_key_);
+  const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Amanzi::Tags::NEXT)
+    .ViewComponent("cell", false);
+
+  // assume all columns have the same dz spacing
+  const auto& cells_of_col = mesh_subsurf_->cells_of_column(0);
+  std::vector<double> dz;
+  for (int i=0; i<ncells_per_col_; ++i)
+    dz.push_back(volume[0][cells_of_col[i]] / area[0][0]);
+
+  return dz;
 }
 
 
