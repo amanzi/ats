@@ -260,13 +260,15 @@ class VisFile:
         round : int
           Decimal places to round centroids to.  Supports sorting.
         """
+
         if cycle is None:
             cycle = self.cycles[0]
-        
+
         centroids = meshElemCentroids(self.directory, self.mesh_filename, cycle, round)
         if order is None and shape is None and not columnar:
             self.map = None
             self.centroids = centroids
+       
         else:
             self.centroids, self.map = structuredOrdering(centroids, order, shape, columnar)
 
@@ -328,7 +330,8 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
 
         mesh = dat[key]['Mesh']
         elem_conn = mesh['MixedElements'][:,0]
-        coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
+        coords = coords = mesh['Nodes'][:]
+        #coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
         elem_type, conns = read_conn(elem_conn)
 
     return elem_type, coords, conns
@@ -394,7 +397,6 @@ def meshElemCentroids(directory=".", filename="ats_vis_mesh.h5", key=None, round
 
     """
     elem_type, coords, conn = meshXYZ(directory, filename, key)
-
     centroids = np.zeros((len(conn),3),'d')
     for i,elem in enumerate(conn):
         elem_coords = np.array([coords[gid] for gid in elem[1:]])
@@ -480,6 +482,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     """
     if columnar:
         order = ['x', 'y', 'z',]
+        
     
     # Surely there is a cleaner way to do this in numpy?
     # The current approach packs, sorts, and unpacks.
