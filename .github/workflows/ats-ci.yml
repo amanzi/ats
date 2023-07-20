@@ -77,9 +77,9 @@ jobs:
     name: Run ats tests on amd64 image
     needs: buildx_test
     steps:
-      - name: Check out the Amanzi repo
+      - name: Check out the ats repo
         uses: actions/checkout@v3
-      -  name: Extract the branch name
+      - name: Extract the branch name
         id: branch
         run:
           echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
@@ -97,11 +97,12 @@ jobs:
     name: Run ats tests on arm64 image
     needs: buildx_test
     steps: 
-      - name: Check out the Amanzi repo
-        uses: actions/checkout@v3
-      -  name: Extract the branch name
+      - name: Check out the ats repo
+        uses: actions/checkout@v3    
+      - name: Extract the ATS branch name
         id: branch
-        run:
+        working-directory: Docker
+        run: |
           echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
       - name: Filter the branch name to generate a tag for Docker
         id: tag
