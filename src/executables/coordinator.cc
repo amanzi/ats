@@ -640,6 +640,7 @@ Coordinator::reportOneTimer_(const std::string& timer_name)
   Teuchos::reduceAll(*teuchos_comm_, Teuchos::REDUCE_MIN, 1, &l_time, &min_time);
   Teuchos::reduceAll(*teuchos_comm_, Teuchos::REDUCE_MAX, 1, &l_time, &max_time);
   Teuchos::reduceAll(*teuchos_comm_, Teuchos::REDUCE_SUM, 1, &l_time, &mean_time);
+  mean_time = mean_time / teuchos_comm_->getSize();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << min_time << " / " << mean_time << " / " << max_time << " (min/mean/max) [s]"
                << std::endl;
