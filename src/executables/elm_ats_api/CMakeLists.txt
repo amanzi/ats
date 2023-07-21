@@ -44,4 +44,4 @@ endif()
 #   LINK_LIBS ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs})
 
 # re-enable later
-##add_subdirectory(test)
+add_subdirectory(test)

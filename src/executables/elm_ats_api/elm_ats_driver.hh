@@ -97,8 +97,9 @@ public:
 
  private:
   void init_pressure_from_wc_(double const * const elm_water_content);
-  void init_pressure_from_wt_(double const depth_to_wt);
-  std::vector<double> calcDZ_();
+  void init_pressure_from_wt_(double depth_to_wt);
+  std::vector<const double> calcDZ_();
+  std::vector<const double> calcCellDepths_();
 
   void copyToSurf_(double const * const in, const Key& key, Key owner="");
   void copyToSub_(double const * const in, const Key& key, Key owner="");

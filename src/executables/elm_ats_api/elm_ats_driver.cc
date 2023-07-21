@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/resource.h>
+#include <numeric>
 #include "errors.hh"
 #include "dbc.hh"
 
@@ -221,14 +222,11 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(wc_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
-
   
   requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-
 
   Coordinator::setup();
   // NOTE: These must be called after Coordinator::setup() until PK_Phys_Default modifies the state eval
@@ -239,7 +237,6 @@ ELM_ATSDriver::setup()
   requireAtNext(pres_key_, Amanzi::Tags::NEXT, *S_, "flow")
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 }
-
 
 
 //
@@ -495,7 +492,7 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
   const auto& dens = *S_->Get<CompositeVector>(subsurf_mass_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
-  auto dz = calcDZ_();
+  const auto dz = calcDZ_();
 
   // TODO look into ELM effective porosity, ATS ice density, ice saturation
   for (int i=0; i!=ncolumns_; ++i) {
@@ -561,7 +558,7 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
   const auto& subsurfdens = *S_->Get<CompositeVector>(subsurf_mol_dens_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
-  auto dz = calcDZ_();
+  const auto dz = calcDZ_();
 
   // convert mol/m3/s to mmH2O/s for ELM
   // mol/m3/s * m3/mol * m * mm/m = mm/s
@@ -578,7 +575,7 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
 
 
 // use prescribed WT depth to initialize terrain-following hydrostatic pressure field
-void ELM_ATSDriver::init_pressure_from_wt_(double const depth_to_wt)
+void ELM_ATSDriver::init_pressure_from_wt_(double depth_to_wt)
 {
   // atmospheric pressure and density-gravity factor
   // hardwired for now
@@ -589,15 +586,13 @@ void ELM_ATSDriver::init_pressure_from_wt_(double const depth_to_wt)
   auto& pres = *S_->GetW<CompositeVector>(pres_key_, Amanzi::Tags::NEXT, "flow")
     .ViewComponent("cell", false);
 
-  auto dz = calcDZ_();
+  const auto cell_centers = calcCellDepths_();
+
   // apply hydrostatic pressure on each column
   for (int i=0; i!=ncolumns_; ++i) {
     const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
-    double cell_bottom{0.0};
     for (int j=0; j!=ncells_per_col_; ++j) {
-      cell_bottom += dz[j];
-      double cell_center = cell_bottom - dz[j]/2;
-      pres[0][cells_of_col[j]] = p_atm + rho_g * (cell_center - depth_to_wt);
+      pres[0][cells_of_col[j]] = p_atm + rho_g * (cell_centers[j] - depth_to_wt);
     }
   }
 }
@@ -631,7 +626,7 @@ void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_conten
   AMANZI_ASSERT(wrms_->second.size() == 1); // only supports one WRM for now
   Teuchos::RCP<Flow::WRM> wrm_ = wrms_->second[0];
 
-  auto dz = calcDZ_();
+  const auto dz = calcDZ_();
 
   // initialize pressure field from ELM water content
   // per-column hydrostatic pressure in areas of continuous total saturation
@@ -666,25 +661,45 @@ void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_conten
 // calculate dz for each cell in column
 // only use this if all columns have identical vertical spacing
 // returns a vector of length ncells_per_column
-std::vector<double> ELM_ATSDriver::calcDZ_()
+std::vector<const double> ELM_ATSDriver::calcDZ_()
 {
   // use volume/area to calculate dz
   S_->GetEvaluator(cv_key_, Amanzi::Tags::NEXT).Update(*S_, cv_key_);
   const auto& volume = *S_->Get<CompositeVector>(cv_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
+
   S_->GetEvaluator(surf_cv_key_, Amanzi::Tags::NEXT).Update(*S_, surf_cv_key_);
   const auto& area = *S_->Get<CompositeVector>(surf_cv_key_, Amanzi::Tags::NEXT)
     .ViewComponent("cell", false);
 
   // assume all columns have the same dz spacing
   const auto& cells_of_col = mesh_subsurf_->cells_of_column(0);
-  std::vector<double> dz;
+  std::vector<const double> dz;
   for (int i=0; i<ncells_per_col_; ++i)
     dz.push_back(volume[0][cells_of_col[i]] / area[0][0]);
 
   return dz;
 }
 
+
+std::vector<const double> ELM_ATSDriver::calcCellDepths_()
+{
+  const auto dz = calcDZ_(); // dz from cell volume/area
+
+  std::vector<double> cell_bot_depth(dz.size());
+  std::partial_sum(dz.begin(), dz.end(), cell_bot_depth.begin()); // depth of bottom face
+
+  std::vector<const double> cell_centers;
+  std::transform(
+    dz.begin(), dz.end(),
+    cell_bot_depth.begin(),
+    std::back_inserter(cell_centers),
+    [](const auto& delz, const auto& depth)
+    { return depth - delz/2; }
+  );
+
+  return cell_centers; // depth to cell center from surface
+}
 
 void ELM_ATSDriver::initZero_(const Key& key)
 {

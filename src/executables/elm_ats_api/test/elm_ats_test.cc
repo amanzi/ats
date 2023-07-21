@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
   auto driver = std::unique_ptr<ATS::ELM_ATSDriver>(ATS::createELM_ATSDriver(&comm, input_filename.data()));
   driver->setup();
   //driver->get_mesh_info(ncols_local, ncols_global, lat.data(), lon.data(), elev.data(), surf_area_m2.data(), pft_i.data(), ncells_per_col, depth.data());
-  driver->initialize();
+  driver->initialize(0.0, soil_pres.data(), satl.data());
   //driver->set_potential_sources(soil_infil.data(), soil_evap.data(), root_tran.data());
   driver->advance_test();
   //driver->get_waterstate(surf_pres.data(), soil_pres.data(), soil_pot.data(), satl.data(), sati.data());
