@@ -957,7 +957,7 @@ class RegressionTestManager(object):
     def num_tests(self):
         return len(self._tests)
 
-    def generate_tests(self, config_file, user_suites, user_tests,
+    def generate_tests(self, config_file, user_suites, user_tests, user_exclude_tests,
                        timeout, check_performance, testlog):
 
         """
@@ -966,7 +966,9 @@ class RegressionTestManager(object):
         self._read_config_file(config_file)
         self._validate_suites()
         user_suites, user_tests = self._validate_user_lists(user_suites,
-                                                            user_tests, testlog)
+                                                            user_tests,
+                                                            user_exclude_tests,
+                                                            testlog)
         self._create_tests(user_suites, user_tests, timeout, check_performance, testlog)
 
     def run_tests(self, dry_run, update, new_test, check_only, run_only, testlog, save_dt_history=False):
@@ -1307,7 +1309,7 @@ class RegressionTestManager(object):
                                "configuration file '{0}' : {1}".format(
                                    self._config_filename, invalid_tests))
 
-    def _validate_user_lists(self, user_suites, user_tests, testlog):
+    def _validate_user_lists(self, user_suites, user_tests, user_exclude_tests, testlog):
         """
         Check that the list of suites or tests passed from the command
         line are valid.
@@ -1339,6 +1341,11 @@ class RegressionTestManager(object):
                         "WARNING : {0} : Skipping test '{1}' (not present or "
                         "misspelled).".format(self._config_filename, test))
                     print(message, file=testlog)
+
+        # filter out excluded tests
+        for exclude in user_exclude_tests:
+            if exclude.lower() in u_tests:
+                u_tests.pop(exclude.lower())
 
         return u_suites, u_tests
 

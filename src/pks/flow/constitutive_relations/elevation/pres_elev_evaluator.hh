@@ -13,7 +13,7 @@
 .. math::
    h + z
 
-`"evaluator type`" = 
+`"evaluator type`" =
 
 .. _pres-elev-evaluator-spec:
 .. admonition:: pres-elev-evaluator-spec

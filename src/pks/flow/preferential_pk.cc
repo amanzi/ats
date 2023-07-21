@@ -54,19 +54,6 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
   coef_grav_key_ =
     Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
 
-  // all manipulation of evaluator lists should happen in constructors (pre-setup)
-  // -- Water retention evaluators for gravity term
-  if (plist_->isSublist("water retention evaluator for gravity term")) {
-    // note this overwrites the parameters from "water retention evaluator"
-    // list set in Richards PK constructor
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
-  }
-  if (S_->GetEvaluatorList(coef_grav_key_).numParams() == 0) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_grav_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
   S_->GetEvaluatorList(coef_grav_key_).set<double>("permeability rescaling", perm_scale_);
 }
 

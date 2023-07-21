@@ -320,6 +320,7 @@ Coordinator::initialize()
         *mesh->second.first,
         S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
       S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
+      S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_io_vis(false);
     }
   }
 

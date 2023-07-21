@@ -13,7 +13,7 @@
 A simple model based on relaxation from current water content to a saturated water content.
 
 .. code::
-   
+
           |
           | source
           V

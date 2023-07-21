@@ -54,22 +54,6 @@ Permafrost::SetupPhysicalEvaluators_()
   //    and at the current time, where it is a copy evaluator
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
-  // -- Water retention evaluators
-  // This deals with deprecated location for the WRM list (in the PK).  Move it
-  // to state.
-  // -- This setup is a little funky -- we use four evaluators to capture the physics.
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "permafrost WRM");
-  }
-  if (!S_->HasEvaluator(coef_key_, tag_next_) &&
-      (S_->GetEvaluatorList(coef_key_).numParams() == 0)) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
-
   // -- saturation
   requireAtNext(sat_key_, tag_next_, *S_)
     .SetMesh(mesh_)
