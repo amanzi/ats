@@ -111,6 +111,9 @@ same region-based partitioning.
       and/or refactored, we must provide this value.  When in doubt, just use
       1.
 
+    * `"soil resistance method`" ``[string]`` **NAN** This denotes what model to use
+      to calculate soil resistance. Currently support {sakagucki_zeng, sellers}.
+
     * `"roughness length of bare ground [m]`" ``[double]`` **NaN** Roughness length of
       the bare soil, used in calculating sensible/latent heat in the
       physics-based SEB model.  A typical value is 0.04.
@@ -177,6 +180,7 @@ struct LandCover {
   double dessicated_zone_thickness; // [m] Thickness over which vapor must diffuse
                                     //  when the soil is dry.
   double clapp_horn_b;              // [-] exponent of the WRM, Clapp & Hornberger eqn 1
+  std::string rs_method;            // soil resistance method {sakagucki_zeng, sellers, TBD}
   double roughness_ground;          // [m] Fetch length for latent/sensible heat fluxes.
   double roughness_snow;            // [m] Fetch length for latent/sensible heat fluxes.
 };
