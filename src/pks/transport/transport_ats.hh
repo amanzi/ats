@@ -1,15 +1,12 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
+  Transport PK
+
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
-*/
-
-/*
-  Transport PK
-
+  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
 */
 
 
@@ -40,7 +37,7 @@ The advection-diffusion equation for component *i* in the surface may be written
       the domain of this PK.
 
     * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-      components that will be transported. Must be in the order: aqueous, gaseous, solid.
+      components that will be transported. Must be in the order: aqueous, gaseous, solid. 
 
     * `"number of aqueous components`" ``[int]`` **-1** The total number of
       aqueous components.  Default value is the length of `"component names`"
@@ -183,7 +180,7 @@ The advection-diffusion equation for component *i* in the surface may be written
    * `"parameters for MODEL`" ``[list]`` where `"MODEL`" is the model name.
 
    IF model == scalar
-
+  
    ONE OF
 
    * `"alpha`" ``[double]`` defines dispersivity in all directions, [m].
@@ -274,6 +271,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "DenseVector.hh"
 
 #include <string>
+#include <vector>
 
 #ifdef ALQUIMIA_ENABLED
 #  include "Alquimia_PK.hh"
@@ -551,8 +549,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   std::vector<std::string> component_names_; // details of components
   std::vector<double> mol_masses_;
+  std::vector<double> max_saturation_vector; //added by bing for reaction
   int num_aqueous, num_gaseous, num_components, num_primary, num_advect;
-  double water_tolerance_, max_tcc_;
+  double water_tolerance_, max_saturation_, max_tcc_; // added by bing
   bool dissolution_;
 
   // io

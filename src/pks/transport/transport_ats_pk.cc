@@ -1,19 +1,17 @@
 /*
-  Copyright 2010-202x held jointly by participating institutions.
-  ATS is released under the three-clause BSD License.
+  Transport PK
+
+  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
+  Amanzi is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
-*/
-
-/*
-  Transport PK
-
+  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
 */
 
 #include <algorithm>
 #include <vector>
+
 
 #include "boost/algorithm/string.hpp"
 #include "Epetra_Vector.h"
@@ -62,6 +60,13 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
     num_components = component_names_.size();
     // otherwise we hopefully get them from chemistry
+  }
+
+  if (plist_->isParameter("component max saturations")) {
+    max_saturation_vector = plist_->get<Teuchos::Array<double>>("component max saturations").toVector(); //added by bing, to allow user to define the component max saturation
+  }else {
+    Errors::Message msg("Transport PK: parameter \"component max saturations\" is missing.");
+    Exceptions::amanzi_throw(msg);
   }
 
   if (plist_->isParameter("component molar masses")) {
@@ -817,12 +822,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt_MPC << std::endl
                << "----------------------------------------------------------------" << std::endl;
 
-  // NOTE: these "flow" variables are hard-coded as Tag::NEXT assuming that
-  // flow is supercycled relative to transport and therefore we must
-  // interpolate the flow variables from the "global" CURRENT+NEXT to the
-  // subcycled current + next.  This would be fixed by having evaluators that
-  // interpolate in time, allowing transport to not have to know how flow is
-  // being integrated... FIXME --etc
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
 
   // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
@@ -832,14 +831,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
-  S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
-  S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
-  mol_dens_prev_ =
-    S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
@@ -852,8 +846,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     for (auto& src : srcs_) {
       if (src->name() == "alquimia source") {
-        // src_factor = water_source / molar_density_liquid, both flow
-        // quantities, see note above.
+        // src_factor = water_source / molar_density_liquid
         S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
         auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
                             .ViewComponent("cell", false);
@@ -901,7 +894,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   double dt_sum = 0.0;
   double dt_cycle;
-  Tag water_tag_current, water_tag_next;
   if (interpolate_ws) {
     dt_cycle = std::min(dt_stable, dt_MPC);
     InterpolateCellVector(*ws_prev_, *ws_, dt_shift, dt_global, *ws_subcycle_current);
@@ -914,27 +906,15 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     ws_next = ws_subcycle_next;
     mol_dens_current = mol_dens_subcycle_current;
     mol_dens_next = mol_dens_subcycle_next;
-    water_tag_current = tag_subcycle_current_;
-    water_tag_next = tag_subcycle_next_;
   } else {
     dt_cycle = dt_MPC;
     ws_current = ws_prev_;
     ws_next = ws_;
     mol_dens_current = mol_dens_prev_;
     mol_dens_next = mol_dens_;
-    water_tag_current = Tags::CURRENT;
-    water_tag_next = Tags::NEXT;
   }
 
-  db_->WriteVector("sat_old",
-                   S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
-  db_->WriteVector("sat_new", S_->GetPtr<CompositeVector>(saturation_key_, water_tag_next).ptr());
-  db_->WriteVector("mol_dens_old",
-                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_current).ptr());
-  db_->WriteVector("mol_dens_new",
-                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_next).ptr());
-  db_->WriteVector("poro", S_->GetPtr<CompositeVector>(porosity_key_, Tags::NEXT).ptr());
-
+  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, Tags::CURRENT).ptr());
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
@@ -1366,28 +1346,33 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   // recover concentration from new conservative state
   for (int c = 0; c < ncells_owned; c++) {
+
+    //double vol_phi_ws_den =
+      //mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     double water_new =
       mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
     double water_sink =
       (*conserve_qty_)[num_components]
                       [c]; // water at the new time + outgoing domain coupling source
+                      
     double water_total = water_new + water_sink;
     AMANZI_ASSERT(water_total >= water_new);
     (*conserve_qty_)[num_components][c] = water_total;
 
-    // if (std::abs((*conserve_qty_)[num_components+1][c] - water_total) > water_tolerance_
-    //     && vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-    //   *vo_->os() << "Water balance error (cell " << c << "): " << std::endl
-    //              << "  water_old + advected = " << (*conserve_qty_)[num_components+1][c] << std::endl
-    //              << "  water_sink = " << water_sink << std::endl
-    //              << "  water_new = " << water_new << std::endl;
-    // }
-
+    
     for (int i = 0; i < num_advect; i++) {
       if (water_new > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         // there is both water and stuff present at the new time
         // this is stuff at the new time + stuff leaving through the domain coupling, divided by water of both
-        tcc_next[i][c] = (*conserve_qty_)[i][c] / water_total;
+        // Modified by Bing, to control the maximum concentration
+        
+        if (tcc_next[i][c] > max_saturation_vector[i]) {                                   
+        
+            tcc_next[i][c]=max_saturation_vector[i];
+            (*solid_qty_)[i][c] += (tcc_next[i][c]-max_saturation_vector[i]) * water_total;  // Modified by Bing, to control the maximum concentration
+        
+        } else {tcc_next[i][c] = (*conserve_qty_)[i][c] / water_total;}
+
       } else if (water_sink > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it all leaves (none at the new time)
         tcc_next[i][c] = 0.;
@@ -1499,6 +1484,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
         (*conserve_qty_)[i][c] = 0.;
         tcc_next[i][c] = 0.;
       }
+     
     }
   }
   db_->WriteCellVector("tcc_new", tcc_next);
