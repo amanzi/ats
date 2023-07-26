@@ -1,3 +1,4 @@
+
 """Functions for parsing Amanzi/ATS XDMF visualization files."""
 import sys,os
 import numpy as np
@@ -24,7 +25,7 @@ def valid_mesh_filename(domain, format=None):
 
 class VisFile:
     """Class managing the reading of ATS visualization files."""
-    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr', version='dev'):
+    def __init__(self, directory='.', domain=None, filename=None, mesh_filename=None, time_unit='yr'):
         """Create a VisFile object.
 
         Parameters
@@ -38,11 +39,6 @@ class VisFile:
           (e.g. ats_vis_surface_data.h5).
         mesh_filename : str, optional
           Filename for the h5 mesh file.  Default is 'ats_vis_DOMAIN_mesh.h5'.
-        time_unit : str, optional, default is 'yr'
-          Unit of time to convert times to.  One of 'yr', 'noleap', 'd', 'hr', or 's'
-        version : str or float, optional, default is 'dev'
-          Version of output file to parse, one of 'dev', 1.4, 1.3, ...
-        
 
         Returns
         -------
@@ -86,7 +82,6 @@ class VisFile:
         self.d = h5py.File(self.fname,'r')
         self.loadTimes()
         self.map = None
-        self.version = version
         
     def __enter__(self):
         return self
@@ -198,7 +193,7 @@ class VisFile:
         """
         if self.domain and '-' not in vname:
             vname = self.domain + '-' + vname
-        if self.version != 'dev' and self.version < 1.4 and '.' not in vname:
+        if '.' not in vname:
             vname = vname + '.cell.0'
         return vname
 
@@ -265,13 +260,15 @@ class VisFile:
         round : int
           Decimal places to round centroids to.  Supports sorting.
         """
+
         if cycle is None:
             cycle = self.cycles[0]
-        
+
         centroids = meshElemCentroids(self.directory, self.mesh_filename, cycle, round)
         if order is None and shape is None and not columnar:
             self.map = None
             self.centroids = centroids
+       
         else:
             self.centroids, self.map = structuredOrdering(centroids, order, shape, columnar)
 
@@ -291,13 +288,13 @@ class VisFile:
         polygons = matplotlib.collections.PolyCollection(self.polygon_coordinates, edgecolor=edgecolor, cmap=cmap, linewidths=linewidth)
         return polygons
     
-elem_type = {3:'POLYGON',
-             5:'QUAD',
+
+elem_type = {5:'QUAD',
              8:'PRISM',
              9:'HEX',
-             4:'TRIANGLE',
-             16:'POLYHEDRON'
+             4:'TRIANGLE'
              }
+
 
 def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
     """Reads a mesh nodal coordinates and connectivity.
@@ -317,9 +314,8 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
 
     Returns
     -------
-    etype : str
-      One of 'QUAD', 'PRISM', 'HEX', or 'TRIANGLE'.  Note 'NSIDED' and 'NFACED' 
-      are not yet supported.
+    elemtype : str
+      One of 'QUAD', 'PRISM', 'HEX', or 'TRIANGLE' if typed mesh, or 'MIXED' if mesh has more than one types including 'NSIDED' and 'NFACED' 
     coords : np.ndarray
       2D nodal coordinate array.  Shape is (n_nodes, dimension).
     conn : np.ndarray
@@ -334,80 +330,12 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
 
         mesh = dat[key]['Mesh']
         elem_conn = mesh['MixedElements'][:,0]
+        coords = coords = mesh['Nodes'][:]
+        #coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
+        elem_type, conns = read_conn(elem_conn)
 
-        etype = elem_type[elem_conn[0]]
-        if (etype == 'PRISM'):
-            nnodes_per_elem = 6
-        elif (etype == 'HEX'):
-            nnodes_per_elem = 8
-        elif (etype == 'QUAD'):
-            nnodes_per_elem = 4
-        elif (etype == 'TRIANGLE'):
-            nnodes_per_elem = 3
-        elif (etype == 'POLYHEDRAL'):
-            return meshXYZPolyhedron(dat, key)
-        elif (etype == 'POLYGON'):
-            return meshXYZPolygon(dat, key)
+    return elem_type, coords, conns
 
-        if len(elem_conn) % (nnodes_per_elem + 1) != 0:
-            raise ValueError('This reader only processes single-element-type meshes.')
-        n_elems = int(len(elem_conn) / (nnodes_per_elem+1))
-        coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
-
-    conn = elem_conn.reshape((n_elems, nnodes_per_elem+1))
-    if (np.any(conn[:,0] != elem_conn[0])):
-        raise ValueError('This reader only processes single-element-type meshes.')
-    return etype, coords, conn
-
-
-def meshXYZPolyhedron(dat, key):
-    """Reads polyhedral mesh and just returns coordinates and conn info.  Note
-    this is not enough to be useful for a real mesh but at least does something 
-    for polyhedral meshes."""
-    # read faces
-    mesh = dat[key]['Mesh']
-    elem_conn = mesh['MixedElements'][:,0]
-
-    coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
-
-    conn = []
-    i = 0
-    while i < len(elem_conn):
-        nfaces = elem_conn[i]; i+=1
-        faces = []
-        for j in range(nfaces):
-            nnodes = elem_conn[i]; i+=1
-            fnodes = [elem_conn[k] for k in range(i, i+nnodes)]
-            i += nnodes
-            faces.append(fnodes)
-
-        conn.append(list(set(n for f in faces for n in f)))
-    return 'POLYHEDRAL', coords, conn
-
-
-def meshXYZPolygon(dat, key):
-    """Reads polygonal mesh and just returns coordinates and conn info."""
-    # read faces
-    mesh = dat[key]['Mesh']
-    elem_conn = mesh['MixedElements'][:,0]
-
-    coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
-
-    conn = []
-    i = 0
-    while i < len(elem_conn):
-        etype = elem_type[elem_conn[i]]; i+=1
-        if (etype == 'QUAD'):
-            nnodes = 4
-        elif (etype == 'TRIANGLE'):
-            nnodes = 3
-        elif (etype == 'POLYGON'):
-            nnodes = elem_conn[i]; i+=1
-
-        fnodes = [elem_conn[k] for k in range(i, i+nnodes)]
-        i += nnodes
-        conn.append(fnodes)
-    return 'POLYGON', coords, conn
 
 def meshElemPolygons(etype, coords, conn):
     """Given mesh info that is a bunch of HEXes, make polygons for 2D plotting."""
@@ -468,8 +396,7 @@ def meshElemCentroids(directory=".", filename="ats_vis_mesh.h5", key=None, round
       2D nodal coordinate array.  Shape is (n_elems, dimension).
 
     """
-    etype, coords, conn = meshXYZ(directory, filename, key)
-
+    elem_type, coords, conn = meshXYZ(directory, filename, key)
     centroids = np.zeros((len(conn),3),'d')
     for i,elem in enumerate(conn):
         elem_coords = np.array([coords[gid] for gid in elem[1:]])
@@ -555,6 +482,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     """
     if columnar:
         order = ['x', 'y', 'z',]
+        
     
     # Surely there is a cleaner way to do this in numpy?
     # The current approach packs, sorts, and unpacks.
@@ -581,6 +509,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
               np.allclose(xy, ordered_coordinates[n_cells_in_column,0:2], 0., 1.e-5):
             n_cells_in_column += 1
         shape = [n_cells_in_column,]
+     
 
     if shape is not None:
         new_shape = (-1,) + tuple(shape)
@@ -626,4 +555,81 @@ def reorder(data, map):
 
     return data
 
+
+elem_type = {3:'POLYGON',
+             5:'QUAD',
+             8:'PRISM',
+             9:'HEX',
+             4:'TRIANGLE',
+             16:'POLYHEDRON'
+             }
+
+elem_typed_node_counts = { 'QUAD' : 4,
+                     'PRISM' : 6,
+                     'HEX' : 8,
+                     'TRIANGLE' : 3
+                     }
+
+
+def read_conn(elem_conn):
+    """Reads an array, called MixedElements in the HDF5 file, to get conn"""
+    i = 0
+    etypes = []
+    conns = []
+    while i < len(elem_conn):
+        etype, conn, i = read_element_dirty(elem_conn,i)
+        etypes.append(etype)
+        conns.append(conn)
+    if len(set(etypes))==1:
+        elem_type = set(etypes)[0]
+    else: 
+        elem_type = 'MIXED'
+    return elem_type, conns
+
+
+def read_element_dirty(elem_conn, i):
+    """Reads the element at location i,
+    
+    returns etype, nodeids, new_i
+
+    Note this is called dirty because it does not _properly_ deal with
+    NFACED objects, but instead just returns a set of unique nodes
+    that are in the element (i.e. it has no concept of faces).
+
+    """
+    try:
+        etype = elem_type[elem_conn[i]]
+    except KeyError:
+        raise RuntimeError(f'This reader is not implemented for elements of type {elem_conn[i]} -- what type is this?')
+    if etype == 'POLYGON':
+        return 'POLYGON', *read_polygon_element(elem_conn, i+1)
+    elif etype == 'POLYHEDRON':
+        return 'POLYHEDRON', *read_polyhedron_element_dirty(elem_conn, i+1)
+    else:
+        return etype, *read_typed_element(elem_conn, etype, i+1)
+
+
+def read_polygon_element(elem_conn, i):
+    n_nodes = elem_conn[i]
+    nodes = elem_conn[i+1:i+1+n_nodes]
+    return nodes, i+1+n_nodes
+
+
+def read_typed_element(elem_conn, etype, i):
+    n_nodes = elem_typed_node_counts[etype]
+    nodes = elem_conn[i:i+n_nodes]
+    return nodes, i+n_nodes
+
+
+def read_polyhedron_element_dirty(elem_conn, i):
+    n_faces = elem_conn[i]
+    i = i + 1
+    elem_nodes = set()
+    for j in range(n_faces):
+        (fnodes, i) = read_polygon_element(elem_conn, i)
+        elem_nodes = elem_nodes.union(fnodes)
+    return list(elem_nodes), i
+    
+        
+    
 
