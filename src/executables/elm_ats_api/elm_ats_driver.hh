@@ -77,8 +77,7 @@ public:
           double const * const clapp_horn_b,
           double const * const clapp_horn_smpsat,
           double const * const clapp_horn_sr);
-  void set_veg_parameters(double const * const mafic_potential_full_turgor,
-          double const * const mafic_potential_wilt_point);
+
   void set_soil_hydrologic_properties(double const * const effective_porosity);
   void set_veg_properties(double const * const rooting_fraction);
   void set_potential_sources(double const * const elm_surface_input,
@@ -98,8 +97,8 @@ public:
  private:
   void init_pressure_from_wc_(double const * const elm_water_content);
   void init_pressure_from_wt_(double depth_to_wt);
-  std::vector<const double> calcDZ_();
-  std::vector<const double> calcCellDepths_();
+  std::vector<double> calcDZ_();
+  std::vector<double> calcCellDepths_();
 
   void copyToSurf_(double const * const in, const Key& key, Key owner="");
   void copyToSub_(double const * const in, const Key& key, Key owner="");

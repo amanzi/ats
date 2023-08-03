@@ -228,6 +228,7 @@ ELM_ATSDriver::setup()
   requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
+
   Coordinator::setup();
   // NOTE: These must be called after Coordinator::setup() until PK_Phys_Default modifies the state eval
   // list in constructor -- otherwise this primary variable is not available
@@ -412,13 +413,6 @@ void ELM_ATSDriver::set_soil_hydrologic_parameters(double const * const base_por
   S_->GetRecordW(ch_b_key_, Amanzi::Tags::NEXT, ch_b_key_).set_initialized();
   S_->GetRecordW(ch_smpsat_key_, Amanzi::Tags::NEXT, ch_smpsat_key_).set_initialized();
   S_->GetRecordW(ch_sr_key_, Amanzi::Tags::NEXT, ch_sr_key_).set_initialized();
-}
-
-
-void ELM_ATSDriver::set_veg_parameters(double const * const mafic_potential_full_turgor,
-        double const * const mafic_potential_wilt_point)
-{
-  // pass for now! FIXME --etc
 }
 
 
@@ -661,7 +655,7 @@ void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_conten
 // calculate dz for each cell in column
 // only use this if all columns have identical vertical spacing
 // returns a vector of length ncells_per_column
-std::vector<const double> ELM_ATSDriver::calcDZ_()
+std::vector<double> ELM_ATSDriver::calcDZ_()
 {
   // use volume/area to calculate dz
   S_->GetEvaluator(cv_key_, Amanzi::Tags::NEXT).Update(*S_, cv_key_);
@@ -674,7 +668,7 @@ std::vector<const double> ELM_ATSDriver::calcDZ_()
 
   // assume all columns have the same dz spacing
   const auto& cells_of_col = mesh_subsurf_->cells_of_column(0);
-  std::vector<const double> dz;
+  std::vector<double> dz;
   for (int i=0; i<ncells_per_col_; ++i)
     dz.push_back(volume[0][cells_of_col[i]] / area[0][0]);
 
@@ -682,14 +676,14 @@ std::vector<const double> ELM_ATSDriver::calcDZ_()
 }
 
 
-std::vector<const double> ELM_ATSDriver::calcCellDepths_()
+std::vector<double> ELM_ATSDriver::calcCellDepths_()
 {
   const auto dz = calcDZ_(); // dz from cell volume/area
 
   std::vector<double> cell_bot_depth(dz.size());
   std::partial_sum(dz.begin(), dz.end(), cell_bot_depth.begin()); // depth of bottom face
 
-  std::vector<const double> cell_centers;
+  std::vector<double> cell_centers;
   std::transform(
     dz.begin(), dz.end(),
     cell_bot_depth.begin(),
