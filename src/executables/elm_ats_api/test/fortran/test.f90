@@ -8,30 +8,22 @@ program elm_test
     integer :: ierror, i
 
     ! dummy data
-    ! 1 column, 100 cells
-    integer, parameter :: ncol = 1
-    integer, parameter :: ncell = 100
+    integer, parameter :: ncol = 5
+    integer, parameter :: ncell = 15
+    double precision, dimension(ncol*ncell) :: soil_pres
+    double precision, dimension(ncol*ncell) :: satur
+    double precision, dimension(ncol) :: tran
     double precision, dimension(ncol) :: infil
     double precision, dimension(ncol) :: evap
-    double precision, dimension(ncol) :: surf_pres
-    double precision, dimension(ncol) :: elev
-    double precision, dimension(ncol) :: surf_area_m2
-    double precision, dimension(ncol) :: lat
-    double precision, dimension(ncol) :: lon
-
-    double precision, dimension(ncell) :: dz
-    double precision, dimension(ncell) :: depth
-    double precision, dimension(ncell) :: soil_pres
-    double precision, dimension(ncell) :: satur
-    double precision, dimension(ncell) :: tran
-
     integer :: ncols_local, ncols_global, ncells_per_col
+    double precision :: time
     character (len = 40) :: test_prefix
 
     infil(:) = 10.0
     evap(:) = 3.0
+    tran(:) = 6.0
 
-    do i=1,ncell
+    do i=1,ncol
       tran(i) = (1.0 - (1.0/ncell)*i)
     end do
 
@@ -42,6 +34,8 @@ program elm_test
       infile_name = trim(adjustl(infile_name(12:)))
     end if
 
+    time = 0.0
+
     call MPI_INIT(ierror)
 
     ! create an ATS driver object
@@ -49,11 +43,9 @@ program elm_test
 
     ! call ATS methods
     call ats_driver%setup()
-    !!call ats_driver%get_mesh_info(ncols_local, ncols_global, ncells_per_col, dz, depth, elev, surf_area_m2, lat, lon)
-    call ats_driver%initialize()
-    !!call ats_driver%set_sources(infil, evap, tran, ncol, ncell)
+    call ats_driver%initialize(time, satur, soil_pres)
+    !call ats_driver%set_sources(infil, evap, tran)
     call ats_driver%advance_test()
-    !!call ats_driver%get_waterstate(surf_pres, soil_pres, satur, ncol, ncell)
 
     ! don't need to call ats_driver%delete now that final is used
 

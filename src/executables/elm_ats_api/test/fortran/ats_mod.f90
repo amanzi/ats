@@ -65,10 +65,13 @@ contains
     end subroutine
 
     !! Initialize ATS for this simulation
-    subroutine ats_initialize(this)
+    subroutine ats_initialize(this, time, satur, soil_pres)
         implicit none
         class(ats) :: this
-        call ats_initialize_c(this%ptr)
+        double precision, intent(in) :: time
+        double precision, dimension(*), intent(in) :: satur
+        double precision, dimension(*), intent(in) :: soil_pres
+        call ats_initialize_c(this%ptr, time, satur, soil_pres)
     end subroutine
 
     !! Advance ATS by dt
@@ -88,15 +91,13 @@ contains
 
     !! WIP
     !! Sets ATS coupling variables infiltration, evaporation, and transpiration
-    subroutine ats_set_sources(this, soil_infil, soil_evap, root_trans, ncols, ncells)
+    subroutine ats_set_sources(this, soil_infil, soil_evap, root_trans)
         implicit none
         class(ats) :: this
         double precision, dimension(*), intent(in) :: soil_infil
         double precision, dimension(*), intent(in) :: soil_evap
         double precision, dimension(*), intent(in) :: root_trans
-        integer, intent(in) :: ncols
-        integer, intent(in) :: ncells
-        call ats_set_sources_c(this%ptr, soil_infil, soil_evap, root_trans, ncols, ncells)
+        call ats_set_sources_c(this%ptr, soil_infil, soil_evap, root_trans)
     end subroutine
 
     !! WIP

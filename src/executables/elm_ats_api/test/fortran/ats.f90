@@ -24,10 +24,13 @@ interface
         type(c_ptr), value :: ats
     end subroutine
     
-    subroutine ats_initialize_c(ats) bind(c, name="ats_initialize")
+    subroutine ats_initialize_c(ats, time, satur, soil_pres) bind(c, name="ats_initialize")
         use iso_c_binding
         implicit none
         type(c_ptr), value :: ats
+        real(c_double), intent(in) :: time
+        real(c_double), dimension(*), intent(in) :: satur
+        real(c_double), dimension(*), intent(in) :: soil_pres
     end subroutine
     
     subroutine ats_advance_test_c(ats) bind(c, name="ats_advance_test")
@@ -43,7 +46,7 @@ interface
         real(c_double), intent(in) :: dt
     end subroutine
 
-    subroutine ats_set_sources_c(ats, soil_infil, soil_evap, root_trans, ncols, ncells) &
+    subroutine ats_set_sources_c(ats, soil_infil, soil_evap, root_trans) &
         bind(c, name="ats_set_sources")
         use iso_c_binding
         implicit none
@@ -51,8 +54,6 @@ interface
         real(c_double), dimension(*), intent(in) :: soil_infil
         real(c_double), dimension(*), intent(in) :: soil_evap
         real(c_double), dimension(*), intent(in) :: root_trans
-        integer(c_int), intent(in) :: ncols
-        integer(c_int), intent(in) :: ncells
     end subroutine
 
     subroutine ats_get_waterstate_c(ats, surf_pres, soil_pres, satur, ncols, ncells) &
