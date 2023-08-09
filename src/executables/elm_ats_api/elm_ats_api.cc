@@ -132,12 +132,13 @@ void ats_get_water_fluxes(ELM_ATSDriver_ptr ats,
                             double * const infiltration,
                             double * const evaporation,
                             double * const transpiration,
+                            double * const root_flux,
                             double * net_subsurface_fluxes,
                             double * net_runon)
 {
   reinterpret_cast<ATS::ELM_ATSDriver*>(ats)
     ->get_water_fluxes(infiltration, evaporation, transpiration,
-                       net_subsurface_fluxes, net_runon);
+                       root_flux, net_subsurface_fluxes, net_runon);
 }
 
 #ifdef __cplusplus

@@ -112,6 +112,7 @@ void ats_get_water_fluxes(ELM_ATSDriver_ptr ats,
                             double * const infiltration,
                             double * const evaporation,
                             double * const transpiration,
+                            double * const root_flux,
                             double * net_subsurface_fluxes,
                             double * net_runon);
 

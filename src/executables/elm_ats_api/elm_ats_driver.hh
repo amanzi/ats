@@ -91,6 +91,7 @@ public:
   void get_water_fluxes(double * const soil_infiltration,
                         double * const evaporation,
                         double * const transpiration,
+                        double * const root_flux,
                         double * const net_subsurface_fluxes,
                         double * const net_runon);
 
@@ -141,7 +142,7 @@ public:
   Key sat_key_;
   //Key sat_gas_key_;
   //Key sat_ice_key_;
-  Key infilt_key_;
+  Key ss_flux_key_;
   Key trans_key_;
   Key evap_key_;
   Key total_trans_key_;
