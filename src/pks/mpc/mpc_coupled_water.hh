@@ -50,13 +50,17 @@ namespace Amanzi {
 
 class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
  public:
-  MPCCoupledWater(Teuchos::ParameterList& FElist,
+  MPCCoupledWater(const Comm_ptr_type& comm,
+                  Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                  const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<TreeVector>& soln);
+                  const Teuchos::RCP<State>& S);
 
   virtual void Setup() override;
   virtual void Initialize() override;
+
+  // type info used in PK_Factory
+  static const std::string type;
+  virtual const std::string& getType() const override { return type; }
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().

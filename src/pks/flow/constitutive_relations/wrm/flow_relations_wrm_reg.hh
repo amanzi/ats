@@ -11,12 +11,12 @@
 
 namespace Amanzi {
 
-REGISTER(Flow::Relations::CapillaryPressureLiquidAtmModel);
+REGISTER_MODEL(Flow::Relations::CapillaryPressureLiquidAtmModel);
 
-REGISTER(Flow::Relations::WRMVanGenuchtenModel);
+REGISTER_MODEL(Flow::Relations::WRMVanGenuchtenModel);
 REGISTER_BY_MATERIAL(Flow::Relations::WRMVanGenuchtenModel);
 
-REGISTER(Flow::Relations::RelativePermeabilityVanGenuchtenModel);
+REGISTER_MODEL(Flow::Relations::RelativePermeabilityVanGenuchtenModel);
 REGISTER_BY_MATERIAL(Flow::Relations::RelativePermeabilityVanGenuchtenModel);
 
 

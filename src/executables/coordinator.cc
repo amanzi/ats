@@ -241,11 +241,7 @@ Coordinator::initialize()
       auto mesh_p = S_->GetMesh(domain_name);
       auto sublist_p = Teuchos::sublist(vis_list, domain_name);
       if (!sublist_p->isParameter("file name base")) {
-        if (domain_name.empty() || domain_name == "domain") {
-          sublist_p->set<std::string>("file name base", std::string("ats_vis"));
-        } else {
-          sublist_p->set<std::string>("file name base", std::string("ats_vis_") + domain_name);
-        }
+        sublist_p->set<std::string>("file name base", "ats_vis");
       }
 
       if (S_->HasMesh(domain_name + "_3d") && sublist_p->get<bool>("visualize on 3D mesh", true))
@@ -264,7 +260,8 @@ Coordinator::initialize()
         // visualize each subdomain
         for (const auto& subdomain : *dset) {
           Teuchos::ParameterList sublist = vis_list->sublist(subdomain);
-          sublist.set<std::string>("file name base", std::string("ats_vis_") + subdomain);
+          if (!sublist.isParameter("file name base"))
+            sublist.set<std::string>("file name base", "ats_vis");
           auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist, S_->GetMesh(subdomain), false));
           visualization_.push_back(vis);
         }
@@ -272,7 +269,7 @@ Coordinator::initialize()
         // visualize collectively
         auto domain_name_base = Amanzi::Keys::getDomainSetName(domain_name);
         if (!sublist_p->isParameter("file name base"))
-          sublist_p->set("file name base", std::string("ats_vis_") + domain_name_base);
+          sublist_p->set<std::string>("file name base", "ats_vis");
         auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p,
                 dset->getReferencingParent(), false, dset));
         visualization_.push_back(vis);

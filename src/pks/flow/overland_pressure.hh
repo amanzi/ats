@@ -15,6 +15,9 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 .. math::
   \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
 
+Uses the PK type:
+`"overland flow, pressure basis`"
+  
 
 .. _overland-pressure-spec:
 .. admonition:: overland-pressure-spec
@@ -116,26 +119,14 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     - `"pres_elev`"
     - `"source`"
 
-
-.. todo:
-    Nearly all variable name roots are hard-coded here, this should get updated.
-
 */
 
 
 #ifndef PK_FLOW_OVERLAND_HEAD_HH_
 #define PK_FLOW_OVERLAND_HEAD_HH_
 
-#include "BoundaryFunction.hh"
-#include "DynamicBoundaryFunction.hh"
 #include "upwinding.hh"
 
-#include "Operator.hh"
-#include "PDE_Diffusion.hh"
-#include "PDE_Accumulation.hh"
-
-//#include "pk_factory_ats.hh"
-//#include "pk_physical_bdf_base.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
 
@@ -143,57 +134,64 @@ namespace Amanzi {
 
 class MPCSurfaceSubsurfaceDirichletCoupler;
 
+namespace Operators {
+class PDE_Diffusion;
+class PDE_Accumulation;
+} // namespace Operators
+
 namespace Flow {
 
-class OverlandConductivityModel;
-class HeightModel;
-
-//class OverlandPressureFlow : public PKPhysicalBDFBase {
 class OverlandPressureFlow : public PK_PhysicalBDF_Default {
  public:
-  OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
-                       const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                       const Teuchos::RCP<State>& S,
-                       const Teuchos::RCP<TreeVector>& solution);
+  OverlandPressureFlow(const Comm_ptr_type& comm,
+                       Teuchos::ParameterList& pk_tree,
+                       const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                       const Teuchos::RCP<State>& S);
 
-  // Virtual destructor
-  virtual ~OverlandPressureFlow() {}
+  //
+  // PK methods
+  // ------------------------------------------------------------------
+  // Parse the local parameter list and add entries to the global list
+  virtual void ParseParameterList_() override;
 
-  // main methods
-  // -- Initialize owned (dependent) variables.
+  // Set requirements of data and evaluators
   virtual void Setup() override;
 
-  // -- Initialize owned (dependent) variables.
+  // Initialize owned (dependent) variables.
   virtual void Initialize() override;
 
-  // -- Commit any secondary (dependent) variables.
+  // Finalize a step as successful at the given tag.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
-  // -- Update diagnostics for vis.
+  // Update diagnostics for vis.
   virtual void CalculateDiagnostics(const Tag& tag) override;
 
-  // ConstantTemperature is a BDFFnBase
-  // computes the non-linear functional g = g(t,u,udot)
+  // type info used in PK_Factory
+  static const std::string type;
+  virtual const std::string& getType() const override { return type; }
+
+  //
+  // BDF1_TI methods
+  // ------------------------------------------------------------------
+  // Compute the non-linear functional g = g(t, u, du/dt)
   void FunctionalResidual(double t_old,
                           double t_new,
                           Teuchos::RCP<TreeVector> u_old,
                           Teuchos::RCP<TreeVector> u_new,
                           Teuchos::RCP<TreeVector> g) override;
 
-  // applies preconditioner to u and returns the result in Pu
+  // Apply the preconditioner to u and return the result in Pu
   virtual int
   ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
-  // updates the preconditioner
+  // Updates the preconditioner by linearizing at up
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
+  // Globalization -- modify the predictor u to make a better guess for the new time
   virtual bool
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
-  // evaluating consistent faces for given BCs and cell values
-  virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
-
-  // -- Possibly modify the correction before it is applied
+  // Possibly modify the correction du before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
   ModifyCorrection(double h,
                    Teuchos::RCP<const TreeVector> res,
@@ -201,25 +199,24 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
                    Teuchos::RCP<TreeVector> du) override;
 
  protected:
-  // setup methods
-  virtual void ParseParameterList_();
+
+  //
+  // Protected, internal methods for better granularity of design
+  // ------------------------------------------------------------------
   virtual void SetupOverlandFlow_();
   virtual void SetupPhysicalEvaluators_();
 
   // boundary condition members
-  void ComputeBoundaryConditions_(const Tag& tag);
   virtual void UpdateBoundaryConditions_(const Tag& tag);
-  virtual void ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u,
-                                        const Teuchos::Ptr<const CompositeVector>& elev);
 
   virtual void
   FixBCsForOperator_(const Tag& tag, const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
   virtual void FixBCsForPrecon_(const Tag& tag);
 
-  // computational concerns in managing abs, rel perm
-  // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
+  // -- builds the upwinded conductivity
   virtual bool UpdatePermeabilityData_(const Tag& tag);
+  virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
+  void ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev);
 
   // physical methods
   // -- diffusion term
@@ -232,7 +229,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
  protected:
-
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 
   // keys
@@ -249,7 +245,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Key duw_cond_key_;
   Key mass_dens_key_;
   Key molar_dens_key_;
-  Key cv_key_;
   Key source_key_;
   Key source_molar_dens_key_;
   Key ss_flux_key_;
@@ -293,30 +288,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
 
   bool precon_used_;
   bool precon_scaled_;
-
-  // boundary condition data
-  Teuchos::RCP<Functions::MeshFunction> bc_head_;
-  Teuchos::RCP<MultiPatch<double>> bc_head_data_;
-
-  Teuchos::RCP<Functions::MeshFunction> bc_flux_;
-  Teuchos::RCP<MultiPatch<double>> bc_flux_data_;
-
-  Teuchos::RCP<Functions::MeshFunction> bc_zero_gradient_;
-
-  Teuchos::RCP<Functions::MeshFunction> bc_seepage_head_;
-  Teuchos::RCP<MultiPatch<double>> bc_seepage_head_data_;
-
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_zero_gradient_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_head_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_pressure_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_critical_depth_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_tidal_;
-  // Teuchos::RCP<Functions::DynamicBoundaryFunction> bc_dynamic_;
-  // Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_;
 
   // factory registration
   static RegisteredPKFactory<OverlandPressureFlow> reg_;

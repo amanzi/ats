@@ -7,13 +7,14 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "overland_pressure.hh"
+#include "PDE_Diffusion.hh"
+#include "PDE_Accumulation.hh"
 #include "Op.hh"
+
+#include "overland_pressure.hh"
 
 namespace Amanzi {
 namespace Flow {
-
-#define DEBUG_RES_FLAG 0
 
 // Overland is a BDFFnBase
 // -----------------------------------------------------------------------------
@@ -35,12 +36,12 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // zero out residual
-  Teuchos::RCP<CompositeVector> res = g->Data();
+  Teuchos::RCP<CompositeVector> res = g->getData();
   res->putScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
-  Teuchos::RCP<CompositeVector> u = u_new->Data();
+  Teuchos::RCP<CompositeVector> u = u_new->getData();
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
@@ -75,9 +76,8 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
-  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
-  db_->WriteBoundaryConditions(bc_markers(), bc_values());
+  // db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());
@@ -125,20 +125,21 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   AMANZI_ASSERT(!precon_scaled_); // otherwise this factor was built into the matrix
 
   // apply the preconditioner
-  db_->WriteVector("h_res", u->Data().ptr(), true);
-  int ierr = preconditioner_->ApplyInverse(*u->Data(), *Pu->Data());
-  db_->WriteVector("PC*h_res (h-coords)", Pu->Data().ptr(), true);
+  db_->WriteVector("h_res", u->getData().ptr(), true);
+  int ierr = preconditioner_->applyInverse(*u->getData(), *Pu->getData());
+  db_->WriteVector("PC*h_res (h-coords)", Pu->getData().ptr(), true);
 
   // tack on the variable change
-  const Epetra_MultiVector& dh_dp =
-    *S_->GetDerivative<CompositeVector>(pd_bar_key_, tag_next_, key_, tag_next_)
-       .viewComponent("cell", false);
-  Epetra_MultiVector& Pu_c = *Pu->Data()->viewComponent("cell", false);
-
-  unsigned int ncells = Pu_c.MyLength();
-  for (unsigned int c = 0; c != ncells; ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
-  db_->WriteVector("PC*h_res (p-coords)", Pu->Data().ptr(), true);
-
+  {
+    auto dh_dp = S_->GetDerivative<CompositeVector>(pd_bar_key_, tag_next_, key_, tag_next_)
+      .viewComponent("cell", false);
+    auto Pu_c = Pu->getData()->viewComponent("cell", false);
+    Kokkos::parallel_for("OverlandPressureFlow::ApplyPreconditioner", Pu_c.extent(0),
+                         KOKKOS_LAMBDA(const int& c) {
+                           Pu_c(c,0) /= dh_dp(c,0);
+                         });
+  }
+  db_->WriteVector("PC*h_res (p-coords)", Pu->getData().ptr(), true);
   return (ierr > 0) ? 0 : 1;
 };
 
@@ -172,7 +173,6 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(tag_next_);
 
   // -- update boundary condition markers, which set the BC type
-  ComputeBoundaryConditions_(tag_next_);
   UpdateBoundaryConditions_(tag_next_);
 
   // fill local matrices
@@ -190,7 +190,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   preconditioner_diff_->SetScalarCoefficient(cond, dcond);
 
   // -- local matrices, primary term
-  preconditioner_->Init();
+  preconditioner_->Zero();
   preconditioner_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
   // -- local matrices, Jacobian term
@@ -199,7 +199,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     Teuchos::RCP<const CompositeVector> pres_elev =
       S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
     Teuchos::RCP<CompositeVector> flux = Teuchos::null;
-    if (preconditioner_->RangeMap().hasComponent("face")) {
+    if (preconditioner_->getRangeMap()->hasComponent("face")) {
       flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
       preconditioner_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
     }
@@ -224,8 +224,16 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   db_->WriteVector("    dwc_dp", dwc_dp.ptr());
   db_->WriteVector("    dh_dp", dh_dp.ptr());
 
-  CompositeVector dwc_dh(dwc_dp->Map());
-  dwc_dh.ReciprocalMultiply(1. / h, *dh_dp, *dwc_dp, 0.);
+  CompositeVector dwc_dh(dwc_dp->getMap());
+  {
+    auto dwc_dh_c = dwc_dh.viewComponent("cell", false);
+    auto dh_dp_c = dh_dp->viewComponent("cell", false);
+    auto dwc_dp_c = dwc_dp->viewComponent("cell", false);
+    Kokkos::parallel_for("OverlandPressureFlow::UpdatePreconditioner", dwc_dh_c.extent(0),
+                         KOKKOS_LAMBDA(const int& c) {
+                           dwc_dh_c(c,0) = dwc_dp_c(c,0) / (h * dh_dp_c(c,0));
+                         });
+  }
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
 
   // Why is this turned off? #60 --etc
@@ -257,12 +265,12 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   //         ->viewComponent("cell",false);
 
   //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       double s1 = q[0][c] > 0. ? dq_dp[0][c] * nliq1_s[0][c] : dq_dp[0][c] * nliq1[0][c];
-  //       Acc_cells[c] -= cv[0][c] * s1 / dh_dp[0][c];
+  //       double s1 = q(c,0) > 0. ? dq_dp(c,0) * nliq1_s(c,0) : dq_dp(c,0) * nliq1(c,0);
+  //       Acc_cells[c] -= cv(c,0) * s1 / dh_dp(c,0);
   //     }
   //   } else {
   //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       Acc_cells[c] -= cv[0][c] * dq_dp[0][c] / dh_dp[0][c];
+  //       Acc_cells[c] -= cv(c,0) * dq_dp(c,0) / dh_dp(c,0);
   //     }
   //   }
   // }

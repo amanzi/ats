@@ -37,7 +37,7 @@ include_directories(${CHEM_INCLUDES_DIR})
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
-# include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
+include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
@@ -114,7 +114,7 @@ set(ats_link_libs
   # ats_deform
   # ats_bgc
   # ats_surface_balance
-  # ats_mpc
+  ats_mpc
   # ats_mpc_relations
   )
 

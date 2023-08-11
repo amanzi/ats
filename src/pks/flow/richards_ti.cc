@@ -7,10 +7,11 @@
   Authors: Ethan Coon (coonet@ornl.gov)
 */
 
-#include "Op.hh"
-#include "richards.hh"
 #include "PDE_DiffusionWithGravity.hh"
 #include "PDE_Accumulation.hh"
+#include "Op.hh"
+
+#include "richards.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -169,7 +170,7 @@ Richards::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, doub
     } else {
       dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
-    dkrdp->print(std::cout);
+    // dkrdp->print(std::cout);
   }
 
   // -- primary term

@@ -37,16 +37,20 @@ namespace Amanzi {
 template <class PK_t>
 class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
  public:
-  StrongMPC(Teuchos::ParameterList& pk_list,
-            const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
-            const Teuchos::RCP<State>& S,
-            const Teuchos::RCP<TreeVector>& solution);
+  StrongMPC(const Comm_ptr_type& comm,
+            Teuchos::ParameterList& pk_tree,
+            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+            const Teuchos::RCP<State>& S);
 
   //
   // These methods override methods in MPC<PK_t>
   // -----------------------------------------------------------------------------
   virtual void Setup() override;
   virtual void Initialize() override;
+
+  // type info used in PK_Factory
+  static const std::string type;
+  virtual const std::string& getType() const override { return type; }
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
@@ -117,15 +121,22 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
 // Constructor
 // -----------------------------------------------------------------------------
 template <class PK_t>
-StrongMPC<PK_t>::StrongMPC(Teuchos::ParameterList& pk_tree,
+StrongMPC<PK_t>::StrongMPC(const Comm_ptr_type& comm,
+                           Teuchos::ParameterList& pk_tree,
                            const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                           const Teuchos::RCP<State>& S,
-                           const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln),
-    MPC<PK_t>(pk_tree, global_list, S, soln),
-    PK_BDF_Default(pk_tree, global_list, S, soln)
+                           const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, global_list, S),
+    MPC<PK_t>(comm, pk_tree, global_list, S),
+    PK_BDF_Default(comm, pk_tree, global_list, S)
 {
-  MPC<PK_t>::init_(soln->Comm());
+  // push on a parameter to indicate that sub-pks need not assemble their
+  // operators, as we will do that here (or above here)
+  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  for (const auto& pk_name : pk_order) {
+    pks_list_->sublist(pk_name).set("strongly coupled PK", true);
+  }
+
+  MPC<PK_t>::createSubPKs_();
 }
 
 
@@ -136,13 +147,6 @@ template <class PK_t>
 void
 StrongMPC<PK_t>::Setup()
 {
-  // push on a parameter to indicate that sub-pks need not assemble their
-  // operators, as we will do that here (or above here)
-  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  for (const auto& pk_name : pk_order) {
-    pks_list_->sublist(pk_name).set("strongly coupled PK", true);
-  }
-
   MPC<PK_t>::Setup();
   PK_BDF_Default::Setup();
 };
@@ -207,7 +211,7 @@ StrongMPC<PK_t>::FunctionalResidual(double t_old,
     // pull out the old solution sub-vector
     Teuchos::RCP<TreeVector> pk_u_old(Teuchos::null);
     if (u_old != Teuchos::null) {
-      pk_u_old = u_old->SubVector(i);
+      pk_u_old = u_old->getSubVector(i);
       if (pk_u_old == Teuchos::null) {
         Errors::Message message("MPC: vector structure does not match PK structure");
         Exceptions::amanzi_throw(message);
@@ -215,14 +219,14 @@ StrongMPC<PK_t>::FunctionalResidual(double t_old,
     }
 
     // pull out the new solution sub-vector
-    Teuchos::RCP<TreeVector> pk_u_new = u_new->SubVector(i);
+    Teuchos::RCP<TreeVector> pk_u_new = u_new->getSubVector(i);
     if (pk_u_new == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
     }
 
     // pull out the residual sub-vector
-    Teuchos::RCP<TreeVector> pk_g = g->SubVector(i);
+    Teuchos::RCP<TreeVector> pk_g = g->getSubVector(i);
     if (pk_g == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -245,14 +249,14 @@ StrongMPC<PK_t>::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::
   int ierr = 0;
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
-    Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_u = u->getSubVector(i);
     if (pk_u == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
     }
 
     // pull out the preconditioned u sub-vector
-    Teuchos::RCP<TreeVector> pk_Pu = Pu->SubVector(i);
+    Teuchos::RCP<TreeVector> pk_Pu = Pu->getSubVector(i);
     if (pk_Pu == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -279,14 +283,14 @@ StrongMPC<PK_t>::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
   // loop over sub-PKs
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
-    Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_u = u->getSubVector(i);
     if (pk_u == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
     }
 
     // pull out the du sub-vector
-    Teuchos::RCP<const TreeVector> pk_du = du->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_du = du->getSubVector(i);
     if (pk_du == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -312,7 +316,7 @@ StrongMPC<PK_t>::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> u
   // loop over sub-PKs
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the up sub-vector
-    Teuchos::RCP<const TreeVector> pk_up = up->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_up = up->getSubVector(i);
     if (pk_up == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -360,7 +364,7 @@ StrongMPC<PK_t>::IsAdmissible(Teuchos::RCP<const TreeVector> u)
   // the residual can at least be evaluated.
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
-    Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_u = u->getSubVector(i);
     if (pk_u == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -393,8 +397,8 @@ StrongMPC<PK_t>::ModifyPredictor(double h,
   bool modified = false;
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
-    Teuchos::RCP<const TreeVector> pk_u0 = u0->SubVector(i);
-    Teuchos::RCP<TreeVector> pk_u = u->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_u0 = u0->getSubVector(i);
+    Teuchos::RCP<TreeVector> pk_u = u->getSubVector(i);
     if (pk_u == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -421,9 +425,9 @@ StrongMPC<PK_t>::ModifyCorrection(double h,
     AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
-    Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);
-    Teuchos::RCP<const TreeVector> pk_res = res->SubVector(i);
-    Teuchos::RCP<TreeVector> pk_du = du->SubVector(i);
+    Teuchos::RCP<const TreeVector> pk_u = u->getSubVector(i);
+    Teuchos::RCP<const TreeVector> pk_res = res->getSubVector(i);
+    Teuchos::RCP<TreeVector> pk_du = du->getSubVector(i);
 
     if (pk_u == Teuchos::null || pk_du == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
@@ -434,6 +438,11 @@ StrongMPC<PK_t>::ModifyCorrection(double h,
   }
   return modified;
 };
+
+template<>
+const std::string StrongMPC<PK_BDF_Default>::type = "strong MPC";
+template<>
+const std::string StrongMPC<PK_PhysicalBDF_Default>::type = "physical strong MPC"; // this should not be used?
 
 
 } // namespace Amanzi

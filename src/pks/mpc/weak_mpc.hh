@@ -32,10 +32,10 @@ namespace Amanzi {
 
 class WeakMPC : public MPC<PK> {
  public:
-  WeakMPC(Teuchos::ParameterList& pk_tree,
-          const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
-          const Teuchos::RCP<State>& S,
-          const Teuchos::RCP<TreeVector>& solution);
+  WeakMPC(const Comm_ptr_type& comm,
+          Teuchos::ParameterList& pk_tree,
+          const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+          const Teuchos::RCP<State>& S);
 
   // PK methods
   // -- dt is the minimum of the sub pks
@@ -46,8 +46,13 @@ class WeakMPC : public MPC<PK> {
 
   virtual void setDt(double dt) override;
 
+  // type info used in PK_Factory
+  static const std::string type;
+  virtual const std::string& getType() const override { return type; }
+
  private:
   // factory registration
   static RegisteredPKFactory<WeakMPC> reg_;
 };
+
 } // namespace Amanzi

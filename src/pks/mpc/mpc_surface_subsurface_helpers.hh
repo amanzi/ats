@@ -13,24 +13,20 @@
 #include "CompositeVector.hh"
 
 namespace Amanzi {
+namespace MPCHelpers {
 
 void
-CopySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub);
+copySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub);
 
 void
-CopySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf);
+copySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf);
 
 void
-MergeSubsurfaceAndSurfacePressure(const CompositeVector& kr_surf,
+mergeSubsurfaceAndSurfacePressure(const CompositeVector& kr_surf,
                                   CompositeVector& sub_p,
                                   CompositeVector& surf_p);
-double
-GetDomainFaceValue(const CompositeVector& sub_p, int f);
 
-void
-SetDomainFaceValue(CompositeVector& sub_p, int f, double value);
-
-
+} // namespace MPCHelpers
 } // namespace Amanzi
 
 

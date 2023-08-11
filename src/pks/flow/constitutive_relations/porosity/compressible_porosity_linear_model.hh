@@ -71,12 +71,13 @@ class CompressiblePorosityLinearModel {
   CompressiblePorosityLinearModel(Teuchos::ParameterList& plist) {
     my_key_ = Keys::cleanPListName(plist);
     auto domain = Keys::getDomain(my_key_);
-    phi_key_ = Keys::readKey(plist, domain, "porosity", "porosity");
+    phi_key_ = Keys::readKey(plist, domain, "porosity", "base_porosity");
     p_key_ = Keys::readKey(plist, domain, "pressure", "pressure");
 
-    compressibility_ = plist.get<double>("pore compressibility [Pa^-1]");
-    cutoff_ = plist.get<double>("pore compressibility inflection point [Pa]", 1000.);
-    max_is_one_ = plist.get<bool>("cap porosity at 1", true);
+    Teuchos::ParameterList& model_list = plist.sublist("model parameters");
+    compressibility_ = model_list.get<double>("pore compressibility [Pa^-1]");
+    cutoff_ = model_list.get<double>("pore compressibility inflection point [Pa]", 1000.);
+    max_is_one_ = model_list.get<bool>("cap porosity at 1", true);
   }
 
   void setViews(const std::vector<cView_type>& deps,

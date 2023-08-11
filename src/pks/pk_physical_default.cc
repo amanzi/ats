@@ -29,7 +29,8 @@ PK_Physical_Default::PK_Physical_Default(const Comm_ptr_type& comm,
 {}
 
 void
-PK_Physical_Default::ParseParameterList_() {
+PK_Physical_Default::ParseParameterList_()
+{
   domain_ = plist_->get<std::string>("domain name", "domain");
   mesh_ = S_->GetMesh(domain_);
 
@@ -60,8 +61,8 @@ PK_Physical_Default::Setup()
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *vo_plist));
 
   // require primary variable evaluators
-  requireAtNext(key_, tag_next_, *S_, name_);
-  requireAtCurrent(key_, tag_current_, *S_, name_);
+  PKHelpers::requireAtNext(key_, tag_next_, *S_, name_);
+  PKHelpers::requireAtCurrent(key_, tag_current_, *S_, name_);
 };
 
 
@@ -74,7 +75,7 @@ PK_Physical_Default::CommitStep(double t_old, double t_new, const Tag& tag_next)
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
-  assign(key_, tag_current, tag_next, *S_);
+  PKHelpers::assign(key_, tag_current, tag_next, *S_);
 }
 
 
@@ -83,7 +84,7 @@ PK_Physical_Default::FailStep(double t_old, double t_new, const Tag& tag_next)
 {
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
-  assign(key_, tag_next, tag_current, *S_);
+  PKHelpers::assign(key_, tag_next, tag_current, *S_);
 }
 
 
@@ -119,7 +120,7 @@ PK_Physical_Default::ValidStep()
 void
 PK_Physical_Default::ChangedSolutionPK(const Tag& tag)
 {
-  changedEvaluatorPrimary(key_, tag, *S_);
+  PKHelpers::changedEvaluatorPrimary(key_, tag, *S_);
 }
 
 

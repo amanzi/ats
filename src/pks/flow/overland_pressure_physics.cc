@@ -8,6 +8,11 @@
 */
 
 #include "pk_helpers.hh"
+
+#include "PDE_Diffusion.hh"
+#include "PDE_Accumulation.hh"
+
+#include "pk_helpers.hh"
 #include "overland_pressure.hh"
 
 namespace Amanzi {
@@ -19,17 +24,12 @@ namespace Flow {
 void
 OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
-  auto& markers = bc_markers();
-  auto& values = bc_values();
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
-
   // update the rel perm according to the scheme of choice.
   UpdatePermeabilityData_(tag);
-  auto cond = S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, name_);
 
   // update the stiffness matrix
-  matrix_->Init();
-  matrix_diff_->SetScalarCoefficient(cond, Teuchos::null);
+  matrix_->Zero();
+  matrix_diff_->SetScalarCoefficient(S_->GetPtr<CompositeVector>(uw_cond_key_, tag), Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
   FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
   matrix_diff_->ApplyBCs(true, true, true);
@@ -40,7 +40,7 @@ OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<Composi
   auto pres_elev = S_->GetPtr<CompositeVector>(potential_key_, tag);
   auto flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
-  changedEvaluatorPrimary(flux_key_, tag, *S_);
+  PKHelpers::changedEvaluatorPrimary(flux_key_, tag, *S_);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres_elev, *g);
@@ -73,11 +73,11 @@ OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
   }
 
   // Water content only has cells, while the residual has cells and faces.
-  g->viewComponent("cell", false)
-    ->Update(1.0 / dt,
-             *wc1->viewComponent("cell", false),
+  g->getComponent("cell", false)
+    ->update(1.0 / dt,
+             *wc1->getComponent("cell", false),
              -1.0 / dt,
-             *wc0->viewComponent("cell", false),
+             *wc0->getComponent("cell", false),
              1.0);
 };
 
@@ -88,17 +88,11 @@ OverlandPressureFlow::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 void
 OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
 {
-  Epetra_MultiVector& g_c = *g->viewComponent("cell", false);
-
-  S_->GetEvaluator(cv_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& cv1 =
-    *S_->Get<CompositeVector>(cv_key_, tag_next_).viewComponent("cell", false);
+  S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
 
   if (is_source_term_) {
     // Add in external source term.
     S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
-    const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
 
     if (source_in_meters_) {
@@ -107,31 +101,34 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
       S_->GetEvaluator(source_molar_dens_key_, tag_next_).Update(*S_, name_);
 
-      const Epetra_MultiVector& nliq1 =
-        *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
-      const Epetra_MultiVector& nliq1_s =
-        *S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
+      auto g_c = g->viewComponent("cell", false);
+      auto cv1 = S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
+      auto source1 = S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
 
-      int ncells = g_c.MyLength();
-      for (int c = 0; c != ncells; ++c) {
-        double s1 =
-          source1[0][c] > 0. ? source1[0][c] * nliq1_s[0][c] : source1[0][c] * nliq1[0][c];
-        g_c[0][c] -= cv1[0][c] * s1;
-      }
+      auto nliq1 = S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
+      auto nliq1_s = S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
+
+      Kokkos::parallel_for("OverlandPressureFlow::AddSourceTerms", g_c.extent(0),
+                           KOKKOS_LAMBDA(const int& c) {
+                             double s1 = source1(c,0) > 0. ? source1(c,0) * nliq1_s(c,0) : source1(c,0) * nliq1(c,0);
+                             g_c(c,0) -= cv1(c,0) * s1;
+                           });
     } else {
-      int ncells = g_c.MyLength();
-      for (int c = 0; c != ncells; ++c) { g_c[0][c] -= cv1[0][c] * source1[0][c]; }
+      g->getComponent("cell", false)->elementWiseMultiply(
+        -1.0,
+        *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).getComponent("cell", false)->getVector(0),
+        *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
+        1.0);
     }
   }
 
   if (coupled_to_subsurface_via_head_) {
     // Add in source term from coupling.
     S_->GetEvaluator(ss_flux_key_, tag_next_).Update(*S_, name_);
-    Teuchos::RCP<const CompositeVector> source1 =
-      S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_);
+    const CompositeVector& source1 = S_->Get<CompositeVector>(ss_flux_key_, tag_next_);
 
     // source term is in units of [mol / s]
-    g_c.Update(-1., *source1->viewComponent("cell", false), 1.);
+    g->getComponent("cell", false)->update(-1., *source1.getComponent("cell", false), 1.);
   }
 };
 

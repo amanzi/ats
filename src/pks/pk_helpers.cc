@@ -13,6 +13,7 @@
 #include "pk_helpers.hh"
 
 namespace Amanzi {
+namespace PKHelpers {
 
 bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias)
@@ -232,88 +233,94 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S)
 }
 
 
-// -----------------------------------------------------------------------------
-// Helper functions for working with Amanzi's Chemistry PK
-// -----------------------------------------------------------------------------
-void
-convertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
-                             int num_aqueous,
-                             const Epetra_MultiVector& tcc_ats,
-                             Epetra_MultiVector& tcc_amanzi)
-{
-  // convert from mole fraction [mol C / mol H20] to [mol C / L]
-  for (int k = 0; k != num_aqueous; ++k) {
-    for (int c = 0; c != tcc_ats.MyLength(); ++c) {
-      // 1.e-3 converts L to m^3
-      tcc_amanzi[k][c] = tcc_ats[k][c] * mol_dens[0][c] * 1.e-3;
-    }
-  }
-}
-
-
-void
-convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
-                          int num_aqueous,
-                          const Epetra_MultiVector& tcc_amanzi,
-                          Epetra_MultiVector& tcc_ats)
-{
-  // convert from [mol C / L] to mol fraction [mol C / mol H20]
-  for (int k = 0; k != num_aqueous; ++k) {
-    for (int c = 0; c != tcc_amanzi.MyLength(); ++c) {
-      tcc_ats[k][c] = tcc_amanzi[k][c] / (mol_dens[0][c] * 1.e-3);
-    }
-  }
-}
-
-
-bool
-advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
-                 double t_old,
-                 double t_new,
-                 bool reinit,
-                 const Epetra_MultiVector& mol_dens,
-                 Teuchos::RCP<Epetra_MultiVector> tcc,
-                 Teuchos::Time& timer)
-{
-  bool fail = false;
-  int num_aqueous = chem_pk->num_aqueous_components();
-  convertConcentrationToAmanzi(mol_dens, num_aqueous, *tcc, *tcc);
-  chem_pk->set_aqueous_components(tcc);
-
-  {
-    auto monitor = Teuchos::rcp(new Teuchos::TimeMonitor(timer));
-    fail = chem_pk->AdvanceStep(t_old, t_new, reinit);
-  }
-  if (fail) return fail;
-
-  *tcc = *chem_pk->aqueous_components();
-  convertConcentrationToATS(mol_dens, num_aqueous, *tcc, *tcc);
-  return fail;
-}
-
-
-// int
-// commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global)
+// // -----------------------------------------------------------------------------
+// // Helper functions for working with Amanzi's Chemistry PK
+// // -----------------------------------------------------------------------------
+// void
+// convertConcentrationToAmanzi(const Epetra_MultiVector& mol_dens,
+//                              int num_aqueous,
+//                              const Epetra_MultiVector& tcc_ats,
+//                              Epetra_MultiVector& tcc_amanzi)
 // {
-//   MpiComm_type const* mpi_comm = dynamic_cast<const MpiComm_type*>(&comm);
-//   const MPI_Comm& mpi_comm_raw = mpi_comm->Comm();
-//   return MPI_Allreduce(&local, &global, 1, MPI_DOUBLE_INT, MPI_MAXLOC, mpi_comm_raw);
-// }
-
-// ValLoc
-// maxValLoc(const Epetra_Vector& vec)
-// {
-//   ValLoc local{ 0., 0 };
-//   for (int i = 0; i != vec.MyLength(); ++i) {
-//     if (vec[i] > local.value) {
-//       local.value = vec[i];
-//       local.gid = vec.Map().GID(i);
+//   // convert from mole fraction [mol C / mol H20] to [mol C / L]
+//   for (int k = 0; k != num_aqueous; ++k) {
+//     for (int c = 0; c != tcc_ats.MyLength(); ++c) {
+//       // 1.e-3 converts L to m^3
+//       tcc_amanzi[k][c] = tcc_ats[k][c] * mol_dens[0][c] * 1.e-3;
 //     }
 //   }
-//   ValLoc global{ 0., 0 };
-//   int ierr = commMaxValLoc(vec.Comm(), local, global);
-//   AMANZI_ASSERT(!ierr);
-//   return global;
 // }
 
+
+// void
+// convertConcentrationToATS(const Epetra_MultiVector& mol_dens,
+//                           int num_aqueous,
+//                           const Epetra_MultiVector& tcc_amanzi,
+//                           Epetra_MultiVector& tcc_ats)
+// {
+//   // convert from [mol C / L] to mol fraction [mol C / mol H20]
+//   for (int k = 0; k != num_aqueous; ++k) {
+//     for (int c = 0; c != tcc_amanzi.MyLength(); ++c) {
+//       tcc_ats[k][c] = tcc_amanzi[k][c] / (mol_dens[0][c] * 1.e-3);
+//     }
+//   }
+// }
+
+
+// bool
+// advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
+//                  double t_old,
+//                  double t_new,
+//                  bool reinit,
+//                  const Epetra_MultiVector& mol_dens,
+//                  Teuchos::RCP<Epetra_MultiVector> tcc,
+//                  Teuchos::Time& timer)
+// {
+//   bool fail = false;
+//   int num_aqueous = chem_pk->num_aqueous_components();
+//   convertConcentrationToAmanzi(mol_dens, num_aqueous, *tcc, *tcc);
+//   chem_pk->set_aqueous_components(tcc);
+
+//   {
+//     auto monitor = Teuchos::rcp(new Teuchos::TimeMonitor(timer));
+//     fail = chem_pk->AdvanceStep(t_old, t_new, reinit);
+//   }
+//   if (fail) return fail;
+
+//   *tcc = *chem_pk->aqueous_components();
+//   convertConcentrationToATS(mol_dens, num_aqueous, *tcc, *tcc);
+//   return fail;
+// }
+
+// -------------------------------------------------------------
+// Helper function and customization point for upwinded coefs.
+// -------------------------------------------------------------
+void
+requireNonlinearDiffusionCoefficient(const Key& key, const Tag& tag,
+                            const std::string& coef_location, State& S)
+{
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh = S.GetMesh(Keys::getDomain(key));
+  if (coef_location == "upwind: face") {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, key)
+      .SetMesh(mesh)
+      ->SetGhosted()
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  } else if (coef_location == "standard: cell") {
+    S.Require<CompositeVector, CompositeVectorSpace>(key, tag, key)
+      .SetMesh(mesh)
+      ->SetGhosted()
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  } else {
+    Errors::Message msg;
+    msg << "Unknown upwind coefficient location for \"" << key << "\"";
+    Exceptions::amanzi_throw(msg);
+  }
+  S.GetRecordW(key, tag, key).set_io_vis(false);
+}
+
+
+
+
+
+} // namespace PKHelpers
 } // namespace Amanzi

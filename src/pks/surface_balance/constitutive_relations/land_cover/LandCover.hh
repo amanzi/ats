@@ -163,7 +163,6 @@ struct LandCover {
   double albedo_ground;
   double albedo_canopy;
   double emissivity_ground;
-  double emissivity_canopy;
 
   double beers_k_sw;
   double beers_k_lw;

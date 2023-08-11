@@ -10,17 +10,17 @@
 #include "Point.hh"
 #include "DataStructuresHelpers.hh"
 
+#include "OperatorDefs.hh"
+#include "PDE_DiffusionWithGravity.hh"
+#include "PDE_DiffusionFactory.hh"
+#include "PDE_Accumulation.hh"
+
 #include "upwind_cell_centered.hh"
 #include "upwind_arithmetic_mean.hh"
 #include "upwind_total_flux.hh"
 //#include "upwind_gravity_flux.hh"
 
 //#include "predictor_delegate_bc_flux.hh"
-#include "MeshFunction.hh"
-#include "OperatorDefs.hh"
-#include "PDE_DiffusionWithGravity.hh"
-#include "PDE_DiffusionFactory.hh"
-#include "PDE_Accumulation.hh"
 //#include "BoundaryFlux.hh"
 #include "pk_helpers.hh"
 
@@ -29,11 +29,12 @@
 namespace Amanzi {
 namespace Flow {
 
+const std::string Richards::type = "richards flow";
+
+
 // -------------------------------------------------------------
 // Constructor
 // -------------------------------------------------------------
-const std::string Richards::type = "richards flow";
-
 Richards::Richards(const Comm_ptr_type& comm,
                    Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -71,7 +72,6 @@ Richards::ParseParameterList_()
   PK_PhysicalBDF_Default::ParseParameterList_();
 
   // get field names
-  conserved_key_ = Keys::readKey(*plist_, domain_, "conserved", "water_content");
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
@@ -151,13 +151,12 @@ Richards::Setup()
 void
 Richards::SetupRichardsFlow_()
 {
-  // Get data for special-case entities.
-  S_->Require<CompositeVector, CompositeVectorSpace>(cell_vol_key_, tag_next_)
-    .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  S_->RequireEvaluator(cell_vol_key_, tag_next_);
+  // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
+  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
-  // Set up Operators
+  //
+  // Diffusion Operators
+  // ------------------------------------------------------------------
   // -- Boundary conditions.
   auto& bc_fac = S_->Require<Operators::BCs, Operators::BCs_Factory>(name_+"_bcs", tag_next_);
   bc_fac.set_mesh(mesh_);
@@ -165,16 +164,12 @@ Richards::SetupRichardsFlow_()
   bc_fac.set_dof_type(WhetStone::DOF_Type::SCALAR);
   S_->RequireEvaluator(name_+"_bcs", tag_next_);
 
-  // -- set up data for BCs
   if (plist_->sublist("boundary conditions").isSublist("pressure"))
     S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_pressure", tag_next_)
       .set_flag(Operators::OPERATOR_BC_DIRICHLET);
   if (plist_->sublist("boundary conditions").isSublist("water flux"))
     S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_water_flux", tag_next_)
       .set_flag(Operators::OPERATOR_BC_NEUMANN);
-
-  // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
-  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // -- nonlinear coefficients/upwinding
   // if coupled to the surface, how do we deal with the surface face
@@ -220,7 +215,7 @@ Richards::SetupRichardsFlow_()
 
   // require the data on appropriate locations
   std::string coef_location = upwinding_->CoefficientLocation();
-  RequireNonlinearCoefficient_(uw_coef_key_, coef_location);
+  PKHelpers::requireNonlinearDiffusionCoefficient(uw_coef_key_, tag_next_, coef_location, *S_);
 
   // -- create the forward operator for the diffusion term
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
@@ -294,7 +289,7 @@ Richards::SetupRichardsFlow_()
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
 
       // note this is always done on faces using total flux upwinding
-      RequireNonlinearCoefficient_(duw_coef_key_, "upwind: face");
+      PKHelpers::requireNonlinearDiffusionCoefficient(duw_coef_key_, tag_next_, "upwind: face", *S_);
 
       // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
       double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
@@ -306,21 +301,26 @@ Richards::SetupRichardsFlow_()
     }
   }
 
-  // -- accumulation terms
+  //
+  // Accumluation Operator
+  // ------------------------------------------------------------------
   Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
   acc_pc_plist.set<std::string>("entity kind", "cell");
   preconditioner_acc_ =
     Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
-  // -- source terms
+  //
+  // Source term
+  // ------------------------------------------------------------------
   is_source_term_ = plist_->get<bool>("source term", false);
   if (is_source_term_) {
-    if (source_key_.empty())
+    if (source_key_.empty()) {
       source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
+    }
     source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
     explicit_source_ = plist_->get<bool>("explicit source term", false);
 
-    requireAtNext(source_key_, tag_next_, *S_)
+    PKHelpers::requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     if (source_term_is_differentiable_) {
@@ -330,7 +330,9 @@ Richards::SetupRichardsFlow_()
     }
   }
 
-  // coupling to the surface
+  //
+  // Coupling to surface
+  // ------------------------------------------------------------------
   // -- coupling done by a Neumann condition
   coupled_to_surface_via_flux_ = plist_->get<bool>("coupled to surface via flux", false);
   if (coupled_to_surface_via_flux_) {
@@ -358,30 +360,29 @@ Richards::SetupRichardsFlow_()
     Exceptions::amanzi_throw(message);
   }
 
+  //
   // Require fields and evaluators
+  // ------------------------------------------------------------------
+
   // -- pressure, the primary variable
   //  NOTE: no need to require evaluator for p here, either at the old or new
   //  times, as this was done in pk_physical.  All we have to do is set the
   //  structure.
-  const CompositeSpace& matrix_cvs = *matrix_->getRangeMap();
   compute_boundary_values_ = plist_->get<bool>("compute boundary values", false);
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
-    .Update(matrix_cvs)
-    ->SetGhosted();
-  if (compute_boundary_values_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
-      .AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-  }
+    .Update(*matrix_->getRangeMap())
+    ->SetGhosted()
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // -- flux is managed here as a primary variable
-  requireAtNext(flux_key_, tag_next_, *S_, name_)
+  PKHelpers::requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- also need a velocity, but only for vis/diagnostics, so might as well
   // -- only keep at NEXT
-  requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
+  PKHelpers::requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
@@ -426,7 +427,7 @@ Richards::SetupPhysicalEvaluators_()
   S_->RequireEvaluator(perm_key_, tag_next_);
 
   // -- water content, and evaluator, and derivative for PC
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -434,25 +435,25 @@ Richards::SetupPhysicalEvaluators_()
     conserved_key_, tag_next_, key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
+  PKHelpers::requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
 
   // -- Water retention evaluators
   // -- saturation
-  requireAtNext(sat_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(sat_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtNext(sat_gas_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(sat_gas_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   auto& wrm = S_->RequireEvaluator(sat_key_, tag_next_);
 
   //    and at the current time, where it is a copy evaluator
-  requireAtCurrent(sat_key_, tag_current_, *S_, name_);
+  PKHelpers::requireAtCurrent(sat_key_, tag_current_, *S_, name_);
 
   // -- rel perm
-  requireAtNext(coef_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(coef_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
@@ -464,40 +465,16 @@ Richards::SetupPhysicalEvaluators_()
   // wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
-  requireAtNext(molar_dens_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- liquid mass density for the gravity fluxes
-  requireAtNext(mass_dens_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(mass_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-}
-
-
-// -------------------------------------------------------------
-// Helper function and customization point for upwinded coefs.
-// -------------------------------------------------------------
-void
-Richards::RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location)
-{
-  if (coef_location == "upwind: face") {
-    S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
-      .SetMesh(mesh_)
-      ->SetGhosted()
-      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-  } else if (coef_location == "standard: cell") {
-    S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
-      .SetMesh(mesh_)
-      ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  } else {
-    Errors::Message message("Unknown upwind coefficient location in Richards flow.");
-    Exceptions::amanzi_throw(message);
-  }
-  S_->GetRecordW(key, tag_next_, name_).set_io_vis(false);
 }
 
 
@@ -515,17 +492,17 @@ Richards::Initialize()
 
   // Set extra fields as initialized -- these don't currently have evaluators,
   // and will be initialized in the call to commit_state()
-  S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, name_).putScalar(1.0);
-  S_->GetRecordW(uw_coef_key_, tag_next_, name_).set_initialized();
+  S_->GetW<CompositeVector>(uw_coef_key_, tag_next_, uw_coef_key_).putScalar(1.0);
+  S_->GetRecordW(uw_coef_key_, tag_next_, uw_coef_key_).set_initialized();
 
   if (!duw_coef_key_.empty()) {
-    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, name_).putScalar(1.0);
-    S_->GetRecordW(duw_coef_key_, tag_next_, name_).set_initialized();
+    S_->GetW<CompositeVector>(duw_coef_key_, tag_next_, duw_coef_key_).putScalar(1.0);
+    S_->GetRecordW(duw_coef_key_, tag_next_, duw_coef_key_).set_initialized();
   }
 
   S_->GetW<CompositeVector>(flux_key_, tag_next_, getName()).putScalar(0.0);
   S_->GetRecordW(flux_key_, tag_next_, getName()).set_initialized();
-  changedEvaluatorPrimary(flux_key_, tag_next_, *S_);
+  PKHelpers::changedEvaluatorPrimary(flux_key_, tag_next_, *S_);
 
   S_->GetW<CompositeVector>(flux_dir_key_, tag_next_, getName()).putScalar(0.0);
   S_->GetRecordW(flux_dir_key_, tag_next_, getName()).set_initialized();
@@ -679,8 +656,8 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
   // also save saturation
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
-  assign(sat_key_, tag_current, tag_next, *S_);
-  if (S_->HasRecordSet(sat_ice_key_)) { assign(sat_ice_key_, tag_current, tag_next, *S_); }
+  PKHelpers::assign(sat_key_, tag_current, tag_next, *S_);
+  if (S_->HasRecordSet(sat_ice_key_)) { PKHelpers::assign(sat_ice_key_, tag_current, tag_next, *S_); }
 };
 
 
@@ -754,8 +731,8 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating permeability?";
   if (fixed_kr_) return false;
 
-  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
   bool update_perm = S_->GetEvaluator(coef_key_, tag).Update(*S_, name_);
+  Teuchos::RCP<const CompositeVector> rel_perm = S_->GetPtr<CompositeVector>(coef_key_, tag);
 
   // requirements due to the upwinding method
   if (Krel_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
@@ -808,7 +785,7 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
 
   if (update_perm) {
     Teuchos::RCP<CompositeVector> uw_rel_perm =
-      S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, name_);
+      S_->GetPtrW<CompositeVector>(uw_coef_key_, tag, uw_coef_key_);
 
     // Move rel perm on boundary_faces into uw_rel_perm on faces
     const auto& vandelay = mesh_->getBoundaryFaceImporter();
@@ -876,7 +853,7 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
 
     if (!duw_coef_key_.empty()) {
       // must also upwind
-      CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, name_);
+      CompositeVector& duw_rel_perm = S_->GetW<CompositeVector>(duw_coef_key_, tag, duw_coef_key_);
       duw_rel_perm.putScalar(0.);
 
       // Upwind, only overwriting boundary faces if the wind says to do so.
@@ -915,7 +892,7 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
 
   // push Dirichlet data into predictor
   const auto& bcs = S_->Get<Operators::BCs>(name_+"_bcs", tag_next_);
-  applyDirichletBCs(bcs, *u->getData());
+  PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   bool changed(false);
   // if (modify_predictor_bc_flux_ ||

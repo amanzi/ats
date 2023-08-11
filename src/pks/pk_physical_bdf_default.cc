@@ -36,6 +36,9 @@ PK_PhysicalBDF_Default::PK_PhysicalBDF_Default(const Comm_ptr_type& comm,
 void
 PK_PhysicalBDF_Default::ParseParameterList_()
 {
+  PK_BDF_Default::ParseParameterList_();
+  PK_Physical_Default::ParseParameterList_();
+
   // keys used here
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
@@ -44,9 +47,6 @@ PK_PhysicalBDF_Default::ParseParameterList_()
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);
   fluxtol_ = plist_->get<double>("flux error tolerance", 1.0);
-
-  PK_BDF_Default::ParseParameterList_();
-  PK_Physical_Default::ParseParameterList_();
 }
 
 
@@ -61,16 +61,16 @@ PK_PhysicalBDF_Default::Setup()
   PK_BDF_Default::Setup();
 
   // convergence criteria is based on a conserved quantity
-  requireAtNext(conserved_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
 
   // we also use a copy of the conserved quantity, as this is a better choice
   // in the error norm
-  requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
+  PKHelpers::requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
   // cell volume used for ErrorNorm
-  requireAtNext(cell_vol_key_, tag_next_, *S_)
+  PKHelpers::requireAtNext(cell_vol_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
 };
@@ -189,7 +189,7 @@ PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_ne
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   // copy over conserved quantity
-  assign(conserved_key_, tag_current, tag_next, *S_);
+  PKHelpers::assign(conserved_key_, tag_current, tag_next, *S_);
 }
 
 

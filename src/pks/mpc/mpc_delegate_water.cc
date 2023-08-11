@@ -14,17 +14,18 @@
 
 namespace Amanzi {
 
-
 MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                                   const Teuchos::RCP<State>& S,
-                                   const std::string& domain)
+        const Teuchos::RCP<State>& S,
+        const std::string& domain,
+        const std::string& domain_surf)
   : plist_(plist),
     S_(S),
     i_domain_(-1),
     i_surf_(-1),
     i_Tdomain_(-1),
     i_Tsurf_(-1),
-    domain_ss_(domain)
+    domain_ss_(domain),
+    domain_surf_(domain_surf)
 {
   // predictor control
   modify_predictor_heuristic_ = plist_->get<bool>("modify predictor with heuristic", false);
@@ -67,7 +68,7 @@ MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& p
   }
 
   // create the VO
-  vo_ = Teuchos::rcp(new VerboseObject(plist->getName(), *plist_));
+  vo_ = Teuchos::rcp(new VerboseObject(S->GetMesh(domain)->getComm(), plist->name(), *plist_));
 }
 
 
@@ -81,28 +82,26 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h,
   int n_modified = 0;
   if (face_limiter_ > 0.) {
     std::string face_entity;
-    if (Pu->SubVector(i_domain_)->Data()->hasComponent("face")) {
+    if (Pu->getSubVector(i_domain_)->getData()->hasComponent("face")) {
       face_entity = "face";
-    } else if (Pu->SubVector(i_domain_)->Data()->hasComponent("boundary_face")) {
+    } else if (Pu->getSubVector(i_domain_)->getData()->hasComponent("boundary_face")) {
       face_entity = "boundary_face";
     } else {
       Errors::Message message("Subsurface vector does not have face component.");
       Exceptions::amanzi_throw(message);
     }
 
-    Epetra_MultiVector& domain_Pu_f =
-      *Pu->SubVector(i_domain_)->Data()->viewComponent(face_entity, false);
+    auto domain_Pu_f =
+      Pu->getSubVector(i_domain_)->getData()->viewComponent(face_entity, false);
 
-    for (int f = 0; f != domain_Pu_f.MyLength(); ++f) {
-      if (std::abs(domain_Pu_f[0][f]) > face_limiter_) {
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          *vo_->os() << "  LIMITING: dp_old = " << domain_Pu_f[0][f];
-        domain_Pu_f[0][f] = domain_Pu_f[0][f] > 0. ? face_limiter_ : -face_limiter_;
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          *vo_->os() << ", dp_new = " << domain_Pu_f[0][f] << std::endl;
-        n_modified++;
-      }
-    }
+    Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_WaterFaceLimiter",
+                            domain_Pu_f.extent(0),
+                            KOKKOS_LAMBDA(const int& f, int& l_modified) {
+                              if (std::abs(domain_Pu_f(f,0)) > face_limiter_) {
+                                domain_Pu_f(f,0) = domain_Pu_f(f,0) > 0. ? face_limiter_ : -face_limiter_;
+                                l_modified++;
+                              }
+                            }, n_modified);
   }
   return n_modified;
 }
@@ -118,47 +117,63 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   std::string face_entity;
-  if (Pu->SubVector(i_domain_)->Data()->hasComponent("face")) {
+  if (Pu->getSubVector(i_domain_)->getData()->hasComponent("face")) {
     face_entity = "face";
-  } else if (Pu->SubVector(i_domain_)->Data()->hasComponent("boundary_face")) {
+  } else if (Pu->getSubVector(i_domain_)->getData()->hasComponent("boundary_face")) {
     face_entity = "boundary_face";
   } else {
     Errors::Message message("Subsurface vector does not have face component.");
     Exceptions::amanzi_throw(message);
   }
 
-  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->SubVector(i_surf_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
   int ncells_surf = surf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  Teuchos::RCP<const CompositeVector> domain_u = u->SubVector(i_domain_)->Data();
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-  Epetra_MultiVector& domain_Pu_c = *domain_Pu->viewComponent("cell", false);
-  Epetra_MultiVector& domain_Pu_f = *domain_Pu->viewComponent(face_entity, false);
+  Teuchos::RCP<const CompositeVector> domain_u = u->getSubVector(i_domain_)->getData();
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
+  const auto domain_u_f = domain_Pu->viewComponent(face_entity, false);
+  auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
 
   // Approach 2
   double damp = 1.;
   if (damp_the_spurt_) {
-    for (int cs = 0; cs != ncells_surf; ++cs) {
-      AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, cs);
-      double p_old = GetDomainFaceValue(*u->SubVector(i_domain_)->Data(), f);
-      double p_Pu = GetDomainFaceValue(*Pu->SubVector(i_domain_)->Data(), f);
-      double p_new = p_old - p_Pu;
-      if ((p_new > patm + cap_size_) && (p_old < patm)) {
-        double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-        damp = std::min(damp, my_damp);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          std::cout << "   DAMPING THE SPURT (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp
-                    << std::endl;
-      }
+    if (face_entity == "face") {
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_WaterSpurtDamp",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, double& l_damp) {
+                AmanziMesh::Entity_ID f = parent_ents(cs);
+                double p_old = domain_u_f(f,0);
+                double p_Pu = domain_Pu_f(f,0);
+                double p_new = p_old - p_Pu;
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                }
+              }, damp);
+    } else {
+      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_WaterSpurtDamp",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, double& l_damp) {
+                AmanziMesh::Entity_ID f = AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+                double p_old = domain_u_f(f,0);
+                double p_Pu = domain_Pu_f(f,0);
+                double p_new = p_old - p_Pu;
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                }
+              }, damp);
     }
 
     double proc_damp = damp;
-    domain_Pu_f.Comm().MinAll(&proc_damp, &damp, 1);
+    Teuchos::reduceAll(*domain_u->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
     if (damp < 1.0) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
         *vo_->os() << "  DAMPING THE SPURT!, coef = " << damp << std::endl;
-      domain_Pu->Scale(damp);
+      domain_Pu->scale(damp);
     }
   }
   return damp;
@@ -176,40 +191,75 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
 {
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->SubVector(i_surf_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
   int ncells_surf = surf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  Teuchos::RCP<const CompositeVector> domain_u = u->SubVector(i_domain_)->Data();
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
+  std::string face_entity;
+  if (Pu->getSubVector(i_domain_)->getData()->hasComponent("face")) {
+    face_entity = "face";
+  } else if (Pu->getSubVector(i_domain_)->getData()->hasComponent("boundary_face")) {
+    face_entity = "boundary_face";
+  } else {
+    Errors::Message message("Subsurface vector does not have face component.");
+    Exceptions::amanzi_throw(message);
+  }
+
+  Teuchos::RCP<const CompositeVector> domain_u = u->getSubVector(i_domain_)->getData();
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
+  const auto domain_u_f = domain_Pu->viewComponent(face_entity, false);
+  auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
 
   // Approach 3
   int n_modified = 0;
   if (cap_the_spurt_) {
-    for (int cs = 0; cs != ncells_surf; ++cs) {
-      AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, cs);
+    if (face_entity == "face") {
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_WaterSpurtCap",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, int& l_modified) {
+                AmanziMesh::Entity_ID f = parent_ents(cs);
 
-      double p_old = GetDomainFaceValue(*u->SubVector(i_domain_)->Data(), f);
-      double p_Pu = GetDomainFaceValue(*Pu->SubVector(i_domain_)->Data(), f);
-      double p_new = p_old - p_Pu / damp;
-      if ((p_new > patm + cap_size_) && (p_old < patm)) {
-        double p_corrected = p_old - (patm + cap_size_);
-        SetDomainFaceValue(*domain_Pu, f, p_corrected);
+                double p_old = domain_u_f(f,0);
+                double p_Pu = domain_Pu_f(f,0);
+                double p_new = p_old - p_Pu / damp;
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  double p_corrected = p_old - (patm + cap_size_);
+                  domain_Pu_f(f,0) = p_corrected;
 
-        n_modified++;
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          std::cout << "  CAPPING THE SPURT (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                    << ",f=" << u->SubVector(i_domain_)->Data()->getMesh()->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f)
-                    << "): p_old = " << p_old << ", p_new = " << p_new
-                    << ", p_capped = " << p_old - p_corrected << std::endl;
-      } else if ((p_new < patm) && (p_old > patm)) {
-        // strange attempt to kick NKA when it goes back under?
-        // double p_corrected = p_old - (patm - cap_size_);
-        // SetDomainFaceValue(*domain_Pu, f, p_corrected);
-        n_modified++;
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          std::cout << "  INVERSE SPURT (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << std::endl;
-      }
+                  l_modified++;
+
+                } else if ((p_new < patm) && (p_old > patm)) {
+                  // strange attempt to kick NKA when it goes back under?
+                  // double p_corrected = p_old - (patm - cap_size_);
+                  // domain_Pu_f(f,0) = p_corrected;
+                  l_modified++;
+                }
+              }, n_modified);
+
+    } else if (face_entity == "boundary_face") {
+      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_WaterSpurtCap",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, int& l_modified) {
+                AmanziMesh::Entity_ID f = AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+
+                double p_old = domain_u_f(f,0);
+                double p_Pu = domain_Pu_f(f,0);
+                double p_new = p_old - p_Pu / damp;
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  double p_corrected = p_old - (patm + cap_size_);
+                  domain_Pu_f(f,0) = p_corrected;
+
+                  l_modified++;
+
+                } else if ((p_new < patm) && (p_old > patm)) {
+                  // strange attempt to kick NKA when it goes back under?
+                  // double p_corrected = p_old - (patm - cap_size_);
+                  // domain_Pu_f(f,0) = p_corrected;
+                  l_modified++;
+                }
+              }, n_modified);
     }
   }
   return n_modified;
@@ -226,36 +276,33 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
 {
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->SubVector(i_domain_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->getSubVector(i_domain_)->getData()->getMesh();
   int ncells_domain = domain_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  const Epetra_MultiVector& domain_p_c =
-    *u->SubVector(i_domain_)->Data()->viewComponent("cell", false);
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-  Epetra_MultiVector& domain_Pu_c = *domain_Pu->viewComponent("cell", false);
+  const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
 
   // Approach 2
   double damp = 1.;
   if (damp_the_sat_spurt_) {
-    for (int c = 0; c != ncells_domain; ++c) {
-      double p_old = domain_p_c[0][c];
-      double p_new = p_old - domain_Pu_c[0][c];
-      if ((p_new > patm + cap_size_) && (p_old < patm)) {
-        double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-        damp = std::min(damp, my_damp);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          std::cout << "   DAMPING THE SATURATED SPURT (c=" << domain_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp
-                    << std::endl;
-      }
-    }
+    Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp",
+                            ncells_domain,
+                            KOKKOS_LAMBDA(const int& c, double& l_damp) {
+                              double p_old = domain_p_c(c,0);
+                              double p_new = p_old - domain_Pu_c(c,0);
+                              if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                                double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+                                l_damp = std::min(l_damp, my_damp);
+                              }
+                            }, damp);
 
     double proc_damp = damp;
-    domain_Pu_c.Comm().MinAll(&proc_damp, &damp, 1);
+    Teuchos::reduceAll(*domain_Pu->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
     if (damp < 1.0) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
         *vo_->os() << "  DAMPING THE SATURATED SPURT!, coef = " << damp << std::endl;
-      domain_Pu->Scale(damp);
+      domain_Pu->scale(damp);
     }
   }
   return damp;
@@ -273,29 +320,26 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h,
 {
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->SubVector(i_domain_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->getSubVector(i_domain_)->getData()->getMesh();
   int ncells_domain = domain_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  const Epetra_MultiVector& domain_p_c =
-    *u->SubVector(i_domain_)->Data()->viewComponent("cell", false);
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-  Epetra_MultiVector& domain_Pu_c = *domain_Pu->viewComponent("cell", false);
+  const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
 
   // Approach 3
   int n_modified = 0;
   if (cap_the_sat_spurt_) {
-    for (int c = 0; c != ncells_domain; ++c) {
-      double p_old = domain_p_c[0][c];
-      double p_new = p_old - domain_Pu_c[0][c] / damp;
-      if ((p_new > patm + cap_size_) && (p_old < patm)) {
-        domain_Pu_c[0][c] = p_old - (patm + cap_size_);
-        n_modified++;
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          std::cout << "  CAPPING THE SATURATED SPURT (c=" << domain_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c)
-                    << "): p_old = " << p_old << ", p_new = " << p_new
-                    << ", p_capped = " << p_old - domain_Pu_c[0][c] << std::endl;
-      }
-    }
+    Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap",
+                            ncells_domain,
+                            KOKKOS_LAMBDA(const int& c, int& l_modified) {
+                              double p_old = domain_p_c(c,0);
+                              double p_new = p_old - domain_Pu_c(c,0) / damp;
+                              if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                                domain_Pu_c(c,0) = p_old - (patm + cap_size_);
+                                l_modified++;
+                              }
+                            }, n_modified);
   }
 
   return n_modified;
@@ -311,36 +355,33 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
 {
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->SubVector(i_domain_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->getSubVector(i_domain_)->getData()->getMesh();
   int ncells_domain = domain_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  const Epetra_MultiVector& domain_p_c =
-    *u->SubVector(i_domain_)->Data()->viewComponent("cell", false);
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-  Epetra_MultiVector& domain_Pu_c = *domain_Pu->viewComponent("cell", false);
+  const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
 
   // Approach 2
   double damp = 1.;
   if (damp_the_desat_spurt_) {
-    for (int c = 0; c != ncells_domain; ++c) {
-      double p_old = domain_p_c[0][c];
-      double p_new = p_old - domain_Pu_c[0][c];
-      if ((p_new < patm - cap_size_) && (p_old >= patm)) {
-        double my_damp = ((patm - cap_size_) - p_old) / (p_new - p_old);
-        damp = std::min(damp, my_damp);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          std::cout << "   DAMPING THE DESATURATED SPURT (c=" << domain_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp
-                    << std::endl;
-      }
-    }
+    Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp",
+                            ncells_domain,
+                            KOKKOS_LAMBDA(const int& c, double& l_damp) {
+                              double p_old = domain_p_c(c,0);
+                              double p_new = p_old - domain_Pu_c(c,0);
+                              if ((p_new < patm - cap_size_) && (p_old >= patm)) {
+                                double my_damp = ((patm - cap_size_) - p_old) / (p_new - p_old);
+                                l_damp = std::min(l_damp, my_damp);
+                              }
+                            }, damp);
 
     double proc_damp = damp;
-    domain_Pu_c.Comm().MinAll(&proc_damp, &damp, 1);
+    Teuchos::reduceAll(*domain_Pu->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
     if (damp < 1.0) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
         *vo_->os() << "  DAMPING THE DESATURATED SPURT!, coef = " << damp << std::endl;
-      domain_Pu->Scale(damp);
+      domain_Pu->scale(damp);
     }
   }
   return damp;
@@ -358,29 +399,26 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h,
 {
   const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->SubVector(i_domain_)->Data()->getMesh();
+  Teuchos::RCP<const AmanziMesh::Mesh> domain_mesh = u->getSubVector(i_domain_)->getData()->getMesh();
   int ncells_domain = domain_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  const Epetra_MultiVector& domain_p_c =
-    *u->SubVector(i_domain_)->Data()->viewComponent("cell", false);
-  Teuchos::RCP<CompositeVector> domain_Pu = Pu->SubVector(i_domain_)->Data();
-  Epetra_MultiVector& domain_Pu_c = *domain_Pu->viewComponent("cell", false);
+  const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
+  Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
+  auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
 
   // Approach 3
   int n_modified = 0;
   if (cap_the_desat_spurt_) {
-    for (int c = 0; c != ncells_domain; ++c) {
-      double p_old = domain_p_c[0][c];
-      double p_new = p_old - domain_Pu_c[0][c] / damp;
-      if ((p_new < patm - cap_size_) && (p_old >= patm)) {
-        domain_Pu_c[0][c] = p_old - (patm - cap_size_);
-        n_modified++;
-        if (vo_->os_OK(Teuchos::VERB_HIGH))
-          std::cout << "  CAPPING THE DESATURATED SPURT (c=" << domain_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c)
-                    << "): p_old = " << p_old << ", p_new = " << p_new
-                    << ", p_capped = " << p_old - domain_Pu_c[0][c] << std::endl;
-      }
-    }
+    Kokkos::parallel_reduce("MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap",
+                            ncells_domain,
+                            KOKKOS_LAMBDA(const int& c, int& l_modified) {
+                              double p_old = domain_p_c(c,0);
+                              double p_new = p_old - domain_Pu_c(c,0) / damp;
+                              if ((p_new < patm - cap_size_) && (p_old >= patm)) {
+                                domain_Pu_c(c,0) = p_old - (patm - cap_size_);
+                                l_modified++;
+                              }
+                            }, n_modified);
   }
   return n_modified;
 }
@@ -395,42 +433,73 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
     if (vo_->os_OK(Teuchos::VERB_HIGH))
       *vo_->os() << "  MPCWaterCoupler: Modifying predictor with water heuristic" << std::endl;
 
-    Teuchos::RCP<CompositeVector> domain_u = u->SubVector(i_domain_)->Data();
-    Epetra_MultiVector& surf_u_c = *u->SubVector(i_surf_)->Data()->viewComponent("cell", false);
-
-    Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->SubVector(i_surf_)->Data()->getMesh();
-
-    const Epetra_MultiVector& surf_u_prev_c =
-      *S_->Get<CompositeVector>("surface-pressure", tag_current_).viewComponent("cell", false);
+    Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
+    auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
     const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    int ncells = surf_u_c.MyLength();
-    for (int c = 0; c != ncells; ++c) {
-      int f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 
-      double dp = surf_u_c[0][c] - surf_u_prev_c[0][c];
-      double pnew = surf_u_c[0][c] - patm;
-      double pold = surf_u_prev_c[0][c] - patm;
+    std::string face_entity;
+    if (u->getSubVector(i_domain_)->getData()->hasComponent("face")) {
+      face_entity = "face";
+    } else if (u->getSubVector(i_domain_)->getData()->hasComponent("boundary_face")) {
+      face_entity = "boundary_face";
+    } else {
+      Errors::Message message("Subsurface vector does not have face component.");
+      Exceptions::amanzi_throw(message);
+    }
 
-      if (pnew > 0) {
-        if (dp > pnew) {
-          if (vo_->os_OK(Teuchos::VERB_HIGH))
-            *vo_->os() << "CHANGING (first over?): p = " << surf_u_c[0][c] << " to "
-                       << patm + cap_size_ << std::endl;
-          surf_u_c[0][c] = patm + cap_size_;
-          SetDomainFaceValue(*domain_u, f, surf_u_c[0][c]);
+    Key key_surf = Keys::getKey(domain_surf_, "pressure");
+    const auto surf_u_prev_c = S_->Get<CompositeVector>(key_surf, tag_current_).viewComponent("cell", false);
+    auto surf_u_c = u->getSubVector(i_surf_)->getData()->viewComponent("cell", false);
+    Teuchos::RCP<CompositeVector> domain_u = u->getSubVector(i_domain_)->getData();
+    auto domain_u_f = domain_u->viewComponent(face_entity, false);
 
-        } else if (pold > 0 && dp > pold) {
-          if (vo_->os_OK(Teuchos::VERB_HIGH))
-            *vo_->os() << "CHANGING (second over?): p = " << surf_u_c[0][c] << " to "
-                       << patm + 2 * pold << std::endl;
-          surf_u_c[0][c] = patm + 2 * pold;
-          SetDomainFaceValue(*domain_u, f, surf_u_c[0][c]);
-        }
-      }
+    int ncells_surf = surf_u_c.extent(0);
+    if (face_entity == "face") {
+      Kokkos::parallel_for("MPCDelegateWater::ModifyPredictor_Heuristic",
+                           ncells_surf,
+                           KOKKOS_LAMBDA(const int& c) {
+                             AmanziMesh::Entity_ID f = parent_ents(c);
+
+                             double dp = surf_u_c(c,0) - surf_u_prev_c(c,0);
+                             double pnew = surf_u_c(c,0) - patm;
+                             double pold = surf_u_prev_c(c,0) - patm;
+
+                             if (pnew > 0) {
+                               if (dp > pnew) {
+                                 surf_u_c(c,0) = patm + cap_size_;
+                                 domain_u_f(f,0) = surf_u_c(c,0);
+
+                               } else if (pold > 0 && dp > pold) {
+                                 surf_u_c(c,0) = patm + 2 * pold;
+                                 domain_u_f(f,0) = surf_u_c(c,0);
+                               }
+                             }
+                           });
+    } else {
+      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      Kokkos::parallel_for("MPCDelegateWater::ModifyPredictor_Heuristic",
+                           ncells_surf,
+                           KOKKOS_LAMBDA(const int& c) {
+                             AmanziMesh::Entity_ID f = AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(c));
+
+                             double dp = surf_u_c(c,0) - surf_u_prev_c(c,0);
+                             double pnew = surf_u_c(c,0) - patm;
+                             double pold = surf_u_prev_c(c,0) - patm;
+
+                             if (pnew > 0) {
+                               if (dp > pnew) {
+                                 surf_u_c(c,0) = patm + cap_size_;
+                                 domain_u_f(f,0) = surf_u_c(c,0);
+
+                               } else if (pold > 0 && dp > pold) {
+                                 surf_u_c(c,0) = patm + 2 * pold;
+                                 domain_u_f(f,0) = surf_u_c(c,0);
+                               }
+                             }
+                           });
     }
     modified = true;
   }
-
   return modified;
 }
 
@@ -445,49 +514,68 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
   if (modify_predictor_spurt_damping_) {
     const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-    Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->SubVector(i_surf_)->Data()->getMesh();
+    Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
     int ncells_surf = surf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-    Epetra_MultiVector& surf_pnew_c = *u->SubVector(i_surf_)->Data()->viewComponent("cell", false);
-    Teuchos::RCP<CompositeVector> domain_pnew = u->SubVector(i_domain_)->Data();
+    auto surf_pnew_c = u->getSubVector(i_surf_)->getData()->viewComponent("cell", false);
+
+    std::string face_entity;
+    if (u->getSubVector(i_domain_)->getData()->hasComponent("face")) {
+      face_entity = "face";
+    } else if (u->getSubVector(i_domain_)->getData()->hasComponent("boundary_face")) {
+      face_entity = "boundary_face";
+    } else {
+      Errors::Message message("Subsurface vector does not have face component.");
+      Exceptions::amanzi_throw(message);
+    }
     Key key_ss = Keys::getKey(domain_ss_, "pressure");
-
-
     auto domain_pold = S_->GetPtr<CompositeVector>(key_ss, tag_current_);
+    auto domain_pold_f = domain_pold->viewComponent(face_entity, false);
 
-    int rank = surf_mesh->getComm()->MyPID();
+    Teuchos::RCP<CompositeVector> domain_pnew = u->getSubVector(i_domain_)->getData();
+    auto domain_pnew_f = domain_pnew->viewComponent(face_entity, false);
+    auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+
     double damp = 1.;
-    for (unsigned int cs = 0; cs != ncells_surf; ++cs) {
-      AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, cs);
-      double p_old = GetDomainFaceValue(*domain_pold, f);
-      double p_new = GetDomainFaceValue(*domain_pnew, f);
-      if ((p_new > patm + cap_size_) && (p_old < patm)) {
-        // first over
-        double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-        damp = std::min(damp, my_damp);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          std::cout << "   DAMPING THE SPURT (1st over) (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp
-                    << std::endl;
-      } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
-        // second over
-        double my_damp = ((patm + 2 * (p_old - patm)) - p_old) / (p_new - p_old);
-        damp = std::min(damp, my_damp);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
-          std::cout << "   DAMPING THE SPURT (2nd over) (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                    << "): p_old = " << p_old << ", p_new = " << p_new << ", coef = " << my_damp
-                    << std::endl;
-      }
+    if (face_entity == "face") {
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyPredictor_WaterSpurtDamp",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, double& l_damp) {
+                AmanziMesh::Entity_ID f = parent_ents(cs);
+                double p_old = domain_pold_f(f,0);
+                double p_new = domain_pnew_f(f,0);
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  // first over
+                  double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
+                  // second over
+                  double my_damp = ((patm + 2 * (p_old - patm)) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                }
+              }, damp);
+    } else {
+      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      Kokkos::parallel_reduce("MPCDelegateWater::ModifyPredictor_WaterSpurtDamp",
+              ncells_surf,
+              KOKKOS_LAMBDA(const int& cs, double& l_damp) {
+                AmanziMesh::Entity_ID f = AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+                double p_old = domain_pold_f(f,0);
+                double p_new = domain_pnew_f(f,0);
+                if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                  // first over
+                  double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
+                  // second over
+                  double my_damp = ((patm + 2 * (p_old - patm)) - p_old) / (p_new - p_old);
+                  l_damp = std::min(l_damp, my_damp);
+                }
+              }, damp);
     }
 
     double proc_damp = damp;
-    if (domain_pnew->hasComponent("face")) {
-      Epetra_MultiVector& domain_pnew_f = *domain_pnew->viewComponent("face", false);
-      domain_pnew_f.Comm().MinAll(&proc_damp, &damp, 1);
-    } else if (domain_pnew->hasComponent("boundary face")) {
-      Epetra_MultiVector& domain_pnew_f = *domain_pnew->viewComponent("boundary face", false);
-      domain_pnew_f.Comm().MinAll(&proc_damp, &damp, 1);
-    }
+    Teuchos::reduceAll(*domain_pnew->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
 
     if (damp < 1.0) {
       if (vo_->os_OK(Teuchos::VERB_HIGH))
@@ -496,38 +584,56 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
       // apply the damping
       db_->WriteVector("p_old", domain_pold.ptr());
       db_->WriteVector("p_new", domain_pnew.ptr());
-      domain_pnew->Update(1. - damp, *domain_pold, damp);
+      domain_pnew->update(1. - damp, *domain_pold, damp);
       db_->WriteVector("p_damped", domain_pnew.ptr());
 
       // undamp and cap the surface
-      for (unsigned int cs = 0; cs != ncells_surf; ++cs) {
-        AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, cs);
-        double p_old = GetDomainFaceValue(*domain_pnew, f);
-        ;
-        double p_new = GetDomainFaceValue(*domain_pnew, f);
-        p_new = (p_new - p_old) / damp + p_old;
-        if ((p_new > patm + cap_size_) && (p_old < patm)) {
-          // first over
-          double new_value = patm + cap_size_;
-          SetDomainFaceValue(*domain_pnew, f, new_value);
-          surf_pnew_c[0][cs] = patm + new_value;
-          if (vo_->os_OK(Teuchos::VERB_HIGH))
-            std::cout << "  CAPPING THE SPURT (1st over) (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                      << "): p_old = " << p_old << ", p_new = " << p_new
-                      << ", p_capped = " << new_value << std::endl;
-        } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
-          // second over
-          double new_value = patm + 2 * (p_old - patm);
-          SetDomainFaceValue(*domain_pnew, f, new_value);
-          surf_pnew_c[0][cs] = new_value;
+      if (face_entity == "face") {
+        Kokkos::parallel_for("MPCDelegateWater::ModifyPredictor_WaterSpurtDamp2",
+                             ncells_surf,
+                             KOKKOS_LAMBDA(const int& cs) {
+                               AmanziMesh::Entity_ID f = parent_ents(cs);
+                               double p_old = domain_pold_f(f,0);                          // THIS WAS A BUG!!!!!!!!!!!!!!!!!!!!!!!!!
+                               double p_new = domain_pnew_f(f,0);
+                               p_new = (p_new - p_old) / damp + p_old;
+                               if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                                 // first over
+                                 double new_value = patm + cap_size_;
+                                 domain_pnew_f(f,0) = new_value;
+                                 surf_pnew_c(cs,0) = new_value;
+                               } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
+                                 // second over
+                                 double new_value = patm + 2 * (p_old - patm);
+                                 domain_pnew_f(f,0) = new_value;
+                                 surf_pnew_c(cs,0) = new_value;
+                               } else {
+                                 surf_pnew_c(cs,0) = domain_pnew_f(f,0);
+                               }
+                             });
+      } else {
+        const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+        Kokkos::parallel_for("MPCDelegateWater::ModifyPredictor_WaterSpurtDamp2",
+                             ncells_surf,
+                             KOKKOS_LAMBDA(const int& cs) {
+                               AmanziMesh::Entity_ID f = AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+                               double p_old = domain_pold_f(f,0);                          // THIS WAS A BUG!!!!!!!!!!!!!!!!!!!!!!!!!
+                               double p_new = domain_pnew_f(f,0);
+                               p_new = (p_new - p_old) / damp + p_old;
+                               if ((p_new > patm + cap_size_) && (p_old < patm)) {
+                                 // first over
+                                 double new_value = patm + cap_size_;
+                                 domain_pnew_f(f,0) = new_value;
+                                 surf_pnew_c(cs,0) = new_value;
+                               } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
+                                 // second over
+                                 double new_value = patm + 2 * (p_old - patm);
+                                 domain_pnew_f(f,0) = new_value;
+                                 surf_pnew_c(cs,0) = new_value;
+                               } else {
+                                 surf_pnew_c(cs,0) = domain_pnew_f(f,0);
+                               }
+                             });
 
-          if (vo_->os_OK(Teuchos::VERB_HIGH))
-            std::cout << "  CAPPING THE SPURT (2nd over) (sc=" << surf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(cs)
-                      << "): p_old = " << p_old << ", p_new = " << p_new
-                      << ", p_capped = " << new_value << std::endl;
-        } else {
-          surf_pnew_c[0][cs] = GetDomainFaceValue(*domain_pnew, f);
-        }
       }
     }
 
@@ -542,48 +648,49 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
 bool
 MPCDelegateWater::ModifyPredictor_TempFromSource(double h, const Teuchos::RCP<TreeVector>& u)
 {
+  AMANZI_ASSERT(false);
   bool modified = false;
-  if (modify_predictor_tempfromsource_) {
-    modified = true;
-    if (vo_->os_OK(Teuchos::VERB_HIGH))
-      *vo_->os()
-        << "  MPCWaterCoupler: Modifying predictor, taking surface temperature from source."
-        << std::endl;
+  // if (modify_predictor_tempfromsource_) {
+  //   modified = true;
+  //   if (vo_->os_OK(Teuchos::VERB_HIGH))
+  //     *vo_->os()
+  //       << "  MPCWaterCoupler: Modifying predictor, taking surface temperature from source."
+  //       << std::endl;
 
-    Epetra_MultiVector& surf_Tnew_c = *u->SubVector(i_Tsurf_)->Data()->viewComponent("cell", false);
-    Epetra_MultiVector& surf_pnew_c = *u->SubVector(i_surf_)->Data()->viewComponent("cell", false);
+  //   Epetra_MultiVector& surf_Tnew_c = *u->getSubVector(i_Tsurf_)->getData()->viewComponent("cell", false);
+  //   Epetra_MultiVector& surf_pnew_c = *u->getSubVector(i_surf_)->getData()->viewComponent("cell", false);
 
 
-    // Epetra_MultiVector& domain_pnew_f = *u->SubVector(i_domain_)->Data()
-    //     ->viewComponent("face",false);
-    Teuchos::RCP<CompositeVector> domain_pnew = u->SubVector(i_domain_)->Data();
+  //   // Epetra_MultiVector& domain_pnew_f = *u->getSubVector(i_domain_)->getData()
+  //   //     ->viewComponent("face",false);
+  //   Teuchos::RCP<CompositeVector> domain_pnew = u->getSubVector(i_domain_)->getData();
 
-    const Epetra_MultiVector& Told =
-      *S_->GetPtr<CompositeVector>("surface-temperature", tag_current_)
-         ->viewComponent("cell", false);
-    const Epetra_MultiVector& Tsource =
-      *S_->GetPtr<CompositeVector>("surface-water_source_temperature", tag_next_)
-         ->viewComponent("cell", false);
-    const Epetra_MultiVector& hold =
-      *S_->GetPtr<CompositeVector>("surface-ponded_depth", tag_current_)
-         ->viewComponent("cell", false);
-    const Epetra_MultiVector& dhsource =
-      *S_->GetPtr<CompositeVector>("surface-water_source", tag_current_)
-         ->viewComponent("cell", false);
+  //   const Epetra_MultiVector& Told =
+  //     *S_->GetPtr<CompositeVector>("surface-temperature", tag_current_)
+  //        ->viewComponent("cell", false);
+  //   const Epetra_MultiVector& Tsource =
+  //     *S_->GetPtr<CompositeVector>("surface-water_source_temperature", tag_next_)
+  //        ->viewComponent("cell", false);
+  //   const Epetra_MultiVector& hold =
+  //     *S_->GetPtr<CompositeVector>("surface-ponded_depth", tag_current_)
+  //        ->viewComponent("cell", false);
+  //   const Epetra_MultiVector& dhsource =
+  //     *S_->GetPtr<CompositeVector>("surface-water_source", tag_current_)
+  //        ->viewComponent("cell", false);
 
-    Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->SubVector(i_surf_)->Data()->getMesh();
+  //   Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
 
-    for (unsigned int c = 0; c != surf_Tnew_c.MyLength(); ++c) {
-      if (surf_Tnew_c[0][c] < 271.15) {
-        // frozen, modify predictor to ensure surface is ready to accept ice
-        if (surf_pnew_c[0][c] < 101325.) {
-          surf_pnew_c[0][c] = 101325.1;
-          AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
-          SetDomainFaceValue(*domain_pnew, f, surf_pnew_c[0][c]);
-        }
-      }
-    }
-  }
+  //   for (unsigned int c = 0; c != surf_Tnew_c.MyLength(); ++c) {
+  //     if (surf_Tnew_c(c,0) < 271.15) {
+  //       // frozen, modify predictor to ensure surface is ready to accept ice
+  //       if (surf_pnew_c(c,0) < 101325.) {
+  //         surf_pnew_c(c,0) = 101325.1;
+  //         AmanziMesh::Entity_ID f = surf_mesh->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+  //         SetDomainFaceValue(*domain_pnew, f, surf_pnew_c(c,0));
+  //       }
+  //     }
+  //   }
+  // }
   return modified;
 }
 

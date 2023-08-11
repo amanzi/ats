@@ -14,37 +14,29 @@ This implements the conductivity of overland flow, which is the nonlinear
 coefficient in the diffusion wave equation.  The term is given by:
 
 .. math:
-   k = \frac{\delta^{coef}}{n_{mann} \sqrt(| \nabla z |)}
+   k = n \delta K(\delta, |\nabla z|, n_{mann})
 
-Optionally, this may include a density factor, typically a molar density, which
-converts the flow law to water flux rather than volumetric flux.
+This writes the conductivity as a function of water density, the mobile depth,
+or portion of the ponded depth that is mobile :math:`\delta`, and Manning's n,
+and the slope magnitude.  Note that the flow law is specified as a model, which
+may have multiple choices of implementation.
 
-Also, this evaluator can be used in snow redistribution, and in that case needs
-some extra factors (timestep size) to ensure the correct flow law in that case.
-
-`"evaluator type`" = `"overland conductivity`"
+type : `"overland conductivity`"
 
 .. _overland-conductivity-evaluator-spec
 .. admonition:: overland-conductivity-evaluator-spec
 
-   * `"include density`" ``[bool]`` **true** Include the density prefactor,
-     converting the flux from volumetric flux to water flux.
-   * `"dt factor [s]`" ``[double]`` **-1** The artificial timestep size used in calculating
-      snow redistribution, only used in that case.
-   * `"swe density factor [-]`" ``[double]`` **10** Ratio of water to snow density.
-
-   DEPENDENCIES:
-
+   KEYS:
+   - `"molar density liquid`" **DOMAIN-molar_density_liquid**
    - `"mobile depth`" **DOMAIN-mobile_depth** Depth of the mobile water; delta
      in the above equation.
-   - `"slope`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
-     flow; | \nabla z | above.
-   - `"coefficient`" **DOMAIN-manning_coefficient** Surface roughness/shape
+   - `"Manning coefficient`" **DOMAIN-manning_coefficient** Surface roughness/shape
      coefficient; n_{mann} above.
-   - `"molar density liquid`" **DOMAIN-molar_density_liquid** If `"include
-     density`" is true, the density.
+   - `"slope magnitude`" **DOMAIN-slope_magnitude** Magnitude of the bed surface driving
+     flow; | \nabla z | above.
 
 */
+
 #pragma once
 
 #include "Factory.hh"
@@ -52,6 +44,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 
 namespace Amanzi {
 namespace Flow {
+namespace Relations {
 
 class ManningConductivityModel;
 
@@ -60,8 +53,6 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
   OverlandConductivityEvaluator(Teuchos::ParameterList& plist);
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
-
-  Teuchos::RCP<ManningConductivityModel> get_Model() { return model_; }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
@@ -73,6 +64,9 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
+  static const std::string name;
+  virtual std::string getType() const override { return name; }
+
  private:
   Teuchos::RCP<ManningConductivityModel> model_;
 
@@ -80,12 +74,11 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key slope_key_;
   Key coef_key_;
   Key dens_key_;
-  double dt_swe_factor_;
-  bool dens_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator, OverlandConductivityEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, OverlandConductivityEvaluator> reg_;
 };
 
+} // namespace Relations
 } // namespace Flow
 } // namespace Amanzi

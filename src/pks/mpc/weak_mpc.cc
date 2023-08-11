@@ -22,13 +22,16 @@ See additional documentation in the base class src/pks/mpc/MPC.hh
 
 namespace Amanzi {
 
-WeakMPC::WeakMPC(Teuchos::ParameterList& pk_tree,
-                 const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
-                 const Teuchos::RCP<State>& S,
-                 const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, global_plist, S, solution), MPC<PK>(pk_tree, global_plist, S, solution)
+const std::string WeakMPC::type = "weak MPC";
+
+WeakMPC::WeakMPC(const Comm_ptr_type& comm,
+                 Teuchos::ParameterList& pk_tree,
+                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                 const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, global_list, S),
+    MPC<PK>(comm, pk_tree, global_list, S)
 {
-  MPC<PK>::init_(solution_->Comm());
+  MPC<PK>::createSubPKs_(comm_);
 };
 
 

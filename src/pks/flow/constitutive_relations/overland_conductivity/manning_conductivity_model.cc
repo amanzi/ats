@@ -17,6 +17,7 @@
 
 namespace Amanzi {
 namespace Flow {
+namespace Relations {
 
 ManningConductivityModel::ManningConductivityModel(Teuchos::ParameterList& plist)
 {
@@ -30,7 +31,7 @@ ManningConductivityModel::Conductivity(double depth, double slope, double coef)
 {
   if (depth <= 0.) return 0.;
   double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));
-  return depth * std::pow(std::min(depth, depth_max_), manning_exp_) / scaling;
+  return std::pow(std::min(depth, depth_max_), manning_exp_) / scaling;
 }
 
 double
@@ -39,11 +40,12 @@ ManningConductivityModel::DConductivityDDepth(double depth, double slope, double
   if (depth <= 0.) return 0.;
   double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));
   if (depth > depth_max_) {
-    return std::pow(depth_max_, manning_exp_) / scaling;
+    return 0.;
   } else {
-    return std::pow(depth, manning_exp_) * (manning_exp_ + 1) / scaling;
+    return manning_exp_ * std::pow(depth, manning_exp_ - 1) / scaling;
   }
 }
 
+} // namespace Relations
 } // namespace Flow
 } // namespace Amanzi

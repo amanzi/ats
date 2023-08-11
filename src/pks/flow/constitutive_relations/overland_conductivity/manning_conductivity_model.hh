@@ -20,6 +20,7 @@
 
 namespace Amanzi {
 namespace Flow {
+namespace Relations {
 
 class ManningConductivityModel {
  public:
@@ -34,6 +35,7 @@ class ManningConductivityModel {
   double depth_max_;
 };
 
+} // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
 

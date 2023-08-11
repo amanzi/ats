@@ -136,10 +136,6 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
                << "Advancing: t0 = " << S_->get_time(tag_current_)
                << " t1 = " << S_->get_time(tag_next_) << " h = " << dt << std::endl
                << "----------------------------------------------------------------" << std::endl;
-
-  std::cout << "P_new1 = "
-            << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
-            << std::endl;
   State_to_Solution(Tags::NEXT, *solution_);
 
   // take a bdf timestep
@@ -155,13 +151,7 @@ PK_BDF_Default::AdvanceStep(double t_old, double t_new, bool reinit)
   double dt_solver = -1;
   bool fail = false;
   try {
-    std::cout << "P_new2 = "
-              << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
-              << std::endl;
     fail = time_stepper_->TimeStep(dt, dt_solver, solution_);
-    std::cout << "P_new3 = "
-              << S_->Get<Amanzi::CompositeVector>("pressure", Amanzi::Tags::NEXT).viewComponent("cell", false)(0,0)
-              << std::endl;
 
     if (!fail) {
       // check step validity

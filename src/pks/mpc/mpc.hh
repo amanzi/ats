@@ -40,9 +40,7 @@ respective methods.
 
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_ParameterList.hpp"
-#include "Epetra_MpiComm.h"
 
-#include "State.hh"
 #include "TreeVector.hh"
 
 #include "PK.hh"
@@ -53,13 +51,13 @@ namespace Amanzi {
 template <class PK_t>
 class MPC : virtual public PK {
  public:
-  MPC(Teuchos::ParameterList& pk_tree,
+  MPC(const Comm_ptr_type& comm,
+      Teuchos::ParameterList& pk_tree,
       const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-      const Teuchos::RCP<State>& S,
-      const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, global_list, S, solution),
-      global_list_(global_list),
+      const Teuchos::RCP<State>& S)
+    : PK(comm, pk_tree, global_list, S),
       pk_tree_(pk_tree),
+      global_list_(global_list),
       pks_list_(Teuchos::sublist(global_list, "PKs"))
   {}
 
@@ -92,6 +90,8 @@ class MPC : virtual public PK {
   virtual bool ValidStep() override;
 
   // -- transfer operators
+  virtual Teuchos::RCP<TreeVectorSpace> getSolutionSpace() const override;
+
   virtual void State_to_Solution(const Tag& tag, TreeVector& soln) override;
 
   // why are there two here?  and is a non-const one necessary?
@@ -103,14 +103,14 @@ class MPC : virtual public PK {
 
  protected:
   // constructs sub-pks
-  void init_(Comm_ptr_type comm = Teuchos::null);
+  void createSubPKs_(Comm_ptr_type comm = Teuchos::null);
 
  protected:
-  typedef std::vector<Teuchos::RCP<PK_t>> SubPKList;
-  Teuchos::RCP<Teuchos::ParameterList> global_list_;
   Teuchos::ParameterList pk_tree_;
-  Teuchos::RCP<Teuchos::ParameterList> pks_list_;
+  Teuchos::RCP<Teuchos::ParameterList> global_list_;
 
+  Teuchos::RCP<Teuchos::ParameterList> pks_list_;
+  using SubPKList = std::vector<Teuchos::RCP<PK_t>>;
   SubPKList sub_pks_;
 };
 
@@ -149,6 +149,18 @@ MPC<PK_t>::setTags(const Tag& current, const Tag& next)
 }
 
 
+template <class PK_t>
+Teuchos::RCP<TreeVectorSpace>
+MPC<PK_t>::getSolutionSpace() const
+{
+  auto tvs = Teuchos::rcp(new TreeVectorSpace(comm_));
+  for (const auto& sub_pk : sub_pks_) {
+    tvs->PushBack(sub_pk->getSolutionSpace());
+  }
+  return tvs;
+}
+
+
 // -----------------------------------------------------------------------------
 // loop over sub-PKs, calling their state_to_solution method
 // -----------------------------------------------------------------------------
@@ -157,7 +169,7 @@ void
 MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
 {
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
-    Teuchos::RCP<TreeVector> pk_soln = soln.SubVector(i);
+    Teuchos::RCP<TreeVector> pk_soln = soln.getSubVector(i);
     if (pk_soln == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -175,7 +187,7 @@ void
 MPC<PK_t>::Solution_to_State(const TreeVector& soln, const Tag& tag)
 {
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
-    auto pk_soln = soln.SubVector(i);
+    auto pk_soln = soln.getSubVector(i);
     if (pk_soln == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
       Exceptions::amanzi_throw(message);
@@ -273,21 +285,17 @@ MPC<PK_t>::get_subpk(int i)
 // protected constructor of subpks
 template <class PK_t>
 void
-MPC<PK_t>::init_(Comm_ptr_type comm)
+MPC<PK_t>::createSubPKs_(Comm_ptr_type comm)
 {
   PKFactory pk_factory;
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  if (comm == Teuchos::null) comm = solution_->Comm();
+  if (comm == Teuchos::null) comm = comm_;
 
   int npks = pk_order.size();
   for (int i = 0; i != npks; ++i) {
-    // create the solution vector
-    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(comm));
-    solution_->PushBack(pk_soln);
-
     // create the PK
     std::string name_i = pk_order[i];
-    Teuchos::RCP<PK> pk_notype = pk_factory.CreatePK(name_i, pk_tree_, global_list_, S_, pk_soln);
+    Teuchos::RCP<PK> pk_notype = pk_factory.CreatePK(name_i, comm, pk_tree_, global_list_, S_);
     Teuchos::RCP<PK_t> pk = Teuchos::rcp_dynamic_cast<PK_t>(pk_notype, true);
     sub_pks_.push_back(pk);
   }

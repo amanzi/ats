@@ -9,7 +9,7 @@
 
 /*!
 
-Computes the water content [mols] for a stanard Richards equation:
+Computes the water content [mols] for a standard Richards equation:
 
 .. math::
   \Theta = n_l s_l \phi |V|
@@ -19,12 +19,12 @@ type : `"richards water content`"
 .. _richards_water_content_model
 .. admonition:: richards-water-content-model-spec
 
-  KEYS:
+   KEYS:
 
-  - `"density`" **DOMAIN-molar_density_liquid**
-  - `"saturation`" **DOMAIN-saturation_liquid**
-  - `"porosity`" **DOMAIN-porosity**
-  - `"cell volume`" **DOMAIN-cell_volume**
+   - `"density`" **DOMAIN-molar_density_liquid**
+   - `"saturation`" **DOMAIN-saturation_liquid**
+   - `"porosity`" **DOMAIN-porosity**
+   - `"cell volume`" **DOMAIN-cell_volume**
 
 */
 

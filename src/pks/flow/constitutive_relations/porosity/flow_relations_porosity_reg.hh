@@ -7,7 +7,7 @@
 
 namespace Amanzi {
 
-REGISTER(Flow::Relations::CompressiblePorosityLinearModel);
+REGISTER_MODEL(Flow::Relations::CompressiblePorosityLinearModel);
 REGISTER_BY_MATERIAL(Flow::Relations::CompressiblePorosityLinearModel);
 
 } // namespace Amanzi

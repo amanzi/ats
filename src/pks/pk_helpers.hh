@@ -21,6 +21,7 @@
 #include "Chemistry_PK.hh"
 
 namespace Amanzi {
+namespace PKHelpers {
 
 bool
 aliasVector(State& S, const Key& key, const Tag& target, const Tag& alias);
@@ -93,7 +94,8 @@ Teuchos::RCP<EvaluatorPrimaryCV>
 requireEvaluatorAssign(const Key& key, const Tag& tag, State& S);
 
 // -----------------------------------------------------------------------------
-// Assign if it is an assignment evaluator.
+// Assign if it is an assignment evaluator, used in CommitStep to advance the
+// interval
 // -----------------------------------------------------------------------------
 void
 assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
@@ -124,15 +126,11 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
 //                  Teuchos::Time& timer);
 
 
-// // Compute pairs of value + location
-// typedef struct ValLoc {
-//   double value;
-//   AmanziMesh::Entity_ID gid;
-// } ENorm_t;
+// -----------------------------------------------------------------------------
+// Require an upwinded coeficient for diffusion operators, given a location
+// defined by the upwinding scheme.
+// -----------------------------------------------------------------------------
+void requireNonlinearDiffusionCoefficient(const Key& key, const Tag& tag, const std::string& coef_location, State& S);
 
-// int
-// commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global);
-// ValLoc
-// maxValLoc(const Epetra_Vector& vec);
-
+} // namespace PKHelpers
 } // namespace Amanzi

@@ -81,7 +81,8 @@ class MPCDelegateWater {
  public:
   MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
-                   const std::string& domain = "domain");
+                   const std::string& domain,
+                   const std::string& domain_surf);
 
   void set_db(const Teuchos::RCP<Debugger>& db) { db_ = db; }
 
@@ -187,6 +188,7 @@ class MPCDelegateWater {
   int i_Tdomain_;
 
   Key domain_ss_;
+  Key domain_surf_;
 };
 
 } // namespace Amanzi

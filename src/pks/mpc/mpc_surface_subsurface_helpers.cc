@@ -11,97 +11,65 @@
 #include "errors.hh"
 
 namespace Amanzi {
+namespace MPCHelpers {
 
 void
-CopySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
+copySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
 {
-  const Epetra_MultiVector& surf_c = *surf.viewComponent("cell", false);
+  auto parents = surf.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto surf_c = surf.viewComponent("cell", false);
+  if (sub.hasComponent("face")) {
+    auto sub_f = sub.viewComponent("face", false);
+    Kokkos::parallel_for("MPCHelpers::copySubsurfaceToSurface", surf_c.extent(0),
+                         KOKKOS_LAMBDA(const int& sc) {
+                           sub_f(parents(sc),0) = surf_c(sc,0);
+                         });
 
-  for (unsigned int sc = 0; sc != surf_c.MyLength(); ++sc) {
-    AmanziMesh::Entity_ID f = surf.getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-    SetDomainFaceValue(sub, f, surf_c[0][sc]);
+  } else if (sub.hasComponent("boundary_face")) {
+    AMANZI_ASSERT(false); // not yet implemented, but could be
   }
 }
 
 void
-CopySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
+copySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
 {
-  //  const Epetra_MultiVector& sub_f = *sub.viewComponent("face",false);
-  Epetra_MultiVector& surf_c = *surf.viewComponent("cell", false);
-
-  for (unsigned int sc = 0; sc != surf_c.MyLength(); ++sc) {
-    AmanziMesh::Entity_ID f = surf.getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-    surf_c[0][sc] = GetDomainFaceValue(sub, f);
+  auto parents = surf.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto surf_c = surf.viewComponent("cell", false);
+  if (sub.hasComponent("face")) {
+    auto sub_f = sub.viewComponent("face", false);
+    Kokkos::parallel_for("MPCHelpers::copySubsurfaceToSurface", surf_c.extent(0),
+                         KOKKOS_LAMBDA(const int& sc) {
+                           surf_c(sc,0) = sub_f(parents(sc),0);
+                         });
+  } else if (sub.hasComponent("boundary_face")) {
+    AMANZI_ASSERT(false); // not yet implemented, but could be
   }
 }
 
 void
-MergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
+mergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
                                   CompositeVector& sub_p,
                                   CompositeVector& surf_p)
 {
-  Epetra_MultiVector& surf_p_c = *surf_p.viewComponent("cell", false);
-  const Epetra_MultiVector& h_c = *h_prev.viewComponent("cell", false);
-  double p_atm = 101325.;
+  double p_atm = 101325.; // get from state?
 
-  for (unsigned int sc = 0; sc != surf_p_c.MyLength(); ++sc) {
-    AmanziMesh::Entity_ID f = surf_p.getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-    if (h_c[0][sc] > 0. && surf_p_c[0][sc] > p_atm) {
-      SetDomainFaceValue(sub_p, f, surf_p_c[0][sc]);
-    } else {
-      surf_p_c[0][sc] = GetDomainFaceValue(sub_p, f);
-    }
-  }
-}
-
-double
-GetDomainFaceValue(const CompositeVector& sub_p, int f)
-{
-  std::string face_entity;
+  auto parents = surf_p.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto surf_p_c = surf_p.viewComponent("cell", false);
+  auto h_c = h_prev.viewComponent("cell", false);
   if (sub_p.hasComponent("face")) {
-    face_entity = "face";
+    auto sub_p_f = sub_p.viewComponent("face", false);
+    Kokkos::parallel_for("MPCHelpers::copySubsurfaceToSurface", surf_p_c.extent(0),
+                         KOKKOS_LAMBDA(const int& sc) {
+                           if (h_c(sc,0) > 0 && surf_p_c(sc,0) > p_atm) {
+                             sub_p_f(parents(sc),0) = surf_p_c(sc,0);
+                           } else {
+                             surf_p_c(sc,0) = sub_p_f(parents(sc),0);
+                           }
+                         });
   } else if (sub_p.hasComponent("boundary_face")) {
-    face_entity = "boundary_face";
-  } else {
-    Errors::Message message("Subsurface vector does not have face component.");
-    Exceptions::amanzi_throw(message);
-  }
-
-  if (face_entity == "face") {
-    const Epetra_MultiVector& vec = *sub_p.viewComponent(face_entity, false);
-    return vec[0][f];
-    ;
-  } else if (face_entity == "boundary_face") {
-    int bf = sub_p.getMesh()->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false).LID(sub_p.getMesh()->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f));
-    const Epetra_MultiVector& vec = *sub_p.viewComponent(face_entity, false);
-    return vec[0][bf];
-  } else {
-    return std::numeric_limits<double>::quiet_NaN();
+    AMANZI_ASSERT(false); // not yet implemented, but could be
   }
 }
 
-void
-SetDomainFaceValue(CompositeVector& sub_p, int f, double value)
-{
-  std::string face_entity;
-  if (sub_p.hasComponent("face")) {
-    face_entity = "face";
-  } else if (sub_p.hasComponent("boundary_face")) {
-    face_entity = "boundary_face";
-  } else {
-    Errors::Message message("Subsurface vector does not have face component.");
-    Exceptions::amanzi_throw(message);
-  }
-
-  if (face_entity == "face") {
-    Epetra_MultiVector& vec = *sub_p.viewComponent(face_entity, false);
-    vec[0][f] = value;
-  } else if (face_entity == "boundary_face") {
-    int bf = sub_p.getMesh()->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false).LID(sub_p.getMesh()->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f));
-    Epetra_MultiVector& vec = *sub_p.viewComponent(face_entity, false);
-    vec[0][bf] = value;
-  }
-}
-
-
+} // namespace MPCHelpers
 } // namespace Amanzi

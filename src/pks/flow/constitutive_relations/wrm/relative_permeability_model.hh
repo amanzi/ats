@@ -7,12 +7,34 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! Uses WRM class instances to compute WRMs.
+//! Uses WRM class instances to compute the scalar portion of the hydraulic conductance.
 /*!
 
-This is a lightweight wrapper around things that can behave as WRMs, evaluating
-relative permeability as a function of saturation.
+This computes the product,
 
+.. math::
+   k = \frac{n}{\mu} k_r
+
+which is the scalar portion of the hydraulic conductance (excludes the absolute
+permeability).  Relative permeability, k_r, is computed using a water retention
+model, which provides generic methods for this quantity based on internal
+parameters (e.g. van Genuchten/Mualem, Brooks & Corey, etc.).
+
+While we call this "relative permeability", it is actually the product above,
+and might better be called the scalar hydraulic conductance?
+
+type : `"relative permeability`"
+
+.. _relative-permeability-model-spec
+.. admonition:: relative-permeability-model-spec
+
+   * `"model parameters`" ``[wrm-spec-list]``
+
+   KEYS
+   - `"saturation`" **DOMAIN-saturation_liquid**
+   - `"density`" **DOMAIN-molar_density_liquid**
+   - `"viscosity`" **DOMAIN-viscosity**  
+                
 */
 
 #pragma once

@@ -13,7 +13,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/water_content)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
-# include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
@@ -21,13 +21,15 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 
 set(ats_flow_src_files
   constitutive_relations/wrm/wrm_van_genuchten.cc
+  constitutive_relations/overland_conductivity/overland_conductivity_evaluator.cc
+  constitutive_relations/overland_conductivity/manning_conductivity_model.cc
   richards_pk.cc
   richards_ti.cc
   richards_physics.cc
   richards_steadystate.cc
-  # overland_pressure_pk.cc
-  # overland_pressure_physics.cc
-  # overland_pressure_ti.cc
+  overland_pressure_pk.cc
+  overland_pressure_physics.cc
+  overland_pressure_ti.cc
 )
 
                  
@@ -46,17 +48,20 @@ set(ats_flow_src_files
 
 set(ats_flow_inc_files
   constitutive_relations/water_content/richards_water_content_model.hh
+  constitutive_relations/water_content/overland_pressure_water_content_model.hh
+  constitutive_relations/water_content/ponded_depth_model.hh
   constitutive_relations/porosity/compressible_porosity_linear_model.hh
   constitutive_relations/wrm/wrm_van_genuchten.hh
   constitutive_relations/wrm/wrm_model.hh
   constitutive_relations/wrm/relative_permeability_model.hh
+  constitutive_relations/overland_conductivity/manning_conductivity_model.hh
+  constitutive_relations/overland_conductivity/overland_conductivity_evaluator.hh
 
   richards.hh
   richards_steadystate.hh
   overland_pressure.hh
 )
 
-  # flow_bc_factory.hh
   # predictor_delegate_bc_flux.hh
   # permafrost.hh
   # interfrost.hh
@@ -96,6 +101,8 @@ register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/porosity/
   LISTNAME ATS_FLOW_RELATIONS_REG)
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/wrm/flow_relations_wrm_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/overland_conductivity/flow_relations_overland_conductivity_reg.hh"
+  LISTNAME ATS_FLOW_RELATIONS_REG)
 
 generate_evaluators_registration_header(
     HEADERFILE ats_flow_relations_registration.hh
@@ -132,10 +139,10 @@ register_evaluator_with_factory(
 #   LISTNAME   ATS_FLOW_PKS_REG
 #   )
 
-# register_evaluator_with_factory(
-#   HEADERFILE overland_pressure_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
+register_evaluator_with_factory(
+  HEADERFILE overland_pressure_pk_reg.hh
+  LISTNAME   ATS_FLOW_PKS_REG
+  )
 
 # register_evaluator_with_factory(
 #   HEADERFILE icy_overland_reg.hh

@@ -15,6 +15,9 @@ Solves Richards equation:
 .. math::
   \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
 
+Uses the PK type:
+`"richards flow`"
+  
 .. _richards-spec:
 .. admonition:: richards-spec
 
@@ -226,7 +229,6 @@ Solves Richards equation:
 
 #include "upwinding.hh"
 
-#include "EvaluatorPrimary.hh"
 #include "PK_Factory.hh"
 #include "pk_physical_bdf_default.hh"
 
@@ -241,10 +243,6 @@ class PDE_DiffusionWithGravity;
 class PDE_Accumulation;
 } // namespace Operators
 
-namespace Functions {
-class MeshFunction;
-} // namespace Functions
-
 namespace Flow {
 
 class Richards : public PK_PhysicalBDF_Default {
@@ -254,61 +252,79 @@ class Richards : public PK_PhysicalBDF_Default {
            const Teuchos::RCP<Teuchos::ParameterList>& plist,
            const Teuchos::RCP<State>& S);
 
-  virtual ~Richards() {}
+  //
+  // PK methods
+  // ------------------------------------------------------------------
+  // Parse the local parameter list and add entries to the global list
   virtual void ParseParameterList_() override;
 
+  // Set requirements of data and evaluators
+  virtual void Setup() override;
+
+  // Initialize owned (dependent) variables.
+  virtual void Initialize() override;
+
+  // Finalize a step as successful at the given tag.
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+
+  // Is the previous step valid
+  virtual bool ValidStep() override;
+
+  // Update diagnostics for vis.
+  virtual void CalculateDiagnostics(const Tag& tag) override;
+
+  // type info used in PK_Factory
   static const std::string type;
   virtual const std::string& getType() const override { return type; }
 
-  // -- Set requirements of data and evaluators
-  virtual void Setup() override;
-
-  // -- Initialize owned (dependent) variables.
-  virtual void Initialize() override;
-
-  // -- Finalize a step as successful at the given tag.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-
-  // -- Is the previous step valid
-  virtual bool ValidStep() override;
-
-  // -- Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Tag& tag) override;
-
-  // ConstantTemperature is a BDFFnBase
-  // computes the non-linear functional g = g(t,u,udot)
+  //
+  // BDF1_TI methods
+  // ------------------------------------------------------------------
+  // Compute the non-linear functional g = g(t, u, du/dt)
   virtual void FunctionalResidual(double t_old,
                                   double t_new,
                                   Teuchos::RCP<TreeVector> u_old,
                                   Teuchos::RCP<TreeVector> u_new,
                                   Teuchos::RCP<TreeVector> g) override;
 
-  // applies preconditioner to u and returns the result in Pu
+  // Apply the preconditioner to u and return the result in Pu
   virtual int
   ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
-  // updates the preconditioner
+  // Updates the preconditioner by linearizing at up
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
+  // Globalization -- modify the predictor u to make a better guess for the new time
   virtual bool
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
-  // problems with pressures -- setting a range of admissible pressures
+  // Is up a valid solution to use with FunctionalResidual?
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
 
-  // evaluating consistent faces for given BCs and cell values
-  // virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
+  // Possibly modify the correction before it is applied
+  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
+  //
   // methods used only for testing
-  Teuchos::RCP<Operators::Operator> get_operator() { return matrix_; }
-  void set_fixed_kr(bool fixed = true) { fixed_kr_ = fixed; }
+  // ------------------------------------------------------------------
+  Teuchos::RCP<Operators::Operator> getOperator() { return matrix_; }
+  void setFixedKr(bool fixed = true) { fixed_kr_ = fixed; }
 
  protected:
+
+  //
+  // Protected, internal methods for better granularity of design
+  // ------------------------------------------------------------------
+  // evaluating consistent faces for given BCs and cell values
+  // virtual void CalculateConsistentFaces_(const Teuchos::Ptr<CompositeVector>& u);
+
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_();
   virtual void SetupRichardsFlow_();
-  // customization of upwinding
-  virtual void RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location);
 
   // boundary condition members
   virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
@@ -339,13 +355,6 @@ class Richards : public PK_PhysicalBDF_Default {
   // virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
 
   // virtual void PreconWC_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
-
-  // -- Possibly modify the correction before it is applied
-  virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h,
-                   Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u,
-                   Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // control switches
