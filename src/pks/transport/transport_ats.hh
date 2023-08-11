@@ -329,6 +329,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
   virtual void CalculateDiagnostics(const Tag& tag) override{};
 
+ protected:
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
   double StableTimeStep();
@@ -457,7 +458,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                               Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux);
 
  public:
-  int MyPID; // parallel information: will be moved to private
   int spatial_disc_order, temporal_disc_order, limiter_model;
 
   int nsubcycles; // output information
@@ -469,7 +469,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key flux_key_;
   Key darcy_flux_key_;
   Key permeability_key_;
-  Key tcc_key_;
   Key porosity_key_;
   Key tcc_matrix_key_;
   Key molar_density_key_;
@@ -482,21 +481,12 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key conserve_qty_key_;
   Key cv_key_;
 
- private:
   bool subcycling_;
-  int dim;
-  int saturation_name_;
+
+  bool internal_tests_;
+  double internal_tests_tolerance_;
+
   bool vol_flux_conversion_;
-
-  Key passwd_;
-
-  Teuchos::RCP<CompositeVector> tcc_w_src;
-  Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
-  Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
-  Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
@@ -506,64 +496,49 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;
   Teuchos::RCP<Epetra_IntVector> downwind_cell_;
 
-  Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
-
   int current_component_; // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
   Teuchos::RCP<Operators::LimiterCell> limiter_;
 
   std::vector<Teuchos::RCP<TransportDomainFunction>> srcs_; // Source or sink for components
   std::vector<Teuchos::RCP<TransportDomainFunction>> bcs_;  // influx BC for components
-  double bc_scaling;
-  Teuchos::RCP<Epetra_Vector> Kxy; // absolute permeability in plane xy
-
-  Teuchos::RCP<Epetra_Import> cell_importer; // parallel communicators
-  Teuchos::RCP<Epetra_Import> face_importer;
+  double bc_scaling_; // --ETC What is this?!?  document me!
 
   // mechanical dispersion and molecual diffusion
   Teuchos::RCP<MDMPartition> mdm_;
   std::vector<WhetStone::Tensor> D_;
 
   bool flag_dispersion_;
+  // Teuchos::RCP<Epetra_Vector> Kxy; // absolute permeability in plane xy
   std::vector<int> axi_symmetry_; // axi-symmetry direction of permeability tensor
 
   std::vector<Teuchos::RCP<MaterialProperties>> mat_properties_; // vector of materials
   std::vector<Teuchos::RCP<DiffusionPhase>> diffusion_phase_;    // vector of phases
 
   // Hosting temporarily Henry law
-  bool henry_law_;
-  std::vector<double> kH_;
-  std::vector<int> air_water_map_;
+  // bool henry_law_;
+  // std::vector<double> kH_;
+  // std::vector<int> air_water_map_;
 
   double cfl_, dt_, dt_debug_, t_physics_;
 
-  std::vector<double> mass_solutes_exact_, mass_solutes_source_; // mass for all solutes
-  std::vector<double> mass_solutes_bc_, mass_solutes_stepstart_;
-  std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
-  std::vector<std::string> runtime_regions_;
-
-  int ncells_owned, ncells_wghost;
-  int nfaces_owned, nfaces_wghost;
-  int nnodes_wghost;
+  // std::vector<double> mass_solutes_exact_, mass_solutes_source_; // mass for all solutes
+  // std::vector<double> mass_solutes_bc_, mass_solutes_stepstart_;
+  // std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
+  // std::vector<std::string> runtime_regions_;
 
   std::vector<std::string> component_names_; // details of components
-  std::vector<double> mol_masses_;
   int num_aqueous, num_gaseous, num_components, num_primary, num_advect;
+  std::vector<bool> is_advected_;
   double water_tolerance_, max_tcc_;
-  bool dissolution_;
+  // bool dissolution_;
 
   // io
   Utils::Units units_;
-  Tag tag_subcycle_;
-  Tag tag_subcycle_current_;
-  Tag tag_subcycle_next_;
-  Tag tag_flux_next_ts_; // what is this? --ETC
+  Tag water_tag_current_;
+  Tag water_tag_next_;
 
  private:
-  // Forbidden.
   Transport_ATS(const Transport_ATS&) = delete;
   Transport_ATS& operator=(const Transport_ATS&) = delete;
 

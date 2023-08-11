@@ -54,26 +54,21 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
                              const Teuchos::RCP<State>& S,
                              const Teuchos::RCP<TreeVector>& solution)
   : PK(pk_tree, global_plist, S, solution),
-    PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution)
+    PK_PhysicalExplicit<Epetra_Vector>(pk_tree, global_plist, S, solution),
+    subcycling_(false)
 {
-  passwd_ = "state"; // this is what Amanzi uses
-
   if (plist_->isParameter("component names")) {
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
     num_components = component_names_.size();
     // otherwise we hopefully get them from chemistry
   }
 
-  if (plist_->isParameter("component molar masses")) {
-    mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
-  } else {
-    Errors::Message msg("Transport PK: parameter \"component molar masses\" is missing.");
-    Exceptions::amanzi_throw(msg);
-  }
-
-  // are we subcycling internally?
-  subcycling_ = plist_->get<bool>("transport subcycling", false);
-  tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
+  // if (plist_->isParameter("component molar masses")) {
+  //   mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
+  // } else {
+  //   Errors::Message msg("Transport PK: parameter \"component molar masses\" is missing.");
+  //   Exceptions::amanzi_throw(msg);
+  // }
 
   // initialize io
   units_.Init(global_plist->sublist("units"));
@@ -99,24 +94,42 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
-  dissolution_ = plist_->get<bool>("allow dissolution", false);
+  // dissolution_ = plist_->get<bool>("allow dissolution", false);
   max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
-  dim = mesh_->space_dimension();
 
+  // Konstantin's internal testing
+  internal_tests_ = plist_->get<bool>("internal testing", false);
+  internal_tests_tolerance_ = plist_->get<double>("internal testing tolerance",
+          TRANSPORT_CONCENTRATION_OVERSHOOT);
+
+  // I have no idea what this is... --ETC
+  bc_scaling_ = 0.0;
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
+// NOTE: this is a hard-coded limitation on teh PK structure that the FLOW PK
+// that provides this PK with fluxes does NOT subcycle!  There is no way to
+// confirm this, so hopefully the user doesn't violate this assumption.
 void
 Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
   PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
-  if (subcycling_) {
-    tag_subcycle_current_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_current") };
-    tag_subcycle_next_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_next") };
-  } else {
-    tag_subcycle_current_ = tag_current_;
-    tag_subcycle_next_ = tag_next_;
-  }
+
+  // HACK ALERT -- FIXME --ETC
+  //
+  // This PK is liberally sprinkled with hard-coded Tags::NEXT and
+  // Tags::CURRENT, forcing all things provided by FLOW to be provided at that
+  // tag and not at tag_current and tag_next as it should be.  This is because
+  // we don't have a good way of aliasing everything we need yet.  In
+  // particular, aliases needed to be introduced between Setup() on flow and
+  // Setup() on transport, and this was not possible when the quantity of
+  // interest (porosity)'s evaluator was not required directly (only
+  // indirectly) in flow PK.
+  water_tag_current_ = Tags::CURRENT;
+  water_tag_next_ = Tags::NEXT;
+
+  if (next != water_tag_next_ || current != water_tag_current_)
+    subcycling_ = true;
 }
 
 
@@ -157,35 +170,30 @@ Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
 void
 Transport_ATS::Setup()
 {
-  // cross-coupling of PKs
-  Teuchos::RCP<Teuchos::ParameterList> physical_models =
-    Teuchos::sublist(plist_, "physical models and assumptions");
-
   if (num_components == 0) {
     Errors::Message msg("Transport PK: list of solutes is empty.");
     Exceptions::amanzi_throw(msg);
   }
 
-  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+  // require data for our primary variable
+  requireAtNext(key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
-  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+  S_->GetRecordSetW(key_).set_subfieldnames(component_names_);
+  requireAtCurrent(key_, tag_current_, *S_, name_);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
   requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
-  // Raw data, no evaluator?
-  //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
-  auto primary_names = component_names_;
-  // S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
-  requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
+  // solid residue mass is stuff that gets precipitated out as the water goes
+  // away, e.g. through evaporation of surface water.
+  requireAtNext(solid_residue_mass_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components);
-  S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
+  S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(component_names_);
 
   // This vector stores the conserved amount (in mols) of ncomponent
   // transported components, plus two for water.  The first water component is
@@ -196,10 +204,12 @@ Transport_ATS::Setup()
   // quantity.)
   //
   // Note that component_names includes secondaries, but we only need primaries
+  // --ETC -- is this true?  Previous code has simply set primary_names to
+  //          component_names...
+  std::vector<std::string> primary_names(component_names_);
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
-  //S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
-  requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
+  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::CELL, num_components + 2);
@@ -214,69 +224,75 @@ Transport_ATS::Setup()
       ->AddComponent("cell", AmanziMesh::CELL, dim);
   }
 
-  // HACK ALERT -- FIXME --ETC
-  //
-  // This PK is liberally sprinkled with hard-coded Tags::NEXT and
-  // Tags::CURRENT, forcing all things provided by FLOW to be provided at that
-  // tag and not at tag_current and tag_next as it should be.  This is because
-  // we don't have a good way of aliasing everything we need yet.  In
-  // particular, aliases needed to be introduced between Setup() on flow and
-  // Setup() on transport, and this was not possible when the quantity of
-  // interest (porosity)'s evaluator was not required directly (only
-  // indirectly) in flow PK.
-  //
-  // This will need to be fixed in amanzi/amanzi#646 somehow....? --ETC
   // -- water flux
-  requireAtNext(flux_key_, Tags::NEXT, *S_)
+  requireAtNext(flux_key_, water_tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
 
+  // NOTE: this should really be refactored to, instead of using
+  //     density * phi * sat
+  // everywhere, use a new evaluator called liquid_water_content. This would
+  // avoid e.g. surface water "phi" which is often set to 1 by the user, and
+  // would simplify some code.  Note this cannot be water_content, because that
+  // includes ice, which is not mobile, but we could have just a simple
+  // multiplicative evaluator for the triple product.
+
+
+  // Instead, for now, require each of sat, phi, and density.  --ETC
   // -- water saturation
-  requireAtNext(saturation_key_, Tags::NEXT, *S_)
+  requireAtNext(saturation_key_, water_tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-  // Require a copy of saturation at the old time tag
-  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
+  requireAtCurrent(saturation_key_, water_tag_current_, *S_);
   if (subcycling_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      saturation_key_, tag_subcycle_current_, name_);
-    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
+    // this is wierdly named, but the key here is we need a primary variable
+    // evaluator for this saturation at the inner current and next, and
+    // requireAtNext never creates that evaluator.
+    requireAtCurrent(saturation_key_, tag_current_, *S_, name_);
+    requireAtCurrent(saturation_key_, tag_next_, *S_, name_);
   }
 
-  requireAtNext(porosity_key_, Tags::NEXT, *S_)
+  // -- porosity
+  requireAtNext(porosity_key_, water_tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
-  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+  requireAtCurrent(porosity_key_, water_tag_current_, *S_);
   if (subcycling_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      molar_density_key_, tag_subcycle_current_, name_);
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      molar_density_key_, tag_subcycle_next_, name_);
-    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_current_); // for the future...
-    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_next_); // for the future...
+    // see above
+    requireAtCurrent(porosity_key_, tag_current_, *S_, name_);
+    requireAtCurrent(porosity_key_, tag_next_, *S_, name_);
   }
 
+  // -- molar density
+  requireAtNext(molar_density_key_, water_tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtCurrent(molar_density_key_, water_tag_current_, *S_);
+  if (subcycling_) {
+    // see above
+    requireAtCurrent(molar_density_key_, tag_current_, *S_, name_);
+    requireAtCurrent(molar_density_key_, tag_next_, *S_, name_);
+  }
 
+  // -- water sources and sinks
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
-    requireAtNext(water_src_key_, Tags::NEXT, *S_)
+    requireAtNext(water_src_key_, water_tag_next_, *S_)
       .SetMesh(mesh_)
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
     has_water_src_key_ = true;
     water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
 
+    // for overland flow, sources are often provided in m/s, so we have to
+    // convert by a factor of molar density.
+    //
+    // NOTE: check this -- I'm sure it is right but documentation of where the
+    // water_src_key_ gets multiplied by density would be good. --ETC
     if (water_src_in_meters_) {
       geochem_src_factor_key_ = water_src_key_;
     } else {
@@ -287,23 +303,25 @@ Transport_ATS::Setup()
       wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
       wc_eval.set<std::string>("reciprocal", dep[1]);
 
-      requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+      requireAtNext(geochem_src_factor_key_, water_tag_next_, *S_)
         .SetMesh(mesh_)
         ->SetGhosted(true)
         ->AddComponent("cell", AmanziMesh::CELL, 1);
     }
   }
 
-  // this is the not-yet-existing source, and is dead code currently! (What does this mean? --ETC)
-  if (plist_->sublist("source terms").isSublist("component concentration source")) {
-    requireAtNext(water_src_key_, Tags::NEXT, *S_)
-      .SetMesh(mesh_)
-      ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-    has_water_src_key_ = true;
-    water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
-  }
-
+  // this is the not-yet-existing source, and is dead code currently! (What
+  // does this mean? --ETC) Is this for providing water + concentration instead
+  // of directly providing rate of injection of mass of C?
+  //
+  // if (plist_->sublist("source terms").isSublist("component concentration source")) {
+  //   requireAtNext(water_src_key_, Tags::NEXT, *S_)
+  //     .SetMesh(mesh_)
+  //     ->SetGhosted(true)
+  //     ->AddComponent("cell", AmanziMesh::CELL, 1);
+  //   has_water_src_key_ = true;
+  //   water_src_in_meters_ = plist_->get<bool>("water source in meters", false);
+  // }
 
   if (plist_->sublist("source terms").isSublist("component mass source")) {
     Teuchos::ParameterList& conc_sources_list =
@@ -326,15 +344,6 @@ Transport_ATS::Setup()
       }
     }
   }
-
-  // // alias to next for subcycled cases -- revisit this in state subcycling
-  // // revision --ETC
-  // if (tag_next_ != Tags::NEXT) {
-  //   aliasVector(*S_, tcc_key_, tag_next_, Tags::NEXT);
-  //   aliasVector(*S_, conserve_qty_key_, tag_next_, Tags::NEXT);
-  //   aliasVector(*S_, tcc_matrix_key_, tag_next_, Tags::NEXT);
-  //   aliasVector(*S_, solid_residue_mass_key_, tag_next_, Tags::NEXT);
-  // }
 }
 
 
@@ -345,88 +354,34 @@ Transport_ATS::Setup()
 void
 Transport_ATS::Initialize()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
+
   // Set initial values for transport variables.
   dt_ = dt_debug_ = t_physics_ = 0.0;
   double time = S_->get_time();
   if (time >= 0.0) t_physics_ = time;
 
   if (plist_->isSublist("initial condition")) {
-    S_->GetRecordW(tcc_key_, tag_subcycle_next_, passwd_)
+    S_->GetRecordW(tcc_key_, tag_subcycle_next_, name_)
       .Initialize(plist_->sublist("initial condition"));
   }
-
-  internal_tests = 0;
-  tests_tolerance = TRANSPORT_CONCENTRATION_OVERSHOOT;
-
-  bc_scaling = 0.0;
-
-  Teuchos::OSTab tab = vo_->getOSTab();
-  MyPID = mesh_->get_comm()->MyPID();
 
   // initialize missed fields
   InitializeFields_();
 
-  // make this go away -- local pointers to data
-  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
-  *tcc = *tcc_tmp;
-
-  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
-  mol_dens_prev_ =
-    S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  if (subcycling_) {
-    ws_subcycle_current = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_current_, name_)
-                            .ViewComponent("cell");
-    ws_subcycle_next =
-      S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_next_, name_).ViewComponent("cell");
-
-    mol_dens_subcycle_current =
-      S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_current_, name_)
-        .ViewComponent("cell");
-    mol_dens_subcycle_next =
-      S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_next_, name_)
-        .ViewComponent("cell");
-  }
-
-  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  flux_copy_ =
-    S_->GetW<CompositeVector>(flux_key_, tag_flux_next_ts_, name_).ViewComponent("face", true);
-  flux_copy_->PutScalar(0.);
-
-  phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
-  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-                 .ViewComponent("cell", false);
-  conserve_qty_ =
-    S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
-
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
-  Policy(tag_next_);
-
-  ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  ncells_wghost = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::ALL);
-  nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
-  nfaces_wghost = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
-  nnodes_wghost = mesh_->num_entities(AmanziMesh::NODE, AmanziMesh::Parallel_type::ALL);
+  Policy_(tag_next_);
 
   // extract control parameters
   InitializeAll_();
 
   // upwind
-  const Epetra_Map& fmap_wghost = mesh_->face_map(true);
-  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
-  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
+  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->face_map(true)));
+  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->face_map(true)));
   IdentifyUpwindCells();
 
   // advection block initialization
   current_component_ = -1;
-
-  // reconstruction initialization
-  limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
-  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
 
   // mechanical dispersion
   flag_dispersion_ = false;
@@ -435,6 +390,10 @@ Transport_ATS::Initialize()
     mdm_ = CreateMDMPartition(mesh_, mdm_list, flag_dispersion_);
     if (flag_dispersion_) CalculateAxiSymmetryDirection();
   }
+
+  // reconstruction initialization
+  limiter_ = Teuchos::rcp(new Operators::LimiterCell(mesh_));
+  lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
 
   // create boundary conditions
   if (plist_->isSublist("boundary conditions")) {
@@ -696,7 +655,7 @@ Transport_ATS::StableTimeStep()
   Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->cell_map(false)));
   IdentifyUpwindCells();
 
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, name_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
   // loop over faces and accumulate upwinding fluxes
@@ -876,7 +835,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 #endif
 
   // We use original tcc and make a copy of it later if needed.
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, name_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
