@@ -55,7 +55,6 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
   potential_key_ = Keys::readKey(*plist_, domain_, "skin potential", "skin_potential");
   precip_func_key_ = Keys::readKey(*plist_, domain_, "precipitation function", "precipitation_function");
 
-  // hack
   dt_factor_ = plist_->get<double>("distribution time", 86400.0);
 }
 
@@ -107,6 +106,12 @@ SnowDistribution::SetupSnowDistribution_()
     ->SetComponent("face", AmanziMesh::FACE, 1);
   S_->GetRecordW(uw_cond_key_, tag_next_, name_).set_io_vis(false);
 
+  // flux direction required for upwinding
+  S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted()
+    ->SetComponent("face", AmanziMesh::FACE, 1);
+
   upwind_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
   upwinding_ =
     Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
@@ -138,11 +143,6 @@ SnowDistribution::SetupSnowDistribution_()
   face_matrix_diff_->SetBCs(bc_, bc_);
   face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
 
-  S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
-
   // -- preconditioner
   Teuchos::ParameterList& mfd_pc_plist = plist_->sublist("diffusion preconditioner");
   mfd_pc_plist.set("inverse", plist_->sublist("inverse"));
@@ -160,8 +160,6 @@ SnowDistribution::SetupSnowDistribution_()
   acc_pc_plist.set("entity kind", "cell");
   preconditioner_acc_ =
     Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
-
-  // symbolic assemble, get PC
 }
 
 
@@ -183,6 +181,8 @@ SnowDistribution::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
+  S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+    cond_key_, tag_next_, key_, tag_next_).SetGhosted();
 }
 
 
