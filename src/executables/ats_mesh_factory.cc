@@ -44,10 +44,6 @@ createMeshFromFile(const std::string& mesh_name,
   Teuchos::ParameterList& mesh_file_plist = mesh_plist.sublist("read mesh file parameters");
   auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
-  // partitioner
-  std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
-  mesh_factory_plist->sublist("unstructured").sublist("expert").set("partitioner", partitioner);
-
   // vo
   if (mesh_plist.isSublist("verbose object"))
     mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
@@ -103,10 +99,6 @@ createMeshGenerated(const std::string& mesh_name,
   Teuchos::ParameterList& mesh_generated_plist = mesh_plist.sublist("generate mesh parameters");
   auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
-  // partitioner
-  std::string partitioner = mesh_plist.get<std::string>("partitioner", "zoltan_rcb");
-  mesh_factory_plist->sublist("unstructured").sublist("expert").set("partitioner", partitioner);
-
   // vo
   if (mesh_plist.isSublist("verbose object"))
     mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
@@ -152,23 +144,23 @@ createMeshLogical(const std::string& mesh_name,
 
 {
   Teuchos::ParameterList& mesh_logical_plist = mesh_plist.sublist("logical mesh parameters");
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
-  // -- from logical mesh file, has its own factory
-  AmanziMesh::MeshLogicalFactory fac(comm, gm);
+  // vo
+  if (mesh_plist.isSublist("verbose object"))
+    mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
+
+  // create mesh
+  AmanziMesh::MeshFactory factory(comm, gm, mesh_factory_plist);
 
   Teuchos::RCP<AmanziMesh::Mesh> mesh = Teuchos::null;
   if (mesh_logical_plist.isParameter("read from file")) {
     auto filename = mesh_logical_plist.get<std::string>("read from file");
     auto my_list_in_other_file = Teuchos::getParametersFromXmlFile(filename);
-    auto meshLogical = fac.Create(*my_list_in_other_file);
-    mesh = Teuchos::rcp(new AmanziMesh::Mesh(meshLogical,
-					     Teuchos::rcp(new Amanzi::AmanziMesh::MeshLogicalAlgorithms()),
-					     Teuchos::null)); 
+    mesh = factory.createLogical(*my_list_in_other_file);
+
   } else {
-    auto meshLogical = fac.Create(mesh_logical_plist);
-    mesh = Teuchos::rcp(new AmanziMesh::Mesh(meshLogical,
-					     Teuchos::rcp(new Amanzi::AmanziMesh::MeshLogicalAlgorithms()),
-					     Teuchos::null)); 
+    mesh = factory.createLogical(mesh_logical_plist);
   }
 
   if (mesh != Teuchos::null) { checkVerifyMesh(mesh_plist, mesh); }
@@ -408,7 +400,12 @@ createMeshColumn(const std::string& mesh_name,
                  VerboseObject& vo)
 {
   Teuchos::ParameterList& mesh_column_plist = mesh_plist.sublist("column parameters");
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
 
+  // vo
+  if (mesh_plist.isSublist("verbose object"))
+    mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
+  
   AmanziMesh::Entity_ID lid = mesh_column_plist.get<AmanziMesh::Entity_ID>("entity LID");
   auto parent_name = mesh_column_plist.get<std::string>("parent domain", "domain");
   if (vo.os_OK(Teuchos::VERB_HIGH)) {
@@ -417,14 +414,16 @@ createMeshColumn(const std::string& mesh_name,
   }
   auto parent = S.GetMesh(parent_name);
   auto parent_list = Teuchos::rcp(new Teuchos::ParameterList(*parent->getParameterList()));
-  auto mesh = AmanziMesh::createColumnMesh(parent, lid, parent_list);
+  // create the MSTK factory
+  AmanziMesh::MeshFactory factory(getCommSelf(), gm, mesh_factory_plist);
+  auto mesh = factory.createColumn(parent, lid, parent_list);
   bool deformable = mesh_plist.get<bool>("deformable mesh", false);
 
   // build columns and verify
   if (mesh != Teuchos::null) {
     if (mesh_plist.isParameter("build columns from set")) {
-      std::vector<std::string> regionname = {mesh_plist.get<std::string>("build columns from set")};
-      mesh->buildColumns(regionname);
+      std::string regionname = mesh_plist.get<std::string>("build columns from set");
+      mesh->buildColumns({regionname});
     } else if (mesh_plist.get("build columns", false)) {
       mesh->buildColumns();
     }
@@ -452,6 +451,11 @@ createMeshColumnSurface(const std::string& mesh_name,
 {
   Teuchos::ParameterList& mesh_column_surf_plist = mesh_plist.sublist("column surface parameters");
 
+  auto mesh_factory_plist = Teuchos::rcp(new Teuchos::ParameterList("mesh factory"));
+  // vo
+  if (mesh_plist.isSublist("verbose object"))
+    mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
+
   std::string parent_name = mesh_column_surf_plist.get<std::string>("parent domain");
   if (Keys::isDomainSet(parent_name)) {
     KeyTriple dset_parent;
@@ -466,8 +470,9 @@ createMeshColumnSurface(const std::string& mesh_name,
   if (vo.os_OK(Teuchos::VERB_HIGH))
     *vo.os() << "  Constructing MeshSurfaceCell of name " << mesh_name << " with parent "
              << parent_name << std::endl;
-  auto meshSC = Teuchos::rcp(new AmanziMesh::MeshSurfaceCell(parent->getMeshFramework()));
-  auto mesh = Teuchos::rcp(new AmanziMesh::Mesh(meshSC, Teuchos::rcp(new Amanzi::AmanziMesh::MeshFrameworkAlgorithms()), Teuchos::null)); 
+
+  AmanziMesh::MeshFactory factory(getCommSelf(), gm, mesh_factory_plist);
+  auto mesh = factory.createSurfaceCell(parent);
 
   bool deformable = mesh_plist.get<bool>("deformable mesh", false);
 
