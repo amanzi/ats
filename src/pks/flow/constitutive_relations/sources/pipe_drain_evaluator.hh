@@ -43,7 +43,12 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  Key sw_domain_name_, pipe_domain_name_;
  
  double manhole_radius_;
- double energ_loss_coeff_; // energy losses coefficient at manhole
+ // energy losses coefficients at manhole
+ // see Table 3 in "Experimental calibration and validation of sewer/surface 
+ // flow exchange equations in steady and unsteady flow conditions" by Rubinato et al.
+ double energ_loss_coeff_weir_; // weir 
+ double energ_loss_coeff_subweir_; // submerged weir
+ double energ_loss_coeff_orifice_; // orifice
  double drain_length_; // drain conduit length
 
  private:

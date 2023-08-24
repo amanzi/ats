@@ -20,7 +20,9 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 {
 
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
-  energ_loss_coeff_ = plist.get<double>("energy losses coeff", 0.1);
+  energ_loss_coeff_weir_ = plist.get<double>("energy losses coeff weir", 0.54);
+  energ_loss_coeff_subweir_ = plist.get<double>("energy losses coeff submerged weir", 0.056);
+  energ_loss_coeff_orifice_ = plist.get<double>("energy losses coeff orifice", 0.167);
   drain_length_ = plist.get<double>("drain length", 0.478);
   sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
@@ -75,19 +77,20 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
      for (int c=0; c!=ncells; ++c) {
         if (pressHead[0][c] < drain_length_) {
-           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
+           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
         } 
         else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
-           res[0][c] = - mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG * sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);   
+           res[0][c] = - mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
+                       * sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);   
         } 
         else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
-           res[0][c] = mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
         }
      }
   }
   else {
      for (int c=0; c!=ncells; ++c) {
-           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
+           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
      }
   }   
 
@@ -124,13 +127,15 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
      if (wrt_key == surface_depth_key_) {
         for (int c=0; c!=ncells; ++c) {
            if (pressHead[0][c] < drain_length_) {
-              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
+              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
            }
            else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
-              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
+              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
+                          / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
            }
            else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
-              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
+                          / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
            }
         }   
      }
@@ -140,10 +145,12 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
               res[0][c] = 0.0; 
            }
            else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
-              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
+              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
+                          / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
            }
            else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
-              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_ * mnhArea * sqrtTwoG / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
+                          / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
            }
         }
      }
@@ -154,7 +161,7 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   else {
      if (wrt_key == surface_depth_key_) {
         for (int c=0; c!=ncells; ++c) {
-              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
+              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
         }
      }
      else {
