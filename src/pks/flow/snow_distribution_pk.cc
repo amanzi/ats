@@ -49,6 +49,7 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
   // Keys
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
   cond_key_ = Keys::readKey(*plist_, domain_, "conductivity", "conductivity");
+  elev_key_ = Keys::readKey(*plist_, domain_, "elevation", "elevation");
   precip_key_ = Keys::readKey(*plist_, domain_, "precipitation", "precipitation");
   uw_cond_key_ = Keys::readKey(*plist_, domain_, "upwind conductivity", "upwind_conductivity");
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "flux direction", "flux_direction");
@@ -56,6 +57,12 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
   precip_func_key_ = Keys::readKey(*plist_, domain_, "precipitation function", "precipitation_function");
 
   dt_factor_ = plist_->get<double>("distribution time", 86400.0);
+
+  // -- elevation evaluator
+  bool standalone_elev = S->GetMesh() == S->GetMesh(domain_);
+  if (!standalone_elev && !S->FEList().isSublist(elev_key_)) {
+    S->GetEvaluatorList(elev_key_).set("evaluator type", "meshed elevation");
+  }
 }
 
 
@@ -90,6 +97,14 @@ SnowDistribution::SetupSnowDistribution_()
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cv_key_, tag_next_);
+
+  // elevation
+  S_->Require<CompositeVector, CompositeVectorSpace>(elev_key_, tag_next_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  S_->RequireEvaluator(elev_key_, tag_next_);
 
   // boundary conditions
   auto& markers = bc_markers();
@@ -135,7 +150,7 @@ SnowDistribution::SetupSnowDistribution_()
   matrix_ = matrix_diff_->global_operator();
 
   // -- create the operator, data for flux directions for upwinding
-  Teuchos::ParameterList face_diff_list(mfd_plist);
+  Teuchos::ParameterList& face_diff_list(mfd_plist);
   face_diff_list.set("nonlinear coefficient", "none");
   face_matrix_diff_ = Teuchos::rcp(new Operators::PDE_DiffusionFV(face_diff_list, mesh_));
   face_matrix_diff_->SetTensorCoefficient(Teuchos::null);
@@ -241,7 +256,6 @@ SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
     { // place interior cells on boundary faces
       const auto& cond_c = *cond->ViewComponent("cell", false);
       auto& uw_cond_f = *uw_cond->ViewComponent("face", false);
-
       int nfaces = uw_cond_f.MyLength();
       AmanziMesh::Entity_ID_List cells;
       for (int f = 0; f != nfaces; ++f) {
@@ -257,7 +271,6 @@ SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
     upwinding_->Update(*cond, *uw_cond, *S_);
     uw_cond->ScatterMasterToGhosted("face");
   }
-
   return update_perm;
 }
 
