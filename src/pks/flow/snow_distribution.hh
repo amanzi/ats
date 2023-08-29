@@ -76,10 +76,10 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
 
   // main methods
   // -- Initialize owned (dependent) variables.
-  virtual void Setup() override;
+  void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  virtual void Initialize() override;
+  void Initialize() override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
@@ -90,20 +90,20 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
                           Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int
+  int
   ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
+  void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // error monitor
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
+  double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
-  virtual bool
+  bool
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // Choose a time step compatible with physics.
-  virtual double get_dt() { return dt_factor_; }
+  double get_dt() override { return dt_factor_; }
 
   // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms
@@ -119,10 +119,10 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   //     the end?  But it should be ok?
   //  3. Exatrapolating in the timestepper should break things, so don't.
   //  4. set: pk's distribution time, potential's dt factor
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit) override;
+  bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
    // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override
+  void CommitStep(double t_old, double t_new, const Tag& tag) override
   {
     // here to keep the coordinator from calling CommitSolution() since our
     // Advance() does it already
@@ -131,15 +131,15 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
 
  protected:
   // setup methods
-  virtual void SetupSnowDistribution_();
-  virtual void SetupPhysicalEvaluators_();
+  void SetupSnowDistribution_();
+  void SetupPhysicalEvaluators_();
 
   // computational concerns in managing abs, rel perm
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual bool UpdatePermeabilityData_(const Tag& tag);
+  bool UpdatePermeabilityData_(const Tag& tag);
 
   // boundary condition members
-  virtual void UpdateBoundaryConditions_(const Tag& tag);
+  void UpdateBoundaryConditions_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
@@ -151,6 +151,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   Key precip_func_key_;
   Key cv_key_;
   Key cond_key_;
+  Key elev_key_;
   Key precip_key_;
   Key uw_cond_key_;
   Key flux_dir_key_;
