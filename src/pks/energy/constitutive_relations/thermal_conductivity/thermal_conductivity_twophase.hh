@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Base class of a two-phase Thermal Conductivity relation.
 
@@ -18,13 +22,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityTwoPhase {
-
-public:
+ public:
   virtual ~ThermalConductivityTwoPhase() {}
   virtual double ThermalConductivity(double porosity, double sat_liq) = 0;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

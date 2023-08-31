@@ -1,12 +1,14 @@
 /*
-  This is the mpc_pk component of the Amanzi code.
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
-  Amanzi is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Daniil Svyatskiy
+*/
+
+/*
+  This is the mpc_pk component of the Amanzi code.
 
   Process kernel for coupling of Transport PK and Chemistry PK.
 */
@@ -24,25 +26,30 @@ MPCCoupledReactiveTransport::MPCCoupledReactiveTransport(
   const Teuchos::RCP<Teuchos::ParameterList>& global_list,
   const Teuchos::RCP<State>& S,
   const Teuchos::RCP<TreeVector>& soln)
-  : PK(pk_tree, global_list, S, soln),
-    WeakMPC(pk_tree, global_list, S, soln)
+  : PK(pk_tree, global_list, S, soln), WeakMPC(pk_tree, global_list, S, soln)
 {
   chem_step_succeeded_ = true;
 
-  alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia "+name());
-  alquimia_surf_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia surface "+name());
+  alquimia_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia " + name());
+  alquimia_surf_timer_ = Teuchos::TimeMonitor::getNewCounter("alquimia surface " + name());
 
   domain_ = Keys::readDomain(*plist_, "domain", "domain");
   domain_surf_ = Keys::readDomainHint(*plist_, domain_, "domain", "surface");
 
-  tcc_key_ = Keys::readKey(*plist_, domain_, "total component concentration", "total_component_concentration");
-  tcc_surf_key_ = Keys::readKey(*plist_, domain_surf_, "surface total component concentration", "total_component_concentration");
+  tcc_key_ = Keys::readKey(
+    *plist_, domain_, "total component concentration", "total_component_concentration");
+  tcc_surf_key_ = Keys::readKey(*plist_,
+                                domain_surf_,
+                                "surface total component concentration",
+                                "total_component_concentration");
   mol_dens_key_ = Keys::readKey(*plist_, domain_, "molar density liquid", "molar_density_liquid");
-  mol_dens_surf_key_ = Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
+  mol_dens_surf_key_ =
+    Keys::readKey(*plist_, domain_surf_, "surface molar density liquid", "molar_density_liquid");
 }
 
 
-void MPCCoupledReactiveTransport::Setup()
+void
+MPCCoupledReactiveTransport::Setup()
 {
   cast_sub_pks_();
 
@@ -50,29 +57,35 @@ void MPCCoupledReactiveTransport::Setup()
   coupled_transport_pk_->Setup();
   coupled_chemistry_pk_->Setup();
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, tag_next_, "state")
-    .SetMesh(S_->GetMesh(domain_))->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, tag_next_, "state")
+    .SetMesh(S_->GetMesh(domain_))
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_->num_aqueous_components());
   S_->RequireEvaluator(tcc_key_, tag_next_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(tcc_surf_key_, tag_next_, "state")
-    .SetMesh(S_->GetMesh(domain_surf_))->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_surf_->num_aqueous_components());
+  S_->Require<CompositeVector, CompositeVectorSpace>(tcc_surf_key_, tag_next_, "state")
+    .SetMesh(S_->GetMesh(domain_surf_))
+    ->SetGhosted()
+    ->AddComponent(
+      "cell", AmanziMesh::Entity_kind::CELL, chemistry_pk_surf_->num_aqueous_components());
   S_->RequireEvaluator(tcc_surf_key_, tag_next_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(mol_dens_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_))->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_key_, tag_next_)
+    .SetMesh(S_->GetMesh(domain_))
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(mol_dens_key_, tag_next_);
 
-  S_->Require<CompositeVector,CompositeVectorSpace>(mol_dens_surf_key_, tag_next_)
-    .SetMesh(S_->GetMesh(domain_surf_))->SetGhosted()
+  S_->Require<CompositeVector, CompositeVectorSpace>(mol_dens_surf_key_, tag_next_)
+    .SetMesh(S_->GetMesh(domain_surf_))
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(mol_dens_surf_key_, tag_next_);
 }
 
 
-void MPCCoupledReactiveTransport::cast_sub_pks_()
+void
+MPCCoupledReactiveTransport::cast_sub_pks_()
 {
   coupled_transport_pk_ = Teuchos::rcp_dynamic_cast<MPCCoupledTransport>(sub_pks_[1]);
   AMANZI_ASSERT(coupled_transport_pk_ != Teuchos::null);
@@ -80,15 +93,19 @@ void MPCCoupledReactiveTransport::cast_sub_pks_()
   coupled_chemistry_pk_ = Teuchos::rcp_dynamic_cast<WeakMPC>(sub_pks_[0]);
   AMANZI_ASSERT(coupled_chemistry_pk_ != Teuchos::null);
 
-  transport_pk_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(0));
+  transport_pk_ =
+    Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(0));
   AMANZI_ASSERT(transport_pk_ != Teuchos::null);
-  transport_pk_surf_ = Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(1));
+  transport_pk_surf_ =
+    Teuchos::rcp_dynamic_cast<Transport::Transport_ATS>(coupled_transport_pk_->get_subpk(1));
   AMANZI_ASSERT(transport_pk_surf_ != Teuchos::null);
 
-  chemistry_pk_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(0));
+  chemistry_pk_ =
+    Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(0));
   AMANZI_ASSERT(chemistry_pk_ != Teuchos::null);
-  chemistry_pk_surf_ = Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(1));
-  AMANZI_ASSERT(chemistry_pk_surf_!= Teuchos::null);
+  chemistry_pk_surf_ =
+    Teuchos::rcp_dynamic_cast<AmanziChemistry::Chemistry_PK>(coupled_chemistry_pk_->get_subpk(1));
+  AMANZI_ASSERT(chemistry_pk_surf_ != Teuchos::null);
 
   AMANZI_ASSERT(transport_pk_->domain() == chemistry_pk_->domain());
   AMANZI_ASSERT(transport_pk_surf_->domain() == chemistry_pk_surf_->domain());
@@ -107,7 +124,8 @@ void MPCCoupledReactiveTransport::cast_sub_pks_()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void MPCCoupledReactiveTransport::Initialize()
+void
+MPCCoupledReactiveTransport::Initialize()
 {
   // NOTE: this requires that Reactive-Transport is done last, or at least
   // after the density of water can be evaluated.  This could be problematic
@@ -126,7 +144,7 @@ void MPCCoupledReactiveTransport::Initialize()
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
 
   int num_aqueous = chemistry_pk_surf_->num_aqueous_components();
-  convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
+  convertConcentrationToAmanzi(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
   convertConcentrationToAmanzi(*mol_dens, num_aqueous, *tcc, *tcc);
 
   chemistry_pk_surf_->set_aqueous_components(tcc_surf);
@@ -137,7 +155,7 @@ void MPCCoupledReactiveTransport::Initialize()
   chemistry_pk_->Initialize();
   //*tcc = *chemistry_pk_->aqueous_components();
 
-  convertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf,  *tcc_surf);
+  convertConcentrationToATS(*mol_dens_surf, num_aqueous, *tcc_surf, *tcc_surf);
   convertConcentrationToATS(*mol_dens, num_aqueous, *tcc, *tcc);
 
   transport_pk_surf_->Initialize();
@@ -148,14 +166,13 @@ void MPCCoupledReactiveTransport::Initialize()
 // -----------------------------------------------------------------------------
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
-double MPCCoupledReactiveTransport::get_dt()
+double
+MPCCoupledReactiveTransport::get_dt()
 {
   double dTtran = coupled_transport_pk_->get_dt();
   double dTchem = coupled_chemistry_pk_->get_dt();
 
-  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) {
-     dTchem *= 0.5;
-  }
+  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
   return dTchem;
 }
 
@@ -163,7 +180,8 @@ double MPCCoupledReactiveTransport::get_dt()
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually, returning a failure as soon as possible.
 // -----------------------------------------------------------------------------
-bool MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
+bool
+MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   chem_step_succeeded_ = false;
@@ -182,8 +200,8 @@ bool MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool r
   S_->GetEvaluator(mol_dens_surf_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_surf =
     S_->Get<CompositeVector>(mol_dens_surf_key_, tag_next_).ViewComponent("cell", true);
-  fail = advanceChemistry(chemistry_pk_surf_, t_old, t_new, reinit,
-                          *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
+  fail = advanceChemistry(
+    chemistry_pk_surf_, t_old, t_new, reinit, *mol_dens_surf, tcc_surf, *alquimia_surf_timer_);
   changedEvaluatorPrimary(tcc_surf_key_, tag_next_, *S_);
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
@@ -216,6 +234,4 @@ bool MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool r
 };
 
 
-}  // namespace Amanzi
-
-
+} // namespace Amanzi

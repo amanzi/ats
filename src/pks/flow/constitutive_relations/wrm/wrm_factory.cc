@@ -1,8 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 
    ATS
-   Author: Ethan Coon
 
    Self-registering factory for WRM implementations.
    ------------------------------------------------------------------------- */
@@ -14,7 +21,9 @@ namespace Amanzi {
 namespace Flow {
 
 // method for instantiating WRM implementations
-Teuchos::RCP<WRM> WRMFactory::createWRM(Teuchos::ParameterList& plist) {
+Teuchos::RCP<WRM>
+WRMFactory::createWRM(Teuchos::ParameterList& plist)
+{
   std::string wrm_typename;
   // need to deprecate "WRM Type"
   if (plist.isParameter("wrm type"))
@@ -28,6 +37,5 @@ Teuchos::RCP<WRM> WRMFactory::createWRM(Teuchos::ParameterList& plist) {
   return Teuchos::rcp(CreateInstance(wrm_typename, plist));
 };
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

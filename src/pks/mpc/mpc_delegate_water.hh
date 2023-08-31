@@ -1,13 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Globalization for nonlinearity around the appearance/disappearance of surface water.
-
-
 #ifndef AMANZI_MPC_DELEGATE_WATER_HH_
 #define AMANZI_MPC_DELEGATE_WATER_HH_
 
@@ -78,28 +78,27 @@ These methods work to alter the predictor around this nonlinearity.
 namespace Amanzi {
 
 class MPCDelegateWater {
-
  public:
-
   MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
-                   const std::string& domain="domain");
+                   const std::string& domain = "domain");
 
   void set_db(const Teuchos::RCP<Debugger>& db) { db_ = db; }
 
-  void
-  set_tags(const Tag& tag_current,
-           const Tag& tag_next) {
+  void set_tags(const Tag& tag_current, const Tag& tag_next)
+  {
     tag_current_ = tag_current;
     tag_next_ = tag_next;
   }
 
-  void set_indices(int i_pdomain, int i_psurf) {
+  void set_indices(int i_pdomain, int i_psurf)
+  {
     i_domain_ = i_pdomain;
     i_surf_ = i_psurf;
   }
 
-  void set_indices(int i_pdomain, int i_psurf, int i_Tdomain, int i_Tsurf) {
+  void set_indices(int i_pdomain, int i_psurf, int i_Tdomain, int i_Tsurf)
+  {
     i_domain_ = i_pdomain;
     i_surf_ = i_psurf;
     i_Tdomain_ = i_Tdomain;
@@ -107,46 +106,53 @@ class MPCDelegateWater {
   }
 
 
-  bool
-  ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVector>& u);
-  bool
-  ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<TreeVector>& u);
-  bool
-  ModifyPredictor_TempFromSource(double h, const Teuchos::RCP<TreeVector>& u);
+  bool ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVector>& u);
+  bool ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<TreeVector>& u);
+  bool ModifyPredictor_TempFromSource(double h, const Teuchos::RCP<TreeVector>& u);
 
   // bool
   // ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
   //         Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
 
-  int
-  ModifyCorrection_WaterFaceLimiter(double h, Teuchos::RCP<const TreeVector> res,
-          Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
+  int ModifyCorrection_WaterFaceLimiter(double h,
+                                        Teuchos::RCP<const TreeVector> res,
+                                        Teuchos::RCP<const TreeVector> u,
+                                        Teuchos::RCP<TreeVector> du);
 
-  double
-  ModifyCorrection_WaterSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
-          Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
+  double ModifyCorrection_WaterSpurtDamp(double h,
+                                         Teuchos::RCP<const TreeVector> res,
+                                         Teuchos::RCP<const TreeVector> u,
+                                         Teuchos::RCP<TreeVector> du);
 
-  int
-  ModifyCorrection_WaterSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
-                                    Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
+  int ModifyCorrection_WaterSpurtCap(double h,
+                                     Teuchos::RCP<const TreeVector> res,
+                                     Teuchos::RCP<const TreeVector> u,
+                                     Teuchos::RCP<TreeVector> du,
+                                     double damping);
 
-  double
-  ModifyCorrection_DesaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
-          Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
+  double ModifyCorrection_DesaturatedSpurtDamp(double h,
+                                               Teuchos::RCP<const TreeVector> res,
+                                               Teuchos::RCP<const TreeVector> u,
+                                               Teuchos::RCP<TreeVector> du);
 
-  int
-  ModifyCorrection_DesaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
-                                    Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
+  int ModifyCorrection_DesaturatedSpurtCap(double h,
+                                           Teuchos::RCP<const TreeVector> res,
+                                           Teuchos::RCP<const TreeVector> u,
+                                           Teuchos::RCP<TreeVector> du,
+                                           double damping);
 
-  double
-  ModifyCorrection_SaturatedSpurtDamp(double h, Teuchos::RCP<const TreeVector> res,
-          Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du);
+  double ModifyCorrection_SaturatedSpurtDamp(double h,
+                                             Teuchos::RCP<const TreeVector> res,
+                                             Teuchos::RCP<const TreeVector> u,
+                                             Teuchos::RCP<TreeVector> du);
 
-  int
-  ModifyCorrection_SaturatedSpurtCap(double h, Teuchos::RCP<const TreeVector> res,
-                                    Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du, double damping);
+  int ModifyCorrection_SaturatedSpurtCap(double h,
+                                         Teuchos::RCP<const TreeVector> res,
+                                         Teuchos::RCP<const TreeVector> u,
+                                         Teuchos::RCP<TreeVector> du,
+                                         double damping);
 
-protected:
+ protected:
   Teuchos::RCP<Teuchos::ParameterList> plist_;
   Teuchos::RCP<VerboseObject> vo_;
   Teuchos::RCP<Debugger> db_;
@@ -181,11 +187,9 @@ protected:
   int i_Tdomain_;
 
   Key domain_ss_;
-
 };
 
-} // namespace
-
+} // namespace Amanzi
 
 
 #endif

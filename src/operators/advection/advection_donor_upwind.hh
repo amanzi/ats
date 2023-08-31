@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
    ATS
-
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon
 
    Donor upwind advection.
    ------------------------------------------------------------------------- */
@@ -24,17 +29,15 @@ namespace Amanzi {
 namespace Operators {
 
 class AdvectionDonorUpwind : public Advection {
-
-public:
-
+ public:
   AdvectionDonorUpwind(Teuchos::ParameterList& advect_plist,
                        const Teuchos::RCP<const AmanziMesh::Mesh> mesh);
 
   virtual void set_flux(const Teuchos::RCP<const CompositeVector>& flux);
-  virtual void Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux,
-                     bool include_bc_fluxes=true);
+  virtual void
+  Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_flux, bool include_bc_fluxes = true);
 
-private:
+ private:
   void IdentifyUpwindCells_();
 
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;

@@ -1,9 +1,10 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Ahmad Jan (jana@ornl.gov)
+  Authors: Ahmad Jan (jana@ornl.gov)
 */
 
 //! Evaluates snow melt via USDA - Natural Resources Conservation Service model
@@ -28,6 +29,7 @@ Uses LandCover for snow_ground_transition parameter.
      guess a sane default by the snow domain name.
 
    KEYS:
+
    - `"air temperature`"  **SURFACE_DOMAIN-air_temperature**
    - `"snow water equivalent`" **DOMAIN-water_equivalent**
 
@@ -50,11 +52,11 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit SnowMeltRateEvaluator(Teuchos::ParameterList& plist);
   SnowMeltRateEvaluator(const SnowMeltRateEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new SnowMeltRateEvaluator(*this));
   }
 
@@ -62,11 +64,11 @@ class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key temp_key_;
@@ -81,11 +83,9 @@ class SnowMeltRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SnowMeltRateEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

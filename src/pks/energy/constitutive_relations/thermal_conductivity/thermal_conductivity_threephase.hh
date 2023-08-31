@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Base class of a three-phase Thermal Conductivity relation.
 
@@ -20,30 +24,40 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhase {
-
-public:
+ public:
   virtual ~ThermalConductivityThreePhase() {}
 
-  virtual double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp) = 0;
-  virtual double DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp) = 0;
+  virtual double
+  DThermalConductivity_DPorosity(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DSaturationLiquid(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double DThermalConductivity_DSaturationLiquid(double porosity,
+                                                        double sat_liq,
+                                                        double sat_ice,
+                                                        double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  DThermalConductivity_DSaturationIce(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
-  virtual double DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp) {
+  virtual double
+  DThermalConductivity_DTemperature(double porosity, double sat_liq, double sat_ice, double temp)
+  {
     AMANZI_ASSERT(false);
     return 0.;
   }
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

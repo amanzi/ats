@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates the unfrozen mobile depth.
 
+//! Evaluates the unfrozen mobile depth.
 /*!
 
 In freezing conditions, water is only mobile if it is unfrozen.  This evaluator
@@ -43,31 +44,26 @@ namespace Flow {
 class UnfrozenEffectiveDepthModel;
 
 class UnfrozenEffectiveDepthEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist);
+  explicit UnfrozenEffectiveDepthEvaluator(Teuchos::ParameterList& plist);
   UnfrozenEffectiveDepthEvaluator(const UnfrozenEffectiveDepthEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
-protected:
+ protected:
   Key uf_key_;
   Key depth_key_;
   double alpha_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,UnfrozenEffectiveDepthEvaluator> fac_;
-
-
+  static Utils::RegisteredFactory<Evaluator, UnfrozenEffectiveDepthEvaluator> fac_;
 };
 
-} //namespace
-} //namespace
-
-
+} // namespace Flow
+} // namespace Amanzi

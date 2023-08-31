@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   ATS
@@ -7,7 +14,6 @@
 
   http://software.lanl.gov/ats/trac
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 
@@ -24,27 +30,23 @@ namespace Relations {
 
 // Equation of State model
 class ViscosityConstant : public ViscosityRelation {
-
-public:
-  explicit
-  ViscosityConstant(Teuchos::ParameterList& visc_plist);
+ public:
+  explicit ViscosityConstant(Teuchos::ParameterList& visc_plist);
 
   virtual double Viscosity(double T) { return visc_; }
   virtual double DViscosityDT(double T) { return 0.; }
 
-protected:
-
+ protected:
   virtual void InitializeFromPlist_();
 
   Teuchos::ParameterList visc_plist_;
   double visc_;
 
  private:
-  static Utils::RegisteredFactory<ViscosityRelation,ViscosityConstant> factory_;
-
+  static Utils::RegisteredFactory<ViscosityRelation, ViscosityConstant> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

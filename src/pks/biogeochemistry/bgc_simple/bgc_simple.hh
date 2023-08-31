@@ -1,4 +1,5 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -6,8 +7,8 @@
   Authors: Ethan Coon (coonet@ornl.gov)
            Chonggang Xu (cxu@lanl.gov)
 */
-//! Above and below-ground carbon cycle model.
 
+//! Above and below-ground carbon cycle model.
 /*!
 
 This is a multi-leaf layer, big-leaf vegetation model coupled to a Century
@@ -97,9 +98,7 @@ namespace Amanzi {
 namespace BGC {
 
 class BGCSimple : public PK_Physical_Default {
-
  public:
-
   BGCSimple(Teuchos::ParameterList& pk_tree,
             const Teuchos::RCP<Teuchos::ParameterList>& glist,
             const Teuchos::RCP<State>& S,
@@ -113,12 +112,8 @@ class BGCSimple : public PK_Physical_Default {
   virtual void Initialize() override;
 
   // -- provide a timestep size
-  virtual double get_dt() override {
-    return dt_;
-  }
-  virtual void set_dt(double dt) override {
-    dt_ = dt;
-  }
+  virtual double get_dt() override { return dt_; }
+  virtual void set_dt(double dt) override { dt_ = dt; }
 
   // -- Commit any secondary (dependent) variables.
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
@@ -132,11 +127,12 @@ class BGCSimple : public PK_Physical_Default {
   friend class FATES_PK;
 
  protected:
-  void FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec,
-                     Teuchos::Ptr<Epetra_SerialDenseVector> col_vec,
-                     bool copy=true);
-  void FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec,
-                      double* col_vec, int ncol);
+  void FieldToColumn_(AmanziMesh::Entity_ID col,
+                      const Epetra_Vector& vec,
+                      Teuchos::Ptr<Epetra_SerialDenseVector> col_vec,
+                      bool copy = true);
+  void
+  FieldToColumn_(AmanziMesh::Entity_ID col, const Epetra_Vector& vec, double* col_vec, int ncol);
   void ColDepthDz_(AmanziMesh::Entity_ID col,
                    Teuchos::Ptr<Epetra_SerialDenseVector> depth,
                    Teuchos::Ptr<Epetra_SerialDenseVector> dz);
@@ -147,10 +143,10 @@ class BGCSimple : public PK_Physical_Default {
   Key domain_surf_;
 
   // physical structs needed by model
-  std::vector<Teuchos::RCP<SoilCarbonParameters> > sc_params_;
-  std::vector<std::vector<Teuchos::RCP<PFT> > > pfts_;       // this also contains state data!
-  std::vector<std::vector<Teuchos::RCP<PFT> > > pfts_old_;   // need two copies for failed timesteps
-  std::vector<std::vector<Teuchos::RCP<SoilCarbon> > > soil_carbon_pools_;
+  std::vector<Teuchos::RCP<SoilCarbonParameters>> sc_params_;
+  std::vector<std::vector<Teuchos::RCP<PFT>>> pfts_;     // this also contains state data!
+  std::vector<std::vector<Teuchos::RCP<PFT>>> pfts_old_; // need two copies for failed timesteps
+  std::vector<std::vector<Teuchos::RCP<SoilCarbon>>> soil_carbon_pools_;
 
   // extras
   int num_pools_;
@@ -171,12 +167,10 @@ class BGCSimple : public PK_Physical_Default {
  private:
   // factory registration
   static RegisteredPKFactory<BGCSimple> reg_;
-
-
 };
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi
 
 
 #endif

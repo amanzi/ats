@@ -1,12 +1,15 @@
 /*
-  Transport PK
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
-  Amanzi is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+*/
+
+/*
+  Transport PK
+
 */
 
 #include <set>
@@ -27,7 +30,8 @@ namespace Transport {
 /* ******************************************************************
 * Inialization of various transport structures.
 ****************************************************************** */
-void Transport_ATS::InitializeAll_()
+void
+Transport_ATS::InitializeAll_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
@@ -62,7 +66,8 @@ void Transport_ATS::InitializeAll_()
 
         mat_properties_[iblock]->tau[0] = model_list.get<double>("aqueous tortuosity", 0.0);
         mat_properties_[iblock]->tau[1] = model_list.get<double>("gaseous tortuosity", 0.0);
-        mat_properties_[iblock]->regions = model_list.get<Teuchos::Array<std::string> >("regions").toVector();
+        mat_properties_[iblock]->regions =
+          model_list.get<Teuchos::Array<std::string>>("regions").toVector();
         iblock++;
       }
     }
@@ -75,20 +80,25 @@ void Transport_ATS::InitializeAll_()
     Teuchos::ParameterList& dlist = plist_->sublist("molecular diffusion");
     if (dlist.isParameter("aqueous names")) {
       diffusion_phase_[0] = Teuchos::rcp(new DiffusionPhase());
-      diffusion_phase_[0]->names() = dlist.get<Teuchos::Array<std::string> >("aqueous names").toVector();
-      diffusion_phase_[0]->values() = dlist.get<Teuchos::Array<double> >("aqueous values").toVector();
+      diffusion_phase_[0]->names() =
+        dlist.get<Teuchos::Array<std::string>>("aqueous names").toVector();
+      diffusion_phase_[0]->values() =
+        dlist.get<Teuchos::Array<double>>("aqueous values").toVector();
     }
 
     if (dlist.isParameter("gaseous names")) {
       diffusion_phase_[1] = Teuchos::rcp(new DiffusionPhase());
-      diffusion_phase_[1]->names() = dlist.get<Teuchos::Array<std::string> >("gaseous names").toVector();
-      diffusion_phase_[1]->values() = dlist.get<Teuchos::Array<double> >("gaseous values").toVector();
+      diffusion_phase_[1]->names() =
+        dlist.get<Teuchos::Array<std::string>>("gaseous names").toVector();
+      diffusion_phase_[1]->values() =
+        dlist.get<Teuchos::Array<double>>("gaseous values").toVector();
     }
   }
 
   // statistics of solutes
   if (plist_->isParameter("runtime diagnostics: solute names")) {
-    runtime_solutes_ = plist_->get<Teuchos::Array<std::string> >("runtime diagnostics: solute names").toVector();
+    runtime_solutes_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: solute names").toVector();
     if (runtime_solutes_.size() == 1 && runtime_solutes_[0] == "all") {
       runtime_solutes_ = component_names_;
     }
@@ -99,49 +109,51 @@ void Transport_ATS::InitializeAll_()
   mass_solutes_stepstart_.assign(num_aqueous + num_gaseous, 0.0);
 
   if (plist_->isParameter("runtime diagnostics: regions")) {
-    runtime_regions_ = plist_->get<Teuchos::Array<std::string> >("runtime diagnostics: regions").toVector();
+    runtime_regions_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: regions").toVector();
   }
 
   internal_tests = plist_->get<bool>("enable internal tests", false);
-  tests_tolerance = plist_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
+  tests_tolerance =
+    plist_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
   dt_debug_ = plist_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
 
-//   // populate the list of boundary influx functions
-//   bcs.clear();
+  //   // populate the list of boundary influx functions
+  //   bcs.clear();
 
-//   if (plist_->isSublist("boundary conditions")) {  // New flexible format.
-//     std::vector<std::string> bcs_tcc_name;
-//     Teuchos::RCP<Teuchos::ParameterList> bcs_list =
-//         Teuchos::rcp(new Teuchos::ParameterList(plist_->get<Teuchos::ParameterList>("boundary conditions")));
-// #ifdef ALQUIMIA_ENABLED
-//     TransportBCFactory bc_factory(S_, mesh_, bcs_list, chem_pk_, chem_engine_);
-// #else
-//     TransportBCFactory bc_factory(S_, mesh_, bcs_list);
-// #endif
-//     bc_factory.Create(bcs);
+  //   if (plist_->isSublist("boundary conditions")) {  // New flexible format.
+  //     std::vector<std::string> bcs_tcc_name;
+  //     Teuchos::RCP<Teuchos::ParameterList> bcs_list =
+  //         Teuchos::rcp(new Teuchos::ParameterList(plist_->get<Teuchos::ParameterList>("boundary conditions")));
+  // #ifdef ALQUIMIA_ENABLED
+  //     TransportBCFactory bc_factory(S_, mesh_, bcs_list, chem_pk_, chem_engine_);
+  // #else
+  //     TransportBCFactory bc_factory(S_, mesh_, bcs_list);
+  // #endif
+  //     bc_factory.Create(bcs);
 
-//     for (int m = 0; m < bcs.size(); m++) {
-//       std::vector<int>& tcc_index = bcs[m]->tcc_index();
-//       std::vector<std::string>& tcc_names = bcs[m]->tcc_names();
-//       int ncomp = tcc_names.size();
+  //     for (int m = 0; m < bcs.size(); m++) {
+  //       std::vector<int>& tcc_index = bcs[m]->tcc_index();
+  //       std::vector<std::string>& tcc_names = bcs[m]->tcc_names();
+  //       int ncomp = tcc_names.size();
 
-//       for (int i = 0; i < ncomp; i++) {
-//         tcc_index.push_back(FindComponentNumber(tcc_names[i]));
-//       }
-//     }
-//   } else {
-//     if (vo_->getVerbLevel() > Teuchos::VERB_NONE) {
-//       *vo_->os() << vo_->color("yellow") << "No BCs were specified." << vo_->reset() << std::endl;
-//     }
-//   }
-
+  //       for (int i = 0; i < ncomp; i++) {
+  //         tcc_index.push_back(FindComponentNumber(tcc_names[i]));
+  //       }
+  //     }
+  //   } else {
+  //     if (vo_->getVerbLevel() > Teuchos::VERB_NONE) {
+  //       *vo_->os() << vo_->color("yellow") << "No BCs were specified." << vo_->reset() << std::endl;
+  //     }
+  //   }
 }
 
 
 /* ****************************************************************
 * Find place of the given component in a multivector.
 **************************************************************** */
-int Transport_ATS::FindComponentNumber(const std::string component_name)
+int
+Transport_ATS::FindComponentNumber(const std::string component_name)
 {
   int ncomponents = component_names_.size();
   for (int i = 0; i < ncomponents; i++) {
@@ -153,6 +165,5 @@ int Transport_ATS::FindComponentNumber(const std::string component_name)
   return -1;
 }
 
-}  // namespace Transport
-}  // namespace Amanzi
-
+} // namespace Transport
+} // namespace Amanzi

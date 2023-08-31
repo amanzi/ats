@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Three phase water content: vapor, liquid, and ice.
 
+//! Three phase water content: vapor, liquid, and ice.
 /*!
 
 .. math::
@@ -44,10 +45,8 @@ namespace Relations {
 class ThreePhaseWaterContentModel;
 
 class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  ThreePhaseWaterContentEvaluator(Teuchos::ParameterList& plist);
+  explicit ThreePhaseWaterContentEvaluator(Teuchos::ParameterList& plist);
   ThreePhaseWaterContentEvaluator(const ThreePhaseWaterContentEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -57,11 +56,11 @@ class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -79,12 +78,11 @@ class ThreePhaseWaterContentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<ThreePhaseWaterContentModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,ThreePhaseWaterContentEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, ThreePhaseWaterContentEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

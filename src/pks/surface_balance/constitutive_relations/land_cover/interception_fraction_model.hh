@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Fraction of incoming water that is intercepted.
 /*!
 
@@ -30,10 +32,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class InterceptionFractionModel {
-
  public:
-  explicit
-  InterceptionFractionModel(Teuchos::ParameterList& plist);
+  explicit InterceptionFractionModel(Teuchos::ParameterList& plist);
 
   double InterceptionFraction(double ai) const;
 
@@ -43,11 +43,9 @@ class InterceptionFractionModel {
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double alpha_;
-
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Process kernel for energy equation for Richard's flow.
 ------------------------------------------------------------------------- */
@@ -35,14 +39,15 @@ class CarbonSimple : public PK_Physical_Explicit_Default {
   // virtual void initialize(const State& S);
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override {};
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override{};
 
   // -- Calculate any diagnostics prior to doing vis
   virtual void CalculateDiagnostics(const Tag& tag) override;
 
   // EnergyBase is a BDFFnBase
   // computes the non-linear functional f = f(t,u,udot)
-  virtual void FunctionalTimeDerivative(const double t, const TreeVector& u, TreeVector& f) override;
+  virtual void
+  FunctionalTimeDerivative(const double t, const TreeVector& u, TreeVector& f) override;
 
  protected:
   virtual void ApplyDiffusion_(const Teuchos::Ptr<CompositeVector>& g);
@@ -67,13 +72,11 @@ class CarbonSimple : public PK_Physical_Explicit_Default {
  private:
   // factory registration
   static RegisteredPKFactory<CarbonSimple> reg_;
-
 };
 
 
 } // namespace BGC
-} // namespace ATS
-
+} // namespace Amanzi
 
 
 #endif

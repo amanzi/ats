@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Plant wilting factor provides a moisture availability-based limiter on transpiration.
 /*!
 
@@ -31,6 +33,7 @@ https://doi.org/10.1016/j.agrformet.2014.02.009
 .. admonition:: plant-wilting-factor-evaluator-spec
 
    KEYS:
+
    - `"capillary pressure`" **DOMAIN-capillary_pressure_gas_liq**
 
 
@@ -49,7 +52,6 @@ namespace Relations {
 class PlantWiltingFactorModel;
 
 class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit PlantWiltingFactorEvaluator(Teuchos::ParameterList& plist);
   PlantWiltingFactorEvaluator(const PlantWiltingFactorEvaluator& other) = default;
@@ -57,11 +59,11 @@ class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -71,14 +73,12 @@ class PlantWiltingFactorEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key domain_sub_;
 
   LandCoverMap land_cover_;
-  std::map<std::string,Teuchos::RCP<PlantWiltingFactorModel>> models_;
+  std::map<std::string, Teuchos::RCP<PlantWiltingFactorModel>> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,PlantWiltingFactorEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

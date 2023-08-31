@@ -1,8 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   A collection of comp poro models along with a Mesh Partition.
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "dbc.hh"
@@ -14,12 +20,12 @@ namespace Flow {
 
 // Non-member factory
 Teuchos::RCP<CompressiblePorosityLeijnseModelPartition>
-createCompressiblePorosityLeijnseModelPartition(Teuchos::ParameterList& plist) {
+createCompressiblePorosityLeijnseModelPartition(Teuchos::ParameterList& plist)
+{
   CompressiblePorosityLeijnseModelList mlist;
   std::vector<std::string> region_list;
 
-  for (Teuchos::ParameterList::ConstIterator lcv=plist.begin();
-       lcv!=plist.end(); ++lcv) {
+  for (Teuchos::ParameterList::ConstIterator lcv = plist.begin(); lcv != plist.end(); ++lcv) {
     std::string name = lcv->first;
     if (plist.isSublist(name)) {
       Teuchos::ParameterList sublist = plist.sublist(name);
@@ -31,10 +37,10 @@ createCompressiblePorosityLeijnseModelPartition(Teuchos::ParameterList& plist) {
   }
 
   Teuchos::RCP<Functions::MeshPartition> part =
-      Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL,region_list));
+    Teuchos::rcp(new Functions::MeshPartition(AmanziMesh::CELL, region_list));
 
   return Teuchos::rcp(new CompressiblePorosityLeijnseModelPartition(part, mlist));
 }
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

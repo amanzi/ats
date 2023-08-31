@@ -1,10 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Interface for a thermal conductivity model with two phases.
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "dbc.hh"
@@ -15,30 +20,32 @@ namespace Amanzi {
 namespace Energy {
 
 ThermalConductivityTwoPhaseEvaluator::ThermalConductivityTwoPhaseEvaluator(
-      Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+  Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 
   poro_key_ = Keys::readKey(plist_, domain, "porosity", "porosity");
-  dependencies_.insert(KeyTag{poro_key_, tag});
+  dependencies_.insert(KeyTag{ poro_key_, tag });
 
   sat_key_ = Keys::readKey(plist_, domain, "saturation liquid", "saturation_liquid");
-  dependencies_.insert(KeyTag{sat_key_, tag});
+  dependencies_.insert(KeyTag{ sat_key_, tag });
 
   Teuchos::ParameterList tc_sublist = plist_.sublist("thermal conductivity parameters");
   ThermalConductivityTwoPhaseFactory fac;
-  for (Teuchos::ParameterList::ConstIterator lcv=tc_sublist.begin();
-       lcv!=tc_sublist.end(); ++lcv) {
+  for (Teuchos::ParameterList::ConstIterator lcv = tc_sublist.begin(); lcv != tc_sublist.end();
+       ++lcv) {
     std::string name = lcv->first;
     if (tc_sublist.isSublist(name)) {
       Teuchos::ParameterList& tcp_sublist = tc_sublist.sublist(name);
       std::string region_name = tcp_sublist.get<std::string>("region");
-      Teuchos::RCP<ThermalConductivityTwoPhase> tc = fac.createThermalConductivityModel(tcp_sublist);
-      tcs_.push_back(std::make_pair(region_name,tc));
+      Teuchos::RCP<ThermalConductivityTwoPhase> tc =
+        fac.createThermalConductivityModel(tcp_sublist);
+      tcs_.push_back(std::make_pair(region_name, tc));
     } else {
-      Errors::Message message("ThermalConductivityTwoPhaseEvaluator: region-based lists.  (Perhaps you have an old-style input file?)");
+      Errors::Message message("ThermalConductivityTwoPhaseEvaluator: region-based lists.  (Perhaps "
+                              "you have an old-style input file?)");
       Exceptions::amanzi_throw(message);
     }
   }
@@ -52,9 +59,9 @@ ThermalConductivityTwoPhaseEvaluator::Clone() const
 }
 
 
-void ThermalConductivityTwoPhaseEvaluator::Evaluate_(
-      const State& S,
-      const std::vector<CompositeVector*>& result)
+void
+ThermalConductivityTwoPhaseEvaluator::Evaluate_(const State& S,
+                                                const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
 
@@ -63,24 +70,24 @@ void ThermalConductivityTwoPhaseEvaluator::Evaluate_(
   Teuchos::RCP<const CompositeVector> sat = S.GetPtr<CompositeVector>(sat_key_, tag);
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->Mesh();
 
-  for (CompositeVector::name_iterator comp = result[0]->begin();
-       comp!=result[0]->end(); ++comp) {
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
     AMANZI_ASSERT(*comp == "cell");
-    const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp,false);
-    const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp,false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp,false);
+    const Epetra_MultiVector& poro_v = *poro->ViewComponent(*comp, false);
+    const Epetra_MultiVector& sat_v = *sat->ViewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
-    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin();
-         lcv != tcs_.end(); ++lcv) {
+    for (std::vector<RegionModelPair>::const_iterator lcv = tcs_.begin(); lcv != tcs_.end();
+         ++lcv) {
       std::string region_name = lcv->first;
       if (mesh->valid_set_name(region_name, AmanziMesh::CELL)) {
         // get the indices of the domain.
         AmanziMesh::Entity_ID_List id_list;
-        mesh->get_set_entities(region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
+        mesh->get_set_entities(
+          region_name, AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED, &id_list);
 
         // loop over indices
-        for (AmanziMesh::Entity_ID_List::const_iterator id=id_list.begin();
-             id!=id_list.end(); ++id) {
+        for (AmanziMesh::Entity_ID_List::const_iterator id = id_list.begin(); id != id_list.end();
+             ++id) {
           result_v[0][*id] = lcv->second->ThermalConductivity(poro_v[0][*id], sat_v[0][*id]);
         }
       } else {
@@ -95,13 +102,17 @@ void ThermalConductivityTwoPhaseEvaluator::Evaluate_(
 }
 
 
-void ThermalConductivityTwoPhaseEvaluator::EvaluatePartialDerivative_(
-      const State& S, const Key& wrt_key, const Tag& wrt_tag,
-      const std::vector<CompositeVector*>& result) {
+void
+ThermalConductivityTwoPhaseEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
+{
   // not yet implemented in underlying models!
   result[0]->PutScalar(0.);
   // result[0]->Scale(1.e-6); // convert to MJ
 }
 
-} //namespace
-} //namespace
+} // namespace Energy
+} // namespace Amanzi

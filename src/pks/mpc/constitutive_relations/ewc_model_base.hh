@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 EWCModelBase provides some of the functionality of EWCModel for inverse
 evaluating.
@@ -24,23 +29,26 @@ class EWCModelBase : public EWCModel {
  public:
   EWCModelBase() {}
   virtual ~EWCModelBase() = default;
-  
+
   virtual int Evaluate(double T, double p, double& energy, double& wc) override;
-  virtual int InverseEvaluate(double energy, double wc, double& T, double& p, bool verbose=false) override;
+  virtual int
+  InverseEvaluate(double energy, double wc, double& T, double& p, bool verbose = false) override;
   virtual int InverseEvaluateEnergy(double energy, double p, double& T) override;
 
  protected:
+  virtual int EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result) = 0;
 
-  virtual int EvaluateEnergyAndWaterContent_(double T, double p,
-          AmanziGeometry::Point& result) = 0;
+  int EvaluateEnergyAndWaterContentAndJacobian_(double T,
+                                                double p,
+                                                AmanziGeometry::Point& result,
+                                                WhetStone::Tensor& jac);
 
-  int EvaluateEnergyAndWaterContentAndJacobian_(double T, double p,
-          AmanziGeometry::Point& result, WhetStone::Tensor& jac);
-
-  int EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double p,
-          AmanziGeometry::Point& result, WhetStone::Tensor& jac);
+  int EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
+                                                   double p,
+                                                   AmanziGeometry::Point& result,
+                                                   WhetStone::Tensor& jac);
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

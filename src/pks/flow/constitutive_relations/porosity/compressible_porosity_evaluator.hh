@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluates the porosity, given a small compressibility of rock.
@@ -7,7 +14,6 @@
   and a simple way to provide a non-elliptic, diagonal term for helping
   solvers to converge.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 /*!
@@ -16,11 +22,17 @@ Compressible grains are both physically realistic (based on bulk modulus) and a
 simple way to provide a non-elliptic, diagonal term for helping solvers to
 converge.
 
-* `"compressible porosity model parameters`" ``[compressible-porosity-model-spec-list]``
+`"evaluator type`" = `"compressible porosity`"
 
-KEYS:
-- `"pressure`" **DOMAIN-pressure**
-- `"base porosity`" **DOMAIN-base_porosity**
+.. _compressible-porosity-evaluator-spec
+.. admonition:: compressible-porosity-evaluator-spec
+
+   * `"compressible porosity model parameters`" ``[compressible-porosity-standard-model-spec-list]``
+
+   KEYS:
+
+   - `"pressure`" **DOMAIN-pressure**
+   - `"base porosity`" **DOMAIN-base_porosity**
 
 */
 
@@ -37,19 +49,19 @@ namespace Flow {
 
 class CompressiblePorosityEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit
-  CompressiblePorosityEvaluator(Teuchos::ParameterList& plist);
+  explicit CompressiblePorosityEvaluator(Teuchos::ParameterList& plist);
   CompressiblePorosityEvaluator(const CompressiblePorosityEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
   Teuchos::RCP<CompressiblePorosityModelPartition> get_Models() { return models_; }
 
-protected:
+ protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key poro_key_;
@@ -58,13 +70,10 @@ protected:
   Teuchos::RCP<CompressiblePorosityModelPartition> models_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,CompressiblePorosityEvaluator> fac_;
-
-
-
+  static Utils::RegisteredFactory<Evaluator, CompressiblePorosityEvaluator> fac_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

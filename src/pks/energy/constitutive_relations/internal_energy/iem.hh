@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Internal energy model -- function of temperature only.
 
@@ -20,8 +24,7 @@ namespace Amanzi {
 namespace Energy {
 
 class IEM {
-
-public:
+ public:
   virtual ~IEM() {}
 
   // IEM(Teuchos::ParameterList& plist);
@@ -30,7 +33,7 @@ public:
   virtual double DInternalEnergyDT(double temp) = 0;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

@@ -1,16 +1,20 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! A subgrid model for determining the area fraction of land, open water, and snow within a grid cell.
 /*!
 
 Uses the subgrid equation from Jan et al WRR 2018 for volumetric or effective
 ponded depth to determine the area of water, then heuristically places snow on
 top of that surface.
+
+`"evaluator type`" = `"area fractions, three components with microtopography`"
 
 .. _area-fractions-threecomponent-microtopography-evaluator-spec:
 .. admonition:: area-fractions-threecomponent-microtopography-evaluator-spec
@@ -23,6 +27,7 @@ top of that surface.
      by replacing `"surface`" with `"snow`" in the this's domain.
 
    KEYS:
+
    - `"microtopographic relief`" **DOMAIN-microtopographic_relief**
      The name of del_max, the max microtopography value.
    - `"excluded volume`" **DOMAIN-excluded_volume**
@@ -53,11 +58,12 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class AreaFractionsThreeComponentMicrotopographyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit AreaFractionsThreeComponentMicrotopographyEvaluator(Teuchos::ParameterList& plist);
-  AreaFractionsThreeComponentMicrotopographyEvaluator(const AreaFractionsThreeComponentMicrotopographyEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  AreaFractionsThreeComponentMicrotopographyEvaluator(
+    const AreaFractionsThreeComponentMicrotopographyEvaluator& other) = default;
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new AreaFractionsThreeComponentMicrotopographyEvaluator(*this));
   }
 
@@ -69,11 +75,14 @@ class AreaFractionsThreeComponentMicrotopographyEvaluator : public EvaluatorSeco
   void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
-    Exceptions::amanzi_throw("NotImplemented: AreaFractionsThreeComponentMicrotopographyEvaluator currently does not provide derivatives.");
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {
+    Exceptions::amanzi_throw("NotImplemented: AreaFractionsThreeComponentMicrotopographyEvaluator "
+                             "currently does not provide derivatives.");
   }
 
  protected:
@@ -85,10 +94,10 @@ class AreaFractionsThreeComponentMicrotopographyEvaluator : public EvaluatorSeco
   double min_area_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AreaFractionsThreeComponentMicrotopographyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, AreaFractionsThreeComponentMicrotopographyEvaluator>
+    reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

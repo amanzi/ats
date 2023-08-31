@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Process kernel for energy equation for Richard's flow.
 ------------------------------------------------------------------------- */
@@ -16,5 +20,5 @@ namespace Energy {
 
 RegisteredPKFactory<TwoPhase> TwoPhase::reg_("two-phase energy");
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

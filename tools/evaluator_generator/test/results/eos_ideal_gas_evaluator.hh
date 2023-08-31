@@ -1,4 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The ideal gas equation of state evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
@@ -16,8 +25,7 @@
     myMethodDeclarationArgs = double temp, double pres
     evalClassName = EosIdealGas
     myKey = density
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #ifndef AMANZI_GENERAL_EOS_IDEAL_GAS_EVALUATOR_HH_
@@ -33,19 +41,18 @@ namespace Relations {
 class EosIdealGasModel;
 
 class EosIdealGasEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  EosIdealGasEvaluator(Teuchos::ParameterList& plist);
+  explicit EosIdealGasEvaluator(Teuchos::ParameterList& plist);
   EosIdealGasEvaluator(const EosIdealGasEvaluator& other);
 
   virtual Teuchos::RCP<Evaluator> Clone() const;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void EvaluateField_(const Teuchos::Ptr<State>& S,
-          const Teuchos::Ptr<CompositeVector>& result);
+  virtual void
+  EvaluateField_(const Teuchos::Ptr<State>& S, const Teuchos::Ptr<CompositeVector>& result);
   virtual void EvaluateFieldPartialDerivative_(const Teuchos::Ptr<State>& S,
-          Key wrt_key, const Teuchos::Ptr<CompositeVector>& result);
+                                               Key wrt_key,
+                                               const Teuchos::Ptr<CompositeVector>& result);
 
   Teuchos::RCP<EosIdealGasModel> get_model() { return model_; }
 
@@ -58,12 +65,11 @@ class EosIdealGasEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<EosIdealGasModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EosIdealGasEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, EosIdealGasEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace General
+} // namespace Amanzi
 
 #endif

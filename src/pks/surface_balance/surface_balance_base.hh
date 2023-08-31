@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! A simple conservation ODE.
 
+//! A simple conservation ODE.
 /*!
 
 This is a very simple vector of ODEs, useful in balance equations, where the
@@ -71,19 +72,23 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                          Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
  protected:
-
   bool conserved_quantity_;
   bool is_source_, is_source_differentiable_, source_finite_difference_;
   Key source_key_;
@@ -100,8 +105,7 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
   static RegisteredPKFactory<SurfaceBalanceBase> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif
-

@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The richards water content model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Richards water content evaluator: the standard form as a function of liquid saturation.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #include "Teuchos_ParameterList.hpp"
@@ -25,43 +33,49 @@ RichardsWaterContentModel::RichardsWaterContentModel(Teuchos::ParameterList& pli
 // Initialize parameters
 void
 RichardsWaterContentModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
-{
-
-}
+{}
 
 
 // main method
 double
 RichardsWaterContentModel::WaterContent(double phi, double sl, double nl, double cv) const
 {
-  return cv*nl*phi*sl;
+  return cv * nl * phi * sl;
 }
 
 double
 RichardsWaterContentModel::DWaterContentDPorosity(double phi, double sl, double nl, double cv) const
 {
-  return cv*nl*sl;
+  return cv * nl * sl;
 }
 
 double
-RichardsWaterContentModel::DWaterContentDSaturationLiquid(double phi, double sl, double nl, double cv) const
+RichardsWaterContentModel::DWaterContentDSaturationLiquid(double phi,
+                                                          double sl,
+                                                          double nl,
+                                                          double cv) const
 {
-  return cv*nl*phi;
+  return cv * nl * phi;
 }
 
 double
-RichardsWaterContentModel::DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double cv) const
+RichardsWaterContentModel::DWaterContentDMolarDensityLiquid(double phi,
+                                                            double sl,
+                                                            double nl,
+                                                            double cv) const
 {
-  return cv*phi*sl;
+  return cv * phi * sl;
 }
 
 double
-RichardsWaterContentModel::DWaterContentDCellVolume(double phi, double sl, double nl, double cv) const
+RichardsWaterContentModel::DWaterContentDCellVolume(double phi,
+                                                    double sl,
+                                                    double nl,
+                                                    double cv) const
 {
-  return nl*phi*sl;
+  return nl * phi * sl;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 // -----------------------------------------------------------------------------
 // ATS
-//
-// License: see $ATS_DIR/COPYRIGHT
-// Author: Ethan Coon (ecoon@lanl.gov)
 //
 // Scheme for taking coefficients for div-grad operators from cells to faces.
 // Upwinds based upon a potential vector, with an overlap region size
@@ -20,25 +24,20 @@ namespace Operators {
 
 
 UpwindPotentialDifference::UpwindPotentialDifference(const std::string& pkname,
-        const Tag& tag,
-        const std::string& potential,
-        const std::string& overlap) :
-    pkname_(pkname),
-    tag_(tag),
-    potential_(potential),
-    overlap_(overlap)
+                                                     const Tag& tag,
+                                                     const std::string& potential,
+                                                     const std::string& overlap)
+  : pkname_(pkname), tag_(tag), potential_(potential), overlap_(overlap)
 {
-  if (overlap_ == std::string("")) {
-    overlap_ = potential_;
-  }
+  if (overlap_ == std::string("")) { overlap_ = potential_; }
 };
 
 
 void
 UpwindPotentialDifference::Update(const CompositeVector& data,
-        CompositeVector& uw_data,
-        const State& S,
-        const Teuchos::Ptr<Debugger>& db) const
+                                  CompositeVector& uw_data,
+                                  const State& S,
+                                  const Teuchos::Ptr<Debugger>& db) const
 {
   const CompositeVector& potential = S.Get<CompositeVector>(potential_, tag_);
   const CompositeVector& overlap = S.Get<CompositeVector>(overlap_, tag_);
@@ -46,18 +45,16 @@ UpwindPotentialDifference::Update(const CompositeVector& data,
 };
 
 
-void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
-        const CompositeVector& cell_coef,
-        const CompositeVector& potential,
-        const CompositeVector& overlap,
-        CompositeVector& face_coef) const
+void
+UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
+                                                        const CompositeVector& potential,
+                                                        const CompositeVector& overlap,
+                                                        CompositeVector& face_coef) const
 {
   AMANZI_ASSERT(cell_coef.Ghosted());
 
   // initialize the cell coefficients
-  if (face_coef.HasComponent("cell")) {
-    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
-  }
+  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
 
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
   AmanziMesh::Entity_ID_List cells;
@@ -69,15 +66,15 @@ void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
   potential.ScatterMasterToGhosted("cell");
   overlap.ScatterMasterToGhosted("cell");
 
-  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent("face",false);
-  const Epetra_MultiVector& overlap_c = *overlap.ViewComponent("cell",true);
-  const Epetra_MultiVector& potential_c = *potential.ViewComponent("cell",true);
+  Epetra_MultiVector& face_coef_f = *face_coef.ViewComponent("face", false);
+  const Epetra_MultiVector& overlap_c = *overlap.ViewComponent("cell", true);
+  const Epetra_MultiVector& potential_c = *potential.ViewComponent("cell", true);
   Teuchos::RCP<const Epetra_MultiVector> potential_f;
-  if (potential.HasComponent("face")) potential_f = potential.ViewComponent("face",false);
-  const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell",true);
+  if (potential.HasComponent("face")) potential_f = potential.ViewComponent("face", false);
+  const Epetra_MultiVector& cell_coef_c = *cell_coef.ViewComponent("cell", true);
 
-  int nfaces = face_coef.size("face",false);
-  for (unsigned int f=0; f!=nfaces; ++f) {
+  int nfaces = face_coef.size("face", false);
+  for (unsigned int f = 0; f != nfaces; ++f) {
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
 
     if (cells.size() == 1) {
@@ -95,9 +92,7 @@ void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
       double ol1 = std::max(0., overlap_c[0][cells[1]]);
 
       double flow_eps = 0.0;
-      if ((ol0 > 0) || (ol1 > 0)) {
-        flow_eps = (ol0 * ol1) / (ol0 + ol1);
-      }
+      if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
       flow_eps = std::max(flow_eps, eps);
 
       // Determine the coefficient.
@@ -108,65 +103,66 @@ void UpwindPotentialDifference::CalculateCoefficientsOnFaces(
       } else {
         // Parameterization of a linear scaling between upwind and downwind.
         double param;
-        if (flow_eps < 2*eps) {
+        if (flow_eps < 2 * eps) {
           param = 0.5;
         } else {
-          param = (potential_c[0][cells[1]] - potential_c[0][cells[0]])
-              / (2*flow_eps) + 0.5;
+          param = (potential_c[0][cells[1]] - potential_c[0][cells[0]]) / (2 * flow_eps) + 0.5;
         }
         AMANZI_ASSERT(param >= 0.0);
         AMANZI_ASSERT(param <= 1.0);
-        face_coef_f[0][f] = cell_coef_c[0][cells[1]] * param
-            + cell_coef_c[0][cells[0]] * (1. - param);
+        face_coef_f[0][f] =
+          cell_coef_c[0][cells[1]] * param + cell_coef_c[0][cells[0]] * (1. - param);
       }
-
     }
   }
 };
 
 
 void
-UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                                        std::string potential_key, 
-                                        const CompositeVector& dconductivity,
-                                        const std::vector<int>& bc_markers,
-                                        const std::vector<double>& bc_values,
-                                        std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const {
+UpwindPotentialDifference::UpdateDerivatives(
+  const Teuchos::Ptr<State>& S,
+  std::string potential_key,
+  const CompositeVector& dconductivity,
+  const std::vector<int>& bc_markers,
+  const std::vector<double>& bc_values,
+  std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const
+{
   double eps = 1.e-16;
 
   // Grab derivatives
   dconductivity.ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell",true);
-  
+  const Epetra_MultiVector& dcell_v = *dconductivity.ViewComponent("cell", true);
+
   AMANZI_ASSERT(dconductivity.Ghosted());
-  
+
   // Grab potential
   AMANZI_ASSERT(potential_key == potential_);
   Teuchos::RCP<const CompositeVector> pres = S->GetPtr<CompositeVector>(potential_key, tag_);
   pres->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell",true);
+  const Epetra_MultiVector& pres_v = *pres->ViewComponent("cell", true);
 
   // Grab overlap
   Teuchos::RCP<const CompositeVector> overlap = S->GetPtr<CompositeVector>(overlap_, tag_);
   overlap->ScatterMasterToGhosted("cell");
-  const Epetra_MultiVector& overlap_c = *overlap->ViewComponent("cell",true);
+  const Epetra_MultiVector& overlap_c = *overlap->ViewComponent("cell", true);
 
   // Grab mesh and allocate space
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = dconductivity.Mesh();
-  unsigned int nfaces_owned = mesh->num_entities(AmanziMesh::FACE,AmanziMesh::Parallel_type::OWNED);
+  unsigned int nfaces_owned =
+    mesh->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
   Jpp_faces->resize(nfaces_owned);
 
   // workspace
   double dK_dp[2];
   double p[2];
-  
-  for (unsigned int f=0; f!=nfaces_owned; ++f) {
+
+  for (unsigned int f = 0; f != nfaces_owned; ++f) {
     AmanziMesh::Entity_ID_List cells;
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
     int mcells = cells.size();
 
     // create the local matrix
-    Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > Jpp =
+    Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>> Jpp =
       Teuchos::rcp(new Teuchos::SerialDenseMatrix<int, double>(mcells, mcells));
     (*Jpp_faces)[f] = Jpp;
 
@@ -178,12 +174,12 @@ UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
         double dp = p[0] - p[1];
 
         if (p[0] > p[1]) {
-          (*Jpp)(0,0) = dp * mesh->face_area(f) * dK_dp[0];
+          (*Jpp)(0, 0) = dp * mesh->face_area(f) * dK_dp[0];
         } else {
-          (*Jpp)(0,0) = 0.;
+          (*Jpp)(0, 0) = 0.;
         }
       } else {
-        (*Jpp)(0,0) = 0.;
+        (*Jpp)(0, 0) = 0.;
       }
 
     } else {
@@ -196,9 +192,7 @@ UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
       double ol1 = std::max(0., overlap_c[0][cells[1]]);
 
       double flow_eps = 0.0;
-      if ((ol0 > 0) || (ol1 > 0)) {
-        flow_eps = (ol0 * ol1) / (ol0 + ol1);
-      }
+      if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
       flow_eps = std::max(flow_eps, eps);
 
       // Determine the coefficient.
@@ -213,27 +207,26 @@ UpwindPotentialDifference::UpdateDerivatives(const Teuchos::Ptr<State>& S,
       } else {
         // Parameterization of a linear scaling between upwind and downwind.
         double param;
-        if (flow_eps < 2*eps) {
+        if (flow_eps < 2 * eps) {
           param = 0.5;
         } else {
-          param = (p[1] - p[0])
-              / (2*flow_eps) + 0.5;
+          param = (p[1] - p[0]) / (2 * flow_eps) + 0.5;
         }
         AMANZI_ASSERT(param >= 0.0);
         AMANZI_ASSERT(param <= 1.0);
 
-        dK_dp[0] = (1.-param) * dcell_v[0][cells[0]];
+        dK_dp[0] = (1. - param) * dcell_v[0][cells[0]];
         dK_dp[1] = param * dcell_v[0][cells[1]];
       }
 
-      (*Jpp)(0,0) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[0];
-      (*Jpp)(0,1) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[1];
-      (*Jpp)(1,0) = -(*Jpp)(0,0);
-      (*Jpp)(1,1) = -(*Jpp)(0,1);
+      (*Jpp)(0, 0) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[0];
+      (*Jpp)(0, 1) = (p[0] - p[1]) * mesh->face_area(f) * dK_dp[1];
+      (*Jpp)(1, 0) = -(*Jpp)(0, 0);
+      (*Jpp)(1, 1) = -(*Jpp)(0, 1);
     }
   }
 }
 
 
-} //namespace
-} //namespace
+} // namespace Operators
+} // namespace Amanzi

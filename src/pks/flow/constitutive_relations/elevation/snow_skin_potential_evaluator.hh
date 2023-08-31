@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! PresElevEvaluator: evaluates h + z
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,6 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+//! PresElevEvaluator: evaluates h + z
 /*!
 Evaluator type: "snow skin potential"
 
@@ -46,20 +45,18 @@ namespace Amanzi {
 namespace Flow {
 
 class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist);
+  explicit SnowSkinPotentialEvaluator(Teuchos::ParameterList& plist);
   SnowSkinPotentialEvaluator(const SnowSkinPotentialEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  private:
   Key precip_key_;
@@ -69,11 +66,10 @@ class SnowSkinPotentialEvaluator : public EvaluatorSecondaryMonotypeCV {
   double factor_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SnowSkinPotentialEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, SnowSkinPotentialEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

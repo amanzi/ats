@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Downregulates bare soil evaporation through a dessicated zone.
 /*!
 
@@ -23,6 +25,9 @@ Requires two parameters,
   Genuchten curves that we typically use, but it doesn't appear to be the most
   important parameter.
 
+* `"Soil resistance method`" ``[string]`` Soil resistance model, currently support 
+  {sakagucki_zeng, sellers}, default is always sakagucki_zeng.
+
 These may be provided via parameter list or LandCover type.
 
 */
@@ -36,31 +41,28 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class EvaporationDownregulationModel {
-
  public:
-  explicit
-  EvaporationDownregulationModel(double dessicated_zone_thickness,
-          double clapp_horn_b);
+  explicit EvaporationDownregulationModel(double dessicated_zone_thickness, double clapp_horn_b);
   EvaporationDownregulationModel(Teuchos::ParameterList& plist);
   EvaporationDownregulationModel(const LandCover& lc);
 
-  double Evaporation(double sg, double poro, double pot_evap) const;
+  double Evaporation(double sg, double poro, double pot_evap, double sl) const;
 
-  double DEvaporationDSaturationGas(double sg, double poro, double pot_evap) const;
-  double DEvaporationDPorosity(double sg, double poro, double pot_evap) const;
-  double DEvaporationDPotentialEvaporation(double sg, double poro, double pot_evap) const;
+  double DEvaporationDSaturationGas(double sg, double poro, double pot_evap, double sl) const;
+  double DEvaporationDPorosity(double sg, double poro, double pot_evap, double sl) const;
+  double DEvaporationDSaturationLiquid(double sg, double poro, double pot_evap, double sl) const;
+  double
+  DEvaporationDPotentialEvaporation(double sg, double poro, double pot_evap, double sl) const;
 
  protected:
   void InitializeFromPlist_(Teuchos::ParameterList& plist);
 
  protected:
-
   double dess_dz_;
   double Clapp_Horn_b_;
-
+  std::string rs_method_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

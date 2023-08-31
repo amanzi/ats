@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Evaluates relative permeability using water retention models.
 /*!
 
@@ -17,6 +19,8 @@ one is updated with the parameters of the WRM evaluator.  This is handled by
 flow PKs.
 
 Some additional parameters are available.
+
+`"evaluator type`" = `"WRM rel perm`"
 
 .. _rel-perm-evaluator-spec
 .. admonition:: rel-perm-evaluator-spec
@@ -73,13 +77,10 @@ enum class BoundaryRelPerm {
 };
 
 class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  RelPermEvaluator(Teuchos::ParameterList& plist);
-  RelPermEvaluator(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<WRMPartition>& wrms);
+  explicit RelPermEvaluator(Teuchos::ParameterList& plist);
+  RelPermEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
   RelPermEvaluator(const RelPermEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -89,11 +90,11 @@ class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -112,10 +113,10 @@ class RelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
   double min_val_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,RelPermEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, RelPermEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

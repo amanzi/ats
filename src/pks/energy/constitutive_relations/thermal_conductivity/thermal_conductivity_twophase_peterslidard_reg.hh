@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Linear interpolant of thermal conductivity.
 ------------------------------------------------------------------------- */
@@ -15,9 +19,8 @@ namespace Amanzi {
 namespace Energy {
 
 // registry of method
-Utils::RegisteredFactory<ThermalConductivityTwoPhase,
-                         ThermalConductivityTwoPhasePetersLidard>
-        ThermalConductivityTwoPhasePetersLidard::factory_("two-phase Peters-Lidard");
+Utils::RegisteredFactory<ThermalConductivityTwoPhase, ThermalConductivityTwoPhasePetersLidard>
+  ThermalConductivityTwoPhasePetersLidard::factory_("two-phase Peters-Lidard");
 
-} // namespace Relations
 } // namespace Energy
+} // namespace Amanzi

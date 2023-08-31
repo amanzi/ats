@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The interfrost dtheta_dpressure model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Interfrost water content portion sl.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #include "Teuchos_ParameterList.hpp"
@@ -34,28 +42,31 @@ InterfrostDthetaDpressureModel::InitializeFromPlist_(Teuchos::ParameterList& pli
 double
 InterfrostDthetaDpressureModel::DThetaDpCoef(double nl, double sl, double phi) const
 {
-  return beta_*nl*phi*sl;
+  return beta_ * nl * phi * sl;
 }
 
 double
-InterfrostDthetaDpressureModel::DDThetaDpCoefDMolarDensityLiquid(double nl, double sl, double phi) const
+InterfrostDthetaDpressureModel::DDThetaDpCoefDMolarDensityLiquid(double nl,
+                                                                 double sl,
+                                                                 double phi) const
 {
-  return beta_*phi*sl;
+  return beta_ * phi * sl;
 }
 
 double
-InterfrostDthetaDpressureModel::DDThetaDpCoefDSaturationLiquid(double nl, double sl, double phi) const
+InterfrostDthetaDpressureModel::DDThetaDpCoefDSaturationLiquid(double nl,
+                                                               double sl,
+                                                               double phi) const
 {
-  return beta_*nl*phi;
+  return beta_ * nl * phi;
 }
 
 double
 InterfrostDthetaDpressureModel::DDThetaDpCoefDPorosity(double nl, double sl, double phi) const
 {
-  return beta_*nl*sl;
+  return beta_ * nl * sl;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

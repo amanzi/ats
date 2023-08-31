@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
+*/
 
 /*
   Suction head = \Psi( sat )
 
-  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
 #ifndef AMANZI_FLOWRELATIONS_SUCTION_HEAD_EVALUATOR_
@@ -18,13 +24,10 @@ namespace Amanzi {
 namespace Flow {
 
 class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   // constructor format for all derived classes
-  explicit
-  SuctionHeadEvaluator(Teuchos::ParameterList& plist);
-  SuctionHeadEvaluator(Teuchos::ParameterList& plist,
-                   const Teuchos::RCP<WRMPartition>& wrms);
+  explicit SuctionHeadEvaluator(Teuchos::ParameterList& plist);
+  SuctionHeadEvaluator(Teuchos::ParameterList& plist, const Teuchos::RCP<WRMPartition>& wrms);
   SuctionHeadEvaluator(const SuctionHeadEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -32,11 +35,11 @@ class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   void InitializeFromPlist_();
@@ -46,10 +49,10 @@ class SuctionHeadEvaluator : public EvaluatorSecondaryMonotypeCV {
   double min_val_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,SuctionHeadEvaluator> factory_;
+  static Utils::RegisteredFactory<Evaluator, SuctionHeadEvaluator> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -1,11 +1,12 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon
+*/
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
-------------------------------------------------------------------------- */
 #include "EvaluatorPrimary.hh"
 #include "enthalpy_evaluator.hh"
 #include "thermal_conductivity_threephase_evaluator.hh"
@@ -20,14 +21,15 @@ namespace Energy {
 ThreePhase::ThreePhase(Teuchos::ParameterList& FElist,
                        const Teuchos::RCP<Teuchos::ParameterList>& plist,
                        const Teuchos::RCP<State>& S,
-                       const Teuchos::RCP<TreeVector>& solution) :
-    PK(FElist, plist, S, solution),
-    TwoPhase(FElist, plist, S, solution) {}
+                       const Teuchos::RCP<TreeVector>& solution)
+  : PK(FElist, plist, S, solution), TwoPhase(FElist, plist, S, solution)
+{}
 
 // -------------------------------------------------------------
 // Create the physical evaluators for energy and thermal conductivity
 // -------------------------------------------------------------
-void ThreePhase::SetupPhysicalEvaluators_()
+void
+ThreePhase::SetupPhysicalEvaluators_()
 {
   // -- thermal conductivity
   // move evaluator from PK plist to State
@@ -40,15 +42,17 @@ void ThreePhase::SetupPhysicalEvaluators_()
 }
 
 void
-ThreePhase::Initialize() {
+ThreePhase::Initialize()
+{
   // INTERFROST comparison needs some very specialized ICs
   if (plist_->sublist("initial condition").isParameter("interfrost initial condition")) {
-    AMANZI_ASSERT(plist_->sublist("initial condition")
-      .get<std::string>("interfrost initial condition") == "TH3");
+    AMANZI_ASSERT(
+      plist_->sublist("initial condition").get<std::string>("interfrost initial condition") ==
+      "TH3");
     Teuchos::RCP<CompositeVector> temp = S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
-    double r_sq = std::pow(0.5099,2);
+    double r_sq = std::pow(0.5099, 2);
     Epetra_MultiVector& temp_c = *temp->ViewComponent("cell", false);
-    for (int c = 0; c!=temp_c.MyLength(); ++c) {
+    for (int c = 0; c != temp_c.MyLength(); ++c) {
       AmanziGeometry::Point centroid = mesh_->cell_centroid(c);
       double circle_y = centroid[1] >= 0.5 ? 1.1 : -0.1;
 

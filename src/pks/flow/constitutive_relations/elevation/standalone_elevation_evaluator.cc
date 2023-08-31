@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   An elevation evaluator getting values from the volumetric mesh.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "CompositeVectorFunctionFactory.hh"
@@ -12,16 +18,20 @@
 namespace Amanzi {
 namespace Flow {
 
-StandaloneElevationEvaluator::StandaloneElevationEvaluator(
-        Teuchos::ParameterList& plist) :
-    ElevationEvaluator(plist) {}
+StandaloneElevationEvaluator::StandaloneElevationEvaluator(Teuchos::ParameterList& plist)
+  : ElevationEvaluator(plist)
+{}
 
-Teuchos::RCP<Evaluator> StandaloneElevationEvaluator::Clone() const {
+Teuchos::RCP<Evaluator>
+StandaloneElevationEvaluator::Clone() const
+{
   return Teuchos::rcp(new StandaloneElevationEvaluator(*this));
 }
 
-void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
-        const std::vector<CompositeVector*>& results)
+void
+StandaloneElevationEvaluator::EvaluateElevationAndSlope_(
+  const State& S,
+  const std::vector<CompositeVector*>& results)
 {
   Teuchos::Ptr<CompositeVector> elev = Teuchos::ptr(results[0]);
   Teuchos::Ptr<CompositeVector> slope = Teuchos::ptr(results[1]);
@@ -38,7 +48,8 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   if (slope_function_ == Teuchos::null) {
     Teuchos::ParameterList slope_plist = plist_.sublist("slope function");
     std::vector<std::string> compnames;
-    slope_function_ = Functions::CreateCompositeVectorFunction(slope_plist, slope->Map(), compnames);
+    slope_function_ =
+      Functions::CreateCompositeVectorFunction(slope_plist, slope->Map(), compnames);
     // note, should check that cells exist?
   }
 
@@ -46,7 +57,8 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     if (plist_.isSublist("aspect function")) {
       Teuchos::ParameterList aspect_plist = plist_.sublist("aspect function");
       std::vector<std::string> compnames;
-      aspect_function_ = Functions::CreateCompositeVectorFunction(aspect_plist, aspect->Map(), compnames);
+      aspect_function_ =
+        Functions::CreateCompositeVectorFunction(aspect_plist, aspect->Map(), compnames);
       // note, should check that cells exist?
     }
   }
@@ -58,6 +70,5 @@ void StandaloneElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 };
 
 
-} //namespace
-} //namespace
-
+} // namespace Flow
+} // namespace Amanzi

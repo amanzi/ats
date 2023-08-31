@@ -1,4 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
+/*
   Plant Functionality Type class
 
   -- copy constructor of array?
@@ -13,15 +22,14 @@
 namespace Amanzi {
 namespace BGC {
 
-PFT::PFT(std::string pft_type_, int ncells) :
-    pft_type(pft_type_),
-    BRootSoil(ncells) {}
+PFT::PFT(std::string pft_type_, int ncells) : pft_type(pft_type_), BRootSoil(ncells) {}
 
-PFT::PFT(std::string pft_type_, int ncells, double* brootcells_) :
-    pft_type(pft_type_),
-    BRootSoil(View, brootcells_, ncells) {}
+PFT::PFT(std::string pft_type_, int ncells, double* brootcells_)
+  : pft_type(pft_type_), BRootSoil(View, brootcells_, ncells)
+{}
 
-void PFT::Init(double col_area)
+void
+PFT::Init(double col_area)
 {
   Bleaf = 0.;
   Bleafmemory = 0.;
@@ -29,7 +37,7 @@ void PFT::Init(double col_area)
   Bstem = 0.;
   Bstore = 0.;
 
-  
+
   SLA = 30;
   leaflitterfrc[0] = 0.1;
   leaflitterfrc[1] = 0.5;
@@ -50,9 +58,9 @@ void PFT::Init(double col_area)
   stemlongevity = 100.0;
 
   Vcmax25 = 100;
-  Emax25 = 0.1*Vcmax25;
+  Emax25 = 0.1 * Vcmax25;
   Jmax25 = 200;
-  
+
   GDDleafon = 100;
   GDDbase = 0.0;
   GDD = 0.0;
@@ -63,16 +71,16 @@ void PFT::Init(double col_area)
   annNPP = 0.0;
   GPP = 0.0;
   NPP = 0.0;
-  ET = 0.0; 
+  ET = 0.0;
 
   leafstatus = 1;
   evergreen = false;
-  
+
   LUE = 0.06;
   LER = 0.8;
   mp = 9.0;
   swpo = -0.5;
-  swpc = -2.5; 
+  swpc = -2.5;
 
   lai = 0.;
   laimemory = 0.;
@@ -100,16 +108,13 @@ void PFT::Init(double col_area)
 
   carbon2biomass = 2;
   aroot_radius = 0.002;
-  
-  for (int i = 0; i < 10; i++){
-    annCBalance[i] = 0;
-  }
-  for (int c = 0; c != BRootSoil.Length(); ++c) {
-    BRootSoil[c] = 0.;
-  }
+
+  for (int i = 0; i < 10; i++) { annCBalance[i] = 0; }
+  for (int c = 0; c != BRootSoil.Length(); ++c) { BRootSoil[c] = 0.; }
 }
 
-void PFT::Init(Teuchos::ParameterList& plist,double col_area)
+void
+PFT::Init(Teuchos::ParameterList& plist, double col_area)
 {
   Init(col_area);
   // ex
@@ -117,53 +122,57 @@ void PFT::Init(Teuchos::ParameterList& plist,double col_area)
   //note default vals below are those of sedge
   maxRootD = plist.get<double>("max root depth [m]", 0.5);
   Vcmax25 = plist.get<double>("Vcmax25 [micromol CO2 / m^2(leaf) s]", 100.);
-  Jmax25 = 2.0 * Vcmax25; 
+  Jmax25 = 2.0 * Vcmax25;
   Emax25 = plist.get<double>("Emax25 [micromol C / m^2(leaf) s]", 10.);
   SLA = plist.get<double>("SLA [m^2(leaf) / kg C", 16);
   evergreen = plist.get<bool>("evergreen", false);
-  leaf2rootratio =  plist.get<double>("ratio of leaf to root [-]", 1.0);
-  leaf2stemratio =  plist.get<double>("ratio of leaf to stem [-]", 5.0);
+  leaf2rootratio = plist.get<double>("ratio of leaf to root [-]", 1.0);
+  leaf2stemratio = plist.get<double>("ratio of leaf to stem [-]", 5.0);
 
-  leaflongevity =  plist.get<double>("leaf longevity [yr]", 4.0);
-  rootlongevity =  plist.get<double>("root longevity [yr]", 4.0);
-  stemlongevity =  plist.get<double>("stem longevity [yr]", 10.0);
+  leaflongevity = plist.get<double>("leaf longevity [yr]", 4.0);
+  rootlongevity = plist.get<double>("root longevity [yr]", 4.0);
+  stemlongevity = plist.get<double>("stem longevity [yr]", 10.0);
 
-  height =  plist.get<double>("height [m]", 3.0);
-  mp =  plist.get<double>("stomatal conductance to photosynthetic rate slope (mp) [?]", 9.0);
+  height = plist.get<double>("height [m]", 3.0);
+  mp = plist.get<double>("stomatal conductance to photosynthetic rate slope (mp) [?]", 9.0);
   wood_density = plist.get<double>("wood density [kg m^-3]", 0.6e2);
-  
 
-  Bleaf = 1.0/SLA * col_area;//es note that all the following B vals are per m^2, so that elsewhere they should be *gridarea to account for varying grid areas.
-  Bstore = 2* Bleaf;
+
+  Bleaf =
+    1.0 / SLA *
+    col_area; //es note that all the following B vals are per m^2, so that elsewhere they should be *gridarea to account for varying grid areas.
+  Bstore = 2 * Bleaf;
   Bleafmemory = Bleaf;
-  Bstem = Bleaf/leaf2stemratio;
-  Broot = Bleaf/leaf2rootratio;
+  Bstem = Bleaf / leaf2stemratio;
+  Broot = Bleaf / leaf2rootratio;
   totalBiomass = Bleaf + Bstem + Broot;
 
-  if (evergreen) { 
+  if (evergreen) {
     Bleafmemory = 0.;
-  }else{
+  } else {
     Bleaf = 0.;
   }
-
 }
 
 
 // Initialize the root distribution
-void PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
-                    const Epetra_SerialDenseVector& SoilDArr,
-                    const Epetra_SerialDenseVector& SoilThicknessArr) {
-
+void
+PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
+               const Epetra_SerialDenseVector& SoilDArr,
+               const Epetra_SerialDenseVector& SoilThicknessArr)
+{
   // locate the root depth
   int nSoilLayers = SoilTArr.Length();
-  double initPermD = PermafrostDepth(SoilTArr,SoilThicknessArr,273.15);
+  double initPermD = PermafrostDepth(SoilTArr, SoilThicknessArr, 273.15);
   //rootD = std::min(maxRootD, initPermD);
-  rootD = 0.8*maxRootD; //es following Xu's advice - 0.8 * maxRootD accounts for the previous year root depth that will contribute to this yr Broot. Note that if spinning data exists feed in last year's root depth instead of this.
- 
+  rootD =
+    0.8 *
+    maxRootD; //es following Xu's advice - 0.8 * maxRootD accounts for the previous year root depth that will contribute to this yr Broot. Note that if spinning data exists feed in last year's root depth instead of this.
+
   double totalweights = 0.0;
-  for (int c=0; c!=nSoilLayers; ++c) {
-    if (SoilDArr[c] < rootD){
-      BRootSoil[c] = SoilThicknessArr[c]*std::exp((rootD - SoilDArr[c]) / rootD);
+  for (int c = 0; c != nSoilLayers; ++c) {
+    if (SoilDArr[c] < rootD) {
+      BRootSoil[c] = SoilThicknessArr[c] * std::exp((rootD - SoilDArr[c]) / rootD);
       totalweights += BRootSoil[c];
     } else {
       BRootSoil[c] = 0.0;
@@ -175,13 +184,11 @@ void PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
     totalweights = 1.0;
   }
 
-  for (int c=0; c!=nSoilLayers; ++c) {
-    BRootSoil[c] = BRootSoil[c] / totalweights * Broot;
-  }
+  for (int c = 0; c != nSoilLayers; ++c) { BRootSoil[c] = BRootSoil[c] / totalweights * Broot; }
 
   AssertRootBalance_or_die();
   return;
 }
 
-} // namespace
-} // namespace
+} // namespace BGC
+} // namespace Amanzi

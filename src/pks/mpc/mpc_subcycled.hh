@@ -1,10 +1,10 @@
 /*
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
-  Amanzi is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Ethan Coon
+  Authors: Ethan Coon
 */
 
 /*
@@ -29,12 +29,11 @@
 namespace Amanzi {
 
 class MPCSubcycled : public MPC<PK> {
-
-public:
+ public:
   MPCSubcycled(Teuchos::ParameterList& pk_tree_or_fe_list,
-                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                      const Teuchos::RCP<State>& S,
-                      const Teuchos::RCP<TreeVector>& soln);
+               const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+               const Teuchos::RCP<State>& S,
+               const Teuchos::RCP<TreeVector>& soln);
 
   // PK methods
   // -- dt is the minimum of the sub pks
@@ -50,20 +49,19 @@ public:
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
-
   // advance the ith sub_pk
   bool AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit);
 
   Teuchos::Array<int> subcycling_;
   double dt_, target_dt_;
   std::vector<double> dts_;
-  std::vector<std::pair<Tag,Tag>> tags_;
+  std::vector<std::pair<Tag, Tag>> tags_;
 
  private:
   // factory registration
   static RegisteredPKFactory<MPCSubcycled> reg_;
 };
 
-}  // namespace Amanzi
+} // namespace Amanzi
 
 #endif

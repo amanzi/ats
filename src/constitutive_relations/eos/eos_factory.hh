@@ -1,8 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 
    ATS
-   Author: Ethan Coon
 
    Self-registering factory for EOS implementations.
    ------------------------------------------------------------------------- */
@@ -20,12 +27,11 @@ namespace Amanzi {
 namespace Relations {
 
 class EOSFactory : public Amanzi::Utils::Factory<EOS> {
-
-public:
+ public:
   Teuchos::RCP<EOS> createEOS(Teuchos::ParameterList& plist);
 };
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi
 
 #endif

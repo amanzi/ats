@@ -1,10 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   PCIceEvaluator is the interface between state/data and the model, an EOS.
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_RELATIONS_PC_ICE_EVALUATOR_HH_
@@ -19,12 +24,9 @@ namespace Flow {
 class PCIceWater;
 
 class PCIceEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-
   // constructor format for all derived classes
-  explicit
-  PCIceEvaluator(Teuchos::ParameterList& plist);
+  explicit PCIceEvaluator(Teuchos::ParameterList& plist);
   PCIceEvaluator(const PCIceEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -33,11 +35,11 @@ class PCIceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   // the actual model
@@ -49,11 +51,10 @@ class PCIceEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key dens_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,PCIceEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, PCIceEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

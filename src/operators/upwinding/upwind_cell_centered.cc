@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 // -----------------------------------------------------------------------------
 // ATS
-//
-// License: see $ATS_DIR/COPYRIGHT
-// Author: Ethan Coon (ecoon@lanl.gov)
 //
 // Scheme for taking coefficients for div-grad operators from cells to
 // faces.
@@ -19,23 +23,21 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindCellCentered::UpwindCellCentered(const std::string& pkname,
-        const Tag& tag)
-  : pkname_(pkname),
-    tag_(tag) {}
+UpwindCellCentered::UpwindCellCentered(const std::string& pkname, const Tag& tag)
+  : pkname_(pkname), tag_(tag)
+{}
 
 
-void UpwindCellCentered::Update(const CompositeVector& cells,
-        CompositeVector& faces,
-        const State& S,
-        const Teuchos::Ptr<Debugger>& db) const
+void
+UpwindCellCentered::Update(const CompositeVector& cells,
+                           CompositeVector& faces,
+                           const State& S,
+                           const Teuchos::Ptr<Debugger>& db) const
 {
   *faces.ViewComponent("cell") = *cells.ViewComponent("cell");
-  if (faces.HasComponent("face")) {
-    faces.ViewComponent("face",true)->PutScalar(1.0);
-  }
+  if (faces.HasComponent("face")) { faces.ViewComponent("face", true)->PutScalar(1.0); }
 };
 
 
-} //namespace
-} //namespace
+} // namespace Operators
+} // namespace Amanzi

@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Simulation controller intended to be used as base class for top-level driver
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-
+//! Simulation controller intended to be used as base class for top-level driver
 #ifndef ATS_COORDINATOR_HH_
 #define ATS_COORDINATOR_HH_
 
@@ -31,15 +29,14 @@ class TreeVector;
 class PK;
 class PK_ATS;
 class UnstructuredObservations;
-};
+}; // namespace Amanzi
 
 
 namespace ATS {
 
 class Coordinator {
  public:
-  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-              const Amanzi::Comm_ptr_type& comm);
+  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist, const Amanzi::Comm_ptr_type& comm);
 
   // PK methods
   void setup();
@@ -48,9 +45,9 @@ class Coordinator {
   void report_memory();
 
   bool advance();
-  void visualize(bool force=false);
-  void checkpoint(bool force=false);
-  double get_dt(bool after_fail=false);
+  bool visualize(bool force = false);
+  bool checkpoint(bool force = false);
+  double get_dt(bool after_fail = false);
 
  protected:
   void InitializeFromPlist_();
@@ -77,8 +74,8 @@ class Coordinator {
   Amanzi::Comm_ptr_type comm_;
 
   // vis and checkpointing
-  std::vector<Teuchos::RCP<Amanzi::Visualization> > visualization_;
-  std::vector<Teuchos::RCP<Amanzi::Visualization> > failed_visualization_;
+  std::vector<Teuchos::RCP<Amanzi::Visualization>> visualization_;
+  std::vector<Teuchos::RCP<Amanzi::Visualization>> failed_visualization_;
   Teuchos::RCP<Amanzi::Checkpoint> checkpoint_;
   bool restart_;
   std::string restart_filename_;
@@ -98,7 +95,6 @@ class Coordinator {
 };
 
 
-
-} // close namespace ATS
+} // namespace ATS
 
 #endif

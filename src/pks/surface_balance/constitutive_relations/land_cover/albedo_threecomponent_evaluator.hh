@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Evaluates albedos and emissivities in a three-component subgrid model.
 /*!
 
@@ -27,10 +29,12 @@ Requires the use of LandCover types, for ground albedo and emissivity.
    * `"emissivity snow [-]`" ``[double]`` **0.98**
 
    KEYS:
+
    - `"subgrid albedos`" **DOMAIN-subgrid_albedos**
    - `"subgrid emissivities`" **DOMAIN-subgrid_emissivities**
 
    DEPENDENCIES:
+
    - `"snow density`" **SNOW_DOMAIN-density**
    - `"unfrozen fraction`" **DOMAIN-unfrozen_fraction**
 
@@ -51,7 +55,8 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   explicit AlbedoThreeComponentEvaluator(Teuchos::ParameterList& plist);
   AlbedoThreeComponentEvaluator(const AlbedoThreeComponentEvaluator& other) = default;
 
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new AlbedoThreeComponentEvaluator(*this));
   }
 
@@ -63,12 +68,12 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
 
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key domain_;
@@ -86,11 +91,9 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   LandCoverMap land_cover_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,AlbedoThreeComponentEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, AlbedoThreeComponentEvaluator> reg_;
 };
 
 } // namespace Relations
 } // namespace SurfaceBalance
 } // namespace Amanzi
-
-

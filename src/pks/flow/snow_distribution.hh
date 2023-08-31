@@ -1,12 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Preferential distribution of snow precip in low-lying areas.
 
+//! Preferential distribution of snow precip in low-lying areas.
 /*!
 
 This PK is a heuristic PK that distributes incoming snow precipitation using a
@@ -34,15 +35,15 @@ daily (which all defaults are set for).
       default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
     * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
-    
+
     Not typically provided by the user, defaults are good:
 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
-    
+
 
 .. todo::
     For this PK, all variable root names are hard-coded.  This should get changed.
-    
+
 */
 
 
@@ -63,55 +64,48 @@ daily (which all defaults are set for).
 namespace Amanzi {
 namespace Flow {
 
-//class SnowDistribution : public PKPhysicalBDFBase {
 class SnowDistribution : public PK_PhysicalBDF_Default {
-
-public:
-
-  SnowDistribution(Teuchos::ParameterList& FElist,
+ public:
+  SnowDistribution(Teuchos::ParameterList& pk_tree,
                    const Teuchos::RCP<Teuchos::ParameterList>& plist,
                    const Teuchos::RCP<State>& S,
                    const Teuchos::RCP<TreeVector>& solution);
-  
+
   // Virtual destructor
   virtual ~SnowDistribution() {}
 
   // main methods
   // -- Initialize owned (dependent) variables.
-  //virtual void setup(const Teuchos::Ptr<State>& S);
-  virtual void Setup(const Teuchos::Ptr<State>& S);
+  void Setup() override;
 
   // -- Initialize owned (dependent) variables.
-  //virtual void initialize(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
-
-
-  // -- Update diagnostics for vis.
-  //virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {}
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
+  void Initialize() override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g);
+  void FunctionalResidual(double t_old,
+                          double t_new,
+                          Teuchos::RCP<TreeVector> u_old,
+                          Teuchos::RCP<TreeVector> u_new,
+                          Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+  int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+  void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // error monitor
-  virtual double ErrorNorm(Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<const TreeVector> du);
+  double ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> du) override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u);
-  
+  bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
+
   // Choose a time step compatible with physics.
-  virtual double get_dt() { return dt_factor_; }
+  double get_dt() override { return dt_factor_; }
 
-  // Advance PK from time t_old to time t_new. True value of the last 
+  // Advance PK from time t_old to time t_new. True value of the last
   // parameter indicates drastic change of boundary and/or source terms
   // that may need PK's attention.
   //
@@ -125,34 +119,43 @@ public:
   //     the end?  But it should be ok?
   //  3. Exatrapolating in the timestepper should break things, so don't.
   //  4. set: pk's distribution time, potential's dt factor
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit);
+  bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-  // -- Commit any secondary (dependent) variables.
-  void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S) {
+   // -- Commit any secondary (dependent) variables.
+  void CommitStep(double t_old, double t_new, const Tag& tag) override
+  {
     // here to keep the coordinator from calling CommitSolution() since our
     // Advance() does it already
   }
-  
+
 
  protected:
   // setup methods
-  virtual void SetupSnowDistribution_(const Teuchos::Ptr<State>& S);
-  virtual void SetupPhysicalEvaluators_(const Teuchos::Ptr<State>& S);
+  void SetupSnowDistribution_();
+  void SetupPhysicalEvaluators_();
 
   // computational concerns in managing abs, rel perm
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
-  virtual bool UpdatePermeabilityData_(const Teuchos::Ptr<State>& S);
+  bool UpdatePermeabilityData_(const Tag& tag);
 
   // boundary condition members
-  virtual void UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S);
-  
+  void UpdateBoundaryConditions_(const Tag& tag);
+
   // physical methods
   // -- diffusion term
-  void ApplyDiffusion_(const Teuchos::Ptr<State>& S,const Teuchos::Ptr<CompositeVector>& g);
+  void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
   // -- accumulation term
-  virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
+  void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
- protected:
+
+  Key precip_func_key_;
+  Key cv_key_;
+  Key cond_key_;
+  Key elev_key_;
+  Key precip_key_;
+  Key uw_cond_key_;
+  Key flux_dir_key_;
+  Key potential_key_;
   // control switches
   Operators::UpwindMethod upwind_method_;
 
@@ -161,7 +164,7 @@ public:
 
   // function for precip
   Teuchos::RCP<Function> precip_func_;
-  
+
   // work data space
   Teuchos::RCP<Operators::Upwinding> upwinding_;
 
@@ -176,7 +179,7 @@ public:
   static RegisteredPKFactory<SnowDistribution> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

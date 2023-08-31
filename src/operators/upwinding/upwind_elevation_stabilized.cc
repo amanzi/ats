@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 // -----------------------------------------------------------------------------
 // ATS
-//
-// License: see $ATS_DIR/COPYRIGHT
-// Author: Ethan Coon (ecoon@lanl.gov)
 //
 // Scheme for taking coefficients for div-grad operators from cells to
 // faces.
@@ -21,16 +25,15 @@
 namespace Amanzi {
 namespace Operators {
 
-UpwindElevationStabilized::UpwindElevationStabilized(
-  const std::string& pkname,
-  const Tag& tag,
-  const std::string& slope,
-  const std::string& manning_coef,
-  const std::string& ponded_depth,
-  const std::string& elevation,
-  const std::string& density,
-  double slope_regularization,
-  double manning_exp)
+UpwindElevationStabilized::UpwindElevationStabilized(const std::string& pkname,
+                                                     const Tag& tag,
+                                                     const std::string& slope,
+                                                     const std::string& manning_coef,
+                                                     const std::string& ponded_depth,
+                                                     const std::string& elevation,
+                                                     const std::string& density,
+                                                     double slope_regularization,
+                                                     double manning_exp)
   : pkname_(pkname),
     tag_(tag),
     slope_(slope),
@@ -43,10 +46,11 @@ UpwindElevationStabilized::UpwindElevationStabilized(
 {}
 
 
-void UpwindElevationStabilized::Update(const CompositeVector& cells,
-        CompositeVector& faces,
-        const State& S,
-        const Teuchos::Ptr<Debugger>& db) const
+void
+UpwindElevationStabilized::Update(const CompositeVector& cells,
+                                  CompositeVector& faces,
+                                  const State& S,
+                                  const Teuchos::Ptr<Debugger>& db) const
 {
   Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_, tag_);
   Teuchos::RCP<const CompositeVector> elev = S.GetPtr<CompositeVector>(elevation_, tag_);
@@ -58,21 +62,19 @@ void UpwindElevationStabilized::Update(const CompositeVector& cells,
 };
 
 
-void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
-        const CompositeVector& slope,
-        const CompositeVector& manning_coef,
-        const CompositeVector& ponded_depth,
-        const CompositeVector& elevation,
-        const CompositeVector& density,
-        CompositeVector& face_coef,
-        const Teuchos::Ptr<Debugger>& db) const
+void
+UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& slope,
+                                                        const CompositeVector& manning_coef,
+                                                        const CompositeVector& ponded_depth,
+                                                        const CompositeVector& elevation,
+                                                        const CompositeVector& density,
+                                                        CompositeVector& face_coef,
+                                                        const Teuchos::Ptr<Debugger>& db) const
 {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent("cell")) {
-    face_coef.ViewComponent("cell",true)->PutScalar(1.0);
-  }
+  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
 
   // communicate needed ghost values
   slope.ScatterMasterToGhosted("cell");
@@ -82,15 +84,15 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
   density.ScatterMasterToGhosted("cell");
 
   // pull out vectors
-  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face",false);
-  const Epetra_MultiVector& slope_v = *slope.ViewComponent("cell",false);
-  const Epetra_MultiVector& elev_v = *elevation.ViewComponent("cell",false);
-  const Epetra_MultiVector& pd_v = *ponded_depth.ViewComponent("cell",false);
-  const Epetra_MultiVector& manning_coef_v = *manning_coef.ViewComponent("cell",true);
-  const Epetra_MultiVector& dens_v = *density.ViewComponent("cell",true);
+  Epetra_MultiVector& coef_faces = *face_coef.ViewComponent("face", false);
+  const Epetra_MultiVector& slope_v = *slope.ViewComponent("cell", false);
+  const Epetra_MultiVector& elev_v = *elevation.ViewComponent("cell", false);
+  const Epetra_MultiVector& pd_v = *ponded_depth.ViewComponent("cell", false);
+  const Epetra_MultiVector& manning_coef_v = *manning_coef.ViewComponent("cell", true);
+  const Epetra_MultiVector& dens_v = *density.ViewComponent("cell", true);
 
-  const Epetra_MultiVector& elev_bf = *elevation.ViewComponent("boundary_face",false);
-  const Epetra_MultiVector& pd_bf = *ponded_depth.ViewComponent("boundary_face",false);
+  const Epetra_MultiVector& elev_bf = *elevation.ViewComponent("boundary_face", false);
+  const Epetra_MultiVector& pd_bf = *ponded_depth.ViewComponent("boundary_face", false);
 
   double slope_regularization = slope_regularization_;
   double manning_exp = manning_exp_;
@@ -105,27 +107,29 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
   //
   // Note that the upwind value here is assumed to be the max of h+z.  This is
   // always true for FV, maybe not for MFD.
-  int nfaces = face_coef.size("face",false);
-  for (int f=0; f!=nfaces; ++f) {
+  int nfaces = face_coef.size("face", false);
+  for (int f = 0; f != nfaces; ++f) {
     AmanziMesh::Entity_ID_List fcells;
     mesh->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
     AMANZI_ASSERT(fcells.size() > 0);
 
-    double denom[2] = {0.,0.};
-    double weight[2] = {0.,0.};
-    double pres_elev[2] = {0.,0.};
-    double elev[2] = {0.,0.};
-    double dens[2] = {0.,0.};
+    double denom[2] = { 0., 0. };
+    double weight[2] = { 0., 0. };
+    double pres_elev[2] = { 0., 0. };
+    double elev[2] = { 0., 0. };
+    double dens[2] = { 0., 0. };
 
     weight[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(fcells[0]));
-    denom[0] = manning_coef_v[0][fcells[0]] * std::sqrt(std::max(slope_v[0][fcells[0]], slope_regularization));
+    denom[0] = manning_coef_v[0][fcells[0]] *
+               std::sqrt(std::max(slope_v[0][fcells[0]], slope_regularization));
     pres_elev[0] = pd_v[0][fcells[0]] + elev_v[0][fcells[0]];
     elev[0] = elev_v[0][fcells[0]];
     dens[0] = dens_v[0][fcells[0]];
 
     if (fcells.size() > 1) {
       weight[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(fcells[1]));
-      denom[1] = manning_coef_v[0][fcells[1]] * std::sqrt(std::max(slope_v[0][fcells[1]], slope_regularization));
+      denom[1] = manning_coef_v[0][fcells[1]] *
+                 std::sqrt(std::max(slope_v[0][fcells[1]], slope_regularization));
       pres_elev[1] = pd_v[0][fcells[1]] + elev_v[0][fcells[1]];
       elev[1] = elev_v[0][fcells[1]];
       dens[1] = dens_v[0][fcells[1]];
@@ -140,13 +144,13 @@ void UpwindElevationStabilized::CalculateCoefficientsOnFaces(
     }
 
     // harmonic mean of the denominator
-    double denom_f = (weight[0] + weight[1])/(weight[0]/denom[0] + weight[1]/denom[1]);
-    double dens_f = (weight[0] + weight[1])/(weight[0]/dens[0] + weight[1]/dens[1]);
+    double denom_f = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
+    double dens_f = (weight[0] + weight[1]) / (weight[0] / dens[0] + weight[1] / dens[1]);
     double h_f = std::max(pres_elev[0], pres_elev[1]) - std::max(elev[0], elev[1]);
     coef_faces[0][f] = dens_f * std::pow(h_f, 1 + manning_exp) / denom_f;
   }
 };
 
 
-} //namespace
-} //namespace
+} // namespace Operators
+} // namespace Amanzi

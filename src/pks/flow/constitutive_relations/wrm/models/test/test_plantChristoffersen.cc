@@ -1,9 +1,19 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include <iostream>
 #include "UnitTest++.h"
 
 #include "wrm_plants_christoffersen.hh"
 
-TEST(plantChristoffersen) {
+TEST(plantChristoffersen)
+{
   using namespace Amanzi::Flow;
 
   double sr = 0.46567;
@@ -38,32 +48,32 @@ TEST(plantChristoffersen) {
   */
   // check saturation for p = 2*p_atm
   pc = p_atm;
-  CHECK_CLOSE(pC.saturation(pc), 0.995698885081,1e-11);
+  CHECK_CLOSE(pC.saturation(pc), 0.995698885081, 1e-11);
 
   // check saturation for p = 0
-  pc = 100*p_atm;
-  CHECK_CLOSE(pC.saturation(pc),0.559347194579, 1e-11);
+  pc = 100 * p_atm;
+  CHECK_CLOSE(pC.saturation(pc), 0.559347194579, 1e-11);
 
   // check derivative of saturation(p) at p=2*p_atm
-  pc = 100*p_atm;
-//  CHECK_ClOSE(pC.d_saturation(pc),-9.24522028989e-09,1e-14);
+  pc = 100 * p_atm;
+  //  CHECK_ClOSE(pC.d_saturation(pc),-9.24522028989e-09,1e-14);
 
   // check derivative of saturation(p) at p=0
-  pc = p_atm; 
-  CHECK_CLOSE(pC.d_saturation(pc),-2.01693548418e-07,1e-12);
- 
-  pc = 100*p_atm;
-  CHECK_CLOSE(pC.d_saturation(pc),-9.24522028989e-09,1e-15);
+  pc = p_atm;
+  CHECK_CLOSE(pC.d_saturation(pc), -2.01693548418e-07, 1e-12);
+
+  pc = 100 * p_atm;
+  CHECK_CLOSE(pC.d_saturation(pc), -9.24522028989e-09, 1e-15);
 
   // check capillary pressure at p = 2*p_atm
   pc = p_atm;
   CHECK_CLOSE(pC.capillaryPressure(0.9), 2104501.95778, 1e-4);
 
   // check capillary pressure at p = 0.
-  pc = 100*p_atm;
-  CHECK_CLOSE(pC.capillaryPressure( pC.saturation(pc) ), pc, 1e-2);
+  pc = 100 * p_atm;
+  CHECK_CLOSE(pC.capillaryPressure(pC.saturation(pc)), pc, 1e-2);
 
   // check d_capillaryPressure at p = 0
   pc = p_atm;
-  CHECK_CLOSE(pC.d_capillaryPressure( pC.saturation(pc) ),-4958016.79327, 1.);
+  CHECK_CLOSE(pC.d_capillaryPressure(pC.saturation(pc)), -4958016.79327, 1.);
 }

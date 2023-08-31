@@ -1,5 +1,13 @@
 /*
-Author: Ethan Coon
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
+/*
 
 Interfrost model for saturated
 
@@ -17,21 +25,18 @@ namespace Flow {
 class WRM;
 
 class WRMInterfrostPermafrostModel : public WRMPermafrostModel {
-
  public:
-  explicit
-  WRMInterfrostPermafrostModel(Teuchos::ParameterList& plist) :
-      WRMPermafrostModel(plist) {
+  explicit WRMInterfrostPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist)
+  {
     W_ = plist.get<double>("W [K]");
     sr_ = plist.get<double>("residual saturation [-]");
-    AMANZI_ASSERT(sr_ > 0.); AMANZI_ASSERT(sr_ < 1.);
+    AMANZI_ASSERT(sr_ > 0.);
+    AMANZI_ASSERT(sr_ < 1.);
   }
 
   // required methods from the base class
   // sats[0] = sg, sats[1] = sl, sats[2] = si
-  virtual bool freezing(double T, double pc_liq, double pc_ice) { 
-    return T < 273.15;
-  }
+  virtual bool freezing(double T, double pc_liq, double pc_ice) { return T < 273.15; }
 
   virtual void saturations(double pc_liq, double pc_ice, double (&sats)[3]);
   virtual void dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3]);
@@ -43,12 +48,11 @@ class WRMInterfrostPermafrostModel : public WRMPermafrostModel {
 
  private:
   // factory registration
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMInterfrostPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMInterfrostPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

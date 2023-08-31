@@ -1,8 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 
    ATS
-   Author: Ethan Coon
 
    Self-registering factory for WRM_PERMAFROST implementations.
    ------------------------------------------------------------------------- */
@@ -20,13 +27,12 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMPermafrostFactory : public Utils::Factory<WRMPermafrostModel> {
-
-public:
-  Teuchos::RCP<WRMPermafrostModel> createWRMPermafrostModel(Teuchos::ParameterList& plist,
-          const Teuchos::RCP<WRM>& wrm);
+ public:
+  Teuchos::RCP<WRMPermafrostModel>
+  createWRMPermafrostModel(Teuchos::ParameterList& plist, const Teuchos::RCP<WRM>& wrm);
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

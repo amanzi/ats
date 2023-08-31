@@ -1,11 +1,13 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  License: see $ATS_DIR/COPYRIGHT
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
   Authors: Ethan Coon (ecoon@ornl.gov)
 */
 
 //! A subgrid model for determining the area fraction of land, water, and snow within a grid cell with subgrid microtopography.
-
 #include "area_fractions_threecomponent_evaluator.hh"
 
 namespace Amanzi {
@@ -13,8 +15,9 @@ namespace SurfaceBalance {
 namespace Relations {
 
 // Constructor from ParameterList
-AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(
+  Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   //
   // NOTE: this evaluator simplifies the situation by assuming constant
@@ -24,7 +27,8 @@ AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(Teuch
   // the subsurface) really don't matter much. --etc
   min_area_ = plist_.get<double>("minimum fractional area [-]", 1.e-5);
   if (min_area_ <= 0.) {
-    Errors::Message message("AreaFractionsThreeComponentEvaluator: Minimum fractional area should be > 0.");
+    Errors::Message message(
+      "AreaFractionsThreeComponentEvaluator: Minimum fractional area should be > 0.");
     Exceptions::amanzi_throw(message);
   }
 
@@ -34,26 +38,26 @@ AreaFractionsThreeComponentEvaluator::AreaFractionsThreeComponentEvaluator(Teuch
   auto tag = my_keys_.front().second;
 
   snow_depth_key_ = Keys::readKey(plist_, domain_snow_, "snow depth", "depth");
-  dependencies_.insert(KeyTag{snow_depth_key_, tag});
+  dependencies_.insert(KeyTag{ snow_depth_key_, tag });
   ponded_depth_key_ = Keys::readKey(plist_, domain_, "ponded depth", "ponded_depth");
-  dependencies_.insert(KeyTag{ponded_depth_key_, tag});
+  dependencies_.insert(KeyTag{ ponded_depth_key_, tag });
 }
 
 
 void
 AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+                                                const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
   auto mesh = result[0]->Mesh();
-  auto& res = *result[0]->ViewComponent("cell",false);
-  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell",false);
-  const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell",false);
+  auto& res = *result[0]->ViewComponent("cell", false);
+  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
+  const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
     AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(lc.first, AmanziMesh::Entity_kind::CELL,
-                           AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    mesh->get_set_entities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
 
     for (auto c : lc_ids) {
       // calculate area of land
@@ -112,19 +116,19 @@ AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
       }
 
       AMANZI_ASSERT(std::abs(res[0][c] + res[1][c] + res[2][c] - 1.0) < 1.e-10);
-      AMANZI_ASSERT(-1.e-10 <= res[0][c] && res[0][c] <= 1.+1.e-10);
-      AMANZI_ASSERT(-1.e-10 <= res[1][c] && res[1][c] <= 1.+1.e-10);
-      AMANZI_ASSERT(-1.e-10 <= res[2][c] && res[1][c] <= 1.+1.e-10);
+      AMANZI_ASSERT(-1.e-10 <= res[0][c] && res[0][c] <= 1. + 1.e-10);
+      AMANZI_ASSERT(-1.e-10 <= res[1][c] && res[1][c] <= 1. + 1.e-10);
+      AMANZI_ASSERT(-1.e-10 <= res[2][c] && res[1][c] <= 1. + 1.e-10);
 
-      res[0][c] = std::min(std::max(0.,res[0][c]), 1.);
-      res[1][c] = std::min(std::max(0.,res[1][c]), 1.);
-      res[2][c] = std::min(std::max(0.,res[2][c]), 1.);
+      res[0][c] = std::min(std::max(0., res[0][c]), 1.);
+      res[1][c] = std::min(std::max(0., res[1][c]), 1.);
+      res[2][c] = std::min(std::max(0., res[2][c]), 1.);
     }
   }
 
   // debugging for bad input files
   int nerr = 0;
-  for (int c=0; c!=res.MyLength(); ++c) {
+  for (int c = 0; c != res.MyLength(); ++c) {
     if (std::abs(1 - res[0][c] - res[1][c] - res[2][c]) > 1e-10) nerr++;
   }
   int nerr_global = 0;
@@ -133,15 +137,13 @@ AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
     Errors::Message msg("AreaFractionsTwoComponent: land cover types do not cover the mesh.");
     Exceptions::amanzi_throw(msg);
   }
-
 }
 
 // custom EC used to set subfield names
 void
 AreaFractionsThreeComponentEvaluator::EnsureCompatibility_Structure_(State& S)
 {
-  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames(
-    {"bare", "water", "snow"});
+  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames({ "bare", "water", "snow" });
 }
 
 
@@ -150,24 +152,19 @@ AreaFractionsThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (land_cover_.size() == 0)
     land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-            {"snow_transition_depth", "water_transition_depth"});
+                               { "snow_transition_depth", "water_transition_depth" });
 
   auto tag = my_keys_.front().second;
   for (auto& dep : dependencies_) {
-    auto& fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);
+    auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))
-          ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))
-          ->SetGhosted()
-          ->AddComponent("cell", AmanziMesh::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
     }
   }
 }
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

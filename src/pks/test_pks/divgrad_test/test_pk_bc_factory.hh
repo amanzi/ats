@@ -1,13 +1,16 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: ...
+           Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
+
 #ifndef AMANZI_TEST_PK_BC_FACTORY_HH_
 #define AMANZI_TEST_PK_BC_FACTORY_HH_
 
-/* -------------------------------------------------------------------------
-ATS
-
-Author: ...
-    Ethan Coon (ATS version) (ecoon@lanl.gov)
-
-*/
 
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_ParameterList.hpp"
@@ -18,23 +21,24 @@ namespace Amanzi {
 namespace TestPKs {
 
 class TestPKBCFactory : public BCFactory {
+ public:
+  TestPKBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
+                  const Teuchos::ParameterList& plist)
+    : BCFactory(mesh, plist)
+  {}
 
-public:
-  TestPKBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh> &mesh,
-                  const Teuchos::ParameterList& plist) : 
-	BCFactory(mesh,plist) {}
-
-  Teuchos::RCP<Functions::BoundaryFunction> CreateDirichlet() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateDirichlet() const
+  {
     return CreateWithFunction("dirichlet", "boundary data");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateNeumann() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateNeumann() const
+  {
     return CreateWithFunction("neumann", "outward flux");
   }
-
 };
 
-}  // namespace
-}  // namespace
+} // namespace TestPKs
+} // namespace Amanzi
 
 #endif // AMANZI_FLOW_BC_FACTORY_HH_

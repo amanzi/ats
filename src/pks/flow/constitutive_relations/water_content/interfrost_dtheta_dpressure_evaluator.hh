@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The interfrost dtheta_dpressure evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
 Interfrost water content portion sl.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_FLOW_INTERFROST_DTHETA_DPRESSURE_EVALUATOR_HH_
@@ -20,20 +28,18 @@ namespace Relations {
 class InterfrostDthetaDpressureModel;
 
 class InterfrostDthetaDpressureEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  InterfrostDthetaDpressureEvaluator(Teuchos::ParameterList& plist);
+  explicit InterfrostDthetaDpressureEvaluator(Teuchos::ParameterList& plist);
   InterfrostDthetaDpressureEvaluator(const InterfrostDthetaDpressureEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   Teuchos::RCP<InterfrostDthetaDpressureModel> get_model() { return model_; }
 
@@ -47,12 +53,11 @@ class InterfrostDthetaDpressureEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<InterfrostDthetaDpressureModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterfrostDthetaDpressureEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, InterfrostDthetaDpressureEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
 
+//! Evaluates incoming longwave radiation from vapor pressure and air temperature.
 /*!
 
 .. _longwave_evaluator-spec:
@@ -31,21 +32,24 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit LongwaveEvaluator(Teuchos::ParameterList& plist);
   LongwaveEvaluator(const LongwaveEvaluator& other) = default;
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new LongwaveEvaluator(*this));
   }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override {
-    Exceptions::amanzi_throw("NotImplemented: LongwaveEvaluator currently does not provide derivatives.");
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override
+  {
+    Exceptions::amanzi_throw(
+      "NotImplemented: LongwaveEvaluator currently does not provide derivatives.");
   }
 
  protected:
@@ -53,12 +57,11 @@ class LongwaveEvaluator : public EvaluatorSecondaryMonotypeCV {
   double scale_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,LongwaveEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, LongwaveEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

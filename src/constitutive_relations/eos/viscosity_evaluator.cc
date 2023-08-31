@@ -1,10 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   ViscosityEvaluator is the interface between state/data and the model, a VPM.
 
-  License: BSD
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "viscosity_relation_factory.hh"
@@ -13,15 +18,16 @@
 namespace Amanzi {
 namespace Relations {
 
-ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist) {
+ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
+{
   // Set up my dependencies.
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 
   // -- temperature
   temp_key_ = Keys::readKey(plist_, domain_name, "temperature", "temperature");
-  dependencies_.insert(KeyTag{temp_key_, tag});
+  dependencies_.insert(KeyTag{ temp_key_, tag });
 
   // Construct my Viscosity model
   AMANZI_ASSERT(plist_.isSublist("viscosity model parameters"));
@@ -30,27 +36,27 @@ ViscosityEvaluator::ViscosityEvaluator(Teuchos::ParameterList& plist) :
 };
 
 
-Teuchos::RCP<Evaluator> ViscosityEvaluator::Clone() const {
+Teuchos::RCP<Evaluator>
+ViscosityEvaluator::Clone() const
+{
   return Teuchos::rcp(new ViscosityEvaluator(*this));
 }
 
 
-void ViscosityEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+void
+ViscosityEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   // Pull dependencies out of state.
   Tag tag = my_keys_.front().second;
-  Teuchos::RCP<const CompositeVector> temp =
-    S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
   // evaluate p_s / p_atm
-  for (CompositeVector::name_iterator comp=result[0]->begin();
-       comp!=result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
-    for (int id=0; id!=count; ++id) {
+    for (int id = 0; id != count; ++id) {
       AMANZI_ASSERT(temp_v[0][id] > 200.);
       result_v[0][id] = visc_->Viscosity(temp_v[0][id]);
     }
@@ -58,28 +64,27 @@ void ViscosityEvaluator::Evaluate_(const State& S,
 }
 
 
-void ViscosityEvaluator::EvaluatePartialDerivative_(
-    const State& S, const Key& wrt_key, const Tag& wrt_tag,
-    const std::vector<CompositeVector*>& result) {
+void
+ViscosityEvaluator::EvaluatePartialDerivative_(const State& S,
+                                               const Key& wrt_key,
+                                               const Tag& wrt_tag,
+                                               const std::vector<CompositeVector*>& result)
+{
   AMANZI_ASSERT(wrt_key == temp_key_);
 
   // Pull dependencies out of state.
   Tag tag = my_keys_.front().second;
-  Teuchos::RCP<const CompositeVector> temp =
-    S.GetPtr<CompositeVector>(temp_key_, tag);
+  Teuchos::RCP<const CompositeVector> temp = S.GetPtr<CompositeVector>(temp_key_, tag);
 
   // evaluate d/dT( p_s / p_atm )
-  for (CompositeVector::name_iterator comp=result[0]->begin();
-       comp!=result[0]->end(); ++comp) {
-    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
+    const Epetra_MultiVector& temp_v = *(temp->ViewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
-    for (int id=0; id!=count; ++id) {
-      result_v[0][id] = visc_->DViscosityDT(temp_v[0][id]);
-    }
+    for (int id = 0; id != count; ++id) { result_v[0][id] = visc_->DViscosityDT(temp_v[0][id]); }
   }
 }
 
-} // namespace
-} // namespace
+} // namespace Relations
+} // namespace Amanzi

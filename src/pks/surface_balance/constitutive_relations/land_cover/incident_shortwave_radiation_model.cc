@@ -1,4 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The incident shortwave radiation model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
@@ -17,7 +26,6 @@ the daily average aspect modifier.
 
 
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 #include <cmath>
 
@@ -46,13 +54,15 @@ IncidentShortwaveRadiationModel::InitializeFromPlist_(Teuchos::ParameterList& pl
 
   lat_ = plist.get<double>("latitude [degrees]");
   if (lat_ < -90 || lat_ > 90) {
-    Errors::Message msg("IncidentShortwaveRadiationModel: \"domain-averaged latitude [degrees]\" not in valid range [-90,90]");
+    Errors::Message msg("IncidentShortwaveRadiationModel: \"domain-averaged latitude [degrees]\" "
+                        "not in valid range [-90,90]");
     Exceptions::amanzi_throw(msg);
   }
 
   doy0_ = plist.get<int>("day of year at time 0 [Julian days]", 0);
   if (doy0_ < 0 || doy0_ > 364) {
-    Errors::Message msg("IncidentShortwaveRadiationModel: \"day of year at time 0 [Julian days]\" not in valid range [0,364]");
+    Errors::Message msg("IncidentShortwaveRadiationModel: \"day of year at time 0 [Julian days]\" "
+                        "not in valid range [0,364]");
     Exceptions::amanzi_throw(msg);
   }
 }
@@ -60,7 +70,10 @@ IncidentShortwaveRadiationModel::InitializeFromPlist_(Teuchos::ParameterList& pl
 
 // main method
 double
-IncidentShortwaveRadiationModel::IncidentShortwaveRadiation(double slope, double aspect, double qSWin, double time) const
+IncidentShortwaveRadiationModel::IncidentShortwaveRadiation(double slope,
+                                                            double aspect,
+                                                            double qSWin,
+                                                            double time) const
 {
   double time_days = time / 86400.0;
   double doy = std::fmod((double)doy0_ + time_days, (double)365);
@@ -98,28 +111,38 @@ IncidentShortwaveRadiationModel::IncidentShortwaveRadiation(double slope, double
 }
 
 double
-IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDSlope(double slope, double aspect, double qSWin, double time) const
+IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDSlope(double slope,
+                                                                   double aspect,
+                                                                   double qSWin,
+                                                                   double time) const
 {
   AMANZI_ASSERT(false);
   return 0;
 }
 
 double
-IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDAspect(double slope, double aspect, double qSWin, double time) const
+IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDAspect(double slope,
+                                                                    double aspect,
+                                                                    double qSWin,
+                                                                    double time) const
 {
   AMANZI_ASSERT(false);
   return 0;
 }
 
 double
-IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDIncomingShortwaveRadiation(double slope, double aspect, double qSWin, double time) const
+IncidentShortwaveRadiationModel::DIncidentShortwaveRadiationDIncomingShortwaveRadiation(
+  double slope,
+  double aspect,
+  double qSWin,
+  double time) const
 {
   return IncidentShortwaveRadiation(slope, aspect, qSWin, time) / qSWin;
 }
 
 namespace Impl {
 
-    /*Declination angle
+/*Declination angle
 
     Parameters
     ----------
@@ -131,11 +154,13 @@ namespace Impl {
     delta : double
       The angle, in radians
     */
-double DeclinationAngle(double doy) {
+double
+DeclinationAngle(double doy)
+{
   return 23.45 * M_PI / 180.0 * std::cos(2 * M_PI / 365 * (172 - doy));
 }
 
-    /*Angle of the sun as a function of the time of day
+/*Angle of the sun as a function of the time of day
 
     Parameters
     ----------
@@ -146,12 +171,13 @@ double DeclinationAngle(double doy) {
     -------
     tau : angle in radians
     */
-double HourAngle(double hour)
+double
+HourAngle(double hour)
 {
   return (hour + 12) * M_PI / 12.0;
 }
 
-    /*The solar altitude
+/*The solar altitude
 
     Parameters
     ----------
@@ -165,9 +191,11 @@ double HourAngle(double hour)
     -------
     alpha : altitude (radians)
     */
-double SolarAltitude(double delta, double phi, double tau)
+double
+SolarAltitude(double delta, double phi, double tau)
 {
-  double alpha = std::asin(std::sin(delta)*std::sin(phi) + std::cos(delta)*std::cos(phi)*std::cos(tau));
+  double alpha =
+    std::asin(std::sin(delta) * std::sin(phi) + std::cos(delta) * std::cos(phi) * std::cos(tau));
   if (alpha <= 0.25 * M_PI / 180) {
     // sun is beyond the horizon
     alpha = 0.25 * M_PI / 180;
@@ -175,7 +203,7 @@ double SolarAltitude(double delta, double phi, double tau)
   return alpha;
 }
 
-    /*The sun's azhimuth
+/*The sun's azhimuth
 
     Parameters
     ----------
@@ -189,9 +217,12 @@ double SolarAltitude(double delta, double phi, double tau)
     -------
     phi_sun : altitude (radians)
     */
-double SolarAzhimuth(double delta, double phi, double tau) {
-  double phi_sun = std::atan(  -std::sin(tau) / (tan(delta) * std::cos(phi) - std::sin(phi) * std::cos(tau))  );
-  if ((phi_sun >= 0) &&  (-std::sin(tau) <= 0)) {
+double
+SolarAzhimuth(double delta, double phi, double tau)
+{
+  double phi_sun =
+    std::atan(-std::sin(tau) / (tan(delta) * std::cos(phi) - std::sin(phi) * std::cos(tau)));
+  if ((phi_sun >= 0) && (-std::sin(tau) <= 0)) {
     phi_sun += M_PI;
   } else if ((phi_sun <= 0) && (-std::sin(tau) >= 0)) {
     phi_sun += M_PI;
@@ -199,7 +230,7 @@ double SolarAzhimuth(double delta, double phi, double tau) {
   return phi_sun;
 }
 
-    /*Geometric reference factor for a flat surface.
+/*Geometric reference factor for a flat surface.
 
     Parameters
     ----------
@@ -212,12 +243,13 @@ double SolarAzhimuth(double delta, double phi, double tau) {
     -------
     flat : geometric factor [-]
     */
-double FlatGeometry(double alpha, double phi_sun)
+double
+FlatGeometry(double alpha, double phi_sun)
 {
   return std::sin(alpha);
 }
 
-    /*Geometric reference factor of a slope at a given aspect.
+/*Geometric reference factor of a slope at a given aspect.
 
     Parameters
     ----------
@@ -235,12 +267,14 @@ double FlatGeometry(double alpha, double phi_sun)
     factor : double or array_like
 
     */
-double SlopeGeometry(double slope, double aspect, double alpha, double phi_sun)
+double
+SlopeGeometry(double slope, double aspect, double alpha, double phi_sun)
 {
-  return std::cos(slope)*std::sin(alpha) + std::sin(slope)*std::cos(alpha)*std::cos(phi_sun - aspect);
+  return std::cos(slope) * std::sin(alpha) +
+         std::sin(slope) * std::cos(alpha) * std::cos(phi_sun - aspect);
 }
 
-    /*Returns the geometric factor to multiply times a solar radiation to get a slope-aspect specific value
+/*Returns the geometric factor to multiply times a solar radiation to get a slope-aspect specific value
 
     Parameters
     ----------
@@ -265,7 +299,7 @@ double SlopeGeometry(double slope, double aspect, double alpha, double phi_sun)
     Rflat : double or array_like
       Fraction of the full incident sun on a flat surface.
     */
-std::pair<double,double>
+std::pair<double, double>
 GeometricRadiationFactors(double slope, double aspect, int doy, double hour, double lat)
 {
 #ifdef ASSERT_VALID_INPUT
@@ -282,8 +316,8 @@ GeometricRadiationFactors(double slope, double aspect, int doy, double hour, dou
   double lat_r = M_PI / 180. * lat;
   double tau = HourAngle(hour);
 
-  double alpha = SolarAltitude(delta,lat_r,tau);
-  double phi_sun = SolarAzhimuth(delta,lat_r,tau);
+  double alpha = SolarAltitude(delta, lat_r, tau);
+  double phi_sun = SolarAzhimuth(delta, lat_r, tau);
 
   double fac_flat = FlatGeometry(alpha, phi_sun);
   double slope_r = std::atan(slope);
@@ -316,12 +350,15 @@ GeometricRadiationFactors(double slope, double aspect, int doy, double hour, dou
     qSWincident : double
       Radiation incident on the cell.  [W/m^2] (or the same as qSWin)
 */
-double Radiation(double slope, double aspect, int doy, double hour, double lat, double qSWin)
+double
+Radiation(double slope, double aspect, int doy, double hour, double lat, double qSWin)
 {
   auto facs = GeometricRadiationFactors(slope, aspect, doy, hour, lat);
   double fac = facs.first / facs.second;
-  if (fac > 6.) fac = 6.;
-  else if (fac < 0.) fac = 0.;
+  if (fac > 6.)
+    fac = 6.;
+  else if (fac < 0.)
+    fac = 0.;
   return qSWin * fac;
 }
 

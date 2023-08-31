@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Drainage rate from the canopy to the lower layers.
 
+//! Drainage rate from the canopy to the lower layers.
 /*!
 
 A simple model based on relaxation from current water content to a saturated water content.
@@ -53,23 +54,20 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class DrainageEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-
   // constructor format for all derived classes
-  explicit
-  DrainageEvaluator(Teuchos::ParameterList& plist);
+  explicit DrainageEvaluator(Teuchos::ParameterList& plist);
 
   DrainageEvaluator(const DrainageEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
  protected:
   Key drainage_key_;
@@ -83,11 +81,9 @@ class DrainageEvaluator : public EvaluatorSecondaryMonotypeCV {
   double n_liq_;
 
  private:
-  static Amanzi::Utils::RegisteredFactory<Evaluator,DrainageEvaluator> reg_;
-
+  static Amanzi::Utils::RegisteredFactory<Evaluator, DrainageEvaluator> reg_;
 };
 
-} // namespace
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

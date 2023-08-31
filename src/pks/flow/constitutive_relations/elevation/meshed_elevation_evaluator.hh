@@ -1,5 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -8,7 +8,6 @@
 */
 
 //! MeshedElevationEvaluator: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
-
 /*!
 Evaluator type: `"meshed elevation`"
 
@@ -42,27 +41,25 @@ namespace Amanzi {
 namespace Flow {
 
 namespace Impl {
-  void slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect);
+void
+slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect);
 }
 
 
 class MeshedElevationEvaluator : public ElevationEvaluator {
-
  public:
-  explicit
-  MeshedElevationEvaluator(Teuchos::ParameterList& plist);
+  explicit MeshedElevationEvaluator(Teuchos::ParameterList& plist);
   MeshedElevationEvaluator(const MeshedElevationEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual void EvaluateElevationAndSlope_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void
+  EvaluateElevationAndSlope_(const State& S, const std::vector<CompositeVector*>& results) override;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,MeshedElevationEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, MeshedElevationEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

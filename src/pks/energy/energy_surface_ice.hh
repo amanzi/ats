@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! An advection-diffusion equation for surface energy in two phases.
 
+//! An advection-diffusion equation for surface energy in two phases.
 /*!
 
 This is simply a surface energy equation that places a few more requirements
@@ -67,8 +68,7 @@ class EnergySurfaceIce : public EnergyBase {
   //    faces.
   //  virtual void ApplyDirichletBCsToEnthalpy_(const Teuchos::Ptr<State>& S);
 
-  virtual void AddSources_(const Tag& tag,
-                           const Teuchos::Ptr<CompositeVector>& f) override;
+  virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& f) override;
   virtual void AddSourcesToPrecon_(double h) override;
 
  protected:
@@ -88,7 +88,6 @@ class EnergySurfaceIce : public EnergyBase {
  private:
   // factory registration
   static RegisteredPKFactory<EnergySurfaceIce> reg_;
-
 };
 
 } // namespace Energy

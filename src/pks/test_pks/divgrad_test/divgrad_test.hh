@@ -1,10 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
 
 /*
   A high level test class for the MatrixMFD operator.
 
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
 #ifndef PK_TESTS_DIVGRAD_TEST_HH_
@@ -24,13 +29,12 @@ namespace Amanzi {
 namespace TestPKs {
 
 class DivGradTest : public PKPhysicalBase {
-
-public:
+ public:
   DivGradTest(const Teuchos::RCP<Teuchos::ParameterList>& plist,
               Teuchos::ParameterList& FElist,
-              const Teuchos::RCP<TreeVector>& solution) :
-      PKDefaultBase(plist, FElist, solution),
-      PKPhysicalBase(plist, FElist, solution) {
+              const Teuchos::RCP<TreeVector>& solution)
+    : PKDefaultBase(plist, FElist, solution), PKPhysicalBase(plist, FElist, solution)
+  {
     // set a few parameters before setup
     plist_->set("solution key", "solution");
   }
@@ -55,13 +59,13 @@ public:
 
   virtual double get_dt() { return 1.e99; }
 
-protected:
+ protected:
   // boundary condition members
   virtual void UpdateBoundaryConditions_();
   virtual void ApplyBoundaryConditions_(const Teuchos::RCP<CompositeVector>& pres);
   virtual bool TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres);
 
-protected:
+ protected:
   // mathematical operators
   Teuchos::RCP<Operators::MatrixMFD> matrix_;
 
@@ -76,7 +80,7 @@ protected:
   static RegisteredPKFactory_ATS<DivGradTest> reg_;
 };
 
-}  // namespace
-}  // namespace Amanzi
+} // namespace TestPKs
+} // namespace Amanzi
 
 #endif

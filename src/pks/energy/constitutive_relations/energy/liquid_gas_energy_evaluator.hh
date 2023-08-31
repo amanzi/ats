@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Ethan Coon (ecoon@lanl.gov)
+  Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Energy content evaluator for a standard Richards equation, including energy in the gas phase.
 /*!
 
@@ -53,10 +55,8 @@ namespace Relations {
 class LiquidGasEnergyModel;
 
 class LiquidGasEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  LiquidGasEnergyEvaluator(Teuchos::ParameterList& plist);
+  explicit LiquidGasEnergyEvaluator(Teuchos::ParameterList& plist);
   LiquidGasEnergyEvaluator(const LiquidGasEnergyEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -65,11 +65,11 @@ class LiquidGasEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -89,11 +89,9 @@ class LiquidGasEnergyEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<LiquidGasEnergyModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,LiquidGasEnergyEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, LiquidGasEnergyEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
+} // namespace Relations
+} // namespace Energy
+} // namespace Amanzi

@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The liquid + gas water content model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 Water content for a two-phase, liquid+water vapor evaluator.
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #include "Teuchos_ParameterList.hpp"
@@ -25,61 +33,106 @@ LiquidGasWaterContentModel::LiquidGasWaterContentModel(Teuchos::ParameterList& p
 // Initialize parameters
 void
 LiquidGasWaterContentModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
-{
-
-}
+{}
 
 
 // main method
 double
-LiquidGasWaterContentModel::WaterContent(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::WaterContent(double phi,
+                                         double sl,
+                                         double nl,
+                                         double sg,
+                                         double ng,
+                                         double omega,
+                                         double cv) const
 {
-  return cv*phi*(ng*omega*sg + nl*sl);
+  return cv * phi * (ng * omega * sg + nl * sl);
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDPorosity(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDPorosity(double phi,
+                                                   double sl,
+                                                   double nl,
+                                                   double sg,
+                                                   double ng,
+                                                   double omega,
+                                                   double cv) const
 {
-  return cv*(ng*omega*sg + nl*sl);
+  return cv * (ng * omega * sg + nl * sl);
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDSaturationLiquid(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDSaturationLiquid(double phi,
+                                                           double sl,
+                                                           double nl,
+                                                           double sg,
+                                                           double ng,
+                                                           double omega,
+                                                           double cv) const
 {
-  return cv*nl*phi;
+  return cv * nl * phi;
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDMolarDensityLiquid(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDMolarDensityLiquid(double phi,
+                                                             double sl,
+                                                             double nl,
+                                                             double sg,
+                                                             double ng,
+                                                             double omega,
+                                                             double cv) const
 {
-  return cv*phi*sl;
+  return cv * phi * sl;
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDSaturationGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDSaturationGas(double phi,
+                                                        double sl,
+                                                        double nl,
+                                                        double sg,
+                                                        double ng,
+                                                        double omega,
+                                                        double cv) const
 {
-  return cv*ng*omega*phi;
+  return cv * ng * omega * phi;
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDMolarDensityGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDMolarDensityGas(double phi,
+                                                          double sl,
+                                                          double nl,
+                                                          double sg,
+                                                          double ng,
+                                                          double omega,
+                                                          double cv) const
 {
-  return cv*omega*phi*sg;
+  return cv * omega * phi * sg;
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDMolFracGas(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDMolFracGas(double phi,
+                                                     double sl,
+                                                     double nl,
+                                                     double sg,
+                                                     double ng,
+                                                     double omega,
+                                                     double cv) const
 {
-  return cv*ng*phi*sg;
+  return cv * ng * phi * sg;
 }
 
 double
-LiquidGasWaterContentModel::DWaterContentDCellVolume(double phi, double sl, double nl, double sg, double ng, double omega, double cv) const
+LiquidGasWaterContentModel::DWaterContentDCellVolume(double phi,
+                                                     double sl,
+                                                     double nl,
+                                                     double sg,
+                                                     double ng,
+                                                     double omega,
+                                                     double cv) const
 {
-  return phi*(ng*omega*sg + nl*sl);
+  return phi * (ng * omega * sg + nl * sl);
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi

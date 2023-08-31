@@ -1,15 +1,13 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! A base class with default implementations of methods for a PK that can be implicitly integrated in time.
-
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-
+//! A base class with default implementations of methods for a PK that can be implicitly integrated in time.
 /*!
 
 `PKBDFBase` is a base class from which PKs that want to use the `BDF`
@@ -50,7 +48,6 @@ PKs.
 #include "PK_BDF.hh"
 
 
-
 namespace Amanzi {
 
 class PK_BDF_Default : public PK_BDF {
@@ -58,9 +55,9 @@ class PK_BDF_Default : public PK_BDF {
   PK_BDF_Default(Teuchos::ParameterList& pk_tree,
                  const Teuchos::RCP<Teuchos::ParameterList>& glist,
                  const Teuchos::RCP<State>& S,
-                 const Teuchos::RCP<TreeVector>& solution) :
-    PK(pk_tree, glist, S, solution),
-    PK_BDF(pk_tree, glist, S, solution) {}
+                 const Teuchos::RCP<TreeVector>& solution)
+    : PK(pk_tree, glist, S, solution), PK_BDF(pk_tree, glist, S, solution)
+  {}
 
   // Virtual destructor
   virtual ~PK_BDF_Default() {}
@@ -91,14 +88,19 @@ class PK_BDF_Default : public PK_BDF {
 
   // -- Possibly modify the predictor that is going to be used as a
   //    starting value for the nonlinear solve in the time integrator.
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up,
-          Teuchos::RCP<TreeVector> u) override { return false; }
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up, Teuchos::RCP<TreeVector> u) override
+  {
+    return false;
+  }
 
   // -- Possibly modify the correction before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                       Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du) override {
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override
+  {
     return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   }
 
@@ -107,18 +109,17 @@ class PK_BDF_Default : public PK_BDF {
   virtual void ChangedSolution() override = 0;
   virtual void ChangedSolution(const Tag& tag) = 0;
 
- protected: // data
+ protected:                      // data
   bool assemble_preconditioner_; // preconditioner assembly control
-  bool strongly_coupled_; // if we are coupled, no need to make a TI
+  bool strongly_coupled_;        // if we are coupled, no need to make a TI
 
   // timestep control
-  Teuchos::RCP<BDF1_TI<TreeVector, TreeVectorSpace> > time_stepper_;
+  Teuchos::RCP<BDF1_TI<TreeVector, TreeVectorSpace>> time_stepper_;
 
   // timing
   Teuchos::RCP<Teuchos::Time> step_walltime_;
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif

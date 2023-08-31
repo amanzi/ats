@@ -1,5 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -15,8 +15,7 @@ namespace Relations {
 
 
 InitialTimeEvaluator::InitialTimeEvaluator(Teuchos::ParameterList& plist)
-  : EvaluatorSecondaryMonotypeCV(plist),
-    evaluated_once_(false)
+  : EvaluatorSecondaryMonotypeCV(plist), evaluated_once_(false)
 {
   auto name = my_keys_.front().first;
   auto tag = my_keys_.front().second;
@@ -53,15 +52,15 @@ InitialTimeEvaluator::InitialTimeEvaluator(Teuchos::ParameterList& plist)
 
 
 Teuchos::RCP<Evaluator>
-InitialTimeEvaluator::Clone() const {
+InitialTimeEvaluator::Clone() const
+{
   return Teuchos::rcp(new InitialTimeEvaluator(*this));
 }
 
 
 // evaluate once, at the right time
 void
-InitialTimeEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+InitialTimeEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
   auto dep = dependencies_.front();
@@ -82,5 +81,5 @@ InitialTimeEvaluator::EnsureCompatibility_Flags_(State& S)
 }
 
 
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Amanzi

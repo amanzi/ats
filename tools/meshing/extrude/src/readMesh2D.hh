@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #ifndef MESH_READER_HH_
 #define MESH_READER_HH_
 
@@ -12,10 +21,11 @@ namespace AmanziGeometry {
 struct PointFactory {
   PointFactory() {}
 
-  bool addPoint(const Point& p, int& id) {
+  bool addPoint(const Point& p, int& id)
+  {
     double key = norm(p);
     auto range = points_sorted.equal_range(key);
-    for (auto sp=range.first; sp!=range.second; ++sp) {
+    for (auto sp = range.first; sp != range.second; ++sp) {
       if (sp->second.second == p) {
         id = sp->second.first;
         return false;
@@ -24,24 +34,24 @@ struct PointFactory {
 
     id = points.size();
     points.push_back(p);
-    points_sorted.insert(std::make_pair(key,
-            std::make_pair(id, p)));
+    points_sorted.insert(std::make_pair(key, std::make_pair(id, p)));
     return true;
   }
 
-  std::multimap<double,std::pair<int,Point> > points_sorted;
+  std::multimap<double, std::pair<int, Point>> points_sorted;
   std::vector<Point> points;
 };
 
-Mesh2D readMesh2D_text(const std::string& filename,
-                       std::vector<int>& soil_type,
-                       std::vector<int>& bedrock_type,
-                       std::vector<double>& depth_to_bedrock,
-                       double cut_x=1.e80,
-                       double cut_y=1.e80);
+Mesh2D
+readMesh2D_text(const std::string& filename,
+                std::vector<int>& soil_type,
+                std::vector<int>& bedrock_type,
+                std::vector<double>& depth_to_bedrock,
+                double cut_x = 1.e80,
+                double cut_y = 1.e80);
 
-}
-}
+} // namespace AmanziGeometry
+} // namespace Amanzi
 
 
 #endif

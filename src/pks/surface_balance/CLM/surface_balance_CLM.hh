@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon, Adam Atchley, Satish Karra
+*/
 
 /* -------------------------------------------------------------------------
    ATS
-
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon, Adam Atchley, Satish Karra
 
    DOCUMENT ME
    Surface Energy Balance for Snow Surface and Ground Surface
@@ -24,13 +28,11 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 class SurfaceBalanceCLM : public PK_Physical_Default {
-
-public:
-
+ public:
   SurfaceBalanceCLM(Teuchos::ParameterList& pk_tree,
-                         const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                         const Teuchos::RCP<State>& S,
-                         const Teuchos::RCP<TreeVector>& solution);
+                    const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                    const Teuchos::RCP<State>& S,
+                    const Teuchos::RCP<TreeVector>& solution);
 
   // main methods
   // -- Setup data.
@@ -46,9 +48,7 @@ public:
   // -- Calculate any diagnostics prior to doing vis
   virtual void CalculateDiagnostics(const Tag& tag) override {}
 
-  virtual void set_dt(double dt) override {
-    AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4);
-  }
+  virtual void set_dt(double dt) override { AMANZI_ASSERT(std::abs(dt - dt_) < 1.e-4); }
   virtual double get_dt() override { return dt_; }
 
   // Advance PK from time t_old to time t_new. True value of the last
@@ -105,7 +105,7 @@ public:
   static RegisteredPKFactory<SurfaceBalanceCLM> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

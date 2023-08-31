@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Multi process coupler base class.
 
+//! Multi process coupler base class.
 /*!
 
 A multi process coupler is a PK (process kernel) which coordinates and couples
@@ -51,17 +52,15 @@ namespace Amanzi {
 
 template <class PK_t>
 class MPC : virtual public PK {
-
-public:
-
+ public:
   MPC(Teuchos::ParameterList& pk_tree,
       const Teuchos::RCP<Teuchos::ParameterList>& global_list,
       const Teuchos::RCP<State>& S,
       const Teuchos::RCP<TreeVector>& solution)
-      : PK(pk_tree, global_list, S, solution),
-        global_list_(global_list),
-        pk_tree_(pk_tree),
-        pks_list_(Teuchos::sublist(global_list, "PKs"))
+    : PK(pk_tree, global_list, S, solution),
+      global_list_(global_list),
+      pk_tree_(pk_tree),
+      pks_list_(Teuchos::sublist(global_list, "PKs"))
   {}
 
   // PK methods
@@ -104,11 +103,10 @@ public:
 
  protected:
   // constructs sub-pks
-  void init_(Comm_ptr_type comm=Teuchos::null);
+  void init_(Comm_ptr_type comm = Teuchos::null);
 
  protected:
-
-  typedef std::vector<Teuchos::RCP<PK_t> > SubPKList;
+  typedef std::vector<Teuchos::RCP<PK_t>> SubPKList;
   Teuchos::RCP<Teuchos::ParameterList> global_list_;
   Teuchos::ParameterList pk_tree_;
   Teuchos::RCP<Teuchos::ParameterList> pks_list_;
@@ -121,7 +119,8 @@ public:
 // Setup of PK hierarchy from PList
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::Setup()
+void
+MPC<PK_t>::Setup()
 {
   for (auto& pk : sub_pks_) pk->Setup();
 }
@@ -131,7 +130,8 @@ void MPC<PK_t>::Setup()
 // loop over sub-PKs, calling their initialization methods
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::Initialize()
+void
+MPC<PK_t>::Initialize()
 {
   for (auto& pk : sub_pks_) pk->Initialize();
 };
@@ -141,7 +141,8 @@ void MPC<PK_t>::Initialize()
 // loop over sub-PKs, calling set_tags
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
+void
+MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
 {
   PK::set_tags(current, next);
   for (auto& pk : sub_pks_) pk->set_tags(current, next);
@@ -152,9 +153,10 @@ void MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
 // loop over sub-PKs, calling their state_to_solution method
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
+void
+MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
 {
-  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     Teuchos::RCP<TreeVector> pk_soln = soln.SubVector(i);
     if (pk_soln == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
@@ -169,10 +171,10 @@ void MPC<PK_t>::State_to_Solution(const Tag& tag, TreeVector& soln)
 // loop over sub-PKs, calling their solution_to_state method
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::Solution_to_State(const TreeVector& soln,
-        const Tag& tag)
+void
+MPC<PK_t>::Solution_to_State(const TreeVector& soln, const Tag& tag)
 {
-  for (std::size_t i=0; i!=sub_pks_.size(); ++i) {
+  for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     auto pk_soln = soln.SubVector(i);
     if (pk_soln == Teuchos::null) {
       Errors::Message message("MPC: vector structure does not match PK structure");
@@ -187,14 +189,12 @@ void MPC<PK_t>::Solution_to_State(const TreeVector& soln,
 // loop over sub-PKs, calling their commit_state method
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
+void
+MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "commiting step @ " << tag << std::endl;
-  for (auto& pk : sub_pks_) {
-    pk->CommitStep(t_old, t_new, tag);
-  }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "commiting step @ " << tag << std::endl;
+  for (auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag); }
 };
 
 
@@ -202,11 +202,11 @@ void MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
 // loop over sub-PKs, calling their fail step method
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
+void
+MPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "failing step @ " << tag << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "failing step @ " << tag << std::endl;
   for (auto& pk : sub_pks_) pk->FailStep(t_old, t_new, tag);
 };
 
@@ -215,7 +215,8 @@ void MPC<PK_t>::FailStep(double t_old, double t_new, const Tag& tag)
 // loop over sub-PKs, calling their calculate_diagnostics method
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
+void
+MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -228,18 +229,17 @@ void MPC<PK_t>::CalculateDiagnostics(const Tag& tag)
 // loop over sub-PKs, calling their ValidStep
 // -----------------------------------------------------------------------------
 template <class PK_t>
-bool MPC<PK_t>::ValidStep()
+bool
+MPC<PK_t>::ValidStep()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Validating time step." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
 
   for (auto& pk : sub_pks_) {
     bool valid = pk->ValidStep();
     if (!valid) {
       if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-        *vo_->os() << "Invalid time step, sub_pk: " << pk->name()
-                   << " is invalid." << std::endl;
+        *vo_->os() << "Invalid time step, sub_pk: " << pk->name() << " is invalid." << std::endl;
       return valid;
     }
   }
@@ -251,14 +251,16 @@ bool MPC<PK_t>::ValidStep()
 // Marks sub-PKs as changed.
 // -----------------------------------------------------------------------------
 template <class PK_t>
-void MPC<PK_t>::ChangedSolutionPK(const Tag& tag)
+void
+MPC<PK_t>::ChangedSolutionPK(const Tag& tag)
 {
   for (auto& pk : sub_pks_) pk->ChangedSolutionPK(tag);
 };
 
 
 template <class PK_t>
-Teuchos::RCP<PK_t> MPC<PK_t>::get_subpk(int i)
+Teuchos::RCP<PK_t>
+MPC<PK_t>::get_subpk(int i)
 {
   if (i >= sub_pks_.size()) {
     return Teuchos::null;
@@ -270,14 +272,15 @@ Teuchos::RCP<PK_t> MPC<PK_t>::get_subpk(int i)
 
 // protected constructor of subpks
 template <class PK_t>
-void MPC<PK_t>::init_(Comm_ptr_type comm)
+void
+MPC<PK_t>::init_(Comm_ptr_type comm)
 {
   PKFactory pk_factory;
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   if (comm == Teuchos::null) comm = solution_->Comm();
 
   int npks = pk_order.size();
-  for (int i=0; i!=npks; ++i) {
+  for (int i = 0; i != npks; ++i) {
     // create the solution vector
     Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(comm));
     solution_->PushBack(pk_soln);
@@ -291,6 +294,4 @@ void MPC<PK_t>::init_(Comm_ptr_type comm)
 };
 
 
-} // close namespace Amanzi
-
-
+} // namespace Amanzi

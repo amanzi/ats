@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Fraction of incoming water that is intercepted.
 /*!
 
@@ -46,7 +48,6 @@ namespace Relations {
 class InterceptionFractionModel;
 
 class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit InterceptionFractionEvaluator(Teuchos::ParameterList& plist);
   InterceptionFractionEvaluator(const InterceptionFractionEvaluator& other) = default;
@@ -56,11 +57,11 @@ class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& results) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
   void InitializeFromPlist_();
 
@@ -78,11 +79,9 @@ class InterceptionFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<InterceptionFractionModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterceptionFractionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, InterceptionFractionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

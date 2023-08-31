@@ -1,20 +1,18 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-/* -------------------------------------------------------------------------
- * ATS
- *
- * License: see $ATS_DIR/COPYRIGHT
- * Author: Ethan Coon
- *
- * ------------------------------------------------------------------------- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
+  Authors: Ethan Coon
+*/
 
 #include "surface_balance_implicit_subgrid.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 
-RegisteredPKFactory<ImplicitSubgrid>
-ImplicitSubgrid::reg_("surface balance implicit subgrid");
+RegisteredPKFactory<ImplicitSubgrid> ImplicitSubgrid::reg_("surface balance implicit subgrid");
 
-} // namespace
-} // namespace
+} // namespace SurfaceBalance
+} // namespace Amanzi

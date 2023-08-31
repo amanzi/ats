@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #ifndef MESH_3D_HH_
 #define MESH_3D_HH_
 
@@ -16,19 +25,22 @@ namespace AmanziGeometry {
 
 
 struct Mesh3D {
-  Mesh3D(const Mesh2D * const m_, int n_layers);
+  Mesh3D(const Mesh2D* const m_, int n_layers);
 
-  void extrude(double dz, const std::vector<int>& cell_set, bool squash_zero_edges=true) {
+  void extrude(double dz, const std::vector<int>& cell_set, bool squash_zero_edges = true)
+  {
     std::vector<double> dzs(m->coords.size(), dz);
     extrude(dzs, cell_set, squash_zero_edges);
   }
 
-  void extrude(const std::vector<double>& dzs, int my_cell_set, bool squash_zero_edges=true) {
+  void extrude(const std::vector<double>& dzs, int my_cell_set, bool squash_zero_edges = true)
+  {
     std::vector<int> cell_set(m->ncells, my_cell_set);
     extrude(dzs, cell_set, squash_zero_edges);
   }
 
-  void extrude(double dz, int my_cell_set, bool squash_zero_edges=true) {
+  void extrude(double dz, int my_cell_set, bool squash_zero_edges = true)
+  {
     std::vector<double> dzs(m->coords.size(), dz);
     std::vector<int> cell_set(m->ncells, my_cell_set);
     extrude(dzs, cell_set, squash_zero_edges);
@@ -36,20 +48,19 @@ struct Mesh3D {
 
   void extrude(const std::vector<double>& dz,
                const std::vector<int>& cell_set,
-               bool squash_zero_edges=true);
-  void finish(); 
+               bool squash_zero_edges = true);
+  void finish();
 
-  const Mesh2D * const m;
+  const Mesh2D* const m;
 
   // basic geometric/topology info
   std::vector<Point> coords;
-  std::vector<std::vector<int> > cell2face;
-  std::vector<std::vector<int> > face2node;
+  std::vector<std::vector<int>> cell2face;
+  std::vector<std::vector<int>> face2node;
 
   // labels
   std::vector<int> block_ids;
-  std::vector<std::pair<std::vector<int>,
-                        std::vector<int> > > side_sets;
+  std::vector<std::pair<std::vector<int>, std::vector<int>>> side_sets;
   std::vector<int> side_sets_id;
 
   // internally used to extrude
@@ -65,7 +76,7 @@ struct Mesh3D {
   Point datum;
 };
 
-}
-}
+} // namespace AmanziGeometry
+} // namespace Amanzi
 
 #endif
