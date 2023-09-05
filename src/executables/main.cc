@@ -59,7 +59,10 @@ main(int argc, char* argv[])
 
   Teuchos::GlobalMPISession mpiSession(&argc, &argv, 0);
   int rank = mpiSession.getRank();
+  Kokkos::initialize();
+  int ret = 0;
 
+  { 
   std::string input_filename;
   if ((argc >= 2) && (argv[argc - 1][0] != '-')) {
     input_filename = std::string(argv[argc - 1]);
@@ -92,14 +95,15 @@ main(int argc, char* argv[])
   clp.recogniseAllOptions(true);
 
   auto parseReturn = clp.parse(argc, argv);
-  if (parseReturn == Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED) { return 0; }
-  if (parseReturn != Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL) { return 1; }
+  if (parseReturn == Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED) { Kokkos::finalize(); return 0; }
+  if (parseReturn != Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL) { Kokkos::finalize(); return 1; }
 
 #define XSTR(s) STR(s)
 #define STR(s) #s
   // check for version info request
   if (version) {
     if (rank == 0) { std::cout << "ATS version " << XSTR(ATS_VERSION) << std::endl; }
+    Kokkos::finalize(); 
     return 0;
   }
   if (print_version) {
@@ -113,6 +117,7 @@ main(int argc, char* argv[])
       std::cout << "GIT global hash " << XSTR(AMANZI_GIT_GLOBAL_HASH) << std::endl;
       std::cout << std::endl;
     }
+    Kokkos::finalize(); 
     return 0;
   }
 
@@ -135,6 +140,7 @@ main(int argc, char* argv[])
       std::cerr << "ERROR: invalid verbosity level \"" << verbosity << "\"" << std::endl;
       clp.printHelpMessage("ats", std::cerr);
     }
+    Kokkos::finalize(); 
     return 1;
   }
 
@@ -163,11 +169,13 @@ main(int argc, char* argv[])
       std::cerr << "ERROR: no input file provided" << std::endl;
       clp.printHelpMessage("ats", std::cerr);
     }
+    Kokkos::finalize(); 
     return 1;
   } else if (!boost::filesystem::exists(input_filename)) {
     if (rank == 0) {
       std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
     }
+    Kokkos::finalize(); 
     return 1;
   }
 
