@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ATS Demo Problems &mdash; ATS 1.4 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -10,10 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -27,14 +29,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ATS
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ATS
           </a>
               <div class="version">
                 1.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -69,8 +75,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>ATS Demo Problems</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ATS Demo Problems</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/demos.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -80,32 +86,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="ats-demo-problems">
-<h1>ATS Demo Problems<a class="headerlink" href="#ats-demo-problems" title="Permalink to this headline"></a></h1>
+  <section id="ats-demo-problems">
+<h1>ATS Demo Problems<a class="headerlink" href="#ats-demo-problems" title="Permalink to this heading"></a></h1>
 <p>The best way to learn how to use ATS is by looking at our suite of
 demonstration problems.  This is a suite of problems that look to
 provide many simple, and some complex, examples of how to link
@@ -128,68 +110,68 @@ evaporation to fully biogeophysical models.</p>
 (either standalone or as a submodule of ATS), and the demos can be
 run, modified, etc.  Installation notes for the demos are included in
 that repository in its <a class="reference external" href="https://github.com/amanzi/ats-demos.git">README</a>.</p>
-<div class="section" id="richards-equation-steady-state">
-<h2>Richards Equation: Steady state<a class="headerlink" href="#richards-equation-steady-state" title="Permalink to this headline"></a></h2>
+<section id="richards-equation-steady-state">
+<h2>Richards Equation: Steady state<a class="headerlink" href="#richards-equation-steady-state" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/01_richards_steadystate/richards_steadystate.html"><span class="doc">ats_demos/01_richards_steadystate/richards_steadystate.ipynb</span></a></p>
 <p>This shows examples of solving Richards equation to steadystate.
 Typically this is used to establish a water column that satisfies
 hydrostatic balance.</p>
-</div>
-<div class="section" id="richards-equation-transient">
-<h2>Richards Equation: Transient<a class="headerlink" href="#richards-equation-transient" title="Permalink to this headline"></a></h2>
+</section>
+<section id="richards-equation-transient">
+<h2>Richards Equation: Transient<a class="headerlink" href="#richards-equation-transient" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/02_richards/richards.html"><span class="doc">ats_demos/02_richards/richards.ipynb</span></a></p>
 <p>Transient problems show a variety of variably saturated cases, and
 demonstrate seepage faces and other common boundary conditions for the
 flow of water in a porous media.</p>
-</div>
-<div class="section" id="surface-water">
-<h2>Surface Water<a class="headerlink" href="#surface-water" title="Permalink to this headline"></a></h2>
+</section>
+<section id="surface-water">
+<h2>Surface Water<a class="headerlink" href="#surface-water" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/03_surface_water/surface_water.html"><span class="doc">ats_demos/03_surface_water/surface_water.ipynb</span></a></p>
 <p>Overland flow is solved through a diffusion wave equation.  This
 demonstrates that as a standalone capability, solving surface water
 problems to demonstrate common usages of boundary conditions and
 forcing.</p>
-</div>
-<div class="section" id="integrated-hydrology">
-<h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Permalink to this headline"></a></h2>
+</section>
+<section id="integrated-hydrology">
+<h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/04_integrated_hydro/integrated_hydro.html"><span class="doc">ats_demos/04_integrated_hydro/integrated_hydro.ipynb</span></a></p>
 <p>Integrated hydrology brings the previous two examples together,
 solving both surface and subsurface flow of water.</p>
-</div>
-<div class="section" id="ecohydrology">
-<h2>Ecohydrology<a class="headerlink" href="#ecohydrology" title="Permalink to this headline"></a></h2>
+</section>
+<section id="ecohydrology">
+<h2>Ecohydrology<a class="headerlink" href="#ecohydrology" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/05_ecohydrology/ecohydrology.html"><span class="doc">ats_demos/05_ecohydrology/ecohydrology.ipynb</span></a></p>
 <p>Ecohydrogy brings in the effects of other ecological processes, here
 loosely used to include all surface processes like evaporation,
 transpiration, and canopy processes like interception and storage, and
 even simplified biogeochemistry processes for a full carbon cycle.</p>
-</div>
-<div class="section" id="arctic-hydrology">
-<h2>Arctic Hydrology<a class="headerlink" href="#arctic-hydrology" title="Permalink to this headline"></a></h2>
+</section>
+<section id="arctic-hydrology">
+<h2>Arctic Hydrology<a class="headerlink" href="#arctic-hydrology" title="Permalink to this heading"></a></h2>
 <p><a class="reference internal" href="ats_demos/06_arctic_hydrology/arctic_hydrology.html"><span class="doc">ats_demos/06_arctic_hydrology/arctic_hydrology.ipynb</span></a></p>
 <p>ATS was originally developed as an Arctic hydrology simulator.  It
 includes state-of-the art constitutive models and numerical methods
 for solving coupled freeze-thaw processes in Arctic environments.</p>
-</div>
-<div class="section" id="reactive-transport">
-<h2>Reactive Transport<a class="headerlink" href="#reactive-transport" title="Permalink to this headline"></a></h2>
+</section>
+<section id="reactive-transport">
+<h2>Reactive Transport<a class="headerlink" href="#reactive-transport" title="Permalink to this heading"></a></h2>
 <p><cite>&lt;ats_demos/07_reactive_transport/reactive_transport.ipynb&gt;</cite> (Work in progress)</p>
 <p>ATS’s sister code Amanzi was designed for solving problems of reactive
 transport.  Interoperability of ATS and Amanzi allows ATS to leverage
 this work to solve problems of nonreactive and reactive transport in
 both the surface and subsurface, and even in frozen environments.
 (See below for ATS reactive transport demos when used with integrated hydrology)</p>
-</div>
-<div class="section" id="integrated-hydrology-and-reactive-transport">
-<h2>Integrated hydrology and Reactive Transport<a class="headerlink" href="#integrated-hydrology-and-reactive-transport" title="Permalink to this headline"></a></h2>
+</section>
+<section id="integrated-hydrology-and-reactive-transport">
+<h2>Integrated hydrology and Reactive Transport<a class="headerlink" href="#integrated-hydrology-and-reactive-transport" title="Permalink to this heading"></a></h2>
 <p><cite>&lt;ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.ipynb&gt;</cite></p>
 <p>ATS is unique in the its ability to simulate reactive transport in integrated
 hydrology problems. In other words, it is capable of simulating muticomponent
 reactive transport in both surface and subsurface compartments using a novel
 coupling approach, and levering powerful, external geochemical engines
 <a class="reference external" href="https://doi.org/10.1029/2022WR032074">Molins et al (2022) WRR</a></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

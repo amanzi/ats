@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Temperate Ecohydrology &mdash; ATS 1.4 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -27,14 +30,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATS
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATS
           </a>
               <div class="version">
                 1.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -59,8 +66,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Temperate Ecohydrology</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Temperate Ecohydrology</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/ats_demos/05_ecohydrology/ecohydrology.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,278 +77,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS for nbsphinx extension */
-
-/* remove conflicting styling from Sphinx themes */
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt *,
-div.nbinput.container div.input_area pre,
-div.nboutput.container div.output_area pre,
-div.nbinput.container div.input_area .highlight,
-div.nboutput.container div.output_area .highlight {
-    border: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-}
-
-div.nbinput.container > div[class*=highlight],
-div.nboutput.container > div[class*=highlight] {
-    margin: 0;
-}
-
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt * {
-    background: none;
-}
-
-div.nboutput.container div.output_area .highlight,
-div.nboutput.container div.output_area pre {
-    background: unset;
-}
-
-div.nboutput.container div.output_area div.highlight {
-    color: unset;  /* override Pygments text color */
-}
-
-/* avoid gaps between output lines */
-div.nboutput.container div[class*=highlight] pre {
-    line-height: normal;
-}
-
-/* input/output containers */
-div.nbinput.container,
-div.nboutput.container {
-    display: -webkit-flex;
-    display: flex;
-    align-items: flex-start;
-    margin: 0;
-    width: 100%;
-}
-@media (max-width: 540px) {
-    div.nbinput.container,
-    div.nboutput.container {
-        flex-direction: column;
-    }
-}
-
-/* input container */
-div.nbinput.container {
-    padding-top: 5px;
-}
-
-/* last container */
-div.nblast.container {
-    padding-bottom: 5px;
-}
-
-/* input prompt */
-div.nbinput.container div.prompt pre {
-    color: #307FC1;
-}
-
-/* output prompt */
-div.nboutput.container div.prompt pre {
-    color: #BF5B3D;
-}
-
-/* all prompts */
-div.nbinput.container div.prompt,
-div.nboutput.container div.prompt {
-    width: 4.5ex;
-    padding-top: 5px;
-    position: relative;
-    user-select: none;
-}
-
-div.nbinput.container div.prompt > div,
-div.nboutput.container div.prompt > div {
-    position: absolute;
-    right: 0;
-    margin-right: 0.3ex;
-}
-
-@media (max-width: 540px) {
-    div.nbinput.container div.prompt,
-    div.nboutput.container div.prompt {
-        width: unset;
-        text-align: left;
-        padding: 0.4em;
-    }
-    div.nboutput.container div.prompt.empty {
-        padding: 0;
-    }
-
-    div.nbinput.container div.prompt > div,
-    div.nboutput.container div.prompt > div {
-        position: unset;
-    }
-}
-
-/* disable scrollbars on prompts */
-div.nbinput.container div.prompt pre,
-div.nboutput.container div.prompt pre {
-    overflow: hidden;
-}
-
-/* input/output area */
-div.nbinput.container div.input_area,
-div.nboutput.container div.output_area {
-    -webkit-flex: 1;
-    flex: 1;
-    overflow: auto;
-}
-@media (max-width: 540px) {
-    div.nbinput.container div.input_area,
-    div.nboutput.container div.output_area {
-        width: 100%;
-    }
-}
-
-/* input area */
-div.nbinput.container div.input_area {
-    border: 1px solid #e0e0e0;
-    border-radius: 2px;
-    /*background: #f5f5f5;*/
-}
-
-/* override MathJax center alignment in output cells */
-div.nboutput.container div[class*=MathJax] {
-    text-align: left !important;
-}
-
-/* override sphinx.ext.imgmath center alignment in output cells */
-div.nboutput.container div.math p {
-    text-align: left;
-}
-
-/* standard error */
-div.nboutput.container div.output_area.stderr {
-    background: #fdd;
-}
-
-/* ANSI colors */
-.ansi-black-fg { color: #3E424D; }
-.ansi-black-bg { background-color: #3E424D; }
-.ansi-black-intense-fg { color: #282C36; }
-.ansi-black-intense-bg { background-color: #282C36; }
-.ansi-red-fg { color: #E75C58; }
-.ansi-red-bg { background-color: #E75C58; }
-.ansi-red-intense-fg { color: #B22B31; }
-.ansi-red-intense-bg { background-color: #B22B31; }
-.ansi-green-fg { color: #00A250; }
-.ansi-green-bg { background-color: #00A250; }
-.ansi-green-intense-fg { color: #007427; }
-.ansi-green-intense-bg { background-color: #007427; }
-.ansi-yellow-fg { color: #DDB62B; }
-.ansi-yellow-bg { background-color: #DDB62B; }
-.ansi-yellow-intense-fg { color: #B27D12; }
-.ansi-yellow-intense-bg { background-color: #B27D12; }
-.ansi-blue-fg { color: #208FFB; }
-.ansi-blue-bg { background-color: #208FFB; }
-.ansi-blue-intense-fg { color: #0065CA; }
-.ansi-blue-intense-bg { background-color: #0065CA; }
-.ansi-magenta-fg { color: #D160C4; }
-.ansi-magenta-bg { background-color: #D160C4; }
-.ansi-magenta-intense-fg { color: #A03196; }
-.ansi-magenta-intense-bg { background-color: #A03196; }
-.ansi-cyan-fg { color: #60C6C8; }
-.ansi-cyan-bg { background-color: #60C6C8; }
-.ansi-cyan-intense-fg { color: #258F8F; }
-.ansi-cyan-intense-bg { background-color: #258F8F; }
-.ansi-white-fg { color: #C5C1B4; }
-.ansi-white-bg { background-color: #C5C1B4; }
-.ansi-white-intense-fg { color: #A1A6B2; }
-.ansi-white-intense-bg { background-color: #A1A6B2; }
-
-.ansi-default-inverse-fg { color: #FFFFFF; }
-.ansi-default-inverse-bg { background-color: #000000; }
-
-.ansi-bold { font-weight: bold; }
-.ansi-underline { text-decoration: underline; }
-
-
-div.nbinput.container div.input_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight].math,
-div.nboutput.container div.output_area.rendered_html,
-div.nboutput.container div.output_area > div.output_javascript,
-div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 5px;
-    margin: 0;
-}
-
-/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
-div.nbinput.container div.input_area > div[class^='highlight'],
-div.nboutput.container div.output_area > div[class^='highlight']{
-    overflow-y: hidden;
-}
-
-/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
-    display: none;
-}
-
-/* Some additional styling taken form the Jupyter notebook CSS */
-div.rendered_html table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
-  color: black;
-  font-size: 12px;
-  table-layout: fixed;
-}
-div.rendered_html thead {
-  border-bottom: 1px solid black;
-  vertical-align: bottom;
-}
-div.rendered_html tr,
-div.rendered_html th,
-div.rendered_html td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
-}
-div.rendered_html th {
-  font-weight: bold;
-}
-div.rendered_html tbody tr:nth-child(odd) {
-  background: #f5f5f5;
-}
-div.rendered_html tbody tr:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="Temperate-Ecohydrology">
-<h1>Temperate Ecohydrology<a class="headerlink" href="#Temperate-Ecohydrology" title="Permalink to this headline"></a></h1>
+  <section id="Temperate-Ecohydrology">
+<h1>Temperate Ecohydrology<a class="headerlink" href="#Temperate-Ecohydrology" title="Permalink to this heading"></a></h1>
 <p>Here we discuss some simple problems in ecosystem hydrology, which, for ATS, means integrated surface and subsurface hydrology along with sources/sinks representing evapotranspiration and other land surface processes.</p>
 <p>We describe a few different problems, including:</p>
 <ul class="simple">
@@ -355,8 +92,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 </pre></div>
 </div>
 </div>
@@ -364,8 +100,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;tools&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
 <span class="kn">import</span> <span class="nn">ats_xdmf</span>
 <span class="kn">import</span> <span class="nn">colors</span>
@@ -375,12 +110,11 @@ div.rendered_html tbody tr:hover {
 <span class="kn">import</span> <span class="nn">pandas</span>
 
 <span class="kn">import</span> <span class="nn">h5py</span>
-
-</pre></div>
+<br/></pre></div>
 </div>
 </div>
-<div class="section" id="Spinup">
-<h2>Spinup<a class="headerlink" href="#Spinup" title="Permalink to this headline"></a></h2>
+<section id="Spinup">
+<h2>Spinup<a class="headerlink" href="#Spinup" title="Permalink to this heading"></a></h2>
 <p>For applications of temperate ecohydrology, spinup is all about getting antecedent soil moisture conditions correct. There can be no expectation of getting reasonable hydrographs if the antecedent soil moisture field is wrong.</p>
 <p>One way of beginning this process is to solve, to pseudo-steady state, the integrated hydrology problem with a constant source term that is given by the mean annual (or mean seasonal) precipitation minus evapotranspiration (P-ET) rate. This can be solved for long times, using an adaptive timestep that grows as the solution approaches steady state. This sets the mean background conditions for simulations with daily or other high-resolution inputs.</p>
 <p>The first step is to provide an initial condition for that run which is hydrostatic with the water table at the surface. Starting from fully saturated and drawing down to the steady state is faster and more efficient than starting from dry and filling up to the steady state. To do this, we don’t assume that this is a hillslope with fixed slope, but imagine that it is set by topography and therefore cannot be provided analytically.</p>
@@ -391,8 +125,7 @@ in predictive power.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the saturation at steady-state</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the saturation at steady-state</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;spinup.demo&quot;</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">time_unit</span><span class="o">=</span><span class="s1">&#39;d&#39;</span><span class="p">)</span>
@@ -412,10 +145,7 @@ in predictive power.</p>
     <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
 
 <span class="n">plot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span>
-
-
-
-</pre></div>
+<br/><br/><br/></pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -429,8 +159,7 @@ in predictive power.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the runoff and, more clearly, the total water content in the subsurface to see if we are at steadystate</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the runoff and, more clearly, the total water content in the subsurface to see if we are at steadystate</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 
 <span class="n">flux</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s1">&#39;surface_outlet_flux.dat&#39;</span><span class="p">),</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
@@ -444,8 +173,7 @@ in predictive power.</p>
 <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;water content [mol]&#39;</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-</pre></div>
+<br/></pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -455,19 +183,18 @@ in predictive power.</p>
 <img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_5_0.png" />
 </div>
 </div>
-</div>
-<div class="section" id="Prescribed-P---ET">
-<h2>Prescribed P - ET<a class="headerlink" href="#Prescribed-P---ET" title="Permalink to this headline"></a></h2>
-<p>Often precipitation and evapotranspiration are known from either a preexisting land model run, remotely sensed or point data (e.g. eddy flux towers and weather stations) or other approaches. Here we do a few examples to generate datasets for use in ATS and then drive simulations with this prescribed data.</p>
-<div class="section" id="Data-processing">
-<h3>Data processing<a class="headerlink" href="#Data-processing" title="Permalink to this headline"></a></h3>
+</section>
+<section id="Prescribed-P---ET">
+<h2>Prescribed P - ET<a class="headerlink" href="#Prescribed-P---ET" title="Permalink to this heading"></a></h2>
+<p>Often precipitation and evapotranspiration are known from either a preexisting land model run, remotely sensed or point data (e.g. eddy flux towers and weather stations) or other approaches. Here we do a few examples to generate datasets for use in ATS and then drive simulations with this prescribed data.</p>
+<section id="Data-processing">
+<h3>Data processing<a class="headerlink" href="#Data-processing" title="Permalink to this heading"></a></h3>
 <p>Below is an example of how to generate, from raw data, the input files needed by ATS for P, E, and T for these examples. Included here is output from a CLM 4.5 run for the Asu Basin outside Manaus, Brazil. This run provides daily data of a variety of the water balance fluxes, including precipitation, evaporation, and transpiration. We read this file and generate the two HDF5 forcing files for use in ATS in the prescribed P-ET examples.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1">#</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
 <span class="c1"># load the data</span>
 <span class="c1">#</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="s2">&quot;data/flux_output_w_fluxtowerR.txt&quot;</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -510,8 +237,7 @@ in predictive power.</p>
     <span class="n">fid</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;p_minus_e [m s^-1]&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">precip</span> <span class="o">-</span> <span class="n">evap</span><span class="p">))</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-
-</pre></div>
+<br/></pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -529,9 +255,9 @@ in predictive power.</p>
 <img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_8_1.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_8_1.png" />
 </div>
 </div>
-</div>
-<div class="section" id="Daily-forced-simulations">
-<h3>Daily forced simulations<a class="headerlink" href="#Daily-forced-simulations" title="Permalink to this headline"></a></h3>
+</section>
+<section id="Daily-forced-simulations">
+<h3>Daily forced simulations<a class="headerlink" href="#Daily-forced-simulations" title="Permalink to this heading"></a></h3>
 <p>Given the steady-state initial condition and the forcing data, we now run simulations forced by daily P-ET data. Here we consider two choices – first a run where P - ET is prescribed as a single entity as a function of time, and a second run where P - E is prescribed as a function of time while T is separated out.</p>
 <p>In the former case, the net water source is provided to the surface system (<code class="docutils literal notranslate"><span class="pre">prescribed_surface_evaporation.xml</span></code>). This is often problematic. Specifically, in most places, T can be order P, and pulling that much water from the surface isn’t always possible – the top grid cell dries out and cannot get water to the surface fast enough. Therefore a limiter must be applied to the ET to ensure it does not dry out a grid cell too much. This is especially problematic in 3D integrated hydrology
 simulations, where often the ET is calculated via a column model using an “average” depth to water table, which is significantly less than the depth to water table at, for instance, the top of a hillslope in a 3D run.</p>
@@ -544,8 +270,7 @@ less frequently a problem and typically full evaporation is taken and the limite
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">directory_p_et</span> <span class="o">=</span> <span class="s1">&#39;prescribed_surface_evaporation.demo&#39;</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">directory_p_et</span> <span class="o">=</span> <span class="s1">&#39;prescribed_surface_evaporation.demo&#39;</span>
 <span class="n">directory_p_e_t</span> <span class="o">=</span> <span class="s1">&#39;prescribed_transpiration.demo&#39;</span>
 
 <span class="c1"># plot the hydrographs</span>
@@ -571,11 +296,11 @@ less frequently a problem and typically full evaporation is taken and the limite
 <img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_10_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_10_0.png" />
 </div>
 </div>
-</div>
-</div>
-</div>
-<div class="section" id="Empirical-evapotranspiration">
-<h1>Empirical evapotranspiration<a class="headerlink" href="#Empirical-evapotranspiration" title="Permalink to this headline"></a></h1>
+</section>
+</section>
+</section>
+<section id="Empirical-evapotranspiration">
+<h1>Empirical evapotranspiration<a class="headerlink" href="#Empirical-evapotranspiration" title="Permalink to this heading"></a></h1>
 <p>Many empirical models of evapotranspiration have been defined. One of the most commonly used is the Priestley-Taylor model, which is itself a variant of the Penman-Monteith equation. Our implementation follows that of USGS’s PRMS model.</p>
 <p>Under the first example, we simply impose incoming shortwave radiation as the net radiation balance. The ground surface temperature, needed to compute the ground conduction term, is given by yesterday’s air temperature. Snow is included as a simple bucket model, with sources due to precipitation and sinks due to an empirical melting model (also based on PRMS) give by a melting degree-day. The Priestley-Taylor equations provide potential transpiration – this flux is then allocated to grid cells
 in the shallow subsurface based on a model from CLM version 4.5 that includes rooting distribution parameters and a limiter based on mafic potential of full turgor and that of the wilting point.</p>
@@ -587,8 +312,7 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">dirname</span><span class="p">):</span>
     <span class="n">obs</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="s1">&#39;water_balance.dat&#39;</span><span class="p">),</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
     <span class="n">fig</span><span class="p">,</span><span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
 
@@ -606,8 +330,7 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;priestley_taylor.demo&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;priestley_taylor.demo&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -622,8 +345,7 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;priestley_taylor_canopy_evapotranspiration.demo&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;priestley_taylor_canopy_evapotranspiration.demo&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -638,8 +360,7 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;full_energy.demo&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;full_energy.demo&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -654,8 +375,7 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;simple_energy.demo&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span><span class="p">(</span><span class="s1">&#39;simple_energy.demo&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -666,13 +386,13 @@ in the shallow subsurface based on a model from CLM version 4.5 that includes ro
 <img alt="../../_images/ats_demos_05_ecohydrology_ecohydrology_16_0.png" src="../../_images/ats_demos_05_ecohydrology_ecohydrology_16_0.png" />
 </div>
 </div>
-<div class="section" id="Prescribed-LAI,-calculated-transpiration">
-<h2>Prescribed LAI, calculated transpiration<a class="headerlink" href="#Prescribed-LAI,-calculated-transpiration" title="Permalink to this headline"></a></h2>
-<p>More realistic than prescribing transpiration is to actively calculate transpiration as a function of photosynthesis. This can be done through vegetation models, which actively simulate a carbon cycle and predict LAI and photosynthesis, or through a biophysics model, which takes as input a prescribed LAI as a function of time (including, e.g. seasonal variations) and calculates photosynthesis, stomatal conductance, and transpiration.</p>
+<section id="Prescribed-LAI,-calculated-transpiration">
+<h2>Prescribed LAI, calculated transpiration<a class="headerlink" href="#Prescribed-LAI,-calculated-transpiration" title="Permalink to this heading"></a></h2>
+<p>More realistic than prescribing transpiration is to actively calculate transpiration as a function of photosynthesis. This can be done through vegetation models, which actively simulate a carbon cycle and predict LAI and photosynthesis, or through a biophysics model, which takes as input a prescribed LAI as a function of time (including, e.g. seasonal variations) and calculates photosynthesis, stomatal conductance, and transpiration.</p>
 <p>These approaches need no limiters – the limiter is in the stomatal conductance term, which is itself a function of soil moisture or mafic potential.</p>
 <p><strong>TO DO</strong> This is not yet implemented – the veg model and the biophysics calculation are in the same PK, and need to be refactored and split before this is possible. <em>ETC</em></p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

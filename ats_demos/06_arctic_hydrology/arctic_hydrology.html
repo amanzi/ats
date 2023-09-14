@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arctic Permafrost Modeling &mdash; ATS 1.4 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -27,14 +30,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATS
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATS
           </a>
               <div class="version">
                 1.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -59,8 +66,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Arctic Permafrost Modeling</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Arctic Permafrost Modeling</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/ats_demos/06_arctic_hydrology/arctic_hydrology.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,278 +77,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS for nbsphinx extension */
-
-/* remove conflicting styling from Sphinx themes */
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt *,
-div.nbinput.container div.input_area pre,
-div.nboutput.container div.output_area pre,
-div.nbinput.container div.input_area .highlight,
-div.nboutput.container div.output_area .highlight {
-    border: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-}
-
-div.nbinput.container > div[class*=highlight],
-div.nboutput.container > div[class*=highlight] {
-    margin: 0;
-}
-
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt * {
-    background: none;
-}
-
-div.nboutput.container div.output_area .highlight,
-div.nboutput.container div.output_area pre {
-    background: unset;
-}
-
-div.nboutput.container div.output_area div.highlight {
-    color: unset;  /* override Pygments text color */
-}
-
-/* avoid gaps between output lines */
-div.nboutput.container div[class*=highlight] pre {
-    line-height: normal;
-}
-
-/* input/output containers */
-div.nbinput.container,
-div.nboutput.container {
-    display: -webkit-flex;
-    display: flex;
-    align-items: flex-start;
-    margin: 0;
-    width: 100%;
-}
-@media (max-width: 540px) {
-    div.nbinput.container,
-    div.nboutput.container {
-        flex-direction: column;
-    }
-}
-
-/* input container */
-div.nbinput.container {
-    padding-top: 5px;
-}
-
-/* last container */
-div.nblast.container {
-    padding-bottom: 5px;
-}
-
-/* input prompt */
-div.nbinput.container div.prompt pre {
-    color: #307FC1;
-}
-
-/* output prompt */
-div.nboutput.container div.prompt pre {
-    color: #BF5B3D;
-}
-
-/* all prompts */
-div.nbinput.container div.prompt,
-div.nboutput.container div.prompt {
-    width: 4.5ex;
-    padding-top: 5px;
-    position: relative;
-    user-select: none;
-}
-
-div.nbinput.container div.prompt > div,
-div.nboutput.container div.prompt > div {
-    position: absolute;
-    right: 0;
-    margin-right: 0.3ex;
-}
-
-@media (max-width: 540px) {
-    div.nbinput.container div.prompt,
-    div.nboutput.container div.prompt {
-        width: unset;
-        text-align: left;
-        padding: 0.4em;
-    }
-    div.nboutput.container div.prompt.empty {
-        padding: 0;
-    }
-
-    div.nbinput.container div.prompt > div,
-    div.nboutput.container div.prompt > div {
-        position: unset;
-    }
-}
-
-/* disable scrollbars on prompts */
-div.nbinput.container div.prompt pre,
-div.nboutput.container div.prompt pre {
-    overflow: hidden;
-}
-
-/* input/output area */
-div.nbinput.container div.input_area,
-div.nboutput.container div.output_area {
-    -webkit-flex: 1;
-    flex: 1;
-    overflow: auto;
-}
-@media (max-width: 540px) {
-    div.nbinput.container div.input_area,
-    div.nboutput.container div.output_area {
-        width: 100%;
-    }
-}
-
-/* input area */
-div.nbinput.container div.input_area {
-    border: 1px solid #e0e0e0;
-    border-radius: 2px;
-    /*background: #f5f5f5;*/
-}
-
-/* override MathJax center alignment in output cells */
-div.nboutput.container div[class*=MathJax] {
-    text-align: left !important;
-}
-
-/* override sphinx.ext.imgmath center alignment in output cells */
-div.nboutput.container div.math p {
-    text-align: left;
-}
-
-/* standard error */
-div.nboutput.container div.output_area.stderr {
-    background: #fdd;
-}
-
-/* ANSI colors */
-.ansi-black-fg { color: #3E424D; }
-.ansi-black-bg { background-color: #3E424D; }
-.ansi-black-intense-fg { color: #282C36; }
-.ansi-black-intense-bg { background-color: #282C36; }
-.ansi-red-fg { color: #E75C58; }
-.ansi-red-bg { background-color: #E75C58; }
-.ansi-red-intense-fg { color: #B22B31; }
-.ansi-red-intense-bg { background-color: #B22B31; }
-.ansi-green-fg { color: #00A250; }
-.ansi-green-bg { background-color: #00A250; }
-.ansi-green-intense-fg { color: #007427; }
-.ansi-green-intense-bg { background-color: #007427; }
-.ansi-yellow-fg { color: #DDB62B; }
-.ansi-yellow-bg { background-color: #DDB62B; }
-.ansi-yellow-intense-fg { color: #B27D12; }
-.ansi-yellow-intense-bg { background-color: #B27D12; }
-.ansi-blue-fg { color: #208FFB; }
-.ansi-blue-bg { background-color: #208FFB; }
-.ansi-blue-intense-fg { color: #0065CA; }
-.ansi-blue-intense-bg { background-color: #0065CA; }
-.ansi-magenta-fg { color: #D160C4; }
-.ansi-magenta-bg { background-color: #D160C4; }
-.ansi-magenta-intense-fg { color: #A03196; }
-.ansi-magenta-intense-bg { background-color: #A03196; }
-.ansi-cyan-fg { color: #60C6C8; }
-.ansi-cyan-bg { background-color: #60C6C8; }
-.ansi-cyan-intense-fg { color: #258F8F; }
-.ansi-cyan-intense-bg { background-color: #258F8F; }
-.ansi-white-fg { color: #C5C1B4; }
-.ansi-white-bg { background-color: #C5C1B4; }
-.ansi-white-intense-fg { color: #A1A6B2; }
-.ansi-white-intense-bg { background-color: #A1A6B2; }
-
-.ansi-default-inverse-fg { color: #FFFFFF; }
-.ansi-default-inverse-bg { background-color: #000000; }
-
-.ansi-bold { font-weight: bold; }
-.ansi-underline { text-decoration: underline; }
-
-
-div.nbinput.container div.input_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight].math,
-div.nboutput.container div.output_area.rendered_html,
-div.nboutput.container div.output_area > div.output_javascript,
-div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 5px;
-    margin: 0;
-}
-
-/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
-div.nbinput.container div.input_area > div[class^='highlight'],
-div.nboutput.container div.output_area > div[class^='highlight']{
-    overflow-y: hidden;
-}
-
-/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
-    display: none;
-}
-
-/* Some additional styling taken form the Jupyter notebook CSS */
-div.rendered_html table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
-  color: black;
-  font-size: 12px;
-  table-layout: fixed;
-}
-div.rendered_html thead {
-  border-bottom: 1px solid black;
-  vertical-align: bottom;
-}
-div.rendered_html tr,
-div.rendered_html th,
-div.rendered_html td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
-}
-div.rendered_html th {
-  font-weight: bold;
-}
-div.rendered_html tbody tr:nth-child(odd) {
-  background: #f5f5f5;
-}
-div.rendered_html tbody tr:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="Arctic-Permafrost-Modeling">
-<h1>Arctic Permafrost Modeling<a class="headerlink" href="#Arctic-Permafrost-Modeling" title="Permalink to this headline"></a></h1>
+  <section id="Arctic-Permafrost-Modeling">
+<h1>Arctic Permafrost Modeling<a class="headerlink" href="#Arctic-Permafrost-Modeling" title="Permalink to this heading"></a></h1>
 <p>ATS was initially developed out of a desire to model Arctic permafrost using the best available understanding of cryosphere processes, including subsurface flow in partially saturated, partially frozen soils. These simulations form the basis for doing this work, and represent an approach designed for continuous permafrost.</p>
 <p>This demo also is useful for seeing how layering works in ATS, as there are heterogeneous properties throughout (peat and mineral soil layers).</p>
 <p>The spinup of this sequence is as follows:</p>
@@ -358,8 +95,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;ATS_SRC_DIR&#39;</span><span class="p">],</span><span class="s1">&#39;tools&#39;</span><span class="p">,</span> <span class="s1">&#39;utils&#39;</span><span class="p">))</span>
 <span class="kn">import</span> <span class="nn">ats_xdmf</span>
@@ -372,8 +108,8 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<div class="section" id="spinup:-Freeze-steady-state-to-generate-ice-column">
-<h2>spinup: Freeze steady-state to generate ice column<a class="headerlink" href="#spinup:-Freeze-steady-state-to-generate-ice-column" title="Permalink to this headline"></a></h2>
+<section id="spinup:-Freeze-steady-state-to-generate-ice-column">
+<h2>spinup: Freeze steady-state to generate ice column<a class="headerlink" href="#spinup:-Freeze-steady-state-to-generate-ice-column" title="Permalink to this heading"></a></h2>
 <p>Transient simulations in areas of continuous permafrost are initialized in the winter to make spinup simpler. Therefore we start from a fully frozen domain (instead of the partially frozen domain that would be required for starting any other time of year).</p>
 <p>Transient simulations in areas of seasonally frozen ground, however, would typically be started in the summer for the same reason. Transient simulations in areas of discontinuous permafrost or areas with taliks are challenging, and typically need more extensive spinup processes.</p>
 <p>For continuous permafrost, to establish this fully-frozen domain, we freeze the hydrostatic water column from below until the solution reaches steady-state again. This “pseudo-transient” approach is easier for solvers than solving the steady-state problem. This is done in the subsurface only, solving coupled Richards and energy equations.</p>
@@ -387,15 +123,14 @@ quite wet, so we work to get the ice table as close to the surface as possible. 
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;freezeup.demo&quot;</span>
 
 <span class="c1">#</span>
 <span class="c1"># plot the solution</span>
 <span class="c1">#</span>
 <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">axs</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A generic plotting function that plots saturation as a function of depth.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A generic plotting function that plots saturation as a function of depth.&quot;&quot;&quot;</span>
 
     <span class="n">plot_column_data</span><span class="o">.</span><span class="n">plot_subsurface</span><span class="p">(</span><span class="n">vis</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;pressure&#39;</span><span class="p">,],</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
     <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;pressure [Pa]&#39;</span><span class="p">)</span>
@@ -477,9 +212,9 @@ quite wet, so we work to get the ice table as close to the surface as possible. 
 <img alt="../../_images/ats_demos_06_arctic_hydrology_arctic_hydrology_3_1.png" src="../../_images/ats_demos_06_arctic_hydrology_arctic_hydrology_3_1.png" />
 </div>
 </div>
-</div>
-<div class="section" id="Dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing">
-<h2>Dynamic fully coupled run with annual cyclic steady state forcing<a class="headerlink" href="#Dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing">
+<h2>Dynamic fully coupled run with annual cyclic steady state forcing<a class="headerlink" href="#Dynamic-fully-coupled-run-with-annual-cyclic-steady-state-forcing" title="Permalink to this heading"></a></h2>
 <p>Next, the permafrost_column run demonstrates the typical transient column run. This includes all thermal hydrology processes:</p>
 <ul class="simple">
 <li><p>subsurface flow (modified Richards)</p></li>
@@ -497,8 +232,7 @@ quite wet, so we work to get the ice table as close to the surface as possible. 
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;permafrost_column.demo&quot;</span>
 
 <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
@@ -615,16 +349,15 @@ No handles with labels found to put in legend.
 <img alt="../../_images/ats_demos_06_arctic_hydrology_arctic_hydrology_5_2.png" src="../../_images/ats_demos_06_arctic_hydrology_arctic_hydrology_5_2.png" />
 </div>
 </div>
-</div>
-<div class="section" id="permafrost_transect:-Dynamic-run-with-snow-distribution">
-<h2>permafrost_transect: Dynamic run with snow distribution<a class="headerlink" href="#permafrost_transect:-Dynamic-run-with-snow-distribution" title="Permalink to this headline"></a></h2>
+</section>
+<section id="permafrost_transect:-Dynamic-run-with-snow-distribution">
+<h2>permafrost_transect: Dynamic run with snow distribution<a class="headerlink" href="#permafrost_transect:-Dynamic-run-with-snow-distribution" title="Permalink to this heading"></a></h2>
 <p>For 2D permafrost runs including topography variation, it is often crucial to allow snow to preferentially accumulate in low-lying areas, as is typical of wind-blow snow. ATS has a very simple version of this. The 2D demo, <code class="docutils literal notranslate"><span class="pre">permafrost_transect</span></code>, would run for longer times, but would typically be done on a few cores for a longer time, so we simply demonstrate the snow drifting here by running the first 10 days.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;permafrost_transect.demo&quot;</span>
 
 <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">axs</span><span class="p">,</span> <span class="n">style</span><span class="p">):</span>
@@ -693,13 +426,12 @@ No handles with labels found to put in legend.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

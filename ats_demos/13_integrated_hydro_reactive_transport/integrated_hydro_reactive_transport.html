@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Integrated Hydrology and Reactive Transport &mdash; ATS 1.4 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/nbsphinx-code-cells.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -27,14 +30,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> ATS
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ATS
           </a>
               <div class="version">
                 1.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -59,8 +66,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Integrated Hydrology and Reactive Transport</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Integrated Hydrology and Reactive Transport</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -70,278 +77,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS for nbsphinx extension */
-
-/* remove conflicting styling from Sphinx themes */
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt *,
-div.nbinput.container div.input_area pre,
-div.nboutput.container div.output_area pre,
-div.nbinput.container div.input_area .highlight,
-div.nboutput.container div.output_area .highlight {
-    border: none;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-}
-
-div.nbinput.container > div[class*=highlight],
-div.nboutput.container > div[class*=highlight] {
-    margin: 0;
-}
-
-div.nbinput.container div.prompt *,
-div.nboutput.container div.prompt * {
-    background: none;
-}
-
-div.nboutput.container div.output_area .highlight,
-div.nboutput.container div.output_area pre {
-    background: unset;
-}
-
-div.nboutput.container div.output_area div.highlight {
-    color: unset;  /* override Pygments text color */
-}
-
-/* avoid gaps between output lines */
-div.nboutput.container div[class*=highlight] pre {
-    line-height: normal;
-}
-
-/* input/output containers */
-div.nbinput.container,
-div.nboutput.container {
-    display: -webkit-flex;
-    display: flex;
-    align-items: flex-start;
-    margin: 0;
-    width: 100%;
-}
-@media (max-width: 540px) {
-    div.nbinput.container,
-    div.nboutput.container {
-        flex-direction: column;
-    }
-}
-
-/* input container */
-div.nbinput.container {
-    padding-top: 5px;
-}
-
-/* last container */
-div.nblast.container {
-    padding-bottom: 5px;
-}
-
-/* input prompt */
-div.nbinput.container div.prompt pre {
-    color: #307FC1;
-}
-
-/* output prompt */
-div.nboutput.container div.prompt pre {
-    color: #BF5B3D;
-}
-
-/* all prompts */
-div.nbinput.container div.prompt,
-div.nboutput.container div.prompt {
-    width: 4.5ex;
-    padding-top: 5px;
-    position: relative;
-    user-select: none;
-}
-
-div.nbinput.container div.prompt > div,
-div.nboutput.container div.prompt > div {
-    position: absolute;
-    right: 0;
-    margin-right: 0.3ex;
-}
-
-@media (max-width: 540px) {
-    div.nbinput.container div.prompt,
-    div.nboutput.container div.prompt {
-        width: unset;
-        text-align: left;
-        padding: 0.4em;
-    }
-    div.nboutput.container div.prompt.empty {
-        padding: 0;
-    }
-
-    div.nbinput.container div.prompt > div,
-    div.nboutput.container div.prompt > div {
-        position: unset;
-    }
-}
-
-/* disable scrollbars on prompts */
-div.nbinput.container div.prompt pre,
-div.nboutput.container div.prompt pre {
-    overflow: hidden;
-}
-
-/* input/output area */
-div.nbinput.container div.input_area,
-div.nboutput.container div.output_area {
-    -webkit-flex: 1;
-    flex: 1;
-    overflow: auto;
-}
-@media (max-width: 540px) {
-    div.nbinput.container div.input_area,
-    div.nboutput.container div.output_area {
-        width: 100%;
-    }
-}
-
-/* input area */
-div.nbinput.container div.input_area {
-    border: 1px solid #e0e0e0;
-    border-radius: 2px;
-    /*background: #f5f5f5;*/
-}
-
-/* override MathJax center alignment in output cells */
-div.nboutput.container div[class*=MathJax] {
-    text-align: left !important;
-}
-
-/* override sphinx.ext.imgmath center alignment in output cells */
-div.nboutput.container div.math p {
-    text-align: left;
-}
-
-/* standard error */
-div.nboutput.container div.output_area.stderr {
-    background: #fdd;
-}
-
-/* ANSI colors */
-.ansi-black-fg { color: #3E424D; }
-.ansi-black-bg { background-color: #3E424D; }
-.ansi-black-intense-fg { color: #282C36; }
-.ansi-black-intense-bg { background-color: #282C36; }
-.ansi-red-fg { color: #E75C58; }
-.ansi-red-bg { background-color: #E75C58; }
-.ansi-red-intense-fg { color: #B22B31; }
-.ansi-red-intense-bg { background-color: #B22B31; }
-.ansi-green-fg { color: #00A250; }
-.ansi-green-bg { background-color: #00A250; }
-.ansi-green-intense-fg { color: #007427; }
-.ansi-green-intense-bg { background-color: #007427; }
-.ansi-yellow-fg { color: #DDB62B; }
-.ansi-yellow-bg { background-color: #DDB62B; }
-.ansi-yellow-intense-fg { color: #B27D12; }
-.ansi-yellow-intense-bg { background-color: #B27D12; }
-.ansi-blue-fg { color: #208FFB; }
-.ansi-blue-bg { background-color: #208FFB; }
-.ansi-blue-intense-fg { color: #0065CA; }
-.ansi-blue-intense-bg { background-color: #0065CA; }
-.ansi-magenta-fg { color: #D160C4; }
-.ansi-magenta-bg { background-color: #D160C4; }
-.ansi-magenta-intense-fg { color: #A03196; }
-.ansi-magenta-intense-bg { background-color: #A03196; }
-.ansi-cyan-fg { color: #60C6C8; }
-.ansi-cyan-bg { background-color: #60C6C8; }
-.ansi-cyan-intense-fg { color: #258F8F; }
-.ansi-cyan-intense-bg { background-color: #258F8F; }
-.ansi-white-fg { color: #C5C1B4; }
-.ansi-white-bg { background-color: #C5C1B4; }
-.ansi-white-intense-fg { color: #A1A6B2; }
-.ansi-white-intense-bg { background-color: #A1A6B2; }
-
-.ansi-default-inverse-fg { color: #FFFFFF; }
-.ansi-default-inverse-bg { background-color: #000000; }
-
-.ansi-bold { font-weight: bold; }
-.ansi-underline { text-decoration: underline; }
-
-
-div.nbinput.container div.input_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight] > pre,
-div.nboutput.container div.output_area div[class*=highlight].math,
-div.nboutput.container div.output_area.rendered_html,
-div.nboutput.container div.output_area > div.output_javascript,
-div.nboutput.container div.output_area:not(.rendered_html) > img{
-    padding: 5px;
-    margin: 0;
-}
-
-/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
-div.nbinput.container div.input_area > div[class^='highlight'],
-div.nboutput.container div.output_area > div[class^='highlight']{
-    overflow-y: hidden;
-}
-
-/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
-    display: none;
-}
-
-/* Some additional styling taken form the Jupyter notebook CSS */
-div.rendered_html table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
-  color: black;
-  font-size: 12px;
-  table-layout: fixed;
-}
-div.rendered_html thead {
-  border-bottom: 1px solid black;
-  vertical-align: bottom;
-}
-div.rendered_html tr,
-div.rendered_html th,
-div.rendered_html td {
-  text-align: right;
-  vertical-align: middle;
-  padding: 0.5em 0.5em;
-  line-height: normal;
-  white-space: normal;
-  max-width: none;
-  border: none;
-}
-div.rendered_html th {
-  font-weight: bold;
-}
-div.rendered_html tbody tr:nth-child(odd) {
-  background: #f5f5f5;
-}
-div.rendered_html tbody tr:hover {
-  background: rgba(66, 165, 245, 0.2);
-}
-
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="Integrated-Hydrology-and-Reactive-Transport">
-<h1>Integrated Hydrology and Reactive Transport<a class="headerlink" href="#Integrated-Hydrology-and-Reactive-Transport" title="Permalink to this headline"></a></h1>
+  <section id="Integrated-Hydrology-and-Reactive-Transport">
+<h1>Integrated Hydrology and Reactive Transport<a class="headerlink" href="#Integrated-Hydrology-and-Reactive-Transport" title="Permalink to this heading"></a></h1>
 <p>This is a series of problems to test and demonstrate the reactive transport component of ATS in the context of integrated hydrology problems. The focus is thus on the reactive transport component. To learn more about the integrated hydrology, please refer to the integrated hydro demo.</p>
 <p>Tests demonstrate a 1D column (showing dry-to-wet transition with a tracer present in the rainwater that is transported into the subsurface), and a 2D hillslope problem (showing dry-wet cycles driving rainwater infiltration into the subsurface, which in turn drive mineral dissolution, as well as surface runoff, which dilutes the groundwater discharge).</p>
 <p>Documentation of this demo is in the early stages of development.</p>
@@ -350,8 +87,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.ma</span> <span class="k">as</span> <span class="nn">ma</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -361,16 +97,15 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<div class="section" id="Example:-1D-infiltration-and-transport-of-conservative-tracer">
-<h2>Example: 1D infiltration and transport of conservative tracer<a class="headerlink" href="#Example:-1D-infiltration-and-transport-of-conservative-tracer" title="Permalink to this headline"></a></h2>
+<section id="Example:-1D-infiltration-and-transport-of-conservative-tracer">
+<h2>Example: 1D infiltration and transport of conservative tracer<a class="headerlink" href="#Example:-1D-infiltration-and-transport-of-conservative-tracer" title="Permalink to this heading"></a></h2>
 <p>In this example, we rain on a column, then turn off the rain. Initially the column is partially saturated. Over time, the column saturates and ponded water expresses on the surface. A conservative tracer is present in the rainwater but not in the subsurface initially, thus infiltration of rainwater results in concentrations of the tracer in the subsurface. When water ponds on the surface, the concentration of the tracer in the surface water is that of the rainwater.</p>
 <p>This demonstrates the dry-to-wet transitions and solute mass exchange between surface and subsurface.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># load the ATS solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load the ATS solution</span>
 <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 <span class="n">vis</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
 <span class="n">vis</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">columnar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -404,8 +139,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># load surface solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># load surface solution</span>
 <span class="n">vis_surf</span> <span class="o">=</span> <span class="n">ats_xdmf</span><span class="o">.</span><span class="n">VisFile</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">)</span>
 <span class="n">vis_surf</span><span class="o">.</span><span class="n">loadMesh</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
 </pre></div>
@@ -415,8 +149,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1">#get subsurface coord</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#get subsurface coord</span>
 <span class="n">xsub</span><span class="o">=</span><span class="n">vis</span><span class="o">.</span><span class="n">centroids</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
 
 <span class="c1">#get surface coord</span>
@@ -429,8 +162,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># settings for plot</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings for plot</span>
 <span class="n">SIZE</span><span class="o">=</span><span class="mi">20</span>
 <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="s1">&#39;m&#39;</span><span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
 <span class="n">cycles</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">,</span><span class="s1">&#39;10&#39;</span><span class="p">,</span><span class="s1">&#39;18&#39;</span><span class="p">,</span><span class="s1">&#39;22&#39;</span><span class="p">,</span><span class="s1">&#39;24&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">]</span>
@@ -442,8 +174,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
 <span class="n">fig</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
 <span class="n">bx</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">twiny</span><span class="p">()</span>
 <span class="c1">##plot_column_data.plot_subsurface(vis, [&#39;saturation_liquid&#39;,], ax, None, cmap=&#39;jet&#39;)</span>
@@ -478,8 +209,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">So</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;saturation_liquid&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">So</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;saturation_liquid&#39;</span><span class="p">,</span><span class="s1">&#39;0&#39;</span><span class="p">))</span>
 <span class="n">pdn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis_surf</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;surface-total_component_concentration.cell.tracer&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span> \
     <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;molar_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span> \
     <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vis</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mass_density_liquid.cell.0&#39;</span><span class="p">,</span><span class="s1">&#39;34&#39;</span><span class="p">))</span>
@@ -492,8 +222,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># plot the solution</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot the solution</span>
 <span class="n">fig</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">4.5</span><span class="p">,</span><span class="mi">6</span><span class="p">])</span>
 <span class="n">bx</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">twiny</span><span class="p">()</span>
 <span class="c1">##plot_column_data.plot_subsurface(vis, [&#39;saturation_liquid&#39;,], ax, None, cmap=&#39;jet&#39;)</span>
@@ -535,15 +264,15 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="Example:-2D-hillslope-and-reactive-transport-with-mineral-dissolution">
-<h2>Example: 2D hillslope and reactive transport with mineral dissolution<a class="headerlink" href="#Example:-2D-hillslope-and-reactive-transport-with-mineral-dissolution" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Example:-2D-hillslope-and-reactive-transport-with-mineral-dissolution">
+<h2>Example: 2D hillslope and reactive transport with mineral dissolution<a class="headerlink" href="#Example:-2D-hillslope-and-reactive-transport-with-mineral-dissolution" title="Permalink to this heading"></a></h2>
 <p>This demo considers a simplified representation of a headwater catchment hillslope. The simulation seeks to capture its hydrological and geochemical response to evolving precipitation inputs over a period of 200 days that include wet and dry periods. Over most of the hillslope rainwater infiltrates into the subsurface, flows downgradient and discharges to the surface near the hillslope toe. During wet periods, groundwater discharge mixes with rain water in this region of the surface. During dry
 periods, surface water in this region is exclusively from groundwater dicharge.</p>
 <p>The geochemical problem considers only the carbonate system with 5 primary species, 6 secondary (equilibrium) complexes, and calcite. Aqueous complexation is considered both in the surface and subsurface domains, while calcite dissolution is considered only in the subsurface domain. Rainwater drives calcite dissolution in the subsurface before it equilibrates at depth. Two non-reactive tracers, one in the subsurface and one in the rainwater, are used to unravel mixing processes.</p>
-</div>
-<div class="section" id="Domain-and-Boundary-Conditions">
-<h2>Domain and Boundary Conditions<a class="headerlink" href="#Domain-and-Boundary-Conditions" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Domain-and-Boundary-Conditions">
+<h2>Domain and Boundary Conditions<a class="headerlink" href="#Domain-and-Boundary-Conditions" title="Permalink to this heading"></a></h2>
 <p>The hillslope is 1000-m long and 45-m deep with an average slope of 0.085</p>
 <ul class="simple">
 <li><p><strong>Subsurface domain</strong>: The upstream, downstream and bottom boundaries of the subsurface domain are no-flow boundaries. The top boundary is coupled with surface domain.</p></li>
@@ -553,8 +282,7 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1">#figure settings</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#figure settings</span>
 <span class="n">SIZE</span><span class="o">=</span><span class="mi">18</span>
 <span class="n">mol_to_m3</span> <span class="o">=</span> <span class="mf">1.8e-5</span>
 <span class="n">m3_to_mol</span> <span class="o">=</span> <span class="mf">5.55e4</span>
@@ -565,9 +293,9 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="Integrated-Hydrology">
-<h2>Integrated Hydrology<a class="headerlink" href="#Integrated-Hydrology" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Integrated-Hydrology">
+<h2>Integrated Hydrology<a class="headerlink" href="#Integrated-Hydrology" title="Permalink to this heading"></a></h2>
 <p>Periodic rainfall is the only source of water in the model, alternating dry with wet cycles with rain of different intensity. Below are the values of recharge applied uniformly on the surface at an observation point.</p>
 <p>The flow rate (surface-mass_flux) at the observation point of the hillslope toe (on the surface) shows quick initial drainage, which slows down with time and is followed by subsequent increases in response to precipitation cycles. The hillslope is draining during the entire simulated time.</p>
 <p>In the first 50 days, flow is all groundwater as no precipitation is assumed in the simulation. In the period of 50-75 days when rain starts, flow is a mixing of groundwater and surface water.</p>
@@ -575,8 +303,7 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 
 <span class="n">rain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;surface-water_source_sigmoid.dat&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 
@@ -600,8 +327,7 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 
 <span class="n">discharge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s1">&#39;surface_outlet_flux_crunch_sigmoid.dat&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 
@@ -623,18 +349,18 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="Reactive-Transport">
-<h2>Reactive Transport<a class="headerlink" href="#Reactive-Transport" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Reactive-Transport">
+<h2>Reactive Transport<a class="headerlink" href="#Reactive-Transport" title="Permalink to this heading"></a></h2>
 <p>We consider transport of 11 species, of which 5 are primary and 6 secondary. Only total component concentrations are transported by ATS, thus must be specified in each of the Transport PKs, with the same name and in the same order as the primary species in the geochemical engine. For example, for subsurface transport. Calcite is the only mineral considered.</p>
-</div>
-<div class="section" id="Sources-and-ICs-for-transport">
-<h2>Sources and ICs for transport<a class="headerlink" href="#Sources-and-ICs-for-transport" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Sources-and-ICs-for-transport">
+<h2>Sources and ICs for transport<a class="headerlink" href="#Sources-and-ICs-for-transport" title="Permalink to this heading"></a></h2>
 <p>The only external <strong>source</strong> of solutes is in the rain water. As with the surface flow problem, in the surface transport PK, a source term of solutes must specified in the surface. Here it is done as a geochemical condition named <strong>rain</strong>. The condition name must match the one available in the engine’s input file (it is case-sensitive). Rainwater is equlibrated with atmospheric CO2.</p>
 <p>We use the initial conditions in chemistry PKs to specify the presence (subsurface) or absence (surface) of calcite. This is done in the engine input file, where the volume fraction and surface area are specified. For example, the initial condition in the subsurface is named <strong>initial</strong>, and in the surface is named <strong>surfini</strong>.</p>
-</div>
-<div class="section" id="Geochemical-exports">
-<h2>Geochemical exports<a class="headerlink" href="#Geochemical-exports" title="Permalink to this headline"></a></h2>
+</section>
+<section id="Geochemical-exports">
+<h2>Geochemical exports<a class="headerlink" href="#Geochemical-exports" title="Permalink to this heading"></a></h2>
 <p>The concentration breakthrough curves are evaluated at the hillslope toe on the surface. The effluent chemical exports present the mixing processes and calcite reaction simulated within the hillslope domain.</p>
 <p>Key points:</p>
 <ul class="simple">
@@ -645,8 +371,7 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1">#total = np.loadtxt(&#39;surface_total_concentration_crunch_sigmoid.dat&#39;, skiprows=12)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#total = np.loadtxt(&#39;surface_total_concentration_crunch_sigmoid.dat&#39;, skiprows=12)</span>
 <span class="c1">#primary = np.loadtxt(&#39;surface_free_ion_species_crunch_sigmoid.dat&#39;, skiprows=12)</span>
 
 <span class="c1">#for now this is hardwired to visit pick output-- Needs to be updated</span>
@@ -667,8 +392,7 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">))</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">9</span><span class="p">))</span>
 
 <span class="c1"># top</span>
 <span class="n">bx</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
@@ -731,13 +455,12 @@ periods, surface water in this region is exclusively from groundwater dicharge.<
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
