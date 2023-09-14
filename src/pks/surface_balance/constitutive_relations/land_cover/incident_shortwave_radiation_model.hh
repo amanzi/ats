@@ -10,28 +10,19 @@
 //! Evaluates shortwave as a function of slope/aspect/etc.
 /*!
 
-Aspect modified shortwave radiation is determined by a factor which
-is multiplied by the 'incoming radiation incident on a flat surface'
-to determine the 'incoming radiation incident on a sloping surface of
-a given aspect' as a function of latitude, slope, aspect, and Julian
-day of the year, and time of day.
-
-Note that some careful checking and experimentation has found that, in
-general, the daily average incident radiation times the 12-noon aspect
-modifier correlates reasonably well with the daily average of the
-product of the hourly incident radiation and the hourly aspect
-modifier.  It is notably better than the daily average radiation times
-the daily average aspect modifier.
-
-Derived from LandLab code, which is released under the MIT license:
-https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radiation.py
-
 .. _incident_shortwave_radiation_model-spec:
 .. admonition:: incident_shortwave_radiation_model-spec
 
-    * `"daily averaged`" ``[bool]`` **true** Calculate daily averaged values (used for daily averaged input shortwave radiation).
-    * `"latitude [degrees]`" ``[double]`` Domain averaged latitude, in degrees.  Must be in the range [-90,90]
-    * `"day of year at time 0 [Julian days]`" ``[int]`` **0** Day of the year that the simulation began.  Defaults to 0, or Jan 1.
+   * `"latitude [degrees]`" ``[double]`` Latitude of the site.  A single
+     typical value is fine for most domains, even relatively large ones
+     (e.g. HUC4).
+   * `"daily averaged`" ``[bool]`` **true** Compute a daily averaged radiation, as
+     opposed to a time-specific, diurnal-cycle-resolving value.
+   * `"day of year at time 0 [Julian days]`" ``[int]`` **0** (Jan 1).  ATS has
+     no notion of absolute time, so to do things that depend upon planetary
+     dynamics we must know what the day of the year is.  Typically this is set
+     by your meteorological data -- set this to be equal to the day of year of
+     met data's time 0.
 
 */
 

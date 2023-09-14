@@ -22,7 +22,7 @@ Some additional parameters are available.
 
 `"evaluator type`" = `"WRM rel perm`"
 
-.. _rel-perm-evaluator-spec
+.. _rel-perm-evaluator-spec:
 .. admonition:: rel-perm-evaluator-spec
 
    * `"use density on viscosity in rel perm`" ``[bool]`` **true**

@@ -149,7 +149,7 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       double sw_atm_surf = sw_in[0][c] - sw_atm_can;
 
       // reflected sw (can be important off of snow)
-      double sw_grnd_can = sw_atm_surf * (albedo[0][c] * area_frac[0][c] + albedo[1][c] * area_frac[1][c]);
+      double sw_grnd_can = e_can_sw * sw_atm_surf * (albedo[0][c] * area_frac[0][c] + albedo[1][c] * area_frac[1][c]);
 
       // lw atm to canopy and surface
       double lw_atm_can = e_can_lw * lw_in[0][c];

@@ -7,27 +7,31 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! MeshedElevationEvaluator: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
+//! Evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
 /*!
-Evaluator type: `"meshed elevation`"
+
+`"evaluator type`" = `"meshed elevation`"
 
 Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|``
 
-* `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
-* `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation variable. [-]
-* `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
-  elevation changes in time, and adds the `"deformation`" dependency.
-* `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
-  mesh, which is the 3D version of this domain.  Attempts to generate an
-  intelligent default by stripping "surface" from this domain.
+.. _meshed-elevation-evaluator-spec:
+.. admonition:: meshed-elevation-evaluator-spec
 
-Example:
+   * `"parent domain name`" ``[string]`` **SUBSURFACE_DOMAIN** Domain name of the parent
+     mesh, which is the 3D version of this domain.  Attempts to generate an
+     intelligent default by stripping "surface" from this domain.
+   * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
+     elevation changes in time, and adds the `"deformation`" dependency.
+   
+   MY KEYS:
 
-.. code-block:: xml
+   - `"elevation`" **DOMAIN-elevation** Name the elevation variable. [m]
+   - `"slope magnitude`" **DOMAIN-slope_magnitude** Name the elevation variable. [-]
 
-  <ParameterList name="elevation">
-    <Parameter name="evaluator type" type="string" value="meshed elevation"/>
-  </ParameterList>
+   KEYS:
+
+   - `"deformation`" **optional** If `"dynamic mesh`" == True, this is required
+     to tell when the mesh has been deformed.
 
 */
 

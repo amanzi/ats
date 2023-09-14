@@ -24,7 +24,7 @@ some extra factors (timestep size) to ensure the correct flow law in that case.
 
 `"evaluator type`" = `"overland conductivity`"
 
-.. _overland-conductivity-evaluator-spec
+.. _overland-conductivity-evaluator-spec:
 .. admonition:: overland-conductivity-evaluator-spec
 
    * `"include density`" ``[bool]`` **true** Include the density prefactor,

@@ -7,15 +7,15 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! PresElevEvaluator: evaluates h + z
+//! Evaluates the potential surface upon which overland flow acts.
 /*!
 
 .. math::
-  h + z
+   h + z
 
-`"evaluator type`" =
+`"evaluator type`" = 
 
-.. _pres-elev-evaluator-spec
+.. _pres-elev-evaluator-spec:
 .. admonition:: pres-elev-evaluator-spec
 
    KEYS:

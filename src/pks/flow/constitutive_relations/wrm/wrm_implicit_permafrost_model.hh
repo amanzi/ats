@@ -10,7 +10,7 @@
 //! Painter's original, implicitly defined permafrost model.
 /*!
 
-.. _wrm-implicit-permafrost-spec
+.. _wrm-implicit-permafrost-spec:
 .. admonition:: wrm-implicit-permafrost-spec
 
     * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.

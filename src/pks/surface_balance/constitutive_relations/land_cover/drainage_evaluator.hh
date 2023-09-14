@@ -12,17 +12,20 @@
 
 A simple model based on relaxation from current water content to a saturated water content.
 
+.. code::
+   
           |
           | source
           V
          /   \
       I /     \
        V       |
-  --Theta--    | T
+   --Theta--    | T
        ^       |
        | D     |
        V       V
-  ----------------------
+   -- -- -- -- -- -- --
+
 
 This is the model for drainage D.
 

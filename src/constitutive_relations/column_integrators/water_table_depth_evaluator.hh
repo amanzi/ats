@@ -11,13 +11,17 @@
 
 Computes the depth to a saturated water table.
 
-Evaluator name: `"water table depth`"
+`"evaluator type`" = `"water table depth`"
 
 .. _water-table-depth-spec:
 .. admonition:: water-table-depth-spec
 
     KEYS:
-      `"saturation_gas`"
+
+    - `"saturation of gas`" **SUBSURFACE_DOMAIN-saturation-gas**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
+
 
 */
 

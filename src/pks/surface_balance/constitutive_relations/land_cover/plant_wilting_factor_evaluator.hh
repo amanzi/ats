@@ -10,12 +10,11 @@
 //! Plant wilting factor provides a moisture availability-based limiter on transpiration.
 /*!
 
-  Generated via evaluator_generator with:
-Wilting factor.
+Also known as Beta, or the water availability factor, or the plant wilting
+factor, or the transpiration reduction function.
 
-Beta, or the water availability factor, or the plant wilting factor.
-
-Beta =  (p_closed - p) / (p_closed - p_open)
+.. math::
+   Beta =  (p_closed - p) / (p_closed - p_open)
 
 where p is the capillary pressure or soil mafic potential, and closed
 and open indicate the values at which stomates are fully open or fully
