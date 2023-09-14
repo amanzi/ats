@@ -137,8 +137,7 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
   if (parname == "rs_method" && lc.rs_method == std::string("sakagucki_zeng")) {
     if (std::isnan(lc.dessicated_zone_thickness))
       throwInvalid(region, "dessicated zone thickness [m]");
-    if (std::isnan(lc.clapp_horn_b))
-      throwInvalid(region, "Clapp and Hornberger b [-]");
+    if (std::isnan(lc.clapp_horn_b)) throwInvalid(region, "Clapp and Hornberger b [-]");
   }
 
   if (parname == "roughness_ground" && std::isnan(lc.roughness_ground))
