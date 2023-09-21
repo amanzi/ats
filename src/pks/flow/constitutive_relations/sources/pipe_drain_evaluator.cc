@@ -61,7 +61,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
 
-  double g = norm(S.Get<AmanziGeometry::Point>("gravity"));
+  double g = norm(S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT));
   double pi = 3.14159265359;
   double mnhArea = pi * manhole_radius_ * manhole_radius_;
   double mnhPerimeter = 2.0 * pi * manhole_radius_;
@@ -109,7 +109,7 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
 
-  double g = norm(S.Get<AmanziGeometry::Point>("gravity"));
+  double g = norm(S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT));
   double pi = 3.14159265359;
   double mnhArea = pi * manhole_radius_ * manhole_radius_;
   double mnhPerimeter = 2.0 * pi * manhole_radius_;
