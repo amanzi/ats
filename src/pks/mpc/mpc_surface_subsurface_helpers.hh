@@ -38,13 +38,13 @@ MergeSubsurfaceAndSurfacePressure(const CompositeVector& kr_surf,
 // CopySurfaceToSubsurface, or mpc_coupled_water, for example usages.
 //
 struct DomainFaceGetter {
-  DomainFaceGetter(const AmanziMesh::Mesh& domain_mesh,
-                   const Epetra_MultiVector& vec)
-  : domain_mesh_(domain_mesh),
-    vec_(vec) {}
+  DomainFaceGetter(const AmanziMesh::Mesh& domain_mesh, const Epetra_MultiVector& vec)
+    : domain_mesh_(domain_mesh), vec_(vec)
+  {}
 
-  template<AmanziMesh::Entity_ID FaceEntity>
-  double get(const AmanziMesh::Entity_ID& f) {
+  template <AmanziMesh::Entity_ID FaceEntity>
+  double get(const AmanziMesh::Entity_ID& f)
+  {
     return vec_[0][f];
   }
 
@@ -54,27 +54,29 @@ struct DomainFaceGetter {
 };
 
 
-template<>
+template <>
 inline double
-DomainFaceGetter::get<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f) {
+DomainFaceGetter::get<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f)
+{
   AmanziMesh::Entity_ID bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(domain_mesh_, f);
   return vec_[0][bf];
 }
 
 
 struct DomainFaceSetter {
-  DomainFaceSetter(const AmanziMesh::Mesh& domain_mesh,
-                   Epetra_MultiVector& vec)
-  : domain_mesh_(domain_mesh),
-    vec_(vec) {}
+  DomainFaceSetter(const AmanziMesh::Mesh& domain_mesh, Epetra_MultiVector& vec)
+    : domain_mesh_(domain_mesh), vec_(vec)
+  {}
 
-  template<AmanziMesh::Entity_ID FaceEntity>
-  double get(const AmanziMesh::Entity_ID& f) {
+  template <AmanziMesh::Entity_ID FaceEntity>
+  double get(const AmanziMesh::Entity_ID& f)
+  {
     return vec_[0][f];
   }
 
-  template<AmanziMesh::Entity_ID FaceEntity>
-  void set(const AmanziMesh::Entity_ID& f, const double& val) {
+  template <AmanziMesh::Entity_ID FaceEntity>
+  void set(const AmanziMesh::Entity_ID& f, const double& val)
+  {
     vec_[0][f] = val;
   }
 
@@ -83,16 +85,18 @@ struct DomainFaceSetter {
   Epetra_MultiVector& vec_;
 };
 
-template<>
+template <>
 inline double
-DomainFaceSetter::get<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f) {
+DomainFaceSetter::get<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f)
+{
   AmanziMesh::Entity_ID bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(domain_mesh_, f);
   return vec_[0][bf];
 }
 
-template<>
+template <>
 inline void
-DomainFaceSetter::set<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f, const double& val) {
+DomainFaceSetter::set<AmanziMesh::BOUNDARY_FACE>(const AmanziMesh::Entity_ID& f, const double& val)
+{
   AmanziMesh::Entity_ID bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(domain_mesh_, f);
   vec_[0][bf] = val;
 }

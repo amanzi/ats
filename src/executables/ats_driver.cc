@@ -65,7 +65,9 @@ ATSDriver::cycle_driver()
   // ----------------------------------------
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning setup stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning setup stage..." << std::endl
+               << std::flush;
   }
   setup();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
@@ -78,7 +80,9 @@ ATSDriver::cycle_driver()
   // ----------------------------------------
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning initialize stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning initialize stage..." << std::endl
+               << std::flush;
   }
   initialize();
 
@@ -105,7 +109,9 @@ ATSDriver::cycle_driver()
   // ----------------------------------------
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning timestepping stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning timestepping stage..." << std::endl
+               << std::flush;
   }
 
   // iterate process kernels
@@ -113,7 +119,8 @@ ATSDriver::cycle_driver()
   // Make sure times are set up correctly
   {
     Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
-    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
+    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
+                  1.e-4);
     AMANZI_ASSERT(std::abs(dt - S_->Get<double>("dt", Amanzi::Tags::DEFAULT)) < 1.e-4);
 
 #if !DEBUG_MODE
@@ -124,16 +131,15 @@ ATSDriver::cycle_driver()
              ((duration_ < 0) || (wallclock_timer_->totalElapsedTime(true) < duration)) &&
              (dt > 0.)) {
         if (vo_->os_OK(Teuchos::VERB_LOW)) {
-          *vo_->os() << "================================================================================"
-                     << std::endl
-                     << std::endl
-                     << "Cycle = " << S_->get_cycle()
-                     << ",  Time [days] = " << std::setprecision(16)
-                     << S_->get_time() / (60 * 60 * 24)
-                     << ",  dt [days] = " << std::setprecision(16) << dt / (60 * 60 * 24)
-                     << std::endl
-                     << "--------------------------------------------------------------------------------"
-                     << std::endl;
+          *vo_->os()
+            << "================================================================================"
+            << std::endl
+            << std::endl
+            << "Cycle = " << S_->get_cycle() << ",  Time [days] = " << std::setprecision(16)
+            << S_->get_time() / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
+            << dt / (60 * 60 * 24) << std::endl
+            << "--------------------------------------------------------------------------------"
+            << std::endl;
         }
 
         S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
@@ -180,7 +186,9 @@ ATSDriver::cycle_driver()
   // finalizing simulation
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning finalize stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning finalize stage..." << std::endl
+               << std::flush;
   }
   finalize();
   if (vo_->os_OK(Teuchos::VERB_LOW)) {

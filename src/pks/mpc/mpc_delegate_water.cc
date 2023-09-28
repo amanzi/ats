@@ -16,9 +16,9 @@ namespace Amanzi {
 
 
 MPCDelegateWater::MPCDelegateWater(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-        const Teuchos::RCP<State>& S,
-        const std::string& domain_ss,
-        const std::string& domain_surf)
+                                   const Teuchos::RCP<State>& S,
+                                   const std::string& domain_ss,
+                                   const std::string& domain_surf)
   : plist_(plist),
     S_(S),
     i_domain_(-1),

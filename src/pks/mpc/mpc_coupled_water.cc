@@ -296,17 +296,24 @@ MPCCoupledWater::ModifyCorrection(double h,
   if (has_face) {
     n_modified += water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::FACE>(h, res, u, du);
     double damping1 = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
-    double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
     damping = std::min(damping1, damping2);
     n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
-    n_modified += water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
+    n_modified +=
+      water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
   } else {
-    n_modified += water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
-    double damping1 = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
-    double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    n_modified +=
+      water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping1 =
+      water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
     damping = std::min(damping1, damping2);
-    n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, res, u, du, damping);
-    n_modified += water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, res, u, du, damping);
+    n_modified +=
+      water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, res, u, du, damping);
+    n_modified += water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(
+      h, res, u, du, damping);
   }
 
   // -- accumulate globally

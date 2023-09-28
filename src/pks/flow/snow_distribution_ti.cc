@@ -36,8 +36,9 @@ SnowDistribution::FunctionalResidual(double t_old,
   if (!(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4 * h)) {
     Errors::Message message;
     message << "SnowDistribution PK: ASSERT!: tag_current_ = " << S_->get_time(tag_current_)
-            << ", t_old = " << t_old << " --> diff = " << std::abs(S_->get_time(tag_current_) - t_old)
-            << " relative to " << h * 1.e-4
+            << ", t_old = " << t_old
+            << " --> diff = " << std::abs(S_->get_time(tag_current_) - t_old) << " relative to "
+            << h * 1.e-4
             << "  Maybe you checkpoint-restarted from a checkpoint file that was not on an even "
                "day?  This breaks the snow distribution!";
     Exceptions::amanzi_throw(message);
@@ -73,7 +74,7 @@ SnowDistribution::FunctionalResidual(double t_old,
 #if DEBUG_FLAG
   // dump u_old, u_new
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames{"precip_new", "potential"};
+  std::vector<std::string> vnames{ "precip_new", "potential" };
   std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
   vecs.push_back(u.ptr());
   vecs.push_back(S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr());
@@ -88,10 +89,7 @@ SnowDistribution::FunctionalResidual(double t_old,
   ApplyDiffusion_(tag_next_, res.ptr());
 
 #if DEBUG_FLAG
-  db_->WriteVector(
-    "k_s",
-    S_->GetPtrW<CompositeVector>(uw_cond_key_, tag_next_, name_).ptr(),
-    true);
+  db_->WriteVector("k_s", S_->GetPtrW<CompositeVector>(uw_cond_key_, tag_next_, name_).ptr(), true);
   db_->WriteVector("res (post diffusion)", res.ptr(), true);
 #endif
 
@@ -153,14 +151,13 @@ SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
   UpdatePermeabilityData_(tag_next_);
 
   // primary variable
-  Teuchos::RCP<const CompositeVector> cond =
-    S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
 
   // Jacobian
   // playing it fast and loose.... --etc
   S_->GetEvaluator(cond_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-  Teuchos::RCP<CompositeVector> dcond = S_->GetDerivativePtrW<CompositeVector>(
-    cond_key_, tag_next_, key_, tag_next_, cond_key_);
+  Teuchos::RCP<CompositeVector> dcond =
+    S_->GetDerivativePtrW<CompositeVector>(cond_key_, tag_next_, key_, tag_next_, cond_key_);
   // NOTE: this scaling of dt is wrong, but keeps consistent with the diffusion derivatives
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
   dcond->Scale(1. / (10 * dt_factor_));
@@ -173,7 +170,7 @@ SnowDistribution::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> 
 
   S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const CompositeVector> potential =
-  S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
+    S_->GetPtr<CompositeVector>(potential_key_, tag_next_);
   preconditioner_diff_->UpdateMatricesNewtonCorrection(Teuchos::null, potential.ptr());
 
   // 2.b Update local matrices diagonal with the accumulation terms.
@@ -293,7 +290,7 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
   double my_dt = -1;
   double my_t_old = t_old;
   double my_t_new = t_old;
-  
+
   Tag tag_subcycle_current(tag_current_);
   Tag tag_subcycle_next(tag_next_);
   S_->set_time(tag_subcycle_current, t_old);
@@ -318,7 +315,8 @@ SnowDistribution::AdvanceStep(double t_old, double t_new, bool reinit)
   // commit the precip to the OLD time as well -- this ensures that
   // even if a coupled PK fails at any point in the coming
   // distribution time, we keep the new value.
-  *S_->GetPtrW<CompositeVector>(key_, tag_current_, name_) = *S_->GetPtr<CompositeVector>(key_, tag_next_);
+  *S_->GetPtrW<CompositeVector>(key_, tag_current_, name_) =
+    *S_->GetPtr<CompositeVector>(key_, tag_next_);
 
   // clean up
   S_->set_time(tag_next_, t_new);

@@ -31,7 +31,9 @@ namespace Amanzi {
 
           public : explicit { evalClassName } Model(Teuchos::ParameterList & plist);
 
-        { modelMethodDeclaration }
+        {
+          modelMethodDeclaration
+        }
 
         {
           modelDerivDeclarationList

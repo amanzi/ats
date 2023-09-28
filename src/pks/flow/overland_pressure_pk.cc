@@ -360,8 +360,8 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
       source_key_ = source_key_ + "_mols";
       S_->GetEvaluatorList(source_key_)
         .set<std::string>("evaluator type", "multiplicative evaluator")
-        .set<Teuchos::Array<std::string>>("dependencies",
-                std::vector<std::string>{source_key_meters, source_molar_dens_key_});
+        .set<Teuchos::Array<std::string>>(
+          "dependencies", std::vector<std::string>{ source_key_meters, source_molar_dens_key_ });
     }
 
     requireAtNext(source_key_, tag_next_, *S_)

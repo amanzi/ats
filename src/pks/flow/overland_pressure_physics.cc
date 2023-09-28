@@ -125,7 +125,6 @@ OverlandPressureFlow::AddSourcesToPrecon_(double h)
   // -- update the source term derivatives
   if (is_source_term_ && source_term_is_differentiable_ &&
       S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
-
     S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
     preconditioner_acc_->AddAccumulationTerm(
       S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),
@@ -134,7 +133,6 @@ OverlandPressureFlow::AddSourcesToPrecon_(double h)
       true);
   }
 }
-
 
 
 } // namespace Flow

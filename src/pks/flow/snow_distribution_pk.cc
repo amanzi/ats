@@ -54,7 +54,8 @@ SnowDistribution::SnowDistribution(Teuchos::ParameterList& pk_tree,
   uw_cond_key_ = Keys::readKey(*plist_, domain_, "upwind conductivity", "upwind_conductivity");
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "flux direction", "flux_direction");
   potential_key_ = Keys::readKey(*plist_, domain_, "skin potential", "skin_potential");
-  precip_func_key_ = Keys::readKey(*plist_, domain_, "precipitation function", "precipitation_function");
+  precip_func_key_ =
+    Keys::readKey(*plist_, domain_, "precipitation function", "precipitation_function");
 
   dt_factor_ = plist_->get<double>("distribution time", 86400.0);
 
@@ -128,11 +129,7 @@ SnowDistribution::SetupSnowDistribution_()
     ->SetComponent("face", AmanziMesh::FACE, 1);
 
   upwind_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
-  upwinding_ =
-    Teuchos::rcp(new Operators::UpwindTotalFlux(name_,
-                                                tag_next_,
-                                                flux_dir_key_,
-                                                1.e-8));
+  upwinding_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, 1.e-8));
 
   // -- operator for the diffusion terms
   Teuchos::ParameterList& mfd_plist = plist_->sublist("diffusion");
@@ -197,7 +194,8 @@ SnowDistribution::SetupPhysicalEvaluators_()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-    cond_key_, tag_next_, key_, tag_next_).SetGhosted();
+      cond_key_, tag_next_, key_, tag_next_)
+    .SetGhosted();
 }
 
 
@@ -229,19 +227,18 @@ SnowDistribution::Initialize()
 bool
 SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
 {
-  bool
-  update_perm = S_->GetEvaluator(cond_key_, tag).Update(*S_, name_);
+  bool update_perm = S_->GetEvaluator(cond_key_, tag).Update(*S_, name_);
   update_perm |= S_->GetEvaluator(precip_key_, tag).Update(*S_, name_);
   update_perm |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
 
   if (update_perm) {
     if (upwind_method_ == Operators::UPWIND_METHOD_TOTAL_FLUX) {
       // update the direction of the flux -- note this is NOT the flux
-      Teuchos::RCP<CompositeVector> flux_dir = 
+      Teuchos::RCP<CompositeVector> flux_dir =
         S_->GetPtrW<CompositeVector>(flux_dir_key_, tag, name_);
 
       // Derive the flux
-      Teuchos::RCP<const CompositeVector> potential = 
+      Teuchos::RCP<const CompositeVector> potential =
         S_->GetPtr<CompositeVector>(potential_key_, tag);
       face_matrix_diff_->UpdateFlux(potential.ptr(), flux_dir.ptr());
     }
@@ -250,8 +247,7 @@ SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
     Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(cond_key_, tag);
 
     // get upwind snow_conductivity data
-    Teuchos::RCP<CompositeVector> uw_cond =
-      S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, name_);
+    Teuchos::RCP<CompositeVector> uw_cond = S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, name_);
 
     { // place interior cells on boundary faces
       const auto& cond_c = *cond->ViewComponent("cell", false);

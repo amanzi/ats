@@ -774,16 +774,21 @@ MPCPermafrost::ModifyCorrection(double h,
     bool has_face = u->SubVector(0)->Data()->HasComponent("face");
     if (has_face) {
       damping = water_->ModifyCorrection_SaturatedSpurtDamp<AmanziMesh::FACE>(h, r, u, du);
-      n_modified += water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping);
+      n_modified +=
+        water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping);
 
       damping_surf = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::FACE>(h, r, u, du);
-      n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping_surf);
+      n_modified +=
+        water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping_surf);
     } else {
       damping = water_->ModifyCorrection_SaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, r, u, du);
-      n_modified += water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, r, u, du, damping);
+      n_modified +=
+        water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, r, u, du, damping);
 
-      damping_surf = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, r, u, du);
-      n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, r, u, du, damping_surf);
+      damping_surf =
+        water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, r, u, du);
+      n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(
+        h, r, u, du, damping_surf);
     }
 
     // -- total damping

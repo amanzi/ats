@@ -95,7 +95,9 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // construct state, geometric model, meshes
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning mesh creation stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning mesh creation stage..." << std::endl
+               << std::flush;
   }
   {
     Teuchos::TimeMonitor timer(*timers_.at("0: create mesh"));
@@ -120,7 +122,9 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // create PKs, etc
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "================================================================================"
-               << std::endl << "Beginning run creation stage..." << std::endl << std::flush;
+               << std::endl
+               << "Beginning run creation stage..." << std::endl
+               << std::flush;
   }
   {
     Teuchos::TimeMonitor timer(*timers_.at("1: create run"));
@@ -130,7 +134,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     Teuchos::RCP<Teuchos::ParameterList> pks_list = Teuchos::sublist(plist_, "PKs");
     Teuchos::ParameterList pk_tree_list = coordinator_list_->sublist("PK tree");
     if (pk_tree_list.numParams() != 1) {
-      Errors::Message message("CycleDriver: PK tree list should contain exactly one root node list");
+      Errors::Message message(
+        "CycleDriver: PK tree list should contain exactly one root node list");
       Exceptions::amanzi_throw(message);
     }
     Teuchos::ParameterList::ConstIterator pk_item = pk_tree_list.begin();
@@ -151,7 +156,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
         S_->Require<Amanzi::CompositeVector, Amanzi::CompositeVectorSpace>(
-          node_key, Amanzi::Tags::NEXT, node_key)
+            node_key, Amanzi::Tags::NEXT, node_key)
           .SetMesh(mesh->second.first)
           ->SetGhosted()
           ->SetComponent("node", Amanzi::AmanziMesh::NODE, mesh->second.first->space_dimension());
@@ -171,7 +176,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     for (auto& sublist : observation_plist) {
       if (observation_plist.isSublist(sublist.first)) {
         observations_.emplace_back(Teuchos::rcp(
-                  new Amanzi::UnstructuredObservations(observation_plist.sublist(sublist.first))));
+          new Amanzi::UnstructuredObservations(observation_plist.sublist(sublist.first))));
       } else {
         Errors::Message msg("\"observations\" list must only include sublists.");
         Exceptions::amanzi_throw(msg);
@@ -248,7 +253,6 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       Amanzi::IOEvent pause_times(sublist);
       pause_times.RegisterWithTimeStepManager(tsm_.ptr());
     }
-
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -425,10 +429,9 @@ Coordinator::report_memory()
                << std::endl
                << "All meshes combined have " << global_ncells << " cells." << std::endl
                << "Memory usage (high water mark):" << std::endl
-               << std::fixed << std::setprecision(1)
-               << "  Maximum per core:   " << std::setw(7) << max_mem
-               << " MBytes,  maximum per cell: " << std::setw(7) << max_percell * 1024 * 1024
-               << " Bytes" << std::endl
+               << std::fixed << std::setprecision(1) << "  Maximum per core:   " << std::setw(7)
+               << max_mem << " MBytes,  maximum per cell: " << std::setw(7)
+               << max_percell * 1024 * 1024 << " Bytes" << std::endl
                << "  Minimum per core:   " << std::setw(7) << min_mem
                << " MBytes,  minimum per cell: " << std::setw(7) << min_percell * 1024 * 1024
                << " Bytes" << std::endl
