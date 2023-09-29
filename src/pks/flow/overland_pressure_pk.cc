@@ -348,19 +348,32 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     if (source_key_.empty()) {
       source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
     }
-    source_in_meters_ = plist_->get<bool>("water source in meters", true);
+
+    bool source_in_meters = plist_->get<bool>("water source in meters", true);
+    if (source_in_meters) {
+      // density of incoming water [mol/m^3]
+      source_molar_dens_key_ =
+        Keys::readKey(*plist_, domain_, "source molar density", "source_molar_density");
+
+      // create multiplicative evaluator for the product
+      Key source_key_meters = source_key_;
+      source_key_ = source_key_ + "_mols";
+      S_->GetEvaluatorList(source_key_)
+        .set<std::string>("evaluator type", "multiplicative evaluator")
+        .set<Teuchos::Array<std::string>>(
+          "dependencies", std::vector<std::string>{ source_key_meters, source_molar_dens_key_ });
+    }
 
     requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
 
-    if (source_in_meters_) {
-      // density of incoming water [mol/m^3]
-      source_molar_dens_key_ =
-        Keys::readKey(*plist_, domain_, "source molar density", "source_molar_density");
-      requireAtNext(source_molar_dens_key_, tag_next_, *S_)
-        .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+    source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
+    if (source_term_is_differentiable_) {
+      // require derivative of source
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 

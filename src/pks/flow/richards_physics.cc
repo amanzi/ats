@@ -115,7 +115,7 @@ Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 void
 Richards::AddSourcesToPrecon_(double h)
 {
-  // external sources of energy (temperature dependent source)
+  // nonlinear water sources include a dQ/dp term into PC
   if (is_source_term_ && !explicit_source_ && source_term_is_differentiable_ &&
       S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
     S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);

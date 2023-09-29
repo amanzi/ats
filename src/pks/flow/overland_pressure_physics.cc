@@ -100,28 +100,8 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
     const Epetra_MultiVector& source1 =
       *S_->Get<CompositeVector>(source_key_, tag_next_).ViewComponent("cell", false);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
-
-    if (source_in_meters_) {
-      // External source term is in [m water / s], not in [mols / s], so a
-      // density is required.  This density should be upwinded.
-      S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-      S_->GetEvaluator(source_molar_dens_key_, tag_next_).Update(*S_, name_);
-
-      const Epetra_MultiVector& nliq1 =
-        *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
-      const Epetra_MultiVector& nliq1_s =
-        *S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).ViewComponent("cell", false);
-
-      int ncells = g_c.MyLength();
-      for (int c = 0; c != ncells; ++c) {
-        double s1 =
-          source1[0][c] > 0. ? source1[0][c] * nliq1_s[0][c] : source1[0][c] * nliq1[0][c];
-        g_c[0][c] -= cv1[0][c] * s1;
-      }
-    } else {
-      int ncells = g_c.MyLength();
-      for (int c = 0; c != ncells; ++c) { g_c[0][c] -= cv1[0][c] * source1[0][c]; }
-    }
+    int ncells = g_c.MyLength();
+    for (int c = 0; c != ncells; ++c) { g_c[0][c] -= cv1[0][c] * source1[0][c]; }
   }
 
   if (coupled_to_subsurface_via_head_) {
@@ -134,6 +114,25 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
     g_c.Update(-1., *source1->ViewComponent("cell", false), 1.);
   }
 };
+
+
+// -------------------------------------------------------------
+// Nonlinear source terms contribute to PC
+// -------------------------------------------------------------
+void
+OverlandPressureFlow::AddSourcesToPrecon_(double h)
+{
+  // -- update the source term derivatives
+  if (is_source_term_ && source_term_is_differentiable_ &&
+      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
+    S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
+    preconditioner_acc_->AddAccumulationTerm(
+      S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),
+      -1.0,
+      "cell",
+      true);
+  }
+}
 
 
 } // namespace Flow

@@ -228,45 +228,8 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   dwc_dh.ReciprocalMultiply(1. / h, *dh_dp, *dwc_dp, 0.);
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
 
-  // Why is this turned off? #60 --etc
-  // // -- update the source term derivatives
-  // if (S_next_->GetEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
-  //   S_next_->GetEvaluator(source_key_)
-  //       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  //   Key dkey = Keys::getDerivKey(source_key_,key_);
-  //   const Epetra_MultiVector& dq_dp = *S_next_->GetPtr<CompositeVector>(dkey)
-  //       ->ViewComponent("cell",false);
-
-  //   const Epetra_MultiVector& cv =
-  //       *S_next_->Get<CompositeVector>("surface-cell_volume").ViewComponent("cell",false);
-
-  //   if (source_in_meters_) {
-  //     // External source term is in [m water / s], not in [mols / s], so a
-  //     // density is required.  This density should be upwinded.
-  //     S_next_->GetEvaluator("surface-molar_density_liquid")
-  //         ->HasFieldChanged(S_next_.ptr(), name_);
-  //     S_next_->GetEvaluator("surface-source_molar_density")
-  //         ->HasFieldChanged(S_next_.ptr(), name_);
-  //     const Epetra_MultiVector& nliq1 =
-  //         *S_next_->GetPtr<CompositeVector>("surface-molar_density_liquid")
-  //         ->ViewComponent("cell",false);
-  //     const Epetra_MultiVector& nliq1_s =
-  //       *S_next_->GetPtr<CompositeVector>("surface-source_molar_density")
-  //         ->ViewComponent("cell",false);
-  //     const Epetra_MultiVector& q = *S_next_->GetPtr<CompositeVector>(source_key_)
-  //         ->ViewComponent("cell",false);
-
-  //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       double s1 = q[0][c] > 0. ? dq_dp[0][c] * nliq1_s[0][c] : dq_dp[0][c] * nliq1[0][c];
-  //       Acc_cells[c] -= cv[0][c] * s1 / dh_dp[0][c];
-  //     }
-  //   } else {
-  //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       Acc_cells[c] -= cv[0][c] * dq_dp[0][c] / dh_dp[0][c];
-  //     }
-  //   }
-  // }
-
+  // -- update preconditioner with source term derivatives if needed
+  AddSourcesToPrecon_(h);
 
   // 3. Assemble and precompute the Schur complement for inversion.
   // 3.a: Patch up BCs in the case of zero conductivity

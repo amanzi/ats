@@ -81,7 +81,7 @@ MPCCoupledWater::Setup()
 
   // set up the Water delegate
   Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
-  water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_ss_));
+  water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_ss_, domain_surf_));
   water_->set_tags(tag_current_, tag_next_);
   water_->set_indices(0, 1);
 
@@ -227,8 +227,6 @@ MPCCoupledWater::ModifyPredictor(double h,
 
   // Merge surface cells with subsurface faces
   if (modified) {
-    // -- not used... something smells... --ETC
-    //S_->GetEvaluator(Keys::getKey(domain_surf_,"relative_permeability"), tag_next_)->Update(*S_, name_);
     Teuchos::RCP<const CompositeVector> h_prev =
       S_->GetPtr<CompositeVector>(Keys::getKey(domain_surf_, "ponded_depth"), tag_next_);
     MergeSubsurfaceAndSurfacePressure(*h_prev, *u->SubVector(0)->Data(), *u->SubVector(1)->Data());
@@ -236,8 +234,14 @@ MPCCoupledWater::ModifyPredictor(double h,
 
   // Hack surface faces
   bool newly_modified = false;
-  newly_modified |= water_->ModifyPredictor_Heuristic(h, u);
-  newly_modified |= water_->ModifyPredictor_WaterSpurtDamp(h, u);
+  bool has_face = u->SubVector(0)->Data()->HasComponent("face");
+  if (has_face) {
+    newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::FACE>(h, u);
+    newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::FACE>(h, u);
+  } else {
+    newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::BOUNDARY_FACE>(h, u);
+    newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, u);
+  }
   modified |= newly_modified;
 
   // -- copy surf --> sub
@@ -287,12 +291,30 @@ MPCCoupledWater::ModifyCorrection(double h,
 
   // modify correction using water approaches
   int n_modified = 0;
-  n_modified += water_->ModifyCorrection_WaterFaceLimiter(h, res, u, du);
-  double damping1 = water_->ModifyCorrection_WaterSpurtDamp(h, res, u, du);
-  double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp(h, res, u, du);
-  double damping = std::min(damping1, damping2);
-  n_modified += water_->ModifyCorrection_WaterSpurtCap(h, res, u, du, damping);
-  n_modified += water_->ModifyCorrection_DesaturatedSpurtCap(h, res, u, du, damping);
+  double damping;
+  bool has_face = u->SubVector(0)->Data()->HasComponent("face");
+  if (has_face) {
+    n_modified += water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::FACE>(h, res, u, du);
+    double damping1 = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
+    damping = std::min(damping1, damping2);
+    n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
+    n_modified +=
+      water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
+  } else {
+    n_modified +=
+      water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping1 =
+      water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    damping = std::min(damping1, damping2);
+    n_modified +=
+      water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, res, u, du, damping);
+    n_modified += water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(
+      h, res, u, du, damping);
+  }
 
   // -- accumulate globally
   int n_modified_l = n_modified;

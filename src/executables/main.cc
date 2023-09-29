@@ -19,6 +19,7 @@
 #include "Teuchos_CommandLineProcessor.hpp"
 #include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
+#include "Teuchos_DefaultComm.hpp"
 
 #include "VerboseObject_objs.hh"
 
@@ -173,6 +174,7 @@ main(int argc, char* argv[])
   // run the simulation
   // -- create communicator
   auto comm = Amanzi::getDefaultComm();
+  auto teuchos_comm = Teuchos::DefaultComm<int>::getComm();
 
   // -- parse input file
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
@@ -187,21 +189,29 @@ main(int argc, char* argv[])
 
   if (Amanzi::VerboseObject::global_default_level != Teuchos::VERB_NONE && (rank == 0)) {
     std::cout << "ATS version " << XSTR(ATS_VERSION) << ", Amanzi version " << XSTR(AMANZI_VERSION)
-              << std::endl;
+              << std::endl
+              << "================================================================================="
+                 "====================="
+              << std::endl
+              << std::flush;
   }
 
 
   // create the top level driver and run simulation
-  ATS::ATSDriver driver(plist, comm);
   int ret = 0;
-  try {
-    ret = driver.run();
-  } catch (std::string& s) {
-    if (rank == 0) { std::cerr << "ERROR:" << std::endl << s << std::endl; }
-    return 1;
-  } catch (int& ierr) {
-    if (rank == 0) { std::cerr << "ERROR: unknown error code " << ierr << std::endl; }
-    return ierr;
+  {
+    auto wallclock_timer = Teuchos::TimeMonitor::getNewCounter("wallclock duration");
+    ATS::ATSDriver driver(plist, wallclock_timer, teuchos_comm, comm);
+    try {
+      ret = driver.run();
+    } catch (std::string& s) {
+      if (rank == 0) { std::cerr << "ERROR:" << std::endl << s << std::endl; }
+      return 1;
+    } catch (int& ierr) {
+      if (rank == 0) { std::cerr << "ERROR: unknown error code " << ierr << std::endl; }
+      return ierr;
+    }
   }
+  Teuchos::TimeMonitor::summarize(teuchos_comm.ptr(), std::cout);
   return ret;
 }
