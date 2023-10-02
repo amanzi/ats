@@ -15,11 +15,11 @@ This implements the simple water-based limiter, given pressure in [Pa]:
 .. math:
    \beta =  \frac{p_{closed} - p}{p_{closed} - p_{open}}
 
-where p is the capillary pressure or soil mafic potential, and closed and open
+where p is the capillary pressure or water potential, and closed and open
 indicate the values at which stomates are fully open or fully closed (the
 wilting point).  These two parameters are provided by the LandCover object.
 
-All parameters are in units of [Pa], and are positive (mafic potential).
+All parameters are in units of [Pa], and are positive (water potential).
 
 */
 

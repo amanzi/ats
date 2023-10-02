@@ -16,11 +16,11 @@ factor, or the transpiration reduction function.
 .. math::
    Beta =  (p_closed - p) / (p_closed - p_open)
 
-where p is the capillary pressure or soil mafic potential, and closed
+where p is the capillary pressure or water potential, and closed
 and open indicate the values at which stomates are fully open or fully
 closed (the wilting point).
 
-Note this makes use of LandCover objects for mafic potential of fully open and
+Note this makes use of LandCover objects for water potential of fully open and
 fully closed stomata.
 
 Note the challenges of using this model with arbitrary van Genuchten WRMs.  See

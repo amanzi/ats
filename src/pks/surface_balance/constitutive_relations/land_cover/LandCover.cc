@@ -21,10 +21,10 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
   : rooting_depth_max(plist.get<double>("rooting depth max [m]", NAN)),
     rooting_profile_alpha(plist.get<double>("rooting profile alpha [-]", NAN)),
     rooting_profile_beta(plist.get<double>("rooting profile beta [-]", NAN)),
-    stomata_closed_mafic_potential(
-      plist.get<double>("mafic potential at fully closed stomata [Pa]", NAN)),
-    stomata_open_mafic_potential(
-      plist.get<double>("mafic potential at fully open stomata [Pa]", NAN)),
+    stomata_closed_water_potential(
+      plist.get<double>("water potential at fully closed stomata [Pa]", NAN)),
+    stomata_open_water_potential(
+      plist.get<double>("water potential at fully open stomata [Pa]", NAN)),
     leaf_on_doy(plist.get<double>("leaf on time [doy]", NAN)),
     leaf_off_doy(plist.get<double>("leaf off time [doy]", NAN)),
     pt_alpha_snow(plist.get<double>("Priestley-Taylor alpha of snow [-]", NAN)),
@@ -96,10 +96,10 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
   if (parname == "rooting_profile_beta" && std::isnan(lc.rooting_profile_beta))
     throwInvalid(region, "rooting profile beta [-]");
 
-  if (parname == "stomata_closed_mafic_potential" && std::isnan(lc.stomata_closed_mafic_potential))
-    throwInvalid(region, "mafic potential at fully closed stomata [Pa]");
-  if (parname == "stomata_open_mafic_potential" && std::isnan(lc.stomata_open_mafic_potential))
-    throwInvalid(region, "mafic potential at fully open stomata [Pa]");
+  if (parname == "stomata_closed_water_potential" && std::isnan(lc.stomata_closed_water_potential))
+    throwInvalid(region, "water potential at fully closed stomata [Pa]");
+  if (parname == "stomata_open_water_potential" && std::isnan(lc.stomata_open_water_potential))
+    throwInvalid(region, "water potential at fully open stomata [Pa]");
 
   if (parname == "pt_alpha_snow" && std::isnan(lc.pt_alpha_snow))
     throwInvalid(region, "Priestley-Taylor alpha of snow [-]");
