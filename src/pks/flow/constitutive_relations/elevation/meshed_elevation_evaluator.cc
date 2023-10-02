@@ -47,13 +47,13 @@ slope_aspect(const AmanziGeometry::Point& normal, double& slope, double& aspect)
     // left half
     if (normal[1] > 0.0) {
       // upper left quadrant
-      aspect = M_2_PI - std::atan(-normal[0] / normal[1]);
+      aspect = 2 * M_PI - std::atan(-normal[0] / normal[1]);
     } else if (normal[1] < 0.0) {
       // lower left quadrant
       aspect = M_PI + std::atan(normal[0] / -normal[1]);
     } else {
       // due west
-      aspect = M_2_PI - M_PI_2;
+      aspect = 3 * M_PI_2;
     }
   } else {
     // north or south
