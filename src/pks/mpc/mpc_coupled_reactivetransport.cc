@@ -174,7 +174,7 @@ MPCCoupledReactiveTransport::get_dt()
 
   if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
 
-  if (dTtran > dTchem) dTtran= dTchem;
+  if (dTtran > dTchem) dTtran = dTchem;
 
   return dTtran;
 }
