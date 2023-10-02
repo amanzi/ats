@@ -173,7 +173,10 @@ MPCCoupledReactiveTransport::get_dt()
   double dTchem = coupled_chemistry_pk_->get_dt();
 
   if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
-  return dTchem;
+
+  if (dTtran > dTchem) dTtran = dTchem;
+
+  return dTtran;
 }
 
 
@@ -218,8 +221,12 @@ MPCCoupledReactiveTransport::AdvanceStep(double t_old, double t_new, bool reinit
   S_->GetEvaluator(mol_dens_key_, tag_next_).Update(*S_, name_);
   Teuchos::RCP<const Epetra_MultiVector> mol_dens =
     S_->Get<CompositeVector>(mol_dens_key_, tag_next_).ViewComponent("cell", true);
-  fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
-  changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+  try {
+    fail = advanceChemistry(chemistry_pk_, t_old, t_new, reinit, *mol_dens, tcc, *alquimia_timer_);
+    changedEvaluatorPrimary(tcc_key_, tag_next_, *S_);
+  } catch (const Errors::Message& chem_error) {
+    fail = true;
+  }
   if (fail) {
     if (vo_->os_OK(Teuchos::VERB_MEDIUM))
       *vo_->os() << chemistry_pk_->name() << " failed." << std::endl;
