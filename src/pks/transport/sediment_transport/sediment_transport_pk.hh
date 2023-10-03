@@ -38,6 +38,7 @@
 #include <string>
 
 // Transport
+#include "transport_ats.hh"
 #include "TransportDomainFunction.hh"
 #include "SedimentTransportDefs.hh"
 
@@ -53,10 +54,15 @@ pointers to the original variables.
 namespace Amanzi {
 namespace SedimentTransport {
 
+
+  
 typedef double
 AnalyticFunction(const AmanziGeometry::Point&, const double);
 
 class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
+
+    friend class Transport::Transport_ATS;
+  
  public:
   SedimentTransport_PK(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& glist,
@@ -70,19 +76,21 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
 
   ~SedimentTransport_PK() = default;
 
+  friend class Transport::Transport_ATS;
+  
   // members required by PK interface
-  virtual void Setup(const Teuchos::Ptr<State>& S);
-  virtual void Initialize(const Teuchos::Ptr<State>& S);
+  virtual void Setup() override;
+  virtual void Initialize() override;
 
-  virtual double get_dt();
-  virtual void set_dt(double dt){};
+  virtual double get_dt() override;
+  virtual void set_tags(const Tag& current, const Tag& next) override;
+  
+  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override; 
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  //  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
 
-  virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
-  virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+  //  virtual std::string name() { return "sediment transport"; }
 
-  virtual std::string name() { return "sediment transport"; }
-  Key get_domain_name() { return domain_name_; }
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
@@ -130,7 +138,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
 
 
  private:
-  void InitializeFields_(const Teuchos::Ptr<State>& S);
+  void InitializeFields_();
 
   // advection members
   void AdvanceDonorUpwind(double dT);
@@ -142,7 +150,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   // time integration members
   void FunctionalTimeDerivative(const double t,
                                 const Epetra_Vector& component,
-                                Epetra_Vector& f_component){};
+                                Epetra_Vector& f_component) override {};
   //  void Functional(const double t, const Epetra_Vector& component, TreeVector& f_component);
 
   void IdentifyUpwindCells();
@@ -185,12 +193,13 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   int nsubcycles; // output information
   int internal_tests;
   double tests_tolerance;
+  int num_components;
+  
 
 
  protected:
   Teuchos::RCP<TreeVector> soln_;
 
-  Key domain_name_;
   Key saturation_key_;
   Key prev_saturation_key_;
   Key flux_key_;
@@ -275,7 +284,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   Tag tag_subcycle_;
   Tag tag_subcycle_current_;
   Tag tag_subcycle_next_;
-
+  Tag tag_flux_next_ts_; // what is this? --ETC
 
   // Forbidden.
   SedimentTransport_PK(const SedimentTransport_PK&);

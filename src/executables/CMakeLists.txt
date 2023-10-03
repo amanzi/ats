@@ -143,7 +143,7 @@ add_amanzi_library(ats_executable
   HEADERS ${ats_inc_files}
   LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
 if (APPLE AND BUILD_SHARED_LIBS)
-  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup, -Wdeprecated-declarations")
 endif()			  
 
 if (BUILD_TESTS) 
