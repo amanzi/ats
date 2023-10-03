@@ -43,9 +43,18 @@ Transport_ATS::InitializeAll_()
   temporal_disc_order = plist_->get<int>("temporal discretization order", 1);
   if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
 
+  // component level quantities
+  if (plist_->isParameter("component names")) {
+    component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
+    num_components = component_names_.size();
+  }
+
   num_aqueous = plist_->get<int>("number of aqueous components", component_names_.size());
   num_advect = plist_->get<int>("number of aqueous components advected", num_aqueous);
   num_gaseous = plist_->get<int>("number of gaseous components", 0);
+
+  tcc_max_.resize(num_aqueous, 1.e10);
+  tcc_max_ = plist_->get<Teuchos::Array<double>>("component max concentrations", tcc_max_);
 
   if (plist_->isSublist("material properties")) {
     Teuchos::ParameterList& dlist = plist_->sublist("material properties");

@@ -58,19 +58,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 {
   passwd_ = "state"; // this is what Amanzi uses
 
-  if (plist_->isParameter("component names")) {
-    component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
-    num_components = component_names_.size();
-    // otherwise we hopefully get them from chemistry
-  }
-
-  if (plist_->isParameter("component molar masses")) {
-    mol_masses_ = plist_->get<Teuchos::Array<double>>("component molar masses").toVector();
-  } else {
-    Errors::Message msg("Transport PK: parameter \"component molar masses\" is missing.");
-    Exceptions::amanzi_throw(msg);
-  }
-
   // are we subcycling internally?
   subcycling_ = plist_->get<bool>("transport subcycling", false);
   tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
@@ -99,8 +86,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
-  dissolution_ = plist_->get<bool>("allow dissolution", false);
-  max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
+  dissolution_ = plist_->get<bool>("allow dissolution", true);
   dim = mesh_->space_dimension();
 
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
@@ -1270,7 +1256,7 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
         if (((*ws_current)[0][c] > water_tolerance_) &&
             ((*solid_qty_)[i][c] > 0)) { // Dissolve solid residual into liquid
           double add_mass =
-            std::min((*solid_qty_)[i][c], max_tcc_ * vol_phi_ws_den - (*conserve_qty_)[i][c]);
+            std::min((*solid_qty_)[i][c], tcc_max_[i] * vol_phi_ws_den - (*conserve_qty_)[i][c]);
           (*solid_qty_)[i][c] -= add_mass;
           (*conserve_qty_)[i][c] += add_mass;
         }
@@ -1388,6 +1374,13 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
         // there is both water and stuff present at the new time
         // this is stuff at the new time + stuff leaving through the domain coupling, divided by water of both
         tcc_next[i][c] = (*conserve_qty_)[i][c] / water_total;
+
+        // limit tcc_next to tcc_max_, precipitating the remainder as solid residue
+        if (tcc_next[i][c] > tcc_max_[i]) {
+          (*solid_qty_)[i][c] += (tcc_next[i][c] - tcc_max_[i]) * water_total;
+          tcc_next[i][c] = tcc_max_[i];
+        }
+
       } else if (water_sink > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
         // there is water and stuff leaving through the domain coupling, but it all leaves (none at the new time)
         tcc_next[i][c] = 0.;

@@ -274,6 +274,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "DenseVector.hh"
 
 #include <string>
+#include <vector>
 
 #ifdef ALQUIMIA_ENABLED
 #  include "Alquimia_PK.hh"
@@ -550,9 +551,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   int nnodes_wghost;
 
   std::vector<std::string> component_names_; // details of components
-  std::vector<double> mol_masses_;
+  Teuchos::Array<double> tcc_max_;
   int num_aqueous, num_gaseous, num_components, num_primary, num_advect;
-  double water_tolerance_, max_tcc_;
+  double water_tolerance_;
   bool dissolution_;
 
   // io
