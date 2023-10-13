@@ -11,12 +11,12 @@ on:
       - ats-*
 
 jobs:
-  build_test:
+  buildx_test:
     runs-on: ubuntu-latest
     name: Build and test with Docker
     steps:
     - name: Check out the Amanzi repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: amanzi/amanzi
         ref: master
@@ -51,23 +51,71 @@ jobs:
         echo "ats-regression-tests branch = ${{env.ATS_TESTS_BRANCH}}";
         echo "Tag reference = ${{env.ATS_BRANCH_TAG}}"
         echo "TPLs version = ${{env.AMANZI_TPLS_VER}}"
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
     - name: Login to Docker Hub
-      uses: docker/login-action@v1
+      uses: docker/login-action@v2
       with:
         username: ${{secrets.DOCKERHUB_USERNAME}}
         password: ${{secrets.DOCKERHUB_PASSWORD}}
-    - name: Docker build
-      id: docker
-      working-directory: Docker
-      run:
-        docker build --build-arg amanzi_branch=${{env.AMANZI_BRANCH}} --build-arg ats_branch=${{env.ATS_BRANCH}} --build-arg ats_tests_branch=${{env.ATS_TESTS_BRANCH}} --build-arg amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}} -t metsi/ats:${{env.ATS_BRANCH_TAG}}-latest -f Dockerfile-ATS-build .      
-    - name: Docker push
-      working-directory: Docker
-      run:
-        docker push ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest
-    - name: Run tests
-      id: tests
-      working-directory: Docker
-      run:
-        docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
+    - name: Build and push multiarch image
+      uses: docker/build-push-action@v4
+      with:
+        tags: metsi/ats:${{env.ATS_BRANCH_TAG}}-latest
+        platforms: linux/amd64,linux/arm64
+        push: true
+        build-args: |
+          amanzi_branch=${{env.AMANZI_BRANCH}}
+          ats_branch=${{env.ATS_BRANCH}}
+          amanzi_tpls_ver=${{env.AMANZI_TPLS_VER}}
+        file: Docker/Dockerfile-ATS-build
+        context: ./Docker
+  amd64_tests:
+    runs-on: ubuntu-latest
+    name: Run ats tests on amd64 image
+    needs: buildx_test
+    steps:
+      - name: Check out the ats repo
+        uses: actions/checkout@v3
+        with:
+          repository: amanzi/amanzi
+          ref: master
+          submodules: recursive
+      - name: Extract the branch name
+        id: branch
+        run:
+          echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+      - name: Filter the branch name to generate a tag for Docker
+        id: tag
+        run:
+          echo "ATS_BRANCH_TAG=$(echo ${{env.ATS_BRANCH}} | sed -e 's/\//--/g')" >> $GITHUB_ENV
+      - name: Run amd64 tests
+        id: tests_amd64
+        run:
+          docker run --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
+  arm64_tests:
+    runs-on: ubuntu-latest
+    name: Run ats tests on arm64 image
+    needs: buildx_test
+    steps: 
+      - name: Check out the ats repo
+        uses: actions/checkout@v3
+        with:
+          repository: amanzi/amanzi
+          ref: master
+          submodules: recursive
+      - name: Extract the ATS branch name
+        id: branch
+        run: |
+          echo "ATS_BRANCH=$GITHUB_REF_NAME" >> $GITHUB_ENV
+      - name: Filter the branch name to generate a tag for Docker
+        id: tag
+        run:
+          echo "ATS_BRANCH_TAG=$(echo ${{env.ATS_BRANCH}} | sed -e 's/\//--/g')" >> $GITHUB_ENV
+      - name: Run arm64 tests
+        id: tests_arm64
+        run:
+          docker run --platform=linux/arm64 --rm ${{secrets.DOCKERHUB_USERNAME}}/ats:${{env.ATS_BRANCH_TAG}}-latest /bin/bash -c "cd ~/amanzi_builddir/ats; ctest"
         
