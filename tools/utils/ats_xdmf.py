@@ -193,8 +193,6 @@ class VisFile:
         """
         if self.domain and '-' not in vname:
             vname = self.domain + '-' + vname
-        if '.' not in vname:
-            vname = vname + '.cell.0'
         return vname
 
     def _get(self, vname, cycle):
@@ -580,8 +578,8 @@ def read_conn(elem_conn):
         etype, conn, i = read_element_dirty(elem_conn,i)
         etypes.append(etype)
         conns.append(conn)
-    if len(set(etypes))==1:
-        elem_type = set(etypes)[0]
+    if len(set(etypes)) == 1:
+        elem_type = set(etypes).pop()
     else: 
         elem_type = 'MIXED'
     return elem_type, conns
