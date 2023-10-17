@@ -83,6 +83,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     Keys::readKey(*plist_, domain_, "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
   capillary_pressure_liq_ice_key_ =
     Keys::readKey(*plist_, domain_, "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
+  depth_key_ = Keys::readKey(*plist_, domain_, "depth", "depth");
 
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
@@ -136,6 +137,17 @@ Richards::SetupRichardsFlow_()
   FlowBCFactory bc_factory(mesh_, bc_plist);
   bc_pressure_ = bc_factory.CreatePressure();
   bc_head_ = bc_factory.CreateHead();
+
+  // must be collective
+  int bc_head_local_count = bc_head_->size();
+  mesh_->getComm()->SumAll(&bc_head_local_count, &bc_head_global_count_, 1);
+  if (bc_head_global_count_ > 0) {
+    S_->Require<CompositeVector, CompositeVectorSpace>(depth_key_, tag_next_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    S_->RequireEvaluator(depth_key_, tag_next_);
+  }
+
   bc_level_ = bc_factory.CreateFixedLevel();
   bc_flux_ = bc_factory.CreateMassFlux();
   bc_seepage_ = bc_factory.CreateSeepageFacePressure();
@@ -971,32 +983,26 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   // head boundary conditions
   bc_counts.push_back(bc_head_->size());
   bc_names.push_back("head");
-  if (bc_head_->size() > 0) {
-    Errors::Message mesg("column_ID not implemented in Amanzi");
-    Exceptions::amanzi_throw(mesg);
-
+  if (bc_head_global_count_ > 0) {
     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-    int z_index = mesh_->getSpaceDimension() - 1;
     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+    int z_index = mesh_->getSpaceDimension() - 1;
     double g = -gravity[z_index];
+
+    S_->GetEvaluator(depth_key_, tag).Update(*S_, name_);
+    const auto& depth_c = *S_->Get<CompositeVector>(depth_key_, tag).ViewComponent("cell",false);
 
     for (const auto& bc : *bc_head_) {
       int f = bc.first;
 
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
-      AMANZI_ASSERT(cells.size() == 1);
-
       // we need to find the elevation of the surface, but finding the top edge
       // of this stack of faces is not possible currently.  The best approach
       // is instead to work with the cell.
-      int col = 0;//mesh_->column_ID(cells[0]);
-      double z_surf = mesh_->getFaceCentroid(mesh_->columns.getFaces(col)[0])[z_index];
-      double z_wt = bc.second + z_surf;
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      AMANZI_ASSERT(cells.size() == 1);
 
       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
-      // note, here the cell centroid's z is used to relate to the column's top
-      // face centroid, specifically NOT the boundary face's centroid.
-      values[f] = p_atm + bc_rho_water_ * g * (z_wt - mesh_->getCellCentroid(cells[0])[z_index]);
+      values[f] = p_atm + bc_rho_water_ * g * (bc.second + depth_c[0][cells[0]]);
     }
   }
 

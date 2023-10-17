@@ -39,6 +39,7 @@ PK_PhysicalBDF_Default::Setup()
   }
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
+    ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, true);
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);

@@ -401,6 +401,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // boundary condition data
   Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
+  int bc_head_global_count_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_;
@@ -448,6 +449,7 @@ class Richards : public PK_PhysicalBDF_Default {
   Key capillary_pressure_gas_liq_key_;
   Key capillary_pressure_liq_ice_key_;
   Key deform_key_;
+  Key depth_key_;
 
   // debugging control
   bool fixed_kr_;
