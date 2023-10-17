@@ -326,8 +326,8 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
   Epetra_MultiVector dz(subsurf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
   for (int col = 0; col != ncols; ++col) {
-    auto& faces = subsurf_mesh->columns.getFaces(col);
-    auto& cells = subsurf_mesh->columns.getCells(col);
+    auto faces = subsurf_mesh->columns.getFaces(col);
+    auto cells = subsurf_mesh->columns.getCells(col);
     for (int i = 0; i != cells.size(); ++i) {
       dz[0][cells[i]] =
         subsurf_mesh->getFaceCentroid(faces[i])[2] - subsurf_mesh->getFaceCentroid(faces[i + 1])[2];

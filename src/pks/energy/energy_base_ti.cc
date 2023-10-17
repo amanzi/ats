@@ -276,12 +276,9 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
   // Abs tol based on old conserved quantity -- we know these have been vetted
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
-
-  //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
-  // not used ?? jjb
   const Epetra_MultiVector& conserved =
     *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
-  //S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());
+
   const Epetra_MultiVector& wc =
     *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
   const Epetra_MultiVector& cv =
@@ -327,7 +324,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
       int nfaces = dvec->size(*comp, false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double mass_min = cells.size() == 1 ? wc[0][cells[0]] / cv[0][cells[0]] :

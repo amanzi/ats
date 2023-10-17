@@ -407,8 +407,9 @@ Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S)
     *S->GetPtrW<CompositeVector>(vertex_coord_key_ss_, "state")->ViewComponent("node", true);
 
 
-  const Epetra_MultiVector& dz =
-    *S->Get<CompositeVector>(elevation_increase_key_).ViewComponent("cell");
+  const auto& dz_cv = S->Get<CompositeVector>(elevation_increase_key_);
+  dz_cv.ScatterMasterToGhosted();
+  const Epetra_MultiVector& dz = *dz_cv.ViewComponent("cell", true);
 
   int ncells = dz.MyLength();
 
@@ -423,7 +424,7 @@ Morphology_PK::Update_MeshVertices_(const Teuchos::Ptr<State>& S)
     int nnodes = nodes.size();
     for (int i = 0; i < nnodes; i++) {
       coords = mesh_ss_->getNodeCoordinate(nodes[i]);
-      cells = mesh_ss_->getNodeCells(nodes[i], Amanzi::AmanziMesh::Parallel_kind::OWNED);
+      cells = mesh_ss_->getNodeCells(nodes[i], Amanzi::AmanziMesh::Parallel_kind::ALL);
       int nsize = cells.size();
       double old = coords[2];
 

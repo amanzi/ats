@@ -87,7 +87,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(const State
 
     // Get the direction corresponding to that face wrt its only cell.
     // -- get the cell
-    auto cells = subsurface->getFaceCells(domain_face, AmanziMesh::Parallel_kind::OWNED);
+    auto cells = subsurface->getFaceCells(domain_face, AmanziMesh::Parallel_kind::ALL);
     AMANZI_ASSERT(cells.size() == 1);
 
     // -- Get directions
@@ -119,7 +119,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
     int ncells = result[0]->size("cell", false);
     for (int c = 0; c != ncells; ++c) {
       auto cells = subsurface->getFaceCells(
-        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::OWNED);
+        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       res_v[0][c] =
@@ -129,7 +129,7 @@ OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
     int ncells = result[0]->size("cell", false);
     for (int c = 0; c != ncells; ++c) {
       auto cells = subsurface->getFaceCells(
-        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::OWNED);
+        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       res_v[0][c] = flux[0][(*face_and_dirs_)[c].first] * (*face_and_dirs_)[c].second;

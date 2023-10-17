@@ -135,7 +135,7 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
       int nfaces = dvec->size(*comp, false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double conserved_min = cells.size() == 1 ?
@@ -197,6 +197,7 @@ PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_ne
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   // copy over conserved quantity
+  S_->Get<CompositeVector>(conserved_key_, tag_next).ScatterMasterToGhosted();
   assign(conserved_key_, tag_current, tag_next, *S_);
 }
 
