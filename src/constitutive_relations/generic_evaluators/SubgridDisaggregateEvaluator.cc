@@ -64,7 +64,8 @@ SubgridDisaggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (my_fac.HasComponent("cell")) {
     int num_vectors = my_fac.NumVectors("cell");
     CompositeVectorSpace fac;
-    fac.SetMesh(S.GetMesh(source_domain_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_vectors);
+    fac.SetMesh(S.GetMesh(source_domain_))
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_vectors);
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
   }
 }

@@ -211,9 +211,9 @@ UpwindTotalFlux::UpdateDerivatives(
 
   // Identify upwind/downwind cells for each local face.  Note upwind/downwind
   // may be a ghost cell.
-  Epetra_IntVector upwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE,true));
+  Epetra_IntVector upwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE, true));
   upwind_cell.PutValue(-1);
-  Epetra_IntVector downwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE,true));
+  Epetra_IntVector downwind_cell(mesh->getMap(AmanziMesh::Entity_kind::FACE, true));
   downwind_cell.PutValue(-1);
 
   int ncells = dcell_v.MyLength();

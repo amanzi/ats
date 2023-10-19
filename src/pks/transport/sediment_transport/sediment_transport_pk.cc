@@ -294,12 +294,17 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   // Policy(S.ptr());
 
-  ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  ncells_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+  ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  ncells_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
 
-  nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
-  nfaces_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
-  nnodes_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
+  nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  nfaces_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+  nnodes_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
 
   // extract control parameters
   InitializeAll_();
@@ -331,7 +336,7 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   // *tcc_tmp = *tcc;
 
   // upwind
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
   upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
 
@@ -340,10 +345,10 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
   // advection block initialization
   current_component_ = -1;
 
-  const Epetra_Map& cmap_owned = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+  const Epetra_Map& cmap_owned = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
 
   // reconstruction initialization
-  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
+  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL, true);
   lifting_ = Teuchos::rcp(new Operators::ReconstructionCellLinear(mesh_));
 
   // create boundary conditions
@@ -361,8 +366,8 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
           Teuchos::ParameterList::ConstIterator it1 = bc_list.begin();
           std::string specname = it1->first;
           Teuchos::ParameterList& spec = bc_list.sublist(specname);
-          Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+            spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
 
           for (int i = 0; i < component_names_.size(); i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -381,8 +386,8 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
           AMANZI_ASSERT(last_of != std::string::npos);
           int gid = std::stoi(domain_name_.substr(last_of + 1, domain_name_.size()));
           spec.set("entity_gid_out", gid);
-          Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+            spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
 
           for (int i = 0; i < component_names_.size(); i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -398,8 +403,8 @@ SedimentTransport_PK::Initialize(const Teuchos::Ptr<State>& S)
                ++it1) {
             std::string specname = it1->first;
             Teuchos::ParameterList& spec = bc_list.sublist(specname);
-            Teuchos::RCP<TransportDomainFunction> bc =
-              factory.Create(spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
+            Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+              spec, "boundary concentration", AmanziMesh::Entity_kind::FACE, Teuchos::null);
 
             std::vector<int>& tcc_index = bc->tcc_index();
             std::vector<std::string>& tcc_names = bc->tcc_names();
@@ -880,8 +885,8 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
     Teuchos::ParameterList& op_list =
       tp_list_->sublist("operators").sublist("diffusion operator").sublist("matrix");
 
-    Teuchos::RCP<Operators::BCs> bc_dummy =
-      Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+    Teuchos::RCP<Operators::BCs> bc_dummy = Teuchos::rcp(
+      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
     // default boundary conditions (none inside domain and Neumann on its boundary)
     auto& bc_model = bc_dummy->bc_model();

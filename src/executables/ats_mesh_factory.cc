@@ -68,7 +68,8 @@ createMeshFromFile(const std::string& mesh_name,
   if (mesh != Teuchos::null) {
     // potentially build columns
     if (mesh_plist.isParameter("build columns from set")) {
-      std::vector<std::string> regionname = {mesh_plist.get<std::string>("build columns from set")};
+      std::vector<std::string> regionname = { mesh_plist.get<std::string>(
+        "build columns from set") };
       mesh->buildColumns(regionname);
     } else if (mesh_plist.get("build columns", true)) {
       mesh->buildColumns();
@@ -118,7 +119,8 @@ createMeshGenerated(const std::string& mesh_name,
   if (mesh != Teuchos::null) {
     // build columns
     if (mesh_plist.isParameter("build columns from set")) {
-      std::vector<std::string> regionname = {mesh_plist.get<std::string>("build columns from set")};
+      std::vector<std::string> regionname = { mesh_plist.get<std::string>(
+        "build columns from set") };
       mesh->buildColumns(regionname);
     } else if (mesh_plist.get("build columns", false)) {
       mesh->buildColumns();
@@ -413,7 +415,7 @@ createMeshColumn(const std::string& mesh_name,
   // vo
   if (mesh_plist.isSublist("verbose object"))
     mesh_factory_plist->set("verbose object", mesh_plist.sublist("verbose object"));
-  
+
   AmanziMesh::Entity_ID lid = mesh_column_plist.get<AmanziMesh::Entity_ID>("entity LID");
   auto parent_name = mesh_column_plist.get<std::string>("parent domain", "domain");
   if (vo.os_OK(Teuchos::VERB_HIGH)) {
@@ -431,7 +433,7 @@ createMeshColumn(const std::string& mesh_name,
   if (mesh != Teuchos::null) {
     if (mesh_plist.isParameter("build columns from set")) {
       std::string regionname = mesh_plist.get<std::string>("build columns from set");
-      mesh->buildColumns({regionname});
+      mesh->buildColumns({ regionname });
     } else if (mesh_plist.get("build columns", false)) {
       mesh->buildColumns();
     }
@@ -574,8 +576,8 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
 
     // create the subdomains, indexed over entities
     for (const auto& region : regions) {
-      auto region_ents = indexing_parent_mesh->getSetEntities(
-        region, entity_kind, AmanziMesh::Parallel_kind::OWNED);
+      auto region_ents =
+        indexing_parent_mesh->getSetEntities(region, entity_kind, AmanziMesh::Parallel_kind::OWNED);
       const auto& map = indexing_parent_mesh->getMap(entity_kind, false);
 
       for (const AmanziMesh::Entity_ID& lid : region_ents) {

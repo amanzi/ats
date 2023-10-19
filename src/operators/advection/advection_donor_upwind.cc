@@ -23,8 +23,10 @@ AdvectionDonorUpwind::AdvectionDonorUpwind(Teuchos::ParameterList& advect_plist,
                                            const Teuchos::RCP<const AmanziMesh::Mesh> mesh)
   : Advection(advect_plist, mesh)
 {
-  upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE,true)));
-  downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE,true)));
+  upwind_cell_ =
+    Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE, true)));
+  downwind_cell_ =
+    Teuchos::rcp(new Epetra_IntVector(mesh_->getMap(AmanziMesh::Entity_kind::FACE, true)));
 };
 
 
@@ -94,7 +96,8 @@ AdvectionDonorUpwind::IdentifyUpwindCells_()
   flux_->ScatterMasterToGhosted("face");
   const Epetra_MultiVector& flux_f = *flux_->ViewComponent("face", true);
 
-  unsigned int ncells_used = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+  unsigned int ncells_used =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
   for (unsigned int c = 0; c != ncells_used; ++c) {
     const auto& [faces, fdirs] = mesh_->getCellFacesAndDirections(c);
 

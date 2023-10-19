@@ -124,11 +124,12 @@ SurfaceBalanceCLM::Setup()
   SetupDependencies_(tag_next_);
 
   // Set up the CLM object
-  ATS::CLM::init(subsurf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
-                 mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
-                 2,
-                 mesh_->getComm()->MyPID(),
-                 3);
+  ATS::CLM::init(
+    subsurf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED),
+    2,
+    mesh_->getComm()->MyPID(),
+    3);
 }
 
 void
@@ -289,7 +290,8 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
 
   // lat/lon
   auto latlon = plist_->get<Teuchos::Array<double>>("latitude,longitude [degrees]");
-  int ncols = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncols =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   double latlon_arr[ncols][2];
   for (int i = 0; i != ncols; ++i) {
     latlon_arr[i][0] = latlon[0];
@@ -324,7 +326,7 @@ SurfaceBalanceCLM::InitializeCLM_(const Tag& tag)
   // CLM setup stage
   ATS::CLM::setup_begin();
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
-  Epetra_MultiVector dz(subsurf_mesh->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+  Epetra_MultiVector dz(subsurf_mesh->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
   for (int col = 0; col != ncols; ++col) {
     auto faces = subsurf_mesh->columns.getFaces(col);
     auto cells = subsurf_mesh->columns.getCells(col);

@@ -184,7 +184,8 @@ Richards::SetupRichardsFlow_()
   if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // data allocation -- move to State!
-  unsigned int c_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  unsigned int c_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   K_ = Teuchos::rcp(new std::vector<WhetStone::Tensor>(c_owned));
   for (unsigned int c = 0; c != c_owned; ++c) {
     (*K_)[c].Init(mesh_->getSpaceDimension(), perm_tensor_rank_);
@@ -867,8 +868,8 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
     } else if (clobber_policy_ == "max") {
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
@@ -878,8 +879,8 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       const Epetra_MultiVector& pres =
         *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
-      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
@@ -990,7 +991,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     double g = -gravity[z_index];
 
     S_->GetEvaluator(depth_key_, tag).Update(*S_, name_);
-    const auto& depth_c = *S_->Get<CompositeVector>(depth_key_, tag).ViewComponent("cell",false);
+    const auto& depth_c = *S_->Get<CompositeVector>(depth_key_, tag).ViewComponent("cell", false);
 
     for (const auto& bc : *bc_head_) {
       int f = bc.first;
@@ -1234,7 +1235,8 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 
   // mark all remaining boundary conditions as zero flux conditions
   int n_default = 0;
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
       auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);

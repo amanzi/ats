@@ -48,8 +48,8 @@ SurfaceTopCellsEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   Epetra_MultiVector& result_cells = *result[0]->ViewComponent("cell", false);
 
 
-  int ncells_surf =
-    result[0]->Mesh()->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_surf = result[0]->Mesh()->getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                      AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int c = 0; c != ncells_surf; ++c) {
     // get the face on the subsurface mesh
     AmanziMesh::Entity_ID f = result[0]->Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
@@ -69,7 +69,8 @@ SurfaceTopCellsEvaluator::EnsureCompatibility_ToDeps_(State& S)
   auto domain_name = Keys::getDomain(my_keys_.front().first);
 
   CompositeVectorSpace fac;
-  fac.SetMesh(S.GetMesh(domain_name)->getParentMesh())->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  fac.SetMesh(S.GetMesh(domain_name)->getParentMesh())
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
 }
 

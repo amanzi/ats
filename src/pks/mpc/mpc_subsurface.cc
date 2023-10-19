@@ -214,7 +214,8 @@ MPCSubsurface::Setup()
       dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dWC_dT_block_ = dWC_dT_->global_operator();
     } else {
-      dWC_dT_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
+      dWC_dT_ =
+        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dWC_dT_block_));
     }
     // }
 
@@ -373,7 +374,8 @@ MPCSubsurface::Setup()
       dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
+      dE_dp_ =
+        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
     }
     // }
 
@@ -613,8 +615,9 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
       enth_kr_uw->PutScalar(0.0);
 
       enth_kr_uw->ViewComponent("face", false)
-        ->Export(
-          *enth_kr->ViewComponent("boundary_face", false), mesh_->getBoundaryFaceImporter(), Insert);
+        ->Export(*enth_kr->ViewComponent("boundary_face", false),
+                 mesh_->getBoundaryFaceImporter(),
+                 Insert);
       upwinding_hkr_->Update(*enth_kr, *enth_kr_uw, *S_);
 
       // -- stick zeros in the boundary faces

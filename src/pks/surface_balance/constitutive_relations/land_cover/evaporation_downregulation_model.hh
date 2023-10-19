@@ -25,7 +25,7 @@ Requires two parameters,
   Genuchten curves that we typically use, but it doesn't appear to be the most
   important parameter.
 
-* `"Soil resistance method`" ``[string]`` Soil resistance model, currently support 
+* `"Soil resistance method`" ``[string]`` Soil resistance model, currently support
   {sakagucki_zeng, sellers}, default is always sakagucki_zeng.
 
 These may be provided via parameter list or LandCover type.

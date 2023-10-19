@@ -152,8 +152,8 @@ Transport_ATS::FunctionalTimeDerivative(double t,
 
           if (c2 >= 0 && f < nfaces_owned) {
             double u = fabs((*flux_)[0][f]);
-            double vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] * (*ws_current)[0][c2] *
-                                    (*mol_dens_current)[0][c2];
+            double vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] *
+                                    (*ws_current)[0][c2] * (*mol_dens_current)[0][c2];
             if ((*ws_current)[0][c2] < 1e-12)
               vol_phi_ws_den = mesh_->getCellVolume(c2) * (*phi_)[0][c2] * (*ws_next)[0][c2] *
                                (*mol_dens_next)[0][c2];

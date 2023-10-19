@@ -199,7 +199,8 @@ Richards::UpdateVelocity_(const Tag& tag)
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
   double rhs[d];
 
-  int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells_owned; ++c) {
     auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();

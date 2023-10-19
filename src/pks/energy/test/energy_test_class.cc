@@ -68,7 +68,7 @@ EnergyTest::initialize_owned()
 void
 EnergyTest::initialize_water_flux()
 {
-  const Epetra_BlockMap& fmap = mesh->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_BlockMap& fmap = mesh->getMap(AmanziMesh::Entity_kind::FACE, true);
   Teuchos::RCP<CompositeVector> water_flux = S0->GetFieldData("water_flux", "state");
 
   for (int f = fmap.MinLID(); f <= fmap.MaxLID(); f++) {
@@ -82,7 +82,7 @@ EnergyTest::initialize_water_flux()
 void
 EnergyTest::evaluate_error_temp(double t, double* L1, double* L2)
 {
-  const Epetra_BlockMap& cmap = mesh->getMap(AmanziMesh::Entity_kind::CELL,true);
+  const Epetra_BlockMap& cmap = mesh->getMap(AmanziMesh::Entity_kind::CELL, true);
   Teuchos::RCP<const CompositeVector> temp = S1->GetFieldData("temperature");
 
   double d;

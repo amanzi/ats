@@ -83,12 +83,16 @@ Preferential::RequireNonlinearCoefficient_(const Key& key, const std::string& co
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "face", "grav" }, { AmanziMesh::Entity_kind::FACE, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
+      ->SetComponents({ "face", "grav" },
+                      { AmanziMesh::Entity_kind::FACE, AmanziMesh::Entity_kind::FACE },
+                      { 1, 1 });
   } else if (coef_location == "standard: cell") {
     S_->Require<CompositeVector, CompositeVectorSpace>(key, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponents({ "cell", "grav" }, { AmanziMesh::Entity_kind::CELL, AmanziMesh::Entity_kind::FACE }, { 1, 1 });
+      ->SetComponents({ "cell", "grav" },
+                      { AmanziMesh::Entity_kind::CELL, AmanziMesh::Entity_kind::FACE },
+                      { 1, 1 });
   } else {
     Errors::Message message("Unknown upwind coefficient location in Preferential flow.");
     Exceptions::amanzi_throw(message);
@@ -201,8 +205,8 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       uw_rel_perm_f.Export(rel_perm_bf, vandelay, Insert);
     } else if (clobber_policy_ == "max") {
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
-      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
@@ -212,8 +216,8 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       Epetra_MultiVector& uw_rel_perm_f = *uw_rel_perm->ViewComponent("face", false);
       const Epetra_MultiVector& pres =
         *S_->Get<CompositeVector>(key_, tag).ViewComponent("cell", false);
-      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
-      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,true);
+      const auto& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
+      const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
         auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);

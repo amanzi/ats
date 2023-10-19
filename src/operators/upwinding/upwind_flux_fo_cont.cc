@@ -1,4 +1,3 @@
-
 /*
   Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.

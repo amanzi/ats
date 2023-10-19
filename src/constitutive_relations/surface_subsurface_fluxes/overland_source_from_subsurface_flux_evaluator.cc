@@ -77,7 +77,8 @@ OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(const State
   Teuchos::RCP<const AmanziMesh::Mesh> surface = S.GetMesh(domain_surf_);
 
   // allocate space for face IDs and directions
-  int ncells = surface->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells =
+    surface->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   face_and_dirs_ = Teuchos::rcp(new std::vector<FaceDir>(ncells));
 
   for (int c = 0; c != ncells; ++c) {
@@ -118,8 +119,8 @@ OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
 
     int ncells = result[0]->size("cell", false);
     for (int c = 0; c != ncells; ++c) {
-      auto cells = subsurface->getFaceCells(
-        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
+      auto cells =
+        subsurface->getFaceCells((*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       res_v[0][c] =
@@ -128,8 +129,8 @@ OverlandSourceFromSubsurfaceFluxEvaluator::Evaluate_(const State& S,
   } else {
     int ncells = result[0]->size("cell", false);
     for (int c = 0; c != ncells; ++c) {
-      auto cells = subsurface->getFaceCells(
-        (*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
+      auto cells =
+        subsurface->getFaceCells((*face_and_dirs_)[c].first, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
 
       res_v[0][c] = flux[0][(*face_and_dirs_)[c].first] * (*face_and_dirs_)[c].second;

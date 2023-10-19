@@ -444,7 +444,8 @@ OverlandPressureFlow::Initialize()
       // copy subsurface face pressure to surface cell pressure
       Teuchos::RCP<const CompositeVector> subsurf_pres =
         S_->GetPtr<CompositeVector>(key_ss, tag_next_);
-      auto ncells_surface = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+      auto ncells_surface =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       if (subsurf_pres->HasComponent("face")) {
         const Epetra_MultiVector& subsurf_pres_f =
           *S_->GetPtr<CompositeVector>(key_ss, tag_next_)->ViewComponent("face", false);
@@ -462,7 +463,8 @@ OverlandPressureFlow::Initialize()
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
           AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
-          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false).LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f));
+          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false)
+                     .LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE, false).GID(f));
           if (bf >= 0) pres[0][c] = subsurf_pres_bf[0][bf];
         }
       }
@@ -478,7 +480,7 @@ OverlandPressureFlow::Initialize()
       unsigned int ncells_surface =
         mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (unsigned int c = 0; c != ncells_surface; ++c) {
-        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
+        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false).GID(c);
         Key domain_sf = Keys::getDomainInSet(surf_dset_name, id);
 
         const Epetra_MultiVector& pres =
@@ -584,7 +586,8 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
   double rhs[d];
 
-  int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells_owned; ++c) {
     auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
@@ -999,7 +1002,8 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
     Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(flux_key_, tag);
     const Epetra_MultiVector& flux_f = *flux->ViewComponent("face", false);
-    int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;
@@ -1039,14 +1043,15 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
   // check that there are no internal faces and mark all remaining boundary
   // conditions as the default, zero flux conditions
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f != nfaces_owned; ++f) {
     auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     int ncells = cells.size();
 
     if ((markers[f] != Operators::OPERATOR_BC_NONE) && (ncells == 2)) {
       Errors::Message msg("Tried to set a boundary condition on internal face GID ");
-      msg << mesh_->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f);
+      msg << mesh_->getMap(AmanziMesh::Entity_kind::FACE, false).GID(f);
       Exceptions::amanzi_throw(msg);
     }
     if ((markers[f] == Operators::OPERATOR_BC_NONE) && (ncells == 1)) {
@@ -1080,8 +1085,8 @@ OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVecto
     }
   } else if (u->HasComponent("boundary_face")) {
     const Epetra_MultiVector& elevation = *elev->ViewComponent("face");
-    const Epetra_Map& vandalay_map = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandalay_map = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
 
     const Epetra_MultiVector& u_c = *u->ViewComponent("cell", false);
     Epetra_MultiVector& u_bf = *u->ViewComponent("boundary_face", false);
@@ -1133,8 +1138,10 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
     std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
 
-    int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-    int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+    int ncells_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
     for (const auto& bc : *bc_zero_gradient_) {
       int f = bc.first;
 
@@ -1163,7 +1170,8 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
     std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
     double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
-    int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;

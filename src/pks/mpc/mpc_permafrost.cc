@@ -262,8 +262,8 @@ MPCPermafrost::Setup()
     int ncells_surf =
       surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
       AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
         int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
@@ -274,7 +274,7 @@ MPCPermafrost::Setup()
           surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
       }
       AmanziMesh::Entity_ID_View surf_debug_cells;
-      vectorToView(surf_debug_cells, surf_debug_cells_v); 
+      vectorToView(surf_debug_cells, surf_debug_cells_v);
       if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
     }
   }
@@ -284,8 +284,8 @@ MPCPermafrost::Setup()
     int ncells_surf =
       surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
       AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
         int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
@@ -296,7 +296,7 @@ MPCPermafrost::Setup()
           surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
       }
       AmanziMesh::Entity_ID_View surf_debug_cells;
-      vectorToView(surf_debug_cells, surf_debug_cells_v); 
+      vectorToView(surf_debug_cells, surf_debug_cells_v);
       if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
     }
   }

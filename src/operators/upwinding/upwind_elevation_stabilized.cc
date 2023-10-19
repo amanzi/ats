@@ -97,8 +97,8 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
   double slope_regularization = slope_regularization_;
   double manning_exp = manning_exp_;
 
-  const auto& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
-  const auto& bface_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+  const auto& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
+  const auto& bface_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
 
   // Determine the face coefficient of local faces.
   //

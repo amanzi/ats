@@ -66,7 +66,7 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
     // loop over column, getting cell index ci and cell c
     int ci = 0;
-    for (const auto& c :col) {
+    for (const auto& c : col) {
       double my_z = mesh.getCellCentroid(c)[2];
       double dz_up = 0.;
       double dz_dn = 0.;
@@ -92,7 +92,7 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
 
       double dz = dz_dn == 0. ? dz_up : dz_up == 0. ? dz_dn : (dz_up + dz_dn) / 2.;
       for (int p = 0; p != carbon.NumVectors(); ++p) { res_c[p][c] = (dC_dn[p] - dC_up[p]) / dz; }
-      ++ci; 
+      ++ci;
     }
   }
 }

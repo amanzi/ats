@@ -85,7 +85,7 @@ ThermalConductivityTwoPhaseEvaluator::Evaluate_(const State& S,
           region_name, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
         // loop over indices
-        for (const auto& id: id_list) {
+        for (const auto& id : id_list) {
           result_v[0][id] = lcv->second->ThermalConductivity(poro_v[0][id], sat_v[0][id]);
         }
       } else {

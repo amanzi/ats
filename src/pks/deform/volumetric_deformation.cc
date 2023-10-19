@@ -485,8 +485,10 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       const Epetra_MultiVector& dcell_vol_c = *dcell_vol_vec->ViewComponent("cell", true);
 
       // data needed in vectors
-      int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
-      int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
+      int ncells =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+      int nnodes =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
       std::vector<double> target_cell_vols(ncells);
       std::vector<double> min_cell_vols(ncells);
       int dim = mesh_->getSpaceDimension();
@@ -518,7 +520,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         nc = mesh_->getNodeCoordinate(n);
         if (nc[dim - 1] < min_height) below_node_list.emplace_back(n);
       }
-      
+
       Errors::Message mesg("Volumetric Deformation not implemented in Amanzi");
       Exceptions::amanzi_throw(mesg);
       //mesh_nc_->deform(target_cell_vols, min_cell_vols, below_node_list, true);
@@ -611,15 +613,16 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
     // mesh and update the surface mesh accordingly
     if (surf3d_mesh_nc_ != Teuchos::null) {
       // done on ALL to avoid lack of communication issues in deform
-      int nsurfnodes =
-        surf3d_mesh_nc_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
+      int nsurfnodes = surf3d_mesh_nc_->getNumEntities(AmanziMesh::Entity_kind::NODE,
+                                                       AmanziMesh::Parallel_kind::ALL);
 
       AmanziMesh::Entity_ID_View surface_nodeids("surface_nodeids", nsurfnodes);
       AmanziMesh::Point_View surface_newpos("surface_newpos", nsurfnodes);
 
       for (int i = 0; i != nsurfnodes; ++i) {
         // get the coords of the node
-        AmanziMesh::Entity_ID pnode = surf3d_mesh_nc_->getEntityParent(AmanziMesh::Entity_kind::NODE, i);
+        AmanziMesh::Entity_ID pnode =
+          surf3d_mesh_nc_->getEntityParent(AmanziMesh::Entity_kind::NODE, i);
         int dim = mesh_->getSpaceDimension();
         AmanziGeometry::Point coord_domain(dim);
         coord_domain = mesh_->getNodeCoordinate(pnode);

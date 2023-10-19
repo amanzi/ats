@@ -401,7 +401,8 @@ Coordinator::report_memory()
     double global_ncells(0.0);
     double local_ncells(0.0);
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      Epetra_Map cell_map = (mesh->second.first)->getMap(Amanzi::AmanziMesh::Entity_kind::CELL,false);
+      Epetra_Map cell_map =
+        (mesh->second.first)->getMap(Amanzi::AmanziMesh::Entity_kind::CELL, false);
       global_ncells += cell_map.NumGlobalElements();
       local_ncells += cell_map.NumMyElements();
     }
@@ -567,7 +568,7 @@ Coordinator::advance()
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
 
-	Amanzi::AmanziMesh::Entity_ID_View node_ids("node_ids", vc.MyLength());
+        Amanzi::AmanziMesh::Entity_ID_View node_ids("node_ids", vc.MyLength());
         Amanzi::AmanziMesh::Point_View old_positions("old_positions", vc.MyLength());
         for (int n = 0; n != vc.MyLength(); ++n) {
           node_ids[n] = n;
@@ -579,7 +580,7 @@ Coordinator::advance()
         }
 
         // undeform the mesh
-	Amanzi::AmanziMesh::MeshAlgorithms::deform(*(mesh->second.first), node_ids, old_positions);
+        Amanzi::AmanziMesh::MeshAlgorithms::deform(*(mesh->second.first), node_ids, old_positions);
       }
     }
   }

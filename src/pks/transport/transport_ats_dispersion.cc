@@ -88,18 +88,18 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
 
     for (int r = 0; r < (spec->regions).size(); r++) {
       std::string region = (spec->regions)[r];
-      auto block = mesh_->getSetEntities(region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+      auto block = mesh_->getSetEntities(
+        region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
-        for (const auto& c: block) {
-          D_[c] +=
-            md * spec->tau[phase] * porosity[0][c] * saturation[0][c] * mol_density[0][c];
+        for (const auto& c : block) {
+          D_[c] += md * spec->tau[phase] * porosity[0][c] * saturation[0][c] * mol_density[0][c];
         }
       } else if (phase == TRANSPORT_PHASE_GAS) {
-        for (const auto& c: block) {
-          D_[c] += md * spec->tau[phase] * porosity[0][c] * (1.0 - saturation[0][c]) *
-                    mol_density[0][c];
+        for (const auto& c : block) {
+          D_[c] +=
+            md * spec->tau[phase] * porosity[0][c] * (1.0 - saturation[0][c]) * mol_density[0][c];
         }
       }
     }

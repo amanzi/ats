@@ -132,7 +132,8 @@ EnergySurfaceIce::Initialize()
 
       Teuchos::RCP<const CompositeVector> subsurf_temp =
         S_->GetPtr<CompositeVector>(key_ss, tag_next_);
-      auto ncells_surface = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+      auto ncells_surface =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       if (subsurf_temp->HasComponent("face")) {
         const Epetra_MultiVector& temp = *subsurf_temp->ViewComponent("face", false);
@@ -148,7 +149,8 @@ EnergySurfaceIce::Initialize()
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
           AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
-          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false).LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE,false).GID(f));
+          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false)
+                     .LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE, false).GID(f));
           if (bf >= 0) surf_temp[0][c] = temp[0][bf];
         }
       }
@@ -166,9 +168,10 @@ EnergySurfaceIce::Initialize()
         S_->GetPtrW<CompositeVector>(key_, tag_next_, name_);
       Epetra_MultiVector& surf_temp = *surf_temp_cv->ViewComponent("cell", false);
 
-      auto ncells_surface = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+      auto ncells_surface =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (unsigned int c = 0; c != ncells_surface; ++c) {
-        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
+        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false).GID(c);
         std::stringstream name;
         name << "surface_column_" << id;
         const Epetra_MultiVector& temp =

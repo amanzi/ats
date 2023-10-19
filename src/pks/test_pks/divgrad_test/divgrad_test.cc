@@ -46,7 +46,8 @@ DivGradTest::setup(const Teuchos::Ptr<State>& S)
   S->RequireEvaluator("cell_volume");
 
   // Create the absolute permeability tensor.
-  int c_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int c_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   Teuchos::RCP<std::vector<WhetStone::Tensor>> K =
     Teuchos::rcp(new std::vector<WhetStone::Tensor>(c_owned));

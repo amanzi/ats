@@ -123,17 +123,19 @@ MatrixVolumetricDeformation::PreAssemble_()
 
   // Domain and Range: matrix inverse solves the problem, given dV, what is
   // dnode_z that results in that dV.  Therefore, A * dnode_z = dV
-  const Epetra_Map& cell_map = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE,false);
-  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE,true);
+  const Epetra_Map& cell_map = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE, false);
+  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE, true);
 
   range_ = Teuchos::rcp(new CompositeVectorSpace());
   range_->SetMesh(mesh_)->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   domain_ = Teuchos::rcp(new CompositeVectorSpace());
   domain_->SetMesh(mesh_)->SetComponent("node", AmanziMesh::Entity_kind::NODE, 1);
 
-  unsigned int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  unsigned int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
+  unsigned int ncells =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  unsigned int nnodes =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
 
 
   // == Create dVdz ==
@@ -317,9 +319,10 @@ MatrixVolumetricDeformation::Assemble(
 
   // Domain and Range: matrix inverse solves the problem, given dV, what is
   // dnode_z that results in that dV.  Therefore, A * dnode_z = dV
-  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE,false);
-  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE,true);
-  unsigned int nnodes = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
+  const Epetra_Map& node_map = mesh_->getMap(AmanziMesh::Entity_kind::NODE, false);
+  const Epetra_Map& node_map_wghost = mesh_->getMap(AmanziMesh::Entity_kind::NODE, true);
+  unsigned int nnodes =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::OWNED);
 
   // reset to non-fixed operator.
   if (operator_ == Teuchos::null) {

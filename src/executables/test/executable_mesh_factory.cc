@@ -61,7 +61,7 @@ SUITE(ATS_MESH_FACTORY)
       CHECK(S->HasMesh("surface"));
       CHECK_EQUAL(set_size,
                   S->GetMesh("surface")->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                      AmanziMesh::Parallel_kind::OWNED));
+                                                        AmanziMesh::Parallel_kind::OWNED));
     }
 
     int total_has_surface = 0;
@@ -97,8 +97,8 @@ SUITE(ATS_MESH_FACTORY)
     std::map<std::string, Teuchos::RCP<Epetra_MultiVector>> subdomain_vecs;
     auto ds = S->GetDomainSet("watershed");
     for (const auto& subdomain : *ds) {
-      subdomain_vecs[subdomain] =
-        Teuchos::rcp(new Epetra_MultiVector(S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL,false), 1));
+      subdomain_vecs[subdomain] = Teuchos::rcp(new Epetra_MultiVector(
+        S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL, false), 1));
       if (subdomain == "watershed:upstream") {
         subdomain_vecs[subdomain]->PutScalar(1.);
       } else {
@@ -107,7 +107,7 @@ SUITE(ATS_MESH_FACTORY)
     }
 
     // import to a global vector
-    Epetra_MultiVector vec(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+    Epetra_MultiVector vec(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
     vec.PutScalar(-1);
 
     for (const auto& subdomain : *ds) { ds->doImport(subdomain, *subdomain_vecs[subdomain], vec); }
@@ -138,7 +138,7 @@ SUITE(ATS_MESH_FACTORY)
       CHECK(S->HasMesh("surface"));
       CHECK_EQUAL(set_size,
                   S->GetMesh("surface")->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                      AmanziMesh::Parallel_kind::OWNED));
+                                                        AmanziMesh::Parallel_kind::OWNED));
     }
 
     int total_has_surface = 0;
@@ -173,8 +173,8 @@ SUITE(ATS_MESH_FACTORY)
     std::map<std::string, Teuchos::RCP<Epetra_MultiVector>> subdomain_vecs;
     auto ds = S->GetDomainSet("surface_watershed");
     for (const auto& subdomain : *ds) {
-      subdomain_vecs[subdomain] =
-        Teuchos::rcp(new Epetra_MultiVector(S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL,false), 1));
+      subdomain_vecs[subdomain] = Teuchos::rcp(new Epetra_MultiVector(
+        S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL, false), 1));
       if (subdomain == "surface_watershed:upstream") {
         subdomain_vecs[subdomain]->PutScalar(1.);
       } else {
@@ -184,7 +184,8 @@ SUITE(ATS_MESH_FACTORY)
 
     // import to a global vector
     if (S->HasMesh("surface")) {
-      Epetra_MultiVector vec(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+      Epetra_MultiVector vec(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL, false),
+                             1);
       vec.PutScalar(-1);
 
       for (const auto& subdomain : *ds) {
@@ -218,11 +219,11 @@ SUITE(ATS_MESH_FACTORY)
       CHECK(S->HasMesh("surface"));
       CHECK_EQUAL(set_size,
                   S->GetMesh("surface")->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                      AmanziMesh::Parallel_kind::OWNED));
+                                                        AmanziMesh::Parallel_kind::OWNED));
     }
 
     int num_cells = S->GetMesh("domain")->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                       AmanziMesh::Parallel_kind::OWNED);
+                                                         AmanziMesh::Parallel_kind::OWNED);
     CHECK_EQUAL(0, num_cells % set_size);
     int ncells_per_column = num_cells / set_size;
     for (int col = 0; col != set_size; ++col) {
@@ -231,24 +232,27 @@ SUITE(ATS_MESH_FACTORY)
       CHECK_EQUAL(ncells_per_column + 1, S->GetMesh("domain")->columns.getFaces(col).size());
 
       // column mesh
-      std::string col_name =
-        Keys::getDomainInSet("column", S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL,false).GID(col));
+      std::string col_name = Keys::getDomainInSet(
+        "column", S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL, false).GID(col));
       CHECK(S->HasMesh(col_name));
       CHECK_EQUAL(ncells_per_column,
                   S->GetMesh(col_name)->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                     AmanziMesh::Parallel_kind::OWNED));
+                                                       AmanziMesh::Parallel_kind::OWNED));
     }
 
     {
       // construct col id vector
-      Epetra_MultiVector vec1(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
-      Epetra_MultiVector vec2(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+      Epetra_MultiVector vec1(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL, false),
+                              1);
+      Epetra_MultiVector vec2(S->GetMesh("domain")->getMap(AmanziMesh::Entity_kind::CELL, false),
+                              1);
 
       auto ds = S->GetDomainSet("column");
       int col = 0;
       for (const auto& subdomain : *ds) {
         // fill via import
-        Epetra_MultiVector vec_l(S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+        Epetra_MultiVector vec_l(
+          S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
         int index = Keys::getDomainSetIndex<int>(subdomain);
         vec_l.PutScalar((double)index);
         ds->doImport(subdomain, vec_l, vec2);
@@ -268,8 +272,9 @@ SUITE(ATS_MESH_FACTORY)
     // check that column surfaces were made correctly
     for (int col = 0; col != set_size; ++col) {
       // column mesh
-      std::string surf_col_name =
-        Keys::getDomainInSet("surface_column", S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL,false).GID(col));
+      std::string surf_col_name = Keys::getDomainInSet(
+        "surface_column",
+        S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL, false).GID(col));
       CHECK(S->HasMesh(surf_col_name));
       CHECK_EQUAL(
         1,
@@ -280,14 +285,17 @@ SUITE(ATS_MESH_FACTORY)
 
     {
       // construct col id vector
-      Epetra_MultiVector vec1(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
-      Epetra_MultiVector vec2(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+      Epetra_MultiVector vec1(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL, false),
+                              1);
+      Epetra_MultiVector vec2(S->GetMesh("surface")->getMap(AmanziMesh::Entity_kind::CELL, false),
+                              1);
 
       auto ds = S->GetDomainSet("surface_column");
       int col = 0;
       for (const auto& subdomain : *ds) {
         // fill via import
-        Epetra_MultiVector vec_l(S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+        Epetra_MultiVector vec_l(
+          S->GetMesh(subdomain)->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
         int index = Keys::getDomainSetIndex<int>(subdomain);
         vec_l.PutScalar((double)index);
         ds->doImport(subdomain, vec_l, vec2);

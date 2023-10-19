@@ -646,7 +646,9 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;
-    domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    domain_fac.SetMesh(S.GetMesh(domain_))
+      ->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_3;
     domain_fac_3.SetMesh(S.GetMesh(domain_))

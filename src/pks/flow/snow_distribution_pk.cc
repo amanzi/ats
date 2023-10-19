@@ -279,10 +279,11 @@ SnowDistribution::UpdateBoundaryConditions_(const Tag& tag)
   auto& values = bc_values();
 
   // mark all remaining boundary conditions as zero flux conditions
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      const auto & cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      const auto& cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       int ncells = cells.size();
 
       if (ncells == 1) {

@@ -96,7 +96,8 @@ BGCSimple::Setup()
 
   // set sizes
   num_pfts_ = pft_names.size();
-  num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  num_cols_ =
+    mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   pfts_old_.resize(num_cols_);
   pfts_.resize(num_cols_);
@@ -283,8 +284,8 @@ BGCSimple::Initialize()
           *S_->GetPtrW<CompositeVector>("surface-leaf_biomass", tag_next_, name_)
              ->ViewComponent("cell", false);
 
-        int num_cols_ =
-          mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+        int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                   AmanziMesh::Parallel_kind::OWNED);
         for (int col = 0; col != num_cols_; ++col) {
           for (int i = 0; i != bio.NumVectors(); ++i) { pfts_old_[col][i]->Bleaf = bio[i][col]; }
         }
@@ -306,7 +307,8 @@ BGCSimple::Initialize()
   const Epetra_Vector& temp =
     *(*S_->Get<CompositeVector>("temperature", tag_next_).ViewComponent("cell", false))(0);
 
-  int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int num_cols_ =
+    mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int col = 0; col != num_cols_; ++col) {
     FieldToColumn_(col, temp, col_temp.ptr());
     ColDepthDz_(col, col_depth.ptr(), col_dz.ptr());
@@ -332,7 +334,8 @@ BGCSimple::CommitStep(double told, double tnew, const Tag& tag)
   // the step as succesful.
   double dt = tnew - told;
 
-  int num_cols_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int num_cols_ =
+    mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int col = 0; col != num_cols_; ++col) {
     for (int i = 0; i != num_pfts_; ++i) { *pfts_old_[col][i] = *pfts_[col][i]; }
   }

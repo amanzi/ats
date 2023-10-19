@@ -81,9 +81,8 @@ PlantWiltingFactorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto& surf_mesh = *S.GetMesh(domain_surf_);
 
     for (const auto& region_model : models_) {
-      auto lc_ids = surf_mesh.getSetEntities(region_model.first,
-                                 AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_kind::OWNED);
+      auto lc_ids = surf_mesh.getSetEntities(
+        region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       for (int sc : lc_ids) {
         for (auto c : subsurf_mesh.columns.getCells(sc)) {

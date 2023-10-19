@@ -58,8 +58,8 @@ MatrixMFD_Coupled_Surf::SetOffDiagonals(const Teuchos::RCP<const Epetra_MultiVec
   MatrixMFD_Coupled::SetOffDiagonals(Ccc, Dcc, scaling);
 
   if (Ccc_surf == Teuchos::null) {
-    Teuchos::RCP<Epetra_MultiVector> Ccc_s =
-      Teuchos::rcp(new Epetra_MultiVector(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1));
+    Teuchos::RCP<Epetra_MultiVector> Ccc_s = Teuchos::rcp(
+      new Epetra_MultiVector(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1));
     Ccc_s->PutScalar(0.);
     Ccc_surf_ = Ccc_s;
   } else {
@@ -67,8 +67,8 @@ MatrixMFD_Coupled_Surf::SetOffDiagonals(const Teuchos::RCP<const Epetra_MultiVec
   }
 
   if (Dcc_surf == Teuchos::null) {
-    Teuchos::RCP<Epetra_MultiVector> Dcc_s =
-      Teuchos::rcp(new Epetra_MultiVector(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1));
+    Teuchos::RCP<Epetra_MultiVector> Dcc_s = Teuchos::rcp(
+      new Epetra_MultiVector(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1));
     Dcc_s->PutScalar(0.);
     Dcc_surf_ = Dcc_s;
   } else {
@@ -83,9 +83,9 @@ MatrixMFD_Coupled_Surf::SymbolicAssembleGlobalMatrices()
   // Identical to MatrixMFD_Coupled, but does the FillMatrixGraph call
   // with a _Surf matrix, which must first be created.
   int ierr(0);
-  const Epetra_BlockMap& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-  const Epetra_BlockMap& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
-  const Epetra_BlockMap& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_BlockMap& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+  const Epetra_BlockMap& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
+  const Epetra_BlockMap& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
 
   // Make the double maps
   double_fmap_ = Teuchos::rcp(new Epetra_BlockMap(fmap.NumGlobalPoints(),
@@ -146,8 +146,8 @@ MatrixMFD_Coupled_Surf::AssembleSchur_() const
   MatrixMFD_Coupled::AssembleSchur_();
 
   // Add the TPFA on the surface parts from surface_A.
-  const Epetra_Map& surf_cmap_wghost = surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& surf_cmap_wghost = surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
 
   // Grab the surface operators' TPFA cell-cell matrices
   const Epetra_FECrsMatrix& App = *surface_A_->TPFA();
@@ -254,8 +254,8 @@ MatrixMFD_Coupled_Surf::AssembleAff_() const
   MatrixMFD_Coupled::AssembleAff_();
 
   // Add the TPFA on the surface parts from surface_A.
-  const Epetra_Map& surf_cmap_wghost = surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& surf_cmap_wghost = surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
 
   // Grab the surface operators' TPFA cell-cell matrices
   const Epetra_FECrsMatrix& App = *surface_A_->TPFA();
@@ -363,8 +363,8 @@ MatrixMFD_Coupled_Surf::Apply(const TreeVector& X, TreeVector& Y) const
   // Manually copy data -- TRILINOS FAIL
   const Epetra_MultiVector& XA_f = *XA->ViewComponent("face", false);
   const Epetra_MultiVector& XB_f = *XB->ViewComponent("face", false);
-  Epetra_MultiVector surf_XA(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
-  Epetra_MultiVector surf_XB(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+  Epetra_MultiVector surf_XA(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
+  Epetra_MultiVector surf_XB(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
 
   for (int sc = 0; sc != surf_XA.MyLength(); ++sc) {
     AmanziMesh::Entity_ID f = surface_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
@@ -373,8 +373,8 @@ MatrixMFD_Coupled_Surf::Apply(const TreeVector& X, TreeVector& Y) const
   }
 
   // Apply the surface-only operators, blockwise
-  Epetra_MultiVector surf_YA(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
-  Epetra_MultiVector surf_YB(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), 1);
+  Epetra_MultiVector surf_YA(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
+  Epetra_MultiVector surf_YB(surface_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), 1);
 
   // -- A_surf * lambda_p ...
   ierr |= surface_A_->Apply(surf_XA, surf_YA);

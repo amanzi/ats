@@ -64,7 +64,8 @@ Volumetric_FluxEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   Epetra_MultiVector& res_v = *result[0]->ViewComponent("face", false);
 
   const auto& mesh = *result[0]->Mesh();
-  int nfaces_owned = mesh.getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh.getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     auto cells = mesh.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     double n_liq = 0.;

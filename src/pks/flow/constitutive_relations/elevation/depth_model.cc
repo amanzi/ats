@@ -21,8 +21,8 @@ void
 computeDepth_MeanFaceCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
 {
   depth.PutScalar(-1);
-  AMANZI_ASSERT(depth.MyLength() ==
-                mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+  AMANZI_ASSERT(depth.MyLength() == mesh.getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                        AmanziMesh::Parallel_kind::OWNED));
   int d = mesh.getSpaceDimension() - 1;
   for (int col = 0; col != mesh.columns.num_columns_owned; ++col) {
     const auto& col_faces = mesh.columns.getFaces(col);
@@ -45,8 +45,8 @@ void
 computeDepth_CellCentroid(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
 {
   depth.PutScalar(-1);
-  AMANZI_ASSERT(depth.MyLength() ==
-                mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+  AMANZI_ASSERT(depth.MyLength() == mesh.getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                        AmanziMesh::Parallel_kind::OWNED));
   int d = mesh.getSpaceDimension() - 1;
   for (int col = 0; col != mesh.columns.num_columns_owned; ++col) {
     const auto& col_faces = mesh.columns.getFaces(col);

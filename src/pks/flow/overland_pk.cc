@@ -422,7 +422,8 @@ OverlandFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
       Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face", false);
 
       AmanziMesh::Entity_ID_List cells;
-      int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+      int nfaces_owned =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
       for (int f = 0; f != nfaces_owned; ++f) {
         cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         if (cells.size() == 1) {
@@ -589,7 +590,8 @@ OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
   }
 
   // mark all remaining boundary conditions as zero flux conditions
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (bc_markers()[f] == Operators::OPERATOR_BC_NONE) {
       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
@@ -620,8 +622,10 @@ OverlandFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S)
 
   std::vector<WhetStone::DenseMatrix>& Aff = matrix_diff_->local_op()->matrices;
 
-  int ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (Functions::BoundaryFunction::Iterator bc = bc_zero_gradient_->begin();
        bc != bc_zero_gradient_->end();
        ++bc) {

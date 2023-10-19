@@ -81,7 +81,8 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
   }
 
   // rescale boundary faces, as these had only one cell neighbor
-  unsigned int f_owned = mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  unsigned int f_owned =
+    mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int f = 0; f != f_owned; ++f) {
     auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     if (cells.size() == 1) { face_coef_f[0][f] *= 2.; }

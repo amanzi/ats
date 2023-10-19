@@ -52,8 +52,9 @@ ElevationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*
   CompositeVector* slope = results[1];
 
   if (slope->HasComponent("boundary_face")) {
-    const Epetra_Map& vandelay_map = slope->Mesh()->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = slope->Mesh()->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map =
+      slope->Mesh()->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = slope->Mesh()->getMap(AmanziMesh::Entity_kind::FACE, false);
     Epetra_MultiVector& slope_bf = *slope->ViewComponent("boundary_face", false);
     const Epetra_MultiVector& slope_c = *slope->ViewComponent("cell", false);
 
