@@ -71,8 +71,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
   coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
-  uw_coef_key_ =
-    Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
+  uw_coef_key_ = Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");

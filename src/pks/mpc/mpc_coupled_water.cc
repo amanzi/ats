@@ -55,8 +55,7 @@ MPCCoupledWater::Setup()
   StrongMPC<PK_PhysicalBDF_Default>::Setup();
 
   // require the coupling fields, claim ownership
-  exfilt_key_ =
-    Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+  exfilt_key_ = Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
@@ -74,8 +73,7 @@ MPCCoupledWater::Setup()
   precon_->set_inverse_parameters(inv_list);
 
   // -- push the surface local ops into the subsurface global operator
-  for (Operators::Operator::op_iterator op = precon_surf_->begin(); op != precon_surf_->end();
-       ++op) {
+  for (Operators::Operator::op_iterator op = precon_surf_->begin(); op != precon_surf_->end(); ++op) {
     precon_->OpPushBack(*op);
   }
 
@@ -131,9 +129,7 @@ MPCCoupledWater::Initialize()
 
   // ensure continuity of ICs... subsurface takes precedence.
   CopySubsurfaceToSurface(S_->Get<CompositeVector>(Keys::getKey(domain_ss_, "pressure"), tag_next_),
-                          S_->GetW<CompositeVector>(Keys::getKey(domain_surf_, "pressure"),
-                                                    tag_next_,
-                                                    sub_pks_[1]->name()));
+                          S_->GetW<CompositeVector>(Keys::getKey(domain_surf_, "pressure"), tag_next_, sub_pks_[1]->name()));
 
   // Initialize my timestepper.
   PK_BDF_Default::Initialize();
@@ -153,19 +149,16 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   Solution_to_State(*u_new, tag_next_);
 
   // Evaluate the surface flow residual
-  surf_flow_pk_->FunctionalResidual(
-    t_old, t_new, u_old->SubVector(1), u_new->SubVector(1), g->SubVector(1));
+  surf_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1), u_new->SubVector(1), g->SubVector(1));
 
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
-  Epetra_MultiVector& source =
-    *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).ViewComponent("cell", false);
+  Epetra_MultiVector& source = *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).ViewComponent("cell", false);
   source = *g->SubVector(1)->Data()->ViewComponent("cell", false);
   changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Evaluate the subsurface residual, which uses this flux as a Neumann BC.
-  domain_flow_pk_->FunctionalResidual(
-    t_old, t_new, u_old->SubVector(0), u_new->SubVector(0), g->SubVector(0));
+  domain_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0), u_new->SubVector(0), g->SubVector(0));
 
   // All surface to subsurface fluxes have been taken by the subsurface.
   g->SubVector(1)->Data()->ViewComponent("cell", false)->PutScalar(0.);
