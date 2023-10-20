@@ -216,7 +216,7 @@ EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
         // diffusive flux BC
         AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
-        T_bf[0][bf] = (Acc(0, 0) * T_c[0][c] - bc_values()[f] * mesh_->face_area(f)) / Acc(0, 0);
+        T_bf[0][bf] = (Acc(0, 0) * T_c[0][c] - bc_values()[f] * mesh_->getFaceArea(f)) / Acc(0, 0);
       }
     }
   }

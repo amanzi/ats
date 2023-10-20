@@ -106,37 +106,37 @@ MPCPermafrostSplitFlux::Setup()
         Tag ds_tag_next = get_ds_tag_next_(domain);
         requireAtNext(p_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+          ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
         auto T_key = Keys::getKey(domain, T_lateral_flow_source_suffix_);
         requireAtNext(T_key, ds_tag_next, *S_, name_)
           .SetMesh(S_->GetMesh(domain))
-          ->SetComponent("cell", AmanziMesh::CELL, 1);
+          ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
     } else {
       requireAtNext(p_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(p_lateral_flow_source_)))
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
       requireAtNext(T_lateral_flow_source_, tags_[1].second, *S_, name_)
         .SetMesh(S_->GetMesh(Keys::getDomain(T_lateral_flow_source_)))
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+        ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
 
     // also need conserved quantities at old and new times
     requireAtNext(p_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     requireAtCurrent(p_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     requireAtNext(T_conserved_variable_star_, tags_[0].second, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     requireAtCurrent(T_conserved_variable_star_, tags_[0].first, *S_)
       .SetMesh(S_->GetMesh(domain_star_))
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 }
 

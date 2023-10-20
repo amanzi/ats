@@ -88,7 +88,7 @@ SnowDistribution::SetupSnowDistribution_()
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
@@ -110,7 +110,7 @@ SnowDistribution::SetupSnowDistribution_()
   // boundary conditions
   auto& markers = bc_markers();
   auto& values = bc_values();
-  int nfaces = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::ALL);
+  int nfaces = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
   markers.resize(nfaces, Operators::OPERATOR_BC_NONE);
   values.resize(nfaces, 0.0);
   UpdateBoundaryConditions_(tag_next_); // never change
@@ -126,7 +126,7 @@ SnowDistribution::SetupSnowDistribution_()
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   upwind_method_ = Operators::UPWIND_METHOD_TOTAL_FLUX;
   upwinding_ = Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, 1.e-8));
@@ -186,13 +186,13 @@ SnowDistribution::SetupPhysicalEvaluators_()
   requireAtNext(potential_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // -- snow_conductivity evaluator
   requireAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
       cond_key_, tag_next_, key_, tag_next_)
     .SetGhosted();
@@ -253,9 +253,8 @@ SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
       const auto& cond_c = *cond->ViewComponent("cell", false);
       auto& uw_cond_f = *uw_cond->ViewComponent("face", false);
       int nfaces = uw_cond_f.MyLength();
-      AmanziMesh::Entity_ID_List cells;
       for (int f = 0; f != nfaces; ++f) {
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        const auto& cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         if (cells.size() == 1) {
           int c = cells[0];
           uw_cond_f[0][f] = cond_c[0][c];
@@ -280,11 +279,11 @@ SnowDistribution::UpdateBoundaryConditions_(const Tag& tag)
   auto& values = bc_values();
 
   // mark all remaining boundary conditions as zero flux conditions
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
-  AmanziMesh::Entity_ID_List cells;
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      const auto& cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       int ncells = cells.size();
 
       if (ncells == 1) {

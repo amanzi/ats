@@ -56,9 +56,8 @@ SnowMeltRateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
   auto& res = *result[0]->ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       if (air_temp[0][c] - snow_temp_shift_ > 273.15) {
@@ -90,9 +89,8 @@ SnowMeltRateEvaluator::EvaluatePartialDerivative_(const State& S,
 
   if (wrt_key == temp_key_) {
     for (const auto& lc : land_cover_) {
-      AmanziMesh::Entity_ID_List lc_ids;
-      mesh->get_set_entities(
-        lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+      auto lc_ids = mesh->getSetEntities(
+        lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (auto c : lc_ids) {
         if (air_temp[0][c] - snow_temp_shift_ > 273.15) {
           res[0][c] = melt_rate_;
@@ -107,9 +105,8 @@ SnowMeltRateEvaluator::EvaluatePartialDerivative_(const State& S,
 
   } else if (wrt_key == snow_key_) {
     for (const auto& lc : land_cover_) {
-      AmanziMesh::Entity_ID_List lc_ids;
-      mesh->get_set_entities(
-        lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+      auto lc_ids = mesh->getSetEntities(
+        lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (auto c : lc_ids) {
         if (swe[0][c] < lc.second.snow_transition_depth &&
             air_temp[0][c] - snow_temp_shift_ > 273.15) {

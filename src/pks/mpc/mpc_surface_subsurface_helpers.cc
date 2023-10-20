@@ -21,7 +21,7 @@ CopySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
     DomainFaceSetter sub_f(*sub.Mesh(), *sub.ViewComponent("face", false));
 
     for (int sc = 0; sc != surf_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       sub_f.set<AmanziMesh::FACE>(f, surf_c[0][sc]);
     }
 
@@ -29,7 +29,7 @@ CopySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
     DomainFaceSetter sub_f(*sub.Mesh(), *sub.ViewComponent("boundary_face", false));
 
     for (int sc = 0; sc != surf_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       sub_f.set<AmanziMesh::BOUNDARY_FACE>(f, surf_c[0][sc]);
     }
   }
@@ -45,7 +45,7 @@ CopySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
     DomainFaceGetter sub_f(*sub.Mesh(), *sub.ViewComponent("face", false));
 
     for (int sc = 0; sc != surf_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       surf_c[0][sc] = sub_f.get<AmanziMesh::FACE>(f);
     }
 
@@ -53,7 +53,7 @@ CopySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
     DomainFaceGetter sub_f(*sub.Mesh(), *sub.ViewComponent("boundary_face", false));
 
     for (int sc = 0; sc != surf_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       surf_c[0][sc] = sub_f.get<AmanziMesh::BOUNDARY_FACE>(f);
     }
   }
@@ -72,7 +72,7 @@ MergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
     DomainFaceSetter sub_p_f(*sub_p.Mesh(), *sub_p.ViewComponent("face", false));
 
     for (unsigned int sc = 0; sc != surf_p_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf_p.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf_p.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       if (h_c[0][sc] > 0. && surf_p_c[0][sc] > p_atm) {
         sub_p_f.set<AmanziMesh::FACE>(f, surf_p_c[0][sc]);
       } else {
@@ -84,7 +84,7 @@ MergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
     DomainFaceSetter sub_p_f(*sub_p.Mesh(), *sub_p.ViewComponent("boundary_face", false));
 
     for (unsigned int sc = 0; sc != surf_p_c.MyLength(); ++sc) {
-      AmanziMesh::Entity_ID f = surf_p.Mesh()->entity_get_parent(AmanziMesh::CELL, sc);
+      AmanziMesh::Entity_ID f = surf_p.Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       if (h_c[0][sc] > 0. && surf_p_c[0][sc] > p_atm) {
         sub_p_f.set<AmanziMesh::BOUNDARY_FACE>(f, surf_p_c[0][sc]);
       } else {

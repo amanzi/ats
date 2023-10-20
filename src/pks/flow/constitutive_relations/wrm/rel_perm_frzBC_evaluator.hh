@@ -11,24 +11,24 @@
 //! Evaluates relative permeability using an empirical model for frozen conditions.
 /*!
 
-This is an empirical relative permeability model according to Niu and Yang (2006). 
+This is an empirical relative permeability model according to Niu and Yang (2006).
 This model is based on Brooks-Corey relative permeability model and an additional
-coefficient term is added to account for the effect of soil ice. This model is 
+coefficient term is added to account for the effect of soil ice. This model is
 used for freezing conditions to make snowmelt water infiltrate deeper. See paper
-Agnihotri et al. (2023) for discussions about the influence of relative permeability 
+Agnihotri et al. (2023) for discussions about the influence of relative permeability
 model on discharge under freezing conditions.
 
 .. math::
    k_{rel} = ( 1 - F_{frz} ) \times ( \frac{1 - s_{g} - s_r}{1 - s_r} )^{2*b + 3} \\
    F_{frz} = \mathrm{exp}( -\omega \times ( s_{l} + s_{g} ) ) - \mathrm{exp}( -\omega )
 
-Under freezing conditions, it is recommended to call Brooks-Corey based relative 
+Under freezing conditions, it is recommended to call Brooks-Corey based relative
 permeability corrected by ice content. This model needs Brooks-Corey parameters:
-Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa), and residual 
+Brooks-Corey lambda, Brooks-Corey saturated matric suction (Pa), and residual
 saturation. The reciprocal of Brooks-Corey lambda is Clapp-Hornberger b. Use tool
-`"convert_paramters_vg2bc.py`" to convert van Genuchten parameters to Brooks-Corey 
+`"convert_paramters_vg2bc.py`" to convert van Genuchten parameters to Brooks-Corey
 paramters. The conversion method is referred to Lenhard et al. (1989) or Ma et al. (1999)
-method 2. 
+method 2.
 
 .. _rel-perm-evaluator-spec
 .. admonition:: rel-perm-evaluator-spec
@@ -52,7 +52,7 @@ method 2.
      and K_sat is very small.  To avoid roundoff propagation issues, rescaling
      this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
-   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model. 
+   * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model.
      See paper Niu & Yang (2006) for details about the model. Typical values range from 2-3.
 
    * `"WRM parameters`" ``[wrm-typedinline-spec-list]`` List (by region) of WRM specs.

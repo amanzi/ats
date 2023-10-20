@@ -70,21 +70,20 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (int sc : lc_ids) {
       double column_total = 0.;
       double f_root_total = 0.;
-      for (auto c : subsurf_mesh.cells_of_column(sc)) {
+      for (auto c : subsurf_mesh.columns.getCells(sc)) {
         result_v[0][c] = region_model.second->RootingDepthFraction(z[0][c]);
         column_total += result_v[0][c] * cv[0][c];
       }
 
       // normalize to 1 over the column
       if (column_total > 0) {
-        for (auto c : subsurf_mesh.cells_of_column(sc)) {
+        for (auto c : subsurf_mesh.columns.getCells(sc)) {
           result_v[0][c] = result_v[0][c] * 1.0 * surf_cv[0][sc] / column_total;
         }
       }
@@ -124,7 +123,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   CompositeVectorSpace dep_fac_one;
   dep_fac_one.SetMesh(S.GetMesh(domain))
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S.Require<CompositeVector, CompositeVectorSpace>(z_key_, tag).Update(dep_fac_one);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac_one);
@@ -132,7 +131,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   CompositeVectorSpace surf_fac_one;
   surf_fac_one.SetMesh(S.GetMesh(Keys::getDomain(surf_cv_key_)))
     ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(surf_cv_key_, tag).Update(surf_fac_one);
 }
 

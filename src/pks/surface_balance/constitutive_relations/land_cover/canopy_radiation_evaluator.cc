@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates a net radiation balance for surface, snow, and canopy.
 
+//! Evaluates a net radiation balance for surface, snow, and canopy.
 #include "canopy_radiation_evaluator.hh"
 
 namespace Amanzi {
@@ -107,9 +108,8 @@ CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   auto mesh = results[0]->Mesh();
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // NOTE: emissivity = absorptivity, we use e to notate both

@@ -46,7 +46,7 @@ SubgridAggregateEvaluator::Evaluate_(const State& S, const std::vector<Composite
       S.Get<CompositeVector>(dep->first, dep->second).ViewComponent("cell", false).get());
     ++dep;
   }
-  ds->DoImport(sources, result_v);
+  ds->doImport(sources, result_v);
 }
 
 void
@@ -65,7 +65,7 @@ SubgridAggregateEvaluator::EnsureEvaluators(State& S)
   if (dependencies_.size() == 0) {
     auto ds = S.GetDomainSet(source_domain_);
     Tag dep_tag = Keys::readTag(plist_, my_keys_.front().second);
-    if (ds->get_referencing_parent() == Teuchos::null) {
+    if (ds->getReferencingParent() == Teuchos::null) {
       Errors::Message msg;
       msg << "SubgridAggregateEvaluator: DomainSet \"" << source_domain_
           << "\" does not have a referencing parent but must have one to aggregate.";
@@ -92,8 +92,8 @@ SubgridAggregateEvaluator::EnsureCompatibility_Structure_(State& S)
   if (dep_fac.HasComponent("cell")) {
     S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
                                                      my_keys_.front().second)
-      .SetMesh(ds->get_referencing_parent())
-      ->AddComponent("cell", AmanziMesh::CELL, dep_fac.NumVectors("cell"));
+      .SetMesh(ds->getReferencingParent())
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, dep_fac.NumVectors("cell"));
   }
 
   if (S.GetRecordSet(dependencies_.front().first).subfieldnames()) {
@@ -116,7 +116,7 @@ SubgridAggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                                                 "cell",
                                                               },
                                                               {
-                                                                AmanziMesh::CELL,
+                                                                AmanziMesh::Entity_kind::CELL,
                                                               },
                                                               {
                                                                 num_vectors,

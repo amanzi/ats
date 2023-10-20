@@ -6,6 +6,7 @@
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
+
 //! Computes depth, positive downward relative to the surface, of mesh cells.
 /*!
 

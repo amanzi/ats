@@ -40,7 +40,7 @@ IntegratorActiveLayerAverageTemp::scan(AmanziMesh::Entity_ID col,
                                        AmanziGeometry::Point& p)
 {
   if ((*temp_)[0][c] >= trans_temp_) {
-    double cv = mesh_->cell_volume(c);
+    double cv = mesh_->getCellVolume(c);
     p[0] += (*temp_)[0][c] * cv;
     p[1] += cv;
     return false;

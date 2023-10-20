@@ -20,7 +20,7 @@ to Brooks-Corey parameters.
 
     * `"region`" ``[string]`` Region to which this applies
     * `"Brooks Corey lambda [-]`" ``[double]`` Brooks Corey's lambda
-    * `"Brooks Corey saturated matric suction [Pa]`" ``[double]`` Brooks Corey 
+    * `"Brooks Corey saturated matric suction [Pa]`" ``[double]`` Brooks Corey
     saturated matric suction in Pa
 
     END

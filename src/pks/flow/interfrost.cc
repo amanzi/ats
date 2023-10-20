@@ -157,7 +157,7 @@ Interfrost::SetupPhysicalEvaluators_()
   // in addition, require DThetaDP_coef, the specific storage term in Interfrost model
   S_->Require<CompositeVector, CompositeVectorSpace>("DThetaDp_coef", tag_next_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator("DThetaDp_coef", tag_next_);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     "DThetaDp_coef", tag_next_, key_, tag_next_);

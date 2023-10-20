@@ -88,7 +88,6 @@ set(amanzi_link_libs
   dbg       
   data_structures
   mesh
-  mesh_audit
   mesh_functions
   functions
   geometry

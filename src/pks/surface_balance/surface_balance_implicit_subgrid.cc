@@ -59,22 +59,22 @@ ImplicitSubgrid::Setup()
   // requirements: things I use
   requireAtNext(new_snow_key_, tag_next_, *S_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // requirements: other primary variables
   requireAtNext(snow_dens_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_dens_key_, tag_current_, *S_, name_);
 
   requireAtNext(snow_death_rate_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_death_rate_key_, tag_current_, *S_, name_);
 
   requireAtNext(snow_age_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(snow_age_key_, tag_current_, *S_, name_);
 }
 

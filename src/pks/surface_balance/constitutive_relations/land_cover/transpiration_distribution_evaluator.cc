@@ -109,9 +109,8 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
 
   result_v.PutScalar(0.);
   for (const auto& region_lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     if (TranspirationPeriod_(
           S.get_time(), region_lc.second.leaf_on_doy, region_lc.second.leaf_off_doy)) {
@@ -120,7 +119,7 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
         double f_root_total = 0.;
         double f_wp_total = 0.;
         double var_dz = 0.;
-        for (auto c : subsurf_mesh.cells_of_column(sc)) {
+        for (auto c : subsurf_mesh.columns.getCells(sc)) {
           column_total += f_wp[0][c] * f_root[0][c] * cv[0][c];
           result_v[0][c] = f_wp[0][c] * f_root[0][c];
           if (f_wp[0][c] * f_root[0][c] > 0) var_dz += cv[0][c];
@@ -136,7 +135,7 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
             coef *= limiting_factor;
           }
 
-          for (auto c : subsurf_mesh.cells_of_column(sc)) {
+          for (auto c : subsurf_mesh.columns.getCells(sc)) {
             result_v[0][c] *= coef;
             if (limiter_local_) { result_v[0][c] *= f_wp[0][c]; }
           }
@@ -174,7 +173,7 @@ TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh
   CompositeVectorSpace dep_fac;
-  dep_fac.SetMesh(S.GetMesh(domain))->AddComponent("cell", AmanziMesh::CELL, 1);
+  dep_fac.SetMesh(S.GetMesh(domain))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(f_wp_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac);
@@ -182,7 +181,7 @@ TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // -- next those on the surface mesh
   CompositeVectorSpace surf_fac;
   surf_fac.SetMesh(S.GetMesh(Keys::getDomain(surf_cv_key_)))
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(potential_trans_key_, tag).Update(surf_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(surf_cv_key_, tag).Update(surf_fac);
 }
