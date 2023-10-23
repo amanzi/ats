@@ -38,8 +38,6 @@ same region-based partitioning.
 .. _land-cover-spec:
 .. admonition:: land-cover-spec
 
-    * `"rooting depth max [m]`" ``[double]`` **NaN** Below this the rooting fraction is
-      set to 0. [m]
     * `"rooting profile alpha [-]`" ``[double]``  **NaN** alpha in the rooting profile
       function [-]
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
@@ -141,7 +139,6 @@ struct LandCover {
   LandCover(Teuchos::ParameterList& plist);
 
   // rooting profiles
-  double rooting_depth_max;
   double rooting_profile_alpha;
   double rooting_profile_beta;
 

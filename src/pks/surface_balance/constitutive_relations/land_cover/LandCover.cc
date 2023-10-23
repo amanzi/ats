@@ -18,8 +18,7 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 LandCover::LandCover(Teuchos::ParameterList& plist)
-  : rooting_depth_max(plist.get<double>("rooting depth max [m]", NAN)),
-    rooting_profile_alpha(plist.get<double>("rooting profile alpha [-]", NAN)),
+  : rooting_profile_alpha(plist.get<double>("rooting profile alpha [-]", NAN)),
     rooting_profile_beta(plist.get<double>("rooting profile beta [-]", NAN)),
     stomata_closed_water_potential(
       plist.get<double>("water potential at fully closed stomata [Pa]", NAN)),
@@ -89,8 +88,6 @@ throwInvalid(const std::string& region, const std::string& parstr)
 void
 checkValid(const std::string& region, const LandCover& lc, const std::string& parname)
 {
-  if (parname == "rooting_depth_max" && std::isnan(lc.rooting_depth_max))
-    throwInvalid(region, "rooting depth max [m]");
   if (parname == "rooting_profile_alpha" && std::isnan(lc.rooting_profile_alpha))
     throwInvalid(region, "rooting profile alpha [-]");
   if (parname == "rooting_profile_beta" && std::isnan(lc.rooting_profile_beta))
