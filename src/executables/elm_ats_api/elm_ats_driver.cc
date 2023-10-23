@@ -290,9 +290,12 @@ void ELM_ATSDriver::initialize(double t,
   // initialize ATS data, commit initial conditions
   Coordinator::initialize();
 
-  // initialize pressure field
-  //ELM_ATSDriver::init_pressure_from_wc_(elm_water_content);
-  ELM_ATSDriver::init_pressure_from_wt_(5.0);
+  // initialize pressure via
+  // constant depth from surface water table, or
+  // from ELM's water content
+  // TODO connect this to an input parameter
+  ELM_ATSDriver::init_pressure_from_wc_(elm_water_content);
+ //ELM_ATSDriver::init_pressure_from_wt_(1.0);
 
   // mark pressure as changed and update face values
   changedEvaluatorPrimary(pres_key_, Amanzi::Tags::NEXT, *S_);
@@ -346,8 +349,11 @@ void ELM_ATSDriver::advance(double dt, bool do_chkp, bool do_vis)
       //if (do_vis && !visualize()) visualize(true);
       //if (do_chkp && !checkpoint()) checkpoint(true);
 
+      // There is an issue with checkpoint timekeeping that I haven't investigated
+      // some checkpoints are skipped
+      // I think it happens when a timestep fails and we have to subcycle 
       visualize(do_vis);
-      checkpoint(do_chkp);
+      checkpoint();
     }
 
     dt_subcycle = Coordinator::get_dt(fail);
