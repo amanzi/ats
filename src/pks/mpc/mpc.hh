@@ -287,6 +287,8 @@ MPC<PK_t>::init_(Comm_ptr_type comm)
 
     // create the PK
     std::string name_i = pk_order[i];
+    Teuchos::OSTab tab = vo_->getOSTab();
+    *vo_->os() << "    Creating MPC: " << name_i << std::endl;
     Teuchos::RCP<PK> pk_notype = pk_factory.CreatePK(name_i, pk_tree_, global_list_, S_, pk_soln);
     Teuchos::RCP<PK_t> pk = Teuchos::rcp_dynamic_cast<PK_t>(pk_notype, true);
     sub_pks_.push_back(pk);

@@ -65,6 +65,9 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .5 * .1 * 55000.); // phi * s * nl
 
+  Teuchos::OSTab tab = vo_->getOSTab();
+  *vo_->os() << "        PK: " << pk_tree.name() << std::endl;
+
   // get field names
   conserved_key_ = Keys::readKey(*plist_, domain_, "conserved", "water_content");
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");

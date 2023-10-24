@@ -58,6 +58,8 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     PK_PhysicalExplicit<Epetra_Vector>(pk_tree, glist, S, solution)
 {
   passwd_ = "state"; // this is what Amanzi uses //PL: why this is not used in Richards and overland PKs?
+  Teuchos::OSTab tab = vo_->getOSTab();
+  *vo_->os() << "        PK: " << pk_tree.name() << std::endl;
 
   if (plist_->isParameter("component names")) {
     component_names_ = plist_->get<Teuchos::Array<std::string>>("component names").toVector();
