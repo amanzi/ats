@@ -268,6 +268,7 @@ void
 Coordinator::setup()
 {
   Teuchos::TimeMonitor monitor(*timers_.at("2: setup"));
+  Teuchos::OSTab tab = vo_->getOSTab();
 
   // common constants
   S_->Require<double>("atmospheric_pressure", Amanzi::Tags::DEFAULT, "coordinator");
@@ -279,7 +280,9 @@ Coordinator::setup()
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
+  *vo_->os() << vo_->color("green") << "    Set tags for PKs: " << vo_->reset() << std::endl;
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+  *vo_->os() << vo_->color("green") << "    Setup PKs: " << vo_->reset() << std::endl;
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
@@ -311,6 +314,7 @@ Coordinator::initialize()
   S_->InitializeFields();
 
   // Initialize the process kernels
+  *vo_->os() << vo_->color("green") << "    Initialize PKs: " << vo_->reset() <<std::endl;
   pk_->Initialize();
 
   // calling CommitStep to set up copies as needed.
