@@ -57,6 +57,9 @@ OverlandFlow::OverlandFlow(Teuchos::ParameterList& FElist,
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .01); // h
+
+  Teuchos::OSTab tab = vo_->getOSTab();
+  *vo_->os() << "        PK: " << pk_tree.name() << std::endl;
 }
 
 

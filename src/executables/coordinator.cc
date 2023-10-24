@@ -69,11 +69,12 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     wallclock_monitor_(*wallclock_timer),
     wallclock_timer_(wallclock_timer)
 {
-  // create verbose object and timers
+  // create verbose object 
   coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
   vo_ = Teuchos::rcp(new Amanzi::VerboseObject(comm_, "ATS", *coordinator_list_));
   Teuchos::OSTab tab = vo_->getOSTab();
 
+  // create timers
   timers_["0: create mesh"] = Teuchos::TimeMonitor::getNewCounter("0: create mesh");
   timers_["1: create run"] = Teuchos::TimeMonitor::getNewCounter("1: create run");
   timers_["2: setup"] = Teuchos::TimeMonitor::getNewCounter("2: setup");
@@ -88,7 +89,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // print header material
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "Writing input file ..." << std::endl << std::endl;
-    Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
+    // Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
     *vo_->os() << "  ... completed." << std::endl;
   }
 
@@ -139,6 +140,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         "CycleDriver: PK tree list should contain exactly one root node list");
       Exceptions::amanzi_throw(message);
     }
+    // info for top level PK
     Teuchos::ParameterList::ConstIterator pk_item = pk_tree_list.begin();
     const std::string& pk_name = pk_tree_list.name(pk_item);
 
