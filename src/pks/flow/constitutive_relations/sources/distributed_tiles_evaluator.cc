@@ -123,7 +123,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
   total = 0.;
   for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) { total += sub_sink[0][c] * cv[0][c]; }
 
-  Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = S.GetMesh(domain_)->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();

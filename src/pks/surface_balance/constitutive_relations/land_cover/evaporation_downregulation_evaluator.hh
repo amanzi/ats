@@ -47,6 +47,18 @@ class EvaporationDownregulationEvaluator : public EvaluatorSecondaryMonotypeCV {
   EvaporationDownregulationEvaluator(const EvaporationDownregulationEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
+    // this will mostly be differentiated with respect to pressure for flow
+    // Jacobians, but none of the terms that _really_ depend on p are actually
+    // implemented.  That would require differentiating RSoil with respect to
+    // s_l, s_g, etc.  But only derivatives wrt potential evaporation are
+    // implemented.  That will rarely if ever be p-dependent.  Therefore, this
+    // is just turned off to avoid lengthy calculations with 0.
+    return false;
+  }
+
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;

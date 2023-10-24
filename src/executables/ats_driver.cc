@@ -55,51 +55,91 @@ namespace ATS {
 void
 ATSDriver::cycle_driver()
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
+
   // wallclock duration -- in seconds
   const double duration(duration_ * 3600);
 
-  // start at time t = t0 and initialize the state.
-  {
-    Teuchos::TimeMonitor monitor(*setup_timer_);
-    setup();
-    initialize();
+  //
+  // setup phase
+  // ----------------------------------------
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning setup stage..." << std::endl
+               << std::flush;
   }
+  setup();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("2: setup");
+  }
+
+  //
+  // initialize phase
+  // ----------------------------------------
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning initialize stage..." << std::endl
+               << std::flush;
+  }
+  initialize();
 
   // get the intial timestep
   double dt = get_dt(false);
   S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
 
-  // visualization at IC
+  // Write dependency graph, initial state
+  S_->WriteDependencyGraph();
+  WriteStateStatistics(*S_, *vo_);
+
+  // checkpoint, observe, and vis at initial time
   visualize();
+  observe();
   checkpoint();
+
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("3: initialize");
+  }
+
+  //
+  // timestepping phase
+  // ----------------------------------------
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning timestepping stage..." << std::endl
+               << std::flush;
+  }
 
   // iterate process kernels
   //
   // Make sure times are set up correctly
-  AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
-                1.e-4);
   {
-    Teuchos::TimeMonitor cycle_monitor(*cycle_timer_);
-    double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
+    Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
+    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
+                  1.e-4);
+    AMANZI_ASSERT(std::abs(dt - S_->Get<double>("dt", Amanzi::Tags::DEFAULT)) < 1.e-4);
+
 #if !DEBUG_MODE
     try {
 #endif
-
       while (((t1_ < 0) || (S_->get_time() < t1_)) &&
              ((cycle1_ == -1) || (S_->get_cycle() <= cycle1_)) &&
-             ((duration_ < 0) || (timer_->totalElapsedTime(true) < duration)) && (dt > 0.)) {
+             ((duration_ < 0) || (wallclock_timer_->totalElapsedTime(true) < duration)) &&
+             (dt > 0.)) {
         if (vo_->os_OK(Teuchos::VERB_LOW)) {
-          Teuchos::OSTab tab = vo_->getOSTab();
-          *vo_->os() << "======================================================================"
-                     << std::endl
-                     << std::endl;
-          *vo_->os() << "Cycle = " << S_->get_cycle();
-          *vo_->os() << ",  Time [days] = " << std::setprecision(16)
-                     << S_->get_time() / (60 * 60 * 24);
-          *vo_->os() << ",  dt [days] = " << std::setprecision(16) << dt / (60 * 60 * 24)
-                     << std::endl;
-          *vo_->os() << "----------------------------------------------------------------------"
-                     << std::endl;
+          *vo_->os()
+            << "================================================================================"
+            << std::endl
+            << std::endl
+            << "Cycle = " << S_->get_cycle() << ",  Time [days] = " << std::setprecision(16)
+            << S_->get_time() / (60 * 60 * 24) << ",  dt [days] = " << std::setprecision(16)
+            << dt / (60 * 60 * 24) << std::endl
+            << "--------------------------------------------------------------------------------"
+            << std::endl;
         }
 
         S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
@@ -113,10 +153,9 @@ ATSDriver::cycle_driver()
           S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
           S_->advance_cycle();
 
-          // make observations, vis, and checkpoints
-          for (const auto& obs : observations_) obs->MakeObservations(S_.ptr());
           visualize();
-          checkpoint(); // checkpoint with the new dt
+          observe();
+          checkpoint();
         }
 
         dt = get_dt(fail);
@@ -138,13 +177,24 @@ ATSDriver::cycle_driver()
     }
 #endif
   }
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("4: solve");
+  }
+
 
   // finalizing simulation
-  WriteStateStatistics(*S_, *vo_);
-  report_memory();
-  Teuchos::TimeMonitor::summarize(*vo_->os());
-
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "================================================================================"
+               << std::endl
+               << "Beginning finalize stage..." << std::endl
+               << std::flush;
+  }
   finalize();
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "  ... completed: ";
+    reportOneTimer_("5: finalize");
+  }
 } // cycle driver
 
 
@@ -154,19 +204,6 @@ ATSDriver::cycle_driver()
 int
 ATSDriver::run()
 {
-  Amanzi::VerboseObject vo("ATS Driver", *plist_);
-  Teuchos::OSTab tab = vo.getOSTab();
-
-  // print header material
-  if (vo.os_OK(Teuchos::VERB_LOW)) {
-    // print parameter list
-    *vo.os() << "======================> dumping parameter list <======================"
-             << std::endl;
-    Teuchos::writeParameterListToXmlOStream(*plist_, *vo.os());
-    *vo.os() << "======================> done dumping parameter list. <================"
-             << std::endl;
-  }
-
   // run the simulation
   cycle_driver();
   return 0;

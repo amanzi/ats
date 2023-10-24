@@ -56,8 +56,7 @@ SnowDistribution::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
   for (int c = 0; c != h0_positive.MyLength(); ++c)
     h0_positive[0][c] = h0_v[0][c] > 0. ? h0_v[0][c] : 0.;
 
-  Teuchos::RCP<const CompositeVector> cv1 =
-    S_->GetPtr<CompositeVector>(cv_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> cv1 = S_->GetPtr<CompositeVector>(cv_key_, tag_next_);
 
   // note 10 is for conversion from precip m SWE to actual m
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);

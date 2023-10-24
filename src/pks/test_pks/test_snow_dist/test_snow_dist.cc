@@ -37,12 +37,12 @@ TestSnowDist::setup(const Teuchos::Ptr<State>& S)
 
   S->Require<CompositeVector, CompositeVectorSpace>(key_, Tags::NEXT, name_)
     .SetMesh(S->GetMesh("surface"))
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   S->RequireEvaluator("precipitation_snow");
   S->Require<CompositeVector, CompositeVectorSpace>("precipitation_snow", Tags::NEXT)
     .SetMesh(S->GetMesh("surface"))
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 };
 
 // -- call your favorite

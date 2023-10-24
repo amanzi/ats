@@ -119,13 +119,13 @@ MPCPermafrost::Setup()
   if (pk0_method == "nlfv: bnd_faces" || pk0_method == "fv: bnd_faces") {
     cvs->SetMesh(domain_mesh_)
       ->SetGhosted()
-      ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   } else {
     cvs->SetMesh(domain_mesh_)
       ->SetGhosted()
-      ->AddComponent("face", AmanziMesh::FACE, 1)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   dE_dp_block_ = Teuchos::rcp(new Operators::Operator_FaceCell(cvs, plist));
@@ -137,10 +137,10 @@ MPCPermafrost::Setup()
   // require the coupling fields, claim ownership
   requireAtNext(mass_exchange_key_, tag_next_, *S_, mass_exchange_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtNext(energy_exchange_key_, tag_next_, *S_, energy_exchange_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // require in case the PK did not do so already
   requireAtNext(surf_pd_key_, tag_next_, *S_)
@@ -246,7 +246,7 @@ MPCPermafrost::Setup()
   // set up the water delegate
   if (plist_->isSublist("water delegate")) {
     Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
-    water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_subsurf_));
+    water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_subsurf_, domain_surf_));
     water_->set_tags(tag_current_, tag_next_);
     water_->set_indices(0, 2, 1, 3);
     water_->set_db(surf_db_);
@@ -258,43 +258,45 @@ MPCPermafrost::Setup()
   // Therefore, for all debug cells of the subsurface, if that cell is in the
   // top layer of cells, we add the corresponding face's surface cell.
   {
-    AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
+    auto debug_cells = domain_db_->get_cells();
     int ncells_surf =
-      surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+      surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->cell_map(false);
-      const auto& surf_cell_map = surf_mesh_->cell_map(false);
-      AmanziMesh::Entity_ID_List surf_debug_cells;
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
-        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
-        AmanziMesh::Entity_ID_List fcells;
-        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+        auto fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
-          surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+          surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
       }
+      AmanziMesh::Entity_ID_View surf_debug_cells;
+      vectorToView(surf_debug_cells, surf_debug_cells_v);
       if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
     }
   }
   // do the same for energy
   {
-    AmanziMesh::Entity_ID_List debug_cells = domain_energy_pk_->debugger()->get_cells();
+    auto debug_cells = domain_energy_pk_->debugger()->get_cells();
     int ncells_surf =
-      surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+      surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     if (debug_cells.size() > 0) {
-      const auto& domain_cell_map = domain_mesh_->cell_map(false);
-      const auto& surf_cell_map = surf_mesh_->cell_map(false);
-      AmanziMesh::Entity_ID_List surf_debug_cells;
+      const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+      AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
-        int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
-        AmanziMesh::Entity_ID_List fcells;
-        domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+        int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+        auto fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
-          surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+          surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
       }
+      AmanziMesh::Entity_ID_View surf_debug_cells;
+      vectorToView(surf_debug_cells, surf_debug_cells_v);
       if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
     }
   }
@@ -678,10 +680,17 @@ MPCPermafrost::ModifyPredictor(double h,
 
   // Hack surface faces
   bool newly_modified = false;
+  bool has_face = u->SubVector(0)->Data()->HasComponent("face");
   if (water_ != Teuchos::null) {
-    newly_modified |= water_->ModifyPredictor_Heuristic(h, u);
-    newly_modified |= water_->ModifyPredictor_WaterSpurtDamp(h, u);
-    newly_modified |= water_->ModifyPredictor_TempFromSource(h, u);
+    if (has_face) {
+      newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::FACE>(h, u);
+      newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::FACE>(h, u);
+      newly_modified |= water_->ModifyPredictor_TempFromSource<AmanziMesh::FACE>(h, u);
+    } else {
+      newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::BOUNDARY_FACE>(h, u);
+      newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, u);
+      newly_modified |= water_->ModifyPredictor_TempFromSource<AmanziMesh::BOUNDARY_FACE>(h, u);
+    }
     modified |= newly_modified;
   }
   if (surf_ewc_ != Teuchos::null) {
@@ -762,12 +771,27 @@ MPCPermafrost::ModifyCorrection(double h,
   // modify correction using water approaches
   int n_modified = 0;
   double damping = 1;
+  double damping_surf = 1;
   if (water_.get()) {
-    damping = water_->ModifyCorrection_SaturatedSpurtDamp(h, r, u, du);
-    n_modified += water_->ModifyCorrection_SaturatedSpurtCap(h, r, u, du, damping);
+    bool has_face = u->SubVector(0)->Data()->HasComponent("face");
+    if (has_face) {
+      damping = water_->ModifyCorrection_SaturatedSpurtDamp<AmanziMesh::FACE>(h, r, u, du);
+      n_modified +=
+        water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping);
 
-    double damping_surf = water_->ModifyCorrection_WaterSpurtDamp(h, r, u, du);
-    n_modified += water_->ModifyCorrection_WaterSpurtCap(h, r, u, du, damping_surf);
+      damping_surf = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::FACE>(h, r, u, du);
+      n_modified +=
+        water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, r, u, du, damping_surf);
+    } else {
+      damping = water_->ModifyCorrection_SaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, r, u, du);
+      n_modified +=
+        water_->ModifyCorrection_SaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, r, u, du, damping);
+
+      damping_surf =
+        water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, r, u, du);
+      n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(
+        h, r, u, du, damping_surf);
+    }
 
     // -- total damping
     damping = damping * damping_surf;

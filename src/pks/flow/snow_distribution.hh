@@ -90,8 +90,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
                           Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  int
-  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
@@ -121,7 +120,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
   //  4. set: pk's distribution time, potential's dt factor
   bool AdvanceStep(double t_old, double t_new, bool reinit) override;
 
-   // -- Commit any secondary (dependent) variables.
+  // -- Commit any secondary (dependent) variables.
   void CommitStep(double t_old, double t_new, const Tag& tag) override
   {
     // here to keep the coordinator from calling CommitSolution() since our

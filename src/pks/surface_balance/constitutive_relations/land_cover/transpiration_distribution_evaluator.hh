@@ -96,6 +96,15 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
+    // calculate of derivatives of this is a tricky thing to do, with
+    // non-cell-local terms due to rescaling.  Just turn off derivatives
+    // instead.
+    return false;
+  }
+
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;

@@ -304,7 +304,7 @@ MPCWeakSubdomain::init_()
   // get the domain set and save the comm of the parent mesh for later
   ds_name_ = std::get<0>(subdomain_triple);
   const auto& ds = S_->GetDomainSet(ds_name_);
-  comm_ = ds->get_indexing_parent()->get_comm();
+  comm_ = ds->getIndexingParent()->getComm();
 
   // -- create the lifted PKs
   PKFactory pk_factory;
@@ -313,7 +313,7 @@ MPCWeakSubdomain::init_()
     // create the solution vector, noting that these are created on the
     // communicator associated with the mesh of the subdomain, which may differ
     // from the coupler's comm.
-    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->get_comm()));
+    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->getComm()));
     solution_->PushBack(pk_soln);
 
     // create the PK

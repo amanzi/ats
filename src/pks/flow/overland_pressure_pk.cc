@@ -121,7 +121,7 @@ OverlandPressureFlow::Setup()
   requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
@@ -130,7 +130,7 @@ OverlandPressureFlow::Setup()
   requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();
@@ -179,7 +179,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
   S_->Require<CompositeVector, CompositeVectorSpace>(flux_dir_key_, tag_next_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // -- nonlinear coefficients and upwinding
   Teuchos::ParameterList& upwind_plist = plist_->sublist("upwinding");
@@ -191,12 +191,12 @@ OverlandPressureFlow::SetupOverlandFlow_()
     S_->Require<CompositeVector, CompositeVectorSpace>(uw_cond_key_, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("face", AmanziMesh::FACE, 1);
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   } else if (coef_location == "standard: cell") {
     S_->Require<CompositeVector, CompositeVectorSpace>(uw_cond_key_, tag_next_, name_)
       .SetMesh(mesh_)
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   } else {
     Errors::Message message;
     message << name_ << ": Unknown upwind coefficient location in overland flow.";
@@ -276,7 +276,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
       S_->Require<CompositeVector, CompositeVectorSpace>(duw_cond_key_, tag_next_, name_)
         .SetMesh(mesh_)
         ->SetGhosted()
-        ->SetComponent("face", AmanziMesh::FACE, 1);
+        ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
       upwinding_dkdp_ =
         Teuchos::rcp(new Operators::UpwindTotalFlux(name_, tag_next_, flux_dir_key_, 1.e-12));
@@ -298,7 +298,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
     S_->RequireEvaluator(ss_flux_key_, tag_next_);
     S_->Require<CompositeVector, CompositeVectorSpace>(ss_flux_key_, tag_next_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   // accumulation
@@ -311,28 +311,28 @@ OverlandPressureFlow::SetupOverlandFlow_()
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .Update(matrix_->RangeMap())
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
   //  NOTE: no need to require evaluator for p here, this was done in pk_physical
 
   // potential may not actually need cells, but for debugging and sanity's sake, we require them
   requireAtNext(potential_key_, tag_next_, *S_)
     .Update(matrix_->RangeMap())
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // flux
   requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // velocity for diagnostics
   requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 3);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
 };
 
 
@@ -348,19 +348,32 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
     if (source_key_.empty()) {
       source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
     }
-    source_in_meters_ = plist_->get<bool>("water source in meters", true);
 
-    requireAtNext(source_key_, tag_next_, *S_)
-      .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-    if (source_in_meters_) {
+    bool source_in_meters = plist_->get<bool>("water source in meters", true);
+    if (source_in_meters) {
       // density of incoming water [mol/m^3]
       source_molar_dens_key_ =
         Keys::readKey(*plist_, domain_, "source molar density", "source_molar_density");
-      requireAtNext(source_molar_dens_key_, tag_next_, *S_)
-        .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
+
+      // create multiplicative evaluator for the product
+      Key source_key_meters = source_key_;
+      source_key_ = source_key_ + "_mols";
+      S_->GetEvaluatorList(source_key_)
+        .set<std::string>("evaluator type", "multiplicative evaluator")
+        .set<Teuchos::Array<std::string>>(
+          "dependencies", std::vector<std::string>{ source_key_meters, source_molar_dens_key_ });
+    }
+
+    requireAtNext(source_key_, tag_next_, *S_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
+
+    source_term_is_differentiable_ = plist_->get<bool>("source term is differentiable", true);
+    if (source_term_is_differentiable_) {
+      // require derivative of source
+      S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
+        source_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -368,7 +381,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   requireAtNext(wc_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     wc_bar_key_, tag_next_, key_, tag_next_);
 
@@ -382,7 +395,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   requireAtNext(pd_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     pd_bar_key_, tag_next_, key_, tag_next_);
 
@@ -390,8 +403,8 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   requireAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 }
 
 
@@ -431,13 +444,14 @@ OverlandPressureFlow::Initialize()
       // copy subsurface face pressure to surface cell pressure
       Teuchos::RCP<const CompositeVector> subsurf_pres =
         S_->GetPtr<CompositeVector>(key_ss, tag_next_);
-      auto ncells_surface = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+      auto ncells_surface =
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       if (subsurf_pres->HasComponent("face")) {
         const Epetra_MultiVector& subsurf_pres_f =
           *S_->GetPtr<CompositeVector>(key_ss, tag_next_)->ViewComponent("face", false);
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
-          AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
+          AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
           pres[0][c] = subsurf_pres_f[0][f];
         }
 
@@ -448,8 +462,9 @@ OverlandPressureFlow::Initialize()
 
         for (unsigned int c = 0; c != ncells_surface; ++c) {
           // -- get the surface cell's equivalent subsurface face and neighboring cell
-          AmanziMesh::Entity_ID f = mesh_->entity_get_parent(AmanziMesh::CELL, c);
-          int bf = mesh_domain->exterior_face_map(false).LID(mesh_domain->face_map(false).GID(f));
+          AmanziMesh::Entity_ID f = mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+          int bf = mesh_domain->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false)
+                     .LID(mesh_domain->getMap(AmanziMesh::Entity_kind::FACE, false).GID(f));
           if (bf >= 0) pres[0][c] = subsurf_pres_bf[0][bf];
         }
       }
@@ -463,9 +478,9 @@ OverlandPressureFlow::Initialize()
       Epetra_MultiVector& pres_star = *pres_cv->ViewComponent("cell", false);
 
       unsigned int ncells_surface =
-        mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+        mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (unsigned int c = 0; c != ncells_surface; ++c) {
-        int id = mesh_->cell_map(false).GID(c);
+        int id = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false).GID(c);
         Key domain_sf = Keys::getDomainInSet(surf_dset_name, id);
 
         const Epetra_MultiVector& pres =
@@ -564,17 +579,17 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
   const Epetra_MultiVector& pd_c =
     *S_->GetPtr<CompositeVector>(pd_key_, tag_next_)->ViewComponent("cell");
 
-  int d(mesh_->space_dimension());
+  int d(mesh_->getSpaceDimension());
   AmanziGeometry::Point local_velocity(d);
 
   Teuchos::LAPACK<int, double> lapack;
   Teuchos::SerialDenseMatrix<int, double> matrix(d, d);
   double rhs[d];
 
-  int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  AmanziMesh::Entity_ID_List faces;
+  int ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   for (int c = 0; c != ncells_owned; ++c) {
-    mesh_->cell_get_faces(c, &faces);
+    auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
     for (int i = 0; i != d; ++i) rhs[i] = 0.0;
@@ -582,8 +597,8 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
 
     for (int n = 0; n != nfaces; ++n) { // populate least-square matrix
       int f = faces[n];
-      const AmanziGeometry::Point& normal = mesh_->face_normal(f);
-      double area = mesh_->face_area(f);
+      const AmanziGeometry::Point& normal = mesh_->getFaceNormal(f);
+      double area = mesh_->getFaceArea(f);
 
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux_f[0][f];
@@ -656,7 +671,7 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
 
     // -- Move rel perm on boundary_faces into uw_rel_perm on faces
     {
-      const Epetra_Import& vandelay = mesh_->exterior_face_importer();
+      const Epetra_Import& vandelay = mesh_->getBoundaryFaceImporter();
       const Epetra_MultiVector& cond_bf = *cond->ViewComponent("boundary_face", false);
       Epetra_MultiVector& uw_cond_f = *uw_cond->ViewComponent("face", false);
       uw_cond_f.Export(cond_bf, vandelay, Insert);
@@ -777,8 +792,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
       for (const auto& bc : *bc_pressure_) {
         int f = bc.first;
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -793,8 +807,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
       // non-thermal model
       for (const auto& bc : *bc_pressure_) {
         int f = bc.first;
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -851,8 +864,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
          bc_lvl != bc_level_flux_lvl_->end();
          ++bc_lvl, ++bc_vel) {
       int f = bc_lvl->first;
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       int c = cells[0];
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -876,8 +888,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
     for (const auto& bc : *bc_critical_depth_) {
       int f = bc.first;
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       int c = cells[0];
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -900,8 +911,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
     for (const auto& bc : *bc_seepage_head_) {
       int f = bc.first;
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       int c = cells[0];
 
       double hz_f = bc.second + elevation[0][f];
@@ -941,8 +951,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
       for (const auto& bc : *bc_seepage_pressure_) {
         int f = bc.first;
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -963,8 +972,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
       // non-thermal model
       for (const auto& bc : *bc_seepage_pressure_) {
         int f = bc.first;
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -994,19 +1002,18 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
     Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(flux_key_, tag);
     const Epetra_MultiVector& flux_f = *flux->ViewComponent("face", false);
-    int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;
 
-      AmanziMesh::Entity_ID_List cells, faces;
-      std::vector<int> fdirs;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 
       if (f < nfaces_owned) {
-        mesh_->cell_get_faces_and_dirs(c, &faces, &fdirs);
+        const auto& [faces, fdirs] = mesh_->getCellFacesAndDirections(c);
         int j = 0;
         for (j = 0; j < faces.size(); j++) {
           if (faces[j] == f) break;
@@ -1036,15 +1043,15 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
   // check that there are no internal faces and mark all remaining boundary
   // conditions as the default, zero flux conditions
-  int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f != nfaces_owned; ++f) {
-    AmanziMesh::Entity_ID_List cells;
-    mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     int ncells = cells.size();
 
     if ((markers[f] != Operators::OPERATOR_BC_NONE) && (ncells == 2)) {
       Errors::Message msg("Tried to set a boundary condition on internal face GID ");
-      msg << mesh_->face_map(false).GID(f);
+      msg << mesh_->getMap(AmanziMesh::Entity_kind::FACE, false).GID(f);
       Exceptions::amanzi_throw(msg);
     }
     if ((markers[f] == Operators::OPERATOR_BC_NONE) && (ncells == 1)) {
@@ -1078,8 +1085,8 @@ OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVecto
     }
   } else if (u->HasComponent("boundary_face")) {
     const Epetra_MultiVector& elevation = *elev->ViewComponent("face");
-    const Epetra_Map& vandalay_map = mesh_->exterior_face_map(false);
-    const Epetra_Map& face_map = mesh_->face_map(false);
+    const Epetra_Map& vandalay_map = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
 
     const Epetra_MultiVector& u_c = *u->ViewComponent("cell", false);
     Epetra_MultiVector& u_bf = *u->ViewComponent("boundary_face", false);
@@ -1093,8 +1100,7 @@ OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVecto
         //  this simply makes the upwinded conductivities make more sense, and
         //  changes no answers as boundary faces and their resulting
         //  conductivity are not used in Neumann conditions.
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
         u_bf[0][bf] = u_c[0][cells[0]];
       }
     }
@@ -1132,13 +1138,14 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
     std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
 
-    int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-    int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+    int ncells_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
     for (const auto& bc : *bc_zero_gradient_) {
       int f = bc.first;
 
-      AmanziMesh::Entity_ID_List cells;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 
@@ -1147,7 +1154,7 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
         double bc_val = -dp * Aff[f](0, 0);
 
         markers[f] = Operators::OPERATOR_BC_NEUMANN;
-        values[f] = bc_val / mesh_->face_area(f);
+        values[f] = bc_val / mesh_->getFaceArea(f);
       }
     }
   }
@@ -1163,19 +1170,18 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
     std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
     double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
-    int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+    int nfaces_owned =
+      mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;
 
-      AmanziMesh::Entity_ID_List cells, faces;
-      std::vector<int> fdirs;
-      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 
       if (f < nfaces_owned) {
-        mesh_->cell_get_faces_and_dirs(c, &faces, &fdirs);
+        const auto& [faces, fdirs] = mesh_->getCellFacesAndDirections(c);
         int j = 0;
         for (j = 0; j < faces.size(); j++) {
           if (faces[j] == f) break;
@@ -1192,7 +1198,7 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
           double bc_val = -dp * Aff[f](0, 0);
 
           markers[f] = Operators::OPERATOR_BC_NEUMANN;
-          values[f] = bc_val / mesh_->face_area(f);
+          values[f] = bc_val / mesh_->getFaceArea(f);
         } else {
           markers[f] = Operators::OPERATOR_BC_DIRICHLET;
           values[f] = h0;
@@ -1275,7 +1281,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
         my_limited++;
       }
     }
-    mesh_->get_comm()->MaxAll(&my_limited, &n_limited_spurt, 1);
+    mesh_->getComm()->MaxAll(&my_limited, &n_limited_spurt, 1);
   }
 
   if (patm_hard_limit_) {
@@ -1290,7 +1296,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
         my_limited++;
       }
     }
-    mesh_->get_comm()->MaxAll(&my_limited, &n_limited_spurt, 1);
+    mesh_->getComm()->MaxAll(&my_limited, &n_limited_spurt, 1);
   }
 
   if (n_limited_spurt > 0) {
@@ -1333,7 +1339,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
       }
     }
 
-    mesh_->get_comm()->SumAll(&my_limited, &n_limited_change, 1);
+    mesh_->getComm()->SumAll(&my_limited, &n_limited_change, 1);
   }
 
   if (n_limited_change > 0) {

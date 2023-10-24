@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Evaluates the canopy radiation balance, providing canopy net and radiation to the snow/surface.
 /*!
 
@@ -19,12 +21,12 @@ Computes:
 1. canopy-downward_shortwave_radiation -- transmitted shortwave.  Note that
    incoming shortwave is attenuated by Beer's law, and partially transmitted
    without attenuation when there are gaps (e.g. LAI < 1) in the canopy.
-   
+
 2. canopy-downward_longwave_radiation -- transmitted longwave (see above,
    noting that Beer's law coefficients should be used that absorb most if not
    all the longwave radiation), along with longwave emitted by the canopy
    computed using a canopy leaf temperature and a Bolzmann equation.
-   
+
 3. canopy-downward_net_radiation -- this is a partial computation of the net
    radiation experienced by the canopy.  It includes the portion of shortwave
    and longwave from the atmosphere that are absorbed via Beer's law, minus the
@@ -36,7 +38,7 @@ Computes:
 
 Here the net radiation is positive for energy added to the canopy, while the
 other two are positive for energy sent to the layer below.
-   
+
 In the canopy-downward_net_radiation, we cannot include the upward terms YET,
 because these are a function of snow and surface temperature, which in turn
 depend upon the downward radiation computed here.  So we choose to break the
