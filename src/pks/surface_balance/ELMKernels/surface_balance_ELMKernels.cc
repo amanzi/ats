@@ -10,12 +10,10 @@
 #include "pk_helpers.hh"
 #include "surface_balance_ELMKernels.hh"
 
-//#include "elm_kokkos_interface.hh"
-
 #define NUM_LC_CLASSES 18
 
 namespace Amanzi {
-namespace LandPhysics {
+namespace SurfaceBalance {
 
 SurfaceBalanceELMKernels::SurfaceBalanceELMKernels(Teuchos::ParameterList& pk_tree,
                                      const Teuchos::RCP<Teuchos::ParameterList>& global_list,
@@ -72,6 +70,11 @@ SurfaceBalanceELMKernels::SurfaceBalanceELMKernels(Teuchos::ParameterList& pk_tr
 
   // ELMKernels timestep
   dt_ = plist_->get<double>("time step size [s]");
+
+  // dummy ncols for now
+  int ncol = 1;
+  // Set up the ELMKernels interface
+  elm_ = Teuchos::rcp(new ELM::ELMInterface(ncol));
 }
 
 // main methods
@@ -81,6 +84,10 @@ SurfaceBalanceELMKernels::Setup()
 {
   PK_Physical_Default::Setup();
   auto subsurf_mesh = S_->GetMesh(domain_ss_);
+
+  // Set up the ELMKernels interface
+  int ncols = subsurf_mesh->num_columns();
+  elm_ = Teuchos::rcp(new ELM::ELMInterface(ncols));
 
   // requirements: primary variable
   // -- snow depth
@@ -100,9 +107,6 @@ SurfaceBalanceELMKernels::Setup()
 
   // set requirements on dependencies
   SetupDependencies_(tag_next_);
-
-  // Set up the ELMKernels interface
-  elm_interface_ = Teuchos::rcp(new Amanzi::LandPhysics::Kernels(engine_name, engine_inputfile));
 }
 
 void
