@@ -429,6 +429,33 @@ Transport_ATS::Initialize()
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
   conserve_qty_ = S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
 
+#ifdef ALQUIMIA_ENABLED
+  if (plist_->sublist("source terms").isSublist("geochemical")) {
+    for (auto& src : srcs_) {
+      if (src->name() == "alquimia source") {
+        // src_factor = water_source / molar_density_liquid, both flow
+        // quantities, see note above.
+        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
+        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
+                            .ViewComponent("cell", false);
+        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
+          Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
+        src_alq->set_conversion(-1000, src_factor, false);
+      }
+    }
+  }
+
+  if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
+    for (auto& bc : bcs_) {
+      if (bc->name() == "alquimia bc") {
+        Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
+          Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
+        bc_alq->set_conversion(1000.0, mol_dens_, true);
+      }
+    }
+  }
+#endif
+
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   Policy(tag_next_);
 
@@ -856,54 +883,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
-
-  // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
-  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  // why are we copying this?  This should result in constant flux, no need to copy? --ETC
-  *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
-
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
-  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
-
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
-  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
-
-  // this is locally created and has no evaluator -- should get a primary
-  // variable FE owned by this PK --ETC
-  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
-
-#ifdef ALQUIMIA_ENABLED
-  if (plist_->sublist("source terms").isSublist("geochemical")) {
-    for (auto& src : srcs_) {
-      if (src->name() == "alquimia source") {
-        // src_factor = water_source / molar_density_liquid, both flow
-        // quantities, see note above.
-        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
-        auto src_factor = S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT)
-                            .ViewComponent("cell", false);
-        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src_alq =
-          Teuchos::rcp_dynamic_cast<TransportSourceFunction_Alquimia_Units>(src);
-        src_alq->set_conversion(-1000, src_factor, false);
-      }
-    }
-  }
-
-  if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
-    for (auto& bc : bcs_) {
-      if (bc->name() == "alquimia bc") {
-        Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
-          Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
-        bc_alq->set_conversion(1000.0, mol_dens_, true);
-      }
-    }
-  }
-#endif
 
   // We use original tcc and make a copy of it later if needed.
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
@@ -921,7 +904,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
-  if (subcycling_)      // This is internal subcycling (always false now)
+  if (subcycling_)      // This is internal subcycling (always false now, so dt_=dt_MPC)
     StableTimeStep();
   else
     dt_ = dt_MPC;
