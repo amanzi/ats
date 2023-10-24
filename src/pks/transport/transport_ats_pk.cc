@@ -152,12 +152,24 @@ Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
 #endif
 
 
-/* ******************************************************************
-* Define structure of this PK.
+/*******************************************************************
+* Setup for Transport_ATS class
 ****************************************************************** */
 void
 Transport_ATS::Setup()
 {
+  // PK_PhysicalExplicit<Epetra_Vector>::Setup();  // This func is in Amanzi, not ATS
+  SetupTransport_();
+  SetupPhysicalEvaluators_();
+}
+
+
+// -------------------------------------------------------------
+// Pieces of the construction process that are common to all
+// Transport_ATS-like PKs.
+// -------------------------------------------------------------
+void Transport_ATS::SetupTransport_()
+{  
   // cross-coupling of PKs
   Teuchos::RCP<Teuchos::ParameterList> physical_models = Teuchos::sublist(plist_, "physical models and assumptions");
 
@@ -183,14 +195,14 @@ Transport_ATS::Setup()
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
   S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
-
-  
+      
   // This vector stores the conserved amount (in mols) of ncomponent transported components, plus two for water.  
   //    - The first water component is given by the water content (in mols) at the old time plus dt * all fluxes treated explictly.  
   //    - The second water component is given by the water content at the new time plus dt * all fluxes treated implicitly 
   //      (notably just DomainCoupling fluxes, which must be able to take all the transported quantity.)
   //
   // ... Note that component_names includes secondaries, but we only need primaries
+  
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
   requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
@@ -316,6 +328,50 @@ Transport_ATS::Setup()
       }
     }
   }
+}
+
+
+// -------------------------------------------------------------
+// Create the physical evaluators for total concentration, etc, 
+// that are specific to Transport.
+// -------------------------------------------------------------
+void Transport_ATS::SetupPhysicalEvaluators_()
+{
+  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+    .SetMesh(mesh_)->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, num_components);
+  S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
+  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+
+  // CellVolume is required here -- it may not be used in this PK, but having it makes vis nicer
+  requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+
+  // -- water flux
+  requireAtNext(flux_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::FACE, 1);
+  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
+
+  // -- water saturation
+  requireAtNext(saturation_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  
+  // Require a copy of saturation at the old time tag
+  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
+
+  // -- porosity
+  requireAtNext(porosity_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  
+  // -- molar density
+  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::CELL, 1);
+  
+  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+
 }
 
 
