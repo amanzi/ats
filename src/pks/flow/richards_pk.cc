@@ -309,8 +309,7 @@ Richards::SetupRichardsFlow_()
   // -- accumulation terms
   Teuchos::ParameterList& acc_pc_plist = plist_->sublist("accumulation preconditioner");
   acc_pc_plist.set<std::string>("entity kind", "cell");
-  preconditioner_acc_ =
-    Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
+  preconditioner_acc_ = Teuchos::rcp(new Operators::PDE_Accumulation(acc_pc_plist, preconditioner_));
 
   // // -- vapor diffusion terms
   // vapor_diffusion_ = plist_->get<bool>("include vapor diffusion", false);
@@ -386,40 +385,33 @@ Richards::SetupRichardsFlow_()
   if (compute_boundary_values_)
     matrix_cvs.AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
-    .Update(matrix_cvs)
-    ->SetGhosted();
+    .Update(matrix_cvs)->SetGhosted();
 
   // -- flux is managed here as a primary variable
   requireAtNext(flux_key_, tag_next_, *S_, name_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
+    .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("face", AmanziMesh::FACE, 1);
 
   // -- also need a velocity, but only for vis/diagnostics, so might as well
   // -- only keep at NEXT
   requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
-    .SetMesh(mesh_)
-    ->SetGhosted()
+    .SetMesh(mesh_)->SetGhosted()
     ->SetComponent("cell", AmanziMesh::CELL, 3);
 
   // Globalization and other timestep control flags
   // -- predictors
-  modify_predictor_with_consistent_faces_ =
-    plist_->get<bool>("modify predictor with consistent faces", false);
+  modify_predictor_with_consistent_faces_ = plist_->get<bool>("modify predictor with consistent faces", false);
   modify_predictor_bc_flux_ = plist_->get<bool>("modify predictor for flux BCs", false);
-  modify_predictor_first_bc_flux_ =
-    plist_->get<bool>("modify predictor for initial flux BCs", false);
+  modify_predictor_first_bc_flux_ = plist_->get<bool>("modify predictor for initial flux BCs", false);
   modify_predictor_wc_ = plist_->get<bool>("modify predictor via water content", false);
 
   // -- correctors
   p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
-  patm_limit_ =
-    plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
+  patm_limit_ = plist_->get<double>("limit correction to pressure change when crossing atmospheric [Pa]", -1.);
 
   // -- valid step controls
   sat_change_limit_ = plist_->get<double>("max valid change in saturation in a time step [-]", -1.);
-  sat_ice_change_limit_ =
-    plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
+  sat_ice_change_limit_ = plist_->get<double>("max valid change in ice saturation in a time step [-]", -1.);
 }
 
 // -------------------------------------------------------------
