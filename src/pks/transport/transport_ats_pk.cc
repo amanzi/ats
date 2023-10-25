@@ -911,7 +911,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   
   double dt_stable = dt_; // advance routines override dt_
   int interpolate_ws = 0; // (dt_ < dt_global) ? 1 : 0;
-  // if t_old and t_new in between current and next tag, do interpolation
+  // if t_old and t_new in between current and next tag, set the interpolation true
   if ((t_old > S_->get_time(tag_current_)) || (t_new < S_->get_time(tag_next_))) {
     interpolate_ws = 1;
   }
@@ -1012,10 +1012,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
       AdvanceSecondOrderUpwindRK2(dt_cycle);
     }
 
-    if (!final_cycle) { // rotate concentrations (we need new memory for tcc)
-      // should not be allocating here, we have tons of memory for tcc --ETC
-      tcc = Teuchos::RCP<CompositeVector>(new CompositeVector(*tcc_tmp));
-    }
+    // if (!final_cycle) { // rotate concentrations (we need new memory for tcc)
+    //   // should not be allocating here, we have tons of memory for tcc --ETC
+    //   tcc = Teuchos::RCP<CompositeVector>(new CompositeVector(*tcc_tmp));
+    // }
     ncycles++;
   }
 
