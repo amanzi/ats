@@ -69,7 +69,7 @@ Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator>
   PlantWiltingFactorEvaluator::reg_("plant wilting factor");
 
 Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator>
-  RootingDepthFractionEvaluator::reg_("rooting depth fraction");
+  RootingDepthFractionEvaluator::reg_("root fraction");
 
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator>
   TranspirationDistributionEvaluator::reg_("transpiration distribution via rooting depth");

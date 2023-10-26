@@ -58,7 +58,7 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
 
   // dependency: rooting_depth_fraction
   f_root_key_ =
-    Keys::readKey(plist_, domain_sub_, "rooting depth fraction", "rooting_depth_fraction");
+    Keys::readKey(plist_, domain_sub_, "root fraction", "root_fraction");
   dependencies_.insert(KeyTag{ f_root_key_, tag });
 
   // dependency: transpiration

@@ -23,22 +23,22 @@ PlantWiltingFactorModel::PlantWiltingFactorModel(const LandCover& lc) : lc_(lc) 
 double
 PlantWiltingFactorModel::PlantWiltingFactor(double pc) const
 {
-  return lc_.stomata_closed_water_potential < pc ?
+  return lc_.stomata_closed_capillary_pressure < pc ?
            0. :
-           (pc < lc_.stomata_open_water_potential ?
+           (pc < lc_.stomata_open_capillary_pressure ?
               1. :
-              ((-pc + lc_.stomata_closed_water_potential) /
-               (lc_.stomata_closed_water_potential - lc_.stomata_open_water_potential)));
+              ((-pc + lc_.stomata_closed_capillary_pressure) /
+               (lc_.stomata_closed_capillary_pressure - lc_.stomata_open_capillary_pressure)));
 }
 
 double
 PlantWiltingFactorModel::DPlantWiltingFactorDCapillaryPressureGasLiq(double pc) const
 {
-  return lc_.stomata_closed_water_potential < pc ?
+  return lc_.stomata_closed_capillary_pressure < pc ?
            0. :
-           (pc < lc_.stomata_open_water_potential ?
+           (pc < lc_.stomata_open_capillary_pressure ?
               0. :
-              (-1 / (lc_.stomata_closed_water_potential - lc_.stomata_open_water_potential)));
+              (-1 / (lc_.stomata_closed_capillary_pressure - lc_.stomata_open_capillary_pressure)));
 }
 
 } // namespace Relations

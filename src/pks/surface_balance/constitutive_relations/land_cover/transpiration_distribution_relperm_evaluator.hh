@@ -21,16 +21,18 @@ that the flux of water between any given grid cell and the plant is given by a
 potential difference multiplied by a conductance:
 
 .. math::
-   Q_{T} = Q_{pot T} \beta(\Psi_p) = \sum_{i} Q_{i} = c_i k_r(\Psi_i, \Psi_p)[\Psi_i - \Psi_p]
+   Q_{T} = Q_{pot T} \beta(\Psi_p) = \sum_{i} Q_{i} = c_i k_r(\Psi_i, \Psi_p + \rho g z_i)[\Psi_i - \Psi_p]
 
 where :math:`Q_{T}` is the total actual transpiration, :math:`Q_{pot T}` the
 potential transpiration, :math:`\beta` a transpiration reduction function that
 is only a function of the plant water potential, :math:`\Psi_p` and
 :math:`\Psi_i` the water potential (capillary pressure) in the plant and the
-soil cell :math:`i`, respectively, :math:`Q_i` is the transpiration taken from
-each grid cell, :math:`c_i` is a maximum conductance of cell i, which is
-proportional to the root fraction in cell :math:`i`, and :math:`k_r` is the
-relative permeability (which is often upwinded between soil relative
+soil cell :math:`i`, respectively, :math:`\rho` is the density of water,
+:math:`g` the gravitational force (so that :math:`\Psi_p + \rho g z_i` is the
+pressure in the root in soil cell :math:`i`), :math:`Q_i` is the transpiration
+taken from each grid cell, :math:`c_i` is a maximum conductance of cell i,
+which is proportional to the root fraction in cell :math:`i`, and :math:`k_r`
+is the relative permeability (which is often upwinded between soil relative
 permeability and a plant relative permeability that can be used to control
 hydraulic redistribution).
 
@@ -78,6 +80,7 @@ plant is assumed.
    - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
+   - `"depth`" **DOMAIN-depth**
 
    Note this also uses `"water potential at fully closed stomata [Pa]`" and
    `"water potential at fully open stomata [Pa]`" from the land cover.
@@ -96,37 +99,41 @@ namespace SurfaceBalance {
 namespace Relations {
 
 struct SoilPlantFluxFunctor {
-  SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
-                       const AmanziMesh::Entity_ID_View& cells_of_col_,
-                       const LandCover& lc_,
-                       const Epetra_MultiVector& soil_wp_,
-                       const Epetra_MultiVector& soil_kr_,
-                       const Epetra_MultiVector& f_root_,
-                       const Epetra_MultiVector& pet_,
-                       double c0_,
-                       double krp_);
+  SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc,
+                       const AmanziMesh::Entity_ID_View& cells_of_col,
+                       const LandCover& lc,
+                       const Epetra_MultiVector& soil_pc,
+                       const Epetra_MultiVector& soil_kr,
+                       const Epetra_MultiVector& f_root,
+                       const Epetra_MultiVector& pet,
+                       const Epetra_MultiVector& cv,
+                       const Epetra_MultiVector& sa,
+                       double c0,
+                       double krp,
+                       double rho,
+                       double g);
 
   // error function used for rootfinder
-  double operator()(double plant_wp) const;
+  double operator()(double plant_pc) const;
 
   // right hand side
-  double soilPlantFlux(double plant_wp, AmanziMesh::Entity_ID c) const;
+  double computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const;
+  void computeSoilPlantFluxes(double root_pc, Epetra_MultiVector& trans) const;
 
   // beta in left hand side
-  double transpirationReductionFunction(double plant_wp) const;
+  double computeTranspirationReductionFunction(double plant_pc) const;
 
   const LandCover& lc;
-  const Epetra_MultiVector& soil_wp;
+  const Epetra_MultiVector& soil_pc;
   const Epetra_MultiVector& soil_kr;
   const Epetra_MultiVector& f_root;
   const Epetra_MultiVector& pet;
-  double c0, krp;
+  const Epetra_MultiVector& cv,sa;
+  double c0, krp, rho_g;
 
   AmanziMesh::Entity_ID sc;
   AmanziMesh::Entity_ID_View cells_of_col;
 };
-
-
 
 
 class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
@@ -166,15 +173,16 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   Key domain_surf_;
   Key domain_sub_;
 
-  Key soil_wp_key_;
+  Key soil_pc_key_;
   Key soil_kr_key_;
   Key f_root_key_;
   Key potential_trans_key_;
+  Key sa_key_;
   Key cv_key_;
-  Key surf_cv_key_;
 
   double c0_;
   double krp_;
+  double rho_;
 
   LandCoverMap land_cover_;
 

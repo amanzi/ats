@@ -38,17 +38,19 @@ same region-based partitioning.
 .. _land-cover-spec:
 .. admonition:: land-cover-spec
 
+    * `"rooting depth max [m]`" ``[double]`` **NaN** Below this the rooting fraction is
+      set to 0. [m]
     * `"rooting profile alpha [-]`" ``[double]``  **NaN** alpha in the rooting profile
       function [-]
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
       function [-] Note that these are from the CLM 4.5 Technical Note.
 
-    * `"water potential at fully closed stomata [Pa]`" ``[double]``  **NaN**
-    * `"water potential at fully open stomata [Pa]`" ``[double]`` **NaN**
-      Transpiration is typically multipled by a limiter that is empirically
+    * `"capillary pressure at fully closed stomata [Pa]`" ``[double]``  **NaN**
+    * `"capillary pressure at fully open stomata [Pa]`" ``[double]`` **NaN**
+      Transpiration is typically downregulated by a limiter that is empirically
       modeling stomata closure.  Typically it varies linearly from 0 to 1 as a
-      function of water potential (capillary pressure), between these two
-      values. [Pa]
+      function of capillary pressure, between these two values.  Note that
+      these should be positive! [Pa]
 
     * `"leaf on time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
        begin transpiring.  Note that -1 implies evergreen. [doy]
@@ -139,12 +141,13 @@ struct LandCover {
   LandCover(Teuchos::ParameterList& plist);
 
   // rooting profiles
+  double rooting_depth_max;
   double rooting_profile_alpha;
   double rooting_profile_beta;
 
-  // stomatal limiters
-  double stomata_closed_water_potential;
-  double stomata_open_water_potential;
+  // parameters in the transpiration reduction function
+  double stomata_closed_capillary_pressure;
+  double stomata_open_capillary_pressure;
 
   // manning's coef
   double mannings_n;
