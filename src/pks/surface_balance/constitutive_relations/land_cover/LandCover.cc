@@ -18,42 +18,39 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 double
-readPositiveLandCoverParameter(Teuchos::ParameterList& plist,
-        const std::string& name)
+readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
   double res = plist.get<double>(name, NAN);
   if (res < 0) {
     Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name
-        << "\" in land cover type \"" << plist.name() << "\" -- expecting postive value.";
+    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+        << "\" -- expecting postive value.";
     Exceptions::amanzi_throw(msg);
   }
   return res;
 }
 
 double
-readNegativeLandCoverParameter(Teuchos::ParameterList& plist,
-        const std::string& name)
+readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
   double res = plist.get<double>(name, NAN);
   if (res > 0) {
     Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name
-        << "\" in land cover type \"" << plist.name() << "\" -- expecting negative value.";
+    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+        << "\" -- expecting negative value.";
     Exceptions::amanzi_throw(msg);
   }
   return res;
 }
 
 double
-readZeroOneLandCoverParameter(Teuchos::ParameterList& plist,
-        const std::string& name)
+readZeroOneLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
   double res = readPositiveLandCoverParameter(plist, name);
   if (res > 1) {
     Errors::Message msg;
-    msg << "Invalid land cover parameter \"" << name
-        << "\" in land cover type \"" << plist.name() << "\" -- expecting value in range [0,1].";
+    msg << "Invalid land cover parameter \"" << name << "\" in land cover type \"" << plist.name()
+        << "\" -- expecting value in range [0,1].";
     Exceptions::amanzi_throw(msg);
   }
   return res;
@@ -72,16 +69,21 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
     leaf_off_doy(plist.get<double>("leaf off time [doy]", NAN)),
     pt_alpha_snow(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of snow [-]")),
     pt_alpha_canopy(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of canopy [-]")),
-    pt_alpha_ground(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of bare ground [-]")),
-    pt_alpha_transpiration(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of transpiration [-]")),
+    pt_alpha_ground(
+      readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of bare ground [-]")),
+    pt_alpha_transpiration(
+      readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of transpiration [-]")),
     albedo_ground(readZeroOneLandCoverParameter(plist, "albedo of bare ground [-]")),
     emissivity_ground(readZeroOneLandCoverParameter(plist, "emissivity of bare ground [-]")),
     albedo_canopy(readZeroOneLandCoverParameter(plist, "albedo of canopy [-]")),
-    beers_k_sw(readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, shortwave [-]")),
-    beers_k_lw(readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, longwave [-]")),
+    beers_k_sw(
+      readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, shortwave [-]")),
+    beers_k_lw(
+      readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, longwave [-]")),
     snow_transition_depth(readPositiveLandCoverParameter(plist, "snow transition depth [m]")),
     water_transition_depth(readPositiveLandCoverParameter(plist, "water transition depth [m]")),
-    dessicated_zone_thickness(readPositiveLandCoverParameter(plist, "dessicated zone thickness [m]")),
+    dessicated_zone_thickness(
+      readPositiveLandCoverParameter(plist, "dessicated zone thickness [m]")),
     clapp_horn_b(readPositiveLandCoverParameter(plist, "Clapp and Hornberger b [-]")),
     rs_method(plist.get<std::string>("soil resistance method", "sakagucki_zeng")),
     roughness_ground(readPositiveLandCoverParameter(plist, "roughness length of bare ground [m]")),
@@ -139,9 +141,11 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
   if (parname == "rooting_profile_beta" && std::isnan(lc.rooting_profile_beta))
     throwInvalid(region, "rooting profile beta [-]");
 
-  if (parname == "stomata_closed_capillary_pressure" && std::isnan(lc.stomata_closed_capillary_pressure))
+  if (parname == "stomata_closed_capillary_pressure" &&
+      std::isnan(lc.stomata_closed_capillary_pressure))
     throwInvalid(region, "water potential at fully closed stomata [Pa]");
-  if (parname == "stomata_open_capillary_pressure" && std::isnan(lc.stomata_open_capillary_pressure))
+  if (parname == "stomata_open_capillary_pressure" &&
+      std::isnan(lc.stomata_open_capillary_pressure))
     throwInvalid(region, "water potential at fully open stomata [Pa]");
 
   if (parname == "pt_alpha_snow" && std::isnan(lc.pt_alpha_snow))

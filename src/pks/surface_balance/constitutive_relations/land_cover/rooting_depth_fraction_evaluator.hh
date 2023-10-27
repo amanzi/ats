@@ -57,12 +57,13 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key,
-          const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   virtual bool
-  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override {
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
     return false;
   }
 

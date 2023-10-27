@@ -128,7 +128,7 @@ struct SoilPlantFluxFunctor {
   const Epetra_MultiVector& soil_kr;
   const Epetra_MultiVector& f_root;
   const Epetra_MultiVector& pet;
-  const Epetra_MultiVector& cv,sa;
+  const Epetra_MultiVector &cv, sa;
   double c0, krp, rho_g;
 
   AmanziMesh::Entity_ID sc;

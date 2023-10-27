@@ -24,16 +24,19 @@ SnowMeltRateEvaluator::SnowMeltRateEvaluator(Teuchos::ParameterList& plist)
 
   // snow begins to melt when the air temperature is this many degrees above 0
   if (plist.isParameter("air-snow temperature difference [C]")) {
-    Errors::Message msg("SnowMeltRateEvaluator: parameter \"air-snow temperature difference [C]\" is no longer accepted"
-                        "-- instead add a new evaluator for \"snow-expected_temperature\" that is of type "
-                        "\"additive evaluator\" that shifts the air temperature.");
+    Errors::Message msg(
+      "SnowMeltRateEvaluator: parameter \"air-snow temperature difference [C]\" is no longer "
+      "accepted"
+      "-- instead add a new evaluator for \"snow-expected_temperature\" that is of type "
+      "\"additive evaluator\" that shifts the air temperature.");
     Exceptions::amanzi_throw(msg);
   }
 
   Tag tag = my_keys_.front().second;
   domain_ = Keys::getDomain(my_keys_.front().first);
 
-  exp_temp_key_ = Keys::readKey(plist, domain_, "expected snow temperature", "expected_temperature");
+  exp_temp_key_ =
+    Keys::readKey(plist, domain_, "expected snow temperature", "expected_temperature");
   dependencies_.insert(KeyTag{ exp_temp_key_, tag });
 
   snow_key_ = Keys::readKey(plist, domain_, "snow water equivalent", "water_equivalent");
@@ -113,10 +116,8 @@ SnowMeltRateEvaluator::EvaluatePartialDerivative_(const State& S,
       auto lc_ids = mesh->getSetEntities(
         lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       for (auto c : lc_ids) {
-        if (swe[0][c] < lc.second.snow_transition_depth &&
-            exp_temp[0][c] > 273.15) {
-          res[0][c] = melt_rate_ * (exp_temp[0][c] - 273.15) /
-                      lc.second.snow_transition_depth;
+        if (swe[0][c] < lc.second.snow_transition_depth && exp_temp[0][c] > 273.15) {
+          res[0][c] = melt_rate_ * (exp_temp[0][c] - 273.15) / lc.second.snow_transition_depth;
         } else {
           res[0][c] = 0.0;
         }

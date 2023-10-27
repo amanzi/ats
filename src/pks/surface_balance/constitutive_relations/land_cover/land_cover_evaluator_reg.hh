@@ -74,7 +74,8 @@ Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator>
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator>
   TranspirationDistributionEvaluator::reg_("transpiration distribution via rooting depth");
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionRelPermEvaluator>
-  TranspirationDistributionRelPermEvaluator::reg_("transpiration distribution via relative permeability");
+  TranspirationDistributionRelPermEvaluator::reg_(
+    "transpiration distribution via relative permeability");
 
 Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator>
   SnowMeltRateEvaluator::reg_("snow melt rate");

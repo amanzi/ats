@@ -76,29 +76,43 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
       double depth = 0.;
       double total = 0.;
 
-      double at_max = 1.0 + computeIntegralRootFunc(lc.second.rooting_depth_max, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta);
+      double at_max = 1.0 + computeIntegralRootFunc(lc.second.rooting_depth_max,
+                                                    lc.second.rooting_profile_alpha,
+                                                    lc.second.rooting_profile_beta);
       const auto& col_cells = subsurf_mesh.columns.getCells(sc);
       int i = 0;
       for (auto c : col_cells) {
-        result_v[0][c] = -computeIntegralRootFunc(depth, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta) / at_max;
+        result_v[0][c] = -computeIntegralRootFunc(
+                           depth, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta) /
+                         at_max;
         depth += cv[0][c] / surf_cv[0][sc];
         i++;
 
         if (depth <= lc.second.rooting_depth_max) {
           if (i == (col_cells.size())) {
             // max depth is bigger than the domain, remainder goes in the bottom-most cell
-            result_v[0][c] += computeIntegralRootFunc(lc.second.rooting_depth_max, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta) / at_max;
+            result_v[0][c] += computeIntegralRootFunc(lc.second.rooting_depth_max,
+                                                      lc.second.rooting_profile_alpha,
+                                                      lc.second.rooting_profile_beta) /
+                              at_max;
             total += result_v[0][c];
           } else {
-            result_v[0][c] += computeIntegralRootFunc(depth, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta) / at_max;
+            result_v[0][c] += computeIntegralRootFunc(depth,
+                                                      lc.second.rooting_profile_alpha,
+                                                      lc.second.rooting_profile_beta) /
+                              at_max;
             total += result_v[0][c];
           }
         } else {
           // max depth stops in this cell, just compute to there
-          result_v[0][c] += computeIntegralRootFunc(lc.second.rooting_depth_max, lc.second.rooting_profile_alpha, lc.second.rooting_profile_beta) / at_max;
+          result_v[0][c] += computeIntegralRootFunc(lc.second.rooting_depth_max,
+                                                    lc.second.rooting_profile_alpha,
+                                                    lc.second.rooting_profile_beta) /
+                            at_max;
 
           total += result_v[0][c];
-          break;        }
+          break;
+        }
       }
       AMANZI_ASSERT(std::abs(total - 1.0) < 1.e-8);
     }
@@ -124,8 +138,7 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (land_cover_.size() == 0) {
     land_cover_ =
       getLandCover(S.ICList().sublist("land cover types"),
-                   { "rooting_depth_max", "rooting_profile_alpha",
-                     "rooting_profile_beta" });
+                   { "rooting_depth_max", "rooting_profile_alpha", "rooting_profile_beta" });
   }
 
   Key domain = Keys::getDomain(my_keys_.front().first);
