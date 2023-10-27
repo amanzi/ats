@@ -7,21 +7,34 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-//! PresElevEvaluator: evaluates h + z
+//! Computes the potential surface upon which snow redistribution acts.
 /*!
-Evaluator type: "snow skin potential"
+
+Snow distribution moves snow precipitation around to ensure that low-lying
+areas fill up first.  This represents a potential field driving movement of
+snow precip, so defines what we mean by low-lying.
 
 .. math::
-  h + z + h_{{snow}} + dt * P_{{snow}}
+    h + z + h_{{snow}} + dt * P_{{snow}}
 
-* `"my key`" ``[string]`` **snow_skin_potential** Names the potential variable evaluated [m]
-* `"ponded depth key`" ``[string]`` **ponded_depth** Names the surface water depth variable. [m]
-* `"snow depth key`" ``[string]`` **snow_depth** Names the snow depth variable. [m]
-* `"precipitation snow key`" ``[string]`` **precipitation_snow** Names the snow precipitation key. [m]
-* `"elevation key`" ``[string]`` **elevation** Names the elevation variable. [m]
-* `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a time scale for diffusion of snow precipitation into low-lying areas.  Typically on the order of 1e4-1e7. This timestep times the wave speed of snow provides an approximate length of how far snow precip can travel.  Extremely tunable! [s]
+`"evaluator type`" = `"snow skin potential`"
 
-NOTE: This is equivalent to a generic Additive_ Evaluator
+.. _snow-skin-potential-evaluator-spec:
+.. admonition:: snow-skin-potential-evaluator-spec
+
+   * `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a
+     time scale for diffusion of snow precipitation into low-lying areas.
+     Typically on the order of 1e4-1e7. This timestep times the wave speed of
+     snow provides an approximate length of how far snow precip can travel.
+     Extremely tunable! [s]
+                
+   KEYS:
+                
+   - `"ponded depth`" **SURFACE_DOMAIN-ponded_depth** [m]
+   - `"snow depth`" **DOMAIN-depth** [m]
+   - `"precipitation snow`" **DOMAIN-precipitation** [m s^-1]
+   - `"elevation`" **SURFACE_DOMAIN-elevation** [m]
+
 
 Example:
 
@@ -33,7 +46,6 @@ Example:
   </ParameterList>
 
 */
-
 
 #ifndef AMANZI_FLOWRELATIONS_SNOW_SKIN_POTENTIAL_EVALUATOR_
 #define AMANZI_FLOWRELATIONS_SNOW_SKIN_POTENTIAL_EVALUATOR_

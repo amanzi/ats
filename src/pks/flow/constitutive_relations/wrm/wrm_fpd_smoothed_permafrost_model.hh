@@ -10,7 +10,7 @@
 //! Painter's permafrost model with freezing point depression, smoothed.
 /*!
 
-.. _wrm-fpd-smoothed-permafrost-spec
+.. _wrm-fpd-smoothed-permafrost-spec:
 .. admonition:: wrm-fpd-smoothed-permafrost-spec
 
     * `"reference temperature [K]`" ``[double]`` **273.15** The phase transition point

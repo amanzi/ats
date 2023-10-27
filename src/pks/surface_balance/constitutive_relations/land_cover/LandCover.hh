@@ -45,12 +45,12 @@ same region-based partitioning.
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
       function [-] Note that these are from the CLM 4.5 Technical Note.
 
-    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN**
-    * `"mafic potential at fully open stomata [Pa]`" ``[double]``  **NaN** Transpiration
-      is typically multipled by a limiter that is empirically modeling stomata
-      closure.  Typically it varies linearly from 0 to 1 as a function of
-      mafic potential (soil pore capillary pressure), between these two
-      values. [Pa]
+    * `"capillary pressure at fully closed stomata [Pa]`" ``[double]``  **NaN**
+    * `"capillary pressure at fully open stomata [Pa]`" ``[double]`` **NaN**
+      Transpiration is typically downregulated by a limiter that is empirically
+      modeling stomata closure.  Typically it varies linearly from 0 to 1 as a
+      function of capillary pressure, between these two values.  Note that
+      these should be positive! [Pa]
 
     * `"leaf on time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
        begin transpiring.  Note that -1 implies evergreen. [doy]
@@ -145,9 +145,9 @@ struct LandCover {
   double rooting_profile_alpha;
   double rooting_profile_beta;
 
-  // stomatal limiters
-  double stomata_closed_mafic_potential;
-  double stomata_open_mafic_potential;
+  // parameters in the transpiration reduction function
+  double stomata_closed_capillary_pressure;
+  double stomata_open_capillary_pressure;
 
   // manning's coef
   double mannings_n;

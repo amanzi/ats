@@ -20,7 +20,7 @@ determines how much water is allowed to flow given that it is partially frozen.
 Given a ponded depth, an unfrozen fraction, and an optional power-law exponent,
 which we call the ice retardation exponent.
 
-.. _unfrozen-effective-depth-evaluator-spec
+.. _unfrozen-effective-depth-evaluator-spec:
 .. admonition:: unfrozen-effective-depth-evaluator-spec
 
   * `"ice retardation exponent [-]`" ``[double]`` **1.0** exponent alpha

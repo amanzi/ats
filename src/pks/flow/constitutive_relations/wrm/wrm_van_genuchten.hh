@@ -12,7 +12,7 @@
 
 van Genuchten's water retention curve.
 
-.. _WRM-van-Genuchten-spec
+.. _WRM-van-Genuchten-spec:
 .. admonition:: WRM-van-Genuchten-spec
 
     * `"region`" ``[string]`` Region to which this applies

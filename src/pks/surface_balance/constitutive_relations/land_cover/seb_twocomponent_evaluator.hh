@@ -9,12 +9,14 @@
 
 //! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 /*!
+
 The ground is assumed to consist of two potential area-fraction components --
 snow and no-snow.  In the case of snow on the ground, this solves for a snow
 temperature, given a skin temperature, that satisfies a energy balance
 equation.  In the case of no-snow, this calculates a conductive heat flux to
 the ground from the atmosphere.
 
+`"evaluator type`" = `"surface energy balance, two components`"
 
 .. _seb-twocomponent-evaluator-spec:
 .. admonition:: seb-twocomponent-evaluator-spec
@@ -51,7 +53,7 @@ the ground from the atmosphere.
 
    DEPENDENCIES:
 
-   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation** [W m^-2]
    - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
    - `"air temperature`" **DOMAIN-air_temperature** [K]
    - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]

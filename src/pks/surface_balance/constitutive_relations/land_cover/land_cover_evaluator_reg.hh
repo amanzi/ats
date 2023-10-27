@@ -22,6 +22,7 @@
 #include "rooting_depth_fraction_evaluator.hh"
 #include "snow_meltrate_evaluator.hh"
 #include "transpiration_distribution_evaluator.hh"
+#include "transpiration_distribution_relperm_evaluator.hh"
 #include "radiation_balance_evaluator.hh"
 #include "canopy_radiation_evaluator.hh"
 #include "seb_twocomponent_evaluator.hh"
@@ -68,10 +69,13 @@ Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator>
   PlantWiltingFactorEvaluator::reg_("plant wilting factor");
 
 Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator>
-  RootingDepthFractionEvaluator::reg_("rooting depth fraction");
+  RootingDepthFractionEvaluator::reg_("root fraction");
 
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator>
   TranspirationDistributionEvaluator::reg_("transpiration distribution via rooting depth");
+Utils::RegisteredFactory<Evaluator, TranspirationDistributionRelPermEvaluator>
+  TranspirationDistributionRelPermEvaluator::reg_(
+    "transpiration distribution via relative permeability");
 
 Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator>
   SnowMeltRateEvaluator::reg_("snow melt rate");

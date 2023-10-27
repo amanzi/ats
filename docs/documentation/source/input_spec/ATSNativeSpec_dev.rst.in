@@ -804,7 +804,6 @@ Unfrozen fraction
 Unfrozen Flowing Depth
 ^^^^^^^^^^^^^^^^^^^^^^
 { unfrozen_effective_depth_evaluator }
-{ unfrozen_fraction_model }
 
 SurfacePotential
 ^^^^^^^^^^^^^^^^^^^
@@ -1052,6 +1051,14 @@ and therefore potential evapotranspiration.
 Note that incoming shortwave radiation is typically a user-provided
 meterological forcing dataset.
 
+Radiation Balance
+~~~~~~~~~~~~~~~~~
+{ radiation_balance_evaluator }
+
+Canopy Radiation Balance
+~~~~~~~~~~~~~~~~~~~~~~~~
+{ canopy_radiation_evaluator }
+
 Surface Albedo
 ~~~~~~~~~~~~~~
 
@@ -1065,6 +1072,7 @@ surface balance.
 Incident Shortwave Radiation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 { incident_shortwave_radiation_evaluator }
+{ incident_shortwave_radiation_model }
 
 Longwave Radiation
 ~~~~~~~~~~~~~~~~~~
@@ -1103,6 +1111,21 @@ Snow Melt Rate
 { snow_meltrate_evaluator }
 
 
+Canopy evaluators
+-----------------
+
+Interception
+^^^^^^^^^^^^
+{ interception_fraction_evaluator }
+{ interception_fraction_model }
+
+Drainage
+^^^^^^^^
+{ drainage_evaluator }
+
+
+
+
 Carbon and Biogeochemistry Models
 ---------------------------------
 
@@ -1133,9 +1156,6 @@ Subgrid Aggregation
 Subgrid disaggregation
 ^^^^^^^^^^^^^^^^^^^^^^
 { SubgridDisaggregateEvaluator }
-
-
-
 
 
 Geometric evaluators

@@ -78,13 +78,15 @@ DrainageEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   // evaluate the model
   for (int c = 0; c != res_drainage_c.MyLength(); ++c) {
     double wc_cell = std::max(wc[0][c], 0.);
-    AMANZI_ASSERT(ai[0][c] >= 0); // idiot check!
-    double wc_cell_sat =
-      wc_sat_ * ai[0][c]; // convert from m^3 H20/ m^2 leaf area to m^3 H20 / m^2 cell area
-    AMANZI_ASSERT(wc_cell_sat >= 0); // idiot check!
+    double ai_cell = std::max(ai[0][c], 0.);
+
+    // convert from m^3 H20/ m^2 leaf area to m^3 H20 / m^2 cell area
+    double wc_cell_sat = wc_sat_ * ai_cell;
     res_fracwet_c[0][c] = wc_cell_sat > 0. ? wc_cell / wc_cell_sat : 0.;
+
     // must be in [0,1] -- note that wc_cell can be > wc_cell_sat
     res_fracwet_c[0][c] = std::max(std::min(res_fracwet_c[0][c], 1.0), 0.0);
+
     if (wc_cell > wc_cell_sat) {
       //  is oversaturated and draining
       // NOTE: should this actually be:

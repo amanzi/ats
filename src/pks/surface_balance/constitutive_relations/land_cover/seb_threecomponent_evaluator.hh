@@ -10,7 +10,9 @@
 //! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 /*!
 
-Calculates source terms for surface fluxes to and from the atmosphere and a ground surface characterized by three components -- snow, water-covered ground, and vegetated/bare soil.
+Calculates source terms for surface fluxes to and from the atmosphere and a
+ground surface characterized by three components -- snow, water-covered ground,
+and vegetated/bare soil.
 
 The surface energy balance on these area weighted patches are individually
 calculated then averaged to form the total quantities.  All down- and
@@ -19,6 +21,8 @@ calculated by a minimum threshold in snow and a depression depth/geometry-based
 approach for water.  All snow is assumed to first cover water (likely ice),
 then cover land, as both water and snow prefer low-lying depressions due to
 gravity- and wind-driven redistributions, respectively.
+
+`"evaluator type`" = `"surface energy balance, two components`"
 
 .. _seb-threecomponent-evaluator-spec:
 .. admonition:: seb-threecomponent-evaluator-spec
@@ -55,7 +59,7 @@ gravity- and wind-driven redistributions, respectively.
 
    DEPENDENCIES:
 
-   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation** [W m^-2]
    - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
    - `"air temperature`" **DOMAIN-air_temperature** [K]
    - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]

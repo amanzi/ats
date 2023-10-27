@@ -23,11 +23,11 @@ assumption that dz is uniform (e.g. this is an extruded mesh).
 
 `"evaluator type`" = `"depth`"
 
-.. _depth-evaluator-spec
+.. _depth-evaluator-spec:
 .. admonition:: depth-evaluator-spec
 
-   * `"algorithm`" ``[string]`` **mean face centroid** Valid is `"mean face
-      centroid`" and `"cell centroid`", see above.
+   * `"algorithm`" ``[string]`` **mean face centroid** Valid is `"mean face centroid`"
+     and `"cell centroid`", see above.
 
  */
 

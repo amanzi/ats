@@ -59,21 +59,20 @@ from the LandCover type.
 
 .. _transpiration-distribution-evaluator-spec:
 .. admonition:: transpiration-distribution-evaluator-spec
+   * `"year duration`" ``[double]`` **1**
+   * `"year duration units`" ``[string]`` **noleap**
 
-    * `"year duration`" ``[double]`` **1**
-    * `"year duration units`" ``[string]`` **noleap**
+   * `"water limiter function`" ``[function-spec]`` **optional** If provided,
+     limit the total water sink as a function of the integral of the water
+     potential * rooting fraction.
 
-    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
-      limit the total water sink as a function of the integral of the water
-      potential * rooting fraction.
+   KEYS:
 
-    KEYS:
-
-    - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
-    - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
-    - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
-    - `"cell volume`" **DOMAIN-cell_volume**
-    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
+   - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
+   - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
+   - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
 
 */
 

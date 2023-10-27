@@ -23,7 +23,7 @@ compressibility, and :math:`\delta` is the cutoff (inflection point).
 If the inflection point is set to zero, the above function is exact.  However,
 then the porosity function is not smooth (has discontinuous derivatives).
 
-.. _compressible-porosity-leijnse-model-spec
+.. _compressible-porosity-leijnse-model-spec:
 .. admonition:: compressible-porosity-leijnse-model-spec
 
    * `"pore compressibility [Pa^-1]`" ``[double]`` :math:`\alpha` as described above
