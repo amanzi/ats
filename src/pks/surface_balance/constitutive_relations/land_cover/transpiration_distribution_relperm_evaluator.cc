@@ -271,7 +271,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
           // compute the plant capillary pressure using a root-finder
           int itrs = 100;
           plant_pc_v[0][sc] =
-            Amanzi::Utils::computeRootBrent(func, ab.first, ab.second, 1.e-12, &itrs);
+            Amanzi::Utils::findRootBrent(func, ab.first, ab.second, 1.e-12, &itrs);
           AMANZI_ASSERT(itrs > 0 && itrs < 100);
 
           // compute the distributed transpiration fluxes for each grid cell
