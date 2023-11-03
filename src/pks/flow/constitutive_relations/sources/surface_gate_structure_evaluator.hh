@@ -23,17 +23,17 @@
 
 */
 
-#ifndef AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
-#define AMANZI_FLOW_RELATIONS_SURFDISTTILES_EVALUATOR_HH_
+#pragma once
 
 #include "Factory.hh"
-#include "EvaluatorSecondary.hh"
+#include "EvaluatorSecondaryMonotype.hh"
+#include "FunctionFactory.hh"
 
 namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class SurfGateEvaluator : public EvaluatorSecondary {
+class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit SurfGateEvaluator(Teuchos::ParameterList& plist);
   SurfGateEvaluator(const SurfGateEvaluator& other) = default;
@@ -43,19 +43,32 @@ class SurfGateEvaluator : public EvaluatorSecondary {
     return Teuchos::rcp(new SurfGateEvaluator(*this));
   }
 
-  virtual void EnsureCompatibility(State& S) override;
-
+  // virtual void EnsureCompatibility(State& S) override;
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
+    // calculate of derivatives of this is a tricky thing to do, with
+    // non-cell-local terms due to rescaling.  Just turn off derivatives
+    // instead.
+    return false;
+  }
+  
  protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
+  virtual void EvaluatePartialDerivative_(const State& S,
+                                        const Key& wrt_key,
+                                        const Tag& wrt_tag,
+                                        const std::vector<CompositeVector*>& result) override{};
 
  protected:
   Key domain_;
   Key cv_key_;
   Key pd_key_;
-  Key dependencies_;
-  string dp_region_;
-  string gate_intake_region_;
-  double Q;
+  Key  liq_den_key_;
+  // Key  gate_func_key_;
+  std::string dp_region_;
+  std::string gate_intake_region_;
+  Teuchos::RCP<Function> Q_gate_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, SurfGateEvaluator> reg_;
@@ -64,4 +77,4 @@ class SurfGateEvaluator : public EvaluatorSecondary {
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-#endif
+

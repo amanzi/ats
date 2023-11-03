@@ -9,6 +9,8 @@
 */
 
 #include "Key.hh"
+#include "Factory.hh"
+#include "Function.hh"
 #include "surface_gate_structure_evaluator.hh"
 #include "FunctionFactory.hh"
 
@@ -17,7 +19,7 @@ namespace Flow {
 namespace Relations {
 
 
-SurfGateEvaluator::SurfGateEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondary(plist)
+SurfGateEvaluator::SurfGateEvaluator(Teuchos::ParameterList& plist) : EvaluatorSecondaryMonotypeCV(plist)
 {
   domain_ = Keys::getDomain(my_keys_.front().first);
   auto tag = my_keys_.front().second;
@@ -29,48 +31,55 @@ SurfGateEvaluator::SurfGateEvaluator(Teuchos::ParameterList& plist) : EvaluatorS
   liq_den_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
   gate_intake_region_ = plist.get<std::string>("gate intake region");
   dp_region_ = plist.get<std::string>("detention pond region");
+  // FunctionFactory fac;
+  // Q_gate_ = Teuchos::rcp(fac.Create(plist.sublist("function")));
+  // gate_func_key_ =
+  //   Keys::readKey(*plist_, domain_, "gate function", "gate_function");
+
+  Teuchos::ParameterList& gate_func = plist.sublist("function");
   FunctionFactory fac;
-  Q_gate_ = fac.Create(plist.sublist("gate flow curve"));
+  Q_gate_ = Teuchos::rcp(fac.Create(gate_func));
+
 }
 
 // Required methods from SecondaryVariableFieldEvaluator
 
 void
-SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
+SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result) 
 {
+
   Tag tag = my_keys_.front().second;
   double dt = S.Get<double>("dt", tag);
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
   const auto& liq_den = *S.Get<CompositeVector>(liq_den_key_, tag).ViewComponent("cell", false);
 
-  auto& surf_src = result[0]->ViewComponent("cell", false);
+  auto& surf_src= *result[0]->ViewComponent("cell"); // not being reference
 
   double total = 0.0;
   const AmanziMesh::Mesh& mesh = *result[0]->Mesh();
 
-  auto gate_intake_id_list = mesh->getSetEntities(
+  auto gate_intake_id_list = mesh.getSetEntities(
     gate_intake_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-  auto dp_id_list = mesh->getSetEntities(
+  auto dp_id_list = mesh.getSetEntities(
     dp_region_, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   // Calculate the flow rate from gate (from reach into detention pond) 
-  double[2] avg_pd_l = { 0, 0 }; 
+  double avg_pd_terms_l[2] = { 0, 0 }; 
   for (auto c : gate_intake_id_list) {
-    avg_pd_l[0] += cv[0][c] * pd[0][c];
-    avg_pd_l[1] += cv[0][c];
+    avg_pd_terms_l[0] += cv[0][c] * pd[0][c];
+    avg_pd_terms_l[1] += cv[0][c];
   }
-  double[2] avg_pd_g = { 0, 0 };
-  mesh.getComm()->SumAll(avg_pd_l, avg_pd_g, 2); // move 2 to first place if compiler complains
-  double avg_pd = avg_pd_g[0] / avg_pd_g[1];
-  double Q = (*Q_gate_)(std::vector<double>{ avg_pd }); // m^3/s
+  double avg_pd_terms_g[2] = { 0, 0 };
+  mesh.getComm()->SumAll(avg_pd_terms_l, avg_pd_terms_g, 2); // move 2 to first place if compiler complains
+  double avg_pd = avg_pd_terms_g[0] / avg_pd_terms_g[1];
+  double Q = (*Q_gate_)(std::vector<double>{avg_pd}); // m^3/s
   
 
   // Sink to the reach cells
-
  for (auto c : gate_intake_id_list) {
-    surf_src[0][c] = - Q * liq_den * pd[0][c] / avg_pd_g[0]; // mol/(m^2 * s)
+    surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_g[0]; // mol/(m^2 * s)
   }
 
   // Source to the detention pond cells
@@ -79,14 +88,13 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
     sum_cv_l += cv[0][c];
   }
   double sum_cv_g = 0;
-  mesh.getComm()->SumAll(&sum_cv_g, &sum_cv_g, 1);
-  double q_dp = Q * liq_den/ (sum_cv_g) // mol/(m^2 * s)
+  mesh.getComm()->SumAll(sum_cv_l, sum_cv_g, 1);
+
   for (auto c : gate_intake_id_list) {
-    surf_src[0][c] = q_dp 
+    surf_src[0][c] = Q * liq_den[0][c] / (sum_cv_g); // mol/(m^2 * s)
   }
-
+ 
 }
-
 
 } // namespace Relations
 } // namespace Flow
