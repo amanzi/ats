@@ -208,8 +208,11 @@ void
 MPC<PK_t>::CommitStep(double t_old, double t_new, const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "commiting step @ " << tag << std::endl;
-  for (auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag); }
+  // if (vo_->os_OK(Teuchos::VERB_EXTREME)) 
+  *vo_->os() << "commiting step @ " << tag << std::endl;
+  for (auto& pk : sub_pks_) { 
+    pk->CommitStep(t_old, t_new, tag); 
+  }
 };
 
 
