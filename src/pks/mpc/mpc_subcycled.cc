@@ -134,7 +134,7 @@ MPCSubcycled::set_dt(double dt)
 
 
 // -----------------------------------------------------------------------------
-// Advance the ith sub-PK individually, returning a failure
+// Advance the ith sub-PK individually, returning a boolean failure
 // -----------------------------------------------------------------------------
 bool
 MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool reinit)
@@ -158,14 +158,13 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
 
       if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step failed? " << fail_inner << std::endl;
+      
       bool valid_inner = sub_pks_[i]->ValidStep();
-      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+      if (vo_->os_OK(Teuchos::VERB_EXTREME))
         *vo_->os() << "  step valid? " << valid_inner << std::endl;
-      }
 
       if (fail_inner || !valid_inner) {
         sub_pks_[i]->FailStep(t_old, t_new, tag_subcycle_next);
-
         dt_inner = sub_pks_[i]->get_dt();
         S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
@@ -222,7 +221,9 @@ MPCSubcycled::CommitStep(double t_old, double t_new, const Tag& tag)
     // initial commit, also do the substep commits
     int i = 0;
     for (auto& pk : sub_pks_) {
-      if (subcycling_[i]) { pk->CommitStep(t_old, t_new, tags_[i].second); }
+      if (subcycling_[i]) { 
+        pk->CommitStep(t_old, t_new, tags_[i].second); 
+      }
       ++i;
     }
   }

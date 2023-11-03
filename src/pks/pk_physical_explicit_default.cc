@@ -217,8 +217,7 @@ void
 PK_PhysicalBDF_Default::ChangedSolution(const Tag& tag)
 {
   Teuchos::RCP<Evaluator> fm = S_->GetEvaluatorPtr(key_, tag);
-  Teuchos::RCP<EvaluatorPrimaryCV> solution_evaluator =
-    Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(fm);
+  Teuchos::RCP<EvaluatorPrimaryCV> solution_evaluator = Teuchos::rcp_dynamic_cast<EvaluatorPrimaryCV>(fm);
   AMANZI_ASSERT(solution_evaluator != Teuchos::null);
   solution_evaluator->SetChanged();
 };

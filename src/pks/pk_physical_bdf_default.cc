@@ -37,9 +37,8 @@ PK_PhysicalBDF_Default::Setup()
   if (conserved_key_.empty()) {
     conserved_key_ = Keys::readKey(*plist_, domain_, "conserved quantity");
   }
-  requireAtNext(conserved_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
+  requireAtNext(conserved_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, true);
+  
   // we also use a copy of the conserved quantity, as this is a better choice in the error norm
   requireAtCurrent(conserved_key_, tag_current_, *S_, name_, true);
 
@@ -47,9 +46,7 @@ PK_PhysicalBDF_Default::Setup()
   if (cell_vol_key_.empty()) {
     cell_vol_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
   }
-  requireAtNext(cell_vol_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, true);
+  requireAtNext(cell_vol_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, true);
 
   atol_ = plist_->get<double>("absolute error tolerance", 1.0);
   rtol_ = plist_->get<double>("relative error tolerance", 1.0);

@@ -119,8 +119,7 @@ ATSDriver::cycle_driver()
   // Make sure times are set up correctly
   {
     Teuchos::TimeMonitor timer(*timers_.at("4: solve"));
-    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) <
-                  1.e-4);
+    AMANZI_ASSERT(std::abs(S_->get_time(Amanzi::Tags::NEXT) - S_->get_time(Amanzi::Tags::CURRENT)) < 1.e-4);
     AMANZI_ASSERT(std::abs(dt - S_->Get<double>("dt", Amanzi::Tags::DEFAULT)) < 1.e-4);
 
 #if !DEBUG_MODE

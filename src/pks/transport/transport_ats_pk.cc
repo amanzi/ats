@@ -191,7 +191,8 @@ void Transport_ATS::SetupTransport_()
   //      (notably just DomainCoupling fluxes, which must be able to take all the transported quantity.)
   //
   // ... Note that component_names includes secondaries, but we only need primaries
-  
+  // The primary_names include a list of component. The emplace_back func
+  // inserts 2 water elements at the end of the primary_names container.
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
   requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
@@ -226,7 +227,7 @@ void Transport_ATS::SetupTransport_()
     S_->Require<CompositeVector, CompositeVectorSpace>(molar_density_key_, tag_subcycle_current_, name_);
     S_->Require<CompositeVector, CompositeVectorSpace>(molar_density_key_, tag_subcycle_next_, name_);
   }
-
+  // Try to use Richards, don't need the Derivative
   if (plist_->sublist("source terms").isSublist("component mass source")) {
     Teuchos::ParameterList& conc_sources_list = plist_->sublist("source terms").sublist("component mass source");
 
@@ -237,7 +238,7 @@ void Transport_ATS::SetupTransport_()
         std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
         if ((src_type == "field") && (src_list.isSublist("field"))) {
           solute_src_key_ = src_list.sublist("field").get<std::string>("field key");
-          requireAtNext(solute_src_key_, Tags::NEXT, *S_)
+          requireAtNext(solute_src_key_, Tags::NEXT, *S_)  // expitcit -> should be tag_current
             .SetMesh(mesh_)->SetGhosted(true)
             ->AddComponent("cell", AmanziMesh::CELL, num_components);
           S_->Require<CompositeVector, CompositeVectorSpace>(solute_src_key_, tag_next_, solute_src_key_);
@@ -254,6 +255,7 @@ void Transport_ATS::SetupTransport_()
 // -------------------------------------------------------------
 void Transport_ATS::SetupPhysicalEvaluators_()
 {
+  // Add thesource here too
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, num_components);
@@ -322,7 +324,7 @@ Transport_ATS::Initialize()
   // make this go away -- local pointers to data
   tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
-  *tcc = *tcc_tmp;
+  // *tcc = *tcc_tmp; // why???
 
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
@@ -782,14 +784,14 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // subcycled current + next.  This would be fixed by having evaluators that
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
-  S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
+  S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_); // tag_next. add an evaluator that set q = TAG::NEXT
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
 
   // We use original tcc and make a copy of it later if needed.
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
+  auto tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
@@ -1171,18 +1173,16 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   conserve_qty_->PutScalar(0.);
 
   for (int c = 0; c < ncells_owned; c++) {
-    double vol_phi_ws_den =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+    double vol_phi_ws_den = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     (*conserve_qty_)[num_components + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect; i++) {
       (*conserve_qty_)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;
 
       if (dissolution_) {
-        if (((*ws_current)[0][c] > water_tolerance_) &&
-            ((*solid_qty_)[i][c] > 0)) { // Dissolve solid residual into liquid
-          double add_mass =
-            std::min((*solid_qty_)[i][c], max_tcc_ * vol_phi_ws_den - (*conserve_qty_)[i][c]);
+        if (((*ws_current)[0][c] > water_tolerance_) && ((*solid_qty_)[i][c] > 0)) 
+        { // Dissolve solid residual into liquid
+          double add_mass = std::min((*solid_qty_)[i][c], max_tcc_ * vol_phi_ws_den - (*conserve_qty_)[i][c]);
           (*solid_qty_)[i][c] -= add_mass;
           (*conserve_qty_)[i][c] += add_mass;
         }
@@ -1214,7 +1214,9 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
       for (int i = 0; i < num_advect; i++) {
         double tcc_flux = dt_ * u * tcc_prev[i][c1];
         (*conserve_qty_)[i][c1] -= tcc_flux;
-        if (c2 < 0) mass_solutes_bc_[i] -= tcc_flux;
+        if (c2 < 0) {
+          mass_solutes_bc_[i] -= tcc_flux;
+        }
         //AmanziGeometry::Point normal = mesh_->face_normal(f);
       }
       (*conserve_qty_)[num_components + 1][c1] -= dt_ * u;
@@ -1278,11 +1280,8 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   // recover concentration from new conservative state
   for (int c = 0; c < ncells_owned; c++) {
-    double water_new =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
-    double water_sink =
-      (*conserve_qty_)[num_components]
-                      [c]; // water at the new time + outgoing domain coupling source
+    double water_new = mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
+    double water_sink = (*conserve_qty_)[num_components][c]; // water at the new time + outgoing domain coupling source
     double water_total = water_new + water_sink;
     AMANZI_ASSERT(water_total >= water_new);
     (*conserve_qty_)[num_components][c] = water_total;
@@ -1312,12 +1311,13 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     }
   }
   db_->WriteCellVector("tcc_new", tcc_next);
-  // tcc_next.Print(std::cout);
   VV_PrintSoluteExtrema(tcc_next, dt_);
 
   double mass_final = 0;
   for (int c = 0; c < ncells_owned; c++) {
-    for (int i = 0; i < num_advect; i++) { mass_final += (*conserve_qty_)[i][c]; }
+    for (int i = 0; i < num_advect; i++) { 
+      mass_final += (*conserve_qty_)[i][c]; 
+    }
   }
 
   tmp1 = mass_final;
@@ -1328,7 +1328,9 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) {
+    VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); 
+  }
 }
 
 

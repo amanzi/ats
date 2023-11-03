@@ -417,8 +417,7 @@ StrongMPC<PK_t>::ModifyCorrection(double h,
                                   Teuchos::RCP<TreeVector> du)
 {
   // loop over sub-PKs
-  AmanziSolvers::FnBaseDefs::ModifyCorrectionResult modified =
-    AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
+  AmanziSolvers::FnBaseDefs::ModifyCorrectionResult modified = AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;
   for (std::size_t i = 0; i != sub_pks_.size(); ++i) {
     // pull out the u sub-vector
     Teuchos::RCP<const TreeVector> pk_u = u->SubVector(i);

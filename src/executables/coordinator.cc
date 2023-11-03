@@ -282,9 +282,13 @@ Coordinator::setup()
   // if provided, and setup finally deals with all secondaries and allocates memory
   *vo_->os() << vo_->color("green") << "    Set tags for PKs: " << vo_->reset() << std::endl;
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+  
   *vo_->os() << vo_->color("green") << "    Setup PKs: " << vo_->reset() << std::endl;
   pk_->Setup();
-  for (auto& obs : observations_) obs->Setup(S_.ptr());
+  
+  for (auto& obs : observations_) {
+    obs->Setup(S_.ptr());
+  }
   S_->Setup();
 }
 
@@ -548,7 +552,8 @@ Coordinator::advance()
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  if (!fail) fail |= !pk_->ValidStep();
+  if (!fail) 
+    fail |= !pk_->ValidStep();
 
   // write state post-advance, if extreme
   WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
