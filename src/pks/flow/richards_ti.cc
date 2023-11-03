@@ -69,17 +69,13 @@ Richards::FunctionalResidual(double t_old,
   if (S_->HasRecordSet(sat_ice_key_)) {
     vnames.emplace_back("si_old");
     vnames.emplace_back("si_new");
-    vecs.emplace_back(
-      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_current_).ptr());
-    vecs.emplace_back(
-      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_current_).ptr());
+    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
   vnames.emplace_back("poro");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
   vnames.emplace_back("perm_K");
-  vecs.emplace_back(
-    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.emplace_back("k_rel");
   vecs.emplace_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.emplace_back("wind");

@@ -510,7 +510,9 @@ void
 Richards::Initialize()
 {
   // Initialize via hydrostatic balance
-  if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) InitializeHydrostatic_(tag_next_);
+  if (!S_->GetRecordW(key_, tag_next_, name_).initialized()) {
+    InitializeHydrostatic_(tag_next_);
+  }
 
   // Initialize in the standard ways
   PK_PhysicalBDF_Default::Initialize();
@@ -567,8 +569,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
   // constant head over the surface
   if (plist_->sublist("initial condition").isParameter("hydrostatic head [m]")) {
     double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
-    double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    double rho = plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
     int ncols = mesh_->num_columns(false);
 
     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -643,8 +644,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
   // constant head datum
   if (plist_->sublist("initial condition").isParameter("hydrostatic water level [m]")) {
     double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
-    double rho =
-      plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    double rho = plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
 
     int z_index = mesh_->space_dimension() - 1;
     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
@@ -935,7 +935,7 @@ void
 Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_LOW)) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
