@@ -68,8 +68,7 @@ Richards::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
 
   // get these fields
   Teuchos::RCP<const CompositeVector> wc1 = S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);
-  Teuchos::RCP<const CompositeVector> wc0 =
-    S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
+  Teuchos::RCP<const CompositeVector> wc0 = S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
 
   // Water content only has cells, while the residual has cells and faces.
   g->ViewComponent("cell", false)
@@ -95,16 +94,14 @@ Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
-    const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false);
-
-    const Epetra_MultiVector& cv =
-      *S_->Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag)
-         .ViewComponent("cell", false);
+    const Epetra_MultiVector& source1 = *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false);
+    const Epetra_MultiVector& cv = *S_->Get<CompositeVector>(Keys::getKey(domain_, "cell_volume"), tag).ViewComponent("cell", false);
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) { 
+      g_c[0][c] -= source1[0][c] * cv[0][c]; 
+    }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);
@@ -119,11 +116,7 @@ Richards::AddSourcesToPrecon_(double h)
   if (is_source_term_ && !explicit_source_ && source_term_is_differentiable_ &&
       S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
     S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-    preconditioner_acc_->AddAccumulationTerm(
-      S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),
-      -1.0,
-      "cell",
-      true);
+    preconditioner_acc_->AddAccumulationTerm(S_->GetDerivative<CompositeVector>(source_key_, tag_next_, key_, tag_next_),-1.0, "cell", true);
   }
 }
 
@@ -136,8 +129,7 @@ Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
 {
   // currently assumes isotropic perm, should be updated
   S_->GetEvaluator(perm_key_, tag).Update(*S_, name_);
-  const Epetra_MultiVector& perm =
-    *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
+  const Epetra_MultiVector& perm = *S_->Get<CompositeVector>(perm_key_, tag).ViewComponent("cell", false);
   unsigned int ncells = perm.MyLength();
   unsigned int ndofs = perm.NumVectors();
   int space_dim = mesh_->getSpaceDimension();
@@ -183,14 +175,11 @@ Richards::UpdateVelocity_(const Tag& tag)
 {
   AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
 
-  const Epetra_MultiVector& flux =
-    *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
+  const Epetra_MultiVector& flux = *S_->Get<CompositeVector>(flux_key_, tag_next_).ViewComponent("face", true);
 
   S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-  const Epetra_MultiVector& nliq_c =
-    *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
-  Epetra_MultiVector& velocity =
-    *S_->GetW<CompositeVector>(velocity_key_, tag, name_).ViewComponent("cell", true);
+  const Epetra_MultiVector& nliq_c = *S_->Get<CompositeVector>(molar_dens_key_, tag_next_).ViewComponent("cell", false);
+  Epetra_MultiVector& velocity = *S_->GetW<CompositeVector>(velocity_key_, tag, name_).ViewComponent("cell", true);
 
   int d(mesh_->getSpaceDimension());
   AmanziGeometry::Point local_velocity(d);
@@ -205,7 +194,9 @@ Richards::UpdateVelocity_(const Tag& tag)
     auto faces = mesh_->getCellFaces(c);
     int nfaces = faces.size();
 
-    for (int i = 0; i != d; ++i) rhs[i] = 0.0;
+    for (int i = 0; i != d; ++i) {
+      rhs[i] = 0.0;
+    }
     matrix.putScalar(0.0);
 
     for (int n = 0; n != nfaces; ++n) { // populate least-square matrix
@@ -223,7 +214,9 @@ Richards::UpdateVelocity_(const Tag& tag)
     int info;
     lapack.POSV('U', d, 1, matrix.values(), d, rhs, d, &info);
 
-    for (int i = 0; i != d; ++i) velocity[i][c] = rhs[i] / nliq_c[0][c];
+    for (int i = 0; i != d; ++i) {
+      velocity[i][c] = rhs[i] / nliq_c[0][c];
+    }
   }
 }
 

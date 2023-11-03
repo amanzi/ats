@@ -106,6 +106,9 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
   patm_hard_limit_ = plist_->get<bool>("allow no negative ponded depths", false);
   min_vel_ponded_depth_ = plist_->get<double>("min ponded depth for velocity calculation", 1e-2);
   min_tidal_bc_ponded_depth_ = plist_->get<double>("min ponded depth for tidal bc", 0.02);
+
+  Teuchos::OSTab tab = vo_->getOSTab();
+  *vo_->os() << "        PK: " << pk_tree.name() << std::endl;
 }
 
 
@@ -744,7 +747,7 @@ void
 OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_LOW)) *vo_->os() << "  Updating BCs." << std::endl;
 
   auto& markers = bc_markers();
   auto& values = bc_values();
