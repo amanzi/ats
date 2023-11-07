@@ -519,9 +519,11 @@ double
 Coordinator::get_dt(bool after_fail)
 {
   // get the physical step size
-  double dt = pk_->get_dt();
+  double dt = pk_->get_dt();  // get the min dt of all non-subcycled PKs in the tree
   double dt_pk = dt;
-  if (dt < 0.) return dt;
+  if (dt < 0.) {
+    return dt;
+  }
 
   // check if the step size has gotten too small
   if (dt < min_dt_) {
@@ -530,14 +532,18 @@ Coordinator::get_dt(bool after_fail)
   }
 
   // cap the max step size
-  if (dt > max_dt_) { dt = max_dt_; }
+  if (dt > max_dt_) { 
+    dt = max_dt_; 
+  }
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
 
   // note, I believe this can go away (along with the input spec flag) once
   // amanzi/amanzi#685 is closed --etc
-  if (subcycled_ts_) dt = std::min(dt, dt_pk);
+  if (subcycled_ts_) {
+    dt = std::min(dt, dt_pk);
+  }
   return dt;
 }
 
@@ -546,10 +552,15 @@ bool
 Coordinator::advance()
 {
   Teuchos::TimeMonitor timer(*timers_.at("4a: advance step"));
+  Amanzi::Tag phong_default = Amanzi::Tags::DEFAULT;
+  Amanzi::Tag phong_current = Amanzi::Tags::CURRENT;
+  Amanzi::Tag phong_next = Amanzi::Tags::NEXT;
   double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
   double t_old = S_->get_time(Amanzi::Tags::CURRENT);
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
+  // Advance top MPC from t_old to t_new, reinit=false
+  // then validate the step
   bool fail = pk_->AdvanceStep(t_old, t_new, false);
   if (!fail) 
     fail |= !pk_->ValidStep();
@@ -557,14 +568,16 @@ Coordinator::advance()
   // write state post-advance, if extreme
   WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
 
-  if (!fail) {
+  if (!fail) {  // successful
     // commit the state, copying NEXT --> CURRENT
     pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
 
   } else {
     // Failed the timestep.
     // Potentially write out failed timestep for debugging
-    for (const auto& vis : failed_visualization_) WriteVis(*vis, *S_);
+    for (const auto& vis : failed_visualization_) {
+      WriteVis(*vis, *S_);
+    }
 
     // copy from old time into new time to reset the timestep
     pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
@@ -574,8 +587,7 @@ Coordinator::advance()
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         // collect the old coordinates
         Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
-        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec =
-          S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
+        Teuchos::RCP<const Amanzi::CompositeVector> vc_vec = S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
         vc_vec->ScatterMasterToGhosted();
         const Epetra_MultiVector& vc = *vc_vec->ViewComponent("node", true);
 

@@ -86,7 +86,7 @@ ATSDriver::cycle_driver()
   }
   initialize();
 
-  // get the intial timestep
+  // get the intial timestep and assign to State
   double dt = get_dt(false);
   S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
 
@@ -141,23 +141,23 @@ ATSDriver::cycle_driver()
             << std::endl;
         }
 
-        S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);
-        S_->advance_time(Amanzi::Tags::NEXT, dt);
-        bool fail = advance();
+        S_->Assign<double>("dt", Amanzi::Tags::DEFAULT, "dt", dt);  // Assign new dt to State
+        S_->advance_time(Amanzi::Tags::NEXT, dt);  // Assign t_new=t+dt to tag:NEXT
+        bool fail = advance();  // Advance PKs through coordinator
 
         if (fail) {
-          // reset t_new
-          S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));
-        } else {
-          S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));
-          S_->advance_cycle();
+          // NOT successful advance - repeat
+          S_->set_time(Amanzi::Tags::NEXT, S_->get_time(Amanzi::Tags::CURRENT));  // reset t_new 
+        } else {    
+          // successful advance - move forward
+          S_->set_time(Amanzi::Tags::CURRENT, S_->get_time(Amanzi::Tags::NEXT));  // current time get next time value
+          S_->advance_cycle();  // current tag moves forward 1 cycle 
 
           visualize();
           observe();
           checkpoint();
         }
-
-        dt = get_dt(fail);
+        dt = get_dt(fail);    // Get new dt for the next cycle
       } // while not finished
 
 #if !DEBUG_MODE
