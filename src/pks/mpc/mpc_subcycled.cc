@@ -100,7 +100,9 @@ double
 MPCSubcycled::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
-  if (target_dt_ > 0) dt = target_dt_;
+  if (target_dt_ > 0) {
+    dt = target_dt_;
+  }
 
   int i = 0;
   for (auto& pk : sub_pks_) {
@@ -152,6 +154,9 @@ MPCSubcycled::AdvanceStep_i_(std::size_t i, double t_old, double t_new, bool rei
     bool done = false;
     double t_inner = t_old;
     double dt_inner = dts_[i];
+    // **NOTE**: dts_ is identified from MPCSubcycled:get_dt for each PK.
+    // For PK[i] that is subcycled, the dts_[i] is not considered for choosing min global dt of all PKs.
+    // In this case, the dt_inner of dts_[i] can be larger than global dt -- PL
 
     Tag tag_subcycle_current = tags_[i].first;
     Tag tag_subcycle_next = tags_[i].second;

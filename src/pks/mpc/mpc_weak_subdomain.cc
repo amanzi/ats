@@ -272,6 +272,8 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
 void
 MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
+  Tag tag_phong_next = Tags::NEXT;
+  int p_cycle_ = S_->get_cycle();
   if (S_->get_cycle() < 0 && tag_next == Tags::NEXT) {
     // initial commit, also do the substep commits
     if (subcycled_) {
@@ -285,7 +287,7 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
     }
   }
 
-  if (tag_next == tag_next_ && tag_next != Tags::NEXT) {
+  if (tag_next == tag_next_ && tag_next == Tags::NEXT) {
     // do not commit step in this case -- this is nested subcycling, which we
     // do not have a formal way of dealing with correctly.
     return;

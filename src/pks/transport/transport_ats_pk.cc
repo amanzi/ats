@@ -785,6 +785,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // subcycled current + next.  This would be fixed by having evaluators that
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
+  Tag tag_phong_current = Tags::CURRENT;
+  Tag tag_phong_next = Tags::NEXT;
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_); // tag_next. add an evaluator that set q = TAG::NEXT
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
