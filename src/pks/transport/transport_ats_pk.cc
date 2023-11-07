@@ -57,7 +57,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   : PK(pk_tree, glist, S, solution),
     PK_PhysicalExplicit<Epetra_Vector>(pk_tree, glist, S, solution)
 {
-  passwd_ = "state"; // this is what Amanzi uses //PL: why this is not used in Richards and overland PKs?
+  passwd_ = "state"; // this is what Amanzi uses
   Teuchos::OSTab tab = vo_->getOSTab();
   *vo_->os() << "        PK: " << pk_tree.name() << std::endl;
 
@@ -1045,6 +1045,10 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 }
 
 
+/********************************************************************
+* Call this function to advance the dispersion-diffusion component.
+* Implicit scheme is used here.
+******************************************************************* */
 void
 Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 {
@@ -1057,9 +1061,11 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
   bool flag_diffusion(false);
   for (int i = 0; i < 2; i++) {
     if (diffusion_phase_[i] != Teuchos::null) {
-      if (diffusion_phase_[i]->values().size() != 0) flag_diffusion = true;
+      if (diffusion_phase_[i]->values().size() != 0) 
+        flag_diffusion = true;
     }
   }
+
   if (flag_diffusion) {
     // no molecular diffusion if all tortuosities are zero.
     double tau(0.0);
@@ -1077,7 +1083,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
     auto& bc_model = bc_dummy->bc_model();
     auto& bc_value = bc_dummy->bc_value();
-    PopulateBoundaryData(bc_model, bc_value, -1);
+    PopulateBoundaryData(bc_model, bc_value, -1);   // What is component -1?
 
     // diffusion operator
     Teuchos::ParameterList& op_list = plist_->sublist("diffusion");
@@ -1101,7 +1107,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
     int phase, num_itrs(0);
     bool flag_op1(true);
-    double md_change, md_old(0.0), md_new, residual(0.0);
+    double md_change, md_old(0.0), md_new, residual(0.0); // molecular diffusion?
 
     // Disperse and diffuse aqueous components
     for (int i = 0; i < num_aqueous; i++) {
@@ -1115,11 +1121,13 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       }
 
       // set initial guess
-      Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
-      for (int c = 0; c < ncells_owned; c++) { sol_cell[0][c] = tcc_next[i][c]; }
+      Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");  // solution cell pointer
+      for (int c = 0; c < ncells_owned; c++) { 
+        sol_cell[0][c] = tcc_next[i][c]; 
+      }
       if (sol.HasComponent("face")) { 
         sol.ViewComponent("face")->PutScalar(0.0); 
-        }
+      }
 
       if (flag_op1) {
         op->Init();
@@ -1155,7 +1163,10 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       residual += op->residual();
       num_itrs += op->num_itrs();
 
-      for (int c = 0; c < ncells_owned; c++) { tcc_next[i][c] = sol_cell[0][c]; }
+      for (int c = 0; c < ncells_owned; c++) { 
+        tcc_next[i][c] = sol_cell[0][c]; 
+      }
+
       if (sol.HasComponent("face")) {
         if (tcc_tmp->HasComponent("boundary_face")) {
           Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->ViewComponent("boundary_face", false);
@@ -1212,7 +1223,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       for (int c = 0; c < ncells_owned; c++) {
         fac1[0][c] = (*phi_)[0][c] * (1.0 - (*ws_)[0][c]) * (*mol_dens_)[0][c];
         fac0[0][c] = (*phi_)[0][c] * (1.0 - (*ws_prev_)[0][c]) * (*mol_dens_prev_)[0][c];
-        if ((*ws_)[0][c] == 1.0) fac1[0][c] = 1.0 * (*mol_dens_)[0][c]; // hack so far
+        if ((*ws_)[0][c] == 1.0) {
+          fac1[0][c] = 1.0 * (*mol_dens_)[0][c]; // hack so far
+        }
       }
       op2->AddAccumulationDelta(sol, factor0, factor, dt_MPC, "cell");
 
@@ -1248,8 +1261,9 @@ void
 Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     *vo_->os() << "Commiting state @ " << tag_next << std::endl;
+  }
 
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
@@ -1282,19 +1296,18 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   double mass_current = 0., tmp1, mass;
 
   int num_components = tcc_next.NumVectors();
-  conserve_qty_->PutScalar(0.);
+  conserve_qty_->PutScalar(0.); // set all elements to 0
 
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den =
       mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     (*conserve_qty_)[num_components + 1][c] = vol_phi_ws_den;
 
-    for (int i = 0; i < num_advect; i++) {
+    for (int i = 0; i < num_advect; i++) {  // loop each solute component
       (*conserve_qty_)[i][c] = tcc_prev[i][c] * vol_phi_ws_den;
 
       if (dissolution_) {
-        if (((*ws_current)[0][c] > water_tolerance_) && ((*solid_qty_)[i][c] > 0)) 
-        { // Dissolve solid residual into liquid
+        if (((*ws_current)[0][c] > water_tolerance_) && ((*solid_qty_)[i][c] > 0)) { // Dissolve solid residual into liquid
           double add_mass = std::min((*solid_qty_)[i][c], max_tcc_ * vol_phi_ws_den - (*conserve_qty_)[i][c]);
           (*solid_qty_)[i][c] -= add_mass;
           (*conserve_qty_)[i][c] += add_mass;
@@ -1374,7 +1387,9 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
             (*conserve_qty_)[k][c2] += tcc_flux;
             mass_solutes_bc_[k] += tcc_flux;
 
-            if (tcc_tmp_bf) (*tcc_tmp_bf)[i][bf] = values[i];
+            if (tcc_tmp_bf) {
+              (*tcc_tmp_bf)[i][bf] = values[i];
+            }
           }
         }
       }
@@ -1399,14 +1414,6 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     double water_total = water_new + water_sink;
     AMANZI_ASSERT(water_total >= water_new);
     (*conserve_qty_)[num_components][c] = water_total;
-
-    // if (std::abs((*conserve_qty_)[num_components+1][c] - water_total) > water_tolerance_
-    //     && vo_->os_OK(Teuchos::VERB_MEDIUM)) {
-    //   *vo_->os() << "Water balance error (cell " << c << "): " << std::endl
-    //              << "  water_old + advected = " << (*conserve_qty_)[num_components+1][c] << std::endl
-    //              << "  water_sink = " << water_sink << std::endl
-    //              << "  water_new = " << water_new << std::endl;
-    // }
 
     for (int i = 0; i < num_advect; i++) {
       if (water_new > water_tolerance_ && (*conserve_qty_)[i][c] > 0) {
@@ -1621,6 +1628,12 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
 * Computes source and sink terms and adds them to vector tcc.
 * Returns mass rate for the tracer.
 * The routine treats two cases of tcc with one and all components.
+    Input:
+      - tp: time value at the next step
+      - dtp: time step
+      - cons_qty: vector of conserved quantities
+      - n0: what is n0?
+      - n1: what is n1?
 ****************************************************************** */
 void
 Transport_ATS::ComputeAddSourceTerms(double tp,
@@ -1630,27 +1643,29 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
                                      int n1)
 {
   int num_vectors = cons_qty.NumVectors();
-  int nsrcs = srcs_.size();
+  int nsrcs = srcs_.size();           // number of source or sink components
 
   for (int m = 0; m < nsrcs; m++) {
-    double t0 = tp - dtp;
-    srcs_[m]->Compute(t0, tp);
-    std::vector<int> tcc_index = srcs_[m]->tcc_index();
+    double t0 = tp - dtp;             // This gives the time at the previous step ???
+    srcs_[m]->Compute(t0, tp);        // compute source term on time interval (t0, tp]
+    std::vector<int> tcc_index = srcs_[m]->tcc_index();   // index of component in the global list
 
     for (auto it = srcs_[m]->begin(); it != srcs_[m]->end(); ++it) {
       int c = it->first;
       std::vector<double>& values = it->second;
 
-      if (c >= ncells_owned) continue;
+      if (c >= ncells_owned) 
+        continue;
 
-
-      if (srcs_[m]->name() == "domain coupling" && n0 == 0) {
+      // more documentation here -- what is the domain coupling for? what is n0 = 0?
+      if (srcs_[m]->name() == "domain coupling" && n0 == 0) { 
         (*conserve_qty_)[num_vectors - 2][c] += values[num_vectors - 2];
       }
 
       for (int k = 0; k < tcc_index.size(); ++k) {
         int i = tcc_index[k];
-        if (i < n0 || i > n1) continue;
+        if (i < n0 || i > n1) 
+          continue;
 
         int imap = i;
         if (num_vectors == 1) imap = 0;
@@ -1689,15 +1704,16 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
       double val = 0;
       for (int k = 0; k < index.size(); ++k) {
         int i = index[k];
-        if (i < n0 || i > n1) continue;
+        if (i < n0 || i > n1) 
+          continue;
 
         int imap = i;
-        if (num_vectors == 1) imap = 0;
+        if (num_vectors == 1) 
+          imap = 0;
 
         if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {
           if (srcs_[m]->name() == "domain coupling") {
-            const Epetra_MultiVector& flux_interface_ =
-              *S_->Get<CompositeVector>(coupled_flux_key, Tags::NEXT).ViewComponent("cell", false);
+            const Epetra_MultiVector& flux_interface_ = *S_->Get<CompositeVector>(coupled_flux_key, Tags::NEXT).ViewComponent("cell", false);
             val = std::max(val, fabs(flux_interface_[0][c]));
           }
         }
@@ -1706,7 +1722,9 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
     }
   }
 
-  for (int c = 0; c < ncells_wghost; c++) total_outflux[c] += sink_add[c];
+  for (int c = 0; c < ncells_wghost; c++) {
+    total_outflux[c] += sink_add[c];
+  }
 }
 
 
@@ -1793,7 +1811,9 @@ Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flu
   for (int f = 0; f < nfaces_wghost; f++) {
     auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
     double n_liq = 0.;
-    for (int c = 0; c < cells.size(); c++) n_liq += (*molar_density)[0][c];
+    for (int c = 0; c < cells.size(); c++) {
+      n_liq += (*molar_density)[0][c];
+    }
     n_liq /= cells.size();
     if (n_liq > 0)
       (*vol_darcy_flux)[0][f] = (*flux_)[0][f] / n_liq;

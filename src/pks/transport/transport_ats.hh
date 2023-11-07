@@ -332,8 +332,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
   double StableTimeStep();
-  void
-  Sinks2TotalOutFlux(Epetra_MultiVector& tcc, std::vector<double>& total_outflux, int n0, int n1);
+  void Sinks2TotalOutFlux(Epetra_MultiVector& tcc, std::vector<double>& total_outflux, int n0, int n1);
 
   // coupling with chemistry
 #ifdef ALQUIMIA_ENABLED
@@ -374,8 +373,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // void MixingSolutesWthSources(double told, double tnew);
 
-  bool
-  PopulateBoundaryData(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
+  bool PopulateBoundaryData(std::vector<int>& bc_model, std::vector<double>& bc_value, int component);
 
   // -- limiters
   void LimiterBarthJespersen(const int component,
@@ -485,7 +483,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key cv_key_;
 
  private:
-  bool subcycling_;
+  bool subcycling_;   // internal subcycling
   int dim;
   int saturation_name_;
   bool vol_flux_conversion_;
