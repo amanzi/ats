@@ -39,7 +39,9 @@ double
 WeakMPC::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
-  for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
+  for (auto& pk : sub_pks_) {
+    dt = std::min(dt, pk->get_dt());
+  }
   return dt;
 };
 

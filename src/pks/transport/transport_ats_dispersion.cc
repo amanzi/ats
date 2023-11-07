@@ -60,9 +60,10 @@ Transport_ATS::CalculateDispersionTensor_(const Epetra_MultiVector& water_flux,
     // note that while this is called velocity, it is actually a vector-valued,
     // cell-centered water mass flux.  There is no division by density.  That
     // means the factor of density should not be required here? --ETC
-    for (int k = 0; k < dim; ++k) velocity[k] = poly(k + 1);
-    D_[c] = mdm_->second[(*mdm_->first)[c]]->mech_dispersion(
-      velocity, axi_symmetry_[c], saturation[0][c], porosity[0][c]);
+    for (int k = 0; k < dim; ++k) {
+      velocity[k] = poly(k + 1);
+    }
+    D_[c] = mdm_->second[(*mdm_->first)[c]]->mech_dispersion(velocity, axi_symmetry_[c], saturation[0][c], porosity[0][c]);
     // double mol_den = mol_density[0][c];
     // D_[c] *= mol_den;
   }
@@ -95,13 +96,11 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
         for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] +=
-            md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c] * mol_density[0][*c];
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c] * mol_density[0][*c];
         }
       } else if (phase == TRANSPORT_PHASE_GAS) {
         for (c = block.begin(); c != block.end(); c++) {
-          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]) *
-                    mol_density[0][*c];
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]) * mol_density[0][*c];
         }
       }
     }
@@ -109,14 +108,17 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
 }
 
 
-/* ******************************************************************
+/*******************************************************************
 * Check all phases for the given name.
 ****************************************************************** */
 int
 Transport_ATS::FindDiffusionValue(const std::string& tcc_name, double* md, int* phase)
 {
   for (int i = 0; i < TRANSPORT_NUMBER_PHASES; i++) {
-    if (diffusion_phase_[i] == Teuchos::null) continue;
+    if (diffusion_phase_[i] == Teuchos::null) {
+      continue;
+    }
+    
     int ok = diffusion_phase_[i]->FindDiffusionValue(tcc_name, md);
     if (ok == 0) {
       *phase = i;
@@ -138,8 +140,7 @@ Transport_ATS::CalculateAxiSymmetryDirection()
 {
   axi_symmetry_.resize(ncells_owned, -1);
   if (S_->HasRecord(permeability_key_, tag_next_)) {
-    const Epetra_MultiVector& perm =
-      *S_->Get<CompositeVector>(permeability_key_, tag_next_).ViewComponent("cell");
+    const Epetra_MultiVector& perm = *S_->Get<CompositeVector>(permeability_key_, tag_next_).ViewComponent("cell");
 
     if (perm.NumVectors() == 3) {
       for (int c = 0; c < ncells_owned; ++c) {

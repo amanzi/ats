@@ -56,7 +56,9 @@ MPCWeakSubdomain::get_dt()
   if (subcycled_) {
     dt = subcycled_target_dt_;
   } else {
-    for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
+    for (auto& pk : sub_pks_) {
+      dt = std::min(dt, pk->get_dt());
+    }
     double dt_local = dt;
     solution_->Comm()->MinAll(&dt_local, &dt, 1);
   }
@@ -72,7 +74,9 @@ MPCWeakSubdomain::set_dt(double dt)
   if (subcycled_) {
     cycle_dt_ = dt;
   } else {
-    for (auto& pk : sub_pks_) pk->set_dt(dt);
+    for (auto& pk : sub_pks_) {
+      pk->set_dt(dt);
+    }
   }
 };
 
@@ -152,10 +156,17 @@ MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit)
 bool
 MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
 {
+  Teuchos::OSTab tab = vo_->getOSTab();  
   bool fail = false;
+  if (vo_->os_OK(Teuchos::VERB_LOW)) {
+    *vo_->os() << "===========================================================" << std::endl;
+    *vo_->os() << "Advancing each PK within subdomains..." << std::endl;
+  }
+
   for (auto& pk : sub_pks_) {
     fail = pk->AdvanceStep(t_old, t_new, reinit);
-    if (fail) break;
+    if (fail) 
+      break;
   }
 
   int sub_fail_i = fail ? 1 : 0;
@@ -173,8 +184,9 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   bool fail = false;
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
     *vo_->os() << "Beginning subcycled timestepping." << std::endl;
+  }
 
   const auto& ds = *S_->GetDomainSet(ds_name_);
   int my_pid = solution_->Comm()->MyPID();
@@ -186,8 +198,9 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
     double dt_inner = -1;
     double t_inner = t_old;
     try { // must catch non-collective throws for TimeStepCrash
-      if (vo_->os_OK(Teuchos::VERB_EXTREME))
+      if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
         *vo_->os() << "Beginning subcyling on pk \"" << sub_pks_[i]->name() << "\"" << std::endl;
+      }
 
       bool done = false;
       Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
@@ -199,8 +212,9 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
         S_->Assign("dt", tag_subcycle_next, name(), dt_inner);
         S_->set_time(tag_subcycle_next, t_inner + dt_inner);
         bool fail_inner = sub_pks_[i]->AdvanceStep(t_inner, t_inner + dt_inner, false);
-        if (vo_->os_OK(Teuchos::VERB_EXTREME))
+        if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
           *vo_->os() << "  step failed? " << fail_inner << std::endl;
+        }
         bool valid_inner = sub_pks_[i]->ValidStep();
         if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
           *vo_->os() << "  step valid? " << valid_inner << std::endl;
@@ -212,8 +226,9 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
           dt_inner = sub_pks_[i]->get_dt();
           S_->set_time(tag_subcycle_next, S_->get_time(tag_subcycle_current));
 
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
+          if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
             *vo_->os() << "  failed, new timestep is " << dt_inner << std::endl;
+          }
 
         } else {
           sub_pks_[i]->CommitStep(t_inner, t_inner + dt_inner, tag_subcycle_next);
@@ -224,8 +239,9 @@ MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit
           S_->advance_cycle(tag_subcycle_next);
 
           dt_inner = sub_pks_[i]->get_dt();
-          if (vo_->os_OK(Teuchos::VERB_EXTREME))
+          if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
             *vo_->os() << "  success, new timestep is " << dt_inner << std::endl;
+          }
         }
       }
       i++;
@@ -274,7 +290,9 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
     // do not have a formal way of dealing with correctly.
     return;
   } else {
-    for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
+    for (const auto& pk : sub_pks_) { 
+      pk->CommitStep(t_old, t_new, tag_next); 
+    }
   }
 }
 
