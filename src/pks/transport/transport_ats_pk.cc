@@ -76,7 +76,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
 
   // are we subcycling internally?
   subcycling_ = plist_->get<bool>("transport subcycling", false);
-  tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
+  // tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
 
   // initialize io
   units_.Init(glist->sublist("units"));
@@ -255,7 +255,7 @@ void Transport_ATS::SetupTransport_()
 // -------------------------------------------------------------
 void Transport_ATS::SetupPhysicalEvaluators_()
 {
-  // Add thesource here too
+  // Add the source here too
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::CELL, num_components);
@@ -263,13 +263,14 @@ void Transport_ATS::SetupPhysicalEvaluators_()
   requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
 
   // CellVolume is required here -- it may not be used in this PK, but having it makes vis nicer
-  requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
+  requireAtNext(cv_key_, tag_next_, *S_)
+    .SetMesh(mesh_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
   // -- water flux
   requireAtNext(flux_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)->SetGhosted(true)
     ->SetComponent("face", AmanziMesh::FACE, 1);
-  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
+  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_next_, name_);
 
   // -- water saturation
   requireAtNext(saturation_key_, Tags::NEXT, *S_)
@@ -341,7 +342,7 @@ Transport_ATS::Initialize()
   }
 
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  flux_copy_ = S_->GetW<CompositeVector>(flux_key_, tag_flux_next_ts_, name_).ViewComponent("face", true);
+  flux_copy_ = S_->GetW<CompositeVector>(flux_key_, tag_next_, name_).ViewComponent("face", true);
   flux_copy_->PutScalar(0.);
 
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
@@ -771,6 +772,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   bool failed = false;
   double dt_MPC = t_new - t_old;
+  double newtime = S_->get_time(tag_next_);
+  double oldtime = S_->get_time(tag_current_);
 
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -785,8 +788,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // subcycled current + next.  This would be fixed by having evaluators that
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
-  Tag tag_phong_current = Tags::CURRENT;
-  Tag tag_phong_next = Tags::NEXT;
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_); // tag_next. add an evaluator that set q = TAG::NEXT
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
@@ -794,7 +795,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
 
   // We use original tcc and make a copy of it later if needed.
-  auto tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
+  auto tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_); // why passwd_?
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
@@ -816,9 +817,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   
   double dt_stable = dt_; // advance routines override dt_
   int interpolate_ws = 0; // (dt_ < dt_global) ? 1 : 0;
-  // if t_old and t_new in between current and next tag, set the interpolation true
+  
   if ((t_old > S_->get_time(tag_current_)) || (t_new < S_->get_time(tag_next_))) {
-    interpolate_ws = 1;
+    interpolate_ws = 1;   // set interpolation true
   }
 
   double dt_sum = 0.0;
