@@ -552,9 +552,6 @@ bool
 Coordinator::advance()
 {
   Teuchos::TimeMonitor timer(*timers_.at("4a: advance step"));
-  Amanzi::Tag phong_default = Amanzi::Tags::DEFAULT;
-  Amanzi::Tag phong_current = Amanzi::Tags::CURRENT;
-  Amanzi::Tag phong_next = Amanzi::Tags::NEXT;
   double dt = S_->Get<double>("dt", Amanzi::Tags::DEFAULT);
   double t_old = S_->get_time(Amanzi::Tags::CURRENT);
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
