@@ -3,5 +3,10 @@
         "activityBar.background": "#580A43",
         "titleBar.activeBackground": "#7B0E5E",
         "titleBar.activeForeground": "#FFFCFE"
+    },
+    "files.associations": {
+        "stack": "cpp",
+        "ostream": "cpp",
+        "iostream": "cpp"
     }
 }

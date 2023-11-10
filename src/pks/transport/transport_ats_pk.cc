@@ -955,7 +955,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
-      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     for (int i = 0; i < num_aqueous + num_gaseous; i++) {
       mass_solutes_stepstart_[i] = tcc_prev[i][c] * vol_phi_ws_den;   // We don't use this variable anywhere???
     }
@@ -1149,7 +1149,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       } else {
         Epetra_MultiVector& rhs_cell = *op->rhs()->ViewComponent("cell");
         for (int c = 0; c < ncells_owned; c++) {
-          double tmp = mesh_->cell_volume(c) * (*ws_)[0][c] * (*phi_)[0][c] * (*mol_dens_)[0][c] / dt_MPC;
+          double tmp = mesh_->getCellVolume(c) * (*ws_)[0][c] * (*phi_)[0][c] * (*mol_dens_)[0][c] / dt_MPC;
           rhs_cell[0][c] = tcc_next[i][c] * tmp;
         }
       }
