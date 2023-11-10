@@ -893,7 +893,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   db_->WriteVector("tcc_old", tcc.ptr());
 
   // calculate stable time step
-  double dt_shift = 0.0, dt_global = dt_MPC;
+  double dt_shift = 0.0; 
+  double dt_global = dt_MPC;
   double time = t_old;
   if (time >= 0.0) {
     t_physics_ = time;
@@ -902,14 +903,17 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
-  if (subcycling_)
+  if (subcycling_)      // This is internal subcycling (always false now)
     StableTimeStep();
   else
     dt_ = dt_MPC;
+  
   double dt_stable = dt_; // advance routines override dt_
-
   int interpolate_ws = 0; // (dt_ < dt_global) ? 1 : 0;
-  if ((t_old > S_->get_time(tag_current_)) || (t_new < S_->get_time(tag_next_))) interpolate_ws = 1;
+  // if t_old and t_new in between current and next tag, do interpolation
+  if ((t_old > S_->get_time(tag_current_)) || (t_new < S_->get_time(tag_next_))) {
+    interpolate_ws = 1;
+  }
 
   double dt_sum = 0.0;
   double dt_cycle;
@@ -917,11 +921,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   if (interpolate_ws) {
     dt_cycle = std::min(dt_stable, dt_MPC);
     InterpolateCellVector(*ws_prev_, *ws_, dt_shift, dt_global, *ws_subcycle_current);
-    InterpolateCellVector(
-      *mol_dens_prev_, *mol_dens_, dt_shift, dt_global, *mol_dens_subcycle_current);
+    InterpolateCellVector(*mol_dens_prev_, *mol_dens_, dt_shift, dt_global, *mol_dens_subcycle_current);
     InterpolateCellVector(*ws_prev_, *ws_, dt_shift + dt_cycle, dt_global, *ws_subcycle_next);
-    InterpolateCellVector(
-      *mol_dens_prev_, *mol_dens_, dt_shift + dt_cycle, dt_global, *mol_dens_subcycle_next);
+    InterpolateCellVector(*mol_dens_prev_, *mol_dens_, dt_shift + dt_cycle, dt_global, *mol_dens_subcycle_next);
     ws_current = ws_subcycle_current;
     ws_next = ws_subcycle_next;
     mol_dens_current = mol_dens_subcycle_current;
@@ -938,29 +940,29 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     water_tag_next = Tags::NEXT;
   }
 
-  db_->WriteVector("sat_old",
-                   S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
+  db_->WriteVector("sat_old", S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
   db_->WriteVector("sat_new", S_->GetPtr<CompositeVector>(saturation_key_, water_tag_next).ptr());
-  db_->WriteVector("mol_dens_old",
-                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_current).ptr());
-  db_->WriteVector("mol_dens_new",
-                   S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_next).ptr());
+  db_->WriteVector("mol_dens_old", S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_current).ptr());
+  db_->WriteVector("mol_dens_new", S_->GetPtr<CompositeVector>(molar_density_key_, water_tag_next).ptr());
   db_->WriteVector("poro", S_->GetPtr<CompositeVector>(porosity_key_, Tags::NEXT).ptr());
 
   for (int c = 0; c < ncells_owned; c++) {
     double vol_phi_ws_den;
     vol_phi_ws_den =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
+      mesh_->cell_volume(c) * (*phi_)[0][c] * (*ws_prev_)[0][c] * (*mol_dens_prev_)[0][c];
     for (int i = 0; i < num_aqueous + num_gaseous; i++) {
-      mass_solutes_stepstart_[i] = tcc_prev[i][c] * vol_phi_ws_den;
+      mass_solutes_stepstart_[i] = tcc_prev[i][c] * vol_phi_ws_den;   // We don't use this variable anywhere???
     }
   }
 
-  int ncycles = 0, swap = 1;
+  int ncycles = 0; 
+  int swap = 1;
   while (dt_sum < dt_MPC - 1e-6) {
     // update boundary conditions
     time = t_physics_ + dt_cycle / 2;
-    for (int i = 0; i < bcs_.size(); i++) { bcs_[i]->Compute(t_physics_, t_physics_ + dt_cycle); }
+    for (int i = 0; i < bcs_.size(); i++) { 
+      bcs_[i]->Compute(t_physics_, t_physics_ + dt_cycle); 
+    }
 
     double dt_try = dt_MPC - dt_sum;
     double tol = 1e-10 * (dt_try + dt_stable);
@@ -987,8 +989,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
         double dt_int = dt_sum + dt_shift;
         InterpolateCellVector(*ws_prev_, *ws_, dt_int, dt_global, *ws_subcycle_next);
-        InterpolateCellVector(
-          *mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_next);
+        InterpolateCellVector(*mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_next);
       } else { // Initial water saturation is in 'end'.
         ws_current = ws_subcycle_next;
         ws_next = ws_subcycle_current;
@@ -997,8 +998,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
         double dt_int = dt_sum + dt_shift;
         InterpolateCellVector(*ws_prev_, *ws_, dt_int, dt_global, *ws_subcycle_current);
-        InterpolateCellVector(
-          *mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_current);
+        InterpolateCellVector(*mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_current);
       }
       swap = 1 - swap;
     }
@@ -1015,7 +1015,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
       // should not be allocating here, we have tons of memory for tcc --ETC
       tcc = Teuchos::RCP<CompositeVector>(new CompositeVector(*tcc_tmp));
     }
-
     ncycles++;
   }
 
@@ -1024,14 +1023,16 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   Epetra_MultiVector& tcc_next = *tcc_tmp->ViewComponent("cell", false);
   Advance_Dispersion_Diffusion(t_old, t_new);
   // optional Henry Law for the case of gas diffusion
-  if (henry_law_) MakeAirWaterPartitioning_();
+  
+  if (henry_law_){
+    MakeAirWaterPartitioning_();
+  }
 
   // statistics output
   nsubcycles = ncycles;
   if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
     *vo_->os() << ncycles << " sub-cycles, dt_stable=" << units_.OutputTime(dt_stable)
                << " [sec]  dt_MPC=" << units_.OutputTime(dt_MPC) << " [sec]" << std::endl;
-
     VV_PrintSoluteExtrema(tcc_next, dt_MPC);
   }
 
