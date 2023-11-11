@@ -269,15 +269,13 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
     }
   }
 
-  if (tag_next == tag_next_ && tag_next != Tags::NEXT && internal_subcycling_) {
-    // nested subcycling -- we are internally subcycling and something above
-    // us in the PK tree is trying to subcycle this.  Currently the tags
-    // model does not admit this.
-    Errors::Message msg;
-    msg << "MPCWeakSubdomain \"" << name_ << "\" detected nested subcycling, which is not currently supported.  Either subcycle the subdomains independently or subcycle the MPCWeakSubdomain, but not both.";
-    Exceptions::amanzi_throw(msg);
+  if (tag_next == tag_next_ && tag_next != Tags::NEXT) {
+    // do not commit step in this case -- this is nested subcycling, which we
+    // do not have a formal way of dealing with correctly.
+    return;
+  } else {
+    for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
   }
-  for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
 }
 
 
