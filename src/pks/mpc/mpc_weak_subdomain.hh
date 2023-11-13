@@ -47,20 +47,8 @@ class MPCWeakSubdomain : public MPC<PK> {
   bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
   bool AdvanceStep_InternalSubcycling_(double t_old, double t_new, bool reinit);
 
-  Tag get_ds_tag_next_(const std::string& subdomain)
-  {
-    if (internal_subcycling_)
-      return Tag(Keys::getKey(subdomain, tag_next_.get()));
-    else
-      return tag_next_;
-  }
-  Tag get_ds_tag_current_(const std::string& subdomain)
-  {
-    if (internal_subcycling_)
-      return Tag(Keys::getKey(subdomain, tag_current_.get()));
-    else
-      return tag_current_;
-  }
+  Tag get_ds_tag_next_(const std::string& subdomain);
+  Tag get_ds_tag_current_(const std::string& subdomain);
 
   Comm_ptr_type comm_;
   bool internal_subcycling_;

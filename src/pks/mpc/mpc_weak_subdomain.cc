@@ -101,6 +101,31 @@ MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 }
 
 
+Tag
+MPCWeakSubdomain::get_ds_tag_next_(const std::string& subdomain)
+{
+  if (internal_subcycling_) {
+    if (tag_next_ == Tags::NEXT) {
+      return Tag(Keys::getKey(subdomain, "next"));
+    } else {
+      return Tag(Keys::getKey(subdomain, tag_next_.get()));
+    }
+  } else {
+    return tag_next_;
+  }
+}
+
+
+Tag
+MPCWeakSubdomain::get_ds_tag_current_(const std::string& subdomain)
+{
+  if (internal_subcycling_)
+    return Tag(Keys::getKey(subdomain, tag_current_.get()));
+  else
+    return tag_current_;
+}
+
+
 void
 MPCWeakSubdomain::Setup()
 {
