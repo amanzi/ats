@@ -418,6 +418,9 @@ Transport_ATS::Initialize()
   flux_copy_->PutScalar(0.);
 
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
+  
+  // this is locally created and has no evaluator -- should get a primary
+  // variable FE owned by this PK --ETC
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
                  .ViewComponent("cell", false);
   conserve_qty_ =
@@ -887,11 +890,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
 
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
-
-  // this is locally created and has no evaluator -- should get a primary
-  // variable FE owned by this PK --ETC
-  // solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-  //                .ViewComponent("cell", false);
 
   // We use original tcc and make a copy of it later if needed.
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
