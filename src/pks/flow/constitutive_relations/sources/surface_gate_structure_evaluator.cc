@@ -49,6 +49,7 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 {
 
   Tag tag = my_keys_.front().second;
+  
   double dt = S.Get<double>("dt", tag);
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
@@ -79,7 +80,7 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
   // Sink to the reach cells
  for (auto c : gate_intake_id_list) {
-    surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_g[0]; // mol/(m^2 * s)
+    surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_terms_g[0]; // mol/(m^2 * s)
   }
 
   // Source to the detention pond cells
@@ -88,9 +89,9 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
     sum_cv_l += cv[0][c];
   }
   double sum_cv_g = 0;
-  mesh.getComm()->SumAll(sum_cv_l, sum_cv_g, 1);
+  mesh.getComm()->SumAll(&sum_cv_l, &sum_cv_g, 1);
 
-  for (auto c : gate_intake_id_list) {
+  for (auto c : dp_id_list) {
     surf_src[0][c] = Q * liq_den[0][c] / (sum_cv_g); // mol/(m^2 * s)
   }
  
@@ -98,4 +99,4 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
 
 } // namespace Relations
 } // namespace Flow
-} // namespace Amanzi
+} // namespace Amanzi 
