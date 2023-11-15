@@ -71,6 +71,12 @@ plant is assumed.
    * `"plant relative conductance [-]`" ``[double]`` **0** Relative conductance
      of the plant -- 0 indicates no hydraulic redistribution, 1 indicates
      maximal redistribution.
+   * `"tolerance`" ``[double]`` **1.e-12** Tolerance of the root-finding
+     algorithm, which is a mixed absolute and relative tolerance.  Note that
+     the default is likely fine for most problems.
+   * `"maximum number of iterations`" ``[int]`` **100** Maximum number of
+     iterations allowed for root finding.  Typically this is solved in < 10, so
+     100 is quite safe.
 
    KEYS:
 
@@ -183,6 +189,9 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   double c0_;
   double krp_;
   double rho_;
+
+  double tol_;
+  int nits_;
 
   LandCoverMap land_cover_;
 

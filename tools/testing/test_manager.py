@@ -881,7 +881,7 @@ class RegressionTest(object):
         criteria_type = test_data_s[1]
         if (criteria_type.lower() != self._PERCENT and
             criteria_type.lower() != self._ABSOLUTE and
-                criteria_type.lower() != self._RELATIVE):
+            criteria_type.lower() != self._RELATIVE):
             raise RuntimeError("ERROR : invalid test criteria string '{0}' "
                                "for '{1}'".format(criteria_type, key))
         criteria[1] = criteria_type

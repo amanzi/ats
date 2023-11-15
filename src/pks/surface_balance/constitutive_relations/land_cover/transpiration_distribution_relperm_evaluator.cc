@@ -145,6 +145,10 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   domain_surf_ = Keys::readDomainHint(plist_, domain_sub_, "domain", "surface");
   Tag tag = my_keys_.front().second;
 
+  // tolerances for root finding
+  tol_ = plist_.get<double>("tolerance", 1.e-12);
+  nits_ = plist_.get<int>("maximum number of iterations", 100);
+
   // note this should probably not include salinity, etc?
   rho_ = plist_.get<double>("water density in plant [kg m^-3]", 1000.);
 
@@ -269,10 +273,10 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
           }
 
           // compute the plant capillary pressure using a root-finder
-          int itrs = 100;
+          int itrs = nits_;
           plant_pc_v[0][sc] =
-            Amanzi::Utils::findRootBrent(func, ab.first, ab.second, 1.e-12, &itrs);
-          AMANZI_ASSERT(itrs > 0 && itrs < 100);
+            Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
+          AMANZI_ASSERT(itrs > 0 && itrs <= nits_);
 
           // compute the distributed transpiration fluxes for each grid cell
           func.computeSoilPlantFluxes(plant_pc_v[0][sc], trans_v);
