@@ -79,9 +79,13 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   
 
   // Sink to the reach cells
- for (auto c : gate_intake_id_list) {
-    surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_terms_g[0]; // mol/(m^2 * s)
+  for (auto c : gate_intake_id_list) {
+    if (avg_pd_terms_g[0] != 0) {
+      surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_terms_g[0]; // mol/(m^2 * s)
+      // surf_src[0][c] = - Q * liq_den[0][c] / avg_pd_terms_g[1]; 
+    }
   }
+
 
   // Source to the detention pond cells
   double sum_cv_l = 0; 
@@ -94,7 +98,7 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   for (auto c : dp_id_list) {
     surf_src[0][c] = Q * liq_den[0][c] / (sum_cv_g); // mol/(m^2 * s)
   }
- 
+
 }
 
 } // namespace Relations
