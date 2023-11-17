@@ -390,6 +390,8 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
  private:
   void InitializeFields_();
+  void SetupTransport_();
+  void SetupPhysicalEvaluators_();
 
   // advection members
   void AdvanceDonorUpwind(double dT);

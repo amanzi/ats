@@ -157,6 +157,17 @@ Transport_ATS::SetupAlquimia(Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk,
 void
 Transport_ATS::Setup()
 {
+  SetupTransport_();
+  SetupPhysicalEvaluators_();   
+}
+
+
+// -------------------------------------------------------------
+// Pieces of the construction process that are common to all
+// Transport_ATS-like PKs.
+// -------------------------------------------------------------
+void Transport_ATS::SetupTransport_()
+{
   // cross-coupling of PKs
   Teuchos::RCP<Teuchos::ParameterList> physical_models =
     Teuchos::sublist(plist_, "physical models and assumptions");
@@ -166,47 +177,6 @@ Transport_ATS::Setup()
     Exceptions::amanzi_throw(msg);
   }
 
-  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-  S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
-  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
-
-  // CellVolume is required here -- it may not be used in this PK, but having
-  // it makes vis nicer
-  requireAtNext(cv_key_, tag_next_, *S_)
-    .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
-  // Raw data, no evaluator?
-  //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
-  auto primary_names = component_names_;
-  // S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
-  requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-  S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
-
-  // This vector stores the conserved amount (in mols) of ncomponent
-  // transported components, plus two for water.  The first water component is
-  // given by the water content (in mols) at the old time plus dt * all fluxes
-  // treated explictly.  The second water component is given by the water
-  // content at the new time plus dt * all fluxes treated implicitly (notably
-  // just DomainCoupling fluxes, which must be able to take all the transported
-  // quantity.)
-  //
-  // Note that component_names includes secondaries, but we only need primaries
-  primary_names.emplace_back("H2O_old");
-  primary_names.emplace_back("H2O_new");
-  //S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
-  requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components + 2);
-  S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(primary_names);
-
   // dependencies:
   // -- permeability
   bool abs_perm = physical_models->get<bool>("permeability field is required", false);
@@ -215,60 +185,6 @@ Transport_ATS::Setup()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, dim);
   }
-
-  // HACK ALERT -- FIXME --ETC
-  //
-  // This PK is liberally sprinkled with hard-coded Tags::NEXT and
-  // Tags::CURRENT, forcing all things provided by FLOW to be provided at that
-  // tag and not at tag_current and tag_next as it should be.  This is because
-  // we don't have a good way of aliasing everything we need yet.  In
-  // particular, aliases needed to be introduced between Setup() on flow and
-  // Setup() on transport, and this was not possible when the quantity of
-  // interest (porosity)'s evaluator was not required directly (only
-  // indirectly) in flow PK.
-  //
-  // This will need to be fixed in amanzi/amanzi#646 somehow....? --ETC
-  // -- water flux
-  requireAtNext(flux_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
-  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
-
-  // -- water saturation
-  requireAtNext(saturation_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  // Require a copy of saturation at the old time tag
-  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
-  if (subcycling_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      saturation_key_, tag_subcycle_current_, name_);
-    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
-  }
-
-  requireAtNext(porosity_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
-  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
-  if (subcycling_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      molar_density_key_, tag_subcycle_current_, name_);
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      molar_density_key_, tag_subcycle_next_, name_);
-    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_current_); // for the future...
-    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_next_); // for the future...
-  }
-
 
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
@@ -328,6 +244,91 @@ Transport_ATS::Setup()
       }
     }
   }
+}
+
+
+void Transport_ATS::SetupPhysicalEvaluators_()
+{
+  // -- water flux
+  requireAtNext(flux_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+  S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, tag_flux_next_ts_, name_);
+
+  // -- water saturation
+  requireAtNext(saturation_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtCurrent(saturation_key_, Tags::CURRENT, *S_); // Require a copy of saturation at the old time tag
+
+  // -- porosity
+  requireAtNext(porosity_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
+  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+
+  if (subcycling_) {
+    S_->Require<CompositeVector, CompositeVectorSpace>(
+      saturation_key_, tag_subcycle_current_, name_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(
+      molar_density_key_, tag_subcycle_current_, name_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(
+      molar_density_key_, tag_subcycle_next_, name_);
+    // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
+    // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
+    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_current_); // for the future...
+    // S_->RequireEvaluator(molar_density_key_, tag_subcycle_next_); // for the future...
+  }
+
+  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
+  S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
+  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+
+  // CellVolume is required here -- it may not be used in this PK, but having
+  // it makes vis nicer
+  requireAtNext(cv_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
+  // Raw data, no evaluator?
+  //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
+  auto primary_names = component_names_;
+  // S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
+  requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
+  S_->GetRecordSetW(solid_residue_mass_key_).set_subfieldnames(primary_names);
+
+  // This vector stores the conserved amount (in mols) of ncomponent
+  // transported components, plus two for water.  The first water component is
+  // given by the water content (in mols) at the old time plus dt * all fluxes
+  // treated explictly.  The second water component is given by the water
+  // content at the new time plus dt * all fluxes treated implicitly (notably
+  // just DomainCoupling fluxes, which must be able to take all the transported
+  // quantity.)
+  //
+  // Note that component_names includes secondaries, but we only need primaries
+  primary_names.emplace_back("H2O_old");
+  primary_names.emplace_back("H2O_new");
+  //S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
+  requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
+    .SetMesh(mesh_)
+    ->SetGhosted(true)
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components + 2);
+  S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(primary_names);  
 
   // // alias to next for subcycled cases -- revisit this in state subcycling
   // // revision --ETC
@@ -338,8 +339,6 @@ Transport_ATS::Setup()
   //   aliasVector(*S_, solid_residue_mass_key_, tag_next_, Tags::NEXT);
   // }
 }
-
-
 /* ******************************************************************
 * Routine processes parameter list. It needs to be called only once
 * on each processor.
