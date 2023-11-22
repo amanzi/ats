@@ -28,6 +28,8 @@ SurfGateEvaluator::SurfGateEvaluator(Teuchos::ParameterList& plist) : EvaluatorS
   dependencies_.insert(KeyTag{ cv_key_, tag });
   pd_key_ = Keys::readKey(plist, domain_, "ponded depth", "ponded_depth");
   dependencies_.insert(KeyTag{ pd_key_, tag });
+  wc_key_ = Keys::readKey(plist, domain_, "water content", "water_content");
+  dependencies_.insert(KeyTag{ wc_key_, tag });
   liq_den_key_ = Keys::readKey(plist, domain_, "molar density liquid", "molar_density_liquid");
   gate_intake_region_ = plist.get<std::string>("gate intake region");
   dp_region_ = plist.get<std::string>("detention pond region");
@@ -54,6 +56,8 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   const auto& cv = *S.Get<CompositeVector>(cv_key_, tag).ViewComponent("cell", false);
   const auto& pd = *S.Get<CompositeVector>(pd_key_, tag).ViewComponent("cell", false);
   const auto& liq_den = *S.Get<CompositeVector>(liq_den_key_, tag).ViewComponent("cell", false);
+  const auto& wc = *S.Get<CompositeVector>(wc_key_, tag).ViewComponent("cell", false);
+  
 
   auto& surf_src= *result[0]->ViewComponent("cell"); // not being reference
 
@@ -77,8 +81,14 @@ SurfGateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>
   double avg_pd = avg_pd_terms_g[0] / avg_pd_terms_g[1];
   double Q = (*Q_gate_)(std::vector<double>{avg_pd}); // m^3/s
   
-
   // Sink to the reach cells
+  double water_avail = 0;
+  for (auto c : gate_intake_id_list) {
+    water_avail += wc[0][c]; //mols
+  }
+
+  double water_demand = Q * dt * liq_den[0][0] ; //mols
+
   for (auto c : gate_intake_id_list) {
     if (avg_pd_terms_g[0] != 0) {
       surf_src[0][c] = - Q * liq_den[0][c] * pd[0][c] / avg_pd_terms_g[0]; // mol/(m^2 * s)

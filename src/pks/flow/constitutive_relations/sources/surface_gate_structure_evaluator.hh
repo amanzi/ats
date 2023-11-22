@@ -65,6 +65,7 @@ class SurfGateEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key cv_key_;
   Key pd_key_;
   Key  liq_den_key_;
+  Key wc_key_;
   // Key  gate_func_key_;
   std::string dp_region_;
   std::string gate_intake_region_;
