@@ -60,6 +60,9 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
 
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
   pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
+
+  // is the flow PK overland flow or surface balance general?
+  rescale_precon_ = getSubPKPlist_(0)->get<std::string>("PK type") == "overland flow with ice";
 }
 
 // -- Initialize owned (dependent) variables.
@@ -311,24 +314,26 @@ MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
   } else if (precon_type_ == PRECON_PICARD || (precon_type_ == PRECON_EWC)) {
     ierr = preconditioner_->ApplyInverse(*u, *Pu);
 
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-      *vo_->os() << "PC * residuals:" << std::endl;
-      std::vector<std::string> vnames;
-      vnames.push_back("  PC*r_h");
-      vnames.push_back("  PC*r_T");
-      std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
-      vecs.push_back(Pu->SubVector(0)->Data().ptr());
-      vecs.push_back(Pu->SubVector(1)->Data().ptr());
-      db_->WriteVectors(vnames, vecs, true);
+    if (rescale_precon_) {
+      if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+        *vo_->os() << "PC * residuals:" << std::endl;
+        std::vector<std::string> vnames;
+        vnames.push_back("  PC*r_h");
+        vnames.push_back("  PC*r_T");
+        std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
+        vecs.push_back(Pu->SubVector(0)->Data().ptr());
+        vecs.push_back(Pu->SubVector(1)->Data().ptr());
+        db_->WriteVectors(vnames, vecs, true);
+      }
+
+      // tack on the variable change from h to p
+      const Epetra_MultiVector& dh_dp =
+        *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
+        ->ViewComponent("cell", false);
+      Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
+
+      for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
     }
-
-    // tack on the variable change from h to p
-    const Epetra_MultiVector& dh_dp =
-      *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
-         ->ViewComponent("cell", false);
-    Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
-
-    for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
   }
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
