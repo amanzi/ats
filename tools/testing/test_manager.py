@@ -784,6 +784,7 @@ class RegressionTest(object):
 
         # unpack the tolerance
         tol, tol_type, min_threshold, max_threshold = tuple(tolerance)
+        print_tol_type = tol_type
 
         if tol_type == self._ABSOLUTE:
             delta = self._norm(current-gold)
@@ -794,6 +795,7 @@ class RegressionTest(object):
                 min_threshold = max(min_threshold, 1.e-12)
                 rel_to = numpy.where(numpy.abs(gold) > min_threshold, gold, min_threshold)
                 delta = self._norm((gold - current) / rel_to)
+                print_tol_type += f" {min_threshold}"
 
             else:
                 delta = self._norm((gold - current) / max(abs(gold), min_threshold))
@@ -810,10 +812,10 @@ class RegressionTest(object):
             status.fail = 1
             status.local_fail = 1
             print("    FAIL: {0} : {1} : {2} > {3} [{4}]".format(
-                    self.name(), key, delta, tol, tol_type), file=testlog)
+                    self.name(), key, delta, tol, print_tol_type), file=testlog)
         else:
             print("    PASS: {0} : {1} : {2} <= {3} [{4}]".format(
-                self.name(), key, delta, tol, tol_type), file=testlog)
+                self.name(), key, delta, tol, print_tol_type), file=testlog)
         return
 
     def _set_criteria(self, key, cfg_criteria, test_data):

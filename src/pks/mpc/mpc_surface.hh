@@ -119,6 +119,9 @@ class MPCSurface : public StrongMPC<PK_PhysicalBDF_Default> {
   bool dump_;
   Teuchos::RCP<Debugger> db_;
 
+  // do we need to rescale preconditioner to pressure from head?
+  bool rescale_precon_;
+
  private:
   // factory registration
   static RegisteredPKFactory<MPCSurface> reg_;
