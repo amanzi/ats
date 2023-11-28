@@ -635,6 +635,7 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
   Teuchos::RCP<CompositeVector> pd = S_->GetPtrW<CompositeVector>(pd_key_, tag, pd_key_);
   Teuchos::RCP<const CompositeVector> elev = S_->GetPtr<CompositeVector>(elev_key_, tag);
   ApplyBoundaryConditions_(pd.ptr(), elev.ptr());
+  ChangedSolution(); // ponded depth is now changed in boundary/faces
 
   update_perm |= S_->GetEvaluator(potential_key_, tag).Update(*S_, name_);
   update_perm |= S_->GetEvaluator(cond_key_, tag).Update(*S_, name_);
