@@ -1137,7 +1137,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       CompositeVector& rhs = *op->rhs();
       int ierr = op->ApplyInverse(rhs, sol);
 
-      if (ierr < 0) {
+      if (ierr != 0) {
         Errors::Message msg("TransportExplicit_PK solver failed with message: \"");
         msg << op->returned_code_string() << "\"";
         Exceptions::amanzi_throw(msg);
@@ -1207,7 +1207,7 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
       CompositeVector& rhs = *op->rhs();
       int ierr = op->ApplyInverse(rhs, sol);
-      if (ierr < 0) {
+      if (ierr != 0) {
         Errors::Message msg("Transport_PK solver failed with message: \"");
         msg << op->returned_code_string() << "\"";
         Exceptions::amanzi_throw(msg);
