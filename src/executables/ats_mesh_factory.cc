@@ -609,8 +609,9 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
           subdomain_param_list.set("parent domain", indexing_parent_name);
 
         // construct
+        // note this can be constructed on MPI_COMM_SELF as there is one per entity
         auto subdomain_mesh =
-          createMesh(subdomain_list, indexing_parent_mesh->getComm(), gm, S, vo);
+          createMesh(subdomain_list, Amanzi::getCommSelf(), gm, S, vo);
 
         // create maps to the reference mesh
         if (is_reference_mesh) {
