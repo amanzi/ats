@@ -124,7 +124,12 @@ template <class PK_t>
 void
 MPC<PK_t>::Setup()
 {
-  for (auto& pk : sub_pks_) pk->Setup();
+  Teuchos::OSTab tab = vo_->getOSTab();  
+  for (auto& pk : sub_pks_) {
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("yellow") << "        - " << pk->name() << vo_->reset() << std::endl;    
+    pk->Setup();
+  }
 }
 
 
@@ -135,7 +140,12 @@ template <class PK_t>
 void
 MPC<PK_t>::Initialize()
 {
-  for (auto& pk : sub_pks_) pk->Initialize();
+  Teuchos::OSTab tab = vo_->getOSTab();  
+  for (auto& pk : sub_pks_) {
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("yellow") << "        - " << pk->name() << vo_->reset() << std::endl;    
+    pk->Initialize();
+  }
 };
 
 
@@ -147,7 +157,12 @@ void
 MPC<PK_t>::set_tags(const Tag& current, const Tag& next)
 {
   PK::set_tags(current, next);
-  for (auto& pk : sub_pks_) pk->set_tags(current, next);
+  Teuchos::OSTab tab = vo_->getOSTab();
+  for (auto& pk : sub_pks_) {
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("yellow") << "        - " << pk->name() << vo_->reset() << std::endl;    
+    pk->set_tags(current, next);
+  }
 }
 
 
@@ -277,6 +292,7 @@ template <class PK_t>
 void
 MPC<PK_t>::init_(Comm_ptr_type comm)
 {
+  Teuchos::OSTab tab = vo_->getOSTab();
   PKFactory pk_factory;
   auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   if (comm == Teuchos::null) comm = solution_->Comm();
@@ -289,6 +305,8 @@ MPC<PK_t>::init_(Comm_ptr_type comm)
 
     // create the PK
     std::string name_i = pk_order[i];
+    if (vo_->os_OK(Teuchos::VERB_LOW))
+      *vo_->os() << vo_->color("green") << "    Create MPC: " << name_i << vo_->reset() << std::endl;
     Teuchos::RCP<PK> pk_notype = pk_factory.CreatePK(name_i, pk_tree_, global_list_, S_, pk_soln);
     Teuchos::RCP<PK_t> pk = Teuchos::rcp_dynamic_cast<PK_t>(pk_notype, true);
     sub_pks_.push_back(pk);

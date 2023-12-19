@@ -540,7 +540,7 @@ Transport_ATS::Initialize()
 
   } else {
     if (vo_->os_OK(Teuchos::VERB_NONE)) {
-      *vo_->os() << vo_->color("yellow") << "No BCs were specified." << vo_->reset() << std::endl;
+      *vo_->os() << vo_->color("red") << "No BCs were specified." << vo_->reset() << std::endl;
     }
   }
 

@@ -88,7 +88,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // print header material
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "Writing input file ..." << std::endl << std::endl;
-    Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
+    // Teuchos::writeParameterListToXmlOStream(*plist_, *vo_->os());
     *vo_->os() << "  ... completed." << std::endl;
   }
 
@@ -275,7 +275,12 @@ Coordinator::setup()
 
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
+  if (vo_->os_OK(Teuchos::VERB_LOW))
+    *vo_->os() << vo_->color("green") << "    Set tags for PKs: " << vo_->reset() << std::endl;
   pk_->set_tags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
+
+  if (vo_->os_OK(Teuchos::VERB_LOW))
+    *vo_->os() << vo_->color("green") << "    Setup PKs: " << vo_->reset() << std::endl;
   pk_->Setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
@@ -285,7 +290,6 @@ void
 Coordinator::initialize()
 {
   Teuchos::TimeMonitor monitor(*timers_.at("3: initialize"));
-  Teuchos::OSTab tab = vo_->getOSTab();
 
   int size = comm_->NumProc();
   int rank = comm_->MyPID();
@@ -307,6 +311,8 @@ Coordinator::initialize()
   S_->InitializeFields();
 
   // Initialize the process kernels
+  if (vo_->os_OK(Teuchos::VERB_LOW))
+    *vo_->os() << vo_->color("green") << "    Initialize PKs: " << vo_->reset() <<std::endl;  
   pk_->Initialize();
 
   // calling CommitStep to set up copies as needed.
