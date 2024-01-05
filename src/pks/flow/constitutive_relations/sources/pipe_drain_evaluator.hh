@@ -37,10 +37,12 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
+  virtual void isManhole(AmanziGeometry::Point xc);
 
  protected:
  Key surface_depth_key_, pressure_head_key_, mask_key_;
  Key sw_domain_name_, pipe_domain_name_;
+ Key manhole_map_key_;
  
  double manhole_radius_;
  // energy losses coefficients at manhole

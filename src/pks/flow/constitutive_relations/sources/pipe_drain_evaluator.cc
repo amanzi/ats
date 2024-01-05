@@ -39,6 +39,10 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
   mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
   dependencies_.insert(KeyTag{mask_key_, tag});
+
+
+  manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
+  dependencies_.insert(KeyTag{manhole_map_key_, tag});
   
 }
 
@@ -69,21 +73,35 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
 
+
+  // manhole cell map
+  const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
+  /*
+  if(manhole_map_key_.empty()){
+    for (int c = 0; c < ncells; c++) {
+      mhmap_c[0][c] = 1.0;
+    }
+  }
+  */
+
   if(!pipe_domain_name_.empty()){
 
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
          ->ViewComponent("cell",false);
 
      for (int c=0; c!=ncells; ++c) {
+
+        int c1 = mhmap_c[0][c];
+
         if (pressHead[0][c] < drain_length_) {
-           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
+           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c1],3.0/2.0);
         } 
-        else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+        else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c1]) ){
            res[0][c] = - mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                       * sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);   
+                       * sqrt(srfcDepth[0][c1] + drain_length_ - pressHead[0][c]);   
         } 
-        else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
-           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+        else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c1])) {
+           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c1]);
         }
      }
   }
@@ -116,6 +134,7 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   double sqrtTwoG = sqrt(2.0 * g);
 
   int ncells = res.MyLength();
+
 
   if(!pipe_domain_name_.empty()){
 
@@ -168,6 +187,10 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 }
 
+void PipeDrainEvaluator::isManhole(AmanziGeometry::Point xc)
+{
+  double x = xc[0], y = xc[1];
+}
 
 } //namespace
 } //namespace
