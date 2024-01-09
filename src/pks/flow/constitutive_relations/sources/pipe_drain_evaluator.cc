@@ -16,7 +16,7 @@ namespace Flow {
 
 
 PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+      EvaluatorSecondaryMonotypeCV(plist)
 {
 
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
@@ -37,9 +37,9 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
      dependencies_.insert(KeyTag{pressure_head_key_, tag});
   }
 
-  mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
+  mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
   dependencies_.insert(KeyTag{mask_key_, tag});
-  
+
 }
 
 
@@ -48,7 +48,27 @@ PipeDrainEvaluator::Clone() const {
   return Teuchos::rcp(new PipeDrainEvaluator(*this));
 }
 
+  
+void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S,
+                                                     const CompositeVectorSpace& fac){                                                     
+  for (const auto& dep : dependencies_) {
+    auto domain = Keys::getDomain(dep.first);
+    if (pipe_domain_name_ == domain) {
+      auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);    
+      dep_fac.Update(fac);
+    }
+      
+  }
+  
+}
 
+
+// void PipeDrainEvaluator::UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) {
+
+
+// }
+
+  
 void PipeDrainEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
@@ -91,7 +111,8 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
      for (int c=0; c!=ncells; ++c) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
      }
-  }   
+  }
+
 
 }
 

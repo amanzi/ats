@@ -12,6 +12,7 @@
 #ifndef AMANZI_FLOW_RELATIONS_PIPE_DRAIN_EVALUATOR_
 #define AMANZI_FLOW_RELATIONS_PIPE_DRAIN_EVALUATOR_
 
+#include "EvaluatorSecondary.hh"
 #include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
@@ -19,6 +20,7 @@ namespace Amanzi {
 namespace Flow {
 
 class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
+  //class PipeDrainEvaluator : public EvaluatorSecondary {  
 
  public:
   // constructor format for all derived classes
@@ -31,6 +33,10 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  protected:
   void InitializeFromPlist_();
 
+  //  virtual void Update_(State& S) override;
+  //virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override;
+
+  
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S,
           const std::vector<CompositeVector*>& result) override;
@@ -38,6 +44,9 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
 
+  virtual void EnsureCompatibility_ToDeps_(State& S,
+                    const CompositeVectorSpace& fac) override;
+  
  protected:
  Key surface_depth_key_, pressure_head_key_, mask_key_;
  Key sw_domain_name_, pipe_domain_name_;
