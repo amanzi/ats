@@ -37,30 +37,45 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
      dependencies_.insert(KeyTag{pressure_head_key_, tag});
   }
 
-  mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
+  mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
   dependencies_.insert(KeyTag{mask_key_, tag});
 
-
+  /*
   manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
   dependencies_.insert(KeyTag{manhole_map_key_, tag});
-  
+  */
+
 }
 
 
 Teuchos::RCP<Evaluator>
 PipeDrainEvaluator::Clone() const {
+  
   return Teuchos::rcp(new PipeDrainEvaluator(*this));
 }
 
+void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
+{                                                     
+  for (const auto& dep : dependencies_) {
+    auto domain = Keys::getDomain(dep.first);
+    if (pipe_domain_name_ == domain) {
+      auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);    
+      dep_fac.Update(fac);
+   }
+ }
+}
 
 void PipeDrainEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
+
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
 
+
   const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
      ->ViewComponent("cell",false);
+
 
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
@@ -75,14 +90,16 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
 
   // manhole cell map
-  const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
   /*
+  const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
+  
   if(manhole_map_key_.empty()){
     for (int c = 0; c < ncells; c++) {
       mhmap_c[0][c] = 1.0;
     }
   }
   */
+  
 
   if(!pipe_domain_name_.empty()){
 
@@ -91,7 +108,8 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
      for (int c=0; c!=ncells; ++c) {
 
-        int c1 = mhmap_c[0][c];
+        //int c1 = mhmap_c[0][c];
+        int c1 = c;
 
         if (pressHead[0][c] < drain_length_) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c1],3.0/2.0);
@@ -117,6 +135,7 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
 {
+  std::cout<<"Good till here? 5"<<std::endl;
   Tag tag = my_keys_.front().second;
 
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
@@ -187,10 +206,6 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 }
 
-void PipeDrainEvaluator::isManhole(AmanziGeometry::Point xc)
-{
-  double x = xc[0], y = xc[1];
-}
 
 } //namespace
 } //namespace

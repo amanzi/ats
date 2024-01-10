@@ -12,6 +12,7 @@
 #ifndef AMANZI_FLOW_RELATIONS_PIPE_DRAIN_EVALUATOR_
 #define AMANZI_FLOW_RELATIONS_PIPE_DRAIN_EVALUATOR_
 
+#include "EvaluatorSecondary.hh"
 #include "EvaluatorSecondaryMonotype.hh"
 #include "Factory.hh"
 
@@ -37,7 +38,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
   virtual void EvaluatePartialDerivative_(const State& S,
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
-  virtual void isManhole(AmanziGeometry::Point xc);
+  virtual void EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac) override;
 
  protected:
  Key surface_depth_key_, pressure_head_key_, mask_key_;
