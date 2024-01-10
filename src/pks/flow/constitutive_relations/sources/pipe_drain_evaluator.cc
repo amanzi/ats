@@ -26,6 +26,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   drain_length_ = plist.get<double>("drain length", 0.478);
   sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
+  sink_source_coeff_ = plist.get<double>("sink-source coefficient", 1.0);
   Tag tag = my_keys_.front().second;
 
   // my dependencies
@@ -40,10 +41,11 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
   dependencies_.insert(KeyTag{mask_key_, tag});
 
-  /*
-  manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
+  
+  manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
   dependencies_.insert(KeyTag{manhole_map_key_, tag});
-  */
+  
+  
 
 }
 
@@ -90,9 +92,10 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
 
   // manhole cell map
-  /*
+  
   const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
   
+  /*
   if(manhole_map_key_.empty()){
     for (int c = 0; c < ncells; c++) {
       mhmap_c[0][c] = 1.0;
@@ -108,8 +111,8 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
      for (int c=0; c!=ncells; ++c) {
 
-        //int c1 = mhmap_c[0][c];
-        int c1 = c;
+        int c1 = mhmap_c[0][c];
+        //int c1 = c;
 
         if (pressHead[0][c] < drain_length_) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c1],3.0/2.0);
@@ -121,11 +124,13 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
         else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c1])) {
            res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c1]);
         }
+     res[0][c] *= sink_source_coeff_;
      }
   }
   else {
      for (int c=0; c!=ncells; ++c) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c],3.0/2.0);
+           res[0][c] *= sink_source_coeff_;
      }
   }   
 
