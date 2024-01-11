@@ -28,7 +28,6 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
   sink_source_coeff_ = plist.get<double>("sink-source coefficient", 1.0);
   Tag tag = my_keys_.front().second;
-  //std::cout<<"my_keys_.front().first "<<my_keys_.front().first<<", .second = "<<my_keys_.front().second<<std::endl;
 
   // my dependencies
   surface_depth_key_ = Keys::readKey(plist_, sw_domain_name_, "ponded depth", "ponded_depth");
@@ -40,6 +39,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   }
 
   if (my_keys_.front().first == "network-source_drain") {
+    pipe_flag = true;
+    sw_flag = false;
 
     mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
@@ -48,7 +49,10 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     dependencies_.insert(KeyTag{manhole_map_key_, tag});
   }
 
+  
   else if (my_keys_.front().first == "surface-source_drain") {
+    pipe_flag = false;
+    sw_flag = true;
 
     mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
@@ -56,6 +60,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
     dependencies_.insert(KeyTag{manhole_map_key_, tag});
   }
+  
   
   
 
@@ -102,10 +107,11 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
      ->ViewComponent("cell",false);
-
-
+ 
+  
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
+  
 
   double g = norm(S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT));
   double pi = 3.14159265359;
@@ -119,35 +125,33 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   // manhole cell map
     
   const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
-  
-  /*
-  if(manhole_map_key_.empty()){
-    for (int c = 0; c < ncells; c++) {
-      mhmap_c[0][c] = 1.0;
-    }
-  }
-  */
-  
 
   if(!pipe_domain_name_.empty()){
 
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
          ->ViewComponent("cell",false);
-
+     int c_pipe, c_sw;
      for (int c=0; c!=ncells; ++c) {
 
         int c1 = mhmap_c[0][c];
         //int c1 = c;
+        if (pipe_flag == true) {
+          c_pipe = c;
+          c_sw = mhmap_c[0][c];
+        } else if (sw_flag == true) {
+          c_pipe = mhmap_c[0][c];
+          c_sw = c;
+        }
 
-        if (pressHead[0][c] < drain_length_) {
-           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c1],3.0/2.0);
+        if (pressHead[0][c_pipe] < drain_length_) {
+           res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c_sw],3.0/2.0);
         } 
-        else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c1]) ){
+        else if (drain_length_ < pressHead[0][c_pipe] && pressHead[0][c_pipe] < (drain_length_ + srfcDepth[0][c_sw]) ){
            res[0][c] = - mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                       * sqrt(srfcDepth[0][c1] + drain_length_ - pressHead[0][c]);   
+                       * sqrt(srfcDepth[0][c_sw] + drain_length_ - pressHead[0][c_pipe]);   
         } 
-        else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c1])) {
-           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c1]);
+        else if (pressHead[0][c_pipe] > (drain_length_ + srfcDepth[0][c_sw])) {
+           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c_pipe] - drain_length_ - srfcDepth[0][c_sw]);
         }
      res[0][c] *= sink_source_coeff_;
      }
