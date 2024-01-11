@@ -28,6 +28,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
   sink_source_coeff_ = plist.get<double>("sink-source coefficient", 1.0);
   Tag tag = my_keys_.front().second;
+  //std::cout<<"my_keys_.front().first "<<my_keys_.front().first<<", .second = "<<my_keys_.front().second<<std::endl;
 
   // my dependencies
   surface_depth_key_ = Keys::readKey(plist_, sw_domain_name_, "ponded depth", "ponded_depth");
@@ -38,12 +39,23 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
      dependencies_.insert(KeyTag{pressure_head_key_, tag});
   }
 
-  mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
-  dependencies_.insert(KeyTag{mask_key_, tag});
+  if (my_keys_.front().first == "network-source_drain") {
 
-  
-  manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
-  dependencies_.insert(KeyTag{manhole_map_key_, tag});
+    mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
+    dependencies_.insert(KeyTag{mask_key_, tag});
+
+    manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
+    dependencies_.insert(KeyTag{manhole_map_key_, tag});
+  }
+
+  else if (my_keys_.front().first == "surface-source_drain") {
+
+    mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
+    dependencies_.insert(KeyTag{mask_key_, tag});
+
+    manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
+    dependencies_.insert(KeyTag{manhole_map_key_, tag});
+  }
   
   
 
@@ -57,14 +69,27 @@ PipeDrainEvaluator::Clone() const {
 }
 
 void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
-{                                                     
-  for (const auto& dep : dependencies_) {
-    auto domain = Keys::getDomain(dep.first);
-    if (pipe_domain_name_ == domain) {
-      auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);    
-      dep_fac.Update(fac);
-   }
- }
+{                                         
+
+  if (my_keys_.front().first == "network-source_drain") {            
+    for (const auto& dep : dependencies_) {
+      auto domain = Keys::getDomain(dep.first);
+      if (pipe_domain_name_ == domain) {
+        auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);    
+        dep_fac.Update(fac);
+      }
+    }
+  }
+  
+  else if (my_keys_.front().first == "surface-source_drain") {            
+    for (const auto& dep : dependencies_) {
+      auto domain = Keys::getDomain(dep.first);
+      if (sw_domain_name_ == domain) {
+        auto& dep_fac = S.Require<CompositeVector,CompositeVectorSpace>(dep.first, dep.second);    
+        dep_fac.Update(fac);
+      }
+    }
+  }
 }
 
 void PipeDrainEvaluator::Evaluate_(const State& S,
@@ -92,7 +117,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
 
   // manhole cell map
-  
+    
   const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
   
   /*
@@ -140,7 +165,6 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
 {
-  std::cout<<"Good till here? 5"<<std::endl;
   Tag tag = my_keys_.front().second;
 
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
