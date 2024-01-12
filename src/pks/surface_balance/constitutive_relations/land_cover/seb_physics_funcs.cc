@@ -250,7 +250,6 @@ LatentHeat(double resistance_coef,
            double vapor_pressure_skin,
            double p_atm)
 {
-  AMANZI_ASSERT(resistance_coef <= 1.);
   return resistance_coef * density_air * latent_heat_fusion * 0.622 *
          (vapor_pressure_air - vapor_pressure_skin) / p_atm;
 }
@@ -311,7 +310,8 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
     c_von_Karman;
   double Dhe_latent = WindFactor(
     met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
-  eb.fQe = LatentHeat(Dhe_latent * Sqig,
+  double coef = std::min(Dhe_latent * Sqig, 1.0);
+  eb.fQe = LatentHeat(coef,
                       params.density_air,
                       params.H_sublimation,
                       met.vp_air,
@@ -391,8 +391,7 @@ UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
     c_von_Karman;
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, KB);
   double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
-  double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
-
+  double coef = std::min(1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig)), 1.0);
 
   // positive is condensation
   eb.fQe = LatentHeat(coef,
