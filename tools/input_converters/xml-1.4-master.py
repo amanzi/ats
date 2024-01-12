@@ -93,7 +93,11 @@ def surface_temp(xml):
     except aerrors.MissingXMLError:
         pass
     else:
-        smr = asearch.child_by_name(snowmelt, "air-snow temperature difference [C]")
+        try:
+            smr = asearch.child_by_name(snowmelt, "air-snow temperature difference [C]")
+        except aerrors.MissingXMLError:
+            # already done?
+            return
 
         try:
             snow_exp_temp = asearch.find_path(xml, ["state", "evaluators", "snow-expected_temperature"])
@@ -179,7 +183,7 @@ def transpiration_relperm(xml):
     except aerrors.MissingXMLError:
         pass
     else:
-        asearch.find_path(xml, ["state", "evaluators"]).pop(wp)
+        asearch.find_path(xml, ["state", "evaluators"]).pop("plant_wilting_factor")
 
             
 def update(xml, transpiration_distribution=False):
