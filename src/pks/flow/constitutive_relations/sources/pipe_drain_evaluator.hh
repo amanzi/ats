@@ -39,6 +39,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
           const Key& wrt_key, const Tag& wrt_tag,
           const std::vector<CompositeVector*>& result) override;
   virtual void EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac) override;
+  void CreateCellMap(const State& S);
 
  protected:
  Key surface_depth_key_, pressure_head_key_, mask_key_;

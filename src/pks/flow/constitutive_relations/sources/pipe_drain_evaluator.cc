@@ -7,6 +7,7 @@
   2) hydraulic head in the pipe network (pressure_head_key_)
 
   Authors: Giacomo Capodaglio (gcapodaglio@lanl.gov)
+           Naren Vohra (vohra@lanl.gov)
 */
 
 #include "pipe_drain_evaluator.hh"
@@ -47,8 +48,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
     manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
     dependencies_.insert(KeyTag{manhole_map_key_, tag});
-  }
 
+  }
   
   else if (my_keys_.front().first == "surface-source_drain") {
     pipe_flag = false;
@@ -60,9 +61,6 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
     dependencies_.insert(KeyTag{manhole_map_key_, tag});
   }
-  
-  
-  
 
 }
 
@@ -72,6 +70,61 @@ PipeDrainEvaluator::Clone() const {
   
   return Teuchos::rcp(new PipeDrainEvaluator(*this));
 }
+
+
+void PipeDrainEvaluator::CreateCellMap(const State& S) 
+{
+  // grab the meshes 
+  Teuchos::RCP<const AmanziMesh::Mesh> pipe_mesh = S.GetMesh(pipe_domain_name_);
+  Teuchos::RCP<const AmanziMesh::Mesh> surface_mesh = S.GetMesh(sw_domain_name_);
+  
+ 
+  // get the manhole locations/ cell maps
+  Tag tag = my_keys_.front().second;
+
+  Key pipe_mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
+  Key sw_mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
+
+  Key pipe_manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
+  Key sw_manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
+
+  const Epetra_MultiVector& mnhMask_pipe = *S.GetPtr<CompositeVector>(pipe_mask_key_, tag)->ViewComponent("cell",false);
+  const Epetra_MultiVector& mnhMask_sw = *S.GetPtr<CompositeVector>(sw_mask_key_, tag)->ViewComponent("cell",false);
+
+  const Epetra_MultiVector& mnhmap_pipe = *S.GetPtr<CompositeVector>(pipe_manhole_map_key_, tag)->ViewComponent("cell",false);
+  const Epetra_MultiVector& mnhmap_sw = *S.GetPtr<CompositeVector>(sw_manhole_map_key_, tag)->ViewComponent("cell",false);
+  
+  
+
+  // loop over mesh cells and create map
+  
+  int ncells_pipe = pipe_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncells_sw = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+
+  for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
+    const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
+    for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
+      const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+      if (mnhMask_pipe[0][c_pipe] == 1 && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
+        mnhMask_sw[0][c_sw] = c_pipe; 
+      }
+    }
+  }
+
+  
+
+  for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
+    const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+    for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
+      const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
+      if (mnhMask_sw[0][c_sw] == 1 && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
+        mnhMask_pipe[0][c_pipe] = c_sw; 
+      }
+    }
+  }
+
+}
+
 
 void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
 {                                         
@@ -121,6 +174,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
 
+  CreateCellMap(S);
 
   // manhole cell map
     
