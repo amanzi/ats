@@ -24,12 +24,12 @@ Computes ponded depth from surface water pressure.
 
 where :math:`H` is the Heaviside function.
 
+Computes water table by looping through cells in the column until saturation of gas is 0.
+
 `"evaluator type`" = `"ponded depth`"
 
 .. _height-evaluator-spec:
 .. admonition:: height-evaluator-spec
-
-Computes water table by looping vertical cells until saturation of gas is 0.
 
    KEYS:
 
