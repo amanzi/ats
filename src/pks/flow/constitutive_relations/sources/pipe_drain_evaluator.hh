@@ -58,6 +58,8 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  bool pipe_flag, sw_flag;
  double cell_map_flag;
 
+ std::vector<int> pipe_map, sw_map;
+
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;
 
