@@ -108,7 +108,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
     for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
       const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
       if (std::abs(mnhMask_sw[0][c_sw] - 1.0) < 1.e-12 && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-        mnhMask_sw[0][c_sw] = c_pipe; 
+        mnhmap_sw[0][c_sw] = c_pipe; 
       }
     }
   }
@@ -120,12 +120,20 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
     for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
       const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
       if (std::abs(mnhMask_sw[0][c_pipe] - 1.0) < 1.e-12 && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-        mnhMask_pipe[0][c_pipe] = c_sw; 
+        mnhmap_pipe[0][c_pipe] = c_sw; 
       }
     }
   }
 
   cell_map_flag += 1.0;
+
+  // output
+  std::cout<<"pipe map -------------"<<std::endl;
+  std::cout<<mnhmap_pipe<<std::endl;
+
+  
+  std::cout<<"sw map -------------"<<std::endl;
+  std::cout<<mnhmap_sw<<std::endl;
 
 }
 
@@ -179,7 +187,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
 
-  if (std::abs(cell_map_flag) < 1.0) {
+  if (std::abs(cell_map_flag) < 0.5) {
     CreateCellMap(S);
   }
 
@@ -194,8 +202,6 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
      int c_pipe, c_sw;
      for (int c=0; c!=ncells; ++c) {
 
-        int c1 = mhmap_c[0][c];
-        //int c1 = c;
         if (pipe_flag == true) {
           c_pipe = c;
           c_sw = mhmap_c[0][c];
