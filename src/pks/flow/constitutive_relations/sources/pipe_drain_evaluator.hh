@@ -55,7 +55,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  double energ_loss_coeff_orifice_; // orifice
  double drain_length_; // drain conduit length
  double sink_source_coeff_; // coefficient that determines sink or source (when using same evaluator file for pipe or surface flow) 
- bool pipe_flag, sw_flag;
+ bool pipe_flag, sw_flag, pipe_map_created, sw_map_created;
  double cell_map_flag;
 
  std::vector<int> pipe_map, sw_map;

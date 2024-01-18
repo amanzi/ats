@@ -27,7 +27,6 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   drain_length_ = plist.get<double>("drain length", 0.478);
   sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
-  sink_source_coeff_ = plist.get<double>("sink-source coefficient", 1.0);
   Tag tag = my_keys_.front().second;
 
   // my dependencies
@@ -46,24 +45,28 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
 
-    manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
-    dependencies_.insert(KeyTag{manhole_map_key_, tag});
-
+    sink_source_coeff_ = -1.0;
+    std::cout<<"pipe initialize called"<<std::endl;
   }
   
-  else if (my_keys_.front().first == "surface-source_drain") {
+  else {
     pipe_flag = false;
     sw_flag = true;
 
+    
     mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
-
-    manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
-    dependencies_.insert(KeyTag{manhole_map_key_, tag});
+    
+    sink_source_coeff_ = 1.0;
+    std::cout<<"sw initialize called"<<std::endl;
   }
 
-  cell_map_flag = 0.0;
-
+  if (pipe_map_created != true) {
+    pipe_map_created = false;
+  }
+  if (sw_map_created != true) {
+    sw_map_created = false;
+  }
 }
 
 
@@ -84,16 +87,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   // get the manhole locations/ cell maps
   Tag tag = my_keys_.front().second;
 
-  Key pipe_mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
-  Key sw_mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
-
-  Key pipe_manhole_map_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole map", "manhole_map"); 
-  Key sw_manhole_map_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole map", "manhole_map"); 
-
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)->ViewComponent("cell",false);
-
-  const Epetra_MultiVector& mnhmap = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
-
   // loop over mesh cells and create map
   
   int ncells_pipe = pipe_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
@@ -102,45 +96,35 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
 
   // SW map from pipe -> SW domain
   if (pipe_flag == true) {
-  pipe_map.resize(ncells_pipe);
-  for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
-    const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
-    for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
-      const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
-      if ( (std::abs(mnhMask[0][c_pipe] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-        mnhmap[0][c_pipe] = c_sw;
-        pipe_map[c_pipe] = c_sw;
-        break; 
+    pipe_map.resize(ncells_pipe);
+    for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
+      const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+      for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
+        const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
+        if ( (std::abs(mnhMask[0][c_pipe] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
+          pipe_map[c_pipe] = c_sw;
+          break; 
+        }
       }
     }
-  }
-
-  // output
-  std::cout<<"pipe map -------------"<<std::endl;
-  std::cout<<mnhmap<<std::endl;
-
+    pipe_map_created = true;
   }
 
   // Pipe map from SW -> pipe domain
-  if (pipe_flag == false) {
-  sw_map.resize(ncells_sw);
-  for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
-    const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
-    for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
-      const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
-      if ( (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-        mnhmap[0][c_sw] = c_pipe;
-        sw_map[c_sw] = c_pipe;
-        break; 
+  if (sw_flag == true) {
+    sw_map.resize(ncells_sw);
+    for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
+      const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
+      for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
+        const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+        if ( (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
+          sw_map[c_sw] = c_pipe;
+          break; 
+        }
       }
-    }
+    } 
+    sw_map_created = true;
   }
-  std::cout<<"sw map -------------"<<std::endl;
-  std::cout<<mnhmap<<std::endl;
-  }
-
-
-  cell_map_flag += 1.0;
 }
 
 
@@ -157,7 +141,7 @@ void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVe
     }
   }
   
-  else if (my_keys_.front().first == "surface-source_drain") {            
+  else {            
     for (const auto& dep : dependencies_) {
       auto domain = Keys::getDomain(dep.first);
       if (sw_domain_name_ == domain) {
@@ -193,33 +177,36 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
 
-  if (std::abs(cell_map_flag) < 2.5) {
+  // generated cell maps
+  if (pipe_map_created == false){
     CreateCellMap(S);
+    pipe_map_created = true;
   }
-
-  // manhole cell map
-    
-  const Epetra_MultiVector& mhmap_c = *S.GetPtr<CompositeVector>(manhole_map_key_, tag)->ViewComponent("cell",false);
+  if (sw_map_created == false) {
+    CreateCellMap(S);
+    sw_map_created = true;
+  }
 
   if(!pipe_domain_name_.empty()){
 
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
          ->ViewComponent("cell",false);
+
      int c_pipe, c_sw;
+
      for (int c=0; c!=ncells; ++c) {
 
+        // use cell map
         if (pipe_flag == true) {
           c_pipe = c;
-          c_sw = mhmap_c[0][c];
           c_sw = pipe_map[c];
         } else if (sw_flag == true) {
-          c_pipe = mhmap_c[0][c];
           c_sw = c;
           c_pipe = sw_map[c];
         }
 
-        // debugging
-        /*
+        // debugging (display cell maps)
+        /* 
         if (std::abs(mnhMask[0][c] - 1.0) < 1.e-12) { 
           std::cout<<"pipe_flag =  "<<pipe_flag<<"; c_pipe = "<<c_pipe<<"; c_sw = "<<c_sw<<std::endl;
         }
@@ -247,6 +234,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
 }
 
+// Needs to be possibly UPDATED
 void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
