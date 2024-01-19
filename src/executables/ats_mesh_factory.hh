@@ -43,8 +43,11 @@ through providing a "verify mesh" option.
      - `"read mesh file`" See `Read Mesh File`_.
      - `"logical`" See `Logical Mesh`_.
      - `"surface`" See `Surface Mesh`_.
-     - `"subgrid`" See `Subgrid Meshes`_.
+     - `"extracted`" See `Extracted Mesh`_.
+     - `"domain set indexed`" See `Domain Set Meshes`_.
+     - `"domain set regions`" See `Domain Set Meshes`_.
      - `"column`" See `Column Meshes`_.
+     - `"column surface`" See `Column Surface Meshes`_.
 
    * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
      associated with the type.
@@ -167,6 +170,8 @@ Specified by `"mesh type`" of `"surface`".
 .. _mesh-surface-spec:
 .. admonition:: mesh-surface-spec
 
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
+
    ONE OF
 
    * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
@@ -180,6 +185,10 @@ Specified by `"mesh type`" of `"surface`".
    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
    * `"export mesh to file`" ``[string]`` **optional** Export the lifted
      surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
 
 Example:
 
@@ -203,6 +212,40 @@ Example:
       </ParameterList>
     </ParameterList>
 
+Extracted Mesh
+==============
+
+A mesh is created by lifting a subset of entities from a parent mesh.  Locality
+is preserved, so all local entities in this mesh have parents whose entities
+are local on the parent mesh, so that no communication is ever done when
+passing info between an parent mesh and an extracted mesh.
+
+Specified by `"mesh type`" of `"extracted`".
+
+.. _mesh-extracted-spec:
+..admonition:: mesh-extracted-spec
+
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
+
+   ONE OF
+
+   * `"region`" ``[string]`` The Region_ name containing all surface faces.
+
+   OR
+
+   * `"regions`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
+   END
+
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+     surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
+
+
 
 Aliased Mesh
 ============
@@ -221,31 +264,98 @@ Specified by `"mesh type`" of `"aliased`".
    * `"target`" ``[string]`` Mesh that this alias points to.
 
 
-Subgrid Meshes
-==============
+Domain Set Meshes
+=================
 
 A collection of meshes formed by associating a new mesh with each entity of a
-region.  Used for a few cases, including generating a 1D column for each
+region or set of indices.  This includes generating a 1D column for each
 surface face of a semi-structured subsurface mesh, or for hanging logical
 meshes off of each surface cell as a subgrid model, etc.
 
-The subgrid meshes are then named `"MESH_NAME_X"` for each X, which is an
-entity local ID, in a provided region of the provided entity type.
+The domain set meshes are then named `"MESH_NAME:X"` for each X, which can be a
+local ID of an entity (in the case of `"domain set indexed`") or a region name
+(in the case of `"domain set regions`").
 
-Specified by `"mesh type`" of `"subgrid`".
 
-.. _mesh-subgrid-spec:
-.. admonition:: mesh-subgrid-spec
+Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed`".
 
-   * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
+.. _mesh-domain-set-indexed-spec:
+.. admonition:: mesh-domain-set-indexed-spec
+
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
-     region (usually `"cell`") on which each subgrid mesh will be associated.
-   * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-   * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
-     mesh instead of one per entity.
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
 
-.. todo::
-   WIP: Add examples (intermediate scale model, transport subgrid model)
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"entity LID`") that is filled in by this index.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="column:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set indexed" />
+      <ParameterList name="domain set indexed parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="surface" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{surface}" />
+        <ParameterList name="column:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="column" />
+          <ParameterList name="column parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+
+
+Region-based domain set meshes are specified by `"mesh type`" of `"domain set regions`".
+
+.. _mesh-domain-set-regions-spec:
+.. admonition:: mesh-domain-set-regions-spec
+
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
+   * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
+
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"region`") that is filled in by this domain set.
+
+Example: the below example shows how to extract two subdomains, making them
+each a proper mesh whose communicators only live where they have cells, thereby
+decomposing the domain mesh into two subdomains.
+
+.. code-block:: xml
+
+    <ParameterList name="watershed:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set regions" />
+      <ParameterList name="domain set regions parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="domain" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{upstream, downstream}" />
+        <ParameterList name="watershed:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="extracted" />
+          <ParameterList name="extracted parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+            <Parameter name="create subcommunicator" type="bool" value="true" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
 
 
 Column Meshes
@@ -253,7 +363,7 @@ Column Meshes
 
 .. warning::
    Note these are rarely if ever created manually by a user.  Instead use
-   `Subgrid Meshes`_, which generate a column mesh spec for every face
+   `Domain Set Meshes`_, which generate a column mesh spec for every face
    of a set.
 
 Specified by `"mesh type`" of `"column`".
@@ -286,6 +396,27 @@ Example:
         </ParameterList>
       </ParameterList>
     </ParameterList>
+
+
+Column Surface Meshes
+=====================
+
+.. warning::
+   Note these are rarely if ever created manually by a user.  Instead use
+   `Domain Set Meshes`_, which generate a column surface mesh spec for every face
+   of a set.
+
+Specified by `"mesh type`" of `"column surface`".
+
+.. _mesh-column-spec:
+.. admonition:: mesh-column-spec
+
+   * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+     Note that the `"build columns from set`" parameter must be set in that mesh.
+   * `"surface region`" ``[string]`` Region of the surface of the parent mesh.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
+
 
 */
 

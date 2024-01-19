@@ -166,7 +166,7 @@ if (BUILD_TESTS)
            SOURCE test/Main.cc test/executable_mesh_factory.cc
            LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
-  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 2 KIND uint)
+  add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 4 KIND uint)
 
   # test for coupled water preconditioners
   add_amanzi_test(executable_coupled_water executable_coupled_water

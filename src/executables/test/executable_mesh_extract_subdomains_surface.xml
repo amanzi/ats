@@ -31,6 +31,7 @@
           <Parameter name="mesh type" type="string" value="extracted" />
           <ParameterList name="extracted parameters" type="ParameterList">
             <Parameter name="parent domain" type="string" value="domain" />
+            <Parameter name="create subcommunicator" type="bool" value="true" />
             <ParameterList name="verbose object" type="ParameterList">
               <Parameter name="verbosity level" type="string" value="high" />
             </ParameterList>
@@ -50,6 +51,7 @@
           <ParameterList name="surface parameters" type="ParameterList">
             <Parameter name="parent domain" type="string" value="watershed:*" />
             <Parameter name="region" type="string" value="surface" />
+            <Parameter name="create subcommunicator" type="bool" value="true" />
             <ParameterList name="verbose object" type="ParameterList">
               <Parameter name="verbosity level" type="string" value="high" />
             </ParameterList>

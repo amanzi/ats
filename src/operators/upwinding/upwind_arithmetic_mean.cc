@@ -84,7 +84,7 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
   unsigned int f_owned =
     mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int f = 0; f != f_owned; ++f) {
-    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh->getFaceCells(f);
     if (cells.size() == 1) { face_coef_f[0][f] *= 2.; }
   }
 };
@@ -121,7 +121,7 @@ UpwindArithmeticMean::UpdateDerivatives(
 
   for (unsigned int f = 0; f != nfaces_owned; ++f) {
     // get neighboring cells
-    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh->getFaceCells(f);
     int mcells = cells.size();
 
     // create the local matrix

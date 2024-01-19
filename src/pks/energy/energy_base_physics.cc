@@ -20,7 +20,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 #include "energy_base.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 
 namespace Amanzi {
 namespace Energy {

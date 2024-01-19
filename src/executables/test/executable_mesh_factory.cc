@@ -19,6 +19,19 @@
 
 using namespace Amanzi;
 
+void
+parallel_print(const Comm_ptr_type& comm, const std::string& str)
+{
+  for (int i = 0; i != comm->NumProc(); ++i) {
+    if (i == comm->MyPID()) {
+      std::cout << "[" << i << "/" << comm->NumProc() << "] " << str;
+      std::flush(std::cout);
+    }
+    comm->Barrier();
+  }
+}
+
+
 struct Runner {
   Runner() {}
 
@@ -77,6 +90,38 @@ SUITE(ATS_MESH_FACTORY)
     CHECK(S->HasMesh(""));
     CHECK(S->HasMesh("domain"));
 
+    // validate the mesh?
+    auto& domain = *S->GetMesh("domain");
+    auto ncells = domain.ncells_owned;
+    std::stringstream str;
+    str << "Created a DOMAIN mesh with " << ncells << " cells" << std::endl;
+    parallel_print(comm, str.str());
+
+    int ncells_g;
+    comm->SumAll(&ncells, &ncells_g, 1);
+    CHECK_EQUAL(8400, ncells_g);
+
+    // validate the upstream set
+    auto upstream_count = domain.getSetSize(
+      "upstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    std::stringstream str2;
+    str2 << "Upstream Region has " << upstream_count << " cells" << std::endl;
+    parallel_print(comm, str2.str());
+    int upstream_count_g;
+    comm->SumAll(&upstream_count, &upstream_count_g, 1);
+    CHECK_EQUAL(4200, upstream_count_g);
+
+    // validate the downstream set
+    auto downstream_count = domain.getSetSize(
+      "downstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    std::stringstream str3;
+    str3 << "Downstream Region has " << downstream_count << " cells" << std::endl;
+    parallel_print(comm, str3.str());
+    int downstream_count_g;
+    comm->SumAll(&downstream_count, &downstream_count_g, 1);
+    CHECK_EQUAL(4200, downstream_count_g);
+
+    // validate hte upstream mesh
     int has_upstream = 0;
     int set_size = S->GetMesh("domain")->getSetSize(
       "upstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
@@ -87,13 +132,32 @@ SUITE(ATS_MESH_FACTORY)
         set_size,
         S->GetMesh("watershed:upstream")
           ->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+    } else {
+      CHECK(!S->HasMesh("watershed:upstream"));
     }
 
     int total_has_upstream = 0;
     comm->SumAll(&has_upstream, &total_has_upstream, 1);
     CHECK(total_has_upstream > 0);
 
-    // create a vector and fill
+    // NOTE: this is NOT gauranteed for all partitionings, so this may fail
+    // eventually.  This check simply makes sure the test is valid and hlepful
+    // by having at least one rank without the upstream domain
+    if (comm->NumProc() > 1) CHECK(total_has_upstream < comm->NumProc());
+    if (comm->MyPID() == 0)
+      std::cout << "Upstream found on " << total_has_upstream << " / " << comm->NumProc()
+                << " ranks" << std::endl;
+
+    // check the right sizes of the upstream mesh
+    if (has_upstream) {
+      auto& up_mesh = *S->GetMesh("watershed:upstream");
+      int ncells_upstream = up_mesh.ncells_owned;
+      int ncells_upstream_g;
+      up_mesh.getComm()->SumAll(&ncells_upstream, &ncells_upstream_g, 1);
+      CHECK_EQUAL(4200, ncells_upstream_g);
+    }
+
+    // create a vector and fill by domain set
     std::map<std::string, Teuchos::RCP<Epetra_MultiVector>> subdomain_vecs;
     auto ds = S->GetDomainSet("watershed");
     for (const auto& subdomain : *ds) {
@@ -116,8 +180,8 @@ SUITE(ATS_MESH_FACTORY)
     vec.MinValue(&result);
     CHECK_EQUAL(1.0, result);
 
-    vec.MeanValue(&result);
-    CHECK_CLOSE(1.5, result, 1.e-6);
+    vec.Norm1(&result);
+    CHECK_CLOSE(4200 * 1 + 4200 * 2, result, 1.e-6);
   }
 
 
@@ -129,7 +193,18 @@ SUITE(ATS_MESH_FACTORY)
     CHECK(S->HasMesh(""));
     CHECK(S->HasMesh("domain"));
 
-    // check we got a valid surface mesh
+    // validate the mesh?
+    auto& domain = *S->GetMesh("domain");
+    auto ncells = domain.ncells_owned;
+    std::stringstream str;
+    str << "Created a DOMAIN mesh with " << ncells << " cells" << std::endl;
+    parallel_print(comm, str.str());
+
+    int ncells_g;
+    comm->SumAll(&ncells, &ncells_g, 1);
+    CHECK_EQUAL(8400, ncells_g);
+
+    // validate the surface mesh?
     int has_surface = 0;
     int set_size = S->GetMesh("domain")->getSetSize(
       "surface", AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
@@ -139,35 +214,73 @@ SUITE(ATS_MESH_FACTORY)
       CHECK_EQUAL(set_size,
                   S->GetMesh("surface")->getNumEntities(AmanziMesh::Entity_kind::CELL,
                                                         AmanziMesh::Parallel_kind::OWNED));
+    } else {
+      CHECK(!S->HasMesh("surface"));
     }
-
     int total_has_surface = 0;
     comm->SumAll(&has_surface, &total_has_surface, 1);
     CHECK(total_has_surface > 0);
+    // horizontal decomposition means all ranks have surface
+    CHECK(total_has_surface == comm->NumProc());
 
-    // check we got upstream/downstream subdomains
-    int has_upstream = 0;
-    int set_size_us = S->GetMesh("domain")->getSetSize(
+    // validate the upstream set
+    auto upstream_count = domain.getSetSize(
       "upstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-    if (set_size_us > 0) {
+    std::stringstream str2;
+    str2 << "Upstream Region has " << upstream_count << " cells" << std::endl;
+    parallel_print(comm, str2.str());
+    int upstream_count_g;
+    comm->SumAll(&upstream_count, &upstream_count_g, 1);
+    CHECK_EQUAL(4200, upstream_count_g);
+
+    // validate the downstream set
+    auto downstream_count = domain.getSetSize(
+      "downstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    std::stringstream str3;
+    str3 << "Downstream Region has " << downstream_count << " cells" << std::endl;
+    parallel_print(comm, str3.str());
+    int downstream_count_g;
+    comm->SumAll(&downstream_count, &downstream_count_g, 1);
+    CHECK_EQUAL(4200, downstream_count_g);
+
+    // validate the upstream mesh
+    int has_upstream = 0;
+    int us_set_size = S->GetMesh("domain")->getSetSize(
+      "upstream", AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    if (us_set_size > 0) {
       has_upstream += 1;
       CHECK(S->HasMesh("watershed:upstream"));
       CHECK_EQUAL(
-        set_size_us,
+        us_set_size,
         S->GetMesh("watershed:upstream")
           ->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+    } else {
+      CHECK(!S->HasMesh("watershed:upstream"));
     }
 
     int total_has_upstream = 0;
     comm->SumAll(&has_upstream, &total_has_upstream, 1);
     CHECK(total_has_upstream > 0);
 
-    // check we got upstream surface subdomain
+    // NOTE: this is NOT gauranteed for all partitionings, so this may fail
+    // eventually.  This check simply makes sure the test is valid and hlepful
+    // by having at least one rank without the upstream domain
+    if (comm->NumProc() > 1) CHECK(total_has_upstream < comm->NumProc());
+    if (comm->MyPID() == 0)
+      std::cout << "Upstream found on " << total_has_upstream << " / " << comm->NumProc()
+                << " ranks" << std::endl;
+
+    // validate the upstream
     int has_surf_upstream = has_surface && has_upstream ? 1 : 0;
-    if (has_surf_upstream) { CHECK(S->HasMesh("surface_watershed:upstream")); }
+    if (has_surf_upstream) {
+      CHECK(S->HasMesh("surface_watershed:upstream"));
+    } else {
+      CHECK(!S->HasMesh("surface_watershed:upstream"));
+    }
     int total_has_surf_upstream = 0;
     comm->SumAll(&has_surf_upstream, &total_has_surf_upstream, 1);
     CHECK(total_has_surf_upstream > 0);
+    CHECK_EQUAL(total_has_upstream, total_has_surf_upstream); // horizontal decomposition
 
     // create a vector and fill
     std::map<std::string, Teuchos::RCP<Epetra_MultiVector>> subdomain_vecs;
@@ -196,8 +309,8 @@ SUITE(ATS_MESH_FACTORY)
       vec.MinValue(&result);
       CHECK_EQUAL(1.0, result);
 
-      vec.MeanValue(&result);
-      CHECK_CLOSE(1.5, result, 1.e-6);
+      vec.Norm1(&result);
+      CHECK_CLOSE(1 * 420 + 2 * 420, result, 1.e-6);
     }
   }
 

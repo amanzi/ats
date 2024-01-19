@@ -7,7 +7,7 @@
   Authors:
 */
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "fractional_conductance_evaluator.hh"
 #include "subgrid_microtopography.hh"
 

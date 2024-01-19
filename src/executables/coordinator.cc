@@ -581,7 +581,7 @@ Coordinator::advance()
         }
 
         // undeform the mesh
-        Amanzi::AmanziMesh::MeshAlgorithms::deform(*(mesh->second.first), node_ids, old_positions);
+        Amanzi::AmanziMesh::deform(*(mesh->second.first), node_ids, old_positions);
       }
     }
   }

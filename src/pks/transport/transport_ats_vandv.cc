@@ -139,7 +139,7 @@ Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double 
         for (int m = 0; m < nblock; m++) {
           int f = block[m];
 
-          auto cells = mesh_->getFaceCells(f, Amanzi::AmanziMesh::Parallel_kind::ALL);
+          auto cells = mesh_->getFaceCells(f);
           int dir, c = cells[0];
 
           const AmanziGeometry::Point& normal = mesh_->getFaceNormal(f, c, &dir);
