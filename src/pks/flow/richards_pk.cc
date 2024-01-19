@@ -88,19 +88,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 
-  // all manipulation of evaluator lists should happen in constructors (pre-setup)
-  // -- WRM: This deals with deprecated location for the WRM list (in the PK).
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "WRM");
-  }
-  if (S_->GetEvaluatorList(coef_key_).numParams() == 0) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
-
   // scaling for permeability for better "nondimensionalization"
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);

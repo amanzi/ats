@@ -27,8 +27,8 @@ WRMLinearRelPerm::WRMLinearRelPerm(Teuchos::ParameterList& plist) : plist_(plist
 void
 WRMLinearRelPerm::InitializeFromPlist_()
 {
-  AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
-  Teuchos::ParameterList sublist = plist_.sublist("WRM parameters");
+  std::string params_name = plist_.get<std::string>("model parameters", "WRM parameters");
+  Teuchos::ParameterList& sublist = plist_.sublist(params_name);
 
   WRMFactory fac;
   wrm_ = fac.createWRM(sublist);

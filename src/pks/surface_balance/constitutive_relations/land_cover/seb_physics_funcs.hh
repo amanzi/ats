@@ -122,17 +122,8 @@ VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 double
 EvaporativeResistanceGround(const GroundProperties& surf,
                             const MetData& met,
-                            const ModelParams& params,
                             double vapor_pressure_ground);
 
-double
-EvaporativeResistanceCoefSakaguckiZeng(double saturation_gas,
-                                       double porosity,
-                                       double dessicated_zone_thickness,
-                                       double Clapp_Horn_b);
-
-double
-EvaporativeResistanceCoefSellers(double saturation_liq);
 
 //
 // Basic sensible heat.

@@ -14,7 +14,7 @@ namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, RelPermFrzBCEvaluator>
-  RelPermFrzBCEvaluator::factory_("Brooks-Corey based high frozen rel perm");
+  RelPermFrzBCEvaluator::factory_("relative permeability, freezing Brooks Corey");
 
 } // namespace Flow
 } // namespace Amanzi

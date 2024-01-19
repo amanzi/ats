@@ -65,7 +65,7 @@ plant is assumed.
 
 .. _transpiration-distribution-relperm-evaluator-spec:
 .. admonition:: transpiration-distribution-relperm-evaluator-spec
-   
+
    * `"total maximal conductance [mol m^-2 s^-1 MPa^-1]`" ``[double]`` **10**
      :math:`c0` above, the total maximal conductance
    * `"plant relative conductance [-]`" ``[double]`` **0** Relative conductance

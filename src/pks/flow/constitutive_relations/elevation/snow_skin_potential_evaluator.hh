@@ -27,9 +27,9 @@ snow precip, so defines what we mean by low-lying.
      Typically on the order of 1e4-1e7. This timestep times the wave speed of
      snow provides an approximate length of how far snow precip can travel.
      Extremely tunable! [s]
-                
+
    KEYS:
-                
+
    - `"ponded depth`" **SURFACE_DOMAIN-ponded_depth** [m]
    - `"snow depth`" **DOMAIN-depth** [m]
    - `"precipitation snow`" **DOMAIN-precipitation** [m s^-1]
