@@ -259,6 +259,7 @@ Transport_ATS::Setup()
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+
   if (subcycling_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(
       molar_density_key_, tag_subcycle_current_, name_);
@@ -1036,6 +1037,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   // ETC BEGIN HACKING
   StableTimeStep();
+
+  ChangedSolutionPK(tag_next_);
   return failed;
 }
 
@@ -1241,6 +1244,7 @@ Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   assign(tcc_key_, tag_current, tag_next, *S_);
+
   if (tag_next == Tags::NEXT) {
     assign(saturation_key_, tag_current, tag_next, *S_);
     assign(molar_density_key_, tag_current, tag_next, *S_);
@@ -1802,6 +1806,12 @@ Transport_ATS::InterpolateCellVector(const Epetra_MultiVector& v0,
   double a = dt_int / dt;
   double b = 1.0 - a;
   v_int.Update(b, v0, a, v1, 0.);
+}
+
+void
+Transport_ATS::ChangedSolutionPK(const Tag& tag)
+{
+  changedEvaluatorPrimary(key_, tag, *S_);
 }
 
 } // namespace Transport
