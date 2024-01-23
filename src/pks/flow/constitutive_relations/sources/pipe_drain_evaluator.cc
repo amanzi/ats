@@ -38,7 +38,10 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
      dependencies_.insert(KeyTag{pressure_head_key_, tag});
   }
 
-  if (my_keys_.front().first == "network-source_drain") {
+  // figure out if SW or pipe is calling the evaluator
+  auto domain = Keys::getDomain(my_keys_.front().first);
+  
+  if (domain == pipe_domain_name_) {
     pipe_flag = true;
     sw_flag = false;
 
@@ -46,19 +49,16 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     dependencies_.insert(KeyTag{mask_key_, tag});
 
     sink_source_coeff_ = -1.0;
-    std::cout<<"pipe initialize called"<<std::endl;
   }
   
   else {
     pipe_flag = false;
     sw_flag = true;
 
-    
     mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
     
     sink_source_coeff_ = 1.0;
-    std::cout<<"sw initialize called"<<std::endl;
   }
 
   if (pipe_map_created != true) {
@@ -131,7 +131,8 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
 void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
 {                                         
 
-  if (my_keys_.front().first == "network-source_drain") {            
+  auto domain1 = Keys::getDomain(my_keys_.front().first);
+  if (domain1 == pipe_domain_name_) {            
     for (const auto& dep : dependencies_) {
       auto domain = Keys::getDomain(dep.first);
       if (pipe_domain_name_ == domain) {
@@ -177,7 +178,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   int ncells = res.MyLength();
 
-  // generated cell maps
+  // generate cell maps
   if (pipe_map_created == false){
     CreateCellMap(S);
     pipe_map_created = true;
@@ -204,13 +205,6 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
           c_sw = c;
           c_pipe = sw_map[c];
         }
-
-        // debugging (display cell maps)
-        /* 
-        if (std::abs(mnhMask[0][c] - 1.0) < 1.e-12) { 
-          std::cout<<"pipe_flag =  "<<pipe_flag<<"; c_pipe = "<<c_pipe<<"; c_sw = "<<c_sw<<std::endl;
-        }
-        */
 
         if (pressHead[0][c_pipe] < drain_length_) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c_sw],3.0/2.0);
