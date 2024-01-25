@@ -591,7 +591,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
 //         for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
 //           if (!(*flags)[f]) {
 //             AmanziMesh::Entity_ID_List f_cells;
-//             f_cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//             f_cells = mesh_->getFaceCells(f);
 //             if (f_cells.size() == 1) {
 //               // boundary face, use the cell value as the water table is
 //               // assumed to parallel the cell structure
@@ -766,7 +766,7 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       //   for (int f = 0; f != markers.size(); ++f) {
       //     if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
       //       AmanziMesh::Entity_ID_List cells;
-      //       cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      //       cells = mesh_->getFaceCells(f);
       //       AMANZI_ASSERT(cells.size() == 1);
       //       int c = cells[0];
       //       AmanziMesh::Entity_ID_List faces;
@@ -821,7 +821,7 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       // for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
       //   auto f = fmap.LID(bfmap.GID(bf));
       //   AmanziMesh::Entity_ID_List fcells;
-      //   fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      //   fcells = mesh_->getFaceCells(f);
       //   AMANZI_ASSERT(fcells.size() == 1);
       //   if (pres[0][fcells[0]] < 101225.) {
       //     uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
@@ -1013,7 +1013,7 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
 //   int f_owned = u_f.MyLength();
 //   for (int f = 0; f != f_owned; ++f) {
 //     AmanziMesh::Entity_ID_List cells;
-//     cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     cells = mesh_->getFaceCells(f);
 //     int ncells = cells.size();
 
 //     double face_value = 0.0;

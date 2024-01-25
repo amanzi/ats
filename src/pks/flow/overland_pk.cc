@@ -424,7 +424,7 @@ OverlandFlow::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
       AmanziMesh::Entity_ID_List cells;
       int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
       for (int f = 0; f != nfaces_owned; ++f) {
-        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        cells = mesh_->getFaceCells(f);
         if (cells.size() == 1) {
           int c = cells[0];
           uw_cond_f[0][f] = cond_c[0][c];
@@ -529,7 +529,7 @@ OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
            ++bc) {
         int f = bc->first;
 
-        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double hz_f = bc->second + elevation[0][f];
@@ -549,7 +549,7 @@ OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
            bc != bc_seepage_head_->end();
            ++bc) {
         int f = bc->first;
-        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double hz_f = bc->second + elevation[0][f];
@@ -580,7 +580,7 @@ OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
          bc != bc_critical_depth_->end();
          ++bc) {
       int f = bc->first;
-      cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = mesh_->getFaceCells(f);
       int c = cells[0];
 
       bc_markers()[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -592,7 +592,7 @@ OverlandFlow::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
   int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (bc_markers()[f] == Operators::OPERATOR_BC_NONE) {
-      cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {
@@ -628,7 +628,7 @@ OverlandFlow::FixBCsForOperator_(const Teuchos::Ptr<State>& S)
     int f = bc->first;
 
     AmanziMesh::Entity_ID_List cells;
-    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = mesh_->getFaceCells(f);
     AMANZI_ASSERT(cells.size() == 1);
     AmanziMesh::Entity_ID c = cells[0];
 

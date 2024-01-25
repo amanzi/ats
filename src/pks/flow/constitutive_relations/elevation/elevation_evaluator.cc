@@ -63,7 +63,7 @@ ElevationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      cells = slope->getMesh()->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = slope->getMesh()->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       slope_bf[0][bf] = slope_c[0][cells[0]];

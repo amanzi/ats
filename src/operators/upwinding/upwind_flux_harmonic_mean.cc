@@ -67,7 +67,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for("upwind_flux_harmonic_mean", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto fcells = mesh->getFaceCells(f);
 
                            int uw = -1, dw = -1;
                            int c0 = fcells(0);

@@ -143,7 +143,7 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
       int nfaces = dvec_v.extent(0);
       Kokkos::parallel_reduce("PK_PhysicalBDF_Default::ErrorNorm", nfaces,
               KOKKOS_LAMBDA(const int& f, Reductions::MaxLoc<double, GO>& lval) {
-                auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::OWNED);
+                auto cells = mesh_->getFaceCells(f);
                 double cv_min =
                   cells.size() == 1 ? cv(cells[0],0) : std::min(cv(cells[0],0), cv(cells[1],0));
                 double conserved_min = cells.size() == 1 ?
@@ -189,6 +189,7 @@ PK_PhysicalBDF_Default::CommitStep(double t_old, double t_new, const Tag& tag_ne
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   // copy over conserved quantity
+  S_->Get<CompositeVector>(conserved_key_, tag_next).scatterMasterToGhosted();
   PKHelpers::assign(conserved_key_, tag_current, tag_next, *S_);
 }
 

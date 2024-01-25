@@ -1700,7 +1700,7 @@ Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
 
   AmanziMesh::Entity_ID_List cells;
   for (int f = 0; f < nfaces_wghost; f++) {
-    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = mesh_->getFaceCells(f);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;
   }
 
@@ -1768,7 +1768,7 @@ Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flu
   AmanziMesh::Entity_ID_List cells;
 
   for (int f = 0; f < nfaces_wghost; f++) {
-    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = mesh_->getFaceCells(f);
     double n_liq = 0.;
     for (int c = 0; c < cells.size(); c++) n_liq += (*molar_density)[0][c];
     n_liq /= cells.size();

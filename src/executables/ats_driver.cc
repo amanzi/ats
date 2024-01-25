@@ -8,9 +8,6 @@
 */
 
 #include <iostream>
-#include <unistd.h>
-#include <sys/resource.h>
-#include <Epetra_MpiComm.h>
 
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
@@ -22,13 +19,11 @@
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
 
-#include "InputAnalysis.hh"
 #include "Units.hh"
 #include "CompositeVector.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
-#include "IO.hh"
 #include "Checkpoint.hh"
 #include "UnstructuredObservations.hh"
 #include "State.hh"

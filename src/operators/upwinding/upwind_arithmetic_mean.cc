@@ -66,7 +66,7 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 
     Kokkos::parallel_for("upwind_arithmetic_mean", face_coef_f.extent(0),
                          KOKKOS_LAMBDA(const int& f) {
-                           auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto cells = mesh->getFaceCells(f);
                            for (const auto& c : cells) {
                              face_coef_f(f,0) += cell_coef_c(c,0);
                            }
@@ -110,7 +110,7 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 //   for (unsigned int f = 0; f != nfaces_owned; ++f) {
 //     // get neighboring cells
 //     AmanziMesh::Entity_ID_List cells;
-//     cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     cells = mesh->getFaceCells(f);
 //     int mcells = cells.size();
 
 //     // create the local matrix

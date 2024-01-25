@@ -236,7 +236,7 @@ SnowDistribution::UpdatePermeabilityData_(const Teuchos::Ptr<State>& S)
       int nfaces = uw_cond_f.MyLength();
       AmanziMesh::Entity_ID_List cells;
       for (int f = 0; f != nfaces; ++f) {
-        cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        cells = mesh_->getFaceCells(f);
         if (cells.size() == 1) {
           int c = cells[0];
           uw_cond_f[0][f] = cond_c[0][c];
@@ -266,7 +266,7 @@ SnowDistribution::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
   AmanziMesh::Entity_ID_List cells;
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {

@@ -48,7 +48,7 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
 {
   // inner cell and its water retention model
   AmanziMesh::Entity_ID_List cells;
-  cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+  cells = mesh_->getFaceCells(f);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 
@@ -178,7 +178,7 @@ PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   std::cout << "  Converged to " << lambda << " in " << actual_it << " steps." << std::endl;
 
   AmanziMesh::Entity_ID_List cells;
-  cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+  cells = mesh_->getFaceCells(f);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 

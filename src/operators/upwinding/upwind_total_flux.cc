@@ -83,7 +83,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
     Kokkos::parallel_for("upwind_total_flux", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto fcells = mesh->getFaceCells(f);
 
                            int uw = -1, dw = -1;
                            int c0 = fcells(0);
@@ -216,7 +216,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 //     AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
 //     AmanziMesh::Entity_ID_List cells;
-//     cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     cells = mesh->getFaceCells(f);
 //     int mcells = cells.size();
 
 //     // uw coef

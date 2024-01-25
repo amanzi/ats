@@ -90,7 +90,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
     // These parameters may be key to a smooth convergence rate near zero flux.
     Kokkos::parallel_for("upwind_flux_split_denominator", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto fcells = mesh->getFaceCells(f);
 
                            double denominator = 0.0;
                            double coefs[2] = { 0., 0. };

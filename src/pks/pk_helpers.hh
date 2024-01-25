@@ -18,7 +18,6 @@
 
 #include "EvaluatorPrimary.hh"
 #include "State.hh"
-#include "Chemistry_PK.hh"
 
 namespace Amanzi {
 namespace PKHelpers {

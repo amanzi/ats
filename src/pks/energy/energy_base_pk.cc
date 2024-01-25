@@ -623,7 +623,7 @@ EnergyBase::UpdateBoundaryConditions_(const Tag& tag)
   int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {
@@ -820,7 +820,7 @@ EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
   int f_owned = u_f.MyLength();
   for (int f = 0; f != f_owned; ++f) {
     AmanziMesh::Entity_ID_List cells;
-    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = mesh_->getFaceCells(f);
     int ncells = cells.size();
 
     double face_value = 0.0;

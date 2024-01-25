@@ -31,14 +31,11 @@ actual work.
 #include "AmanziComm.hh"
 #include "AmanziTypes.hh"
 
-#include "InputAnalysis.hh"
-
 #include "Units.hh"
 #include "CompositeVector.hh"
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
-#include "IO.hh"
 #include "GeometricModel.hh"
 #include "Checkpoint.hh"
 #include "UnstructuredObservations.hh"
@@ -118,13 +115,13 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         ->SetComponent("node", Amanzi::AmanziMesh::Entity_kind::NODE, mesh->second.first->getSpaceDimension());
     }
 
-    // writes region information
-    if (plist_->isSublist("analysis")) {
-      Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
-      analysis.Init(plist_->sublist("analysis").sublist(mesh->first));
-      analysis.RegionAnalysis();
-      analysis.OutputBCs();
-    }
+    // // writes region information
+    // if (plist_->isSublist("analysis")) {
+    //   Amanzi::InputAnalysis analysis(mesh->second.first, mesh->first);
+    //   analysis.Init(plist_->sublist("analysis").sublist(mesh->first));
+    //   analysis.RegionAnalysis();
+    //   analysis.OutputBCs();
+    // }
   }
 
   // create verbose object

@@ -111,7 +111,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for("upwind_flux_elevation_stabilized", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto fcells = mesh->getFaceCells(f);
 
                            double denom[2] = { 0., 0. };
                            double weight[2] = { 0., 0. };

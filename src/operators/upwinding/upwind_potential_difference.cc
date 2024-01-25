@@ -76,7 +76,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
     Kokkos::parallel_for("upwind_total_flux", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
 
-                           auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto cells = mesh->getFaceCells(f);
 
                            if (cells.size() == 1) {
                              if (potential_f.extent(0) > 0) {
@@ -161,7 +161,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
 
 //   for (unsigned int f = 0; f != nfaces_owned; ++f) {
 //     AmanziMesh::Entity_ID_List cells;
-//     cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     cells = mesh->getFaceCells(f);
 //     int mcells = cells.size();
 
 //     // create the local matrix

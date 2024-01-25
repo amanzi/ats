@@ -87,7 +87,7 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
     AMANZI_ASSERT(false);
     // Kokkos::parallel_for("upwind_gravity_flux", nfaces_local,
     //                      KOKKOS_LAMBDA(const int& f) {
-    //                        auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    //                        auto fcells = mesh->getFaceCells(f);
     //                        int c0 = fcells(0);
     //                        int orientation = 0;
     //                        auto normal = mesh->getFaceNormal(f, c0, &orientation);

@@ -55,7 +55,7 @@ TopCellsSurfaceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
     // get the cell interior to the face
     AmanziMesh::Entity_ID_List cells;
-    cells = result[0]->getMesh()->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = result[0]->getMesh()->getFaceCells(f);
     AMANZI_ASSERT(cells.size() == 1);
 
     result_cells[0][cells[0]] = surf_vector_cells[0][c];

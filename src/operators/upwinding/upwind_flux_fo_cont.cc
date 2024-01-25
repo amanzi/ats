@@ -93,7 +93,7 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
     // These parameters may be key to a smooth convergence rate near zero flux.
     Kokkos::parallel_for("upwind_flux_fo_cont", nfaces_local,
                          KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+                           auto fcells = mesh->getFaceCells(f);
 
                            double pds[2] = { 0., 0. };
 

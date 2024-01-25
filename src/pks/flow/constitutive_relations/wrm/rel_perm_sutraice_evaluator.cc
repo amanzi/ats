@@ -179,7 +179,7 @@ RelPermSutraIceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     for (unsigned int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      cells = mesh->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];
