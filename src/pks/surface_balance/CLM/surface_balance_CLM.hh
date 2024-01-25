@@ -21,7 +21,7 @@
 #ifndef PK_SURFACE_BALANCE_CLM_HH_
 #define PK_SURFACE_BALANCE_CLM_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {

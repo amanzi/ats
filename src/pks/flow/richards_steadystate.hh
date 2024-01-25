@@ -32,7 +32,7 @@ This is the same as Richards equation, but turns off the accumulation term.
 #include "State.hh"
 #include "upwinding.hh"
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "richards.hh"
 
 namespace Amanzi {

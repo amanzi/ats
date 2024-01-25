@@ -19,7 +19,7 @@
 
 // #include "pk_factory_ats.hh"
 // #include "pk_physical_bdf_base.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_bdf_default.hh"
 
 

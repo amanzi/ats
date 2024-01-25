@@ -46,7 +46,7 @@ class WeakMPC : public MPC<PK> {
 
   virtual void setDt(double dt) override;
 
-  // type info used in PK_Factory
+  // type info used in PKFactory
   static const std::string type;
   virtual const std::string& getType() const override { return type; }
 

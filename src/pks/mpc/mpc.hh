@@ -44,7 +44,7 @@ respective methods.
 #include "TreeVector.hh"
 
 #include "PK.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 
 namespace Amanzi {
 

@@ -10,7 +10,7 @@
 #ifndef PK_FATES_HH_
 #define PK_FATES_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_default.hh"
 #include "ISO_Fortran_binding.h"
 

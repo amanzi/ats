@@ -26,7 +26,7 @@ A three-phase flow PK based on the Interfrost code comparison.
 #include "BoundaryFunction.hh"
 
 #include "PK.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 
 #include "permafrost.hh"
 

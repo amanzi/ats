@@ -48,7 +48,7 @@ class StrongMPC : public MPC<PK_t>, public PK_BDF_Default {
   virtual void Setup() override;
   virtual void Initialize() override;
 
-  // type info used in PK_Factory
+  // type info used in PKFactory
   static const std::string type;
   virtual const std::string& getType() const override { return type; }
 

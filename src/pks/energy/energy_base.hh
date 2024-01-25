@@ -149,7 +149,7 @@ Solves an advection-diffusion equation for energy:
 #ifndef PKS_ENERGY_BASE_HH_
 #define PKS_ENERGY_BASE_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 
 #include "PDE_Diffusion.hh"
 #include "PDE_DiffusionMFD.hh"

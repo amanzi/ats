@@ -263,7 +263,7 @@ The advection-diffusion equation for component *i* in the surface may be written
 #include "Explicit_TI_FnBase.hh"
 #include "MaterialProperties.hh"
 #include "PK.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "ReconstructionCellLinear.hh"
 #include "State.hh"
 #include "Tensor.hh"

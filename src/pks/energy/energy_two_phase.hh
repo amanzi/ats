@@ -26,7 +26,7 @@ hard-coded evaluators.
 #ifndef PKS_ENERGY_TWO_PHASE_HH_
 #define PKS_ENERGY_TWO_PHASE_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "energy_base.hh"
 
 namespace Amanzi {

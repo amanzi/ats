@@ -29,7 +29,7 @@
 #include "State.hh"
 #include "PK.hh"
 #include "TreeVector.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 
 #include "pk_helpers.hh"
 #include "exceptions.hh"
@@ -135,7 +135,7 @@ ATSDriver::cycle_driver()
   }
 
   // finalizing simulation
-  WriteStateStatistics(*S_, *vo_);
+  S_->WriteStatistics(vo_.ptr());
   report_memory();
   Teuchos::TimeMonitor::summarize(*vo_->os());
 

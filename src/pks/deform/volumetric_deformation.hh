@@ -114,7 +114,7 @@ values from the old time.
 #include "Function.hh"
 
 #include "PK.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_default.hh"
 #include "pk_helpers.hh"
 //#include "MatrixVolumetricDeformation.hh"

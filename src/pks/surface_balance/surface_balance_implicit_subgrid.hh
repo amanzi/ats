@@ -47,7 +47,7 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
 #ifndef PK_SURFACE_BALANCE_IMPLICIT_SUBGRID_HH_
 #define PK_SURFACE_BALANCE_IMPLICIT_SUBGRID_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "surface_balance_base.hh"
 
 

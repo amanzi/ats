@@ -7,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "Mesh_Algorithms.hh"
+#include "MeshHelpers.hh"
 #include "manning_conductivity_model.hh"
 #include "overland_conductivity_evaluator.hh"
 

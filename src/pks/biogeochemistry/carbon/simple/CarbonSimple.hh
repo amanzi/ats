@@ -16,7 +16,7 @@ Process kernel for energy equation for Richard's flow.
 #ifndef PKS_CARBON_SIMPLE_HH_
 #define PKS_CARBON_SIMPLE_HH_
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_explicit_default.hh"
 #include "PK.hh"
 

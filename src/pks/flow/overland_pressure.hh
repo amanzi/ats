@@ -127,7 +127,7 @@ Uses the PK type:
 
 #include "upwinding.hh"
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
@@ -166,7 +166,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // Update diagnostics for vis.
   virtual void CalculateDiagnostics(const Tag& tag) override;
 
-  // type info used in PK_Factory
+  // type info used in PKFactory
   static const std::string type;
   virtual const std::string& getType() const override { return type; }
 

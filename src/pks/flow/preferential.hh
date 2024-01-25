@@ -230,7 +230,7 @@ Solves Preferential Flow equation:
 
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Accumulation.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {

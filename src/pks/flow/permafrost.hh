@@ -40,7 +40,7 @@ In the future, this should not even need a different PK.
 #include "BoundaryFunction.hh"
 
 #include "PK.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 
 #include "richards.hh"
 

@@ -30,7 +30,7 @@ generating the input file, and this class would go away.
 
 #include "Teuchos_TimeMonitor.hpp"
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "overland_pressure.hh"
 
 namespace Amanzi {

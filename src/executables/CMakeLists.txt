@@ -26,7 +26,6 @@ include_directories(${MESH_EXTRACTED_SOURCE_DIR})
 include_directories(${MESH_MSTK_SOURCE_DIR})
 include_directories(${CHEMPK_SOURCE_DIR})
 include_directories(${MPC_TREE_SOURCE_DIR})
-include_directories(${DBG_SOURCE_DIR})
 include_directories(${TRANSPORT_SOURCE_DIR})
 get_property(CHEM_INCLUDES_DIR GLOBAL PROPERTY CHEM_INCLUDES_DIR)
 include_directories(${CHEM_INCLUDES_DIR})
@@ -85,7 +84,6 @@ set(amanzi_link_libs
   whetstone
   time_integration
   solvers
-  dbg       
   data_structures
   mesh
   mesh_functions
@@ -95,27 +93,13 @@ set(amanzi_link_libs
   output
   mesh_mstk
   mesh_logical
-  # chemistry_pk
-  #mpc_tree
-  # transport
   )
   
 set(ats_link_libs
   ats_operators
-  # ats_generic_evals
-  # ats_column_integrator
-  # ats_surf_subsurf
-  # ats_eos
   ats_pks
-  # ats_transport
-  #ats_sed_transport  
-  # ats_energy
   ats_flow
-  # ats_deform
-  # ats_bgc
-  # ats_surface_balance
   ats_mpc
-  # ats_mpc_relations
   )
 
 

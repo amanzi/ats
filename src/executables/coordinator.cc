@@ -42,7 +42,7 @@ actual work.
 #include "State.hh"
 #include "PK.hh"
 #include "TreeVector.hh"
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_helpers.hh"
 
 #include "ats_mesh_factory.hh"
@@ -164,7 +164,9 @@ Coordinator::initialize()
   // Restart from checkpoint part 1:
   //  - get the time prior to initializing anything else
   if (restart_) {
-    double t_restart = Amanzi::ReadCheckpointInitialTime(comm_, restart_filename_);
+    Amanzi::Checkpoint chkp(restart_filename_, comm_);
+    double t_restart;
+    chkp.read(Teuchos::ParameterList("time"), t_restart);
     S_->set_time(Amanzi::Tags::CURRENT, t_restart);
     S_->set_time(Amanzi::Tags::NEXT, t_restart);
     t0_ = t_restart;
@@ -226,7 +228,7 @@ Coordinator::initialize()
   S_->InitializeIOFlags();
 
   // Check final initialization
-  WriteStateStatistics(*S_, *vo_);
+  S_->WriteStatistics(vo_.ptr());
 
   // Set up visualization
   auto vis_list = Teuchos::sublist(plist_, "visualization");
@@ -483,7 +485,7 @@ Coordinator::advance()
   if (!fail) fail |= !pk_->ValidStep();
 
   // write state post-advance, if extreme
-  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
+  S_->WriteStatistics(vo_.ptr(), Teuchos::VERB_EXTREME);
 
   if (!fail) {
     // commit the state, copying NEXT --> CURRENT
@@ -510,7 +512,7 @@ Coordinator::advance()
     }
   }
   // write state one extreme, post-commit/fail
-  WriteStateStatistics(*S_, *vo_, Teuchos::VERB_EXTREME);
+  S_->WriteStatistics(vo_.ptr(), Teuchos::VERB_EXTREME);
 
   return fail;
 }

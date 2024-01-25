@@ -58,7 +58,7 @@ daily (which all defaults are set for).
 #include "PDE_Diffusion.hh"
 #include "PDE_Accumulation.hh"
 
-#include "PK_Factory.hh"
+#include "PKFactory.hh"
 #include "pk_physical_bdf_default.hh"
 
 namespace Amanzi {
