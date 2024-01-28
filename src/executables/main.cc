@@ -9,10 +9,6 @@
 
 #include <iostream>
 
-#include <Epetra_Comm.h>
-#include <Epetra_MpiComm.h>
-#include "Epetra_SerialComm.h"
-
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_ParameterXMLFileReader.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"

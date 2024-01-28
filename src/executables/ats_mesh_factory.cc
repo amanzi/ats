@@ -877,39 +877,6 @@ createMeshes(Teuchos::ParameterList& global_list,
     }
   }
 
-  // // FIXME --etc
-  // // this should be dealt with somewhere else, and more generally
-  // // generalize vis for columns
-  // if (global_list.isSublist("visualization columns")) {
-  //   auto surface_mesh = S.GetMesh("surface");
-  //   Teuchos::ParameterList& vis_ss_plist = global_list.sublist("visualization columns");
-  //   int nc = surface_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-
-  //   for (int c=0; c!=nc; ++c){
-  //     int id = surface_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
-  //     std::stringstream name_ss;
-  //     name_ss << "column_" << id;
-  //     vis_ss_plist.set("file name base", "visdump_"+name_ss.str());
-  //     global_list.set("visualization " +name_ss.str(), vis_ss_plist);
-  //   }
-  //   global_list.remove("visualization columns");
-  // }
-
-  // // generalize vis for surface columns
-  // if (global_list.isSublist("visualization surface cells")) {
-  //   auto surface_mesh = S.GetMesh("surface");
-  //   Teuchos::ParameterList& vis_sf_plist = global_list.sublist("visualization surface cells");
-  //   int nc = surface_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  //   for (int c=0; c!=nc; ++c){
-  //     int id = surface_mesh->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
-  //     std::stringstream name_ss, name_sf;
-  //     name_sf << "surface_column_" << id;
-  //     vis_sf_plist.set("file name base", "visdump_"+name_sf.str());
-  //     global_list.set("visualization " +name_sf.str(), vis_sf_plist);
-  //   }
-  //   global_list.remove("visualization surface cells");
-  // }
-
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   Teuchos::TimeMonitor::summarize();
