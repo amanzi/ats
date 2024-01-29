@@ -45,6 +45,7 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  Key surface_depth_key_, pressure_head_key_, mask_key_;
  Key sw_domain_name_, pipe_domain_name_;
  Key manhole_map_key_;
+ Key surface_bathymetry_key_, pipe_bathymetry_key_;
  
  double manhole_radius_;
  // energy losses coefficients at manhole

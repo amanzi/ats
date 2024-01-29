@@ -33,6 +33,15 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   surface_depth_key_ = Keys::readKey(plist_, sw_domain_name_, "ponded depth", "ponded_depth");
   dependencies_.insert(KeyTag{surface_depth_key_, tag});
 
+  // bathymetry
+  surface_bathymetry_key_ = Keys::readKey(plist_, sw_domain_name_, "bathymetry", "bathymetry");
+  pipe_bathymetry_key_ = Keys::readKey(plist_, pipe_domain_name_, "bathymetry", "bathymetry");  
+
+  surface_bathymetry_key_ = "surface-bathymetry";
+  pipe_bathymetry_key_ = "network-bathymetry";
+
+  std::cout<<"surface bathymetry = "<<surface_bathymetry_key_<<"; pipe = "<<pipe_bathymetry_key_<<std::endl;
+
   if(!pipe_domain_name_.empty()){
      pressure_head_key_ = Keys::readKey(plist_, pipe_domain_name_, "pressure head", "pressure_head");
      dependencies_.insert(KeyTag{pressure_head_key_, tag});
@@ -127,7 +136,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   }
 }
 
-
 void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
 {                                         
 
@@ -169,6 +177,9 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
   
+  // surface and pipe bathymetry
+  const Epetra_MultiVector& srfcB = *S.GetPtr<CompositeVector>(surface_bathymetry_key_, tag)->ViewComponent("cell", false);
+  const Epetra_MultiVector& pipeB = *S.GetPtr<CompositeVector>(pipe_bathymetry_key_, tag)->ViewComponent("cell", false);
 
   double g = norm(S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT));
   double pi = 3.14159265359;
@@ -205,7 +216,11 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
           c_sw = c;
           c_pipe = sw_map[c];
         }
-
+      
+        // pipe drain length using bathymetry
+        drain_length_ = srfcB[0][c_sw] - pipeB[0][c_pipe];
+        std::cout<<"bathymetry surf = "<<srfcB[0][c_sw]<<"; pipe = "<<pipeB[0][c_pipe]<<"; drain_length = "<<drain_length_<<std::endl;
+      
         if (pressHead[0][c_pipe] < drain_length_) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c_sw],3.0/2.0);
         } 
