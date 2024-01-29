@@ -5,6 +5,7 @@
   This depends on:
   1) flow depth above surface elevation (surface_depth_key_)
   2) hydraulic head in the pipe network (pressure_head_key_)
+  3) pipe drain length that is determined by the bathymetry difference
 
   Authors: Giacomo Capodaglio (gcapodaglio@lanl.gov)
            Naren Vohra (vohra@lanl.gov)
@@ -19,12 +20,10 @@ namespace Flow {
 PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     EvaluatorSecondaryMonotypeCV(plist)
 {
-
   manhole_radius_ = plist_.get<double>("manhole radius", 0.24);
   energ_loss_coeff_weir_ = plist.get<double>("energy losses coeff weir", 0.54);
   energ_loss_coeff_subweir_ = plist.get<double>("energy losses coeff submerged weir", 0.056);
   energ_loss_coeff_orifice_ = plist.get<double>("energy losses coeff orifice", 0.167);
-  drain_length_ = plist.get<double>("drain length", 0.478);
   sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
   Tag tag = my_keys_.front().second;
@@ -34,13 +33,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(KeyTag{surface_depth_key_, tag});
 
   // bathymetry
-  surface_bathymetry_key_ = Keys::readKey(plist_, sw_domain_name_, "bathymetry", "bathymetry");
-  pipe_bathymetry_key_ = Keys::readKey(plist_, pipe_domain_name_, "bathymetry", "bathymetry");  
-
-  surface_bathymetry_key_ = "surface-bathymetry";
-  pipe_bathymetry_key_ = "network-bathymetry";
-
-  std::cout<<"surface bathymetry = "<<surface_bathymetry_key_<<"; pipe = "<<pipe_bathymetry_key_<<std::endl;
+  surface_bathymetry_key_ = Keys::getKey(sw_domain_name_, "bathymetry");
+  pipe_bathymetry_key_ = Keys::getKey(pipe_domain_name_, "bathymetry");
 
   if(!pipe_domain_name_.empty()){
      pressure_head_key_ = Keys::readKey(plist_, pipe_domain_name_, "pressure head", "pressure_head");
@@ -59,7 +53,6 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
     sink_source_coeff_ = -1.0;
   }
-  
   else {
     pipe_flag = false;
     sw_flag = true;
@@ -69,7 +62,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     
     sink_source_coeff_ = 1.0;
   }
-
+  // flags to ensure we create the cell maps only once
   if (pipe_map_created != true) {
     pipe_map_created = false;
   }
@@ -92,7 +85,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   Teuchos::RCP<const AmanziMesh::Mesh> pipe_mesh = S.GetMesh(pipe_domain_name_);
   Teuchos::RCP<const AmanziMesh::Mesh> surface_mesh = S.GetMesh(sw_domain_name_);
   
- 
   // get the manhole locations/ cell maps
   Tag tag = my_keys_.front().second;
 
@@ -101,7 +93,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   
   int ncells_pipe = pipe_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
   int ncells_sw = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-
 
   // SW map from pipe -> SW domain
   if (pipe_flag == true) {
@@ -138,7 +129,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
 
 void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVectorSpace& fac)
 {                                         
-
   auto domain1 = Keys::getDomain(my_keys_.front().first);
   if (domain1 == pipe_domain_name_) {            
     for (const auto& dep : dependencies_) {
@@ -165,10 +155,8 @@ void PipeDrainEvaluator::EnsureCompatibility_ToDeps_(State& S, const CompositeVe
 void PipeDrainEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
-
   Tag tag = my_keys_.front().second;
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
-
 
   const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
      ->ViewComponent("cell",false);
@@ -177,7 +165,7 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
   
-  // surface and pipe bathymetry
+  // surface and pipe bathymetry needed for pipe drain length
   const Epetra_MultiVector& srfcB = *S.GetPtr<CompositeVector>(surface_bathymetry_key_, tag)->ViewComponent("cell", false);
   const Epetra_MultiVector& pipeB = *S.GetPtr<CompositeVector>(pipe_bathymetry_key_, tag)->ViewComponent("cell", false);
 
@@ -199,15 +187,14 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
     sw_map_created = true;
   }
 
-  if(!pipe_domain_name_.empty()){
+  double drain_length;
 
+  if(!pipe_domain_name_.empty()){
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
          ->ViewComponent("cell",false);
-
      int c_pipe, c_sw;
 
      for (int c=0; c!=ncells; ++c) {
-
         // use cell map
         if (pipe_flag == true) {
           c_pipe = c;
@@ -217,19 +204,24 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
           c_pipe = sw_map[c];
         }
       
-        // pipe drain length using bathymetry
-        drain_length_ = srfcB[0][c_sw] - pipeB[0][c_pipe];
-        std::cout<<"bathymetry surf = "<<srfcB[0][c_sw]<<"; pipe = "<<pipeB[0][c_pipe]<<"; drain_length = "<<drain_length_<<std::endl;
+        // calculate pipe drain length using bathymetry
+        drain_length = srfcB[0][c_sw] - pipeB[0][c_pipe];
+
+        // throw error if bathymetrys are not physical
+        if (drain_length < 0.0) {
+          std::cout<<"Pipe drain length negative; bathymetrys not physical"<<std::endl;
+          AMANZI_ASSERT(0);
+        }
       
-        if (pressHead[0][c_pipe] < drain_length_) {
+        if (pressHead[0][c_pipe] < drain_length) {
            res[0][c] = - mnhMask[0][c] *  2.0 / 3.0 * energ_loss_coeff_weir_ * mnhPerimeter * sqrtTwoG * pow(srfcDepth[0][c_sw],3.0/2.0);
         } 
-        else if (drain_length_ < pressHead[0][c_pipe] && pressHead[0][c_pipe] < (drain_length_ + srfcDepth[0][c_sw]) ){
+        else if (drain_length < pressHead[0][c_pipe] && pressHead[0][c_pipe] < (drain_length + srfcDepth[0][c_sw]) ){
            res[0][c] = - mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                       * sqrt(srfcDepth[0][c_sw] + drain_length_ - pressHead[0][c_pipe]);   
+                       * sqrt(srfcDepth[0][c_sw] + drain_length - pressHead[0][c_pipe]);   
         } 
-        else if (pressHead[0][c_pipe] > (drain_length_ + srfcDepth[0][c_sw])) {
-           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c_pipe] - drain_length_ - srfcDepth[0][c_sw]);
+        else if (pressHead[0][c_pipe] > (drain_length + srfcDepth[0][c_sw])) {
+           res[0][c] = mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG * sqrt(pressHead[0][c_pipe] - drain_length - srfcDepth[0][c_sw]);
         }
      res[0][c] *= sink_source_coeff_;
      }
@@ -266,39 +258,43 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
 
   int ncells = res.MyLength();
 
+  // surface and pipe bathymetry needed for pipe drain length
+  const Epetra_MultiVector& srfcB = *S.GetPtr<CompositeVector>(surface_bathymetry_key_, tag)->ViewComponent("cell", false);
+  const Epetra_MultiVector& pipeB = *S.GetPtr<CompositeVector>(pipe_bathymetry_key_, tag)->ViewComponent("cell", false);
+
+  double drain_length = 0.1; // dummy value; FIX ME
 
   if(!pipe_domain_name_.empty()){
-
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
         ->ViewComponent("cell",false);
 
      if (wrt_key == surface_depth_key_) {
         for (int c=0; c!=ncells; ++c) {
-           if (pressHead[0][c] < drain_length_) {
+           if (pressHead[0][c] < drain_length) {
               res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
            }
-           else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+           else if (drain_length < pressHead[0][c] && pressHead[0][c] < (drain_length + srfcDepth[0][c]) ){
               res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                          / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
+                          / sqrt(srfcDepth[0][c] + drain_length - pressHead[0][c]);
            }
-           else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
+           else if (pressHead[0][c] > (drain_length + srfcDepth[0][c])) {
               res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
-                          / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+                          / sqrt(pressHead[0][c] - drain_length - srfcDepth[0][c]);
            }
         }   
      }
      else if (wrt_key == pressure_head_key_) {
         for (int c=0; c!=ncells; ++c) {
-           if (pressHead[0][c] < drain_length_) {
+           if (pressHead[0][c] < drain_length) {
               res[0][c] = 0.0; 
            }
-           else if (drain_length_ < pressHead[0][c] && pressHead[0][c] < (drain_length_ + srfcDepth[0][c]) ){
+           else if (drain_length < pressHead[0][c] && pressHead[0][c] < (drain_length + srfcDepth[0][c]) ){
               res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                          / sqrt(srfcDepth[0][c] + drain_length_ - pressHead[0][c]);
+                          / sqrt(srfcDepth[0][c] + drain_length - pressHead[0][c]);
            }
-           else if (pressHead[0][c] > (drain_length_ + srfcDepth[0][c])) {
+           else if (pressHead[0][c] > (drain_length + srfcDepth[0][c])) {
               res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
-                          / sqrt(pressHead[0][c] - drain_length_ - srfcDepth[0][c]);
+                          / sqrt(pressHead[0][c] - drain_length - srfcDepth[0][c]);
            }
         }
      }
