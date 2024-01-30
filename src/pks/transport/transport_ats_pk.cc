@@ -270,6 +270,61 @@ Transport_ATS::Setup()
   }
 
 
+  // source term initialization: so far only "concentration" is available.
+  if (plist_->isSublist("source terms")) {
+    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
+    Teuchos::ParameterList& conc_sources_list =
+      plist_->sublist("source terms").sublist("component mass source");
+
+    for (const auto& it : conc_sources_list) {
+      std::string name = it.first;
+      if (conc_sources_list.isSublist(name)) {
+        Teuchos::ParameterList& src_list = conc_sources_list.sublist(name);
+        std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
+
+        if (src_type == "domain coupling") {
+          // domain couplings are special -- they always work on all components
+          Teuchos::RCP<TransportDomainFunction> src =
+            factory.Create(src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy);
+
+          for (int i = 0; i < num_components; i++) {
+            src->tcc_names().push_back(component_names_[i]);
+            src->tcc_index().push_back(i);
+          }
+          src->set_state(S_);
+          srcs_.push_back(src);
+        } else if (src_type == "field") {
+          // domain couplings are special -- they always work on all components
+          Teuchos::RCP<TransportDomainFunction> src =
+            factory.Create(src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy);
+
+          for (int i = 0; i < component_names_.size(); i++) {
+            src->tcc_names().push_back(component_names_[i]);
+            src->tcc_index().push_back(i);
+          }
+          src->set_state(S_);
+          srcs_.push_back(src);
+        } else {
+          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
+          Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+            src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
+
+          std::vector<std::string> tcc_names =
+            src_list.get<Teuchos::Array<std::string>>("component names").toVector();
+          src->set_tcc_names(tcc_names);
+
+          // set the component indicies
+          for (const auto& n : src->tcc_names()) {
+            src->tcc_index().push_back(FindComponentNumber(n));
+          }
+
+          src->set_state(S_);
+          srcs_.push_back(src);
+        }
+      }
+    }
+  }
+
   has_water_src_key_ = false;
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     requireAtNext(water_src_key_, Tags::NEXT, *S_)
@@ -547,61 +602,8 @@ Transport_ATS::Initialize()
   // boundary conditions initialization
   time = t_physics_;
   VV_CheckInfluxBC();
-
-  // source term initialization: so far only "concentration" is available.
+  
   if (plist_->isSublist("source terms")) {
-    PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
-    Teuchos::ParameterList& conc_sources_list =
-      plist_->sublist("source terms").sublist("component mass source");
-
-    for (const auto& it : conc_sources_list) {
-      std::string name = it.first;
-      if (conc_sources_list.isSublist(name)) {
-        Teuchos::ParameterList& src_list = conc_sources_list.sublist(name);
-        std::string src_type = src_list.get<std::string>("spatial distribution method", "none");
-
-        if (src_type == "domain coupling") {
-          // domain couplings are special -- they always work on all components
-          Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "fields", AmanziMesh::Entity_kind::CELL, Kxy);
-
-          for (int i = 0; i < num_components; i++) {
-            src->tcc_names().push_back(component_names_[i]);
-            src->tcc_index().push_back(i);
-          }
-          src->set_state(S_);
-          srcs_.push_back(src);
-        } else if (src_type == "field") {
-          // domain couplings are special -- they always work on all components
-          Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "field", AmanziMesh::Entity_kind::CELL, Kxy);
-
-          for (int i = 0; i < component_names_.size(); i++) {
-            src->tcc_names().push_back(component_names_[i]);
-            src->tcc_index().push_back(i);
-          }
-          src->set_state(S_);
-          srcs_.push_back(src);
-        } else {
-          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
-          Teuchos::RCP<TransportDomainFunction> src = factory.Create(
-            src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
-
-          std::vector<std::string> tcc_names =
-            src_list.get<Teuchos::Array<std::string>>("component names").toVector();
-          src->set_tcc_names(tcc_names);
-
-          // set the component indicies
-          for (const auto& n : src->tcc_names()) {
-            src->tcc_index().push_back(FindComponentNumber(n));
-          }
-
-          src->set_state(S_);
-          srcs_.push_back(src);
-        }
-      }
-    }
-
 #ifdef ALQUIMIA_ENABLED
     // -- try geochemical conditions
     Teuchos::ParameterList& geochem_list = plist_->sublist("source terms").sublist("geochemical");
@@ -627,6 +629,7 @@ Transport_ATS::Initialize()
     }
 #endif
   }
+  
   // Temporarily Transport hosts Henry law.
   PrepareAirWaterPartitioning_();
 
