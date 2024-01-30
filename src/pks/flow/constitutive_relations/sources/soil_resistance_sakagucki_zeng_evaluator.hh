@@ -109,4 +109,3 @@ class SoilResistanceSakaguckiZengEvaluator : public EvaluatorSecondaryMonotypeCV
 
 } // namespace Flow
 } // namespace Amanzi
-

@@ -76,10 +76,8 @@ MPCSubsurface::MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
 void
 MPCSubsurface::Setup()
 {
-  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
-  getSubPKPlist_(pk_order[0])->set("scale preconditioner to pressure", false);
-
   // supress energy's vision of advective terms as we can do better
+  auto pk_order = plist_->get<Teuchos::Array<std::string>>("PKs order");
   if (!plist_->get<bool>("supress Jacobian terms: d div hq / dp,T", false)) {
     if (pks_list_->sublist(pk_order[1]).isParameter("supress advective terms in preconditioner") &&
         !pks_list_->sublist(pk_order[1]).get("supress advective terms in preconditioner", false)) {

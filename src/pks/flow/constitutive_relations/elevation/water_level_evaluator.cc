@@ -115,9 +115,9 @@ WaterLevelEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
 
 void
 WaterLevelEvaluator::EvaluatePartialDerivative_(const State& S,
-                                            const Key& wrt_key,
-                                            const Tag& wrt_tag,
-                                            const std::vector<CompositeVector*>& result)
+                                                const Key& wrt_key,
+                                                const Tag& wrt_tag,
+                                                const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
 
@@ -131,7 +131,7 @@ WaterLevelEvaluator::EvaluatePartialDerivative_(const State& S,
   const AmanziGeometry::Point& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gz = -gravity[2];
 
-  int ncells = res_c.MyLength(); 
+  int ncells = res_c.MyLength();
   for (int sc = 0; sc != ncells; ++sc) {
     if (pres_c[0][sc] >= p_atm) {
       if (wrt_key == pres_key_) {
@@ -143,7 +143,7 @@ WaterLevelEvaluator::EvaluatePartialDerivative_(const State& S,
       }
     } else {
       AMANZI_ASSERT(0);
-    } 
+    }
   }
 }
 
@@ -158,7 +158,7 @@ WaterLevelEvaluator::EnsureCompatibility_ToDeps_(State& S)
     dep_fac.SetMesh(fac.Mesh()->getParentMesh())
       ->SetGhosted(true)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    
+
     for (const auto& dep : dependencies_) {
       if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
         S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second).Update(fac);

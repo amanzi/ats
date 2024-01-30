@@ -281,7 +281,7 @@ VolumetricDeformation::Initialize()
     // initialize the initial displacement to be zero
     S_->GetW<CompositeVector>(nodal_dz_key_, tag_next_, name_).PutScalar(0.);
     S_->GetRecordW(nodal_dz_key_, tag_next_, name_).set_initialized();
-    S_->GetRecordW(nodal_dz_key_, tag_next_, name_).set_io_vis(false); // cannot vis
+    S_->GetRecordW(nodal_dz_key_, tag_next_, name_).set_io_vis(false);  // cannot vis
     S_->GetRecordW(nodal_dz_key_, Tags::NEXT, name_).set_io_vis(false); // cannot vis
     S_->GetW<CompositeVector>(face_above_dz_key_, tag_next_, name_).PutScalar(0.);
     S_->GetRecordW(face_above_dz_key_, tag_next_, name_).set_initialized();

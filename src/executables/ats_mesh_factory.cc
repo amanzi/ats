@@ -610,8 +610,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
 
         // construct
         // note this can be constructed on MPI_COMM_SELF as there is one per entity
-        auto subdomain_mesh =
-          createMesh(subdomain_list, Amanzi::getCommSelf(), gm, S, vo);
+        auto subdomain_mesh = createMesh(subdomain_list, Amanzi::getCommSelf(), gm, S, vo);
 
         // create maps to the reference mesh
         if (is_reference_mesh) {

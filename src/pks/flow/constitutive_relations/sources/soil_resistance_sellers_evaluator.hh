@@ -86,4 +86,3 @@ class SoilResistanceSellersEvaluator : public EvaluatorSecondaryMonotypeCV {
 
 } // namespace Flow
 } // namespace Amanzi
-
