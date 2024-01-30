@@ -273,21 +273,15 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 double
 EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res)
 {
-  // Abs tol based on old conserved quantity -- we know these have been vetted
-  // at some level whereas the new quantity is some iterate, and may be
-  // anything from negative to overflow.
-  const Epetra_MultiVector& conserved =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
+  // VerboseObject stuff.
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_MEDIUM))
+    *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   const Epetra_MultiVector& wc =
     *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
   const Epetra_MultiVector& cv =
     *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
-
-  // VerboseObject stuff.
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-    *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);

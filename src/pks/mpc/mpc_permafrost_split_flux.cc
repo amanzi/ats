@@ -850,8 +850,8 @@ MPCPermafrostSplitFlux::get_ds_tag_next_(const std::string& subdomain)
   if (ds_is_subcycling_) {
     AMANZI_ASSERT(Keys::starts_with(subdomain, "surface_"));
     AMANZI_ASSERT(tags_[1].second == Tags::NEXT); // no nested subcycling
-    return Tag(Keys::getKey(subdomain.substr(std::string("surface_").size(), std::string::npos),
-                            "next"));
+    return Tag(
+      Keys::getKey(subdomain.substr(std::string("surface_").size(), std::string::npos), "next"));
   } else {
     return Tag{ tags_[1].second };
   }

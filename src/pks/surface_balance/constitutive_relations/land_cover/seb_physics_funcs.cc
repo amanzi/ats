@@ -266,12 +266,8 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
   double Dhe_latent = WindFactor(
     met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
   double coef = std::min(Dhe_latent * Sqig, 1.0);
-  eb.fQe = LatentHeat(coef,
-                      params.density_air,
-                      params.H_sublimation,
-                      met.vp_air,
-                      vapor_pressure_skin,
-                      params.P_atm);
+  eb.fQe = LatentHeat(
+    coef, params.density_air, params.H_sublimation, met.vp_air, vapor_pressure_skin, params.P_atm);
 
 
   // conducted heat

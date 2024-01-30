@@ -58,11 +58,11 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
 
   dump_ = plist_->get<bool>("dump preconditioner", false);
 
-  // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
-  pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
-
   // is the flow PK overland flow or surface balance general?
   rescale_precon_ = getSubPKPlist_(0)->get<std::string>("PK type") == "overland flow with ice";
+
+  // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
+  if (rescale_precon_) getSubPKPlist_(pk_order[0])->set("scale preconditioner to pressure", false);
 }
 
 // -- Initialize owned (dependent) variables.
@@ -329,7 +329,7 @@ MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
       // tack on the variable change from h to p
       const Epetra_MultiVector& dh_dp =
         *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
-        ->ViewComponent("cell", false);
+           ->ViewComponent("cell", false);
       Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
 
       for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
