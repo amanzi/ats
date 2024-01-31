@@ -196,7 +196,7 @@ void Transport_ATS::SetupTransport_()
   // indirectly) in flow PK.
 
 
-  // source term initialization: so far only "concentration" is available.
+  // source term setup: so far only "concentration" is available.
   if (plist_->isSublist("source terms")) {
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
     Teuchos::ParameterList& conc_sources_list =
@@ -337,13 +337,6 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   // Require a copy of saturation at the old time tag
   requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
-  if (subcycling_) {
-    S_->Require<CompositeVector, CompositeVectorSpace>(
-      saturation_key_, tag_subcycle_current_, name_);
-    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
-    // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
-  }
 
   requireAtNext(porosity_key_, Tags::NEXT, *S_)
     .SetMesh(mesh_)
@@ -355,11 +348,17 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+  
   if (subcycling_) {
+    S_->Require<CompositeVector, CompositeVectorSpace>(
+      saturation_key_, tag_subcycle_current_, name_);
+    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
     S_->Require<CompositeVector, CompositeVectorSpace>(
       molar_density_key_, tag_subcycle_current_, name_);
     S_->Require<CompositeVector, CompositeVectorSpace>(
       molar_density_key_, tag_subcycle_next_, name_);
+    // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
+    // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
     // S_->RequireEvaluator(molar_density_key_, tag_subcycle_current_); // for the future...
     // S_->RequireEvaluator(molar_density_key_, tag_subcycle_next_); // for the future...
   }
@@ -405,6 +404,8 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components + 2);
   S_->GetRecordSetW(conserve_qty_key_).set_subfieldnames(primary_names);
 }
+
+
 /* ******************************************************************
 * Routine processes parameter list. It needs to be called only once
 * on each processor.
