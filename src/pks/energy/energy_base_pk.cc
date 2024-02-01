@@ -23,7 +23,7 @@
 #include "CompositeVectorFunction.hh"
 #include "CompositeVectorFunctionFactory.hh"
 #include "pk_helpers.hh"
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 
 #include "energy_base.hh"
 
@@ -626,7 +626,7 @@ EnergyBase::UpdateBoundaryConditions_(const Tag& tag)
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {
@@ -822,7 +822,7 @@ EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 
   int f_owned = u_f.MyLength();
   for (int f = 0; f != f_owned; ++f) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     int ncells = cells.size();
 
     double face_value = 0.0;

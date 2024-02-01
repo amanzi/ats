@@ -254,7 +254,7 @@ SnowDistribution::UpdatePermeabilityData_(const Tag& tag)
       auto& uw_cond_f = *uw_cond->ViewComponent("face", false);
       int nfaces = uw_cond_f.MyLength();
       for (int f = 0; f != nfaces; ++f) {
-        const auto& cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        const auto& cells = mesh_->getFaceCells(f);
         if (cells.size() == 1) {
           int c = cells[0];
           uw_cond_f[0][f] = cond_c[0][c];
@@ -283,7 +283,7 @@ SnowDistribution::UpdateBoundaryConditions_(const Tag& tag)
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      const auto& cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      const auto& cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {

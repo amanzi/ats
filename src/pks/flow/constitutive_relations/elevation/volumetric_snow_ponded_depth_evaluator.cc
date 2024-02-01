@@ -22,7 +22,7 @@
 
 */
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "volumetric_snow_ponded_depth_evaluator.hh"
 #include "subgrid_microtopography.hh"
 

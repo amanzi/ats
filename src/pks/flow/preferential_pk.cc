@@ -153,7 +153,7 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
 
         for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-            auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+            auto cells = mesh_->getFaceCells(f);
             AMANZI_ASSERT(cells.size() == 1);
             int c = cells[0];
             const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
@@ -207,7 +207,7 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto fcells = mesh_->getFaceCells(f);
         AMANZI_ASSERT(fcells.size() == 1);
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];

@@ -267,7 +267,7 @@ MPCPermafrost::Setup()
       AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
         int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-        auto fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto fcells = domain_mesh_->getFaceCells(f);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
@@ -289,7 +289,7 @@ MPCPermafrost::Setup()
       AmanziMesh::Entity_ID_List surf_debug_cells_v;
       for (int sc = 0; sc != ncells_surf; ++sc) {
         int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-        auto fcells = domain_mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto fcells = domain_mesh_->getFaceCells(f);
         AMANZI_ASSERT(fcells.size() == 1);
         auto gid = domain_cell_map.GID(fcells[0]);
         if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())

@@ -14,7 +14,7 @@
 */
 
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "soil_resistance_sellers_evaluator.hh"
 
 namespace Amanzi {

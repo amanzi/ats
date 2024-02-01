@@ -258,7 +258,7 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
     for (auto c : lc_ids) {
       // get the top cell
       AmanziMesh::Entity_ID subsurf_f = mesh.getEntityParent(AmanziMesh::Entity_kind::CELL, c);
-      auto cells = mesh_ss.getFaceCells(subsurf_f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_ss.getFaceCells(subsurf_f);
       AMANZI_ASSERT(cells.size() == 1);
 
       // met data structure
