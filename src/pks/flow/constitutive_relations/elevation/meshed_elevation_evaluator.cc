@@ -14,7 +14,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "Mesh.hh"
 #include "Point.hh"
 #include "meshed_elevation_evaluator.hh"

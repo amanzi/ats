@@ -92,7 +92,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
   // get neighboring cell ids
   for (int c = 0; c != ncells; c++) {
-    auto nadj_cellids = AmanziMesh::MeshAlgorithms::getCellFaceAdjacentCells(
+    auto nadj_cellids = AmanziMesh::getCellFaceAdjacentCells(
       *S.GetMesh(surface_domain_), c, AmanziMesh::Parallel_kind::ALL);
     int nface_pcell = S.GetMesh(surface_domain_)->getCellNumFaces(c);
 
@@ -142,8 +142,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     int nfaces = elev_f.MyLength();
 
     for (int f = 0; f != nfaces; ++f) {
-      auto nadj_cellids =
-        S.GetMesh(surface_domain_)->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto nadj_cellids = S.GetMesh(surface_domain_)->getFaceCells(f);
       double ef = 0;
       for (int i = 0; i < nadj_cellids.size(); i++) { ef += elev_ngb_c[0][nadj_cellids[i]]; }
       elev_f[0][f] = ef / nadj_cellids.size();

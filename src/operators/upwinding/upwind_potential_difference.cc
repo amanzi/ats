@@ -74,7 +74,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
 
   int nfaces = face_coef.size("face", false);
   for (unsigned int f = 0; f != nfaces; ++f) {
-    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh->getFaceCells(f);
 
     if (cells.size() == 1) {
       if (potential_f != Teuchos::null) {
@@ -156,7 +156,7 @@ UpwindPotentialDifference::UpdateDerivatives(
   double p[2];
 
   for (unsigned int f = 0; f != nfaces_owned; ++f) {
-    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh->getFaceCells(f);
     int mcells = cells.size();
 
     // create the local matrix

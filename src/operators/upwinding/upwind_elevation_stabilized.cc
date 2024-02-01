@@ -109,7 +109,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
   // always true for FV, maybe not for MFD.
   int nfaces = face_coef.size("face", false);
   for (int f = 0; f != nfaces; ++f) {
-    auto fcells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto fcells = mesh->getFaceCells(f);
     AMANZI_ASSERT(fcells.size() > 0);
 
     double denom[2] = { 0., 0. };

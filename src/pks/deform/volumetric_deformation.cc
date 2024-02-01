@@ -602,7 +602,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       }
 
       for (auto& p : new_positions) { AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.); }
-      AmanziMesh::MeshAlgorithms::deform(*mesh_nc_, node_ids, new_positions);
+      AmanziMesh::deform(*mesh_nc_, node_ids, new_positions);
       deformed_this_step_ = true;
       // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
       break;
@@ -633,7 +633,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         surface_nodeids[i] = i;
         surface_newpos[i] = coord_domain;
       }
-      AmanziMesh::MeshAlgorithms::deform(*surf3d_mesh_nc_, surface_nodeids, surface_newpos);
+      AmanziMesh::deform(*surf3d_mesh_nc_, surface_nodeids, surface_newpos);
     }
 
     // Note, this order is intentionally odd.  The deforming cell volume

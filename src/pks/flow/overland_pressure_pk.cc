@@ -793,7 +793,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
       for (const auto& bc : *bc_pressure_) {
         int f = bc.first;
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -808,7 +808,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
       // non-thermal model
       for (const auto& bc : *bc_pressure_) {
         int f = bc.first;
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -865,7 +865,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
          bc_lvl != bc_level_flux_lvl_->end();
          ++bc_lvl, ++bc_vel) {
       int f = bc_lvl->first;
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       int c = cells[0];
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -889,7 +889,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
     for (const auto& bc : *bc_critical_depth_) {
       int f = bc.first;
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       int c = cells[0];
 
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -912,7 +912,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
     for (const auto& bc : *bc_seepage_head_) {
       int f = bc.first;
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       int c = cells[0];
 
       double hz_f = bc.second + elevation[0][f];
@@ -952,7 +952,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 
       for (const auto& bc : *bc_seepage_pressure_) {
         int f = bc.first;
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -973,7 +973,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
       // non-thermal model
       for (const auto& bc : *bc_seepage_pressure_) {
         int f = bc.first;
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         int c = cells[0];
 
         double p0 = bc.second > p_atm ? bc.second : p_atm;
@@ -1009,7 +1009,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;
 
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 
@@ -1047,7 +1047,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
   int nfaces_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f != nfaces_owned; ++f) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     int ncells = cells.size();
 
     if ((markers[f] != Operators::OPERATOR_BC_NONE) && (ncells == 2)) {
@@ -1101,7 +1101,7 @@ OverlandPressureFlow::ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVecto
         //  this simply makes the upwinded conductivities make more sense, and
         //  changes no answers as boundary faces and their resulting
         //  conductivity are not used in Neumann conditions.
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         u_bf[0][bf] = u_c[0][cells[0]];
       }
     }
@@ -1146,7 +1146,7 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
     for (const auto& bc : *bc_zero_gradient_) {
       int f = bc.first;
 
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 
@@ -1177,7 +1177,7 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
     for (const auto& bc : *bc_tidal_) {
       int f = bc.first;
 
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
       AmanziMesh::Entity_ID c = cells[0];
 

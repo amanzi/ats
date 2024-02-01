@@ -27,7 +27,7 @@
 #include "Explicit_TI_RK.hh"
 #include "Evaluator.hh"
 #include "Mesh.hh"
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
@@ -1701,7 +1701,7 @@ Transport_ATS::PopulateBoundaryData(std::vector<int>& bc_model,
   }
 
   for (int f = 0; f < nfaces_wghost; f++) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;
   }
 
@@ -1765,7 +1765,7 @@ Transport_ATS::ComputeVolumeDarcyFlux(Teuchos::RCP<const Epetra_MultiVector> flu
                                       Teuchos::RCP<Epetra_MultiVector>& vol_darcy_flux)
 {
   for (int f = 0; f < nfaces_wghost; f++) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     double n_liq = 0.;
     for (int c = 0; c < cells.size(); c++) n_liq += (*molar_density)[0][c];
     n_liq /= cells.size();
