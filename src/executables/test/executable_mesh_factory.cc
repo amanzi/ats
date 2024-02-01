@@ -47,7 +47,7 @@ struct Runner {
     S = Teuchos::rcp(new State(plist->sublist("state")));
   }
 
-  void go() { ATS::Mesh::createMeshes(*plist, comm, gm, *S); }
+  void go() { ATS::Mesh::createMeshes(plist, comm, gm, *S); }
 
   Teuchos::RCP<Teuchos::ParameterList> plist;
   Comm_ptr_type comm;

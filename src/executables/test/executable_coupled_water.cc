@@ -62,7 +62,7 @@ struct CoupledWaterProblem {
     // create meshes
     auto& regions_list = plist->sublist("regions");
     auto gm = Teuchos::rcp(new GeometricModel(3, regions_list, *comm));
-    ATS::Mesh::createMeshes(*plist, comm, gm, *S);
+    ATS::Mesh::createMeshes(plist, comm, gm, *S);
 
     // create the PK
     Teuchos::ParameterList pk_tree_list("PK tree");

@@ -110,7 +110,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_));
 
     // create and register meshes
-    ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
+    ATS::Mesh::createMeshes(plist_, comm_, gm, *S_);
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
