@@ -72,7 +72,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   }
 
   // are we subcycling internally?
-  subcycling_ = plist_->get<bool>("transport subcycling", false);
+  subcycling_ = plist_->get<bool>("transport subcycling", false); // Need to remove this and update regresstion tests
   tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
 
   // initialize io
@@ -95,14 +95,12 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
   water_content_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
-  key_ = tcc_key_;
 
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
   dissolution_ = plist_->get<bool>("allow dissolution", false);
   max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
   dim = mesh_->getSpaceDimension();
-
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
 }
 
@@ -461,10 +459,6 @@ Transport_ATS::Initialize()
   }
 
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  flux_copy_ =
-    S_->GetW<CompositeVector>(flux_key_, tag_flux_next_ts_, name_).ViewComponent("face", true);
-  flux_copy_->PutScalar(0.);
-
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
                  .ViewComponent("cell", false);
@@ -850,29 +844,12 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   // interpolate in time, allowing transport to not have to know how flow is
   // being integrated... FIXME --etc
   S_->GetEvaluator(flux_key_, Tags::NEXT).Update(*S_, name_);
-
-  // why are we re-assigning all of these?  The previous pointers shouldn't have changed... --ETC
-  flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
-  // why are we copying this?  This should result in constant flux, no need to copy? --ETC
-  *flux_copy_ = *flux_; // copy flux vector from S_next_ to S_;
-
   S_->GetEvaluator(saturation_key_, Tags::NEXT).Update(*S_, name_);
-  ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
-  ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
-
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
-  mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
-  mol_dens_prev_ =
-    S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
-
-  // this is locally created and has no evaluator -- should get a primary
-  // variable FE owned by this PK --ETC
-  solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
-                 .ViewComponent("cell", false);
 
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
@@ -901,8 +878,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 #endif
 
-  // We use original tcc and make a copy of it later if needed.
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
   db_->WriteVector("tcc_old", tcc.ptr());
 
