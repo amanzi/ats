@@ -896,36 +896,15 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   else
     dt_ = dt_MPC;
   double dt_stable = dt_; // advance routines override dt_
-
-  int interpolate_ws = 0; // (dt_ < dt_global) ? 1 : 0;
-  if ((t_old > S_->get_time(tag_current_)) || (t_new < S_->get_time(tag_next_))) interpolate_ws = 1;
-
   double dt_sum = 0.0;
   double dt_cycle;
-  Tag water_tag_current, water_tag_next;
-  if (interpolate_ws) {
-    dt_cycle = std::min(dt_stable, dt_MPC);
-    InterpolateCellVector(*ws_prev_, *ws_, dt_shift, dt_global, *ws_subcycle_current);
-    InterpolateCellVector(
-      *mol_dens_prev_, *mol_dens_, dt_shift, dt_global, *mol_dens_subcycle_current);
-    InterpolateCellVector(*ws_prev_, *ws_, dt_shift + dt_cycle, dt_global, *ws_subcycle_next);
-    InterpolateCellVector(
-      *mol_dens_prev_, *mol_dens_, dt_shift + dt_cycle, dt_global, *mol_dens_subcycle_next);
-    ws_current = ws_subcycle_current;
-    ws_next = ws_subcycle_next;
-    mol_dens_current = mol_dens_subcycle_current;
-    mol_dens_next = mol_dens_subcycle_next;
-    water_tag_current = tag_subcycle_current_;
-    water_tag_next = tag_subcycle_next_;
-  } else {
-    dt_cycle = dt_MPC;
-    ws_current = ws_prev_;
-    ws_next = ws_;
-    mol_dens_current = mol_dens_prev_;
-    mol_dens_next = mol_dens_;
-    water_tag_current = Tags::CURRENT;
-    water_tag_next = Tags::NEXT;
-  }
+  dt_cycle = dt_MPC;
+  ws_current = ws_prev_;
+  ws_next = ws_;
+  mol_dens_current = mol_dens_prev_;
+  mol_dens_next = mol_dens_;
+  Tag water_tag_current = Tags::CURRENT;
+  Tag water_tag_next = Tags::NEXT;
 
   db_->WriteVector("sat_old",
                    S_->GetPtr<CompositeVector>(saturation_key_, water_tag_current).ptr());
@@ -966,31 +945,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
     t_physics_ += dt_cycle;
     dt_sum += dt_cycle;
-
-    if (interpolate_ws) {
-      if (swap) { // Initial water saturation is in 'start'.
-        ws_current = ws_subcycle_current;
-        ws_next = ws_subcycle_next;
-        mol_dens_current = mol_dens_subcycle_current;
-        mol_dens_next = mol_dens_subcycle_next;
-
-        double dt_int = dt_sum + dt_shift;
-        InterpolateCellVector(*ws_prev_, *ws_, dt_int, dt_global, *ws_subcycle_next);
-        InterpolateCellVector(
-          *mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_next);
-      } else { // Initial water saturation is in 'end'.
-        ws_current = ws_subcycle_next;
-        ws_next = ws_subcycle_current;
-        mol_dens_current = mol_dens_subcycle_next;
-        mol_dens_next = mol_dens_subcycle_current;
-
-        double dt_int = dt_sum + dt_shift;
-        InterpolateCellVector(*ws_prev_, *ws_, dt_int, dt_global, *ws_subcycle_current);
-        InterpolateCellVector(
-          *mol_dens_prev_, *mol_dens_, dt_int, dt_global, *mol_dens_subcycle_current);
-      }
-      swap = 1 - swap;
-    }
 
     if (spatial_disc_order == 1) { // temporary solution (lipnikov@lanl.gov)
       AdvanceDonorUpwind(dt_cycle);
