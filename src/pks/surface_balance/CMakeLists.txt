@@ -14,7 +14,6 @@ set(ats_surface_balance_src_files
   constitutive_relations/land_cover/longwave_evaluator.cc
   constitutive_relations/land_cover/incident_shortwave_radiation_model.cc
   constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.cc
-  constitutive_relations/land_cover/evaporation_downregulation_model.cc
   constitutive_relations/land_cover/evaporation_downregulation_evaluator.cc
   constitutive_relations/land_cover/LandCover.cc
   constitutive_relations/land_cover/drainage_evaluator.cc
@@ -24,9 +23,9 @@ set(ats_surface_balance_src_files
   constitutive_relations/land_cover/plant_wilting_factor_evaluator.cc
   constitutive_relations/land_cover/plant_wilting_factor_model.cc  
   constitutive_relations/land_cover/rooting_depth_fraction_evaluator.cc  
-  constitutive_relations/land_cover/rooting_depth_fraction_model.cc
   constitutive_relations/land_cover/snow_meltrate_evaluator.cc
   constitutive_relations/land_cover/transpiration_distribution_evaluator.cc  
+  constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.cc  
   constitutive_relations/land_cover/albedo_twocomponent_evaluator.cc
   constitutive_relations/land_cover/albedo_threecomponent_evaluator.cc
   constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.cc
@@ -58,7 +57,6 @@ set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/longwave_evaluator.hh
   constitutive_relations/land_cover/incident_shortwave_radiation_model.hh
   constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh
-  constitutive_relations/land_cover/evaporation_downregulation_model.hh
   constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh
   constitutive_relations/land_cover/LandCover.hh
   constitutive_relations/land_cover/drainage_evaluator.hh
@@ -68,9 +66,9 @@ set(ats_surface_balance_inc_files
   constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh
   constitutive_relations/land_cover/plant_wilting_factor_model.hh  
   constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh  
-  constitutive_relations/land_cover/rooting_depth_fraction_model.hh
   constitutive_relations/land_cover/snow_meltrate_evaluator.hh
   constitutive_relations/land_cover/transpiration_distribution_evaluator.hh  
+  constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.hh  
   constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh
   constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh
   constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.hh

@@ -85,7 +85,7 @@ BeersLawAbsorptivity(double k_extinction, double lai);
 // Wind speed term D_he
 // ------------------------------------------------------------------------------------------
 double
-WindFactor(double Us, double Z_Us, double Z_rough, double c_von_Karman, double KB);
+WindFactor(double Us, double Z_Us, double Z_rough, double KB);
 
 //
 // Stability of convective overturning term Zeta AKA Sqig
@@ -122,14 +122,7 @@ VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 double
 EvaporativeResistanceGround(const GroundProperties& surf,
                             const MetData& met,
-                            const ModelParams& params,
                             double vapor_pressure_ground);
-
-double
-EvaporativeResistanceCoef(double saturation_gas,
-                          double porosity,
-                          double dessicated_zone_thickness,
-                          double Clapp_Horn_b);
 
 
 //

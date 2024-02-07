@@ -38,9 +38,10 @@ MPCWeakSubdomain::MPCWeakSubdomain(Teuchos::ParameterList& FElist,
   init_();
 
   // check whether we are subcycling
-  subcycled_ = plist_->template get<bool>("subcycle", false);
-  if (subcycled_) {
-    subcycled_target_dt_ = plist_->template get<double>("subcycling target time step [s]");
+  internal_subcycling_ = plist_->template get<bool>("subcycle", false);
+  if (internal_subcycling_) {
+    internal_subcycling_target_dt_ =
+      plist_->template get<double>("subcycling target time step [s]");
   }
 };
 
@@ -53,8 +54,8 @@ MPCWeakSubdomain::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
 
-  if (subcycled_) {
-    dt = subcycled_target_dt_;
+  if (internal_subcycling_) {
+    dt = internal_subcycling_target_dt_;
   } else {
     for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
     double dt_local = dt;
@@ -69,7 +70,7 @@ MPCWeakSubdomain::get_dt()
 void
 MPCWeakSubdomain::set_dt(double dt)
 {
-  if (subcycled_) {
+  if (internal_subcycling_) {
     cycle_dt_ = dt;
   } else {
     for (auto& pk : sub_pks_) pk->set_dt(dt);
@@ -83,7 +84,7 @@ MPCWeakSubdomain::set_dt(double dt)
 void
 MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 {
-  if (subcycled_) {
+  if (internal_subcycling_) {
     PK::set_tags(current, next);
 
     const auto& ds = S_->GetDomainSet(ds_name_);
@@ -101,10 +102,35 @@ MPCWeakSubdomain::set_tags(const Tag& current, const Tag& next)
 }
 
 
+Tag
+MPCWeakSubdomain::get_ds_tag_next_(const std::string& subdomain)
+{
+  if (internal_subcycling_) {
+    if (tag_next_ == Tags::NEXT) {
+      return Tag(Keys::getKey(subdomain, "next"));
+    } else {
+      return Tag(Keys::getKey(subdomain, tag_next_.get()));
+    }
+  } else {
+    return tag_next_;
+  }
+}
+
+
+Tag
+MPCWeakSubdomain::get_ds_tag_current_(const std::string& subdomain)
+{
+  if (internal_subcycling_)
+    return Tag(Keys::getKey(subdomain, tag_current_.get()));
+  else
+    return tag_current_;
+}
+
+
 void
 MPCWeakSubdomain::Setup()
 {
-  if (subcycled_) {
+  if (internal_subcycling_) {
     const auto& ds = S_->GetDomainSet(ds_name_);
     for (const auto& subdomain : *ds) {
       Tag tag_subcycle_current = get_ds_tag_current_(subdomain);
@@ -123,7 +149,7 @@ MPCWeakSubdomain::Setup()
 void
 MPCWeakSubdomain::Initialize()
 {
-  if (subcycled_) {
+  if (internal_subcycling_) {
     const auto& ds = S_->GetDomainSet(ds_name_);
     for (const auto& subdomain : *ds) {
       Tag tag_subcycle_next = get_ds_tag_next_(subdomain);
@@ -140,8 +166,8 @@ MPCWeakSubdomain::Initialize()
 bool
 MPCWeakSubdomain::AdvanceStep(double t_old, double t_new, bool reinit)
 {
-  if (subcycled_)
-    return AdvanceStep_Subcycled_(t_old, t_new, reinit);
+  if (internal_subcycling_)
+    return AdvanceStep_InternalSubcycling_(t_old, t_new, reinit);
   else
     return AdvanceStep_Standard_(t_old, t_new, reinit);
 }
@@ -169,7 +195,7 @@ MPCWeakSubdomain::AdvanceStep_Standard_(double t_old, double t_new, bool reinit)
 // Advance the timestep through subcyling
 //-------------------------------------------------------------------------------------
 bool
-MPCWeakSubdomain::AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit)
+MPCWeakSubdomain::AdvanceStep_InternalSubcycling_(double t_old, double t_new, bool reinit)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   bool fail = false;
@@ -258,7 +284,7 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
 {
   if (S_->get_cycle() < 0 && tag_next == Tags::NEXT) {
     // initial commit, also do the substep commits
-    if (subcycled_) {
+    if (internal_subcycling_) {
       const auto& ds = S_->GetDomainSet(ds_name_);
       int i = 0;
       for (auto& domain : *ds) {
@@ -269,13 +295,18 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
     }
   }
 
-  if (tag_next == tag_next_ && tag_next != Tags::NEXT) {
-    // do not commit step in this case -- this is nested subcycling, which we
-    // do not have a formal way of dealing with correctly.
-    return;
-  } else {
-    for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
+  if (tag_next == tag_next_ && tag_next != Tags::NEXT && internal_subcycling_) {
+    // nested subcycling -- we are internally subcycling and something above
+    // us in the PK tree is trying to subcycle this.  Currently the tags
+    // model does not admit this.
+    Errors::Message msg;
+    msg << "MPCWeakSubdomain \"" << name_
+        << "\" detected nested subcycling, which is not currently supported.  "
+        << "Either subcycle the subdomains independently or subcycle the "
+        << "MPCWeakSubdomain, but not both.";
+    Exceptions::amanzi_throw(msg);
   }
+  for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
 }
 
 
@@ -304,7 +335,7 @@ MPCWeakSubdomain::init_()
   // get the domain set and save the comm of the parent mesh for later
   ds_name_ = std::get<0>(subdomain_triple);
   const auto& ds = S_->GetDomainSet(ds_name_);
-  comm_ = ds->get_indexing_parent()->get_comm();
+  comm_ = ds->getIndexingParent()->getComm();
 
   // -- create the lifted PKs
   PKFactory pk_factory;
@@ -313,7 +344,7 @@ MPCWeakSubdomain::init_()
     // create the solution vector, noting that these are created on the
     // communicator associated with the mesh of the subdomain, which may differ
     // from the coupler's comm.
-    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->get_comm()));
+    Teuchos::RCP<TreeVector> pk_soln = Teuchos::rcp(new TreeVector(mesh->getComm()));
     solution_->PushBack(pk_soln);
 
     // create the PK

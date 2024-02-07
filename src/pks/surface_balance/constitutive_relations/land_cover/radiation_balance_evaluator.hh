@@ -32,10 +32,10 @@ Computes:
    surface itself.  [W m^-2] of actual area -- this does NOT include the
    surface area fraction factor which would be required to compute a total
    energy flux in W.
-   
+
 2. "snow radiation balance" -- Net radiation seen by the snow.  See surface
    above -- all are the same except using snow properties. [W m^-2]
-   
+
 3. "canopy radiation balance" -- this is a compute computation of the net
    radiation experienced by the canopy.  It includes the portion of shortwave
    and longwave from the atmosphere that are absorbed via Beer's law, minus the
@@ -65,7 +65,7 @@ coefficients.
 
 Note that this is a superset of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
-     
+
 */
 
 #pragma once

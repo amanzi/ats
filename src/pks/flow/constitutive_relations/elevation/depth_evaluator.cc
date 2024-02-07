@@ -14,7 +14,16 @@ namespace Amanzi {
 namespace Flow {
 
 
-DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist) : EvaluatorIndependentCV(plist) {}
+DepthEvaluator::DepthEvaluator(Teuchos::ParameterList& plist) : EvaluatorIndependentCV(plist)
+{
+  algorithm_ = plist_.get<std::string>("algorithm", "mean face centroid");
+  if (!(algorithm_ == "mean face centroid" || algorithm_ == "cell centroid")) {
+    Errors::Message msg;
+    msg << "In evaluator DepthEvaluator for \"" << my_key_ << "\": invalid algorithm \""
+        << algorithm_ << "\", valid are \"mean face centroid\" and \"cell centroid\"";
+    Exceptions::amanzi_throw(msg);
+  }
+}
 
 Teuchos::RCP<Evaluator>
 DepthEvaluator::Clone() const
@@ -33,7 +42,11 @@ DepthEvaluator::Update_(State& S)
         // evaluate depths
         Epetra_MultiVector& depth = *result.ViewComponent("cell", false);
         const AmanziMesh::Mesh& mesh = *result.Mesh();
-        DepthModel(mesh, depth);
+        if (algorithm_ == "mean face centroid") {
+          computeDepth_MeanFaceCentroid(mesh, depth);
+        } else {
+          computeDepth_CellCentroid(mesh, depth);
+        }
       } else {
         Errors::Message message;
         message << "DepthEvaluator: Depth components on mesh entities named \"" << comp

@@ -32,7 +32,7 @@ InterfrostEnergy::SetupPhysicalEvaluators_()
   S_->Require<CompositeVector, CompositeVectorSpace>("DEnergyDT_coef", tag_next_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator("DEnergyDT_coef", tag_next_);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     "DEnergyDT_coef", tag_next_, key_, tag_next_);

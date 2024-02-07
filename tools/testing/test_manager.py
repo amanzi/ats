@@ -784,6 +784,7 @@ class RegressionTest(object):
 
         # unpack the tolerance
         tol, tol_type, min_threshold, max_threshold = tuple(tolerance)
+        print_tol_type = tol_type
 
         if tol_type == self._ABSOLUTE:
             delta = self._norm(current-gold)
@@ -794,6 +795,7 @@ class RegressionTest(object):
                 min_threshold = max(min_threshold, 1.e-12)
                 rel_to = numpy.where(numpy.abs(gold) > min_threshold, gold, min_threshold)
                 delta = self._norm((gold - current) / rel_to)
+                print_tol_type += f" {min_threshold}"
 
             else:
                 delta = self._norm((gold - current) / max(abs(gold), min_threshold))
@@ -810,10 +812,10 @@ class RegressionTest(object):
             status.fail = 1
             status.local_fail = 1
             print("    FAIL: {0} : {1} : {2} > {3} [{4}]".format(
-                    self.name(), key, delta, tol, tol_type), file=testlog)
+                    self.name(), key, delta, tol, print_tol_type), file=testlog)
         else:
             print("    PASS: {0} : {1} : {2} <= {3} [{4}]".format(
-                self.name(), key, delta, tol, tol_type), file=testlog)
+                self.name(), key, delta, tol, print_tol_type), file=testlog)
         return
 
     def _set_criteria(self, key, cfg_criteria, test_data):
@@ -881,7 +883,7 @@ class RegressionTest(object):
         criteria_type = test_data_s[1]
         if (criteria_type.lower() != self._PERCENT and
             criteria_type.lower() != self._ABSOLUTE and
-                criteria_type.lower() != self._RELATIVE):
+            criteria_type.lower() != self._RELATIVE):
             raise RuntimeError("ERROR : invalid test criteria string '{0}' "
                                "for '{1}'".format(criteria_type, key))
         criteria[1] = criteria_type
@@ -955,7 +957,7 @@ class RegressionTestManager(object):
     def num_tests(self):
         return len(self._tests)
 
-    def generate_tests(self, config_file, user_suites, user_tests,
+    def generate_tests(self, config_file, user_suites, user_tests, user_exclude_tests,
                        timeout, check_performance, testlog):
 
         """
@@ -964,7 +966,9 @@ class RegressionTestManager(object):
         self._read_config_file(config_file)
         self._validate_suites()
         user_suites, user_tests = self._validate_user_lists(user_suites,
-                                                            user_tests, testlog)
+                                                            user_tests,
+                                                            user_exclude_tests,
+                                                            testlog)
         self._create_tests(user_suites, user_tests, timeout, check_performance, testlog)
 
     def run_tests(self, dry_run, update, new_test, check_only, run_only, testlog, save_dt_history=False):
@@ -1305,7 +1309,7 @@ class RegressionTestManager(object):
                                "configuration file '{0}' : {1}".format(
                                    self._config_filename, invalid_tests))
 
-    def _validate_user_lists(self, user_suites, user_tests, testlog):
+    def _validate_user_lists(self, user_suites, user_tests, user_exclude_tests, testlog):
         """
         Check that the list of suites or tests passed from the command
         line are valid.
@@ -1337,6 +1341,11 @@ class RegressionTestManager(object):
                         "WARNING : {0} : Skipping test '{1}' (not present or "
                         "misspelled).".format(self._config_filename, test))
                     print(message, file=testlog)
+
+        # filter out excluded tests
+        for exclude in user_exclude_tests:
+            if exclude.lower() in u_tests:
+                u_tests.pop(exclude.lower())
 
         return u_suites, u_tests
 

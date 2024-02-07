@@ -89,13 +89,11 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
   Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face", true));
   downwind_cell.PutValue(-1);
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
   int nfaces_local = flux.size("face", false);
 
   int ncells = cell_coef.size("cell", true);
   for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    const auto& [faces, fdirs] = mesh->getCellFacesAndDirections(c);
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
@@ -144,7 +142,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
       coefs[1] = coef_cells[0][dw] * denominator;
 
       // weighted by path length
-      weight[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
+      weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
       weight[0] = weight[1];
 
     } else if (dw == -1) {
@@ -156,7 +154,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
       coefs[1] = coef_cells[0][uw] * denominator; // downwind boundary face not defined always
       //coefs[1] = coef_faces[0][f] * denominator;
 
-      weight[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
+      weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
       weight[1] = weight[0];
 
     } else {
@@ -169,8 +167,8 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
       coefs[1] = coef_cells[0][dw] * denom[1];
 
       // harmonic mean of the denominator
-      weight[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
-      weight[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
+      weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+      weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
       AMANZI_ASSERT(denom[0] > 0);
       AMANZI_ASSERT(denom[1] > 0);
       AMANZI_ASSERT(weight[0] > 0);

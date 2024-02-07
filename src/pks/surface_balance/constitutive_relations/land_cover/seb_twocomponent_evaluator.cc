@@ -151,12 +151,10 @@ SEBTwoComponentEvaluator::SEBTwoComponentEvaluator(Teuchos::ParameterList& plist
   dependencies_.insert(KeyTag{ surf_temp_key_, tag });
   surf_pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   dependencies_.insert(KeyTag{ surf_pres_key_, tag });
+  surf_rsoil_key_ = Keys::readKey(plist, domain_, "soil resistance", "soil_resistance");
+  dependencies_.insert(KeyTag{ surf_rsoil_key_, tag });
 
   // -- subsurface properties for evaporating bare soil
-  sat_gas_key_ = Keys::readKey(plist, domain_ss_, "gas saturation", "saturation_gas");
-  dependencies_.insert(KeyTag{ sat_gas_key_, tag });
-  poro_key_ = Keys::readKey(plist, domain_ss_, "porosity", "porosity");
-  dependencies_.insert(KeyTag{ poro_key_, tag });
   ss_pres_key_ = Keys::readKey(plist, domain_ss_, "subsurface pressure", "pressure");
   dependencies_.insert(KeyTag{ ss_pres_key_, tag });
 
@@ -205,10 +203,10 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     *S.Get<CompositeVector>(area_frac_key_, tag).ViewComponent("cell", false);
   const auto& surf_pres = *S.Get<CompositeVector>(surf_pres_key_, tag).ViewComponent("cell", false);
   const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).ViewComponent("cell", false);
+  const auto& surf_rsoil =
+    *S.Get<CompositeVector>(surf_rsoil_key_, tag).ViewComponent("cell", false);
 
   // collect subsurface properties
-  const auto& sat_gas = *S.Get<CompositeVector>(sat_gas_key_, tag).ViewComponent("cell", false);
-  const auto& poro = *S.Get<CompositeVector>(poro_key_, tag).ViewComponent("cell", false);
   const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell", false);
 
   // collect output vecs
@@ -253,15 +251,13 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   }
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh.get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh.getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // get the top cell
-      AmanziMesh::Entity_ID subsurf_f = mesh.entity_get_parent(AmanziMesh::CELL, c);
-      AmanziMesh::Entity_ID_List cells;
-      mesh_ss.face_get_cells(subsurf_f, AmanziMesh::Parallel_type::OWNED, &cells);
+      AmanziMesh::Entity_ID subsurf_f = mesh.getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+      auto cells = mesh_ss.getFaceCells(subsurf_f);
       AMANZI_ASSERT(cells.size() == 1);
 
       // met data structure
@@ -281,13 +277,11 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         surf.water_transition_depth = lc.second.water_transition_depth;
         if (ponded_depth[0][c] > lc.second.water_transition_depth) {
           surf.pressure = surf_pres[0][c];
-          surf.porosity = 1.;
-          surf.saturation_gas = 0.;
+          surf.rsoil = 0.;
         } else {
           double factor = std::max(ponded_depth[0][c], 0.) / lc.second.water_transition_depth;
           surf.pressure = factor * surf_pres[0][c] + (1 - factor) * ss_pres[0][cells[0]];
-          surf.porosity = factor + (1 - factor) * poro[0][cells[0]];
-          surf.saturation_gas = (1 - factor) * sat_gas[0][cells[0]];
+          surf.rsoil = (1 - factor) * surf_rsoil[0][c];
         }
         if (model_1p1_) surf.pressure = surf_pres[0][c];
         surf.ponded_depth = ponded_depth[0][c];
@@ -297,8 +291,6 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
           surf.density_w = 1000.;
         else
           surf.density_w = mass_dens[0][c];
-        surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
 
@@ -323,7 +315,7 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         water_source[0][c] += area_fracs[0][c] * flux.M_surf;
         energy_source[0][c] += area_fracs[0][c] * flux.E_surf * 1.e-6; // convert to MW/m^2
 
-        double area_to_volume = mesh.cell_volume(c) / mesh_ss.cell_volume(cells[0]);
+        double area_to_volume = mesh.getCellVolume(c) / mesh_ss.getCellVolume(cells[0]);
         double ss_water_source_l;
         if (model_1p1_)
           ss_water_source_l = flux.M_subsurf * area_to_volume * surf.density_w /
@@ -368,16 +360,13 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         surf.temp = surf_temp[0][c];
         surf.pressure = surf_pres[0][c];
         surf.ponded_depth = ponded_depth[0][c];
-        surf.porosity = 1.;
-        surf.saturation_gas = 0.;
+        surf.rsoil = 0.;
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.roughness = lc.second.roughness_ground;
         if (model_1p1_)
           surf.density_w = 1000;
         else
           surf.density_w = mass_dens[0][c];
-        surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[1][c];
         surf.emissivity = emissivity[1][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
@@ -572,42 +561,42 @@ SEBTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                  { "roughness_snow",
                                    "roughness_ground",
                                    "water_transition_depth",
-                                   "snow_transition_depth",
-                                   "dessicated_zone_thickness",
-                                   "clapp_horn_b" });
+                                   "snow_transition_depth" });
 
     CompositeVectorSpace domain_fac;
-    domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::CELL, 1);
+    domain_fac.SetMesh(S.GetMesh(domain_))
+      ->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned;
     domain_fac_owned.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_ss;
     domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_snow;
     domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_2;
     domain_fac_2.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 2);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 2);
 
     CompositeVectorSpace domain_fac_ss;
     domain_fac_ss.SetMesh(S.GetMesh(domain_ss_))
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_snow;
     domain_fac_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (auto& dep : dependencies_) {
       auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
@@ -639,17 +628,17 @@ SEBTwoComponentEvaluator::EnsureCompatibility_Structure_(State& S)
     CompositeVectorSpace domain_fac_owned;
     domain_fac_owned.SetMesh(S.GetMesh(domain_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_snow;
     domain_fac_owned_snow.SetMesh(S.GetMesh(domain_snow_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned_ss;
     domain_fac_owned_ss.SetMesh(S.GetMesh(domain_ss_))
       ->SetGhosted()
-      ->SetComponent("cell", AmanziMesh::CELL, 1);
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (const auto& key_tag : my_keys_) {
       if (Keys::getDomain(key_tag.first) == domain_) {

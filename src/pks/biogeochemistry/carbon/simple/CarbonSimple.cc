@@ -53,14 +53,14 @@ CarbonSimple::Setup()
   }
   S_->Require<CompositeVector, CompositeVectorSpace>(cell_vol_key_, tag_current_)
     .SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_current_);
 
   // diffusion
   if (is_diffusion_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(div_diff_flux_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(div_diff_flux_key_, tag_current_);
   }
 
@@ -68,7 +68,7 @@ CarbonSimple::Setup()
   if (is_source_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(source_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(source_key_, tag_current_);
   }
 
@@ -76,7 +76,7 @@ CarbonSimple::Setup()
   if (is_decomp_) {
     S_->Require<CompositeVector, CompositeVectorSpace>(decomp_key_, tag_current_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, npools_);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, npools_);
     S_->RequireEvaluator(decomp_key_, tag_current_);
   }
 }

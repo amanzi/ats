@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ATS input converter from main development branch to new-state development branch"""
+"""ATS input converter from version 1.3 to version 1.4"""
 
 import sys, os
 try:

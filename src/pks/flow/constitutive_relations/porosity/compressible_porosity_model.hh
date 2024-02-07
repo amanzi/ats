@@ -23,7 +23,7 @@ derivatives), so the inflection point smooths this with a quadratic that
 matches the value and derivative at the inflection point and is 0 with 0 slope
 at atmospheric pressure.
 
-.. _compressible-porosity-standard-model-spec
+.. _compressible-porosity-standard-model-spec:
 .. admonition:: compressible-porosity-standard-model-spec
 
    * `"region`" ``[string]`` Region on which this is applied.

@@ -88,7 +88,7 @@ MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVe
   const Epetra_MultiVector& cv =
     *S_->GetPtr<CompositeVector>(cv_key_, tag_next_)->ViewComponent("cell", false);
 
-  int rank = mesh_->get_comm()->MyPID();
+  int rank = mesh_->getComm()->MyPID();
   int ncells = wc0.MyLength();
   for (int c = 0; c != ncells; ++c) {
     Teuchos::RCP<VerboseObject> dcvo = Teuchos::null;
@@ -222,7 +222,7 @@ MPCDelegateEWCSurface::precon_ewc_(Teuchos::RCP<const TreeVector> u, Teuchos::RC
   double dT_min = 0.01;
   double dp_min = 100.;
 
-  int rank = mesh_->get_comm()->MyPID();
+  int rank = mesh_->getComm()->MyPID();
   int ncells = cv.MyLength();
   for (int c = 0; c != ncells; ++c) {
     // debugger

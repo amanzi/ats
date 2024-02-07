@@ -39,8 +39,8 @@ Advection::set_num_dofs(unsigned int num_dofs)
     names[1] = "face";
 
     std::vector<AmanziMesh::Entity_kind> locations(2);
-    locations[0] = AmanziMesh::CELL;
-    locations[1] = AmanziMesh::FACE;
+    locations[0] = AmanziMesh::Entity_kind::CELL;
+    locations[1] = AmanziMesh::Entity_kind::FACE;
 
     Teuchos::RCP<CompositeVectorSpace> space = Teuchos::rcp(new CompositeVectorSpace());
     space->SetMesh(mesh_)->SetGhosted()->SetComponents(names, locations, ndofs_tmp);

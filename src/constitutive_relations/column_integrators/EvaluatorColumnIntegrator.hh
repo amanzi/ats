@@ -83,9 +83,9 @@ EvaluatorColumnIntegrator<Parser, Integrator>::EnsureCompatibility_ToDeps_(State
                                                                      my_keys_.front().second);
   if (fac.Mesh() != Teuchos::null) {
     CompositeVectorSpace dep_fac;
-    dep_fac.SetMesh(fac.Mesh()->parent())
+    dep_fac.SetMesh(fac.Mesh()->getParentMesh())
       ->SetGhosted(true)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     for (const auto& dep : dependencies_) {
       if (Keys::getDomain(dep.first) == Keys::getDomain(my_keys_.front().first)) {
@@ -122,7 +122,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
     deps.emplace_back(
       S.Get<CompositeVector>(dep.first, dep.second).ViewComponent("cell", false).get());
   }
-  auto mesh = result[0]->Mesh()->parent();
+  auto mesh = result[0]->Mesh()->getParentMesh();
   Integrator integrator(plist_, deps, &*mesh);
 
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
@@ -131,7 +131,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
     // for each column, loop over cells calling the integrator until stop is
     // requested or the column is complete
     AmanziGeometry::Point val(0., 0.);
-    auto& col_cell = mesh->cells_of_column(col);
+    auto col_cell = mesh->columns.getCells(col);
     for (int i = 0; i != col_cell.size(); ++i) {
       bool completed = integrator.scan(col, col_cell[i], val);
       if (completed) break;

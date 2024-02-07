@@ -9,10 +9,6 @@
 
 /*
   MPC for subcycling one PK relative to another.
-
-  NOTE: this is currently a hack-job, as it really does flow + transport
-  coupling.  It will be made more general, and an MPC flow + transport will be
-  done better eventually, but for now, we proceed forward.  Blocked by ATS#115.
 */
 
 #include "mpc_subcycled.hh"

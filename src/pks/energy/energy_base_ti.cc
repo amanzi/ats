@@ -273,29 +273,20 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 double
 EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res)
 {
-  // Abs tol based on old conserved quantity -- we know these have been vetted
-  // at some level whereas the new quantity is some iterate, and may be
-  // anything from negative to overflow.
-
-  //S_->GetEvaluator(conserved_key_, tag_current_).Update(*S_, name());
-  // not used ?? jjb
-  const Epetra_MultiVector& conserved =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
-  //S_->GetEvaluator(wc_key_, tag_current_).Update(*S_, name());
-  const Epetra_MultiVector& wc =
-    *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
-  const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
-
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_MEDIUM))
     *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
+  const Epetra_MultiVector& wc =
+    *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
+  const Epetra_MultiVector& cv =
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
+
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
-  Teuchos::RCP<const Comm_type> comm_p = mesh_->get_comm();
+  Teuchos::RCP<const Comm_type> comm_p = mesh_->getComm();
   Teuchos::RCP<const MpiComm_type> mpi_comm_p =
     Teuchos::rcp_dynamic_cast<const MpiComm_type>(comm_p);
   const MPI_Comm& comm = mpi_comm_p->Comm();
@@ -327,8 +318,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
       int nfaces = dvec->size(*comp, false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
-        AmanziMesh::Entity_ID_List cells;
-        mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &cells);
+        auto cells = mesh_->getFaceCells(f);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double mass_min = cells.size() == 1 ? wc[0][cells[0]] / cv[0][cells[0]] :

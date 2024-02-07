@@ -59,7 +59,7 @@ MPCCoupledWater::Setup()
     Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
   S_->Require<CompositeVector, CompositeVectorSpace>(exfilt_key_, tag_next_, exfilt_key_)
     .SetMesh(surf_mesh_)
-    ->SetComponent("cell", AmanziMesh::CELL, 1);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // Create the preconditioner.
@@ -81,7 +81,7 @@ MPCCoupledWater::Setup()
 
   // set up the Water delegate
   Teuchos::RCP<Teuchos::ParameterList> water_list = Teuchos::sublist(plist_, "water delegate");
-  water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_ss_));
+  water_ = Teuchos::rcp(new MPCDelegateWater(water_list, S_, domain_ss_, domain_surf_));
   water_->set_tags(tag_current_, tag_next_);
   water_->set_indices(0, 1);
 
@@ -95,23 +95,24 @@ MPCCoupledWater::Setup()
   // figure out what the corresponding cell of the surface system is.
   // Therefore, for all debug cells of the subsurface, if that cell is in the
   // top layer of cells, we add the corresponding face's surface cell.
-  AmanziMesh::Entity_ID_List debug_cells = domain_db_->get_cells();
+  auto debug_cells = domain_db_->get_cells();
 
   int ncells_surf =
-    surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+    surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   if (debug_cells.size() > 0) {
-    const auto& domain_cell_map = domain_mesh_->cell_map(false);
-    const auto& surf_cell_map = surf_mesh_->cell_map(false);
-    AmanziMesh::Entity_ID_List surf_debug_cells;
+    const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+    const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+    AmanziMesh::Entity_ID_List surf_debug_cells_v;
     for (int sc = 0; sc != ncells_surf; ++sc) {
-      int f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, sc);
-      AmanziMesh::Entity_ID_List fcells;
-      domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &fcells);
+      int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+      auto fcells = domain_mesh_->getFaceCells(f);
       AMANZI_ASSERT(fcells.size() == 1);
       auto gid = domain_cell_map.GID(fcells[0]);
       if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
-        surf_debug_cells.emplace_back(surf_cell_map.GID(sc));
+        surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
     }
+    AmanziMesh::Entity_ID_View surf_debug_cells;
+    vectorToView(surf_debug_cells, surf_debug_cells_v);
     if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
   }
 }
@@ -227,8 +228,6 @@ MPCCoupledWater::ModifyPredictor(double h,
 
   // Merge surface cells with subsurface faces
   if (modified) {
-    // -- not used... something smells... --ETC
-    //S_->GetEvaluator(Keys::getKey(domain_surf_,"relative_permeability"), tag_next_)->Update(*S_, name_);
     Teuchos::RCP<const CompositeVector> h_prev =
       S_->GetPtr<CompositeVector>(Keys::getKey(domain_surf_, "ponded_depth"), tag_next_);
     MergeSubsurfaceAndSurfacePressure(*h_prev, *u->SubVector(0)->Data(), *u->SubVector(1)->Data());
@@ -236,8 +235,14 @@ MPCCoupledWater::ModifyPredictor(double h,
 
   // Hack surface faces
   bool newly_modified = false;
-  newly_modified |= water_->ModifyPredictor_Heuristic(h, u);
-  newly_modified |= water_->ModifyPredictor_WaterSpurtDamp(h, u);
+  bool has_face = u->SubVector(0)->Data()->HasComponent("face");
+  if (has_face) {
+    newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::FACE>(h, u);
+    newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::FACE>(h, u);
+  } else {
+    newly_modified |= water_->ModifyPredictor_Heuristic<AmanziMesh::BOUNDARY_FACE>(h, u);
+    newly_modified |= water_->ModifyPredictor_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, u);
+  }
   modified |= newly_modified;
 
   // -- copy surf --> sub
@@ -287,12 +292,30 @@ MPCCoupledWater::ModifyCorrection(double h,
 
   // modify correction using water approaches
   int n_modified = 0;
-  n_modified += water_->ModifyCorrection_WaterFaceLimiter(h, res, u, du);
-  double damping1 = water_->ModifyCorrection_WaterSpurtDamp(h, res, u, du);
-  double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp(h, res, u, du);
-  double damping = std::min(damping1, damping2);
-  n_modified += water_->ModifyCorrection_WaterSpurtCap(h, res, u, du, damping);
-  n_modified += water_->ModifyCorrection_DesaturatedSpurtCap(h, res, u, du, damping);
+  double damping;
+  bool has_face = u->SubVector(0)->Data()->HasComponent("face");
+  if (has_face) {
+    n_modified += water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::FACE>(h, res, u, du);
+    double damping1 = water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::FACE>(h, res, u, du);
+    damping = std::min(damping1, damping2);
+    n_modified += water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
+    n_modified +=
+      water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::FACE>(h, res, u, du, damping);
+  } else {
+    n_modified +=
+      water_->ModifyCorrection_WaterFaceLimiter<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping1 =
+      water_->ModifyCorrection_WaterSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    double damping2 =
+      water_->ModifyCorrection_DesaturatedSpurtDamp<AmanziMesh::BOUNDARY_FACE>(h, res, u, du);
+    damping = std::min(damping1, damping2);
+    n_modified +=
+      water_->ModifyCorrection_WaterSpurtCap<AmanziMesh::BOUNDARY_FACE>(h, res, u, du, damping);
+    n_modified += water_->ModifyCorrection_DesaturatedSpurtCap<AmanziMesh::BOUNDARY_FACE>(
+      h, res, u, du, damping);
+  }
 
   // -- accumulate globally
   int n_modified_l = n_modified;
@@ -356,7 +379,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
   double p_atm = S_->Get<double>("atmospheric_pressure", Tags::NEXT);
   for (int c = 0; c != u_surf_cell.MyLength(); ++c) {
     if (u_surf_cell[0][c] > p_atm) {
-      auto f = surf_mesh_->entity_get_parent(AmanziMesh::Entity_kind::CELL, c);
+      auto f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
       res_surf_cell[0][c] = res_face[0][f];
       res_face[0][f] = 0.;
     }

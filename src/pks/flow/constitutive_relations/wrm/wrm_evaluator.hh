@@ -16,10 +16,12 @@ commonly used in practice is the van Genuchten model, but others are available d
 
 `"evaluator type`" = `"wrm`"
 
-.. _wrm-evaluator-spec
+.. _wrm-evaluator-spec:
 .. admonition:: wrm-evaluator-spec
 
-   * `"WRM parameters`" ``[WRM-typedinline-spec-list]``
+   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
+     under state here to evaluate WRM.
 
    KEYS:
 
@@ -31,6 +33,42 @@ commonly used in practice is the van Genuchten model, but others are available d
      from the evaluator name and need not be set.
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
      The name of the capillary pressure.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    ...
+  </ParameterList>
 
 */
 

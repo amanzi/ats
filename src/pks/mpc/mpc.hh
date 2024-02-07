@@ -104,6 +104,8 @@ class MPC : virtual public PK {
  protected:
   // constructs sub-pks
   void init_(Comm_ptr_type comm = Teuchos::null);
+  Teuchos::RCP<Teuchos::ParameterList> getSubPKPlist_(int i);
+  Teuchos::RCP<Teuchos::ParameterList> getSubPKPlist_(const std::string& name);
 
  protected:
   typedef std::vector<Teuchos::RCP<PK_t>> SubPKList;
@@ -292,6 +294,23 @@ MPC<PK_t>::init_(Comm_ptr_type comm)
     sub_pks_.push_back(pk);
   }
 };
+
+
+template <class PK_t>
+Teuchos::RCP<Teuchos::ParameterList>
+MPC<PK_t>::getSubPKPlist_(int i)
+{
+  Teuchos::Array<std::string> names = plist_->get<Teuchos::Array<std::string>>("PKs order");
+  return Teuchos::sublist(Teuchos::sublist(global_list_, "PKs"), names[i]);
+}
+
+
+template <class PK_t>
+Teuchos::RCP<Teuchos::ParameterList>
+MPC<PK_t>::getSubPKPlist_(const std::string& name)
+{
+  return Teuchos::sublist(Teuchos::sublist(global_list_, "PKs"), name);
+}
 
 
 } // namespace Amanzi

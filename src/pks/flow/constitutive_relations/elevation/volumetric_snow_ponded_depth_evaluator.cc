@@ -22,7 +22,7 @@
 
 */
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "volumetric_snow_ponded_depth_evaluator.hh"
 #include "subgrid_microtopography.hh"
 
@@ -194,7 +194,8 @@ VolumetricSnowPondedDepthEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
     // Loop over my dependencies, ensuring they meet the requirements.
     for (const auto& key_tag : dependencies_) {
-      if (key_tag.first == delta_max_key_ || key_tag.first == delta_ex_key_) {
+      if (key_tag.first == delta_max_key_ || key_tag.first == delta_ex_key_ ||
+          key_tag.first == sd_key_) {
         S.Require<CompositeVector, CompositeVectorSpace>(key_tag.first, key_tag.second)
           .Update(*no_bf_dep_fac);
       } else {

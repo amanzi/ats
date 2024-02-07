@@ -58,8 +58,11 @@ MPCSurface::MPCSurface(Teuchos::ParameterList& pk_tree_list,
 
   dump_ = plist_->get<bool>("dump preconditioner", false);
 
+  // is the flow PK overland flow or surface balance general?
+  rescale_precon_ = getSubPKPlist_(0)->get<std::string>("PK type") == "overland flow with ice";
+
   // make sure the overland flow pk does not rescale the preconditioner -- we want it in h
-  pks_list_->sublist(pk_order[0]).set("scale preconditioner to pressure", false);
+  if (rescale_precon_) getSubPKPlist_(pk_order[0])->set("scale preconditioner to pressure", false);
 }
 
 // -- Initialize owned (dependent) variables.
@@ -149,10 +152,11 @@ MPCSurface::Setup()
 
     // -- derivatives of energy with respect to pressure
     if (dE_dp_block_ == Teuchos::null) {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, mesh_));
+      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, mesh_));
       dE_dp_block_ = dE_dp_->global_operator();
     } else {
-      dE_dp_ = Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::CELL, dE_dp_block_));
+      dE_dp_ =
+        Teuchos::rcp(new Operators::PDE_Accumulation(AmanziMesh::Entity_kind::CELL, dE_dp_block_));
     }
 
     preconditioner_->set_operator_block(0, 1, dWC_dT_block_);
@@ -310,24 +314,26 @@ MPCSurface::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<T
   } else if (precon_type_ == PRECON_PICARD || (precon_type_ == PRECON_EWC)) {
     ierr = preconditioner_->ApplyInverse(*u, *Pu);
 
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-      *vo_->os() << "PC * residuals:" << std::endl;
-      std::vector<std::string> vnames;
-      vnames.push_back("  PC*r_h");
-      vnames.push_back("  PC*r_T");
-      std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
-      vecs.push_back(Pu->SubVector(0)->Data().ptr());
-      vecs.push_back(Pu->SubVector(1)->Data().ptr());
-      db_->WriteVectors(vnames, vecs, true);
+    if (rescale_precon_) {
+      if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+        *vo_->os() << "PC * residuals:" << std::endl;
+        std::vector<std::string> vnames;
+        vnames.push_back("  PC*r_h");
+        vnames.push_back("  PC*r_T");
+        std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
+        vecs.push_back(Pu->SubVector(0)->Data().ptr());
+        vecs.push_back(Pu->SubVector(1)->Data().ptr());
+        db_->WriteVectors(vnames, vecs, true);
+      }
+
+      // tack on the variable change from h to p
+      const Epetra_MultiVector& dh_dp =
+        *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
+           ->ViewComponent("cell", false);
+      Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
+
+      for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
     }
-
-    // tack on the variable change from h to p
-    const Epetra_MultiVector& dh_dp =
-      *S_->GetDerivativePtr<CompositeVector>(pd_bar_key_, tag_next_, pres_key_, tag_next_)
-         ->ViewComponent("cell", false);
-    Epetra_MultiVector& Pu_c = *Pu->SubVector(0)->Data()->ViewComponent("cell", false);
-
-    for (unsigned int c = 0; c != Pu_c.MyLength(); ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
   }
 
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {

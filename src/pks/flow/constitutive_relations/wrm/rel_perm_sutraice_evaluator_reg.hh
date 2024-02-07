@@ -14,7 +14,7 @@ namespace Flow {
 
 // registry of method
 Utils::RegisteredFactory<Evaluator, RelPermSutraIceEvaluator>
-  RelPermSutraIceEvaluator::factory_("SutraIce rel perm");
+  RelPermSutraIceEvaluator::factory_("relative permeability, SutraICE");
 
 } // namespace Flow
 } // namespace Amanzi

@@ -70,13 +70,11 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
   Epetra_IntVector downwind_cell(*face_coef.ComponentMap("face", true));
   downwind_cell.PutValue(-1);
 
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> fdirs;
   int nfaces_local = flux.size("face", false);
 
   int ncells = cell_coef.size("cell", true);
   for (int c = 0; c != ncells; ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &fdirs);
+    const auto& [faces, fdirs] = mesh->getCellFacesAndDirections(c);
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
@@ -140,8 +138,8 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
       coef_faces[0][f] = coefs[0];
     else {
       double dist[2];
-      dist[0] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(uw));
-      dist[1] = AmanziGeometry::norm(mesh->face_centroid(f) - mesh->cell_centroid(dw));
+      dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+      dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
 
       double hmean = 0.0;
       if ((coefs[0] != 0.0) && (coefs[1] != 0.0))

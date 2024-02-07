@@ -135,9 +135,8 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
   auto mesh = results[0]->Mesh();
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->get_set_entities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // NOTE: emissivity = absorptivity, we use e to notate both
@@ -149,6 +148,10 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       double sw_atm_can = e_can_sw * sw_in[0][c];
       double sw_atm_surf = sw_in[0][c] - sw_atm_can;
 
+      // reflected sw (can be important off of snow)
+      double sw_grnd_can =
+        e_can_sw * sw_atm_surf * (albedo[0][c] * area_frac[0][c] + albedo[1][c] * area_frac[1][c]);
+
       // lw atm to canopy and surface
       double lw_atm_can = e_can_lw * lw_in[0][c];
       double lw_atm_surf = lw_in[0][c] - lw_atm_can;
@@ -158,16 +161,18 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       double lw_snow = Relations::OutgoingLongwaveRadiation(temp_snow[0][c], emiss[1][c]);
       double lw_can = Relations::OutgoingLongwaveRadiation(temp_canopy[0][c], e_can_lw);
 
-      // lw surface to canopy
-      double lw_surf_can = area_frac[0][c] * e_can_lw * lw_surf;
-      double lw_snow_can = area_frac[1][c] * e_can_lw * lw_snow;
+      // surface connections
+      double lw_down = lw_atm_surf + lw_can;
+      double lw_up_surf = (1 - emiss[0][c]) * lw_down + lw_surf;
+      double lw_up_snow = (1 - emiss[1][c]) * lw_down + lw_snow;
 
       // radiation balances -- see Figure 4.1 in CLM Tech Note
-      rad_bal_surf[0][c] = (1 - albedo[0][c]) * sw_atm_surf + lw_atm_surf + lw_can - lw_surf;
-      rad_bal_snow[0][c] = (1 - albedo[1][c]) * sw_atm_surf + lw_atm_surf + lw_can - lw_snow;
+      rad_bal_surf[0][c] = (1 - albedo[0][c]) * sw_atm_surf + lw_down - lw_up_surf;
+      rad_bal_snow[0][c] = (1 - albedo[1][c]) * sw_atm_surf + lw_down - lw_up_snow;
 
-      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * sw_atm_can + lw_atm_can + lw_surf_can +
-                          lw_snow_can - 2 * lw_can; // up and down
+      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * (sw_atm_can + sw_grnd_can) + lw_atm_can -
+                          2 * lw_can + area_frac[0][c] * e_can_lw * lw_up_surf +
+                          area_frac[1][c] * e_can_lw * lw_up_snow;
     }
   }
 }

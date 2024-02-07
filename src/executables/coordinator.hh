@@ -36,7 +36,10 @@ namespace ATS {
 
 class Coordinator {
  public:
-  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist, const Amanzi::Comm_ptr_type& comm);
+  Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
+              const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
+              const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
+              const Amanzi::Comm_ptr_type& comm);
 
   // PK methods
   void setup();
@@ -46,11 +49,13 @@ class Coordinator {
 
   bool advance();
   bool visualize(bool force = false);
+  void observe();
   bool checkpoint(bool force = false);
   double get_dt(bool after_fail = false);
 
  protected:
-  void InitializeFromPlist_();
+  void initializeFromPlist_();
+  void reportOneTimer_(const std::string& timer);
 
   // PK container and factory
   Teuchos::RCP<Amanzi::PK> pk_;
@@ -83,10 +88,13 @@ class Coordinator {
   // observations
   std::vector<Teuchos::RCP<Amanzi::UnstructuredObservations>> observations_;
 
+  // Teuchos Communicator for timers... will go away in tpetra
+  Teuchos::RCP<const Teuchos::Comm<int>> teuchos_comm_;
+
   // timers
-  Teuchos::RCP<Teuchos::Time> setup_timer_;
-  Teuchos::RCP<Teuchos::Time> cycle_timer_;
-  Teuchos::RCP<Teuchos::Time> timer_;
+  std::map<std::string, Teuchos::RCP<Teuchos::Time>> timers_;
+  Teuchos::RCP<Teuchos::Time> wallclock_timer_;
+  Teuchos::TimeMonitor wallclock_monitor_;
   double duration_;
   bool subcycled_ts_;
 

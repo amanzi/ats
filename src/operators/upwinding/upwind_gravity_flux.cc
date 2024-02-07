@@ -57,8 +57,6 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
                                                 CompositeVector& face_coef,
                                                 const std::string face_component) const
 {
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
   double flow_eps = 1.e-10;
 
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
@@ -67,7 +65,7 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
   face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
   if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
 
-  // Note that by scattering, and then looping over all Parallel_type::ALL cells, we
+  // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or
   // not) bordering an owned cell.  This is the necessary data for
   // making the local matrices in MFD, so there is no need to
@@ -81,13 +79,13 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
 
 
   for (unsigned int c = 0; c != cell_coef.size(cell_component, true); ++c) {
-    mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
+    const auto& [faces, dirs] = mesh->getCellFacesAndDirections(c);
     AmanziGeometry::Point Kgravity = (*K_)[c] * gravity;
 
     for (unsigned int n = 0; n != faces.size(); ++n) {
       int f = faces[n];
 
-      const AmanziGeometry::Point& normal = mesh->face_normal(f);
+      const AmanziGeometry::Point& normal = mesh->getFaceNormal(f);
       if ((normal * Kgravity) * dirs[n] >= flow_eps) {
         face_coef_v[0][f] = cell_coef_v[0][c];
       } else if (std::abs((normal * Kgravity) * dirs[n]) < flow_eps) {

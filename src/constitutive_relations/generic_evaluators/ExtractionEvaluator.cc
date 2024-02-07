@@ -52,7 +52,7 @@ ExtractionEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
 
     for (int j = 0; j != result_c.NumVectors(); ++j) {
       for (int i = 0; i != result_c.MyLength(); ++i) {
-        result_c[j][i] = parent_vector_c[j][mesh->entity_get_parent(entity, i)];
+        result_c[j][i] = parent_vector_c[j][mesh->getEntityParent(entity, i)];
       }
     }
   }

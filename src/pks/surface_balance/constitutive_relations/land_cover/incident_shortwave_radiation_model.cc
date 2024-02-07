@@ -7,26 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-/*
-  The incident shortwave radiation model is an algebraic model with dependencies.
-
-  Generated via evaluator_generator with:
-Aspect modified shortwave radiation is determined by a factor which
-is multiplied by the 'incoming radiation incident on a flat surface'
-to determine the 'incoming radiation incident on a sloping surface of
-a given aspect' as a function of latitude, slope, aspect, and Julian
-day of the year, and time of day.
-
-Note that some careful checking and experimentation has found that, in
-general, the daily average incident radiation times the 12-noon aspect
-modifier correlates reasonably well with the daily average of the
-product of the hourly incident radiation and the hourly aspect
-modifier.  It is notably better than the daily average radiation times
-the daily average aspect modifier.
-
-
-
-*/
 #include <cmath>
 
 #include "Teuchos_ParameterList.hpp"

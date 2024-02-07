@@ -53,12 +53,11 @@ PlantWiltingFactorEvaluator::Evaluate_(const State& S, const std::vector<Composi
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
   for (const auto& region_model : models_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.get_set_entities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED, &lc_ids);
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (int sc : lc_ids) {
-      for (auto c : subsurf_mesh.cells_of_column(sc)) {
+      for (auto c : subsurf_mesh.columns.getCells(sc)) {
         result_v[0][c] = region_model.second->PlantWiltingFactor(pc_v[0][c]);
       }
     }
@@ -82,14 +81,11 @@ PlantWiltingFactorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto& surf_mesh = *S.GetMesh(domain_surf_);
 
     for (const auto& region_model : models_) {
-      AmanziMesh::Entity_ID_List lc_ids;
-      surf_mesh.get_set_entities(region_model.first,
-                                 AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_type::OWNED,
-                                 &lc_ids);
+      auto lc_ids = surf_mesh.getSetEntities(
+        region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       for (int sc : lc_ids) {
-        for (auto c : subsurf_mesh.cells_of_column(sc)) {
+        for (auto c : subsurf_mesh.columns.getCells(sc)) {
           result_v[0][c] =
             region_model.second->DPlantWiltingFactorDCapillaryPressureGasLiq(pc_v[0][c]);
         }
@@ -105,7 +101,7 @@ PlantWiltingFactorEvaluator::EnsureCompatibility_ToDeps_(State& S)
   if (models_.size() == 0) {
     land_cover_ =
       getLandCover(S.ICList().sublist("land cover types"),
-                   { "stomata_closed_mafic_potential", "stomata_open_mafic_potential" });
+                   { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
     for (const auto& lc : land_cover_) {
       models_[lc.first] = Teuchos::rcp(new PlantWiltingFactorModel(lc.second));
     }

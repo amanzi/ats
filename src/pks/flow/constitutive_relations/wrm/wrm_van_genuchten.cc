@@ -199,7 +199,7 @@ WRMVanGenuchten::InitializeFromPlist_()
   }
 
   alpha_ = plist_.get<double>("van Genuchten alpha [Pa^-1]");
-  sr_ = plist_.get<double>("residual saturation [-]");
+  sr_ = plist_.get<double>("residual saturation [-]", 0.0);
   l_ = plist_.get<double>("Mualem exponent l [-]", 0.5);
 
   // map to n,m
