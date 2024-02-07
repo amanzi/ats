@@ -85,7 +85,8 @@ AlbedoTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<Composi
 
     for (auto c : lc_ids) {
       // albedo of the snow
-      albedo[1][c] = Relations::CalcAlbedoSnow(snow_dens[0][c]);
+      albedo[1][c] = plist_.isParameter("albedo snow [-]") ? 
+        plist_.get<double>("albedo snow [-]") : Relations::CalcAlbedoSnow(snow_dens[0][c]);
 
       double albedo_water =
         unfrozen_fraction[0][c] * a_water_ + (1 - unfrozen_fraction[0][c]) * a_ice_;

@@ -81,7 +81,8 @@ AlbedoThreeComponentEvaluator::Evaluate_(const State& S,
 
     for (auto c : lc_ids) {
       // albedo of the snow
-      albedo[2][c] = Relations::CalcAlbedoSnow(snow_dens[0][c]);
+      albedo[2][c] = plist_.isParameter("albedo snow [-]") ? 
+        plist_.get<double>("albedo snow [-]") : Relations::CalcAlbedoSnow(snow_dens[0][c]);
 
       // a and e of water
       albedo[1][c] = unfrozen_fraction[0][c] * a_water_ + (1 - unfrozen_fraction[0][c]) * a_ice_;
