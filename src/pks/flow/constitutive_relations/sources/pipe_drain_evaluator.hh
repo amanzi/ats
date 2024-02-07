@@ -55,10 +55,9 @@ class PipeDrainEvaluator : public EvaluatorSecondaryMonotypeCV {
  double energ_loss_coeff_subweir_; // submerged weir
  double energ_loss_coeff_orifice_; // orifice
  double sink_source_coeff_; // coefficient that determines sink or source (when using same evaluator file for pipe or surface flow) 
- bool pipe_flag, sw_flag, pipe_map_created, sw_map_created;
- double cell_map_flag;
+ bool pipe_flag_, sw_flag_, pipe_map_created_, sw_map_created_;
 
- std::vector<int> pipe_map, sw_map;
+ std::vector<int> pipe_map_, sw_map_;
 
  private:
   static Utils::RegisteredFactory<Evaluator,PipeDrainEvaluator> reg_;

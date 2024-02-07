@@ -45,8 +45,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   auto domain = Keys::getDomain(my_keys_.front().first);
   
   if (domain == pipe_domain_name_) {
-    pipe_flag = true;
-    sw_flag = false;
+    pipe_flag_ = true;
+    sw_flag_ = false;
 
     mask_key_ = Keys::readKey(plist_, pipe_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
@@ -54,8 +54,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     sink_source_coeff_ = -1.0;
   }
   else {
-    pipe_flag = false;
-    sw_flag = true;
+    pipe_flag_ = false;
+    sw_flag_ = true;
 
     mask_key_ = Keys::readKey(plist_, sw_domain_name_, "manhole locations", "manhole_locations"); 
     dependencies_.insert(KeyTag{mask_key_, tag});
@@ -63,11 +63,11 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     sink_source_coeff_ = 1.0;
   }
   // flags to ensure we create the cell maps only once
-  if (pipe_map_created != true) {
-    pipe_map_created = false;
+  if (pipe_map_created_ != true) {
+    pipe_map_created_ = false;
   }
-  if (sw_map_created != true) {
-    sw_map_created = false;
+  if (sw_map_created_ != true) {
+    sw_map_created_ = false;
   }
 }
 
@@ -95,35 +95,35 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   int ncells_sw = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
 
   // SW map from pipe -> SW domain
-  if (pipe_flag == true) {
-    pipe_map.resize(ncells_pipe);
+  if (pipe_flag_ == true) {
+    pipe_map_.resize(ncells_pipe);
     for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
       const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
       for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
         const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
         if ( (std::abs(mnhMask[0][c_pipe] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-          pipe_map[c_pipe] = c_sw;
+          pipe_map_[c_pipe] = c_sw;
           break; 
         }
       }
     }
-    pipe_map_created = true;
+    pipe_map_created_ = true;
   }
 
   // Pipe map from SW -> pipe domain
-  if (sw_flag == true) {
-    sw_map.resize(ncells_sw);
+  if (sw_flag_ == true) {
+    sw_map_.resize(ncells_sw);
     for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
       const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
       for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
         const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
         if ( (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-          sw_map[c_sw] = c_pipe;
+          sw_map_[c_sw] = c_pipe;
           break; 
         }
       }
     } 
-    sw_map_created = true;
+    sw_map_created_ = true;
   }
 }
 
@@ -160,7 +160,6 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
   const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
      ->ViewComponent("cell",false);
- 
   
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
@@ -178,13 +177,13 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   int ncells = res.MyLength();
 
   // generate cell maps
-  if (pipe_map_created == false){
+  if (pipe_map_created_ == false){
     CreateCellMap(S);
-    pipe_map_created = true;
+    pipe_map_created_ = true;
   }
-  if (sw_map_created == false) {
+  if (sw_map_created_ == false) {
     CreateCellMap(S);
-    sw_map_created = true;
+    sw_map_created_ = true;
   }
 
   double drain_length;
@@ -196,12 +195,12 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
      for (int c=0; c!=ncells; ++c) {
         // use cell map
-        if (pipe_flag == true) {
+        if (pipe_flag_ == true) {
           c_pipe = c;
-          c_sw = pipe_map[c];
-        } else if (sw_flag == true) {
+          c_sw = pipe_map_[c];
+        } else if (sw_flag_ == true) {
           c_sw = c;
-          c_pipe = sw_map[c];
+          c_pipe = sw_map_[c];
         }
       
         // calculate pipe drain length using bathymetry
