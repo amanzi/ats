@@ -89,8 +89,8 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   Tag tag = my_keys_.front().second;
 
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)->ViewComponent("cell",false);
-  // loop over mesh cells and create map
   
+  // loop over mesh cells and create map
   int ncells_pipe = pipe_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
   int ncells_sw = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
 
@@ -234,7 +234,6 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
 
 }
 
-// Needs to be possibly UPDATED
 void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
         const Key& wrt_key, const Tag& wrt_tag,
         const std::vector<CompositeVector*>& result)
@@ -261,56 +260,80 @@ void PipeDrainEvaluator::EvaluatePartialDerivative_(const State& S,
   const Epetra_MultiVector& srfcB = *S.GetPtr<CompositeVector>(surface_bathymetry_key_, tag)->ViewComponent("cell", false);
   const Epetra_MultiVector& pipeB = *S.GetPtr<CompositeVector>(pipe_bathymetry_key_, tag)->ViewComponent("cell", false);
 
-  double drain_length = 0.1; // dummy value; FIX ME
+  double drain_length;
 
   if(!pipe_domain_name_.empty()){
      const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
         ->ViewComponent("cell",false);
 
+     int c_pipe, c_sw;
+
      if (wrt_key == surface_depth_key_) {
-        for (int c=0; c!=ncells; ++c) {
-           if (pressHead[0][c] < drain_length) {
-              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
-           }
-           else if (drain_length < pressHead[0][c] && pressHead[0][c] < (drain_length + srfcDepth[0][c]) ){
-              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
+       for (int c=0; c!=ncells; ++c) {
+         // use cell map
+         if (pipe_flag_ == true) {
+           c_pipe = c;
+           c_sw = pipe_map_[c];
+         } else if (sw_flag_ == true) {
+           c_sw = c;
+           c_pipe = sw_map_[c];
+         }
+         // calculate pipe drain length using bathymetry
+         drain_length = srfcB[0][c_sw] - pipeB[0][c_pipe];
+
+         if (pressHead[0][c_pipe] < drain_length) {
+           res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c_sw]);
+         }
+         else if (drain_length < pressHead[0][c_pipe] && pressHead[0][c_pipe] < (drain_length + srfcDepth[0][c_sw]) ){
+           res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
                           / sqrt(srfcDepth[0][c] + drain_length - pressHead[0][c]);
-           }
-           else if (pressHead[0][c] > (drain_length + srfcDepth[0][c])) {
-              res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
-                          / sqrt(pressHead[0][c] - drain_length - srfcDepth[0][c]);
-           }
-        }   
+         }
+         else if (pressHead[0][c_pipe] > (drain_length + srfcDepth[0][c_sw])) {
+           res[0][c] = - 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
+                          / sqrt(pressHead[0][c_pipe] - drain_length - srfcDepth[0][c_sw]);
+         }
+       }   
      }
      else if (wrt_key == pressure_head_key_) {
-        for (int c=0; c!=ncells; ++c) {
-           if (pressHead[0][c] < drain_length) {
-              res[0][c] = 0.0; 
-           }
-           else if (drain_length < pressHead[0][c] && pressHead[0][c] < (drain_length + srfcDepth[0][c]) ){
-              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
-                          / sqrt(srfcDepth[0][c] + drain_length - pressHead[0][c]);
-           }
-           else if (pressHead[0][c] > (drain_length + srfcDepth[0][c])) {
-              res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
-                          / sqrt(pressHead[0][c] - drain_length - srfcDepth[0][c]);
-           }
-        }
+       for (int c=0; c!=ncells; ++c) {
+       // use cell map
+         if (pipe_flag_ == true) {
+         c_pipe = c;
+         c_sw = pipe_map_[c];
+         } else if (sw_flag_ == true) {
+           c_sw = c;
+           c_pipe = sw_map_[c];
+         }
+         // calculate pipe drain length using bathymetry
+         drain_length = srfcB[0][c_sw] - pipeB[0][c_pipe];
+
+         if (pressHead[0][c_pipe] < drain_length) {
+           res[0][c] = 0.0; 
+         }
+         else if (drain_length < pressHead[0][c_pipe] && pressHead[0][c_pipe] < (drain_length + srfcDepth[0][c_sw]) ){
+           res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_subweir_ * mnhArea * sqrtTwoG 
+                          / sqrt(srfcDepth[0][c_sw] + drain_length - pressHead[0][c_pipe]);
+         }
+         else if (pressHead[0][c_pipe] > (drain_length + srfcDepth[0][c_sw])) {
+           res[0][c] = 0.5 * mnhMask[0][c] * energ_loss_coeff_orifice_ * mnhArea * sqrtTwoG 
+                          / sqrt(pressHead[0][c_pipe] - drain_length - srfcDepth[0][c_sw]);
+         }
+       }
      }
      else {
        AMANZI_ASSERT(0);
      }
-  }
-  else {
+   }
+   else {
      if (wrt_key == surface_depth_key_) {
-        for (int c=0; c!=ncells; ++c) {
-              res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
-        }
+       for (int c=0; c!=ncells; ++c) {
+         res[0][c] = - mnhMask[0][c] * energ_loss_coeff_weir_ * mnhPerimeter* sqrtTwoG * sqrt(srfcDepth[0][c]);
+       }
      }
      else {
        AMANZI_ASSERT(0);
      }
-  }
+   }
 }
 
 
