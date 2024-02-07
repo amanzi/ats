@@ -85,7 +85,7 @@ DistributedTilesRateEvaluator::Update_(State& S)
   double dt = S.Get<double>("dt", tag);
 
 
-  int z_index = mesh->space_dimension() - 1; 
+  int z_index = mesh->getSpaceDimension() - 1; 
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double gr = -gravity[z_index];
 
@@ -125,13 +125,13 @@ DistributedTilesRateEvaluator::Update_(State& S)
     for (AmanziMesh::Entity_ID c = 0; c != ncells; ++c) {
       if (sub_marks[0][c] > 0) {
         if (th_ < 0){
-          AmanziMesh::Entity_ID_List faces;
-          std::vector<int> dirs;
-          mesh->cell_get_faces_and_dirs(c, &faces, &dirs);
+          //AmanziMesh::Entity_ID_List faces;
+          //std::vector<int> dirs;
+          const auto& [faces, dirs] = mesh->getCellFacesAndDirections(c);
           double zmax = -1e+98;
           double zmin =  1e+98;          
           for (auto f : faces){
-            auto xf=mesh->face_centroid(f);
+            auto xf = mesh->getFaceCentroid(f);
             zmax = std::max(zmax, xf[z_index]);
             zmin = std::min(zmin, xf[z_index]);              
           }
