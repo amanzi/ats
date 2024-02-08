@@ -95,8 +95,12 @@ MPCCoupledWater::Setup()
   // top layer of cells, we add the corresponding face's surface cell.
   auto debug_cells = domain_db_->get_cells();
 
+<<<<<<< HEAD
   int ncells_surf =
     surf_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+=======
+  int ncells_surf = surf_mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
   if (debug_cells.size() > 0) {
     const auto& domain_cell_map = domain_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
     const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
@@ -109,9 +113,14 @@ MPCCoupledWater::Setup()
       if (std::find(debug_cells.begin(), debug_cells.end(), gid) != debug_cells.end())
         surf_debug_cells_v.emplace_back(surf_cell_map.GID(sc));
     }
+<<<<<<< HEAD
     AmanziMesh::Entity_ID_View surf_debug_cells;
     vectorToView(surf_debug_cells, surf_debug_cells_v);
     if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
+=======
+    if (surf_debug_cells.size() > 0) 
+      surf_db_->add_cells(surf_debug_cells);
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
   }
 }
 

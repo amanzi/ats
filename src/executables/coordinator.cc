@@ -102,8 +102,15 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   }
   {
     Teuchos::TimeMonitor timer(*timers_.at("0: create mesh"));
+<<<<<<< HEAD
     // create state.
     S_ = Teuchos::rcp(new Amanzi::State(plist_->sublist("state")));
+=======
+
+    // extract state sublist and create state.
+    Teuchos::ParameterList state_list = plist_->sublist("state");
+    S_ = Teuchos::rcp(new Amanzi::State(state_list));
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
 
     // create the geometric model and regions
     Teuchos::ParameterList reg_list = plist_->sublist("regions");

@@ -81,11 +81,16 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   sat_key_ = Keys::readKey(*plist_, domain_, "saturation", "saturation_liquid");
   sat_gas_key_ = Keys::readKey(*plist_, domain_, "saturation gas", "saturation_gas");
   sat_ice_key_ = Keys::readKey(*plist_, domain_, "saturation ice", "saturation_ice");
+<<<<<<< HEAD
   capillary_pressure_gas_liq_key_ =
     Keys::readKey(*plist_, domain_, "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
   capillary_pressure_liq_ice_key_ =
     Keys::readKey(*plist_, domain_, "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
   depth_key_ = Keys::readKey(*plist_, domain_, "depth", "depth");
+=======
+  capillary_pressure_gas_liq_key_ = Keys::readKey(*plist_, domain_, "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
+  capillary_pressure_liq_ice_key_ = Keys::readKey(*plist_, domain_, "capillary_pressure_liq_ice", "capillary_pressure_liq_ice");
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
 
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
@@ -404,16 +409,26 @@ Richards::SetupRichardsFlow_()
 
   // -- flux is managed here as a primary variable
   requireAtNext(flux_key_, tag_next_, *S_, name_)
+<<<<<<< HEAD
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
+=======
+    .SetMesh(mesh_)->SetGhosted()
+    ->SetComponent("face", AmanziMesh::FACE, 1);
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
 
   // -- also need a velocity, but only for vis/diagnostics, so might as well
   // -- only keep at NEXT
   requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
+<<<<<<< HEAD
     .SetMesh(mesh_)
     ->SetGhosted()
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
+=======
+    .SetMesh(mesh_)->SetGhosted()
+    ->SetComponent("cell", AmanziMesh::CELL, 3);
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
 
   // Globalization and other timestep control flags
   // -- predictors
@@ -586,9 +601,14 @@ Richards::InitializeHydrostatic_(const Tag& tag)
   // constant head over the surface
   if (plist_->sublist("initial condition").isParameter("hydrostatic head [m]")) {
     double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
+<<<<<<< HEAD
     double rho =
       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
     int ncols = mesh_->columns.num_columns_owned;
+=======
+    double rho = plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    int ncols = mesh_->num_columns(false);
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
 
     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     int z_index = mesh_->getSpaceDimension() - 1;

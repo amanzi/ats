@@ -94,6 +94,7 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
 
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {
+<<<<<<< HEAD
         for (const auto& c : block) {
           D_[c] += md * spec->tau[phase] * porosity[0][c] * saturation[0][c] * mol_density[0][c];
         }
@@ -101,6 +102,14 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
         for (const auto& c : block) {
           D_[c] +=
             md * spec->tau[phase] * porosity[0][c] * (1.0 - saturation[0][c]) * mol_density[0][c];
+=======
+        for (c = block.begin(); c != block.end(); c++) {
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * saturation[0][*c] * mol_density[0][*c];
+        }
+      } else if (phase == TRANSPORT_PHASE_GAS) {
+        for (c = block.begin(); c != block.end(); c++) {
+          D_[*c] += md * spec->tau[phase] * porosity[0][*c] * (1.0 - saturation[0][*c]) * mol_density[0][*c];
+>>>>>>> f0303992f149747eefa9621f6dbd1307c44c5604
         }
       }
     }
