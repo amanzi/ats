@@ -17,35 +17,35 @@ namespace Relations {
 
 const std::string OverlandConductivityEvaluator::name = "overland conductivity";
 
-OverlandConductivityEvaluator::OverlandConductivityEvaluator(Teuchos::ParameterList& plist)
+OverlandConductivityEvaluator::OverlandConductivityEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 
-  if (plist_.isParameter("height key") || plist_.isParameter("ponded depth key") ||
-      plist_.isParameter("depth key") || plist_.isParameter("height key suffix") ||
-      plist_.isParameter("ponded depth key suffix") || plist_.isParameter("depth key suffix")) {
+  if (plist_->isParameter("height key") || plist_->isParameter("ponded depth key") ||
+      plist_->isParameter("depth key") || plist_->isParameter("height key suffix") ||
+      plist_->isParameter("ponded depth key suffix") || plist_->isParameter("depth key suffix")) {
     Errors::Message message(
       "OverlandConductivity: only use \"mobile depth key\" or \"mobile depth key suffix\", not "
       "\"height key\" or \"ponded depth key\" or \"depth key\".");
     Exceptions::amanzi_throw(message);
   }
 
-  mobile_depth_key_ = Keys::readKey(plist_, domain, "mobile depth", "ponded_depth");
+  mobile_depth_key_ = Keys::readKey(*plist_, domain, "mobile depth", "ponded_depth");
   dependencies_.insert(KeyTag{ mobile_depth_key_, tag });
 
-  slope_key_ = Keys::readKey(plist_, domain, "slope", "slope_magnitude");
+  slope_key_ = Keys::readKey(*plist_, domain, "slope", "slope_magnitude");
   dependencies_.insert(KeyTag{ slope_key_, tag });
 
-  coef_key_ = Keys::readKey(plist_, domain, "coefficient", "manning_coefficient");
+  coef_key_ = Keys::readKey(*plist_, domain, "coefficient", "manning_coefficient");
   dependencies_.insert(KeyTag{ coef_key_, tag });
 
-  dens_key_ = Keys::readKey(plist_, domain, "molar density liquid", "molar_density_liquid");
+  dens_key_ = Keys::readKey(*plist_, domain, "molar density liquid", "molar_density_liquid");
   dependencies_.insert(KeyTag{ dens_key_, tag });
 
   // create the model
-  Teuchos::ParameterList& sublist = plist_.sublist("overland conductivity model");
+  auto sublist = Teuchos::sublist(plist_, "overland conductivity model");
   model_ = Teuchos::rcp(new ManningConductivityModel(sublist));
 }
 

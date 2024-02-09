@@ -129,9 +129,9 @@ requireEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die)
   // evaluator list -- this allows "copy evaluators" e.g. "water content at the
   // old tag" to differ from the standard evalulator, e.g. "water content at
   // the new tag" which is likely a secondary variable evaluator.
-  Teuchos::ParameterList plist(key);
-  plist.set("evaluator type", "primary variable");
-  plist.set("tag", tag.get());
+  auto plist = Teuchos::rcp(new Teuchos::ParameterList(key));
+  plist->set("evaluator type", "primary variable");
+  plist->set("tag", tag.get());
   auto eval_pv = Teuchos::rcp(new EvaluatorPrimaryCV(plist));
   S.SetEvaluator(key, tag, eval_pv);
   return eval_pv;

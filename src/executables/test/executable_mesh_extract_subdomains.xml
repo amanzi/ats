@@ -1,7 +1,7 @@
 <ParameterList name="Main" type="ParameterList">
   <ParameterList name="mesh" type="ParameterList">
     <ParameterList name="verbose object" type="ParameterList">
-      <Parameter name="verbosity level" type="string" value="extreme" />
+      <Parameter name="verbosity level" type="string" value="high" />
     </ParameterList>
 
     <ParameterList name="domain" type="ParameterList">
@@ -14,18 +14,15 @@
     
     <ParameterList name="watershed:*" type="ParameterList">
       <Parameter name="mesh type" type="string" value="domain set regions" />
-      <Parameter name="create subcommunicator" type="string" value="true" />
       <ParameterList name="domain set regions parameters" type="ParameterList">
         <Parameter name="indexing parent domain" type="string" value="domain" />
-        <Parameter name="create subcommunicator" type="string" value="true" />
         <Parameter name="referencing parent domain" type="string" value="domain" />
         <Parameter name="regions" type="Array(string)" value="{upstream,downstream}" />
         <ParameterList name="watershed:*" type="ParameterList">
           <Parameter name="mesh type" type="string" value="extracted" />
-          <Parameter name="create subcommunicator" type="string" value="true" />
+          <Parameter name="create subcommunicator" type="bool" value="true" />
           <ParameterList name="extracted parameters" type="ParameterList">
             <Parameter name="parent domain" type="string" value="domain" />
-            <Parameter name="create subcommunicator" type="string" value="true" />
             <ParameterList name="verbose object" type="ParameterList">
               <Parameter name="verbosity level" type="string" value="high" />
             </ParameterList>

@@ -19,11 +19,11 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-ManningConductivityModel::ManningConductivityModel(Teuchos::ParameterList& plist)
+ManningConductivityModel::ManningConductivityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
 {
-  slope_regularization_ = plist.get<double>("slope regularization epsilon", 1.e-8);
-  manning_exp_ = plist.get<double>("Manning exponent");
-  depth_max_ = plist.get<double>("maximum ponded depth [m]", 1.e8);
+  slope_regularization_ = plist->get<double>("slope regularization epsilon", 1.e-8);
+  manning_exp_ = plist->get<double>("Manning exponent");
+  depth_max_ = plist->get<double>("maximum ponded depth [m]", 1.e8);
 }
 
 double

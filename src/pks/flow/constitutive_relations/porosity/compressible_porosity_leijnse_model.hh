@@ -50,9 +50,9 @@ namespace Flow {
 
 class CompressiblePorosityLeijnseModel {
  public:
-  explicit CompressiblePorosityLeijnseModel(Teuchos::ParameterList& plist) : plist_(plist)
+  explicit CompressiblePorosityLeijnseModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    InitializeFromPlist_();
+    InitializeFromPlist_(plist);
   }
 
   double Porosity(double base_poro, double pres, double patm)
@@ -97,14 +97,13 @@ class CompressiblePorosityLeijnseModel {
   }
 
  protected:
-  void InitializeFromPlist_()
+  void InitializeFromPlist_(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    compressibility_ = plist_.get<double>("pore compressibility [Pa^-1]");
-    cutoff_ = plist_.get<double>("pore compressibility inflection point [Pa]", 1000.);
+    compressibility_ = plist_->get<double>("pore compressibility [Pa^-1]");
+    cutoff_ = plist_->get<double>("pore compressibility inflection point [Pa]", 1000.);
   }
 
  protected:
-  Teuchos::ParameterList plist_;
   double compressibility_;
   double cutoff_;
 };

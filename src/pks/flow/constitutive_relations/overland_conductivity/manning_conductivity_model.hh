@@ -24,7 +24,7 @@ namespace Relations {
 
 class ManningConductivityModel {
  public:
-  explicit ManningConductivityModel(Teuchos::ParameterList& plist);
+  explicit ManningConductivityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist);
 
   double Conductivity(double depth, double slope, double coef);
   double DConductivityDDepth(double depth, double slope, double coef);

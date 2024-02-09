@@ -29,6 +29,7 @@
         <Parameter name="regions" type="Array(string)" value="{upstream,downstream}" />
         <ParameterList name="watershed:*" type="ParameterList">
           <Parameter name="mesh type" type="string" value="extracted" />
+          <Parameter name="create subcommunicator" type="bool" value="true" />
           <ParameterList name="extracted parameters" type="ParameterList">
             <Parameter name="parent domain" type="string" value="domain" />
             <ParameterList name="verbose object" type="ParameterList">
@@ -47,6 +48,7 @@
         <Parameter name="regions" type="Array(string)" value="{upstream,downstream}" />
         <ParameterList name="surface_watershed:*" type="ParameterList">
           <Parameter name="mesh type" type="string" value="surface" />
+          <Parameter name="create subcommunicator" type="bool" value="true" />
           <ParameterList name="surface parameters" type="ParameterList">
             <Parameter name="parent domain" type="string" value="watershed:*" />
             <Parameter name="region" type="string" value="surface" />

@@ -439,10 +439,7 @@ StrongMPC<PK_t>::ModifyCorrection(double h,
   return modified;
 };
 
-template<>
-const std::string StrongMPC<PK_BDF_Default>::type = "strong MPC";
-template<>
-const std::string StrongMPC<PK_PhysicalBDF_Default>::type = "physical strong MPC"; // this should not be used?
+
 
 
 } // namespace Amanzi

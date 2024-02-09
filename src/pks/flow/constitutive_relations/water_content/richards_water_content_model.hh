@@ -47,13 +47,13 @@ class RichardsWaterContentModel {
   static const int n_dependencies = 4;
   static const std::string name; // = "richards water content";
 
-  RichardsWaterContentModel(Teuchos::ParameterList& plist) {
-    WC_key_ = Keys::cleanPListName(plist);
+  RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+    WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
-    nl_key_ = Keys::readKey(plist, domain, "molar density", "molar_density_liquid");
-    sl_key_ = Keys::readKey(plist, domain, "saturation", "saturation_liquid");
-    phi_key_ = Keys::readKey(plist, domain, "porosity", "porosity");
-    cv_key_ = Keys::readKey(plist, domain, "cell volume", "cell_volume");
+    nl_key_ = Keys::readKey(*plist, domain, "molar density", "molar_density_liquid");
+    sl_key_ = Keys::readKey(*plist, domain, "saturation", "saturation_liquid");
+    phi_key_ = Keys::readKey(*plist, domain, "porosity", "porosity");
+    cv_key_ = Keys::readKey(*plist, domain, "cell volume", "cell_volume");
   }
 
   void setViews(const std::vector<cView_type>& deps,

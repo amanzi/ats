@@ -50,7 +50,7 @@ class ManningConductivityModel;
 
 class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  OverlandConductivityEvaluator(Teuchos::ParameterList& plist);
+  OverlandConductivityEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 

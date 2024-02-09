@@ -21,11 +21,13 @@ main(int argc, char* argv[])
   int res;
   {
     Teuchos::GlobalMPISession mpiSession(&argc, &argv);
-    Kokkos::initialize();
     {
-      res = UnitTest::RunAllTests();
+      Kokkos::initialize();
+      {
+        res = UnitTest::RunAllTests();
+      }
+      Kokkos::finalize();
     }
-    Kokkos::finalize();
   }
   return res;
 }

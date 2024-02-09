@@ -51,13 +51,13 @@ class PondedDepthModel {
   static const int n_dependencies = 2;
   static const std::string name; // = "overland pressure water content";
 
-  PondedDepthModel(Teuchos::ParameterList& plist) {
-    WC_key_ = Keys::cleanPListName(plist);
+  PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+    WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
-    pres_key_ = Keys::readKey(plist, domain, "pressure", "pressure");
-    rho_key_ = Keys::readKey(plist, domain, "mass density", "mass_density_liquid");
+    pres_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
+    rho_key_ = Keys::readKey(*plist, domain, "mass density", "mass_density_liquid");
 
-    bar_ = plist.get<bool>("allow negative ponded depth", false);
+    bar_ = plist->get<bool>("allow negative ponded depth", false);
   }
 
   void setViews(const std::vector<cView_type>& deps,

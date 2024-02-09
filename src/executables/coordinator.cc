@@ -62,7 +62,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     cycle_timer_(Teuchos::TimeMonitor::getNewCounter("cycle"))
 {
   // create state.
-  S_ = Teuchos::rcp(new Amanzi::State(plist_->sublist("state")));
+  S_ = Teuchos::rcp(new Amanzi::State(Teuchos::sublist(plist_, "state")));
 
   // create the geometric model and regions
   Teuchos::ParameterList reg_list = plist_->sublist("regions");
@@ -70,7 +70,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
     Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_));
 
   // create and register meshes
-  ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
+  ATS::Mesh::createMeshes(plist_, comm_, gm, *S_);
 
   coordinator_list_ = Teuchos::sublist(plist_, "cycle driver");
   InitializeFromPlist_();

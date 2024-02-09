@@ -58,16 +58,16 @@ class RelativePermeabilityModel {
   static const int n_dependencies = 1;
   static const std::string name;
 
-  RelativePermeabilityModel(Teuchos::ParameterList& plist)
-    : model_(plist.sublist("model parameters"))
+  RelativePermeabilityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+    : model_(plist->sublist("model parameters"))
   {
-    my_key_ = Keys::cleanPListName(plist);
+    my_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(my_key_);
-    s_key_ = Keys::readKey(plist, domain, "saturation", "saturation_liquid");
-    dens_key_ = Keys::readKey(plist, domain, "density", "molar_density_liquid");
-    visc_key_ = Keys::readKey(plist, domain, "viscosity", "viscosity");
+    s_key_ = Keys::readKey(*plist, domain, "saturation", "saturation_liquid");
+    dens_key_ = Keys::readKey(*plist, domain, "density", "molar_density_liquid");
+    visc_key_ = Keys::readKey(*plist, domain, "viscosity", "viscosity");
 
-    rescaling_ = 1.0 / plist.get<double>("permeability rescaling", 1.0);
+    rescaling_ = 1.0 / plist->get<double>("permeability rescaling", 1.0);
   }
 
   void setViews(const std::vector<cView_type>& deps,

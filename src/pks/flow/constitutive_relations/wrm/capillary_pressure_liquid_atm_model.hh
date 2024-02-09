@@ -44,10 +44,10 @@ class CapillaryPressureLiquidAtmModel {
   static const int n_dependencies = 1;
   static const std::string name;
 
-  CapillaryPressureLiquidAtmModel(Teuchos::ParameterList& plist) {
-    my_key_ = Keys::cleanPListName(plist);
+  CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+    my_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(my_key_);
-    p_key_ = Keys::readKey(plist, domain, "pressure", "pressure");
+    p_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
   }
 
   void setViews(const std::vector<cView_type>& deps,

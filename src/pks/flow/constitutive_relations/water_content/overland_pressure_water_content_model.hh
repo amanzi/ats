@@ -52,15 +52,15 @@ class OverlandPressureWaterContentModel {
   static const int n_dependencies = 2;
   static const std::string name; // = "overland pressure water content";
 
-  OverlandPressureWaterContentModel(Teuchos::ParameterList& plist) {
-    WC_key_ = Keys::cleanPListName(plist);
+  OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+    WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
-    pres_key_ = Keys::readKey(plist, domain, "pressure", "pressure");
-    cv_key_ = Keys::readKey(plist, domain, "cell volume", "cell_volume");
+    pres_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
+    cv_key_ = Keys::readKey(*plist, domain, "cell volume", "cell_volume");
 
-    M_ = plist.get<double>("molar mass", 0.0180153);
-    bar_ = plist.get<bool>("allow negative water content", false);
-    rollover_ = plist.get<double>("water content rollover", 0.);
+    M_ = plist->get<double>("molar mass", 0.0180153);
+    bar_ = plist->get<bool>("allow negative water content", false);
+    rollover_ = plist->get<double>("water content rollover", 0.);
   }
 
   void setViews(const std::vector<cView_type>& deps,

@@ -77,10 +77,6 @@ class WRMVanGenuchten {
   double residualSaturation() const { return sr_; }
 
  private:
-  void InitializeFromPlist_();
-
-  Teuchos::ParameterList& plist_;
-
   double m_; // van Genuchten parameters: m, n, alpha
   double n_;
   double l_;

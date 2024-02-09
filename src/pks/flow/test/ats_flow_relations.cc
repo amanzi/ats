@@ -16,8 +16,7 @@ using cView_type = Kokkos::View<const double**, DefaultHostMemorySpace>;
 
 SUITE(FLOW_RELATIONS) {
   TEST(RICHARDS_WATER_CONTENT) {
-    Teuchos::ParameterList plist;
-
+    auto plist = Teuchos::rcp(new Teuchos::ParameterList("saturation"));
     Flow::Relations::RichardsWaterContentModel<cView_type, View_type> model(plist);
     View_type sat("saturation", 4,1);
     sat(0,0) = 0.;
