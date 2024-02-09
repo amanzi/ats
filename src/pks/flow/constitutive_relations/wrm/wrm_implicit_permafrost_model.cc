@@ -14,6 +14,7 @@
 
 #include "dbc.hh"
 #include "errors.hh"
+#include "Brent.hh"
 #include "Tensor.hh"
 #include "Point.hh"
 
@@ -31,7 +32,7 @@ WRMImplicitPermafrostModel::WRMImplicitPermafrostModel(Teuchos::ParameterList& p
   eps_ = plist_.get<double>("converged tolerance", 1.e-12);
   max_it_ = plist_.get<int>("max iterations", 100);
   deriv_regularization_ = plist_.get<double>("minimum dsi_dpressure magnitude", 1.e-10);
-  solver_ = plist_.get<std::string>("solver algorithm [bisection/toms]", "bisection");
+  solver_ = plist_.get<std::string>("solver algorithm", "brent");
 }
 
 // Above freezing calculation methods:
@@ -351,40 +352,35 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
 {
   // solve implicit equation for s_i
   SatIceFunctor_ func(pc_liq, pc_ice, wrm_);
-  Tol_ tol(eps_);
-  boost::uintmax_t max_it(max_it_);
   double left = 0.;
   double right = 1.;
+  double result(0.);
+  int max_it(max_it_);
 
-  std::pair<double, double> result;
-  try {
-    if (solver_ == "bisection") {
-      result = boost::math::tools::bisect(func, left, right, tol, max_it);
-    } else if (solver_ == "toms") {
-      result = boost::math::tools::toms748_solve(func, left, right, tol, max_it);
-    } else {
-      Errors::Message emsg("Unknown solver method");
-      Exceptions::amanzi_throw(emsg);
-    }
-  } catch (const std::exception& e) {
-    // this throw should not be caught
-    std::stringstream estream;
-    estream << "WRMImplicitPermafrostModel failed: " << e.what() << std::endl;
-    Errors::Message emsg(estream.str());
+  if (solver_ == "bisection") {
+    Errors::Message emsg("WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
+    Exceptions::amanzi_throw(emsg);
+  } else if (solver_ == "toms") {
+    Errors::Message emsg("WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
+    Exceptions::amanzi_throw(emsg);
+  } else if (solver_ == "brent") {
+    result = Utils::findRootBrent(func, left, right, eps_, &max_it);
+  } else {
+    Errors::Message emsg;
+    emsg << "WRMImplicitPermafrostModel: invalid solver method \""
+         << solver_ << "\", use \"brent\"";
     Exceptions::amanzi_throw(emsg);
   }
 
-  double si = (result.first + result.second) / 2.;
+  double si = result;
   AMANZI_ASSERT(0. <= si && si <= 1.);
 
   if (max_it >= max_it_) {
     // did not converge?  May be ABS converged but not REL converged!
-    if (!tol(func(si), 0.)) {
-      std::cout << "WRMImplicitPermafrostModel did not converge, " << max_it
-                << " iterations, error = " << func(si) << ", s_i = " << si
-                << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
-      if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimeStep()); }
-    }
+    std::cerr << "WRMImplicitPermafrostModel did not converge, " << max_it
+             << " iterations, error = " << func(si) << ", s_i = " << si
+             << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
+    if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimeStep()); }
   }
   return si;
 }

@@ -12,7 +12,6 @@
 
 */
 
-#include "boost/math/constants/constants.hpp"
 #include <cmath>
 
 #include "dbc.hh"
@@ -23,7 +22,7 @@ namespace Amanzi {
 namespace Flow {
 
 UnfrozenFractionRelPermModel::UnfrozenFractionRelPermModel(Teuchos::ParameterList& plist)
-  : plist_(plist), pi_(boost::math::constants::pi<double>())
+  : plist_(plist), pi_(M_PI)
 {
   alpha_ = plist_.get<int>("unfrozen rel perm alpha", 4);
   if (alpha_ % 2 != 0) {

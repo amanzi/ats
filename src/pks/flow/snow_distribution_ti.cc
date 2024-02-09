@@ -7,7 +7,6 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "boost/math/special_functions/fpclassify.hpp"
 #include "Op.hh"
 #include "snow_distribution.hh"
 
