@@ -13,7 +13,6 @@
 */
 
 #include "organic_matter_evaluator.hh"
-#include "boost/math/constants/constants.hpp"
 
 namespace Amanzi {
 

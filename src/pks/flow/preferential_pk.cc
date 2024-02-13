@@ -7,10 +7,6 @@
   Authors: Daniil Svyatsky(dasvyat@gmail.com)
 */
 
-#include "boost/math/special_functions/fpclassify.hpp"
-
-#include "boost/algorithm/string/predicate.hpp"
-
 #include "Epetra_Import.h"
 
 #include "flow_bc_factory.hh"

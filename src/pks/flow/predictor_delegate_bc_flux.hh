@@ -73,7 +73,7 @@ class PredictorDelegateBCFlux {
         patm_(patm)
     {}
 
-    double operator()(double face_p)
+    double operator()(double face_p) const
     {
       (*lambda_)[face_index_] = face_p;
       double s = wrm_->saturation(patm_ - face_p);
@@ -109,7 +109,7 @@ class PredictorDelegateBCFlux {
  protected:
   Teuchos::RCP<FluxBCFunctor>
   CreateFunctor_(int f, const Teuchos::Ptr<const CompositeVector>& pres);
-  int CalculateLambdaToms_(int f, const Teuchos::Ptr<const CompositeVector>& pres, double& lambda);
+  int CalculateLambda_(int f, const Teuchos::Ptr<const CompositeVector>& pres, double& lambda);
 
  protected:
   Teuchos::RCP<const State> S_next_;
