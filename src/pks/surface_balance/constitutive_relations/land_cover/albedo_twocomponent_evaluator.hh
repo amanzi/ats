@@ -83,6 +83,7 @@ class AlbedoTwoComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key albedo_key_, emissivity_key_;
   Key snow_dens_key_, ponded_depth_key_, unfrozen_fraction_key_;
 
+  bool is_constant_snow_albedo_;
   double a_ice_, a_water_;
   double e_snow_, e_ice_, e_water_;
 
