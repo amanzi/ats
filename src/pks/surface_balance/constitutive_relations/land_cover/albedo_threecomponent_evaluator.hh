@@ -83,7 +83,8 @@ class AlbedoThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key snow_dens_key_;
   Key unfrozen_fraction_key_;
 
-  double a_water_, a_ice_;
+  bool is_constant_snow_albedo_;
+  double a_water_, a_ice_, a_snow_;
   double e_water_, e_ice_, e_snow_;
 
   // this is horrid, because this cannot yet live in state
