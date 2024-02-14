@@ -440,6 +440,4 @@ StrongMPC<PK_t>::ModifyCorrection(double h,
 };
 
 
-
-
 } // namespace Amanzi

@@ -73,49 +73,48 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
     const auto cell_coef_c = cell_coef.viewComponent("cell", true);
 
     int nfaces_local = face_coef_f.extent(0);
-    Kokkos::parallel_for("upwind_total_flux", nfaces_local,
-                         KOKKOS_LAMBDA(const int& f) {
+    Kokkos::parallel_for(
+      "upwind_total_flux", nfaces_local, KOKKOS_LAMBDA(const int& f) {
+        auto cells = mesh->getFaceCells(f);
 
-                           auto cells = mesh->getFaceCells(f);
+        if (cells.size() == 1) {
+          if (potential_f.extent(0) > 0) {
+            if (potential_c(cells[0], 0) >= potential_f(f, 0)) {
+              face_coef_f(f, 0) = cell_coef_c(cells[0], 0);
+            }
+          } else {
+            face_coef_f(f, 0) = cell_coef_c(cells[0], 0);
+          }
+        } else {
+          // Determine the size of the overlap region, a smooth transition region
+          // near zero potential difference.
+          double ol0 = std::max(0., overlap_c(cells[0], 0));
+          double ol1 = std::max(0., overlap_c(cells[1], 0));
 
-                           if (cells.size() == 1) {
-                             if (potential_f.extent(0) > 0) {
-                               if (potential_c(cells[0],0) >= potential_f(f,0)) {
-                                 face_coef_f(f,0) = cell_coef_c(cells[0],0);
-                               }
-                             } else {
-                               face_coef_f(f,0) = cell_coef_c(cells[0],0);
-                             }
-                           } else {
-                             // Determine the size of the overlap region, a smooth transition region
-                             // near zero potential difference.
-                             double ol0 = std::max(0., overlap_c(cells[0],0));
-                             double ol1 = std::max(0., overlap_c(cells[1],0));
+          double flow_eps = 0.0;
+          if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
+          flow_eps = std::max(flow_eps, eps);
 
-                             double flow_eps = 0.0;
-                             if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
-                             flow_eps = std::max(flow_eps, eps);
-
-                             // Determine the coefficient.
-                             if (potential_c(cells[0],0) - potential_c(cells[1],0) > flow_eps) {
-                               face_coef_f(f,0) = cell_coef_c(cells[0],0);
-                             } else if (potential_c(cells[1],0) - potential_c(cells[0],0) > flow_eps) {
-                               face_coef_f(f,0) = cell_coef_c(cells[1],0);
-                             } else {
-                               // Parameterization of a linear scaling between upwind and downwind.
-                               double param;
-                               if (flow_eps < 2 * eps) {
-                                 param = 0.5;
-                               } else {
-                                 param = (potential_c(cells[1],0) - potential_c(cells[0],0)) / (2 * flow_eps) + 0.5;
-                               }
-                               AMANZI_ASSERT(param >= 0.0);
-                               AMANZI_ASSERT(param <= 1.0);
-                               face_coef_f(f,0) =
-                                 cell_coef_c(cells[1],0) * param + cell_coef_c(cells[0],0) * (1. - param);
-                             }
-                           }
-                         });
+          // Determine the coefficient.
+          if (potential_c(cells[0], 0) - potential_c(cells[1], 0) > flow_eps) {
+            face_coef_f(f, 0) = cell_coef_c(cells[0], 0);
+          } else if (potential_c(cells[1], 0) - potential_c(cells[0], 0) > flow_eps) {
+            face_coef_f(f, 0) = cell_coef_c(cells[1], 0);
+          } else {
+            // Parameterization of a linear scaling between upwind and downwind.
+            double param;
+            if (flow_eps < 2 * eps) {
+              param = 0.5;
+            } else {
+              param = (potential_c(cells[1], 0) - potential_c(cells[0], 0)) / (2 * flow_eps) + 0.5;
+            }
+            AMANZI_ASSERT(param >= 0.0);
+            AMANZI_ASSERT(param <= 1.0);
+            face_coef_f(f, 0) =
+              cell_coef_c(cells[1], 0) * param + cell_coef_c(cells[0], 0) * (1. - param);
+          }
+        }
+      });
   }
   face_coef.scatterMasterToGhosted("face");
 };

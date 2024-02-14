@@ -20,11 +20,10 @@ namespace Amanzi {
 namespace Flow {
 
 RichardsSteadyState::RichardsSteadyState(const Comm_ptr_type& comm,
-        Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-        const Teuchos::RCP<State>& S)
-  : PK(comm, pk_tree, glist, S),
-    Richards(comm, pk_tree, glist, S)
+                                         Teuchos::ParameterList& pk_tree,
+                                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                                         const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S), Richards(comm, pk_tree, glist, S)
 {}
 
 
@@ -42,8 +41,10 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
   db_->WriteVector("p_new", S_->GetPtr<CompositeVector>(key_, Tags::NEXT).ptr(), true);
-  db_->WriteVector("sl_old", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::DEFAULT).ptr(), true);
-  db_->WriteVector("sl_new", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::NEXT).ptr(), true);
+  db_->WriteVector(
+    "sl_old", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::DEFAULT).ptr(), true);
+  db_->WriteVector(
+    "sl_new", S_->GetPtr<CompositeVector>("saturation_liquid", Tags::NEXT).ptr(), true);
   db_->WriteVector("sg_new", S_->GetPtr<CompositeVector>("saturation_gas", Tags::NEXT).ptr(), true);
 
   double h = t_new - t_old;
@@ -71,7 +72,7 @@ RichardsSteadyState::FunctionalResidual(double t_old,
 
   // update boundary conditions
   UpdateBoundaryConditions_(tag_next_);
-//  db_->WriteBoundaryConditions(bc_markers(), bc_values());
+  //  db_->WriteBoundaryConditions(bc_markers(), bc_values());
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->getData();

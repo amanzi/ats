@@ -47,11 +47,12 @@ TopCellsSurfaceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   const Epetra_MultiVector& surf_vector_cells = *surf_vector->viewComponent("cell", false);
   Epetra_MultiVector& result_cells = *result[0]->viewComponent("cell", false);
 
-  int ncells_surf =
-    surf_vector->getMesh()->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_surf = surf_vector->getMesh()->getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                           AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int c = 0; c != ncells_surf; ++c) {
     // get the face on the subsurface mesh
-    AmanziMesh::Entity_ID f = surf_vector->getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+    AmanziMesh::Entity_ID f =
+      surf_vector->getMesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 
     // get the cell interior to the face
     AmanziMesh::Entity_ID_List cells;

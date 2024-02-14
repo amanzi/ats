@@ -68,7 +68,8 @@ class CompressiblePorosityLinearModel {
   static const int n_dependencies = 2;
   static const std::string name;
 
-  CompressiblePorosityLinearModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+  CompressiblePorosityLinearModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  {
     my_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(my_key_);
     phi_key_ = Keys::readKey(*plist, domain, "porosity", "base_porosity");
@@ -80,9 +81,9 @@ class CompressiblePorosityLinearModel {
     max_is_one_ = model_list.get<bool>("cap porosity at 1", true);
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     res_ = res[0];
     phi_ = deps[0];
     p_ = deps[1];
@@ -92,39 +93,46 @@ class CompressiblePorosityLinearModel {
   KeyVector getMyKeys() const { return { my_key_ }; }
   KeyVector getDependencies() const { return { phi_key_, p_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    double poro = phi_(i,0);
-    double p_over = p_(i,0) - patm_;
+  KOKKOS_INLINE_FUNCTION void operator()(const int i) const
+  {
+    double poro = phi_(i, 0);
+    double p_over = p_(i, 0) - patm_;
     if (p_over > cutoff_) {
       poro = poro + compressibility_ * (cutoff_ / 2. + (p_over - cutoff_));
     } else if (p_over > 0.) {
       poro = poro + compressibility_ * (std::pow(p_over, 2.) / 2. / cutoff_);
     }
 
-    if (max_is_one_) res_(i,0) = poro > 1. ? 1. : poro;
-    else res_(i,0) = poro;
+    if (max_is_one_)
+      res_(i, 0) = poro > 1. ? 1. : poro;
+    else
+      res_(i, 0) = poro;
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
+  {
     operator()(i);
-    double poro = res_(i,0);
+    double poro = res_(i, 0);
 
-    if (max_is_one_) res_(i,0) = p_(i,0) > patm_ ? (poro > 1.0 ? 0. : 1.) : 1.;
-    else res_(i,0) = 1.0;
+    if (max_is_one_)
+      res_(i, 0) = p_(i, 0) > patm_ ? (poro > 1.0 ? 0. : 1.) : 1.;
+    else
+      res_(i, 0) = 1.0;
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
+  {
     operator()(i);
-    double poro = res_(i,0);
-    double p_over = p_(i,0) - patm_;
+    double poro = res_(i, 0);
+    double p_over = p_(i, 0) - patm_;
     if (max_is_one_ && poro == 1.) {
-      res_(i,0) = 0.;
+      res_(i, 0) = 0.;
     } else if (p_over > cutoff_) {
-      res_(i,0) = compressibility_;
+      res_(i, 0) = compressibility_;
     } else if (p_over > 0.) {
-      res_(i,0) = compressibility_ * p_over / cutoff_;
+      res_(i, 0) = compressibility_ * p_over / cutoff_;
     } else {
-      res_(i,0) = 0.;
+      res_(i, 0) = 0.;
     }
   }
 
@@ -142,11 +150,10 @@ class CompressiblePorosityLinearModel {
 
 
 template <class cView_type, class View_type>
-const std::string CompressiblePorosityLinearModel<cView_type, View_type>::name = "compressible porosity linear";
+const std::string CompressiblePorosityLinearModel<cView_type, View_type>::name =
+  "compressible porosity linear";
 
 
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-
-

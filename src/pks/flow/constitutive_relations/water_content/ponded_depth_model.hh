@@ -51,7 +51,8 @@ class PondedDepthModel {
   static const int n_dependencies = 2;
   static const std::string name; // = "overland pressure water content";
 
-  PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+  PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  {
     WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
     pres_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
@@ -60,9 +61,9 @@ class PondedDepthModel {
     bar_ = plist->get<bool>("allow negative ponded depth", false);
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     AMANZI_ASSERT(deps.size() == n_dependencies);
     AMANZI_ASSERT(res.size() == n_results);
     WC_ = res[0];
@@ -74,34 +75,34 @@ class PondedDepthModel {
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   }
 
-  KeyVector getMyKeys() const {
-    return { WC_key_ };
-  }
-  KeyVector getDependencies() const {
-    return { pres_key_, rho_key_ };
-  }
+  KeyVector getMyKeys() const { return { WC_key_ }; }
+  KeyVector getDependencies() const { return { pres_key_, rho_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = (pres_(c,0) - p_atm_) / (gz_ * rho_(c,0));
+      WC_(c, 0) = (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : (pres_(c,0) - p_atm_) / (gz_ * rho_(c,0));
+      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
     }
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = 1.0 / (gz_ * rho_(c,0));
+      WC_(c, 0) = 1.0 / (gz_ * rho_(c, 0));
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : 1.0 / (gz_ * rho_(c,0));
+      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : 1.0 / (gz_ * rho_(c, 0));
     }
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = -gz_ * (pres_(c,0) - p_atm_) / std::pow(gz_ * rho_(c,0), 2);
+      WC_(c, 0) = -gz_ * (pres_(c, 0) - p_atm_) / std::pow(gz_ * rho_(c, 0), 2);
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : -gz_ * (pres_(c,0) - p_atm_) / std::pow(gz_ * rho_(c,0), 2);
+      WC_(c, 0) =
+        pres_(c, 0) < p_atm_ ? 0. : -gz_ * (pres_(c, 0) - p_atm_) / std::pow(gz_ * rho_(c, 0), 2);
     }
   }
 
@@ -123,4 +124,3 @@ const std::string PondedDepthModel<cView_type, View_type>::name = "ponded depth"
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

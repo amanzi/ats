@@ -133,8 +133,10 @@ Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double 
       if (mesh_->isValidSetName(runtime_regions_[k], AmanziMesh::Entity_kind::FACE)) {
         flag = true;
         AmanziMesh::Entity_ID_List block;
-        mesh_->getSetEntities(
-          runtime_regions_[k], AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED, &block);
+        mesh_->getSetEntities(runtime_regions_[k],
+                              AmanziMesh::Entity_kind::FACE,
+                              AmanziMesh::Parallel_kind::OWNED,
+                              &block);
         int nblock = block.size();
 
         for (int m = 0; m < nblock; m++) {

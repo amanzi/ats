@@ -56,8 +56,7 @@ class PK_BDF_Default : public PK_BDF {
                  Teuchos::ParameterList& pk_tree,
                  const Teuchos::RCP<Teuchos::ParameterList>& glist,
                  const Teuchos::RCP<State>& S)
-    : PK(comm, pk_tree, glist, S),
-      PK_BDF(comm, pk_tree, glist, S)
+    : PK(comm, pk_tree, glist, S), PK_BDF(comm, pk_tree, glist, S)
   {}
 
   // Virtual destructor

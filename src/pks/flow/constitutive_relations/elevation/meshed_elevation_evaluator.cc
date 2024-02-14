@@ -137,8 +137,9 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
     }
 
     if (elev->hasComponent("boundary_face")) {
-      const Epetra_Map& vandalay_map = surface_mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-      const Epetra_Map& face_map = surface_mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+      const Epetra_Map& vandalay_map =
+        surface_mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+      const Epetra_Map& face_map = surface_mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
       Epetra_MultiVector& elev_bf = *elev->viewComponent("boundary_face", false);
 
       AmanziMesh::Entity_ID_List surface_nodes(2);
@@ -200,7 +201,8 @@ MeshedElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
       int nfaces = elev_f.MyLength();
       for (int f = 0; f != nfaces; ++f) {
         // Note that a surface face is a surface mesh's face.
-        AmanziMesh::Entity_ID domain_face = surface_mesh->getEntityParent(AmanziMesh::Entity_kind::FACE, f);
+        AmanziMesh::Entity_ID domain_face =
+          surface_mesh->getEntityParent(AmanziMesh::Entity_kind::FACE, f);
         AmanziGeometry::Point x = parent_mesh->getFaceCentroid(domain_face, true);
         elev_f[0][f] = x[2];
       }

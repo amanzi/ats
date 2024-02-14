@@ -45,7 +45,7 @@ struct Runner {
     comm = getDefaultComm();
     plist = Teuchos::getParametersFromXmlFile(filename);
     gm = Teuchos::rcp(new AmanziGeometry::GeometricModel(3, plist->sublist("regions"), *comm));
-    S = Teuchos::rcp(new State(Teuchos::sublist(plist,"state")));
+    S = Teuchos::rcp(new State(Teuchos::sublist(plist, "state")));
   }
 
   void go() { ATS::Mesh::createMeshes(plist, comm, gm, *S); }
@@ -59,7 +59,6 @@ struct Runner {
 
 SUITE(ATS_MESH_FACTORY)
 {
-
 #if 0
   TEST_FIXTURE(Runner, EXTRACT_SURFACE)
   {
@@ -85,7 +84,7 @@ SUITE(ATS_MESH_FACTORY)
     CHECK(total_has_surface > 0);
   }
 #endif
-  
+
   TEST_FIXTURE(Runner, EXTRACT_SUBDOMAINS)
   {
     setup("test/executable_mesh_extract_subdomains.xml");
@@ -157,7 +156,8 @@ SUITE(ATS_MESH_FACTORY)
       auto& up_mesh = *S->GetMesh("watershed:upstream");
       int ncells_upstream = up_mesh.ncells_owned;
       int ncells_upstream_g;
-      Teuchos::reduceAll(*up_mesh.getComm(), Teuchos::REDUCE_SUM, 1, &ncells_upstream, &ncells_upstream_g);
+      Teuchos::reduceAll(
+        *up_mesh.getComm(), Teuchos::REDUCE_SUM, 1, &ncells_upstream, &ncells_upstream_g);
       CHECK_EQUAL(4200, ncells_upstream_g);
     }
 

@@ -129,7 +129,11 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
 // Require an upwinded coeficient for diffusion operators, given a location
 // defined by the upwinding scheme.
 // -----------------------------------------------------------------------------
-void requireNonlinearDiffusionCoefficient(const Key& key, const Tag& tag, const std::string& coef_location, State& S);
+void
+requireNonlinearDiffusionCoefficient(const Key& key,
+                                     const Tag& tag,
+                                     const std::string& coef_location,
+                                     State& S);
 
 } // namespace PKHelpers
 } // namespace Amanzi

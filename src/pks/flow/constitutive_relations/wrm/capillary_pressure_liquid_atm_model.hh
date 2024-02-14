@@ -44,15 +44,16 @@ class CapillaryPressureLiquidAtmModel {
   static const int n_dependencies = 1;
   static const std::string name;
 
-  CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+  CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  {
     my_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(my_key_);
     p_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
     res_ = res[0];
     p_ = deps[0];
@@ -61,13 +62,9 @@ class CapillaryPressureLiquidAtmModel {
   KeyVector getMyKeys() const { return { my_key_ }; }
   KeyVector getDependencies() const { return { p_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    res_(i,0) = p_atm_ - p_(i,0);
-  }
+  KOKKOS_INLINE_FUNCTION void operator()(const int i) const { res_(i, 0) = p_atm_ - p_(i, 0); }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    res_(i,0) = -1.;
-  }
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { res_(i, 0) = -1.; }
 
  private:
   View_type res_;
@@ -79,9 +76,9 @@ class CapillaryPressureLiquidAtmModel {
 };
 
 template <class cView_type, class View_type>
-const std::string CapillaryPressureLiquidAtmModel<cView_type, View_type>::name = "capillary pressure, atmospheric gas over liquid";
+const std::string CapillaryPressureLiquidAtmModel<cView_type, View_type>::name =
+  "capillary pressure, atmospheric gas over liquid";
 
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

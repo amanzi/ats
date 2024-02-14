@@ -65,9 +65,7 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
 
   // initialize the face coefficients
   face_coef.getComponent(face_component, true)->putScalar(0.0);
-  if (face_coef.hasComponent("cell")) {
-    face_coef.getComponent("cell", true)->putScalar(1.0);
-  }
+  if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
   // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or

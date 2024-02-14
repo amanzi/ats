@@ -52,7 +52,8 @@ class OverlandPressureWaterContentModel {
   static const int n_dependencies = 2;
   static const std::string name; // = "overland pressure water content";
 
-  OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+  OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  {
     WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
     pres_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
@@ -63,9 +64,9 @@ class OverlandPressureWaterContentModel {
     rollover_ = plist->get<double>("water content rollover", 0.);
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     AMANZI_ASSERT(deps.size() == n_dependencies);
     AMANZI_ASSERT(res.size() == n_results);
     WC_ = res[0];
@@ -77,50 +78,49 @@ class OverlandPressureWaterContentModel {
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   }
 
-  KeyVector getMyKeys() const {
-    return { WC_key_ };
-  }
-  KeyVector getDependencies() const {
-    return { pres_key_, cv_key_ };
-  }
+  KeyVector getMyKeys() const { return { WC_key_ }; }
+  KeyVector getDependencies() const { return { pres_key_, cv_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = cv_(c,0) * (pres_(c,0) - p_atm_) / Mgz_;
+      WC_(c, 0) = cv_(c, 0) * (pres_(c, 0) - p_atm_) / Mgz_;
     } else if (rollover_ > 0.) {
-      double dp = pres_(c,0) - p_atm_;
+      double dp = pres_(c, 0) - p_atm_;
       double dp_eff = dp < 0.        ? 0. :
-        dp < rollover_ ? dp * dp / (2 * rollover_) :
-        dp - rollover_ / 2.;
-      WC_(c,0) = cv_(c,0) * dp_eff / Mgz_;
+                      dp < rollover_ ? dp * dp / (2 * rollover_) :
+                                       dp - rollover_ / 2.;
+      WC_(c, 0) = cv_(c, 0) * dp_eff / Mgz_;
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : cv_(c,0) * (pres_(c,0) - p_atm_) / Mgz_;
+      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : cv_(c, 0) * (pres_(c, 0) - p_atm_) / Mgz_;
     }
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = cv_(c,0) / Mgz_;
+      WC_(c, 0) = cv_(c, 0) / Mgz_;
     } else if (rollover_ > 0.) {
-      double dp = pres_(c,0) - p_atm_;
+      double dp = pres_(c, 0) - p_atm_;
       double ddp_eff = dp < 0. ? 0. : dp < rollover_ ? dp / rollover_ : 1.;
-      WC_(c,0) = cv_(c,0) * ddp_eff / Mgz_;
+      WC_(c, 0) = cv_(c, 0) * ddp_eff / Mgz_;
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : cv_(c,0) / Mgz_;
+      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : cv_(c, 0) / Mgz_;
     }
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int c) const {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int c) const
+  {
     if (bar_) {
-      WC_(c,0) = (pres_(c,0) - p_atm_) / Mgz_;
+      WC_(c, 0) = (pres_(c, 0) - p_atm_) / Mgz_;
     } else if (rollover_ > 0.) {
-      double dp = pres_(c,0) - p_atm_;
+      double dp = pres_(c, 0) - p_atm_;
       double dp_eff = dp < 0.        ? 0. :
-        dp < rollover_ ? dp * dp / (2 * rollover_) :
-        dp - rollover_ / 2.;
-      WC_(c,0) = dp_eff / Mgz_;
+                      dp < rollover_ ? dp * dp / (2 * rollover_) :
+                                       dp - rollover_ / 2.;
+      WC_(c, 0) = dp_eff / Mgz_;
     } else {
-      WC_(c,0) = pres_(c,0) < p_atm_ ? 0. : (pres_(c,0) - p_atm_) / Mgz_;
+      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : (pres_(c, 0) - p_atm_) / Mgz_;
     }
   }
 
@@ -140,9 +140,9 @@ class OverlandPressureWaterContentModel {
 };
 
 template <class cView_type, class View_type>
-const std::string OverlandPressureWaterContentModel<cView_type, View_type>::name = "overland pressure water content";
+const std::string OverlandPressureWaterContentModel<cView_type, View_type>::name =
+  "overland pressure water content";
 
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

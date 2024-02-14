@@ -99,8 +99,8 @@ ManningCoefficientLitterEvaluator::Evaluate_(const State& S,
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
     AmanziMesh::Entity_ID_List cells;
 
     int ncomp = result[0]->size("boundary_face", false);
@@ -164,8 +164,8 @@ ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
     AmanziMesh::Entity_ID_List cells;
 
     int ncomp = result[0]->size("boundary_face", false);

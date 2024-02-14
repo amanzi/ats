@@ -24,9 +24,9 @@ namespace Amanzi {
 
 // constructor
 PK_PhysicalBDF_Default::PK_PhysicalBDF_Default(const Comm_ptr_type& comm,
-        Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-        const Teuchos::RCP<State>& S)
+                                               Teuchos::ParameterList& pk_tree,
+                                               const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                                               const Teuchos::RCP<State>& S)
   : PK(comm, pk_tree, glist, S),
     PK_BDF_Default(comm, pk_tree, glist, S),
     PK_Physical_Default(comm, pk_tree, glist, S)
@@ -116,7 +116,8 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
   // Abs tol based on old conserved quantity -- we know these have been vetted
   // at some level whereas the new quantity is some iterate, and may be
   // anything from negative to overflow.
-  auto conserved = S_->Get<CompositeVector>(conserved_key_, tag_current_).viewComponent("cell", true);
+  auto conserved =
+    S_->Get<CompositeVector>(conserved_key_, tag_current_).viewComponent("cell", true);
   auto cv = S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", true);
 
   Teuchos::RCP<const CompositeVector> dvec = res->getData();
@@ -130,30 +131,36 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
     if (comp == "cell") {
       // error done relative to extensive, conserved quantity
       int ncells = dvec_v.extent(0);
-      Kokkos::parallel_reduce("PK_PhysicalBDF_Default::ErrorNorm", ncells,
-              KOKKOS_LAMBDA(const int& c, Reductions::MaxLoc<double, GO>& lval) {
-                double enorm_c = std::abs(h * dvec_v(c,0)) / (atol_ * cv(c,0)
-                        + rtol_ * std::abs(conserved(c,0)));
-                Reductions::MaxLoc<double,GO> myval(enorm_c, c);
-                lval += myval;
-              }, enorm_comp);
+      Kokkos::parallel_reduce(
+        "PK_PhysicalBDF_Default::ErrorNorm",
+        ncells,
+        KOKKOS_LAMBDA(const int& c, Reductions::MaxLoc<double, GO>& lval) {
+          double enorm_c =
+            std::abs(h * dvec_v(c, 0)) / (atol_ * cv(c, 0) + rtol_ * std::abs(conserved(c, 0)));
+          Reductions::MaxLoc<double, GO> myval(enorm_c, c);
+          lval += myval;
+        },
+        enorm_comp);
 
     } else if (comp == "face") {
       // error in flux -- relative to cell's extensive conserved quantity
       int nfaces = dvec_v.extent(0);
-      Kokkos::parallel_reduce("PK_PhysicalBDF_Default::ErrorNorm", nfaces,
-              KOKKOS_LAMBDA(const int& f, Reductions::MaxLoc<double, GO>& lval) {
-                auto cells = mesh_->getFaceCells(f);
-                double cv_min =
-                  cells.size() == 1 ? cv(cells[0],0) : std::min(cv(cells[0],0), cv(cells[1],0));
-                double conserved_min = cells.size() == 1 ?
-                  conserved(cells[0],0) :
-                  std::min(conserved(cells[0],0), conserved(cells[1],0));
+      Kokkos::parallel_reduce(
+        "PK_PhysicalBDF_Default::ErrorNorm",
+        nfaces,
+        KOKKOS_LAMBDA(const int& f, Reductions::MaxLoc<double, GO>& lval) {
+          auto cells = mesh_->getFaceCells(f);
+          double cv_min =
+            cells.size() == 1 ? cv(cells[0], 0) : std::min(cv(cells[0], 0), cv(cells[1], 0));
+          double conserved_min = cells.size() == 1 ?
+                                   conserved(cells[0], 0) :
+                                   std::min(conserved(cells[0], 0), conserved(cells[1], 0));
 
-                double enorm_f = fluxtol_ * h * std::abs(dvec_v(f,0)) /
-                         (atol_ * cv_min + rtol_ * std::abs(conserved_min));
-                lval += Reductions::MaxLoc<double, GO>(enorm_f, f);
-              }, enorm_comp);
+          double enorm_f = fluxtol_ * h * std::abs(dvec_v(f, 0)) /
+                           (atol_ * cv_min + rtol_ * std::abs(conserved_min));
+          lval += Reductions::MaxLoc<double, GO>(enorm_f, f);
+        },
+        enorm_comp);
 
     } else {
       // pass...
@@ -165,9 +172,10 @@ PK_PhysicalBDF_Default::ErrorNorm(Teuchos::RCP<const TreeVector> u,
 
       // now do the global reduction in Teuchos, first converting to GID from LID
       enorm_comp.loc = dvec->getMap()->getComponentMap(comp)->getGlobalElement(enorm_comp.loc);
-      auto global_enorm_comp = Reductions::reduceAllLoc<double>(*dvec->getMap()->getComm(), enorm_comp);
-      *vo_->os() << "  ENorm (" << comp << ") = " << global_enorm_comp.val << "[" << global_enorm_comp.loc << "] ("
-                 << infnorm << ")" << std::endl;
+      auto global_enorm_comp =
+        Reductions::reduceAllLoc<double>(*dvec->getMap()->getComm(), enorm_comp);
+      *vo_->os() << "  ENorm (" << comp << ") = " << global_enorm_comp.val << "["
+                 << global_enorm_comp.loc << "] (" << infnorm << ")" << std::endl;
     }
 
     enorm_loc = std::max(enorm_loc, enorm_comp.val);

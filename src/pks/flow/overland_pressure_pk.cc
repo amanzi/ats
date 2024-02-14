@@ -30,9 +30,9 @@ const std::string OverlandPressureFlow::type = "overland pressure, pressure basi
 
 
 OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
-        Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-        const Teuchos::RCP<State>& S)
+                                           Teuchos::ParameterList& pk_tree,
+                                           const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                                           const Teuchos::RCP<State>& S)
   : PK(comm, pk_tree, glist, S),
     PK_PhysicalBDF_Default(comm, pk_tree, glist, S),
     is_source_term_(false),
@@ -115,7 +115,7 @@ OverlandPressureFlow::ParseParameterList_()
   for (auto& bc_sublist : *bc_plist) {
     if (bc_sublist.first == "water level") {
       // -- default Dirichlet conditions
-      std::string bc_name = name_+"_bcs_water_level";
+      std::string bc_name = name_ + "_bcs_water_level";
       Teuchos::ParameterList& bc_list = S_->GetEvaluatorList(bc_name);
       bc_list.set("water level", bc_plist->sublist("water level"));
       bc_list.set<std::string>("evaluator type", "independent variable patch")
@@ -125,7 +125,7 @@ OverlandPressureFlow::ParseParameterList_()
 
     } else if (bc_sublist.first == "water flux") {
       // -- default Neumann conditions
-      std::string bc_flux_name = name_+"_bcs_water_flux";
+      std::string bc_flux_name = name_ + "_bcs_water_flux";
       Teuchos::ParameterList& bc_flux_list = S_->GetEvaluatorList(bc_flux_name);
       bc_flux_list.set("water flux", bc_plist->sublist("water flux"));
       bc_flux_list.set<std::string>("evaluator type", "independent variable patch")
@@ -142,11 +142,10 @@ OverlandPressureFlow::ParseParameterList_()
   }
 
   // and the boundary condition aggregator
-  S_->GetEvaluatorList(name_+"_bcs")
+  S_->GetEvaluatorList(name_ + "_bcs")
     .set<std::string>("evaluator type", "boundary condition aggregator")
     .set<std::string>("entity kind", "face")
     .set<Teuchos::Array<std::string>>("dependencies", bcs_found);
-
 }
 
 
@@ -186,17 +185,17 @@ OverlandPressureFlow::SetupOverlandFlow_()
   // ------------------------------------------------------------------
   // -- boundary conditions
   Teuchos::ParameterList bc_plist = plist_->sublist("boundary conditions", true);
-  auto& bc_fac = S_->Require<Operators::BCs, Operators::BCs_Factory>(name_+"_bcs", tag_next_);
+  auto& bc_fac = S_->Require<Operators::BCs, Operators::BCs_Factory>(name_ + "_bcs", tag_next_);
   bc_fac.set_mesh(mesh_);
   bc_fac.set_entity_kind(AmanziMesh::Entity_kind::FACE);
   bc_fac.set_dof_type(WhetStone::DOF_Type::SCALAR);
-  S_->RequireEvaluator(name_+"_bcs", tag_next_);
+  S_->RequireEvaluator(name_ + "_bcs", tag_next_);
 
   if (plist_->sublist("boundary conditions").isSublist("water level"))
-    S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_water_level", tag_next_)
+    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_water_level", tag_next_)
       .set_flag(Operators::OPERATOR_BC_DIRICHLET);
   if (plist_->sublist("boundary conditions").isSublist("water flux"))
-    S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_water_flux", tag_next_)
+    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_water_flux", tag_next_)
       .set_flag(Operators::OPERATOR_BC_NEUMANN);
 
   // // bcs require this on boundary_faces for pd
@@ -290,7 +289,8 @@ OverlandPressureFlow::SetupOverlandFlow_()
       duw_cond_key_ = Keys::getDerivKey(uw_cond_key_, pd_key_);
 
       // note this is always done on faces using total flux upwinding
-      PKHelpers::requireNonlinearDiffusionCoefficient(duw_cond_key_, tag_next_, "upwind: face", *S_);
+      PKHelpers::requireNonlinearDiffusionCoefficient(
+        duw_cond_key_, tag_next_, "upwind: face", *S_);
 
       double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-12);
       upwinding_dkdp_ =
@@ -445,7 +445,7 @@ OverlandPressureFlow::Initialize()
   S_->GetRecordW(velocity_key_, Tags::NEXT, name_).set_initialized();
 
   // operators
-  const auto& bc = S_->GetPtr<Operators::BCs>(name_+"_bcs", tag_next_);
+  const auto& bc = S_->GetPtr<Operators::BCs>(name_ + "_bcs", tag_next_);
   matrix_diff_->SetBCs(bc, bc);
   preconditioner_diff_->SetBCs(bc, bc);
   face_matrix_diff_->SetBCs(bc, bc);
@@ -476,8 +476,7 @@ OverlandPressureFlow::CommitStep(double t_old, double t_new, const Tag& tag_next
 // Update diagnostics -- used prior to vis.
 // -----------------------------------------------------------------------------
 void
-OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
-{
+OverlandPressureFlow::CalculateDiagnostics(const Tag& tag){
   // UpdateVelocity_(tag);
 };
 
@@ -517,7 +516,8 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
 
     // upwind
     // -- get upwind conductivity data
-    Teuchos::RCP<CompositeVector> uw_cond = S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, uw_cond_key_);
+    Teuchos::RCP<CompositeVector> uw_cond =
+      S_->GetPtrW<CompositeVector>(uw_cond_key_, tag, uw_cond_key_);
 
     // -- get conductivity data
     Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(cond_key_, tag);
@@ -579,7 +579,7 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
-  S_->GetEvaluator(name_+"_bcs", tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
 }
 
 
@@ -589,19 +589,21 @@ OverlandPressureFlow::UpdateBoundaryConditions_(const Tag& tag)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void
-OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev)
+OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
+                                         CompositeVector& u,
+                                         const CompositeVector& elev)
 {
   if (u.hasComponent("face")) {
     auto u_f = u.viewComponent("face", false);
     auto elev_f = u.viewComponent("face", false);
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
-    Kokkos::parallel_for("applyDirichletBCs", u_f.extent(0),
-                         KOKKOS_LAMBDA(const int& f) {
-                           if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
-                             u_f(f,0) = bc_value(f) - elev_f(f,0);
-                           }
-                         });
+    Kokkos::parallel_for(
+      "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& f) {
+        if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
+          u_f(f, 0) = bc_value(f) - elev_f(f, 0);
+        }
+      });
   }
 
   if (u.hasComponent("boundary_face")) {
@@ -612,13 +614,13 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVec
 
     const AmanziMesh::Mesh* mesh = u.getMesh().get();
 
-    Kokkos::parallel_for("applyDirichletBCs", u_f.extent(0),
-                         KOKKOS_LAMBDA(const int& bf) {
-                           auto f = getBoundaryFaceFace(*mesh, bf);
-                           if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
-                             u_f(bf,0) = bc_value(f) - elev_f(f,0);
-                           }
-                         });
+    Kokkos::parallel_for(
+      "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
+        auto f = getBoundaryFaceFace(*mesh, bf);
+        if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
+          u_f(bf, 0) = bc_value(f) - elev_f(f, 0);
+        }
+      });
   }
 }
 
@@ -745,7 +747,7 @@ OverlandPressureFlow::ModifyPredictor(double h,
   // db_->WriteBoundaryConditions(bc_->model(), bc_->value());
 
   // push Dirichlet data into predictor
-  const auto& bcs = S_->Get<Operators::BCs>(name_+"_bcs", tag_next_);
+  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
   PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   return false;
@@ -777,16 +779,20 @@ OverlandPressureFlow::ModifyCorrection(double h,
     auto du_c = du->getData()->viewComponent("cell", false);
     const auto u_c = u->getData()->viewComponent("cell", false);
 
-    Kokkos::parallel_reduce("OverlandFlowPressure::ModifyPredictor 'limit correction when crossing atmospheric pressure [Pa]'", du_c.extent(0),
-                            KOKKOS_LAMBDA(const int& c, int& count) {
-                              if ((u_c(c,0) < patm) && (u_c(c,0) - du_c(c,0) > patm + patm_limit_)) {
-                                du_c(c,0) = u_c(c,0) - (patm + patm_limit_);
-                                count++;
-                              } else if ((u_c(c,0) > patm) && (u_c(c,0) - du_c(c,0) < patm - patm_limit_)) {
-                                du_c(c,0) = u_c(c,0) - (patm - patm_limit_);
-                                count++;
-                              }
-                            }, my_limited);
+    Kokkos::parallel_reduce(
+      "OverlandFlowPressure::ModifyPredictor 'limit correction when crossing atmospheric pressure "
+      "[Pa]'",
+      du_c.extent(0),
+      KOKKOS_LAMBDA(const int& c, int& count) {
+        if ((u_c(c, 0) < patm) && (u_c(c, 0) - du_c(c, 0) > patm + patm_limit_)) {
+          du_c(c, 0) = u_c(c, 0) - (patm + patm_limit_);
+          count++;
+        } else if ((u_c(c, 0) > patm) && (u_c(c, 0) - du_c(c, 0) < patm - patm_limit_)) {
+          du_c(c, 0) = u_c(c, 0) - (patm - patm_limit_);
+          count++;
+        }
+      },
+      my_limited);
     Teuchos::reduceAll(*mesh_->getComm(), Teuchos::REDUCE_SUM, 1, &my_limited, &n_limited_spurt);
   }
 
@@ -796,13 +802,16 @@ OverlandPressureFlow::ModifyCorrection(double h,
     auto du_c = du->getData()->viewComponent("cell", false);
     const auto u_c = u->getData()->viewComponent("cell", false);
 
-    Kokkos::parallel_reduce("OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'", du_c.extent(0),
-                            KOKKOS_LAMBDA(const int& c, int& count) {
-                              if (u_c(c,0) - du_c(c,0) < patm) {
-                                du_c(c,0) = u_c(c,0) - patm;
-                                count++;
-                              }
-                            }, my_limited);
+    Kokkos::parallel_reduce(
+      "OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'",
+      du_c.extent(0),
+      KOKKOS_LAMBDA(const int& c, int& count) {
+        if (u_c(c, 0) - du_c(c, 0) < patm) {
+          du_c(c, 0) = u_c(c, 0) - patm;
+          count++;
+        }
+      },
+      my_limited);
     Teuchos::reduceAll(*mesh_->getComm(), Teuchos::REDUCE_SUM, 1, &my_limited, &n_limited_spurt);
   }
 
@@ -819,13 +828,16 @@ OverlandPressureFlow::ModifyCorrection(double h,
       auto du_c = du->getData()->viewComponent("cell", false);
       const auto u_c = u->getData()->viewComponent("cell", false);
 
-      Kokkos::parallel_reduce("OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'", du_c.extent(0),
-              KOKKOS_LAMBDA(const int& c, int& count) {
-                if (std::abs(du_c(c,0)) > p_limit_) {
-                  du_c(c,0) = ((du_c(c,0) > 0) - (du_c(c,0) < 0)) * p_limit_;
-                  count++;
-                }
-              }, my_limited);
+      Kokkos::parallel_reduce(
+        "OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'",
+        du_c.extent(0),
+        KOKKOS_LAMBDA(const int& c, int& count) {
+          if (std::abs(du_c(c, 0)) > p_limit_) {
+            du_c(c, 0) = ((du_c(c, 0) > 0) - (du_c(c, 0) < 0)) * p_limit_;
+            count++;
+          }
+        },
+        my_limited);
     }
 
     Teuchos::reduceAll(*mesh_->getComm(), Teuchos::REDUCE_SUM, 1, &my_limited, &n_limited_change);

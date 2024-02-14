@@ -40,8 +40,8 @@ class Advection {
 
   Teuchos::RCP<CompositeVector> field() { return field_; }
 
-  virtual void Apply(const Teuchos::RCP<Operators::BCs>& bc_flux,
-                     bool include_bc_fluxes = true) = 0;
+  virtual void
+  Apply(const Teuchos::RCP<Operators::BCs>& bc_flux, bool include_bc_fluxes = true) = 0;
 
  protected:
   unsigned int num_dofs_;

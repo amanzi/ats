@@ -21,11 +21,10 @@
 namespace Amanzi {
 
 PK_Physical_Default::PK_Physical_Default(const Comm_ptr_type& comm,
-        Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-        const Teuchos::RCP<State>& S)
-  : PK(comm, pk_tree, glist, S),
-    PK_Physical(comm, pk_tree, glist, S)
+                                         Teuchos::ParameterList& pk_tree,
+                                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                                         const Teuchos::RCP<State>& S)
+  : PK(comm, pk_tree, glist, S), PK_Physical(comm, pk_tree, glist, S)
 {}
 
 void
@@ -154,7 +153,6 @@ PK_Physical_Default::Initialize()
     // communicate just to make sure values are initialized for valgrind's sake
     record.Get<CompositeVector>().scatterMasterToGhosted();
     ChangedSolutionPK(tag_next_);
-
   }
 };
 

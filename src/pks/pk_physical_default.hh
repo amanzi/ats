@@ -80,7 +80,6 @@ class PK_Physical_Default : public PK_Physical {
 
   // boundary conditions
   Teuchos::RCP<Operators::BCs> bc_;
-
 };
 
 } // namespace Amanzi

@@ -28,8 +28,7 @@ WeakMPC::WeakMPC(const Comm_ptr_type& comm,
                  Teuchos::ParameterList& pk_tree,
                  const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                  const Teuchos::RCP<State>& S)
-  : PK(comm, pk_tree, global_list, S),
-    MPC<PK>(comm, pk_tree, global_list, S)
+  : PK(comm, pk_tree, global_list, S), MPC<PK>(comm, pk_tree, global_list, S)
 {
   MPC<PK>::createSubPKs_(comm_);
 };

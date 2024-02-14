@@ -379,7 +379,8 @@ Morphology_PK::Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
   int dim = mesh->getSpaceDimension();
   Amanzi::AmanziGeometry::Point coords(dim);
   // number of vertices
-  int nV = mesh->getNumEntities(Amanzi::AmanziMesh::Entity_kind::NODE, Amanzi::AmanziMesh::Parallel_kind::OWNED);
+  int nV = mesh->getNumEntities(Amanzi::AmanziMesh::Entity_kind::NODE,
+                                Amanzi::AmanziMesh::Parallel_kind::OWNED);
 
   Epetra_MultiVector& vc =
     *S->GetPtrW<CompositeVector>(vert_field_key, "state")->viewComponent("node", false);

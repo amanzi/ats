@@ -104,7 +104,7 @@ Richards::ParseParameterList_()
   for (auto& bc_sublist : *bc_plist) {
     if (bc_sublist.first == "pressure") {
       // -- Dirichlet conditions
-      std::string bc_pressure_name = name_+"_bcs_pressure";
+      std::string bc_pressure_name = name_ + "_bcs_pressure";
       Teuchos::ParameterList& bc_pressure_list = S_->GetEvaluatorList(bc_pressure_name);
       bc_pressure_list.set("pressure", bc_plist->sublist("pressure"));
       bc_pressure_list.set<std::string>("evaluator type", "independent variable patch")
@@ -114,7 +114,7 @@ Richards::ParseParameterList_()
 
     } else if (bc_sublist.first == "water flux") {
       // -- Neumann conditions
-      std::string bc_flux_name = name_+"_bcs_water_flux";
+      std::string bc_flux_name = name_ + "_bcs_water_flux";
       Teuchos::ParameterList& bc_flux_list = S_->GetEvaluatorList(bc_flux_name);
       bc_flux_list.set("water flux", bc_plist->sublist("water flux"));
       bc_flux_list.set<std::string>("evaluator type", "independent variable patch")
@@ -125,11 +125,10 @@ Richards::ParseParameterList_()
   }
 
   // and the boundary condition aggregator
-  S_->GetEvaluatorList(name_+"_bcs")
+  S_->GetEvaluatorList(name_ + "_bcs")
     .set<std::string>("evaluator type", "boundary condition aggregator")
     .set<std::string>("entity kind", "face")
     .set<Teuchos::Array<std::string>>("dependencies", bcs_found);
-
 }
 
 // -------------------------------------------------------------
@@ -158,17 +157,17 @@ Richards::SetupRichardsFlow_()
   // Diffusion Operators
   // ------------------------------------------------------------------
   // -- Boundary conditions.
-  auto& bc_fac = S_->Require<Operators::BCs, Operators::BCs_Factory>(name_+"_bcs", tag_next_);
+  auto& bc_fac = S_->Require<Operators::BCs, Operators::BCs_Factory>(name_ + "_bcs", tag_next_);
   bc_fac.set_mesh(mesh_);
   bc_fac.set_entity_kind(AmanziMesh::Entity_kind::FACE);
   bc_fac.set_dof_type(WhetStone::DOF_Type::SCALAR);
-  S_->RequireEvaluator(name_+"_bcs", tag_next_);
+  S_->RequireEvaluator(name_ + "_bcs", tag_next_);
 
   if (plist_->sublist("boundary conditions").isSublist("pressure"))
-    S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_pressure", tag_next_)
+    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_pressure", tag_next_)
       .set_flag(Operators::OPERATOR_BC_DIRICHLET);
   if (plist_->sublist("boundary conditions").isSublist("water flux"))
-    S_->Require<MultiPatch<double>,MultiPatchSpace>(name_+"_bcs_water_flux", tag_next_)
+    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_water_flux", tag_next_)
       .set_flag(Operators::OPERATOR_BC_NEUMANN);
 
   // -- nonlinear coefficients/upwinding
@@ -289,7 +288,8 @@ Richards::SetupRichardsFlow_()
       duw_coef_key_ = Keys::getDerivKey(uw_coef_key_, key_);
 
       // note this is always done on faces using total flux upwinding
-      PKHelpers::requireNonlinearDiffusionCoefficient(duw_coef_key_, tag_next_, "upwind: face", *S_);
+      PKHelpers::requireNonlinearDiffusionCoefficient(
+        duw_coef_key_, tag_next_, "upwind: face", *S_);
 
       // note, this is here to be consistent -- unclear whether the 1.e-3 is useful or not?
       double flux_eps = plist_->get<double>("upwind flux epsilon", 1.e-5);
@@ -422,8 +422,7 @@ Richards::SetupPhysicalEvaluators_()
 {
   // -- permeability tensor
   auto& tv_fac = S_->Require<TensorVector, TensorVector_Factory>(perm_key_, tag_next_);
-  tv_fac.getMap().SetMesh(mesh_)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  tv_fac.getMap().SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(perm_key_, tag_next_);
 
   // -- water content, and evaluator, and derivative for PC
@@ -511,7 +510,7 @@ Richards::Initialize()
 
   // operators
   const auto& g = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-  const auto& bc = S_->GetPtr<Operators::BCs>(name_+"_bcs", tag_next_);
+  const auto& bc = S_->GetPtr<Operators::BCs>(name_ + "_bcs", tag_next_);
   matrix_diff_->SetGravity(g);
   matrix_diff_->SetBCs(bc, bc);
 
@@ -536,106 +535,106 @@ Richards::InitializeHydrostatic_(const Tag& tag)
   // constant head over the surface
   if (plist_->sublist("initial condition").isParameter("hydrostatic head [m]")) {
     AMANZI_ASSERT(false);
-//     double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
-//     double rho =
-//       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
-//     int ncols = mesh_->columns(false);
+    //     double head_wt = plist_->sublist("initial condition").get<double>("hydrostatic head [m]");
+    //     double rho =
+    //       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    //     int ncols = mesh_->columns(false);
 
-//     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-//     int z_index = mesh_->getSpaceDimension() - 1;
-//     double g = -gvec[z_index];
-//     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+    //     const auto& gvec = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+    //     int z_index = mesh_->getSpaceDimension() - 1;
+    //     double g = -gvec[z_index];
+    //     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-//     // set pressure on the column of faces and cells
-//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
-//     Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
-//     if (pres->hasComponent("face"))
-//       flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face", false)));
+    //     // set pressure on the column of faces and cells
+    //     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
+    //     Teuchos::RCP<Epetra_IntVector> flags = Teuchos::null;
+    //     if (pres->hasComponent("face"))
+    //       flags = Teuchos::rcp(new Epetra_IntVector(*pres->Map().Map("face", false)));
 
-//     { // context for viewcomponent -- do cells
-//       Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
-//       Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
-//       if (pres->hasComponent("face")) { pres_f = pres->viewComponent("face", false); }
+    //     { // context for viewcomponent -- do cells
+    //       Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+    //       Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
+    //       if (pres->hasComponent("face")) { pres_f = pres->viewComponent("face", false); }
 
-//       int ncells_per = -1;
-//       for (int col = 0; col != ncols; ++col) {
-//         auto& col_cells = mesh_->cells_of_column(col);
-//         if (ncells_per < 0) ncells_per = col_cells.size();
-//         AMANZI_ASSERT(col_cells.size() == ncells_per);
-//         auto& col_faces = mesh_->faces_of_column(col);
-//         AMANZI_ASSERT(col_faces.size() == col_cells.size() + 1);
-//         double z_wt = mesh_->getFaceCentroid(col_faces[0])[z_index] + head_wt;
+    //       int ncells_per = -1;
+    //       for (int col = 0; col != ncols; ++col) {
+    //         auto& col_cells = mesh_->cells_of_column(col);
+    //         if (ncells_per < 0) ncells_per = col_cells.size();
+    //         AMANZI_ASSERT(col_cells.size() == ncells_per);
+    //         auto& col_faces = mesh_->faces_of_column(col);
+    //         AMANZI_ASSERT(col_faces.size() == col_cells.size() + 1);
+    //         double z_wt = mesh_->getFaceCentroid(col_faces[0])[z_index] + head_wt;
 
-//         if (pres_f.get()) {
-//           (*pres_f)[0][col_faces[0]] = p_atm + rho * g * head_wt;
-//           (*flags)[col_faces[0]] = 1;
-//         }
-//         for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
-//           AmanziMesh::Entity_ID c = col_cells[lcv_c];
-//           AmanziMesh::Entity_ID f = col_faces[lcv_c + 1];
-//           pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
-//           if (pres_f.get()) {
-//             (*pres_f)[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
-//             (*flags)[f] = 1;
-//           }
-//         }
-//       }
-//     }
+    //         if (pres_f.get()) {
+    //           (*pres_f)[0][col_faces[0]] = p_atm + rho * g * head_wt;
+    //           (*flags)[col_faces[0]] = 1;
+    //         }
+    //         for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
+    //           AmanziMesh::Entity_ID c = col_cells[lcv_c];
+    //           AmanziMesh::Entity_ID f = col_faces[lcv_c + 1];
+    //           pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+    //           if (pres_f.get()) {
+    //             (*pres_f)[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+    //             (*flags)[f] = 1;
+    //           }
+    //         }
+    //       }
+    //     }
 
-//     if (pres->hasComponent("face")) {
-//       // communicate, then deal with horizontal-normal faces
-//       pres->scatterMasterToGhosted("cell");
-//       {
-//         const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
-//         Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
-//         for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
-//           if (!(*flags)[f]) {
-//             AmanziMesh::Entity_ID_List f_cells;
-//             f_cells = mesh_->getFaceCells(f);
-//             if (f_cells.size() == 1) {
-//               // boundary face, use the cell value as the water table is
-//               // assumed to parallel the cell structure
-//               pres_f[0][f] = pres_c[0][f_cells[0]];
-//               (*flags)[f] = 1;
-//             } else {
-//               AMANZI_ASSERT(f_cells.size() == 2);
-//               // interpolate between cells
-//               pres_f[0][f] = (pres_c[0][f_cells[0]] + pres_c[0][f_cells[1]]) / 2.;
-//               (*flags)[f] = 1;
-//             }
-//           }
-//         }
-//       }
-//     }
-//     S_->GetRecordW(key_, tag, getName()).set_initialized();
+    //     if (pres->hasComponent("face")) {
+    //       // communicate, then deal with horizontal-normal faces
+    //       pres->scatterMasterToGhosted("cell");
+    //       {
+    //         const Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+    //         Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+    //         for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
+    //           if (!(*flags)[f]) {
+    //             AmanziMesh::Entity_ID_List f_cells;
+    //             f_cells = mesh_->getFaceCells(f);
+    //             if (f_cells.size() == 1) {
+    //               // boundary face, use the cell value as the water table is
+    //               // assumed to parallel the cell structure
+    //               pres_f[0][f] = pres_c[0][f_cells[0]];
+    //               (*flags)[f] = 1;
+    //             } else {
+    //               AMANZI_ASSERT(f_cells.size() == 2);
+    //               // interpolate between cells
+    //               pres_f[0][f] = (pres_c[0][f_cells[0]] + pres_c[0][f_cells[1]]) / 2.;
+    //               (*flags)[f] = 1;
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //     S_->GetRecordW(key_, tag, getName()).set_initialized();
   }
 
   // constant head datum
   if (plist_->sublist("initial condition").isParameter("hydrostatic water level [m]")) {
     AMANZI_ASSERT(false);
-//     double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
-//     double rho =
-//       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
+    //     double z_wt = plist_->sublist("initial condition").get<double>("hydrostatic water level [m]");
+    //     double rho =
+    //       plist_->sublist("initial condition").get<double>("hydrostatic water density [kg m^-3]");
 
-//     int z_index = mesh_->getSpaceDimension() - 1;
-//     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
-//     double g = -gravity[z_index];
+    //     int z_index = mesh_->getSpaceDimension() - 1;
+    //     const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
+    //     double g = -gravity[z_index];
 
-//     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+    //     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
-//     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
-//     Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
-//     for (int c = 0; c != pres_c.MyLength(); ++c) {
-//       pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
-//     }
+    //     Teuchos::RCP<CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, getName());
+    //     Epetra_MultiVector& pres_c = *pres->viewComponent("cell", false);
+    //     for (int c = 0; c != pres_c.MyLength(); ++c) {
+    //       pres_c[0][c] = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+    //     }
 
-//     if (pres->hasComponent("face")) {
-//       Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
-//       for (int f = 0; f != pres_f.MyLength(); ++f) {
-//         pres_f[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
-//       }
-//     }
-//     S_->GetRecordW(key_, tag, getName()).set_initialized();
+    //     if (pres->hasComponent("face")) {
+    //       Epetra_MultiVector& pres_f = *pres->viewComponent("face", false);
+    //       for (int f = 0; f != pres_f.MyLength(); ++f) {
+    //         pres_f[0][f] = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+    //       }
+    //     }
+    //     S_->GetRecordW(key_, tag, getName()).set_initialized();
   }
 }
 
@@ -657,7 +656,9 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
   PKHelpers::assign(sat_key_, tag_current, tag_next, *S_);
-  if (S_->HasRecordSet(sat_ice_key_)) { PKHelpers::assign(sat_ice_key_, tag_current, tag_next, *S_); }
+  if (S_->HasRecordSet(sat_ice_key_)) {
+    PKHelpers::assign(sat_ice_key_, tag_current, tag_next, *S_);
+  }
 };
 
 
@@ -689,10 +690,12 @@ Richards::ValidStep()
   }
 
   if (S_->HasRecordSet(sat_ice_key_) && (sat_ice_change_limit_ > 0.0)) {
-    const Vector_type& si_new =
-      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_next_)->getComponent("cell", false)->getVector(0);
-    const Vector_type& si_old =
-      *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_current_)->getComponent("cell", false)->getVector(0);
+    const Vector_type& si_new = *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_next_)
+                                   ->getComponent("cell", false)
+                                   ->getVector(0);
+    const Vector_type& si_old = *S_->GetPtr<CompositeVector>(sat_ice_key_, tag_current_)
+                                   ->getComponent("cell", false)
+                                   ->getVector(0);
     Vector_type dsi(si_new);
     dsi.update(-1., si_old, 1.);
     auto change = Reductions::reduceAllMaxLoc(dsi);
@@ -713,8 +716,7 @@ Richards::ValidStep()
 // Update any diagnostic variables prior to vis (in this case velocity field).
 // -----------------------------------------------------------------------------
 void
-Richards::CalculateDiagnostics(const Tag& tag)
-{
+Richards::CalculateDiagnostics(const Tag& tag){
   // UpdateVelocity_(tag);
 };
 
@@ -754,7 +756,6 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       }
       face_matrix_diff_->SetDensity(rho);
       face_matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-      face_matrix_diff_->ApplyBCs(true, true, true);
       face_matrix_diff_->UpdateFlux(pres.ptr(), flux_dir.ptr());
 
       // if (clobber_boundary_flux_dir_) {
@@ -876,7 +877,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
 
-  S_->GetEvaluator(name_+"_bcs", tag_next_).Update(*S_, name_);
+  S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
 };
 
 
@@ -891,7 +892,7 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
   // db_->WriteBoundaryConditions(bc_->model(), bc_->value());
 
   // push Dirichlet data into predictor
-  const auto& bcs = S_->Get<Operators::BCs>(name_+"_bcs", tag_next_);
+  const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
   PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   bool changed(false);

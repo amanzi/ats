@@ -90,7 +90,8 @@ Transport_ATS::CalculateDiffusionTensor_(double md,
     std::vector<AmanziMesh::Entity_ID> block;
     for (int r = 0; r < (spec->regions).size(); r++) {
       std::string region = (spec->regions)[r];
-      mesh_->getSetEntities(region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &block);
+      mesh_->getSetEntities(
+        region, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &block);
 
       AmanziMesh::Entity_ID_List::iterator c;
       if (phase == TRANSPORT_PHASE_LIQUID) {

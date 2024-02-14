@@ -175,7 +175,9 @@ Transport_ATS::Setup()
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
-  requireAtNext(cv_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtNext(cv_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   // Raw data, no evaluator?
   //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
@@ -406,17 +408,22 @@ Transport_ATS::Initialize()
   // Check input parameters. Due to limited amount of checks, we can do it earlier.
   Policy(tag_next_);
 
-  ncells_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  ncells_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
-  nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
-  nfaces_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
-  nnodes_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
+  ncells_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  ncells_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
+  nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  nfaces_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+  nnodes_wghost =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
 
   // extract control parameters
   InitializeAll_();
 
   // upwind
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
   upwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   downwind_cell_ = Teuchos::rcp(new Epetra_IntVector(fmap_wghost));
   IdentifyUpwindCells();
@@ -471,8 +478,8 @@ Transport_ATS::Initialize()
           bc_list.set("entity_gid_out", gid);
 
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
-          Teuchos::RCP<TransportDomainFunction> bc =
-            factory.Create(bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
+          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
+            bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
 
           for (int i = 0; i < num_components; i++) {
             bc->tcc_names().push_back(component_names_[i]);
@@ -483,8 +490,12 @@ Transport_ATS::Initialize()
 
         } else {
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
-          Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
-            bc_list, "boundary concentration function", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
+          Teuchos::RCP<TransportDomainFunction> bc =
+            factory.Create(bc_list,
+                           "boundary concentration function",
+                           AmanziMesh::Entity_kind::FACE,
+                           Kxy,
+                           tag_current_);
           bc->set_state(S_);
 
           std::vector<std::string> tcc_names =
@@ -573,8 +584,8 @@ Transport_ATS::Initialize()
           srcs_.push_back(src);
         } else {
           // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
-          Teuchos::RCP<TransportDomainFunction> src =
-            factory.Create(src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
+          Teuchos::RCP<TransportDomainFunction> src = factory.Create(
+            src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
           std::vector<std::string> tcc_names =
             src_list.get<Teuchos::Array<std::string>>("component names").toVector();
@@ -693,7 +704,8 @@ Transport_ATS::StableTimeStep()
   S_->Get<CompositeVector>(flux_key_, Tags::NEXT).scatterMasterToGhosted("face");
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).viewComponent("face", true);
 
-  Teuchos::RCP<Epetra_Map> cell_map = Teuchos::rcp(new Epetra_Map(mesh_->getMap(AmanziMesh::Entity_kind::CELL,false)));
+  Teuchos::RCP<Epetra_Map> cell_map =
+    Teuchos::rcp(new Epetra_Map(mesh_->getMap(AmanziMesh::Entity_kind::CELL, false)));
   IdentifyUpwindCells();
 
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
@@ -1055,8 +1067,8 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
   if (flag_dispersion_ || flag_diffusion) {
     // default boundary conditions (none inside domain and Neumann on its boundary)
-    Teuchos::RCP<Operators::BCs> bc_dummy =
-      Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+    Teuchos::RCP<Operators::BCs> bc_dummy = Teuchos::rcp(
+      new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
     auto& bc_model = bc_dummy->bc_model();
     auto& bc_value = bc_dummy->bc_value();
     PopulateBoundaryData(bc_model, bc_value, -1);
@@ -1139,8 +1151,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
         if (tcc_tmp->hasComponent("boundary_face")) {
           Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->viewComponent("boundary_face", false);
           Epetra_MultiVector& sol_faces = *sol.viewComponent("face", false);
-          const Epetra_Map& vandalay_map = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-          const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
+          const Epetra_Map& vandalay_map =
+            mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+          const Epetra_Map& face_map = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
           int nbfaces = tcc_tmp_bf.MyLength();
           for (int bf = 0; bf != nbfaces; ++bf) {
             AmanziMesh::Entity_ID f = face_map.LID(vandalay_map.GID(bf));
@@ -1433,7 +1446,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
 
   // work memory
-  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
+  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL, true);
 
   // distribute vector of concentrations
   tcc->scatterMasterToGhosted("cell");
@@ -1524,7 +1537,7 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
   mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
 
   // work memory
-  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL,true);
+  const Epetra_Map& cmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::CELL, true);
   Epetra_Vector f_component(cmap_wghost); //,  f_component2(cmap_wghost);
 
   // distribute old vector of concentrations

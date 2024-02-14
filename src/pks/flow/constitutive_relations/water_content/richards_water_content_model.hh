@@ -47,7 +47,8 @@ class RichardsWaterContentModel {
   static const int n_dependencies = 4;
   static const std::string name; // = "richards water content";
 
-  RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist) {
+  RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  {
     WC_key_ = Keys::cleanPListName(*plist);
     auto domain = Keys::getDomain(WC_key_);
     nl_key_ = Keys::readKey(*plist, domain, "molar density", "molar_density_liquid");
@@ -56,9 +57,9 @@ class RichardsWaterContentModel {
     cv_key_ = Keys::readKey(*plist, domain, "cell volume", "cell_volume");
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     AMANZI_ASSERT(deps.size() == n_dependencies);
     AMANZI_ASSERT(res.size() == n_results);
     WC_ = res[0];
@@ -68,28 +69,29 @@ class RichardsWaterContentModel {
     cv_ = deps[3];
   }
 
-  KeyVector getMyKeys() const {
-    return { WC_key_ };
-  }
-  KeyVector getDependencies() const {
-    return { nl_key_, sl_key_, phi_key_, cv_key_ };
+  KeyVector getMyKeys() const { return { WC_key_ }; }
+  KeyVector getDependencies() const { return { nl_key_, sl_key_, phi_key_, cv_key_ }; }
+
+  KOKKOS_INLINE_FUNCTION void operator()(const int i) const
+  {
+    WC_(i, 0) = nl_(i, 0) * sl_(i, 0) * phi_(i, 0) * cv_(i, 0);
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    WC_(i,0) = nl_(i,0) * sl_(i,0) * phi_(i,0) * cv_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
+  {
+    WC_(i, 0) = sl_(i, 0) * phi_(i, 0) * cv_(i, 0);
   }
-
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    WC_(i,0) = sl_(i,0) * phi_(i,0) * cv_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
+  {
+    WC_(i, 0) = nl_(i, 0) * phi_(i, 0) * cv_(i, 0);
   }
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const {
-    WC_(i,0) = nl_(i,0) * phi_(i,0) * cv_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const
+  {
+    WC_(i, 0) = nl_(i, 0) * sl_(i, 0) * cv_(i, 0);
   }
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const {
-    WC_(i,0) = nl_(i,0) * sl_(i,0) * cv_(i,0);
-  }
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<3>, const int i) const {
-    WC_(i,0) = nl_(i,0) * sl_(i,0) * phi_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<3>, const int i) const
+  {
+    WC_(i, 0) = nl_(i, 0) * sl_(i, 0) * phi_(i, 0);
   }
 
  private:
@@ -106,4 +108,3 @@ const std::string RichardsWaterContentModel<cView_type, View_type>::name = "rich
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-

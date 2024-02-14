@@ -242,7 +242,9 @@ PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
           ->SetGhosted()
           ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, one_minus_limiter_nvecs_);
       } else {
-        fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+        fac.SetMesh(S.GetMesh(domain_))
+          ->SetGhosted()
+          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
     }
   }

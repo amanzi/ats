@@ -245,7 +245,8 @@ MatrixMFD::CreateMFDstiffnessMatrices(const Teuchos::Ptr<const CompositeVector>&
   if (Acf_cells_.size() != ncells) { Acf_cells_.resize(static_cast<size_t>(ncells)); }
   if (Acc_cells_.size() != ncells) {
     Acc_cells_.resize(static_cast<size_t>(ncells));
-    Acc_ = Teuchos::rcp(new Epetra_Vector(View, mesh_->getMap(AmanziMesh::Entity_kind::CELL,false), &Acc_cells_[0]));
+    Acc_ = Teuchos::rcp(
+      new Epetra_Vector(View, mesh_->getMap(AmanziMesh::Entity_kind::CELL, false), &Acc_cells_[0]));
   }
 
   for (int c = 0; c != ncells; ++c) {
@@ -393,9 +394,9 @@ MatrixMFD::ApplyBoundaryConditions(const std::vector<MatrixBC>& bc_markers,
 void
 MatrixMFD::SymbolicAssembleGlobalMatrices()
 {
-  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-  const Epetra_Map& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+  const Epetra_Map& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
 
   int avg_entries_row = (mesh_->getSpaceDimension() == 2) ? MFD_QUAD_FACES : MFD_HEX_FACES;
 
@@ -426,9 +427,9 @@ void
 MatrixMFD::FillMatrixGraphs_(const Teuchos::Ptr<Epetra_CrsGraph> cf_graph,
                              const Teuchos::Ptr<Epetra_FECrsGraph> ff_graph)
 {
-  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
-  const Epetra_Map& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE,false);
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
+  const Epetra_Map& fmap = mesh_->getMap(AmanziMesh::Entity_kind::FACE, false);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
 
   AmanziMesh::Entity_ID_List faces;
   int faces_LID[MFD_MAX_FACES]; // Contigious memory is required.
@@ -454,7 +455,7 @@ void
 MatrixMFD::CreateMatrices_(const Epetra_CrsGraph& cf_graph, const Epetra_FECrsGraph& ff_graph)
 {
   // create global matrices
-  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL,false);
+  const Epetra_Map& cmap = mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
   Aff_ = Teuchos::rcp(new Epetra_FECrsMatrix(Copy, ff_graph));
   Sff_ = Teuchos::rcp(new Epetra_FECrsMatrix(Copy, ff_graph));
   Aff_->GlobalAssemble();
@@ -970,7 +971,7 @@ MatrixMFD::AssembleRHS_() const
   Epetra_MultiVector& rhs_f = *rhs_->viewComponent("face", true);
 
   // loop over cells and fill
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
   int faces_LID[MFD_MAX_FACES];
   int faces_GID[MFD_MAX_FACES];
 
@@ -1008,7 +1009,7 @@ MatrixMFD::AssembleAff_() const
   AmanziMesh::Entity_ID_List faces;
   int gid[MFD_MAX_FACES];
 
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
   for (int c = 0; c != ncells; ++c) {
@@ -1043,7 +1044,7 @@ MatrixMFD::AssembleSchur_() const
 
   // loop over cells and assemble
   AmanziMesh::Entity_ID_List faces;
-  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE,true);
+  const Epetra_Map& fmap_wghost = mesh_->getMap(AmanziMesh::Entity_kind::FACE, true);
   int ncells = mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::OWNED);
 
   for (int c = 0; c != ncells; ++c) {

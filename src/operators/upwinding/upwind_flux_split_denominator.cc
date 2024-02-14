@@ -64,7 +64,6 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
                                                          CompositeVector& face_coef,
                                                          const Teuchos::Ptr<Debugger>& db) const
 {
-
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
@@ -88,105 +87,109 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
     // Determine the face coefficient of local faces.
     // These parameters may be key to a smooth convergence rate near zero flux.
-    Kokkos::parallel_for("upwind_flux_split_denominator", nfaces_local,
-                         KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f);
+    Kokkos::parallel_for(
+      "upwind_flux_split_denominator", nfaces_local, KOKKOS_LAMBDA(const int& f) {
+        auto fcells = mesh->getFaceCells(f);
 
-                           double denominator = 0.0;
-                           double coefs[2] = { 0., 0. };
-                           double weight[2] = { 0., 0. };
-                           double pd[2] = { 0., 0. };
-                           double denom[2] = { 0., 0. };
+        double denominator = 0.0;
+        double coefs[2] = { 0., 0. };
+        double weight[2] = { 0., 0. };
+        double pd[2] = { 0., 0. };
+        double denom[2] = { 0., 0. };
 
-                           int uw = -1, dw = -1;
-                           int c0 = fcells(0);
-                           int orientation = 0;
-                           mesh->getFaceNormal(f, c0, &orientation);
-                           if (flux_v(f,0) * orientation > 0) {
-                             uw = c0;
-                             if (fcells.size() == 2) dw = fcells(1);
-                           } else {
-                             dw = c0;
-                             if (fcells.size() == 2) uw = fcells(1);
-                           }
+        int uw = -1, dw = -1;
+        int c0 = fcells(0);
+        int orientation = 0;
+        mesh->getFaceNormal(f, c0, &orientation);
+        if (flux_v(f, 0) * orientation > 0) {
+          uw = c0;
+          if (fcells.size() == 2) dw = fcells(1);
+        } else {
+          dw = c0;
+          if (fcells.size() == 2) uw = fcells(1);
+        }
 
-                           // uw coef
-                           if (uw == -1) {
-                             denominator =
-                               manning_coef_v(dw,0) * std::sqrt(std::max(slope_v(dw,0), slope_regularization));
-                             AMANZI_ASSERT(denominator > 0);
+        // uw coef
+        if (uw == -1) {
+          denominator =
+            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
+          AMANZI_ASSERT(denominator > 0);
 
-                             coefs[0] = coef_faces(f,0) * denominator;
-                             coefs[1] = coef_cells(dw,0) * denominator;
+          coefs[0] = coef_faces(f, 0) * denominator;
+          coefs[1] = coef_cells(dw, 0) * denominator;
 
-                             // weighted by path length
-                             weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
-                             weight[0] = weight[1];
+          // weighted by path length
+          weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          weight[0] = weight[1];
 
-                           } else if (dw == -1) {
-                             denominator =
-                               manning_coef_v(uw,0) * std::sqrt(std::max(slope_v(uw,0), slope_regularization));
-                             AMANZI_ASSERT(denominator > 0);
+        } else if (dw == -1) {
+          denominator =
+            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
+          AMANZI_ASSERT(denominator > 0);
 
-                             coefs[0] = coef_cells(uw,0) * denominator;
-                             coefs[1] = coef_cells(uw,0) * denominator; // downwind boundary face not defined always
-                             //coefs[1] = coef_faces(f,0) * denominator;
+          coefs[0] = coef_cells(uw, 0) * denominator;
+          coefs[1] = coef_cells(uw, 0) * denominator; // downwind boundary face not defined always
+          //coefs[1] = coef_faces(f,0) * denominator;
 
-                             weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
-                             weight[1] = weight[0];
+          weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+          weight[1] = weight[0];
 
-                           } else {
-                             AMANZI_ASSERT(manning_coef_v(uw,0) > 0);
-                             AMANZI_ASSERT(manning_coef_v(dw,0) > 0);
-                             denom[0] = manning_coef_v(uw,0) * std::sqrt(std::max(slope_v(uw,0), slope_regularization));
-                             denom[1] = manning_coef_v(dw,0) * std::sqrt(std::max(slope_v(dw,0), slope_regularization));
+        } else {
+          AMANZI_ASSERT(manning_coef_v(uw, 0) > 0);
+          AMANZI_ASSERT(manning_coef_v(dw, 0) > 0);
+          denom[0] =
+            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
+          denom[1] =
+            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
 
-                             coefs[0] = coef_cells(uw,0) * denom[0];
-                             coefs[1] = coef_cells(dw,0) * denom[1];
+          coefs[0] = coef_cells(uw, 0) * denom[0];
+          coefs[1] = coef_cells(dw, 0) * denom[1];
 
-                             // harmonic mean of the denominator
-                             weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
-                             weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
-                             AMANZI_ASSERT(denom[0] > 0);
-                             AMANZI_ASSERT(denom[1] > 0);
-                             AMANZI_ASSERT(weight[0] > 0);
-                             AMANZI_ASSERT(weight[1] > 0);
-                             denominator = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
-                             AMANZI_ASSERT(denominator > 0);
-                           }
+          // harmonic mean of the denominator
+          weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+          weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          AMANZI_ASSERT(denom[0] > 0);
+          AMANZI_ASSERT(denom[1] > 0);
+          AMANZI_ASSERT(weight[0] > 0);
+          AMANZI_ASSERT(weight[1] > 0);
+          denominator = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
+          AMANZI_ASSERT(denominator > 0);
+        }
 
-                           double flow_eps = flux_eps_;
+        double flow_eps = flux_eps_;
 
-                           // Determine the coefficient
-                           AMANZI_ASSERT(denominator > 0);
-                           AMANZI_ASSERT(coefs[0] >= 0 && coefs[1] >= 0);
-                           if (coefs[1] > coefs[0]) {
-                             // downwind ponded depth is larger
-                             if ((coefs[0] != 0.0)) {
-                               // harmonic mean (smoothly approaches zero for upwind coef = 0)
-                               coef_faces(f,0) = (weight[0] + weight[1]) / (weight[0] / coefs[0] + weight[1] / coefs[1]);
-                             } else {
-                               // harmonic mean of zero is zero
-                               coef_faces(f,0) = 0.0;
-                             }
-                           } else if (std::abs(flux_v(f,0)) >= flow_eps) {
-                             // upwind ponded depth is larger, flux potential is nonzero
-                             // arithmetic mean (smoothly stays nonzero as downwind coef approches zero)
-                             coef_faces(f,0) = (weight[0] * coefs[0] + weight[1] * coefs[1]) / (weight[0] + weight[1]);
-                           } else {
-                             // upwind ponded depth is larger, flux potential approaches zero
-                             // smoothly vary between harmonic and arithmetic means
-                             double param = std::abs(flux_v(f,0)) / flow_eps;
-                             double amean = (weight[0] * coefs[0] + weight[1] * coefs[1]) / (weight[0] + weight[1]);
-                             double hmean = 0.0;
-                             if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
-                               hmean = (weight[0] + weight[1]) / (weight[0] / coefs[0] + weight[1] / coefs[1]);
-                             coef_faces(f,0) = param * amean + (1 - param) * hmean;
-                           }
+        // Determine the coefficient
+        AMANZI_ASSERT(denominator > 0);
+        AMANZI_ASSERT(coefs[0] >= 0 && coefs[1] >= 0);
+        if (coefs[1] > coefs[0]) {
+          // downwind ponded depth is larger
+          if ((coefs[0] != 0.0)) {
+            // harmonic mean (smoothly approaches zero for upwind coef = 0)
+            coef_faces(f, 0) =
+              (weight[0] + weight[1]) / (weight[0] / coefs[0] + weight[1] / coefs[1]);
+          } else {
+            // harmonic mean of zero is zero
+            coef_faces(f, 0) = 0.0;
+          }
+        } else if (std::abs(flux_v(f, 0)) >= flow_eps) {
+          // upwind ponded depth is larger, flux potential is nonzero
+          // arithmetic mean (smoothly stays nonzero as downwind coef approches zero)
+          coef_faces(f, 0) =
+            (weight[0] * coefs[0] + weight[1] * coefs[1]) / (weight[0] + weight[1]);
+        } else {
+          // upwind ponded depth is larger, flux potential approaches zero
+          // smoothly vary between harmonic and arithmetic means
+          double param = std::abs(flux_v(f, 0)) / flow_eps;
+          double amean = (weight[0] * coefs[0] + weight[1] * coefs[1]) / (weight[0] + weight[1]);
+          double hmean = 0.0;
+          if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
+            hmean = (weight[0] + weight[1]) / (weight[0] / coefs[0] + weight[1] / coefs[1]);
+          coef_faces(f, 0) = param * amean + (1 - param) * hmean;
+        }
 
-                           // divide by harmonic mean denominator
-                           coef_faces(f,0) /= denominator;
-                         });
+        // divide by harmonic mean denominator
+        coef_faces(f, 0) /= denominator;
+      });
   }
   face_coef.scatterMasterToGhosted("face");
 }

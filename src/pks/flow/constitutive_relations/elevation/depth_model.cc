@@ -22,8 +22,8 @@ void
 DepthModel(const AmanziMesh::Mesh& mesh, Epetra_MultiVector& depth)
 {
   depth.putScalar(-1);
-  AMANZI_ASSERT(depth.MyLength() ==
-                mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED));
+  AMANZI_ASSERT(depth.MyLength() == mesh.getNumEntities(AmanziMesh::Entity_kind::CELL,
+                                                        AmanziMesh::Parallel_kind::OWNED));
   for (int c = 0; c != depth.MyLength(); ++c) {
     if (depth[0][c] <= 0.) { DepthModel_Cell(c, mesh, depth); }
   }

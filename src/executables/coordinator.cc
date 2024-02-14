@@ -112,7 +112,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
           node_key, Amanzi::Tags::NEXT, node_key)
         .SetMesh(mesh->second.first)
         ->SetGhosted()
-        ->SetComponent("node", Amanzi::AmanziMesh::Entity_kind::NODE, mesh->second.first->getSpaceDimension());
+        ->SetComponent(
+          "node", Amanzi::AmanziMesh::Entity_kind::NODE, mesh->second.first->getSpaceDimension());
     }
 
     // // writes region information
@@ -185,9 +186,10 @@ Coordinator::initialize()
   for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
     if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
       Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
-      copyMeshCoordinatesToVector(*mesh->second.first,
-              Amanzi::AmanziMesh::Entity_kind::NODE,
-              S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
+      copyMeshCoordinatesToVector(
+        *mesh->second.first,
+        Amanzi::AmanziMesh::Entity_kind::NODE,
+        S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
       S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
     }
   }
@@ -207,7 +209,7 @@ Coordinator::initialize()
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
         copyVectorToMeshCoordinates(S_->Get<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT),
-                *mesh->second.first);
+                                    *mesh->second.first);
       }
     }
   }
@@ -261,7 +263,8 @@ Coordinator::initialize()
           Teuchos::ParameterList sublist = vis_list->sublist(subdomain);
           if (!sublist.isParameter("file name base"))
             sublist.set<std::string>("file name base", "ats_vis");
-          auto vis = Teuchos::rcp(new Amanzi::Visualization(sublist, S_->GetMesh(subdomain), false));
+          auto vis =
+            Teuchos::rcp(new Amanzi::Visualization(sublist, S_->GetMesh(subdomain), false));
           visualization_.push_back(vis);
         }
       } else {
@@ -269,8 +272,8 @@ Coordinator::initialize()
         auto domain_name_base = Amanzi::Keys::getDomainSetName(domain_name);
         if (!sublist_p->isParameter("file name base"))
           sublist_p->set<std::string>("file name base", "ats_vis");
-        auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(*sublist_p,
-                dset->getReferencingParent(), false, dset));
+        auto vis = Teuchos::rcp(new Amanzi::VisualizationDomainSet(
+          *sublist_p, dset->getReferencingParent(), false, dset));
         visualization_.push_back(vis);
       }
     }
@@ -343,7 +346,7 @@ Coordinator::report_memory()
     double global_ncells(0.0);
     double local_ncells(0.0);
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
-      auto cell_map = (mesh->second.first)->getMap(Amanzi::AmanziMesh::Entity_kind::CELL,false);
+      auto cell_map = (mesh->second.first)->getMap(Amanzi::AmanziMesh::Entity_kind::CELL, false);
       global_ncells += cell_map->getGlobalNumElements();
       local_ncells += cell_map->getLocalNumElements();
     }

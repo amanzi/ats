@@ -91,66 +91,68 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
     // Determine the face coefficient of local faces.
     // These parameters may be key to a smooth convergence rate near zero flux.
-    Kokkos::parallel_for("upwind_flux_fo_cont", nfaces_local,
-                         KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f);
+    Kokkos::parallel_for(
+      "upwind_flux_fo_cont", nfaces_local, KOKKOS_LAMBDA(const int& f) {
+        auto fcells = mesh->getFaceCells(f);
 
-                           double pds[2] = { 0., 0. };
+        double pds[2] = { 0., 0. };
 
-                           int uw = -1, dw = -1;
-                           int c0 = fcells(0);
-                           int orientation = 0;
-                           mesh->getFaceNormal(f, c0, &orientation);
-                           if (flux_v(f,0) * orientation > 0) {
-                             uw = c0;
-                             if (fcells.size() == 2) dw = fcells(1);
-                           } else {
-                             dw = c0;
-                             if (fcells.size() == 2) uw = fcells(1);
-                           }
-                           AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        int uw = -1, dw = -1;
+        int c0 = fcells(0);
+        int orientation = 0;
+        mesh->getFaceNormal(f, c0, &orientation);
+        if (flux_v(f, 0) * orientation > 0) {
+          uw = c0;
+          if (fcells.size() == 2) dw = fcells(1);
+        } else {
+          dw = c0;
+          if (fcells.size() == 2) uw = fcells(1);
+        }
+        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
-                           double denominator = 0.0;
-                           // uw coef
-                           if (uw == -1) {
-                             denominator =
-                               manning_coef_v(dw,0) * std::sqrt(std::max(slope_v(dw,0), slope_regularization));
-                             pds[0] = coef_faces(f,0);
-                           } else {
-                             pds[0] = pd_cells(uw,0);
-                           }
+        double denominator = 0.0;
+        // uw coef
+        if (uw == -1) {
+          denominator =
+            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
+          pds[0] = coef_faces(f, 0);
+        } else {
+          pds[0] = pd_cells(uw, 0);
+        }
 
-                           // dw coef
-                           if (dw == -1) {
-                             denominator =
-                               manning_coef_v(uw,0) * std::sqrt(std::max(slope_v(uw,0), slope_regularization));
-                             pds[1] = coef_faces(f,0);
-                           } else {
-                             pds[1] = pd_cells(dw,0);
-                           }
+        // dw coef
+        if (dw == -1) {
+          denominator =
+            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
+          pds[1] = coef_faces(f, 0);
+        } else {
+          pds[1] = pd_cells(dw, 0);
+        }
 
-                           if ((uw != -1) && (dw != -1)) {
-                             double denom[2];
-                             denom[0] = manning_coef_v(uw,0) * std::sqrt(std::max(slope_v(uw,0), slope_regularization));
-                             denom[1] = manning_coef_v(dw,0) * std::sqrt(std::max(slope_v(dw,0), slope_regularization));
-                             double dist[2];
-                             dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
-                             dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
-                             denominator = (dist[0] + dist[1]) / (dist[0] / denom[0] + dist[1] / denom[1]);
-                           }
+        if ((uw != -1) && (dw != -1)) {
+          double denom[2];
+          denom[0] =
+            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
+          denom[1] =
+            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
+          double dist[2];
+          dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+          dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          denominator = (dist[0] + dist[1]) / (dist[0] / denom[0] + dist[1] / denom[1]);
+        }
 
-                           double pdf = 0.0;
-                           // Determine the coefficient
-                           if (dw == -1)
-                             pdf = pds[1];
-                           else if (uw == -1)
-                             pdf = pds[0];
-                           else
-                             pdf = pds[0] + elevation_v(uw,0) - std::max(elevation_v(uw,0), elevation_v(dw,0));
+        double pdf = 0.0;
+        // Determine the coefficient
+        if (dw == -1)
+          pdf = pds[1];
+        else if (uw == -1)
+          pdf = pds[0];
+        else
+          pdf = pds[0] + elevation_v(uw, 0) - std::max(elevation_v(uw, 0), elevation_v(dw, 0));
 
-                           double exponent = manning_exp_ + 1.0;
-                           coef_faces(f,0) = std::pow(std::max(pdf, 0.), exponent) / denominator;
-                         });
+        double exponent = manning_exp_ + 1.0;
+        coef_faces(f, 0) = std::pow(std::max(pdf, 0.), exponent) / denominator;
+      });
   }
   face_coef.scatterMasterToGhosted("face");
 }

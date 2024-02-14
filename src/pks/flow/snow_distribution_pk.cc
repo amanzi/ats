@@ -262,7 +262,8 @@ SnowDistribution::UpdateBoundaryConditions_(const Teuchos::Ptr<State>& S)
   auto& values = bc_values();
 
   // mark all remaining boundary conditions as zero flux conditions
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   AmanziMesh::Entity_ID_List cells;
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {

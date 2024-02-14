@@ -136,9 +136,13 @@ AlbedoTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
   for (auto dep : dependencies_) {
     auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second);
     if (Keys::getDomain(dep.first) == domain_snow_) {
-      fac.SetMesh(S.GetMesh(domain_snow_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_snow_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     } else {
-      fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+      fac.SetMesh(S.GetMesh(domain_))
+        ->SetGhosted()
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }
   }
 }

@@ -36,12 +36,10 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
     auto u_f = u.viewComponent("face", false);
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
-    Kokkos::parallel_for("applyDirichletBCs", u_f.extent(0),
-                         KOKKOS_LAMBDA(const int& f) {
-                           if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
-                             u_f(f,0) = bc_value(f);
-                           }
-                         });
+    Kokkos::parallel_for(
+      "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& f) {
+        if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) { u_f(f, 0) = bc_value(f); }
+      });
   }
 
   if (u.hasComponent("boundary_face")) {
@@ -51,13 +49,11 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
 
     const AmanziMesh::Mesh* mesh = u.getMesh().get();
 
-    Kokkos::parallel_for("applyDirichletBCs", u_f.extent(0),
-                         KOKKOS_LAMBDA(const int& bf) {
-                           auto f = getBoundaryFaceFace(*mesh, bf);
-                           if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
-                             u_f(bf,0) = bc_value(f);
-                           }
-                         });
+    Kokkos::parallel_for(
+      "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
+        auto f = getBoundaryFaceFace(*mesh, bf);
+        if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) { u_f(bf, 0) = bc_value(f); }
+      });
   }
 }
 
@@ -232,13 +228,14 @@ assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S)
 }
 
 
-
 // -------------------------------------------------------------
 // Helper function and customization point for upwinded coefs.
 // -------------------------------------------------------------
 void
-requireNonlinearDiffusionCoefficient(const Key& key, const Tag& tag,
-                            const std::string& coef_location, State& S)
+requireNonlinearDiffusionCoefficient(const Key& key,
+                                     const Tag& tag,
+                                     const std::string& coef_location,
+                                     State& S)
 {
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = S.GetMesh(Keys::getDomain(key));
   if (coef_location == "upwind: face") {
@@ -258,9 +255,6 @@ requireNonlinearDiffusionCoefficient(const Key& key, const Tag& tag,
   }
   S.GetRecordW(key, tag, key).set_io_vis(false);
 }
-
-
-
 
 
 } // namespace PKHelpers

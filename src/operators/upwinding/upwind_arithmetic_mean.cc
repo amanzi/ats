@@ -52,7 +52,6 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
                                                    CompositeVector& face_coef,
                                                    const std::string face_component) const
 {
-
   // initialize the face coefficients
   face_coef.getComponent(face_component, true)->putScalar(0.0);
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -64,14 +63,12 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
     auto face_coef_f = face_coef.viewComponent(face_component, false);
     auto cell_coef_c = cell_coef.viewComponent(cell_component, true);
 
-    Kokkos::parallel_for("upwind_arithmetic_mean", face_coef_f.extent(0),
-                         KOKKOS_LAMBDA(const int& f) {
-                           auto cells = mesh->getFaceCells(f);
-                           for (const auto& c : cells) {
-                             face_coef_f(f,0) += cell_coef_c(c,0);
-                           }
-                           face_coef_f(f,0) /= cells.size();
-                         });
+    Kokkos::parallel_for(
+      "upwind_arithmetic_mean", face_coef_f.extent(0), KOKKOS_LAMBDA(const int& f) {
+        auto cells = mesh->getFaceCells(f);
+        for (const auto& c : cells) { face_coef_f(f, 0) += cell_coef_c(c, 0); }
+        face_coef_f(f, 0) /= cells.size();
+      });
   }
   face_coef.scatterMasterToGhosted(face_component);
 };
@@ -84,7 +81,7 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 //   const CompositeVector& dconductivity,
 //   const std::vector<int>& bc_markers,
 //   const std::vector<double>& bc_values,
-  
+
 //   std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const
 // {
 //   // Grab derivatives

@@ -65,14 +65,16 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   std::vector<AmanziGeometry::Point> my_centroid;
 
   auto domain_set = S.GetDomainSet(dset_name_);
-  const Epetra_Map& cell_map = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,false);
+  const Epetra_Map& cell_map =
+    S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL, false);
 
   AMANZI_ASSERT(domain_set->size() == cell_map.NumMyElements());
   AMANZI_ASSERT(domain_set->size() == elev_c.MyLength());
   for (const auto& domain : *domain_set) {
     int gid = Keys::getDomainSetIndex<int>(domain);
     int c = cell_map.LID(gid);
-    auto coord = S.GetMesh(domain)->getFaceCentroid(0); // 0 is the id of top face of the column mesh
+    auto coord =
+      S.GetMesh(domain)->getFaceCentroid(0); // 0 is the id of top face of the column mesh
     elev_c[0][c] = coord[2];
   }
 
@@ -82,7 +84,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
 
   // get all cell centroids
   for (int c = 0; c != ncells; ++c) {
-    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,true).GID(c);
+    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL, true).GID(c);
     AmanziGeometry::Point P1 = S.GetMesh(surface_domain_)->getCellCentroid(c);
     P1.set(P1[0], P1[1], elev_ngb_c[0][c]);
     my_centroid.push_back(P1);
@@ -92,7 +94,8 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
   for (int c = 0; c != ncells; c++) {
     AmanziMesh::Entity_ID_List nadj_cellids;
     S.GetMesh(surface_domain_)
-      ->AmanziMesh::MeshAlgorithms::getCellFaceAdjacentCells(c, AmanziMesh::Parallel_kind::ALL, &nadj_cellids);
+      ->AmanziMesh::MeshAlgorithms::getCellFaceAdjacentCells(
+        c, AmanziMesh::Parallel_kind::ALL, &nadj_cellids);
     int nface_pcell = S.GetMesh(surface_domain_)->getCellNumFaces(c);
 
     int ngb_cells = nadj_cellids.size();
@@ -104,7 +107,7 @@ ColumnElevationEvaluator::EvaluateElevationAndSlope_(const State& S,
       ngb_centroids[i].set(P2[0], P2[1], elev_ngb_c[0][nadj_cellids[i]]);
     }
 
-    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL,false).GID(c);
+    int id = S.GetMesh(surface_domain_)->getMap(AmanziMesh::Entity_kind::CELL, false).GID(c);
     Key my_name = Keys::getDomainInSet(dset_name_, id);
 
     std::vector<AmanziGeometry::Point> Normal;

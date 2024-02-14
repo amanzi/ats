@@ -170,7 +170,8 @@ EnergyBase::SetupEnergy_()
   bc_diff_flux_ = bc_factory.CreateDiffusiveFlux();
   bc_flux_ = bc_factory.CreateTotalFlux();
 
-  bc_adv_ = Teuchos::rcp(new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
+  bc_adv_ = Teuchos::rcp(
+    new Operators::BCs(mesh_, AmanziMesh::Entity_kind::FACE, WhetStone::DOF_Type::SCALAR));
 
   // -- nonlinear coefficient
   std::string method_name =
@@ -400,7 +401,9 @@ EnergyBase::SetupEnergy_()
 
   // require a water content field -- used for computing energy density in the
   // error norm
-  requireAtNext(wc_key_, tag_next_, *S_).SetMesh(mesh_)->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtNext(wc_key_, tag_next_, *S_)
+    .SetMesh(mesh_)
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(wc_key_, tag_current_, *S_, name_);
 
   // Require fields for the energy fluxes
@@ -620,7 +623,8 @@ EnergyBase::UpdateBoundaryConditions_(const Tag& tag)
 
   // mark all remaining boundary conditions as zero diffusive flux conditions
   AmanziMesh::Entity_ID_List cells;
-  int nfaces_owned = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
       cells = mesh_->getFaceCells(f);
@@ -881,7 +885,8 @@ EnergyBase::ModifyCorrection(double h,
         AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
         double T_bf_val =
-          (Acc(0, 0) * (T_c[0][c] - dT_c[0][c]) - bc_values()[f] * mesh_->getFaceArea(f)) / Acc(0, 0);
+          (Acc(0, 0) * (T_c[0][c] - dT_c[0][c]) - bc_values()[f] * mesh_->getFaceArea(f)) /
+          Acc(0, 0);
         dT_bf[0][bf] = T_bf[0][bf] - T_bf_val;
       }
     }

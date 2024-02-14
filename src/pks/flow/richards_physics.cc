@@ -34,21 +34,21 @@ Richards::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g
   // update the rel perm according to the scheme of choice
   UpdatePermeabilityData_(tag);
 
-  // update the matrix
+  // update the stiffness matrices
   matrix_->Zero();
-
   S_->GetEvaluator(mass_dens_key_, tag).Update(*S_, name_);
   matrix_diff_->SetDensity(S_->GetPtr<CompositeVector>(mass_dens_key_, tag));
   matrix_diff_->SetScalarCoefficient(S_->GetPtr<CompositeVector>(uw_coef_key_, tag), Teuchos::null);
-
   Teuchos::RCP<const CompositeVector> pres = S_->GetPtrW<CompositeVector>(key_, tag, name_);
   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-  matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes
   Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
   PKHelpers::changedEvaluatorPrimary(flux_key_, tag, *S_);
+
+  // apply BCs to the local matrices
+  matrix_diff_->ApplyBCs(true, true, true);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres, *g);
@@ -95,10 +95,11 @@ Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     g->getComponent("cell", false)
-      ->elementWiseMultiply(-1.0,
-                            *S_->Get<CompositeVector>(source_key_, tag).getComponent("cell", false)->getVector(0),
-                            *S_->Get<CompositeVector>(cell_vol_key_, tag).getComponent("cell", false),
-                            1.0);
+      ->elementWiseMultiply(
+        -1.0,
+        *S_->Get<CompositeVector>(source_key_, tag).getComponent("cell", false)->getVector(0),
+        *S_->Get<CompositeVector>(cell_vol_key_, tag).getComponent("cell", false),
+        1.0);
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);

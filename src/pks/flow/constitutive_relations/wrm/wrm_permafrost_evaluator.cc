@@ -179,8 +179,8 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
     AmanziMesh::Entity_ID_List cells;
 
     // calculate boundary face values
@@ -262,8 +262,8 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
 
     // Need to get boundary face's inner cell to specify the WRM.
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = results[0]->getMesh();
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
     AmanziMesh::Entity_ID_List cells;
 
     if (wrt_key == pc_liq_key_) {

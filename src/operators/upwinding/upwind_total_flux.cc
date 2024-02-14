@@ -81,61 +81,61 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
     CompositeVector::cMultiVectorView_type<> face_cell_coef;
     if (has_cells) face_cell_coef = face_coef.viewComponent("cell", true);
 
-    Kokkos::parallel_for("upwind_total_flux", nfaces_local,
-                         KOKKOS_LAMBDA(const int& f) {
-                           auto fcells = mesh->getFaceCells(f);
+    Kokkos::parallel_for(
+      "upwind_total_flux", nfaces_local, KOKKOS_LAMBDA(const int& f) {
+        auto fcells = mesh->getFaceCells(f);
 
-                           int uw = -1, dw = -1;
-                           int c0 = fcells(0);
-                           int orientation = 0;
-                           mesh->getFaceNormal(f, c0, &orientation);
-                           if (flux_v(f,0) * orientation > 0) {
-                             uw = c0;
-                             if (fcells.size() == 2) dw = fcells(1);
-                           } else {
-                             dw = c0;
-                             if (fcells.size() == 2) uw = fcells(1);
-                           }
-                           AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        int uw = -1, dw = -1;
+        int c0 = fcells(0);
+        int orientation = 0;
+        mesh->getFaceNormal(f, c0, &orientation);
+        if (flux_v(f, 0) * orientation > 0) {
+          uw = c0;
+          if (fcells.size() == 2) dw = fcells(1);
+        } else {
+          dw = c0;
+          if (fcells.size() == 2) uw = fcells(1);
+        }
+        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
-                           // Determine the face coefficient of local faces.
-                           double coefs[2];
+        // Determine the face coefficient of local faces.
+        double coefs[2];
 
-                           // uw coef
-                           if (uw == -1) {
-                             coefs[0] = coef_faces(f,0);
-                           } else {
-                             coefs[0] = coef_cells(uw,0);
-                           }
+        // uw coef
+        if (uw == -1) {
+          coefs[0] = coef_faces(f, 0);
+        } else {
+          coefs[0] = coef_cells(uw, 0);
+        }
 
-                           // dw coef
-                           if (dw == -1) {
-                             coefs[1] = coef_faces(f,0);
-                           } else {
-                             coefs[1] = coef_cells(dw,0);
-                           }
+        // dw coef
+        if (dw == -1) {
+          coefs[1] = coef_faces(f, 0);
+        } else {
+          coefs[1] = coef_cells(dw, 0);
+        }
 
-                           double flow_eps = flux_eps_;
+        double flow_eps = flux_eps_;
 
-                           // Determine the coefficient
-                           if (std::abs(flux_v(f,0)) >= flow_eps) {
-                             coef_faces(f,0) = coefs[0];
-                           } else {
-                             // Parameterization of a linear scaling between upwind and downwind.
-                             double param = std::abs(flux_v(f,0)) / (2 * flow_eps) + 0.5;
-                             if (!(param >= 0.5) || !(param <= 1.0)) {
-                               std::cout << "BAD FLUX! on face " << f << std::endl;
-                               std::cout << "  flux = " << flux_v(f,0) << std::endl;
-                               std::cout << "  param = " << param << std::endl;
-                               std::cout << "  flow_eps = " << flow_eps << std::endl;
-                             }
+        // Determine the coefficient
+        if (std::abs(flux_v(f, 0)) >= flow_eps) {
+          coef_faces(f, 0) = coefs[0];
+        } else {
+          // Parameterization of a linear scaling between upwind and downwind.
+          double param = std::abs(flux_v(f, 0)) / (2 * flow_eps) + 0.5;
+          if (!(param >= 0.5) || !(param <= 1.0)) {
+            std::cout << "BAD FLUX! on face " << f << std::endl;
+            std::cout << "  flux = " << flux_v(f, 0) << std::endl;
+            std::cout << "  param = " << param << std::endl;
+            std::cout << "  flow_eps = " << flow_eps << std::endl;
+          }
 
-                             AMANZI_ASSERT(param >= 0.5);
-                             AMANZI_ASSERT(param <= 1.0);
+          AMANZI_ASSERT(param >= 0.5);
+          AMANZI_ASSERT(param <= 1.0);
 
-                             coef_faces(f,0) = coefs[0] * param + coefs[1] * (1. - param);
-                           }
-                         });
+          coef_faces(f, 0) = coefs[0] * param + coefs[1] * (1. - param);
+        }
+      });
   }
   face_coef.scatterMasterToGhosted("face");
 };

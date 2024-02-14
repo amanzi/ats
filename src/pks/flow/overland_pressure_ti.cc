@@ -132,12 +132,12 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   // tack on the variable change
   {
     auto dh_dp = S_->GetDerivative<CompositeVector>(pd_bar_key_, tag_next_, key_, tag_next_)
-      .viewComponent("cell", false);
+                   .viewComponent("cell", false);
     auto Pu_c = Pu->getData()->viewComponent("cell", false);
-    Kokkos::parallel_for("OverlandPressureFlow::ApplyPreconditioner", Pu_c.extent(0),
-                         KOKKOS_LAMBDA(const int& c) {
-                           Pu_c(c,0) /= dh_dp(c,0);
-                         });
+    Kokkos::parallel_for(
+      "OverlandPressureFlow::ApplyPreconditioner", Pu_c.extent(0), KOKKOS_LAMBDA(const int& c) {
+        Pu_c(c, 0) /= dh_dp(c, 0);
+      });
   }
   db_->WriteVector("PC*h_res (p-coords)", Pu->getData().ptr(), true);
   return (ierr > 0) ? 0 : 1;
@@ -229,10 +229,10 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
     auto dwc_dh_c = dwc_dh.viewComponent("cell", false);
     auto dh_dp_c = dh_dp->viewComponent("cell", false);
     auto dwc_dp_c = dwc_dp->viewComponent("cell", false);
-    Kokkos::parallel_for("OverlandPressureFlow::UpdatePreconditioner", dwc_dh_c.extent(0),
-                         KOKKOS_LAMBDA(const int& c) {
-                           dwc_dh_c(c,0) = dwc_dp_c(c,0) / (h * dh_dp_c(c,0));
-                         });
+    Kokkos::parallel_for(
+      "OverlandPressureFlow::UpdatePreconditioner",
+      dwc_dh_c.extent(0),
+      KOKKOS_LAMBDA(const int& c) { dwc_dh_c(c, 0) = dwc_dp_c(c, 0) / (h * dh_dp_c(c, 0)); });
   }
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
 

@@ -170,8 +170,8 @@ RelPermSutraIceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     Epetra_MultiVector& res_bf = *result[0]->viewComponent("boundary_face", false);
 
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
 
     // Evaluate the model to calculate krel.
     AmanziMesh::Entity_ID_List cells;
@@ -221,8 +221,8 @@ RelPermSutraIceEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
 
     Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = S.GetMesh(surf_domain_);
     Teuchos::RCP<const AmanziMesh::Mesh> mesh = result[0]->getMesh();
-    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
-    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
+    const Epetra_Map& vandelay_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, false);
+    const Epetra_Map& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE, false);
 
     unsigned int nsurf_cells =
       surf_mesh->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);

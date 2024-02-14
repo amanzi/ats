@@ -67,7 +67,7 @@ BCFactory::CreateDynamicFunction(const std::string& list_name) const
   if (plist_.isParameter(list_name)) {
     if (plist_.isSublist(list_name)) {
       AMANZI_ASSERT(false);
-      
+
       // if (plist_.sublist(list_name).isSublist("bcs")) {
       //   const Teuchos::ParameterList& list = plist_.sublist(list_name).sublist("bcs");
       //   // if (list.isParameter("regions")){
@@ -243,10 +243,9 @@ BCFactory::ProcessSpecWithFunction_(const Teuchos::ParameterList& list,
 
 
 std::string
-BCFactory::ProcessSpecWithFunctionRegions_(
-  const Teuchos::ParameterList& list,
-  const std::string& function_name,
-  std::vector<std::string>& regions) const
+BCFactory::ProcessSpecWithFunctionRegions_(const Teuchos::ParameterList& list,
+                                           const std::string& function_name,
+                                           std::vector<std::string>& regions) const
 {
   std::stringstream m;
 

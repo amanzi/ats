@@ -84,9 +84,9 @@ PlantWiltingFactorEvaluator::EvaluatePartialDerivative_(const State& S,
     for (const auto& region_model : models_) {
       AmanziMesh::Entity_ID_List lc_ids;
       surf_mesh.getSetEntities(region_model.first,
-                                 AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_kind::OWNED,
-                                 &lc_ids);
+                               AmanziMesh::Entity_kind::CELL,
+                               AmanziMesh::Parallel_kind::OWNED,
+                               &lc_ids);
 
       for (int sc : lc_ids) {
         for (auto c : subsurf_mesh.cells_of_column(sc)) {

@@ -105,20 +105,26 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       auto cv1 = S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
       auto source1 = S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
 
-      auto nliq1 = S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
-      auto nliq1_s = S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
+      auto nliq1 =
+        S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
+      auto nliq1_s =
+        S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
 
-      Kokkos::parallel_for("OverlandPressureFlow::AddSourceTerms", g_c.extent(0),
-                           KOKKOS_LAMBDA(const int& c) {
-                             double s1 = source1(c,0) > 0. ? source1(c,0) * nliq1_s(c,0) : source1(c,0) * nliq1(c,0);
-                             g_c(c,0) -= cv1(c,0) * s1;
-                           });
+      Kokkos::parallel_for(
+        "OverlandPressureFlow::AddSourceTerms", g_c.extent(0), KOKKOS_LAMBDA(const int& c) {
+          double s1 =
+            source1(c, 0) > 0. ? source1(c, 0) * nliq1_s(c, 0) : source1(c, 0) * nliq1(c, 0);
+          g_c(c, 0) -= cv1(c, 0) * s1;
+        });
     } else {
-      g->getComponent("cell", false)->elementWiseMultiply(
-        -1.0,
-        *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).getComponent("cell", false)->getVector(0),
-        *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
-        1.0);
+      g->getComponent("cell", false)
+        ->elementWiseMultiply(
+          -1.0,
+          *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
+             .getComponent("cell", false)
+             ->getVector(0),
+          *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
+          1.0);
     }
   }
 

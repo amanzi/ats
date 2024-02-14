@@ -106,9 +106,9 @@ EvaporationDownregulationEvaluator::EvaluatePartialDerivative_(
     for (const auto& region_model : models_) {
       AmanziMesh::Entity_ID_List lc_ids;
       surf_mesh.getSetEntities(region_model.first,
-                                 AmanziMesh::Entity_kind::CELL,
-                                 AmanziMesh::Parallel_kind::OWNED,
-                                 &lc_ids);
+                               AmanziMesh::Entity_kind::CELL,
+                               AmanziMesh::Parallel_kind::OWNED,
+                               &lc_ids);
       for (AmanziMesh::Entity_ID sc : lc_ids) {
         auto c = sub_mesh.cells_of_column(sc)[0];
         surf_evap[0][sc] = region_model.second->DEvaporationDPotentialEvaporation(

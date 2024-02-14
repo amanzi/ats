@@ -315,7 +315,6 @@ class Richards : public PK_PhysicalBDF_Default {
   void setFixedKr(bool fixed = true) { fixed_kr_ = fixed; }
 
  protected:
-
   //
   // Protected, internal methods for better granularity of design
   // ------------------------------------------------------------------

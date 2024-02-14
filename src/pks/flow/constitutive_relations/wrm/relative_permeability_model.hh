@@ -70,9 +70,9 @@ class RelativePermeabilityModel {
     rescaling_ = 1.0 / plist->get<double>("permeability rescaling", 1.0);
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     res_ = res[0];
     s_ = deps[0];
     dens_ = deps[1];
@@ -82,18 +82,22 @@ class RelativePermeabilityModel {
   KeyVector getMyKeys() const { return { my_key_ }; }
   KeyVector getDependencies() const { return { s_key_, dens_key_, visc_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    res_(i,0) = rescaling_ * model_.k_relative(s_(i,0)) * dens_(i,0) / visc_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(const int i) const
+  {
+    res_(i, 0) = rescaling_ * model_.k_relative(s_(i, 0)) * dens_(i, 0) / visc_(i, 0);
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    res_(i,0) = rescaling_ * model_.d_k_relative(s_(i,0)) * dens_(i,0) / visc_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
+  {
+    res_(i, 0) = rescaling_ * model_.d_k_relative(s_(i, 0)) * dens_(i, 0) / visc_(i, 0);
   }
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const {
-    res_(i,0) = rescaling_ * model_.k_relative(s_(i,0)) / visc_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
+  {
+    res_(i, 0) = rescaling_ * model_.k_relative(s_(i, 0)) / visc_(i, 0);
   }
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const {
-    res_(i,0) = - rescaling_ * dens_(i,0) * model_.k_relative(s_(i,0)) / pow(visc_(i,0), 2);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const
+  {
+    res_(i, 0) = -rescaling_ * dens_(i, 0) * model_.k_relative(s_(i, 0)) / pow(visc_(i, 0), 2);
   }
 
  private:
@@ -107,11 +111,13 @@ class RelativePermeabilityModel {
 
 
 template <class cView_type, class View_type, class WRM_type>
-const std::string RelativePermeabilityModel<cView_type, View_type, WRM_type>::name = "relative permeability " + WRM_type::name;
+const std::string RelativePermeabilityModel<cView_type, View_type, WRM_type>::name =
+  "relative permeability " + WRM_type::name;
 
 
-template<class cView_type, class View_type>
-using RelativePermeabilityVanGenuchtenModel = RelativePermeabilityModel<cView_type, View_type, WRMVanGenuchten>;
+template <class cView_type, class View_type>
+using RelativePermeabilityVanGenuchtenModel =
+  RelativePermeabilityModel<cView_type, View_type, WRMVanGenuchten>;
 
 
 } // namespace Relations

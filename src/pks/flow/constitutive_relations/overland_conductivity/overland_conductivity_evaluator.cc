@@ -17,7 +17,8 @@ namespace Relations {
 
 const std::string OverlandConductivityEvaluator::name = "overland conductivity";
 
-OverlandConductivityEvaluator::OverlandConductivityEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+OverlandConductivityEvaluator::OverlandConductivityEvaluator(
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
@@ -85,11 +86,12 @@ OverlandConductivityEvaluator::Evaluate_(const State& S,
 
     auto result_v = result[0]->viewComponent(comp, false);
 
-    Kokkos::parallel_for("OverlandConductivityEvaluator::Evaluate", result_v.extent(0),
-                         KOKKOS_LAMBDA(const int& i) {
-                           int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
-                           result_v(i,0) = dens_v(i,0) * depth_v(i,0) * model_->Conductivity(depth_v(i,0), slope_v(ii,0), coef_v(ii,0));
-                         });
+    Kokkos::parallel_for(
+      "OverlandConductivityEvaluator::Evaluate", result_v.extent(0), KOKKOS_LAMBDA(const int& i) {
+        int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
+        result_v(i, 0) = dens_v(i, 0) * depth_v(i, 0) *
+                         model_->Conductivity(depth_v(i, 0), slope_v(ii, 0), coef_v(ii, 0));
+      });
   }
 }
 
@@ -124,16 +126,19 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
 
       auto result_v = result[0]->viewComponent(comp, false);
 
-      Kokkos::parallel_for("OverlandConductivityEvaluator::EvaluatePartialDerivative", result_v.extent(0),
-                         KOKKOS_LAMBDA(const int& i) {
-                           int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
-                           result_v(i,0) = dens_v(i,0) * (model_->Conductivity(depth_v(i,0), slope_v(ii,0), coef_v(ii,0)) + \
-                                   depth_v(i,0) * model_->DConductivityDDepth(depth_v(i,0), slope_v(ii,0), coef_v(ii,0)));
-                         });
+      Kokkos::parallel_for(
+        "OverlandConductivityEvaluator::EvaluatePartialDerivative",
+        result_v.extent(0),
+        KOKKOS_LAMBDA(const int& i) {
+          int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
+          result_v(i, 0) =
+            dens_v(i, 0) * (model_->Conductivity(depth_v(i, 0), slope_v(ii, 0), coef_v(ii, 0)) +
+                            depth_v(i, 0) * model_->DConductivityDDepth(
+                                              depth_v(i, 0), slope_v(ii, 0), coef_v(ii, 0)));
+        });
     }
 
   } else if (wrt_key == dens_key_) {
-
     for (const auto& comp : *result[0]) {
       AMANZI_ASSERT(comp == "cell" || comp == "boundary_face");
       bool is_internal_comp = comp == "boundary_face";
@@ -146,11 +151,14 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
 
       auto result_v = result[0]->viewComponent(comp, false);
 
-      Kokkos::parallel_for("OverlandConductivityEvaluator::EvaluatePartialDerivative", result_v.extent(0),
-                         KOKKOS_LAMBDA(const int& i) {
-                           int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
-                           result_v(i,0) = depth_v(i,0) * model_->Conductivity(depth_v(i,0), slope_v(ii,0), coef_v(ii,0));
-                         });
+      Kokkos::parallel_for(
+        "OverlandConductivityEvaluator::EvaluatePartialDerivative",
+        result_v.extent(0),
+        KOKKOS_LAMBDA(const int& i) {
+          int ii = is_internal_comp ? AmanziMesh::getBoundaryFaceInternalCell(mesh, i) : i;
+          result_v(i, 0) =
+            depth_v(i, 0) * model_->Conductivity(depth_v(i, 0), slope_v(ii, 0), coef_v(ii, 0));
+        });
     }
 
   } else {

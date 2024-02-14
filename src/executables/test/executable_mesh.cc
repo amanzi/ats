@@ -58,7 +58,7 @@ SUITE(ATS_MESH_FACTORY)
       CHECK(S->HasMesh("surface"));
       CHECK_EQUAL(set_size,
                   S->GetMesh("surface")->getNumEntities(AmanziMesh::Entity_kind::CELL,
-                                                      AmanziMesh::Parallel_kind::OWNED));
+                                                        AmanziMesh::Parallel_kind::OWNED));
     }
 
     int total_has_surface = 0;

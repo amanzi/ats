@@ -55,10 +55,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-enum class RelPermFunction_kind {
-  MUALEM,
-  BURDINE
-};
+enum class RelPermFunction_kind { MUALEM, BURDINE };
 
 
 class WRMVanGenuchten {
@@ -89,7 +86,6 @@ class WRMVanGenuchten {
 
   double pc0_;
   Amanzi::Utils::Spline fit_s_;
-
 };
 
 inline const std::string WRMVanGenuchten::name = "van Genuchten";

@@ -61,12 +61,13 @@ class WRMModel {
       sg_key_ = Keys::readKey(*plist, domain_name, "other saturation");
     }
 
-    pc_key_ = Keys::readKey(*plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq");
+    pc_key_ =
+      Keys::readKey(*plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq");
   }
 
-  void setViews(const std::vector<cView_type>& deps,
-                const std::vector<View_type>& res,
-                const State& s) {
+  void
+  setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
+  {
     sl_ = res[0];
     sg_ = res[1];
     pc_ = deps[0];
@@ -75,14 +76,16 @@ class WRMModel {
   KeyVector getMyKeys() const { return { sl_key_, sg_key_ }; }
   KeyVector getDependencies() const { return { pc_key_ }; }
 
-  KOKKOS_INLINE_FUNCTION void operator()(const int i) const {
-    sl_(i,0) = model_.saturation(pc_(i,0));
-    sg_(i,0) = 1 - sl_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(const int i) const
+  {
+    sl_(i, 0) = model_.saturation(pc_(i, 0));
+    sg_(i, 0) = 1 - sl_(i, 0);
   }
 
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    sl_(i,0) = model_.d_saturation(pc_(i,0));
-    sg_(i,0) = -sl_(i,0);
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
+  {
+    sl_(i, 0) = model_.d_saturation(pc_(i, 0));
+    sg_(i, 0) = -sl_(i, 0);
   }
 
  private:
@@ -99,7 +102,7 @@ template <class cView_type, class View_type, class WRM_type>
 const std::string WRMModel<cView_type, View_type, WRM_type>::name = "wrm " + WRM_type::name;
 
 
-template<class cView_type, class View_type>
+template <class cView_type, class View_type>
 using WRMVanGenuchtenModel = WRMModel<cView_type, View_type, WRMVanGenuchten>;
 
 

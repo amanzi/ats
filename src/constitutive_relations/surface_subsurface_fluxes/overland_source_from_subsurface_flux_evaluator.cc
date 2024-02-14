@@ -77,7 +77,8 @@ OverlandSourceFromSubsurfaceFluxEvaluator::IdentifyFaceAndDirection_(const State
   Teuchos::RCP<const AmanziMesh::Mesh> surface = S.GetMesh(domain_surf_);
 
   // allocate space for face IDs and directions
-  int ncells = surface->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells =
+    surface->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   face_and_dirs_ = Teuchos::rcp(new std::vector<FaceDir>(ncells));
 
   for (int c = 0; c != ncells; ++c) {

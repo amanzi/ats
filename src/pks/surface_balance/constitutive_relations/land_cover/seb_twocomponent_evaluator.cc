@@ -577,7 +577,9 @@ SEBTwoComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
                                    "clapp_horn_b" });
 
     CompositeVectorSpace domain_fac;
-    domain_fac.SetMesh(S.GetMesh(domain_))->SetGhosted()->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    domain_fac.SetMesh(S.GetMesh(domain_))
+      ->SetGhosted()
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
     CompositeVectorSpace domain_fac_owned;
     domain_fac_owned.SetMesh(S.GetMesh(domain_))

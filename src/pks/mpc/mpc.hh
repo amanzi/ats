@@ -154,9 +154,7 @@ Teuchos::RCP<TreeVectorSpace>
 MPC<PK_t>::getSolutionSpace() const
 {
   auto tvs = Teuchos::rcp(new TreeVectorSpace(comm_));
-  for (const auto& sub_pk : sub_pks_) {
-    tvs->PushBack(sub_pk->getSolutionSpace());
-  }
+  for (const auto& sub_pk : sub_pks_) { tvs->PushBack(sub_pk->getSolutionSpace()); }
   return tvs;
 }
 

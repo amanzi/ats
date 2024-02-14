@@ -243,7 +243,8 @@ FATES_PK::Initialize(const Teuchos::Ptr<State>& S)
 {
   PK_Physical_Default::Initialize(S);
 
-  ncells_owned_ = mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  ncells_owned_ =
+    mesh_surf_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   site_.resize(ncells_owned_);
 
   t_photosynthesis_ = S->get_time();

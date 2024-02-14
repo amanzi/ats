@@ -199,7 +199,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
                    Teuchos::RCP<TreeVector> du) override;
 
  protected:
-
   //
   // Protected, internal methods for better granularity of design
   // ------------------------------------------------------------------
@@ -216,7 +215,8 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // -- builds the upwinded conductivity
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
-  void ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev);
+  void
+  ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev);
 
   // physical methods
   // -- diffusion term

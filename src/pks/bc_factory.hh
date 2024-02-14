@@ -88,21 +88,15 @@ class BCFactory {
             const std::string& bc_key,
             const Tag& tag,
             const Teuchos::RCP<Teuchos::ParameterList>& plist)
-    : mesh_(mesh),
-      S_(S),
-      bc_key_(bc_key),
-      tag_(tag),
-      plist_(plist)
+    : mesh_(mesh), S_(S), bc_key_(bc_key), tag_(tag), plist_(plist)
   {}
 
   std::string
   CreateWithFunction(const std::string& list_name, const std::string& function_name) const;
 
-  std::string
-  CreateWithoutFunction(const std::string& list_name) const;
+  std::string CreateWithoutFunction(const std::string& list_name) const;
 
-  std::string
-  CreateDynamicFunction(const std::string& list_name) const;
+  std::string CreateDynamicFunction(const std::string& list_name) const;
 
   bool CheckExplicitFlag(const std::string& list_name);
 
@@ -132,7 +126,6 @@ class BCFactory {
   Teuchos::RCP<State> S_;
   std::string bc_key_;
   Tag tag_;
-
 };
 
 } // namespace Amanzi
