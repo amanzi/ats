@@ -444,12 +444,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // initialization methods
   void InitializeAll_();
-  void InitializeFieldFromField_(const Key& field0,
-                                 const Tag& tag0,
-                                 const Key& field1,
-                                 const Tag& tag1,
-                                 bool call_evaluator,
-                                 bool overwrite);
 
   // miscaleneous methods
   int FindComponentNumber(const std::string component_name);
@@ -473,7 +467,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key permeability_key_;
   Key tcc_key_;
   Key porosity_key_;
-  Key tcc_matrix_key_;
   Key molar_density_key_;
   Key solid_residue_mass_key_;
   Key water_content_key_;
@@ -498,7 +491,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
@@ -562,7 +554,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Tag tag_subcycle_;
   Tag tag_subcycle_current_;
   Tag tag_subcycle_next_;
-  Tag tag_flux_next_ts_; // what is this? --ETC
+  Tag flow_tag_;
 
  private:
   // Forbidden.
