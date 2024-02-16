@@ -8,10 +8,7 @@
 */
 
 #include <iostream>
-
-#include <Epetra_Comm.h>
-#include <Epetra_MpiComm.h>
-#include "Epetra_SerialComm.h"
+#include <filesystem>
 
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_ParameterXMLFileReader.hpp"
@@ -20,6 +17,10 @@
 #include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_DefaultComm.hpp"
+
+#include "Epetra_Comm.h"
+#include "Epetra_MpiComm.h"
+#include "Epetra_SerialComm.h"
 
 #include "VerboseObject_objs.hh"
 
@@ -34,26 +35,10 @@
 // registration files
 #include "ats_registration_files.hh"
 
-
-// include fenv if it exists
-#include "boost/version.hpp"
-#if (BOOST_VERSION / 100 % 1000 >= 46)
-#  include "boost/config.hpp"
-#  ifndef BOOST_NO_FENV_H
-#    ifdef _GNU_SOURCE
-#      define AMANZI_USE_FENV
-#      include "boost/detail/fenv.hpp"
-#    endif
-#  endif
-#endif
-
-#include "boost/filesystem.hpp"
-
 int
 main(int argc, char* argv[])
 {
 #ifdef AMANZI_USE_FENV
-  //  feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
   feraiseexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
 
@@ -177,7 +162,7 @@ main(int argc, char* argv[])
       }
       Kokkos::finalize();
       return 1;
-    } else if (!boost::filesystem::exists(input_filename)) {
+    } else if (!std::filesystem::exists(input_filename)) {
       if (rank == 0) {
         std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
       }

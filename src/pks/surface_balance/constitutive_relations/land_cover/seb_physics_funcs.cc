@@ -13,10 +13,10 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
-#include "boost/math/tools/roots.hpp"
 
+#include "errors.hh"
 #include "dbc.hh"
-
+#include "Brent.hh"
 #include "seb_physics_funcs.hh"
 
 namespace Amanzi {
@@ -369,8 +369,6 @@ DetermineSnowTemperature(const GroundProperties& surf,
                          std::string method)
 {
   SnowTemperatureFunctor_ func(&surf, &snow, &met, &params, &eb);
-  Tol_ tol(ENERGY_BALANCE_TOL);
-  boost::uintmax_t max_it(100);
   double left, right;
   double res_left, res_right;
 
@@ -401,21 +399,28 @@ DetermineSnowTemperature(const GroundProperties& surf,
     }
   }
 
-  std::pair<double, double> result;
-  auto my_max_it = max_it;
+  int my_max_it = 100;
+  int max_it(my_max_it);
+  double result(0.);
   if (method == "bisection") {
-    result = boost::math::tools::bisect(func, left, right, tol, max_it);
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Exceptions::amanzi_throw(msg);
   } else if (method == "toms") {
-    result = boost::math::tools::toms748_solve(func, left, right, res_left, res_right, tol, max_it);
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Exceptions::amanzi_throw(msg);
+  } else if (method == "brent") {
+    result = Utils::findRootBrent(func, left, right, ENERGY_BALANCE_TOL, &max_it);
+  } else {
+    Errors::Message emsg;
+    emsg << "SurfaceEnergyBalance: invalid solver method \""
+         << method << "\", use \"brent\"";
+    Exceptions::amanzi_throw(emsg);
   }
 
   if (max_it >= my_max_it) throw("Nonconverged Surface Energy Balance");
-  // boost algorithms calculate the root such that the root is contained within the interval
-  // [result.first, result.second], and that width of that interval is less than TOL.
-  // We choose to set the solution as the center of that interval.
   // Call the function again to set the fluxes.
-  double solution = (result.first + result.second) / 2.;
-  return solution;
+  func(result);
+  return result;
 }
 
 

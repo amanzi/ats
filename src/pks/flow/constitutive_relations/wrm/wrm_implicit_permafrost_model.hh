@@ -15,16 +15,12 @@
 
     * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
     * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
-    * `"solver algorithm [bisection/toms]`" ``[string]`` **bisection** Use bisection or the TOMS algorithm from boost.
+    * `"solver algorithm [brent]`" ``[string]`` **brent** Only brent is currently supported.
 
 */
 
 #ifndef AMANZI_FLOWRELATIONS_WRM_IMPLICIT_PERMAFROST_MODEL_
 #define AMANZI_FLOWRELATIONS_WRM_IMPLICIT_PERMAFROST_MODEL_
-
-#include "boost/cstdint.hpp"
-#include "boost/math/tools/roots.hpp"
-#include "boost/cstdint.hpp"
 
 #include "wrm_permafrost_model.hh"
 #include "wrm_permafrost_factory.hh"
@@ -75,7 +71,7 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
 
  protected:
   double eps_;
-  boost::uintmax_t max_it_;
+  int max_it_;
   double deriv_regularization_;
   std::string solver_;
 
@@ -87,7 +83,7 @@ class WRMImplicitPermafrostModel : public WRMPermafrostModel {
       : pc_liq_(pc_liq), pc_ice_(pc_ice), wrm_(wrm)
     {}
 
-    double operator()(double si)
+    double operator()(double si) const
     {
       double tmp = (1.0 - si) * wrm_->saturation(pc_liq_);
       double result = tmp - wrm_->saturation(pc_ice_ + wrm_->capillaryPressure(tmp + si));

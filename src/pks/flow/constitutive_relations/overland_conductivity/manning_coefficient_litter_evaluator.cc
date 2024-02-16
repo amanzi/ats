@@ -13,8 +13,6 @@
   Generated via evaluator_generator.
 */
 
-#include "boost/algorithm/string/predicate.hpp"
-
 #include "manning_coefficient_litter_evaluator.hh"
 #include "manning_coefficient_litter_model.hh"
 #include "manning_coefficient_litter_constant_model.hh"

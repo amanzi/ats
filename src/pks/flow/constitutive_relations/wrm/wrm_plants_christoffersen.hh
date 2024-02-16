@@ -46,7 +46,7 @@ class WRMPlantChristoffersen : public WRM {
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
 
-  double operator()(const double& s)
+  double operator()(const double& s) const
   {
     return potentialLinear(s) - (potentialSol(s) + potentialP(s));
   }
@@ -62,15 +62,15 @@ class WRMPlantChristoffersen : public WRM {
   double sr_;  // van Genuchten residual saturation
   */
 
-  double potential(double s);
-  double potentialLinear(double s);
-  double potentialSol(double s);
-  double potentialP(double s);
+  double potential(double s) const;
+  double potentialLinear(double s) const;
+  double potentialSol(double s) const;
+  double potentialP(double s) const;
 
-  double d_potential(double s);
-  double d_potentialLinear(double s);
-  double d_potentialSol(double s);
-  double d_potentialP(double s);
+  double d_potential(double s) const;
+  double d_potentialLinear(double s) const;
+  double d_potentialSol(double s) const;
+  double d_potentialP(double s) const;
 
   Teuchos::ParameterList& plist_;
 
