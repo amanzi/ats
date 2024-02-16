@@ -12,6 +12,7 @@
 
   NOTE this uses only a domain, and assumes standard variable names.
 
+  NOTE: this only works on HOST for now!
 */
 
 #ifndef PREDICTOR_DELEGATE_BC_FLUX_
@@ -22,19 +23,26 @@
 
 #include "TreeVector.hh"
 #include "PDE_Diffusion.hh"
-#include "wrm_partition.hh"
+
+#include "EvaluatorModelCVByMaterial.hh"
+#include "wrm_model.hh"
+#include "wrm_van_genuchten.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 class PredictorDelegateBCFlux {
  public:
+
+  using WRMEval_type = EvaluatorModelCVByMaterial<Relations::WRMVanGenuchtenModel>;
+  using WRMModel_type = WRMEval_type::Model_type;
+
   PredictorDelegateBCFlux(const Teuchos::RCP<const State>& S_next,
-                          const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
+                          const Teuchos::RCP<const AmanziMesh::MeshHost>& mesh,
                           const Teuchos::RCP<Operators::PDE_Diffusion>& matrix,
-                          const Teuchos::RCP<Flow::WRMPartition>& wrms,
-                          std::vector<int>* bc_markers,
-                          std::vector<double>* bc_values)
+                          const std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>>& wrms,
+                          const Teuchos::RCP<const CompositeVector_<int>> bc_markers,
+                          const Teuchos::RCP<const CompositeVector> bc_values)
     : S_next_(S_next),
       mesh_(mesh),
       matrix_(matrix),
@@ -45,7 +53,7 @@ class PredictorDelegateBCFlux {
 
   bool ModifyPredictor(double h, Teuchos::RCP<TreeVector> u)
   {
-    return ModifyPredictor(u->Data().ptr());
+    return ModifyPredictor(u->getData().ptr());
   }
 
   bool ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u);
@@ -53,15 +61,15 @@ class PredictorDelegateBCFlux {
  protected:
   class FluxBCFunctor {
    public:
-    FluxBCFunctor(const Teuchos::RCP<std::vector<double>> Aff,
-                  const Teuchos::RCP<std::vector<double>> lambda,
+    FluxBCFunctor(const Kokkos::View<double*, Amanzi::DefaultHost>& Aff,
+                  const Kokkos::View<double*, Amanzi::DefaultHost>& lambda,
                   int face_index,
                   double cell_p,
                   double bc_flux,
                   double g_flux,
                   int dir,
                   double patm,
-                  const Teuchos::RCP<Flow::WRM>& wrm)
+                  const Relations::WRMVanGenuchten& wrm)
       : Aff_(Aff),
         lambda_(lambda),
         face_index_(face_index),
@@ -73,23 +81,22 @@ class PredictorDelegateBCFlux {
         patm_(patm)
     {}
 
-    double operator()(double face_p)
+    double operator()(double face_p) const
     {
-      (*lambda_)[face_index_] = face_p;
-      double s = wrm_->saturation(patm_ - face_p);
-      double Krel = wrm_->k_relative(s);
+      lambda_(face_index_) = face_p;
+      double s = wrm_.saturation(patm_ - face_p);
+      double Krel = wrm_.k_relative(s);
 
       double q = 0;
-      for (unsigned int n = 0; n != lambda_->size(); ++n)
-        q += (*Aff_)[n] * (cell_p_ - (*lambda_)[n]);
+      for (unsigned int n = 0; n != lambda_.extent(0); ++n)
+        q += Aff_(n) * (cell_p_ - lambda_(n));
 
       return (q + g_flux_) * Krel - bc_flux_;
     }
 
    protected:
    protected:
-    Teuchos::RCP<std::vector<double>> Aff_;
-    Teuchos::RCP<std::vector<double>> lambda_;
+    const Kokkos::View<double*, Amanzi::DefaultHost> Aff_, lambda_;
     int face_index_;
     double face_Mff_;
     double cell_p_;
@@ -97,28 +104,29 @@ class PredictorDelegateBCFlux {
     double g_flux_;
     int dir_;
     double patm_;
-    Teuchos::RCP<Flow::WRM> wrm_;
-  };
-
-  struct Tol_ {
-    Tol_(double eps) : eps_(eps) {}
-    bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
-    double eps_;
+    const Relations::WRMVanGenuchten& wrm_;
   };
 
  protected:
   Teuchos::RCP<FluxBCFunctor>
-  CreateFunctor_(int f, const Teuchos::Ptr<const CompositeVector>& pres);
-  int CalculateLambdaToms_(int f, const Teuchos::Ptr<const CompositeVector>& pres, double& lambda);
+  CreateFunctor_(AmanziMesh::Entity_ID f,
+                 AmanziMesh::Entity_ID c,
+                 const Teuchos::RCP<WRMModel_type>& wrm,
+                 const Teuchos::Ptr<const CompositeVector>& pres);
+
+  int CalculateLambda_(AmanziMesh::Entity_ID f,
+                       AmanziMesh::Entity_ID c,
+                       const Teuchos::RCP<WRMModel_type>& wrm,
+                       const Teuchos::Ptr<const CompositeVector>& pres,
+                       double& lambda);
 
  protected:
   Teuchos::RCP<const State> S_next_;
   Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
   Teuchos::RCP<Operators::PDE_Diffusion> matrix_;
-  Teuchos::RCP<Flow::WRMPartition> wrms_;
-
-  std::vector<int>* bc_markers_;
-  std::vector<double>* bc_values_;
+  std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>> wrms_;
+  Teuchos::RCP<const CompositeVector_<int>> bc_markers_;
+  Teuchos::RCP<const CompositeVector> bc_values_;
 };
 
 } // namespace Flow

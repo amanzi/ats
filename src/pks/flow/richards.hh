@@ -236,7 +236,7 @@ namespace Amanzi {
 
 // forward declarations
 class MPCSubsurface;
-// class PredictorDelegateBCFlux;
+class PredictorDelegateBCFlux;
 
 namespace Operators {
 class PDE_DiffusionWithGravity;
@@ -351,7 +351,7 @@ class Richards : public PK_PhysicalBDF_Default {
   //     const Teuchos::Ptr<CompositeVector>& u);
   // virtual bool ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u);
   // virtual bool ModifyPredictorWC_(double h, Teuchos::RCP<TreeVector> u);
-  // virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
+  virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
 
   // virtual void PreconWC_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
 
@@ -402,7 +402,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // delegates
   bool modify_predictor_bc_flux_;
   bool modify_predictor_first_bc_flux_;
-  // Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
+  Teuchos::RCP<PredictorDelegateBCFlux> flux_predictor_;
 
   // limiters
   double p_limit_;

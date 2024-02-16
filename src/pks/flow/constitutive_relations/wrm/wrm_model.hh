@@ -75,6 +75,7 @@ class WRMModel {
 
   KeyVector getMyKeys() const { return { sl_key_, sg_key_ }; }
   KeyVector getDependencies() const { return { pc_key_ }; }
+  WRM_type& getModel() { return model_; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {

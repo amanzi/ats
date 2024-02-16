@@ -10,6 +10,7 @@
 #include "Point.hh"
 #include "DataStructuresHelpers.hh"
 
+#include "EvaluatorModelCVByMaterial.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionWithGravity.hh"
 #include "PDE_DiffusionFactory.hh"
@@ -20,7 +21,7 @@
 #include "upwind_total_flux.hh"
 //#include "upwind_gravity_flux.hh"
 
-//#include "predictor_delegate_bc_flux.hh"
+#include "predictor_delegate_bc_flux.hh"
 //#include "BoundaryFlux.hh"
 #include "pk_helpers.hh"
 
@@ -398,7 +399,6 @@ Richards::SetupRichardsFlow_()
 
   // NOT YET IMPLEMENTED!
   AMANZI_ASSERT(!modify_predictor_with_consistent_faces_);
-  AMANZI_ASSERT(!modify_predictor_bc_flux_);
   AMANZI_ASSERT(!modify_predictor_first_bc_flux_);
   AMANZI_ASSERT(!modify_predictor_wc_);
 
@@ -457,11 +457,6 @@ Richards::SetupPhysicalEvaluators_()
     ->SetGhosted()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
     ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
-
-  // -- get the WRM models
-  // auto wrm_eval = dynamic_cast<Flow::WRMEvaluator*>(&wrm);
-  // AMANZI_ASSERT(wrm_eval != nullptr);
-  // wrms_ = wrm_eval->get_WRMs();
 
   // -- molar density used to infer liquid Darcy velocity from flux
   PKHelpers::requireAtNext(molar_dens_key_, tag_next_, *S_)
@@ -717,7 +712,27 @@ Richards::ValidStep()
 // -----------------------------------------------------------------------------
 void
 Richards::CalculateDiagnostics(const Tag& tag){
-  // UpdateVelocity_(tag);
+  AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "Calculating diagnostic variables." << std::endl;
+
+  // update the cell velocities
+  UpdateBoundaryConditions_(tag_next_);
+
+  Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> rel_perm =
+    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
+  // update the stiffness matrix
+  matrix_diff_->SetDensity(rho);
+  matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
+  matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
+
+  // derive fluxes
+  Teuchos::RCP<CompositeVector> flux = S_->GetPtrW<CompositeVector>(flux_key_, tag_next_, name_);
+  matrix_diff_->UpdateFlux(pres.ptr(), flux.ptr());
+  //  UpdateVelocity_(tag);
 };
 
 
@@ -896,11 +911,11 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
   PKHelpers::applyDirichletBCs(bcs, *u->getData());
 
   bool changed(false);
-  // if (modify_predictor_bc_flux_ ||
-  //     (modify_predictor_first_bc_flux_ && ((S_->Get<int>("cycle", Tags::DEFAULT) == 0) ||
-  //                                          (S_->Get<int>("cycle", Tags::DEFAULT) == 1)))) {
-  //   changed |= ModifyPredictorFluxBCs_(h, u);
-  // }
+  if (modify_predictor_bc_flux_ ||
+      (modify_predictor_first_bc_flux_ && ((S_->Get<int>("cycle", Tags::DEFAULT) == 0) ||
+                                           (S_->Get<int>("cycle", Tags::DEFAULT) == 1)))) {
+    changed |= ModifyPredictorFluxBCs_(h, u);
+  }
 
   // if (modify_predictor_wc_) { changed |= ModifyPredictorWC_(h, u); }
 
@@ -909,41 +924,48 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
 }
 
 
-// bool
-// Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
-// {
-//   if (!u->getData()->hasComponent("face")) return false;
+bool
+Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
+{
+  if (!u->getData()->hasComponent("face")) return false;
 
-//   auto& markers = bc_markers();
-//   auto& values = bc_values();
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_EXTREME))
+    *vo_->os() << "  modifications to deal with nonlinearity at flux BCs" << std::endl;
 
-//   Teuchos::OSTab tab = vo_->getOSTab();
-//   if (vo_->os_OK(Teuchos::VERB_EXTREME))
-//     *vo_->os() << "  modifications to deal with nonlinearity at flux BCs" << std::endl;
+  if (flux_predictor_ == Teuchos::null) {
+    const auto& bcs = S_->Get<Operators::BCs>(name_+"_bcs", tag_next_);
 
-//   if (flux_predictor_ == Teuchos::null) {
-//     flux_predictor_ =
-//       Teuchos::rcp(new PredictorDelegateBCFlux(S_, mesh_, matrix_diff_, wrms_, &markers, &values));
-//   }
+    auto wrm_eval_as_eval = S_->GetEvaluatorPtr(sat_key_, tag_next_);
+    auto wrm_eval_as_wrm = Teuchos::rcp_dynamic_cast<PredictorDelegateBCFlux::WRMEval_type>(wrm_eval_as_eval);
+    if (wrm_eval_as_wrm == Teuchos::null) {
+      Errors::Message msg("To use Richards option \"modify predictor for flux BCs\", may only use WRM evaluator of type \"wrm van Genuchten by material\"");
+      Exceptions::amanzi_throw(msg);
+    }
+    auto mesh_on_host = AmanziMesh::onMemSpace<MemSpace_kind::HOST>(mesh_);
+    flux_predictor_ =
+      Teuchos::rcp(new PredictorDelegateBCFlux(S_, mesh_on_host, matrix_diff_,
+              wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
+  }
 
-//   UpdatePermeabilityData_(tag_next_);
-//   Teuchos::RCP<const CompositeVector> rel_perm =
-//     S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
+  UpdatePermeabilityData_(tag_next_);
+  Teuchos::RCP<const CompositeVector> rel_perm =
+    S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_);
 
-//   matrix_->Init();
-//   matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
-//   Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
-//   Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
-//   matrix_diff_->SetDensity(rho);
-//   matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
-//   //matrix_diff_->ApplyBCs(true, true, true);
+  matrix_->Zero();
+  matrix_diff_->SetScalarCoefficient(rel_perm, Teuchos::null);
+  Teuchos::RCP<const CompositeVector> rho = S_->GetPtr<CompositeVector>(mass_dens_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> pres = S_->GetPtr<CompositeVector>(key_, tag_next_);
+  matrix_diff_->SetDensity(rho);
+  matrix_diff_->UpdateMatrices(Teuchos::null, pres.ptr());
+  //matrix_diff_->ApplyBCs(true, true, true);
 
-//   flux_predictor_->ModifyPredictor(h, u);
-//   ChangedSolution(); // mark the solution as changed, as modifying with
-//                      // consistent faces will then get the updated boundary
-//                      // conditions
-//   return true;
-// }
+  flux_predictor_->ModifyPredictor(h, u);
+  ChangedSolution(); // mark the solution as changed, as modifying with
+                     // consistent faces will then get the updated boundary
+                     // conditions
+  return true;
+}
 
 // bool
 // Richards::ModifyPredictorConsistentFaces_(double h, Teuchos::RCP<TreeVector> u)

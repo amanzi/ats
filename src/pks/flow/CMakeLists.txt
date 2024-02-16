@@ -23,6 +23,7 @@ set(ats_flow_src_files
   constitutive_relations/wrm/wrm_van_genuchten.cc
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/manning_conductivity_model.cc
+  predictor_delegate_bc_flux.cc
   richards_pk.cc
   richards_ti.cc
   richards_physics.cc
@@ -34,7 +35,6 @@ set(ats_flow_src_files
 
                  
   
-  # predictor_delegate_bc_flux.cc
   # permafrost_pk.cc
   # interfrost.cc
   #  overland_pk.cc
@@ -56,13 +56,13 @@ set(ats_flow_inc_files
   constitutive_relations/wrm/relative_permeability_model.hh
   constitutive_relations/overland_conductivity/manning_conductivity_model.hh
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.hh
+  predictor_delegate_bc_flux.hh
 
   richards.hh
   richards_steadystate.hh
   overland_pressure.hh
 )
 
-  # predictor_delegate_bc_flux.hh
   # permafrost.hh
   # interfrost.hh
   # overland.hh
