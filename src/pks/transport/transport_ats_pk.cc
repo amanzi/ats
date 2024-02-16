@@ -71,8 +71,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  // are we subcycling internally?
-  // subcycling_ = plist_->get<bool>("transport subcycling", false); // Need to remove this and update regresstion tests
   tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
 
   // initialize io
@@ -108,13 +106,6 @@ void
 Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
   PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
-  // if (subcycling_) {
-  //   tag_subcycle_current_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_current") };
-  //   tag_subcycle_next_ = Tag{ Keys::cleanName(name() + "_inner_subcycling_next") };
-  // } else {
-  //   tag_subcycle_current_ = tag_current_;
-  //   tag_subcycle_next_ = tag_next_;
-  // }
   tag_subcycle_current_ = tag_current_;
   tag_subcycle_next_ = tag_next_;
 }
@@ -349,20 +340,6 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
   
-  // if (subcycling_) {
-  //   S_->Require<CompositeVector, CompositeVectorSpace>(
-  //     saturation_key_, tag_subcycle_current_, name_);
-  //   S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, tag_subcycle_next_, name_);
-  //   S_->Require<CompositeVector, CompositeVectorSpace>(
-  //     molar_density_key_, tag_subcycle_current_, name_);
-  //   S_->Require<CompositeVector, CompositeVectorSpace>(
-  //     molar_density_key_, tag_subcycle_next_, name_);
-  //   // S_->RequireEvaluator(saturation_key_, tag_subcycle_current_); // for the future...
-  //   // S_->RequireEvaluator(saturation_key_, tag_subcycle_next_); // for the future...
-  //   // S_->RequireEvaluator(molar_density_key_, tag_subcycle_current_); // for the future...
-  //   // S_->RequireEvaluator(molar_density_key_, tag_subcycle_next_); // for the future...
-  // }
-
   requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
@@ -376,10 +353,7 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
-  // Raw data, no evaluator?
-  //std::vector<std::string> primary_names(component_names_.begin(), component_names_.begin() + num_primary);
   auto primary_names = component_names_;
-  // S_->Require<CompositeVector,CompositeVectorSpace>(solid_residue_mass_key_, tag_next_, name_)
   requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
@@ -397,7 +371,7 @@ void Transport_ATS::SetupPhysicalEvaluators_()
   // Note that component_names includes secondaries, but we only need primaries
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
-  //S_->Require<CompositeVector,CompositeVectorSpace>(conserve_qty_key_, tag_next_, name_)
+  
   requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
@@ -445,20 +419,6 @@ Transport_ATS::Initialize()
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
   mol_dens_prev_ =
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
-
-  // if (subcycling_) {
-  //   ws_subcycle_current = S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_current_, name_)
-  //                           .ViewComponent("cell");
-  //   ws_subcycle_next =
-  //     S_->GetW<CompositeVector>(saturation_key_, tag_subcycle_next_, name_).ViewComponent("cell");
-
-  //   mol_dens_subcycle_current =
-  //     S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_current_, name_)
-  //       .ViewComponent("cell");
-  //   mol_dens_subcycle_next =
-  //     S_->GetW<CompositeVector>(molar_density_key_, tag_subcycle_next_, name_)
-  //       .ViewComponent("cell");
-  // }
 
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
@@ -704,7 +664,7 @@ Transport_ATS::InitializeFieldFromField_(const Key& field0,
 * Routine must be called every time we update a flow field.
 *
 * Warning: Barth calculates influx, we calculate outflux. The methods
-* are equivalent for divergence-free flows and gurantee EMP. Outflux
+* are equivalent for divergence-free flows and guarantee EMP. Outflux
 * takes into account sinks and sources but preserves only positivity
 * of an advected mass.
 * ***************************************************************** */
@@ -812,12 +772,6 @@ Transport_ATS::StableTimeStep()
 double
 Transport_ATS::get_dt()
 {
-  // if (subcycling_) {
-  //   return std::numeric_limits<double>::max();
-  // } else {
-  //   //StableTimeStep();
-  //   return dt_;
-  // }
   return dt_;  
 }
 
@@ -851,8 +805,6 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(saturation_key_, Tags::CURRENT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
-
-  //if (subcycling_) S_->set_time(tag_subcycle_current_, t_old);
 
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
@@ -894,15 +846,11 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
     AMANZI_ASSERT(std::abs(dt_global - dt_MPC) < 1.e-4);
   }
 
-  // if (subcycling_)
-  //   StableTimeStep();
-  // else
-  //   dt_ = dt_MPC;
-  dt_ = dt_MPC;    
+  StableTimeStep();  
   double dt_stable = dt_; // advance routines override dt_
   double dt_sum = 0.0;
   double dt_cycle;
-  dt_cycle = dt_MPC;
+  dt_cycle = std::min(dt_stable, dt_MPC);
   ws_current = ws_prev_;
   ws_next = ws_;
   mol_dens_current = mol_dens_prev_;
