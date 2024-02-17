@@ -78,7 +78,8 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
+  // are we subcycling internally? 
+  subcycling_ = plist_->get<bool>("transport subcycling", false);   // Internal subcycling will be removed in the next commit. Gold results need to be updated.
 
   // initialize io
   units_.Init(global_plist->sublist("units"));
