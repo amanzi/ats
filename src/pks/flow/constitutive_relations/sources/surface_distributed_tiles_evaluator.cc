@@ -45,9 +45,8 @@ SurfDistributedTilesRateEvaluator::SurfDistributedTilesRateEvaluator(Teuchos::Pa
   dependencies_.insert(KeyTag{ catch_frac_key_, tag });
 
   auto domain_subsurf = Keys::readDomainHint(plist, domain_, "surface", "domain");
-  acc_sources_key_ = 
+  acc_sources_key_ =
     Keys::readKey(plist, domain_subsurf, "accumulated source", "accumulated_tile_sources");
-  // dependencies_.insert(KeyTag{ acc_sources_key_, tag });
 
   cv_key_ = Keys::readKey(plist, domain_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
