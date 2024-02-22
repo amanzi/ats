@@ -85,8 +85,8 @@ set(ats_flow_link_libs
   state
   pks
   ats_operators
-  # # ats_eos
-  ats_pks
+  # ats_eos
+  # ats_pks
   )
 
 add_amanzi_library(ats_flow

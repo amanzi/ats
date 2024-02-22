@@ -60,7 +60,7 @@ enum class RelPermFunction_kind { MUALEM, BURDINE };
 
 class WRMVanGenuchten {
  public:
-  static const std::string name;
+  static const std::string eval_type;
 
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
 
@@ -88,7 +88,7 @@ class WRMVanGenuchten {
   Amanzi::Utils::Spline fit_s_;
 };
 
-inline const std::string WRMVanGenuchten::name = "van Genuchten";
+inline const std::string WRMVanGenuchten::eval_type = "van Genuchten";
 
 } // namespace Relations
 } // namespace Flow

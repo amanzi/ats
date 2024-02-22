@@ -7,12 +7,9 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-#include "pk_helpers.hh"
-
 #include "PDE_Diffusion.hh"
 #include "PDE_Accumulation.hh"
 
-#include "pk_helpers.hh"
 #include "overland_pressure.hh"
 
 namespace Amanzi {

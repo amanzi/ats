@@ -50,7 +50,7 @@ class OverlandPressureWaterContentModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 2;
-  static const std::string name; // = "overland pressure water content";
+  static const std::string eval_type; // = "overland pressure water content";
 
   OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
@@ -140,7 +140,7 @@ class OverlandPressureWaterContentModel {
 };
 
 template <class cView_type, class View_type>
-const std::string OverlandPressureWaterContentModel<cView_type, View_type>::name =
+const std::string OverlandPressureWaterContentModel<cView_type, View_type>::eval_type =
   "overland pressure water content";
 
 } // namespace Relations

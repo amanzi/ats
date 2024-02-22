@@ -88,6 +88,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // create the pk
   Amanzi::PKFactory pk_factory;
   pk_ = pk_factory.CreatePK(pk_name, comm_, pk_tree_list, plist_, S_);
+  pk_->ModifyParameterList();
+  pk_->ParseParameterList();
 
   // create the checkpointing
   Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");

@@ -97,7 +97,7 @@ set(amanzi_link_libs
   
 set(ats_link_libs
   ats_operators
-  ats_pks
+  #ats_pks
   ats_flow
   ats_mpc
   )

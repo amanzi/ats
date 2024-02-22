@@ -35,7 +35,7 @@ template <class cView_type, class View_type, class WRM_type>
 class WRMModel {
  public:
   static const int n_dependencies = 1;
-  static const std::string name;
+  static const std::string eval_type;
 
   WRMModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
     : model_(plist->sublist("model parameters"))
@@ -100,7 +100,7 @@ class WRMModel {
 
 
 template <class cView_type, class View_type, class WRM_type>
-const std::string WRMModel<cView_type, View_type, WRM_type>::name = "wrm " + WRM_type::name;
+const std::string WRMModel<cView_type, View_type, WRM_type>::eval_type = "wrm " + WRM_type::eval_type;
 
 
 template <class cView_type, class View_type>

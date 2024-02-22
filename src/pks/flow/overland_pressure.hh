@@ -128,7 +128,7 @@ Uses the PK type:
 #include "upwinding.hh"
 
 #include "PKFactory.hh"
-#include "pk_physical_bdf_default.hh"
+#include "PK_PhysicalBDF_Default.hh"
 
 namespace Amanzi {
 
@@ -152,23 +152,22 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // PK methods
   // ------------------------------------------------------------------
   // Parse the local parameter list and add entries to the global list
-  virtual void ParseParameterList_() override;
+  virtual void modifyParameterList() override;
+  virtual void parseParameterList() override;
 
   // Set requirements of data and evaluators
-  virtual void Setup() override;
+  virtual void setup() override;
 
   // Initialize owned (dependent) variables.
-  virtual void Initialize() override;
+  virtual void initialize() override;
 
   // Finalize a step as successful at the given tag.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-
-  // Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Tag& tag) override;
+  virtual void commitStep(double t_old, double t_new, const Tag& tag) override;
 
   // type info used in PKFactory
-  static const std::string type;
-  virtual const std::string& getType() const override { return type; }
+  virtual const std::string& getType() const override { return pk_type_; }
+
+  Teuchos::RCP<Operators::Operator> getPreconditioner() override { return preconditioner_; }
 
   //
   // BDF1_TI methods
@@ -231,6 +230,8 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
  protected:
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
 
+  static const std::string pk_type_;
+
   // keys
   Key potential_key_;
   Key flux_key_;
@@ -280,7 +281,8 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Teuchos::RCP<Operators::Upwinding> upwinding_dkdp_;
 
   // mathematical operators
-  Teuchos::RCP<Operators::Operator> matrix_; // pc in PKPhysicalBDFBase
+  Teuchos::RCP<Operators::Operator> matrix_;
+  Teuchos::RCP<Operators::Operator> preconditioner_;
   Teuchos::RCP<Operators::PDE_Diffusion> matrix_diff_;
   Teuchos::RCP<Operators::PDE_Diffusion> face_matrix_diff_;
   Teuchos::RCP<Operators::PDE_Diffusion> preconditioner_diff_;

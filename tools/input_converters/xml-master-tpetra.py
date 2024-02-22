@@ -44,23 +44,28 @@ def inverse(xml):
                 pcp.setName("hypre: boomer amg parameters")
 
 
-def change_eval_type(name, old_type, new_type):
+def change_eval_type(xml, name, old_type, new_type):
     try:
         e = asearch.find_path(xml, ["state", "evaluators", name], no_skip=True)
     except aerrors.MissingXMLError:
-        pass
+        return False
     else:
         etype = e.getElement("evaluator type")
         if etype.getValue() == old_type:
             etype.setValue(new_type)
-
+            return True
+        return False
 
 def wrm(xml):
-    change_eval_type("saturation_liquid", "WRM", "wrm van Genuchten by material")
-    change_eval_type("saturation_gas", "WRM", "wrm van Genuchten by material")
-    change_eval_type("relative_permeability", "relative permeability, van Genuchten",
+    change_eval_type(xml, "saturation_liquid", "WRM", "wrm van Genuchten by material")
+    change_eval_type(xml, "saturation_gas", "WRM", "wrm van Genuchten by material")
+    change_eval_type(xml, "relative_permeability", "relative permeability, van Genuchten",
                      "relative permeability van Genuchten by material")
-
+    did_poro = change_eval_type(xml, "porosity", "compressible porosity", "compressible porosity linear by material")
+    if did_poro:
+        poro_eval = asearch.find_path(xml, ["state", "evaluators", "porosity"])
+        if poro_eval.isElement("compressible porosity model parameters"):
+            poro_eval.getElement("compressible porosity model parameters").setName("model parameters")
 
 def perm_to_tensor(xml):
     try:
@@ -72,6 +77,17 @@ def perm_to_tensor(xml):
         if etype.getValue() == "independent variable":
             etype.setValue("independent variable tensor")
             e.setParameter("tensor rank", "int", 1)
+        elif etype.getValue() == "independent variable constant":
+            val = e.pop("value").getValue()
+            etype.setValue("independent variable tensor")
+            e.setParameter("constant in time", "bool", True)
+            e.setParameter("tensor rank", "int", 1)
+            dlist = e.sublist("function").sublist("domain")
+            dlist.setParameter("region", "string", "computational domain")
+            dlist.setParameter("component", "string", "cell")
+            flist = dlist.sublist("function").sublist("function-constant")
+            flist.setParameter("value", "double", val)
+
 
 
 def bcs_with_units(xml):

@@ -49,7 +49,7 @@ class PondedDepthModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 2;
-  static const std::string name; // = "overland pressure water content";
+  static const std::string eval_type; // = "overland pressure water content";
 
   PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
@@ -119,7 +119,7 @@ class PondedDepthModel {
 };
 
 template <class cView_type, class View_type>
-const std::string PondedDepthModel<cView_type, View_type>::name = "ponded depth";
+const std::string PondedDepthModel<cView_type, View_type>::eval_type = "ponded depth";
 
 } // namespace Relations
 } // namespace Flow

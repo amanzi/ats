@@ -23,7 +23,7 @@ RichardsSteadyState::RichardsSteadyState(const Comm_ptr_type& comm,
                                          Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                          const Teuchos::RCP<State>& S)
-  : PK(comm, pk_tree, glist, S), Richards(comm, pk_tree, glist, S)
+  : Richards(comm, pk_tree, glist, S)
 {}
 
 
@@ -52,7 +52,7 @@ RichardsSteadyState::FunctionalResidual(double t_old,
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // pointer-copy temperature into state and update any auxilary data
-  Solution_to_State(*u_new, tag_next_);
+  moveSolutionToState(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->getData();
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
@@ -140,7 +140,7 @@ RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVecto
     preconditioner_diff_->SetTensorCoefficient(S_->GetPtr<TensorVector>(perm_key_, Tags::DEFAULT));
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  moveSolutionToState(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
   UpdatePermeabilityData_(tag_next_);

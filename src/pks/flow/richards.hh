@@ -230,7 +230,7 @@ Uses the PK type:
 #include "upwinding.hh"
 
 #include "PKFactory.hh"
-#include "pk_physical_bdf_default.hh"
+#include "PK_PhysicalBDF_Default.hh"
 
 namespace Amanzi {
 
@@ -256,26 +256,25 @@ class Richards : public PK_PhysicalBDF_Default {
   // PK methods
   // ------------------------------------------------------------------
   // Parse the local parameter list and add entries to the global list
-  virtual void ParseParameterList_() override;
+  virtual void modifyParameterList() override;
+  virtual void parseParameterList() override;
 
   // Set requirements of data and evaluators
-  virtual void Setup() override;
+  virtual void setup() override;
 
   // Initialize owned (dependent) variables.
-  virtual void Initialize() override;
+  virtual void initialize() override;
 
   // Finalize a step as successful at the given tag.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void commitStep(double t_old, double t_new, const Tag& tag) override;
 
   // Is the previous step valid
-  virtual bool ValidStep() override;
+  virtual bool isValidStep() override;
 
   // Update diagnostics for vis.
-  virtual void CalculateDiagnostics(const Tag& tag) override;
+  virtual void calculateDiagnostics(const Tag& tag) override;
 
-  // type info used in PKFactory
-  static const std::string type;
-  virtual const std::string& getType() const override { return type; }
+  virtual const std::string& getType() const { return pk_type_; }
 
   //
   // BDF1_TI methods
@@ -308,10 +307,12 @@ class Richards : public PK_PhysicalBDF_Default {
                    Teuchos::RCP<const TreeVector> u,
                    Teuchos::RCP<TreeVector> du) override;
 
+  // PK_BDF method
+  virtual Teuchos::RCP<Operators::Operator> getPreconditioner() override { return preconditioner_; }
+
   //
   // methods used only for testing
   // ------------------------------------------------------------------
-  Teuchos::RCP<Operators::Operator> getOperator() { return matrix_; }
   void setFixedKr(bool fixed = true) { fixed_kr_ = fixed; }
 
  protected:
@@ -386,6 +387,7 @@ class Richards : public PK_PhysicalBDF_Default {
 
   // mathematical operators
   Teuchos::RCP<Operators::Operator> matrix_; // pc in PKPhysicalBDFBase
+  Teuchos::RCP<Operators::Operator> preconditioner_; // pc in PKPhysicalBDFBase
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> matrix_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> face_matrix_diff_;
@@ -433,13 +435,7 @@ class Richards : public PK_PhysicalBDF_Default {
 
   // debugging control
   bool fixed_kr_;
-
-  // -- access methods
-  virtual Teuchos::RCP<Operators::Operator>
-  my_operator(const Operators::Operator_kind& type) override
-  {
-    return matrix_;
-  }
+  static const std::string pk_type_;
 
  private:
   // factory registration

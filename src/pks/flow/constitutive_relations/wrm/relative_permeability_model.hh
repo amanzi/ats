@@ -56,7 +56,7 @@ template <class cView_type, class View_type, class WRM_type>
 class RelativePermeabilityModel {
  public:
   static const int n_dependencies = 1;
-  static const std::string name;
+  static const std::string eval_type;
 
   RelativePermeabilityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
     : model_(plist->sublist("model parameters"))
@@ -111,8 +111,8 @@ class RelativePermeabilityModel {
 
 
 template <class cView_type, class View_type, class WRM_type>
-const std::string RelativePermeabilityModel<cView_type, View_type, WRM_type>::name =
-  "relative permeability " + WRM_type::name;
+const std::string RelativePermeabilityModel<cView_type, View_type, WRM_type>::eval_type =
+  "relative permeability " + WRM_type::eval_type;
 
 
 template <class cView_type, class View_type>

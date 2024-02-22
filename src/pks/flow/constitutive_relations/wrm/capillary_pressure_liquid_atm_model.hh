@@ -42,7 +42,7 @@ template <class cView_type, class View_type>
 class CapillaryPressureLiquidAtmModel {
  public:
   static const int n_dependencies = 1;
-  static const std::string name;
+  static const std::string eval_type;
 
   CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
@@ -76,7 +76,7 @@ class CapillaryPressureLiquidAtmModel {
 };
 
 template <class cView_type, class View_type>
-const std::string CapillaryPressureLiquidAtmModel<cView_type, View_type>::name =
+const std::string CapillaryPressureLiquidAtmModel<cView_type, View_type>::eval_type =
   "capillary pressure, atmospheric gas over liquid";
 
 } // namespace Relations

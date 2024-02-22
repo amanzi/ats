@@ -66,7 +66,7 @@ template <class cView_type, class View_type>
 class CompressiblePorosityLinearModel {
  public:
   static const int n_dependencies = 2;
-  static const std::string name;
+  static const std::string eval_type;
 
   CompressiblePorosityLinearModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
@@ -150,7 +150,7 @@ class CompressiblePorosityLinearModel {
 
 
 template <class cView_type, class View_type>
-const std::string CompressiblePorosityLinearModel<cView_type, View_type>::name =
+const std::string CompressiblePorosityLinearModel<cView_type, View_type>::eval_type =
   "compressible porosity linear";
 
 

@@ -19,22 +19,21 @@
 #include "upwind_total_flux.hh"
 #include "UpwindFluxFactory.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 
 #include "overland_pressure.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-const std::string OverlandPressureFlow::type = "overland pressure, pressure basis";
+const std::string OverlandPressureFlow::pk_type_ = "overland pressure, pressure basis";
 
 
 OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
                                            Teuchos::ParameterList& pk_tree,
                                            const Teuchos::RCP<Teuchos::ParameterList>& glist,
                                            const Teuchos::RCP<State>& S)
-  : PK(comm, pk_tree, glist, S),
-    PK_PhysicalBDF_Default(comm, pk_tree, glist, S),
+  : PK_PhysicalBDF_Default(comm, pk_tree, glist, S),
     is_source_term_(false),
     coupled_to_subsurface_via_head_(false),
     coupled_to_subsurface_via_flux_(false),
@@ -45,6 +44,11 @@ OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
     jacobian_lag_(0),
     iter_(0),
     iter_counter_time_(0.)
+{}
+
+
+void
+OverlandPressureFlow::modifyParameterList()
 {
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
@@ -53,12 +57,14 @@ OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
   // set some defaults for inherited PKs
   if (!plist_->isParameter("conserved quantity key suffix"))
     plist_->set<std::string>("conserved quantity key suffix", "water_content");
+
+  PK_PhysicalBDF_Default::modifyParameterList();
 }
 
 void
-OverlandPressureFlow::ParseParameterList_()
+OverlandPressureFlow::parseParameterList()
 {
-  PK_PhysicalBDF_Default::ParseParameterList_();
+  PK_PhysicalBDF_Default::parseParameterList();
 
   // get keys
   potential_key_ = Keys::readKey(*plist_, domain_, "potential", "pres_elev");
@@ -153,9 +159,9 @@ OverlandPressureFlow::ParseParameterList_()
 // Constructor
 // -------------------------------------------------------------
 void
-OverlandPressureFlow::Setup()
+OverlandPressureFlow::setup()
 {
-  PK_PhysicalBDF_Default::Setup();
+  PK_PhysicalBDF_Default::setup();
 
   // -- water content, and evaluator, and derivative for PC
   PKHelpers::requireAtNext(conserved_key_, tag_next_, *S_)
@@ -419,10 +425,10 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
 // Initialize PK
 // -------------------------------------------------------------
 void
-OverlandPressureFlow::Initialize()
+OverlandPressureFlow::initialize()
 {
   // Initialize BDF stuff and physical domain stuff.
-  PK_PhysicalBDF_Default::Initialize();
+  PK_PhysicalBDF_Default::initialize();
 
   // Set extra fields as initialized -- these don't currently have evaluators.
   S_->GetW<CompositeVector>(uw_cond_key_, tag_next_, uw_cond_key_).putScalar(0.0);
@@ -460,24 +466,15 @@ OverlandPressureFlow::Initialize()
 //   solution.
 // -----------------------------------------------------------------------------
 void
-OverlandPressureFlow::CommitStep(double t_old, double t_new, const Tag& tag_next)
+OverlandPressureFlow::commitStep(double t_old, double t_new, const Tag& tag_next)
 {
   // saves primary variable, conserved quantity
-  PK_PhysicalBDF_Default::CommitStep(t_old, t_new, tag_next);
+  PK_PhysicalBDF_Default::commitStep(t_old, t_new, tag_next);
 
   // also save ponded depth
   AMANZI_ASSERT(tag_next == tag_next_ || tag_next == Tags::NEXT);
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
   PKHelpers::assign(pd_key_, tag_current, tag_next, *S_);
-};
-
-
-// -----------------------------------------------------------------------------
-// Update diagnostics -- used prior to vis.
-// -----------------------------------------------------------------------------
-void
-OverlandPressureFlow::CalculateDiagnostics(const Tag& tag){
-  // UpdateVelocity_(tag);
 };
 
 

@@ -15,7 +15,7 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-const std::string OverlandConductivityEvaluator::name = "overland conductivity";
+const std::string OverlandConductivityEvaluator::eval_type = "overland conductivity";
 
 OverlandConductivityEvaluator::OverlandConductivityEvaluator(
   const Teuchos::RCP<Teuchos::ParameterList>& plist)

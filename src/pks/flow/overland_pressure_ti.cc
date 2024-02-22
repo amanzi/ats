@@ -40,7 +40,7 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
   res->putScalar(0.0);
 
   // pointer-copy temperature into state and update any auxilary data
-  Solution_to_State(*u_new, tag_next_);
+  moveSolutionToState(*u_new, tag_next_);
   Teuchos::RCP<CompositeVector> u = u_new->getData();
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
@@ -161,7 +161,7 @@ OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVect
   }
 
   AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
-  PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
+  moveSolutionToState(*up, tag_next_);
 
   // calculating the operator is done in 3 steps:
   // 1. Diffusion components

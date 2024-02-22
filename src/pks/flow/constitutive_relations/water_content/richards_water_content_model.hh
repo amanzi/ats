@@ -45,7 +45,7 @@ class RichardsWaterContentModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 4;
-  static const std::string name; // = "richards water content";
+  static const std::string eval_type; // = "richards water content";
 
   RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
@@ -103,7 +103,7 @@ class RichardsWaterContentModel {
 };
 
 template <class cView_type, class View_type>
-const std::string RichardsWaterContentModel<cView_type, View_type>::name = "richards water content";
+const std::string RichardsWaterContentModel<cView_type, View_type>::eval_type = "richards water content";
 
 } // namespace Relations
 } // namespace Flow

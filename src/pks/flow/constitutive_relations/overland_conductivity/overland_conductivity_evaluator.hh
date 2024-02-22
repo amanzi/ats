@@ -64,8 +64,8 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
-  static const std::string name;
-  virtual std::string getType() const override { return name; }
+  static const std::string eval_type;
+  virtual std::string getType() const override { return eval_type; }
 
  private:
   Teuchos::RCP<ManningConductivityModel> model_;

@@ -14,7 +14,7 @@
 #include "PDE_DiffusionWithGravity.hh"
 #include "PDE_Accumulation.hh"
 
-#include "pk_helpers.hh"
+#include "PK_Helpers.hh"
 #include "richards.hh"
 
 namespace Amanzi {

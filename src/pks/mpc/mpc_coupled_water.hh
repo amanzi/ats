@@ -95,6 +95,9 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
   // UpdateConsistentFaceCorrectionWater_(const Teuchos::RCP<const TreeVector>& u,
   //         const Teuchos::RCP<TreeVector>& Pu);
 
+  // Parse the local parameter list and add entries to the global list
+  virtual void ParseParameterList_() override;
+
  protected:
   std::string domain_surf_, domain_ss_;
   Key exfilt_key_;
