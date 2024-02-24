@@ -62,6 +62,9 @@ class RichardsSteadyState : public Richards {
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
+ protected:
+   static const std::string pk_type_;
+
  private:
   // factory registration
   static RegisteredPKFactory<RichardsSteadyState> reg_;

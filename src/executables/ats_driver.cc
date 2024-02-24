@@ -31,7 +31,6 @@
 #include "TreeVector.hh"
 #include "PKFactory.hh"
 
-#include "pk_helpers.hh"
 #include "exceptions.hh"
 #include "errors.hh"
 

@@ -26,7 +26,7 @@
 namespace Amanzi {
 namespace Flow {
 
-const std::string OverlandPressureFlow::pk_type_ = "overland pressure, pressure basis";
+const std::string OverlandPressureFlow::pk_type_ = "overland flow, pressure basis";
 
 
 OverlandPressureFlow::OverlandPressureFlow(const Comm_ptr_type& comm,
@@ -93,18 +93,17 @@ OverlandPressureFlow::parseParameterList()
   wc_bar_list.setParametersNotAlreadySet(S_->GetEvaluatorList(conserved_key_));
   wc_bar_list.set("allow negative water content", true);
 
-  // -- elevation evaluator
-  bool standalone_mode = S_->GetMesh() == S_->GetMesh(domain_);
-  if (!standalone_mode) {
-    S_->GetEvaluatorList(elev_key_).set("evaluator type", "meshed elevation");
-  }
-
   // -- potential evaluator
   auto& potential_list = S_->GetEvaluatorList(potential_key_);
   potential_list.set("evaluator type", "additive");
   potential_list.set<Teuchos::Array<std::string>>("dependencies",
                                                   std::vector<std::string>{ pd_key_, elev_key_ });
   potential_list.set("dependency tags are my tag", true);
+
+  // -- elevation evaluator
+  auto& elev_plist = S_->GetEvaluatorList(elev_key_);
+  if (!elev_plist.isParameter("evaluator type"))
+    elev_plist.set("evaluator type", "meshed elevation");
 
   // limiters
   p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);

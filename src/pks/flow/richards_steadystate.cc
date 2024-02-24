@@ -19,6 +19,8 @@ Steady state solution of Richards equation
 namespace Amanzi {
 namespace Flow {
 
+const std::string RichardsSteadyState::pk_type_ = "richards steady state";
+
 RichardsSteadyState::RichardsSteadyState(const Comm_ptr_type& comm,
                                          Teuchos::ParameterList& pk_tree,
                                          const Teuchos::RCP<Teuchos::ParameterList>& glist,

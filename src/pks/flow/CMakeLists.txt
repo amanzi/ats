@@ -111,66 +111,10 @@ generate_evaluators_registration_header(
     )
 
                  
-#
-# generate registration files
-#
-register_evaluator_with_factory(
-  HEADERFILE richards_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
-
-register_evaluator_with_factory(
-  HEADERFILE richards_steadystate_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
-
-# register_evaluator_with_factory(
-#   HEADERFILE permafrost_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
-
-# register_evaluator_with_factory(
-#   HEADERFILE interfrost_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
-
-# register_evaluator_with_factory(
-#   HEADERFILE overland_pk_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
-
-register_evaluator_with_factory(
-  HEADERFILE overland_pressure_pk_reg.hh
-  LISTNAME   ATS_FLOW_PKS_REG
-  )
-
-# register_evaluator_with_factory(
-#   HEADERFILE icy_overland_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
-
-# register_evaluator_with_factory(
-#   HEADERFILE snow_distribution_reg.hh
-#   LISTNAME   ATS_FLOW_PKS_REG
-#   )
-
-# register_evaluator_with_factory(
-#  HEADERFILE preferential_pk_reg.hh
-#  LISTNAME   ATS_FLOW_PKS_REG
-#  )
-
-generate_evaluators_registration_header(
- HEADERFILE ats_flow_pks_registration.hh
- LISTNAME   ATS_FLOW_PKS_REG
- INSTALL    True
- )
-
-
-
  if (BUILD_TESTS)
 
     include_directories(${UnitTest_INCLUDE_DIRS})
-    set(ats_flow_test_link_libs state mesh_factory mesh data_structures mesh_functions functions
+    set(ats_flow_test_link_libs pks state mesh_factory mesh data_structures mesh_functions functions
                               ${UnitTest_LIBRARIES})
 
     add_amanzi_test(ats_flow_relations ats_flow_relations

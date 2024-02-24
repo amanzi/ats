@@ -8,6 +8,7 @@
 */
 
 #include "state_evaluators_registration.hh"
+#include "pks_registration.hh"
 
 //#include "ats_relations_registration.hh"
 //#include "ats_transport_registration.hh"

@@ -8,6 +8,7 @@
 #include "wrm_van_genuchten.hh"
 #include "wrm_model.hh"
 #include "relative_permeability_model.hh"
+#include "relative_permeability_evaluator.hh"
 
 namespace Amanzi {
 
@@ -16,8 +17,12 @@ REGISTER_MODEL(Flow::Relations::CapillaryPressureLiquidAtmModel);
 REGISTER_MODEL(Flow::Relations::WRMVanGenuchtenModel);
 REGISTER_BY_MATERIAL(Flow::Relations::WRMVanGenuchtenModel);
 
-REGISTER_MODEL(Flow::Relations::RelativePermeabilityVanGenuchtenModel);
-REGISTER_BY_MATERIAL(Flow::Relations::RelativePermeabilityVanGenuchtenModel);
+
+template<>
+REGISTER(Flow::Relations::RelativePermeabilityEvaluator<EvaluatorModelCV<RelativePermeabilityVanGenuchtenModel>>);
+
+template<>
+REGISTER(Flow::Relations::RelativePermeabilityEvaluator<EvaluatorModelCVByMaterial<RelativePermeabilityVanGenuchtenModel>>);
 
 
 } // namespace Amanzi

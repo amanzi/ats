@@ -43,7 +43,6 @@ actual work.
 #include "PK.hh"
 #include "TreeVector.hh"
 #include "PKFactory.hh"
-#include "pk_helpers.hh"
 
 #include "ats_mesh_factory.hh"
 
@@ -88,8 +87,8 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   // create the pk
   Amanzi::PKFactory pk_factory;
   pk_ = pk_factory.CreatePK(pk_name, comm_, pk_tree_list, plist_, S_);
-  pk_->ModifyParameterList();
-  pk_->ParseParameterList();
+  pk_->modifyParameterList();
+  pk_->parseParameterList();
 
   // create the checkpointing
   Teuchos::ParameterList& chkp_plist = plist_->sublist("checkpoint");
@@ -148,7 +147,7 @@ Coordinator::setup()
   // order matters here -- PKs set the leaves, then observations can use those
   // if provided, and setup finally deals with all secondaries and allocates memory
   pk_->setTags(Amanzi::Tags::CURRENT, Amanzi::Tags::NEXT);
-  pk_->Setup();
+  pk_->setup();
   for (auto& obs : observations_) obs->Setup(S_.ptr());
   S_->Setup();
 }
@@ -179,10 +178,10 @@ Coordinator::initialize()
   S_->InitializeFields();
 
   // Initialize the process kernels
-  pk_->Initialize();
+  pk_->initialize();
 
   // calling CommitStep to set up copies as needed.
-  pk_->CommitStep(t0_, t0_, Amanzi::Tags::NEXT);
+  pk_->commitStep(t0_, t0_, Amanzi::Tags::NEXT);
 
   // initialize vertex coordinate data
   for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
@@ -225,7 +224,7 @@ Coordinator::initialize()
   // commit one more time, since some variables may have changed in the
   // previous call (test this... maybe chemistry/transport variables?  Is this
   // still necessary?  And do we need to set cycle to -1 here too? --ETC)
-  pk_->CommitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
+  pk_->commitStep(S_->get_time(), S_->get_time(), Amanzi::Tags::NEXT);
 
   // Write dependency graph.
   S_->WriteDependencyGraph();
@@ -313,7 +312,7 @@ void
 Coordinator::finalize()
 {
   // Force checkpoint at the end of simulation, and copy to checkpoint_final
-  pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
+  pk_->calculateDiagnostics(Amanzi::Tags::NEXT);
   checkpoint_->write(*S_, Amanzi::Checkpoint::WriteType::FINAL);
 
   // flush observations to make sure they are saved
@@ -486,15 +485,15 @@ Coordinator::advance()
   double t_old = S_->get_time(Amanzi::Tags::CURRENT);
   double t_new = S_->get_time(Amanzi::Tags::NEXT);
 
-  bool fail = pk_->AdvanceStep(t_old, t_new, false);
-  if (!fail) fail |= !pk_->ValidStep();
+  bool fail = pk_->advanceStep(t_old, t_new, false);
+  if (!fail) fail |= !pk_->isValidStep();
 
   // write state post-advance, if extreme
   S_->WriteStatistics(vo_.ptr(), Teuchos::VERB_EXTREME);
 
   if (!fail) {
     // commit the state, copying NEXT --> CURRENT
-    pk_->CommitStep(t_old, t_new, Amanzi::Tags::NEXT);
+    pk_->commitStep(t_old, t_new, Amanzi::Tags::NEXT);
 
   } else {
     // Failed the timestep.
@@ -502,7 +501,7 @@ Coordinator::advance()
     for (const auto& vis : failed_visualization_) vis->write(*S_);
 
     // copy from old time into new time to reset the timestep
-    pk_->FailStep(t_old, t_new, Amanzi::Tags::NEXT);
+    pk_->failStep(t_old, t_new, Amanzi::Tags::NEXT);
 
     // check whether meshes are deformable, and if so, recover the old coordinates
     for (Amanzi::State::mesh_iterator mesh = S_->mesh_begin(); mesh != S_->mesh_end(); ++mesh) {
@@ -535,7 +534,7 @@ Coordinator::visualize(bool force)
     for (const auto& vis : visualization_) { dump |= vis->DumpRequested(cycle, time); }
   }
 
-  if (dump) { pk_->CalculateDiagnostics(Amanzi::Tags::NEXT); }
+  if (dump) { pk_->calculateDiagnostics(Amanzi::Tags::NEXT); }
 
   for (const auto& vis : visualization_) {
     if (force || vis->DumpRequested(cycle, time)) { vis->write(*S_); }

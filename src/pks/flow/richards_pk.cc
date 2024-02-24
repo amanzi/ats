@@ -171,7 +171,7 @@ Richards::parseParameterList()
 
   if (coupled_to_surface_via_flux_) {
     // Neumann condition, given by the vector
-    std::string bc_flux_name = name_ = "_bcs_surface_coupling_via_flux";
+    std::string bc_flux_name = name_ + "_bcs_surface_coupling_via_flux";
     Teuchos::ParameterList& bc_flux_list = S_->GetEvaluatorList(bc_flux_name);
     bc_flux_list.set<std::string>("evaluator type", "vector as patch")
       .set<Teuchos::Array<std::string>>("dependencies", std::vector<std::string>{ss_flux_key_})
@@ -227,9 +227,12 @@ Richards::SetupRichardsFlow_()
   if (plist_->sublist("boundary conditions").isSublist("seepage face pressure"))
     S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_seepage_face_pressure", tag_next_)
       .set_flag(Operators::OPERATOR_BC_CONDITIONAL);
-  if (coupled_to_surface_via_flux_)
-    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_surface_coupling_via_flux", tag_next_)
-      .set_flag(Operators::OPERATOR_BC_NEUMANN);
+  if (coupled_to_surface_via_flux_) {
+    auto& mps = S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_surface_coupling_via_flux", tag_next_);
+    mps.set_flag(Operators::OPERATOR_BC_NEUMANN);
+    // THIS IS BROKEN AND FRAGILE.... HOW DO WE DO THIS CORRECTLY? --ETC
+    mps.addPatch("surface", AmanziMesh::Entity_kind::FACE, 1);
+  }
 
   // -- nonlinear coefficients/upwinding
   // if coupled to the surface, how do we deal with the surface face

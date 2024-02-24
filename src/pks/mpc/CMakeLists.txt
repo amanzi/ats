@@ -29,7 +29,7 @@ include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/constitutive_relations)
 
 set(ats_mpc_src_files
-  weak_mpc.cc
+  # weak_mpc.cc
   # mpc_subcycled.cc
   mpc_surface_subsurface_helpers.cc
   # mpc_coupled_cells.cc
@@ -55,9 +55,9 @@ set(ats_mpc_src_files
   )
 
 set(ats_mpc_inc_files
-  mpc.hh
-  weak_mpc.hh
-  strong_mpc.hh
+  #mpc.hh
+  #weak_mpc.hh
+  #strong_mpc.hh
   # mpc_subcycled.hh
   mpc_surface_subsurface_helpers.hh
   # mpc_coupled_cells.hh
@@ -97,7 +97,7 @@ set(ats_mpc_link_libs
   ats_operators
   # ats_eos
   # ats_generic_evals
-  ats_pks
+  # ats_pks
   # ats_transport
   # ats_energy
   ats_flow

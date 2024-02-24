@@ -33,7 +33,7 @@ surface equations are directly assembled into the subsurface discrete operator.
 
    INCLUDES:
 
-   - ``[strong-mpc-spec]`` *Is a* StrongMPC_
+   - ``[strong-mpc-spec]`` *Is a* `Strong MPC`_
 
 */
 
@@ -42,25 +42,28 @@ surface equations are directly assembled into the subsurface discrete operator.
 
 #include "Operator.hh"
 #include "mpc_delegate_water.hh"
-#include "pk_physical_bdf_default.hh"
 
-#include "strong_mpc.hh"
+#include "PK_PhysicalBDF_Default.hh"
+#include "MPCStrong.hh"
 
 namespace Amanzi {
 
-class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
+class MPCCoupledWater : public MPCStrong<PK_PhysicalBDF_Default> {
  public:
   MPCCoupledWater(const Comm_ptr_type& comm,
                   Teuchos::ParameterList& FElist,
                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
                   const Teuchos::RCP<State>& S);
 
-  virtual void Setup() override;
-  virtual void Initialize() override;
+  // Parse the local parameter list and add entries to the global list
+  virtual void parseParameterList() override;
+  virtual void modifyParameterList() override;
+
+  virtual void setup() override;
+  virtual void initialize() override;
 
   // type info used in PKFactory
-  static const std::string type;
-  virtual const std::string& getType() const override { return type; }
+  virtual const std::string& getType() const override { return pk_type_; }
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
@@ -88,17 +91,16 @@ class MPCCoupledWater : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual double
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res) override;
 
-  Teuchos::RCP<Operators::Operator> preconditioner() { return precon_; }
+  Teuchos::RCP<Operators::Operator> getPreconditioner() { return precon_; }
 
  protected:
   // void
   // UpdateConsistentFaceCorrectionWater_(const Teuchos::RCP<const TreeVector>& u,
   //         const Teuchos::RCP<TreeVector>& Pu);
 
-  // Parse the local parameter list and add entries to the global list
-  virtual void ParseParameterList_() override;
-
  protected:
+  static const std::string pk_type_;
+
   std::string domain_surf_, domain_ss_;
   Key exfilt_key_;
 
