@@ -107,7 +107,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           surface_mesh->cell_get_coordinates(c_sw, &coords);
 
           if (AmanziGeometry::point_in_polygon(xc_pipe, coords) == true) {
-            std::cout<<"Pipe cell = "<<c_pipe<<"; SW cell = "<<c_sw<<std::endl;
             pipe_map_[c_pipe] = c_sw;
             break;
           } 
@@ -129,7 +128,6 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           pipe_mesh->cell_get_coordinates(c_pipe, &coords);
 
           if (AmanziGeometry::point_in_polygon(xc_sw, coords) == true) {
-            std::cout<<"SW cell = "<<c_sw<<"; pipe cell = "<<c_pipe<<std::endl;
             sw_map_[c_sw] = c_pipe;
             break; 
           }
