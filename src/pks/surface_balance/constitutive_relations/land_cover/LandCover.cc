@@ -82,10 +82,6 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
       readPositiveLandCoverParameter(plist, "Beer's law extinction coefficient, longwave [-]")),
     snow_transition_depth(readPositiveLandCoverParameter(plist, "snow transition depth [m]")),
     water_transition_depth(readPositiveLandCoverParameter(plist, "water transition depth [m]")),
-    dessicated_zone_thickness(
-      readPositiveLandCoverParameter(plist, "dessicated zone thickness [m]")),
-    clapp_horn_b(readPositiveLandCoverParameter(plist, "Clapp and Hornberger b [-]")),
-    rs_method(plist.get<std::string>("soil resistance method", "sakagucki_zeng")),
     roughness_ground(readPositiveLandCoverParameter(plist, "roughness length of bare ground [m]")),
     roughness_snow(readPositiveLandCoverParameter(plist, "roughness length of snow [m]")),
     mannings_n(readPositiveLandCoverParameter(plist, "Manning's n [?]"))
@@ -180,13 +176,6 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
     throwInvalid(region, "snow transition depth [m]");
   if (parname == "water_transition_depth" && std::isnan(lc.water_transition_depth))
     throwInvalid(region, "water transition depth [m]");
-
-  if (parname == "rs_method" && lc.rs_method == std::string("sakagucki_zeng")) {
-    if (std::isnan(lc.dessicated_zone_thickness))
-      throwInvalid(region, "dessicated zone thickness [m]");
-    if (std::isnan(lc.clapp_horn_b)) throwInvalid(region, "Clapp and Hornberger b [-]");
-  }
-
   if (parname == "roughness_ground" && std::isnan(lc.roughness_ground))
     throwInvalid(region, "roughness length of bare ground [m]");
   if (parname == "roughness_snow" && std::isnan(lc.roughness_snow))

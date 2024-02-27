@@ -4,16 +4,17 @@
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
+  Authors:
 */
 
-#include "overland.hh"
+#include "water_level_evaluator.hh"
 
 namespace Amanzi {
 namespace Flow {
 
-RegisteredPKFactory<OverlandFlow> OverlandFlow::reg_("overland flow");
-
+// registry of method
+Utils::RegisteredFactory<Evaluator, WaterLevelEvaluator>
+  WaterLevelEvaluator::factory_("water level");
 
 } // namespace Flow
 } // namespace Amanzi

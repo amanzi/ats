@@ -7,7 +7,7 @@
   Authors:
 */
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "subgrid_mobile_depth_evaluator.hh"
 
 namespace Amanzi {

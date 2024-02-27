@@ -55,7 +55,7 @@ SurfaceTopCellsEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
     AmanziMesh::Entity_ID f = result[0]->Mesh()->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 
     // get the cell interior to the face
-    auto cells = sub_vector->Mesh()->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = sub_vector->Mesh()->getFaceCells(f);
     AMANZI_ASSERT(cells.size() == 1);
 
     result_cells[0][c] = sub_vector_cells[0][cells[0]];

@@ -8,7 +8,7 @@
 */
 
 //! A set of helper functions for doing common things in PKs.
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "Chemistry_PK.hh"
 #include "pk_helpers.hh"
 
@@ -89,7 +89,7 @@ getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const 
 int
 getBoundaryDirection(const AmanziMesh::Mesh& mesh, AmanziMesh::Entity_ID f)
 {
-  auto cells = mesh.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+  auto cells = mesh.getFaceCells(f);
   AMANZI_ASSERT(cells.size() == 1);
   const auto& [faces, dirs] = mesh.getCellFacesAndDirections(cells[0]);
   return dirs[std::find(faces.begin(), faces.end(), f) - faces.begin()];
@@ -312,7 +312,7 @@ copyVectorToMeshCoordinates(const CompositeVector& vec, AmanziMesh::Mesh& mesh)
       new_positions[n] = Amanzi::AmanziGeometry::Point{ nodes[0][n], nodes[1][n], nodes[2][n] };
     }
   }
-  Amanzi::AmanziMesh::MeshAlgorithms::deform(mesh, node_ids, new_positions);
+  Amanzi::AmanziMesh::deform(mesh, node_ids, new_positions);
 }
 
 int

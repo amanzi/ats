@@ -22,7 +22,7 @@ Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|`
      intelligent default by stripping "surface" from this domain.
    * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
      elevation changes in time, and adds the `"deformation`" dependency.
-   
+
    MY KEYS:
 
    - `"elevation`" **DOMAIN-elevation** Name the elevation variable. [m]

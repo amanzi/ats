@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <vector>
 
-#include "boost/algorithm/string.hpp"
 #include "Epetra_Vector.h"
 #include "Epetra_IntVector.h"
 #include "Epetra_MultiVector.h"
@@ -1489,7 +1488,7 @@ SedimentTransport_PK::PopulateBoundaryData(std::vector<int>& bc_model,
   }
 
   for (int f = 0; f < nfaces_wghost; f++) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     if (cells.size() == 1) bc_model[f] = Operators::OPERATOR_BC_NEUMANN;
   }
 
@@ -1554,7 +1553,7 @@ SedimentTransport_PK::IdentifyUpwindCells()
 //   int nfaces_wghost = mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
 //   for (int f = 0; f < nfaces_wghost ; f++){
-//     auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+//     auto cells = mesh_->getFaceCells(f);
 //     double n_liq=0.;
 //     for (int c=0; c<cells.size();c++) n_liq += (*molar_density)[0][c];
 //     n_liq /= cells.size();

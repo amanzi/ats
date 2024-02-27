@@ -7,10 +7,6 @@
   Authors: Daniil Svyatsky(dasvyat@gmail.com)
 */
 
-#include "boost/math/special_functions/fpclassify.hpp"
-
-#include "boost/algorithm/string/predicate.hpp"
-
 #include "Epetra_Import.h"
 
 #include "flow_bc_factory.hh"
@@ -54,19 +50,6 @@ Preferential::Preferential(Teuchos::ParameterList& pk_tree,
   coef_grav_key_ =
     Keys::readKey(*plist_, domain_, "gravity conductivity", "gravity_relative_permeability");
 
-  // all manipulation of evaluator lists should happen in constructors (pre-setup)
-  // -- Water retention evaluators for gravity term
-  if (plist_->isSublist("water retention evaluator for gravity term")) {
-    // note this overwrites the parameters from "water retention evaluator"
-    // list set in Richards PK constructor
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator for gravity term"));
-  }
-  if (S_->GetEvaluatorList(coef_grav_key_).numParams() == 0) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_grav_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
   S_->GetEvaluatorList(coef_grav_key_).set<double>("permeability rescaling", perm_scale_);
 }
 
@@ -166,7 +149,7 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
 
         for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-            auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+            auto cells = mesh_->getFaceCells(f);
             AMANZI_ASSERT(cells.size() == 1);
             int c = cells[0];
             const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
@@ -220,7 +203,7 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto fcells = mesh_->getFaceCells(f);
         AMANZI_ASSERT(fcells.size() == 1);
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];

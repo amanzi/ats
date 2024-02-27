@@ -20,8 +20,8 @@ namespace Flow {
 SuctionHeadEvaluator::SuctionHeadEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist), min_val_(0.)
 {
-  AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
-  Teuchos::ParameterList sublist = plist_.sublist("WRM parameters");
+  std::string params_name = plist_.get<std::string>("model parameters", "WRM parameters");
+  Teuchos::ParameterList& sublist = plist_.sublist(params_name);
   wrms_ = createWRMPartition(sublist);
   InitializeFromPlist_();
 }

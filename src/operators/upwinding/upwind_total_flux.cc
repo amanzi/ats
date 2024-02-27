@@ -247,7 +247,7 @@ UpwindTotalFlux::UpdateDerivatives(
     int dw = downwind_cell[f];
     AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
 
-    auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh->getFaceCells(f);
     int mcells = cells.size();
 
     // uw coef

@@ -26,8 +26,8 @@ WRMPermafrostEvaluator::WRMPermafrostEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   // get the WRMs
-  AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
-  Teuchos::ParameterList wrm_plist = plist_.sublist("WRM parameters");
+  std::string params_name = plist_.get<std::string>("model parameters", "WRM parameters");
+  Teuchos::ParameterList& wrm_plist = plist_.sublist(params_name);
   wrms_ = createWRMPartition(wrm_plist);
 
   // and the permafrost models
@@ -187,7 +187,7 @@ WRMPermafrostEvaluator::Evaluate_(const State& S, const std::vector<CompositeVec
     for (int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       int i = (*permafrost_models_->first)[cells[0]];
@@ -270,7 +270,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh->getFaceCells(f);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];
@@ -287,7 +287,7 @@ WRMPermafrostEvaluator::EvaluatePartialDerivative_(const State& S,
       for (int bf = 0; bf != nbfaces; ++bf) {
         // given a boundary face, we need the internal cell to choose the right WRM
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh->getFaceCells(f);
         AMANZI_ASSERT(cells.size() == 1);
 
         int i = (*permafrost_models_->first)[cells[0]];

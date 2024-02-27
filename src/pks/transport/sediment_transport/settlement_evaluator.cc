@@ -13,7 +13,6 @@
 */
 
 #include "settlement_evaluator.hh"
-#include "boost/math/constants/constants.hpp"
 
 namespace Amanzi {
 
@@ -41,9 +40,7 @@ SettlementRateEvaluator::SettlementRateEvaluator(Teuchos::ParameterList& plist)
   xi_ = plist_.get<double>("Chezy parameter");
   Cf_ = plist_.get<double>("drag coefficient");
 
-  double pi = boost::math::constants::pi<double>();
-
-  lambda_ = 8. / (3 * pi) * (umax_ / (xi_ * xi_));
+  lambda_ = 8. / (3 * M_PI) * (umax_ / (xi_ * xi_));
 }
 
 

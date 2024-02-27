@@ -13,8 +13,6 @@
   Generated via evaluator_generator.
 */
 
-#include "boost/algorithm/string/predicate.hpp"
-
 #include "manning_coefficient_litter_evaluator.hh"
 #include "manning_coefficient_litter_model.hh"
 #include "manning_coefficient_litter_constant_model.hh"
@@ -106,7 +104,7 @@ ManningCoefficientLitterEvaluator::Evaluate_(const State& S,
     for (int bf = 0; bf != ncomp; ++bf) {
       // given a boundary face, we need the internal cell to choose the right model
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*models_->first)[cells[0]];
@@ -171,7 +169,7 @@ ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(
       for (int bf = 0; bf != ncomp; ++bf) {
         // given a boundary face, we need the internal cell to choose the right model
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh->getFaceCells(f);
         AMANZI_ASSERT(cells.size() == 1);
 
         int index = (*models_->first)[cells[0]];
@@ -183,7 +181,7 @@ ManningCoefficientLitterEvaluator::EvaluatePartialDerivative_(
       for (int bf = 0; bf != ncomp; ++bf) {
         // given a boundary face, we need the internal cell to choose the right model
         AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-        auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh->getFaceCells(f);
         AMANZI_ASSERT(cells.size() == 1);
 
         int index = (*models_->first)[cells[0]];

@@ -88,19 +88,6 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
 
-  // all manipulation of evaluator lists should happen in constructors (pre-setup)
-  // -- WRM: This deals with deprecated location for the WRM list (in the PK).
-  if (plist_->isSublist("water retention evaluator")) {
-    auto& wrm_plist = S_->GetEvaluatorList(sat_key_);
-    wrm_plist.setParameters(plist_->sublist("water retention evaluator"));
-    wrm_plist.set("evaluator type", "WRM");
-  }
-  if (S_->GetEvaluatorList(coef_key_).numParams() == 0) {
-    Teuchos::ParameterList& kr_plist = S_->GetEvaluatorList(coef_key_);
-    kr_plist.setParameters(S_->GetEvaluatorList(sat_key_));
-    kr_plist.set<std::string>("evaluator type", "WRM rel perm");
-  }
-
   // scaling for permeability for better "nondimensionalization"
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
   S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
@@ -641,7 +628,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Epetra_MultiVector& pres_f = *pres->ViewComponent("face", false);
         for (AmanziMesh::Entity_ID f = 0; f != pres_f.MyLength(); ++f) {
           if (!(*flags)[f]) {
-            auto f_cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+            auto f_cells = mesh_->getFaceCells(f);
             if (f_cells.size() == 1) {
               // boundary face, use the cell value as the water table is
               // assumed to parallel the cell structure
@@ -833,7 +820,7 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
 
         for (int f = 0; f != markers.size(); ++f) {
           if (markers[f] == Operators::OPERATOR_BC_NEUMANN) {
-            auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+            auto cells = mesh_->getFaceCells(f);
             AMANZI_ASSERT(cells.size() == 1);
             int c = cells[0];
             const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
@@ -883,7 +870,7 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        auto fcells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto fcells = mesh_->getFaceCells(f);
         AMANZI_ASSERT(fcells.size() == 1);
         if (pres[0][fcells[0]] < 101225.) {
           uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
@@ -974,7 +961,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   for (const auto& bc : *bc_pressure_) {
     int f = bc.first;
 #ifdef ENABLE_DBC
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     AMANZI_ASSERT(cells.size() == 1);
 #endif
     markers[f] = Operators::OPERATOR_BC_DIRICHLET;
@@ -999,7 +986,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
       // we need to find the elevation of the surface, but finding the top edge
       // of this stack of faces is not possible currently.  The best approach
       // is instead to work with the cell.
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       markers[f] = Operators::OPERATOR_BC_DIRICHLET;
@@ -1036,7 +1023,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     for (const auto& bc : *bc_flux_) {
       int f = bc.first;
 #ifdef ENABLE_DBC
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 #endif
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -1052,7 +1039,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     for (const auto& bc : *bc_flux_) {
       int f = bc.first;
 #ifdef ENABLE_DBC
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 #endif
       markers[f] = Operators::OPERATOR_BC_NEUMANN;
@@ -1079,7 +1066,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
   for (const auto& bc : *bc_seepage_) {
     int f = bc.first;
 #ifdef ENABLE_DBC
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     AMANZI_ASSERT(cells.size() == 1);
 #endif
 
@@ -1120,7 +1107,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     for (const auto& bc : *bc_seepage_infilt_) {
       int f = bc.first;
 #ifdef ENABLE_DBC
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 #endif
 
@@ -1194,7 +1181,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
       // -- get the surface cell's equivalent subsurface face
       AmanziMesh::Entity_ID f = surface->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 #ifdef ENABLE_DBC
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 #endif
       // -- set that value to dirichlet
@@ -1217,7 +1204,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
       // -- get the surface cell's equivalent subsurface face
       AmanziMesh::Entity_ID f = surface->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
 #ifdef ENABLE_DBC
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 #endif
       // -- set that value to Neumann
@@ -1239,7 +1226,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
     if (markers[f] == Operators::OPERATOR_BC_NONE) {
-      auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh_->getFaceCells(f);
       int ncells = cells.size();
 
       if (ncells == 1) {
@@ -1398,7 +1385,7 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
 
   int f_owned = u_f.MyLength();
   for (int f = 0; f != f_owned; ++f) {
-    auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh_->getFaceCells(f);
     int ncells = cells.size();
 
     double face_value = 0.0;

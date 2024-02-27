@@ -13,10 +13,10 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
-#include "boost/math/tools/roots.hpp"
 
+#include "errors.hh"
 #include "dbc.hh"
-
+#include "Brent.hh"
 #include "seb_physics_funcs.hh"
 
 namespace Amanzi {
@@ -175,61 +175,16 @@ VaporPressureGround(const GroundProperties& surf, const ModelParams& params)
 double
 EvaporativeResistanceGround(const GroundProperties& surf,
                             const MetData& met,
-                            const ModelParams& params,
                             double vapor_pressure_ground)
 {
   // calculate evaporation prefactors
   if (met.vp_air > vapor_pressure_ground) { // condensation
     return 0.;
   } else {
-    if (surf.rs_method == "sakagucki_zeng") {
-      return EvaporativeResistanceCoefSakaguckiZeng(
-        surf.saturation_gas, surf.porosity, surf.dz, surf.clapp_horn_b);
-    } else if (surf.rs_method == "sellers") {
-      return EvaporativeResistanceCoefSellers(surf.saturation_liq);
-    } else {
-      throw("Currently support {sakagucki_zeng, sellers}");
-    }
+    return surf.rsoil;
   }
 }
 
-double
-EvaporativeResistanceCoefSakaguckiZeng(double saturation_gas,
-                                       double porosity,
-                                       double dessicated_zone_thickness,
-                                       double Clapp_Horn_b)
-{
-  double Rsoil;
-  if (saturation_gas == 0.) {
-    Rsoil = 0.; // ponded water
-  } else {
-    // Equation for reduced vapor diffusivity
-    // See Sakagucki and Zeng 2009 eqaution (9) and Moldrup et al., 2004.
-    //
-    // This really needs to be refactored independently of C&H.  There are a
-    // lot of assumptions here of hard-coded parameters including C&H WRM, a
-    // residual water content of 0.0556 (not sure why this was chosen), and
-    // more.
-    //
-    // The result of using this with other WRMs requires some adaptation...
-    // also with arbitrary values.
-    double s_res = std::min(0.0556 / porosity, 0.4);
-    double vp_diffusion =
-      0.000022 * std::pow(porosity, 2) * std::pow(1 - s_res, 2 + 3 * Clapp_Horn_b);
-    // Sakagucki and Zeng 2009 eqaution (10)
-    double L_Rsoil =
-      dessicated_zone_thickness * (std::exp(std::pow(saturation_gas, 5)) - 1) / (std::exp(1) - 1);
-    Rsoil = L_Rsoil / vp_diffusion;
-  }
-  AMANZI_ASSERT(Rsoil >= 0);
-  return Rsoil;
-}
-
-double
-EvaporativeResistanceCoefSellers(double saturation_liq)
-{
-  return std::exp(8.206 - 4.255 * saturation_liq);
-}
 
 double
 SensibleHeat(double resistance_coef,
@@ -250,7 +205,6 @@ LatentHeat(double resistance_coef,
            double vapor_pressure_skin,
            double p_atm)
 {
-  AMANZI_ASSERT(resistance_coef <= 1.);
   return resistance_coef * density_air * latent_heat_fusion * 0.622 *
          (vapor_pressure_air - vapor_pressure_skin) / p_atm;
 }
@@ -311,12 +265,9 @@ UpdateEnergyBalanceWithSnow_Inner(const GroundProperties& surf,
     c_von_Karman;
   double Dhe_latent = WindFactor(
     met.Us, met.Z_Us, CalcRoughnessFactor(snow.height, surf.roughness, snow.roughness), KB);
-  eb.fQe = LatentHeat(Dhe_latent * Sqig,
-                      params.density_air,
-                      params.H_sublimation,
-                      met.vp_air,
-                      vapor_pressure_skin,
-                      params.P_atm);
+  double coef = std::min(Dhe_latent * Sqig, 1.0);
+  eb.fQe = LatentHeat(
+    coef, params.density_air, params.H_sublimation, met.vp_air, vapor_pressure_skin, params.P_atm);
 
 
   // conducted heat
@@ -390,9 +341,8 @@ UpdateEnergyBalanceWithoutSnow(const GroundProperties& surf,
     (params.Da0_a * std::pow(Re0, params.Da0_b) - (params.Cd0_c * std::log(Re0) + params.Cd0_d)) *
     c_von_Karman;
   double Dhe_latent = WindFactor(met.Us, met.Z_Us, surf.roughness, KB);
-  double Rsoil = EvaporativeResistanceGround(surf, met, params, vapor_pressure_skin);
-  double coef = 1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig));
-
+  double Rsoil = EvaporativeResistanceGround(surf, met, vapor_pressure_skin);
+  double coef = std::min(1.0 / (Rsoil + 1.0 / (Dhe_latent * Sqig)), 1.0);
 
   // positive is condensation
   eb.fQe = LatentHeat(coef,
@@ -419,8 +369,6 @@ DetermineSnowTemperature(const GroundProperties& surf,
                          std::string method)
 {
   SnowTemperatureFunctor_ func(&surf, &snow, &met, &params, &eb);
-  Tol_ tol(ENERGY_BALANCE_TOL);
-  boost::uintmax_t max_it(100);
   double left, right;
   double res_left, res_right;
 
@@ -451,21 +399,28 @@ DetermineSnowTemperature(const GroundProperties& surf,
     }
   }
 
-  std::pair<double, double> result;
-  auto my_max_it = max_it;
+  int my_max_it = 100;
+  int max_it(my_max_it);
+  double result(0.);
   if (method == "bisection") {
-    result = boost::math::tools::bisect(func, left, right, tol, max_it);
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Exceptions::amanzi_throw(msg);
   } else if (method == "toms") {
-    result = boost::math::tools::toms748_solve(func, left, right, res_left, res_right, tol, max_it);
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Exceptions::amanzi_throw(msg);
+  } else if (method == "brent") {
+    result = Utils::findRootBrent(func, left, right, ENERGY_BALANCE_TOL, &max_it);
+  } else {
+    Errors::Message emsg;
+    emsg << "SurfaceEnergyBalance: invalid solver method \""
+         << method << "\", use \"brent\"";
+    Exceptions::amanzi_throw(emsg);
   }
 
   if (max_it >= my_max_it) throw("Nonconverged Surface Energy Balance");
-  // boost algorithms calculate the root such that the root is contained within the interval
-  // [result.first, result.second], and that width of that interval is less than TOL.
-  // We choose to set the solution as the center of that interval.
   // Call the function again to set the fluxes.
-  double solution = (result.first + result.second) / 2.;
-  return solution;
+  func(result);
+  return result;
 }
 
 

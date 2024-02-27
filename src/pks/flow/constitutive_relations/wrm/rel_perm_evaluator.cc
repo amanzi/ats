@@ -16,8 +16,8 @@ namespace Flow {
 RelPermEvaluator::RelPermEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist), min_val_(0.)
 {
-  AMANZI_ASSERT(plist_.isSublist("WRM parameters"));
-  Teuchos::ParameterList sublist = plist_.sublist("WRM parameters");
+  std::string params_name = plist_.get<std::string>("model parameters", "WRM parameters");
+  Teuchos::ParameterList& sublist = plist_.sublist(params_name);
   wrms_ = createWRMPartition(sublist);
   InitializeFromPlist_();
 }
@@ -165,7 +165,7 @@ RelPermEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
     for (unsigned int bf = 0; bf != nbfaces; ++bf) {
       // given a boundary face, we need the internal cell to choose the right WRM
       AmanziMesh::Entity_ID f = face_map.LID(vandelay_map.GID(bf));
-      auto cells = mesh->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+      auto cells = mesh->getFaceCells(f);
       AMANZI_ASSERT(cells.size() == 1);
 
       int index = (*wrms_->first)[cells[0]];

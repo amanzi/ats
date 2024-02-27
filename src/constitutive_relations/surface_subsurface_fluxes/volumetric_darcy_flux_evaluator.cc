@@ -67,7 +67,7 @@ Volumetric_FluxEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
   int nfaces_owned =
     mesh.getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (int f = 0; f < nfaces_owned; f++) {
-    auto cells = mesh.getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    auto cells = mesh.getFaceCells(f);
     double n_liq = 0.;
     for (int c = 0; c < cells.size(); c++) n_liq += molar_density[0][c];
     n_liq /= cells.size();

@@ -110,7 +110,7 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
       Teuchos::rcp(new Amanzi::AmanziGeometry::GeometricModel(3, reg_list, *comm_));
 
     // create and register meshes
-    ATS::Mesh::createMeshes(*plist_, comm_, gm, *S_);
+    ATS::Mesh::createMeshes(plist_, comm_, gm, *S_);
   }
   if (vo_->os_OK(Teuchos::VERB_LOW)) {
     *vo_->os() << "  ... completed: ";
@@ -320,6 +320,7 @@ Coordinator::initialize()
         *mesh->second.first,
         S_->GetW<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT, node_key));
       S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_initialized();
+      S_->GetRecordW(node_key, Amanzi::Tags::NEXT, node_key).set_io_vis(false);
     }
   }
 
@@ -580,7 +581,7 @@ Coordinator::advance()
         }
 
         // undeform the mesh
-        Amanzi::AmanziMesh::MeshAlgorithms::deform(*(mesh->second.first), node_ids, old_positions);
+        Amanzi::AmanziMesh::deform(*(mesh->second.first), node_ids, old_positions);
       }
     }
   }

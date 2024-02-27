@@ -13,7 +13,6 @@
 */
 
 #include <cmath>
-#include "boost/math/constants/constants.hpp"
 
 #include "errors.hh"
 #include "unfrozen_fraction_model.hh"
@@ -22,7 +21,7 @@ namespace Amanzi {
 namespace Flow {
 
 UnfrozenFractionModel::UnfrozenFractionModel(Teuchos::ParameterList& plist)
-  : plist_(plist), pi_(boost::math::constants::pi<double>())
+  : plist_(plist), pi_(M_PI)
 {
   if (plist_.isParameter("transition width")) {
     Errors::Message message("Unfrozen Fraction Evaluator: parameter changed from \"transition "

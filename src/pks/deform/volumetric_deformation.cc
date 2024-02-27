@@ -281,8 +281,11 @@ VolumetricDeformation::Initialize()
     // initialize the initial displacement to be zero
     S_->GetW<CompositeVector>(nodal_dz_key_, tag_next_, name_).PutScalar(0.);
     S_->GetRecordW(nodal_dz_key_, tag_next_, name_).set_initialized();
+    S_->GetRecordW(nodal_dz_key_, tag_next_, name_).set_io_vis(false);  // cannot vis
+    S_->GetRecordW(nodal_dz_key_, Tags::NEXT, name_).set_io_vis(false); // cannot vis
     S_->GetW<CompositeVector>(face_above_dz_key_, tag_next_, name_).PutScalar(0.);
     S_->GetRecordW(face_above_dz_key_, tag_next_, name_).set_initialized();
+    S_->GetRecordW(face_above_dz_key_, tag_next_, name_).set_io_vis(false); // no need
     break;
   }
   default: {
@@ -599,7 +602,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
       }
 
       for (auto& p : new_positions) { AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.); }
-      AmanziMesh::MeshAlgorithms::deform(*mesh_nc_, node_ids, new_positions);
+      AmanziMesh::deform(*mesh_nc_, node_ids, new_positions);
       deformed_this_step_ = true;
       // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
       break;
@@ -630,7 +633,7 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         surface_nodeids[i] = i;
         surface_newpos[i] = coord_domain;
       }
-      AmanziMesh::MeshAlgorithms::deform(*surf3d_mesh_nc_, surface_nodeids, surface_newpos);
+      AmanziMesh::deform(*surf3d_mesh_nc_, surface_nodeids, surface_newpos);
     }
 
     // Note, this order is intentionally odd.  The deforming cell volume

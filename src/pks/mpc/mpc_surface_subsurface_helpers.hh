@@ -10,7 +10,7 @@
 #ifndef PKS_MPC_SURFACE_SUBSURFACE_HELPERS_HH_
 #define PKS_MPC_SURFACE_SUBSURFACE_HELPERS_HH_
 
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 #include "CompositeVector.hh"
 
 namespace Amanzi {

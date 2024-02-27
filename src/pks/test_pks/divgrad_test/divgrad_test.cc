@@ -183,7 +183,7 @@ DivGradTest::TestRegularFaceValues_(const Teuchos::RCP<CompositeVector>& pres)
   int nfaces = pres->size("face");
   for (int f = 0; f != nfaces; ++f) {
     AmanziMesh::Entity_ID_List cells;
-    cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+    cells = mesh_->getFaceCells(f);
 
     if (cells.size() == 1) {
       if (bc_markers_[f] == Operators::OPERATOR_BC_DIRICHLET) {

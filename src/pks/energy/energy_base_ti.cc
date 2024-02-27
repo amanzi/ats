@@ -7,9 +7,6 @@
   Authors: Ethan Coon
 */
 
-#include "boost/math/special_functions/fpclassify.hpp"
-#include "boost/test/floating_point_comparison.hpp"
-
 #include "Debugger.hh"
 #include "BoundaryFunction.hh"
 #include "Evaluator.hh"
@@ -273,21 +270,15 @@ EnergyBase::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, do
 double
 EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res)
 {
-  // Abs tol based on old conserved quantity -- we know these have been vetted
-  // at some level whereas the new quantity is some iterate, and may be
-  // anything from negative to overflow.
-  const Epetra_MultiVector& conserved =
-    *S_->Get<CompositeVector>(conserved_key_, tag_current_).ViewComponent("cell", true);
+  // VerboseObject stuff.
+  Teuchos::OSTab tab = vo_->getOSTab();
+  if (vo_->os_OK(Teuchos::VERB_MEDIUM))
+    *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   const Epetra_MultiVector& wc =
     *S_->Get<CompositeVector>(wc_key_, tag_current_).ViewComponent("cell", true);
   const Epetra_MultiVector& cv =
     *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", true);
-
-  // VerboseObject stuff.
-  Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_MEDIUM))
-    *vo_->os() << "ENorm (Infnorm) of: " << conserved_key_ << ": " << std::endl;
 
   Teuchos::RCP<const CompositeVector> dvec = res->Data();
   double h = S_->get_time(tag_next_) - S_->get_time(tag_current_);
@@ -324,7 +315,7 @@ EnergyBase::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeV
       int nfaces = dvec->size(*comp, false);
 
       for (unsigned int f = 0; f != nfaces; ++f) {
-        auto cells = mesh_->getFaceCells(f, AmanziMesh::Parallel_kind::ALL);
+        auto cells = mesh_->getFaceCells(f);
         double cv_min =
           cells.size() == 1 ? cv[0][cells[0]] : std::min(cv[0][cells[0]], cv[0][cells[1]]);
         double mass_min = cells.size() == 1 ? wc[0][cells[0]] / cv[0][cells[0]] :
