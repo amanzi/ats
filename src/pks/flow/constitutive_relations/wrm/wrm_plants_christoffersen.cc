@@ -11,8 +11,10 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
-#include "boost/math/tools/roots.hpp"
+
 #include "dbc.hh"
+#include "Brent.hh"
+
 #include "wrm_plants_christoffersen.hh"
 
 namespace Amanzi {
@@ -41,7 +43,7 @@ WRMPlantChristoffersen::d_capillaryPressure(double s)
 }
 
 double
-WRMPlantChristoffersen::potential(double s)
+WRMPlantChristoffersen::potential(double s) const
 {
   double psi;
   if (s > sft_)
@@ -54,7 +56,7 @@ WRMPlantChristoffersen::potential(double s)
 }
 
 double
-WRMPlantChristoffersen::d_potential(double s)
+WRMPlantChristoffersen::d_potential(double s) const
 {
   double dpsi;
   if (s > sft_)
@@ -70,20 +72,20 @@ WRMPlantChristoffersen::d_potential(double s)
 }
 
 double
-WRMPlantChristoffersen::potentialLinear(double s)
+WRMPlantChristoffersen::potentialLinear(double s) const
 {
   return psi0_ - (mcap_ * (1 - s));
 }
 
 
 double
-WRMPlantChristoffersen::d_potentialLinear(double s)
+WRMPlantChristoffersen::d_potentialLinear(double s) const
 {
   return mcap_;
 }
 
 double
-WRMPlantChristoffersen::potentialSol(double s)
+WRMPlantChristoffersen::potentialSol(double s) const
 {
   double sstar;
   sstar = (s - sr_) / (sft_ - sr_);
@@ -91,13 +93,13 @@ WRMPlantChristoffersen::potentialSol(double s)
 }
 
 double
-WRMPlantChristoffersen::d_potentialSol(double s)
+WRMPlantChristoffersen::d_potentialSol(double s) const
 {
   return (-std::abs(pi0_) * (sft_ - sr_) * sr_) / (std::pow((s - sr_), 2));
 }
 
 double
-WRMPlantChristoffersen::potentialP(double s)
+WRMPlantChristoffersen::potentialP(double s) const
 {
   double sstar;
   sstar = (s - sr_) / (sft_ - sr_);
@@ -105,7 +107,7 @@ WRMPlantChristoffersen::potentialP(double s)
 }
 
 double
-WRMPlantChristoffersen::d_potentialP(double s)
+WRMPlantChristoffersen::d_potentialP(double s) const
 {
   //double sstar;
   //sstar = (s - sr_) / (sft_ - sr_);
@@ -342,10 +344,10 @@ WRMPlantChristoffersen::InitializeFromPlist_()
   }
   */
 
-  boost::uintmax_t nits = 20;
-  Tol_ tol(1E-8);
-  std::pair<double, double> result = boost::math::tools::toms748_solve(*this, 0.0, 1.0, tol, nits);
-  scapfttrans_ = result.first;
+  int nits = 20;
+  double tol(1.e-8);
+  double result = Utils::findRootBrent(*this, 0.0, 1.0, tol, &nits);
+  scapfttrans_ = result;
   psicapfttrans_ = potentialLinear(scapfttrans_);
   /*
   printf("sr: %f\nstlp: %f\neps: %f\npsi0: %f\npi0: %f\npsicap: %f\n", sr_, stlp_, eps_, psi0_, pi0_, psicap_);

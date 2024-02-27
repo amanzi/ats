@@ -176,7 +176,7 @@ DetermineSnowTemperature(const GroundProperties& surf,
                          const ModelParams& params,
                          SnowProperties& snow,
                          EnergyBalance& eb,
-                         std::string method = "toms");
+                         std::string method = "brent");
 
 
 //
@@ -256,7 +256,7 @@ class SnowTemperatureFunctor_ {
     : surf_(surf), params_(params), snow_(snow), met_(met), eb_(eb)
   {}
 
-  double operator()(double temp)
+  double operator()(double temp) const
   {
     snow_->temp = temp;
     UpdateEnergyBalanceWithSnow_Inner(*surf_, *snow_, *met_, *params_, *eb_);
@@ -272,13 +272,6 @@ class SnowTemperatureFunctor_ {
   EnergyBalance* const eb_;
 };
 
-
-// Convergence criteria for root-finding
-struct Tol_ {
-  Tol_(double eps) : eps_(eps) {}
-  bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
-  double eps_;
-};
 
 } // namespace Relations
 } // namespace SurfaceBalance
