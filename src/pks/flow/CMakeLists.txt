@@ -21,6 +21,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overla
 
 set(ats_flow_src_files
   constitutive_relations/wrm/wrm_van_genuchten.cc
+  constitutive_relations/wrm/relative_hydraulic_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/manning_conductivity_model.cc
   predictor_delegate_bc_flux.cc
@@ -53,7 +54,7 @@ set(ats_flow_inc_files
   constitutive_relations/porosity/compressible_porosity_linear_model.hh
   constitutive_relations/wrm/wrm_van_genuchten.hh
   constitutive_relations/wrm/wrm_model.hh
-  constitutive_relations/wrm/relative_permeability_model.hh
+  constitutive_relations/wrm/relative_hydraulic_conductivity_evaluator.hh
   constitutive_relations/overland_conductivity/manning_conductivity_model.hh
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.hh
   predictor_delegate_bc_flux.hh

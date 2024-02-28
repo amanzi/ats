@@ -67,13 +67,36 @@ def wrm(xml):
         if poro_eval.isElement("compressible porosity model parameters"):
             poro_eval.getElement("compressible porosity model parameters").setName("model parameters")
 
+
+def hydraulic_conductivity(xml):
+    try:
+        rp = asearch.find_path(xml, ["state", "evaluators", "relative_permeability"], no_skip=True)
+    except aerrors.MissingXMLError:
+        return
+
+    try:
+        hc = asearch.find_path(xml, ["state", "evaluators", "relative_hydraulic_conductivity"], no_skip=True)
+    except aerrors.MissingXMLError:
+        hc = asearch.find_path(xml, ["state", "evaluators"], no_skip=True).sublist("relative_hydraulic_conductivity")
+    else:
+        return
+
+    hc.setParameter("evaluator type", "string", "relative hydraulic conductivity")
+    if rp.hasParameter("use surface rel perm"):
+        hc.append(rp.pop("use surface rel perm"))
+    if rp.hasParameter("density key"):
+        hc.append(rp.pop("density key"))
+    if rp.hasParameter("viscosity key"):
+        hc.append(rp.pop("viscosity key"))
+
+            
 def perm_to_tensor(xml):
     try:
         e = asearch.find_path(xml, ["state", "evaluators", "permeability"], no_skip=True)
     except aerrors.MissingXMLError:
         pass
     else:
-        etype = e.getElement("evaluator type")
+        etype = e.getParameter("evaluator type")
         if etype.getValue() == "independent variable":
             etype.setValue("independent variable tensor")
             e.setParameter("tensor rank", "int", 1)
@@ -105,6 +128,7 @@ def update(xml):
     wrm(xml)
     perm_to_tensor(xml)
     bcs_with_units(xml)
+    hydraulic_conductivity(xml)
 
 
 if __name__ == "__main__":

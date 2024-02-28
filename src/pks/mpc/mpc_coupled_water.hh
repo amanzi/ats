@@ -91,7 +91,7 @@ class MPCCoupledWater : public MPCStrong<PK_PhysicalBDF_Default> {
   virtual double
   ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const TreeVector> res) override;
 
-  Teuchos::RCP<Operators::Operator> getPreconditioner() { return precon_; }
+  Teuchos::RCP<Operators::Operator> getPreconditioner() override { return precon_; }
 
  protected:
   // void

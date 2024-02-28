@@ -274,7 +274,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // Update diagnostics for vis.
   virtual void calculateDiagnostics(const Tag& tag) override;
 
-  virtual const std::string& getType() const { return pk_type_; }
+  virtual const std::string& getType() const override { return pk_type_; }
 
   //
   // BDF1_TI methods

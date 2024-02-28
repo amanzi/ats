@@ -141,8 +141,8 @@ MPCCoupledWater::initialize()
   S_->GetRecordW(exfilt_key_, tag_next_, exfilt_key_).set_initialized();
   PKHelpers::changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
-  // Initialize all sub PKs.
-  MPCStrong<PK_PhysicalBDF_Default>::initialize();
+  // this is manually managed to get the order right
+  for (auto& pk : sub_pks_) pk->initialize();
 
   // ensure continuity of ICs... subsurface takes precedence.
   MPCHelpers::copySubsurfaceToSurface(
@@ -150,8 +150,9 @@ MPCCoupledWater::initialize()
     S_->GetW<CompositeVector>(
       Keys::getKey(domain_surf_, "pressure"), tag_next_, sub_pks_[1]->getName()));
 
-  // // Initialize my timestepper.
-  // PK_BDF_Default::initialize();
+  // now we can initialize the bdf time integrator with the initial solution
+  PK_BDF_Default::initialize();
+
 }
 
 
@@ -285,8 +286,8 @@ MPCCoupledWater::ModifyCorrection(double h,
     *vo_->os() << "NKA'd, PC'd correction." << std::endl;
 
     std::vector<std::string> vnames;
-    vnames.push_back("p");
-    vnames.push_back("PC*p");
+    vnames.push_back("res");
+    vnames.push_back("PC*res");
 
     std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
     vecs.push_back(res->getSubVector(0)->getData().ptr());
@@ -309,6 +310,7 @@ MPCCoupledWater::ModifyCorrection(double h,
   // modify correction using water approaches
   int n_modified = 0;
   n_modified += water_->ModifyCorrection_WaterFaceLimiter(h, res, u, du);
+
   double damping1 = water_->ModifyCorrection_WaterSpurtDamp(h, res, u, du);
   double damping2 = water_->ModifyCorrection_DesaturatedSpurtDamp(h, res, u, du);
   double damping = std::min(damping1, damping2);

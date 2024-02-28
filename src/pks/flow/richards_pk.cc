@@ -85,9 +85,9 @@ Richards::parseParameterList()
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
-  coef_key_ = Keys::readKey(*plist_, domain_, "conductivity", "relative_permeability");
+  coef_key_ = Keys::readKey(*plist_, domain_, "relative hydraulic conductivity", "relative_hydraulic_conductivity");
   uw_coef_key_ =
-    Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_permeability");
+    Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_hydraulic_conductivity");
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");

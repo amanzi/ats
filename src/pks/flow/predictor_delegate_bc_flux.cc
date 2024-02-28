@@ -62,7 +62,7 @@ PredictorDelegateBCFlux::CreateFunctor_(AmanziMesh::Entity_ID f,
 
   // index within that cell's faces
   unsigned int n = 0;
-  for (n; n != faces.size(); ++n) if (faces(n) == f) break;
+  for (; n != faces.size(); ++n) if (faces(n) == f) break;
   AMANZI_ASSERT(n != faces.size());
 
   // local matrix row, vector

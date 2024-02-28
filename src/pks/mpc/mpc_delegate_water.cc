@@ -135,7 +135,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
-  const auto domain_u_f = domain_Pu->viewComponent(face_entity, false);
+  const auto domain_u_f = domain_u->viewComponent(face_entity, false);
   auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
 
   // Approach 2
@@ -152,10 +152,10 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
           double p_new = p_old - p_Pu;
           if ((p_new > patm + cap_size_) && (p_old < patm)) {
             double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-            l_damp = std::min(l_damp, my_damp);
+            if (my_damp < l_damp) l_damp = my_damp;
           }
         },
-        damp);
+        Kokkos::Min<double>(damp));
     } else {
       const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
       Kokkos::parallel_reduce(
@@ -169,10 +169,10 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
           double p_new = p_old - p_Pu;
           if ((p_new > patm + cap_size_) && (p_old < patm)) {
             double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-            l_damp = std::min(l_damp, my_damp);
+            if (my_damp < l_damp) l_damp = my_damp;
           }
         },
-        damp);
+        Kokkos::Min<double>(damp));
     }
 
     double proc_damp = damp;
@@ -216,7 +216,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
-  const auto domain_u_f = domain_Pu->viewComponent(face_entity, false);
+  const auto domain_u_f = domain_u->viewComponent(face_entity, false);
   auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
 
   // Approach 3
@@ -309,10 +309,10 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
         double p_new = p_old - domain_Pu_c(c, 0);
         if ((p_new > patm + cap_size_) && (p_old < patm)) {
           double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
-          l_damp = std::min(l_damp, my_damp);
+          if (my_damp < l_damp) l_damp = my_damp;
         }
       },
-      damp);
+      Kokkos::Min<double>(damp));
 
     double proc_damp = damp;
     Teuchos::reduceAll(*domain_Pu->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
@@ -396,10 +396,10 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
         double p_new = p_old - domain_Pu_c(c, 0);
         if ((p_new < patm - cap_size_) && (p_old >= patm)) {
           double my_damp = ((patm - cap_size_) - p_old) / (p_new - p_old);
-          l_damp = std::min(l_damp, my_damp);
+          if (my_damp < l_damp) l_damp = my_damp;
         }
       },
-      damp);
+      Kokkos::Min<double>(damp));
 
     double proc_damp = damp;
     Teuchos::reduceAll(*domain_Pu->getComm(), Teuchos::REDUCE_MIN, 1, &proc_damp, &damp);
@@ -582,10 +582,10 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
             // second over
             double my_damp = ((patm + 2 * (p_old - patm)) - p_old) / (p_new - p_old);
-            l_damp = std::min(l_damp, my_damp);
+            if (my_damp < l_damp) l_damp = my_damp;
           }
         },
-        damp);
+        Kokkos::Min<double>(damp));
     } else {
       const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
       Kokkos::parallel_reduce(
@@ -603,10 +603,10 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
             // second over
             double my_damp = ((patm + 2 * (p_old - patm)) - p_old) / (p_new - p_old);
-            l_damp = std::min(l_damp, my_damp);
+            if (my_damp < l_damp) l_damp = my_damp;
           }
         },
-        damp);
+        Kokkos::Min<double>(damp));
     }
 
     double proc_damp = damp;
