@@ -559,9 +559,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   // io
   Utils::Units units_;
-  Tag tag_subcycle_;
-  Tag tag_subcycle_current_;
-  Tag tag_subcycle_next_;
   Tag tag_flux_next_ts_; // what is this? --ETC
 
  private:

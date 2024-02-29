@@ -105,8 +105,6 @@ void
 Transport_ATS::set_tags(const Tag& current, const Tag& next)
 {
   PK_PhysicalExplicit<Epetra_Vector>::set_tags(current, next);
-  tag_subcycle_current_ = tag_current_;
-  tag_subcycle_next_ = tag_next_;
 }
 
 
@@ -221,7 +219,7 @@ void Transport_ATS::SetupTransport_()
           src->set_state(S_);
           srcs_.push_back(src);
         } else {
-          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
+          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> src = factory.Create(
             src_list, "source function", AmanziMesh::Entity_kind::CELL, Kxy, tag_current_);
 
@@ -339,12 +337,12 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
   
-  requireAtNext(tcc_key_, tag_subcycle_next_, *S_, passwd_)
+  requireAtNext(tcc_key_, tag_next_, *S_, passwd_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
   S_->GetRecordSetW(tcc_key_).set_subfieldnames(component_names_);
-  requireAtCurrent(tcc_key_, tag_subcycle_current_, *S_, passwd_);
+  requireAtCurrent(tcc_key_, tag_current_, *S_, passwd_);
 
   // CellVolume is required here -- it may not be used in this PK, but having
   // it makes vis nicer
@@ -353,7 +351,7 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   auto primary_names = component_names_;
-  requireAtNext(solid_residue_mass_key_, tag_subcycle_next_, *S_, name_)
+  requireAtNext(solid_residue_mass_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
@@ -371,7 +369,7 @@ void Transport_ATS::SetupPhysicalEvaluators_()
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
   
-  requireAtNext(conserve_qty_key_, tag_subcycle_next_, *S_, name_)
+  requireAtNext(conserve_qty_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
     ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components + 2);
@@ -392,7 +390,7 @@ Transport_ATS::Initialize()
   if (time >= 0.0) t_physics_ = time;
 
   if (plist_->isSublist("initial condition")) {
-    S_->GetRecordW(tcc_key_, tag_subcycle_next_, passwd_)
+    S_->GetRecordW(tcc_key_, tag_next_, passwd_)
       .Initialize(plist_->sublist("initial condition"));
   }
 
@@ -408,8 +406,8 @@ Transport_ATS::Initialize()
   InitializeFields_();
 
   // make this go away -- local pointers to data
-  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_next_, passwd_);
-  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_subcycle_current_, passwd_);
+  tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_next_, passwd_);
+  tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   *tcc = *tcc_tmp;
 
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
@@ -478,7 +476,7 @@ Transport_ATS::Initialize()
         std::string bc_type = bc_list.get<std::string>("spatial distribution method", "none");
 
         if (bc_type == "domain coupling") {
-          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
+          // See amanzi ticket #646 -- this should probably be tag_current_?
           // domain couplings are special -- they always work on all components
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list, "fields", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
@@ -498,7 +496,7 @@ Transport_ATS::Initialize()
           int gid = std::stoi(domain_.substr(last_of + 1, domain_.size()));
           bc_list.set("entity_gid_out", gid);
 
-          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
+          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc = factory.Create(
             bc_list, "boundary concentration", AmanziMesh::Entity_kind::FACE, Kxy, tag_current_);
 
@@ -510,7 +508,7 @@ Transport_ATS::Initialize()
           bcs_.push_back(bc);
 
         } else {
-          // See amanzi ticket #646 -- this should probably be tag_subcycle_current_?
+          // See amanzi ticket #646 -- this should probably be tag_current_?
           Teuchos::RCP<TransportDomainFunction> bc =
             factory.Create(bc_list,
                            "boundary concentration function",
