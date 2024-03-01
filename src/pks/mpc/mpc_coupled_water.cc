@@ -142,13 +142,16 @@ MPCCoupledWater::initialize()
   PKHelpers::changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 
   // this is manually managed to get the order right
-  for (auto& pk : sub_pks_) pk->initialize();
+  domain_flow_pk_->initialize();
 
   // ensure continuity of ICs... subsurface takes precedence.
   MPCHelpers::copySubsurfaceToSurface(
     S_->Get<CompositeVector>(Keys::getKey(domain_ss_, "pressure"), tag_next_),
     S_->GetW<CompositeVector>(
       Keys::getKey(domain_surf_, "pressure"), tag_next_, sub_pks_[1]->getName()));
+
+  // let surface override it -- particularly to get faces right
+  surf_flow_pk_->initialize();
 
   // now we can initialize the bdf time integrator with the initial solution
   PK_BDF_Default::initialize();
@@ -175,9 +178,17 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   {
-    auto& source =
-      *S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).getComponent("cell", false);
-    source.assign(*g->getSubVector(1)->getData()->getComponent("cell", false));
+    auto bc = S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).viewComponent("cell", false);
+    auto g_surf = g->getSubVector(1)->getData()->viewComponent("cell", false);
+
+    // take off the face area factor to allow it to be used as boundary condition
+    const AmanziMesh::Mesh& mc = *domain_mesh_;
+    const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
+    Kokkos::parallel_for("MPCCoupledWater::FunctionalResidual copy to BC", g_surf.extent(0),
+                         KOKKOS_LAMBDA(const int sc) {
+                           AmanziMesh::Entity_ID f = mc_surf.getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+                           bc(sc, 0) = g_surf(sc, 0) / mc.getFaceArea(f);
+                         });
   }
   PKHelpers::changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 

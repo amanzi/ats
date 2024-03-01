@@ -29,7 +29,6 @@ OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<Composi
   matrix_diff_->SetScalarCoefficient(S_->GetPtr<CompositeVector>(uw_cond_key_, tag), Teuchos::null);
   matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null);
   FixBCsForOperator_(tag, matrix_diff_.ptr()); // deals with zero gradient case
-  matrix_diff_->ApplyBCs(true, true, true);
 
   // derive fluxes -- this gets done independently fo update as precon does
   // not calculate fluxes.
@@ -38,6 +37,9 @@ OverlandPressureFlow::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<Composi
   auto flux = S_->GetPtrW<CompositeVector>(flux_key_, tag, name_);
   matrix_diff_->UpdateFlux(pres_elev.ptr(), flux.ptr());
   PKHelpers::changedEvaluatorPrimary(flux_key_, tag, *S_);
+
+  // note tpetra has swapped order -- ApplyBCs after flux...
+  matrix_diff_->ApplyBCs(true, true, true);
 
   // calculate the residual
   matrix_->ComputeNegativeResidual(*pres_elev, *g);
@@ -92,37 +94,14 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
     S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
 
-    if (source_in_meters_) {
-      // External source term is in [m water / s], not in [mols / s], so a
-      // density is required.  This density should be upwinded.
-      S_->GetEvaluator(molar_dens_key_, tag_next_).Update(*S_, name_);
-      S_->GetEvaluator(source_molar_dens_key_, tag_next_).Update(*S_, name_);
-
-      auto g_c = g->viewComponent("cell", false);
-      auto cv1 = S_->Get<CompositeVector>(cell_vol_key_, tag_next_).viewComponent("cell", false);
-      auto source1 = S_->Get<CompositeVector>(source_key_, tag_next_).viewComponent("cell", false);
-
-      auto nliq1 =
-        S_->Get<CompositeVector>(molar_dens_key_, tag_next_).viewComponent("cell", false);
-      auto nliq1_s =
-        S_->Get<CompositeVector>(source_molar_dens_key_, tag_next_).viewComponent("cell", false);
-
-      Kokkos::parallel_for(
-        "OverlandPressureFlow::AddSourceTerms", g_c.extent(0), KOKKOS_LAMBDA(const int& c) {
-          double s1 =
-            source1(c, 0) > 0. ? source1(c, 0) * nliq1_s(c, 0) : source1(c, 0) * nliq1(c, 0);
-          g_c(c, 0) -= cv1(c, 0) * s1;
-        });
-    } else {
-      g->getComponent("cell", false)
-        ->elementWiseMultiply(
-          -1.0,
-          *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
-             .getComponent("cell", false)
-             ->getVector(0),
-          *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
-          1.0);
-    }
+    g->getComponent("cell", false)
+      ->elementWiseMultiply(
+        -1.0,
+        *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
+        .getComponent("cell", false)
+        ->getVector(0),
+        *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
+        1.0);
   }
 
   if (coupled_to_subsurface_via_head_) {

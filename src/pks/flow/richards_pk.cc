@@ -714,13 +714,11 @@ Richards::isValidStep()
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Validating time step." << std::endl;
 
   if (sat_change_limit_ > 0.0) {
-    const Vector_type& sl_new =
-      *S_->Get<CompositeVector>(sat_key_, tag_next_).getComponent("cell", false)->getVector(0);
-    const Vector_type& sl_old =
-      *S_->Get<CompositeVector>(sat_key_, tag_current_).getComponent("cell", false)->getVector(0);
-    Vector_type dsl(sl_new);
-    dsl.update(-1., sl_old, 1.);
-    auto change = Reductions::reduceAllMaxLoc(dsl);
+    const auto& sl_new = *S_->Get<CompositeVector>(sat_key_, tag_next_).getComponent("cell", false);
+    const auto& sl_old = *S_->Get<CompositeVector>(sat_key_, tag_current_).getComponent("cell", false);
+    MultiVector_type dsl(sl_new.getMap(), 1);
+    dsl.update(-1., sl_old, 1., sl_new, 0.);
+    auto change = Reductions::reduceAllMaxLoc(*dsl.getVector(0));
 
     if (change.val > sat_change_limit_) {
       if (vo_->os_OK(Teuchos::VERB_LOW))
@@ -938,6 +936,10 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Updating BCs." << std::endl;
+
+  // master does this in the course of normal UpdateBoundaryConditions (for
+  // seepage faces) -- do we rely on it?
+  S_->Get<CompositeVector>(flux_key_, tag).scatterMasterToGhosted("face");
 
   S_->GetEvaluator(name_ + "_bcs", tag_next_).Update(*S_, name_);
 };

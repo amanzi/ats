@@ -77,7 +77,8 @@ OverlandPressureFlow::FunctionalResidual(double t_old,
 
   // update boundary conditions
   UpdateBoundaryConditions_(tag_next_);
-  // db_->WriteBoundaryConditions(bc_markers(), bc_values());
+  auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
+  db_->WriteBoundaryConditions(*bcs.model(), *bcs.value());
 
   // diffusion term, treated implicitly
   ApplyDiffusion_(tag_next_, res.ptr());

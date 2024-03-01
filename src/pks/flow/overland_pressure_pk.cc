@@ -203,12 +203,12 @@ OverlandPressureFlow::SetupOverlandFlow_()
     S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_water_flux", tag_next_)
       .set_flag(Operators::OPERATOR_BC_NEUMANN);
 
-  // // bcs require this on boundary_faces for pd
+  // bcs require this on boundary_faces for pd
   // S_->Require<CompositeVector, CompositeVectorSpace>(elev_key_, tag_next_)
   //   .SetMesh(mesh_)
   //   ->SetGhosted(true)
   //   ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
-  //   ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
+  //   ->AddComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   // S_->RequireEvaluator(elev_key_, tag_next_);
 
   // -- nonlinear coefficients and upwinding
@@ -322,20 +322,22 @@ OverlandPressureFlow::SetupOverlandFlow_()
     if (source_key_.empty()) {
       source_key_ = Keys::readKey(*plist_, domain_, "source", "water_source");
     }
-    source_in_meters_ = plist_->get<bool>("water source in meters", true);
+
+    bool source_in_meters = plist_->get<bool>("water source in meters", true);
+    if (source_in_meters) {
+      // create multiplicative evaluator for the product of density and the source
+      Key source_key_meters = source_key_;
+      source_key_ = source_key_meters+"_mols_per_s";
+
+      S_->GetEvaluatorList(source_key_)
+        .set<std::string>("evaluator type", "multiplicative")
+        .set<Teuchos::Array<std::string>>(
+          "dependencies", std::vector<std::string>{ source_key_meters, molar_dens_key_ });
+    }
 
     PKHelpers::requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::CELL, 1);
-
-    if (source_in_meters_) {
-      // density of incoming water [mol/m^3]
-      source_molar_dens_key_ =
-        Keys::readKey(*plist_, domain_, "source molar density", "source_molar_density");
-      PKHelpers::requireAtNext(source_molar_dens_key_, tag_next_, *S_)
-        .SetMesh(mesh_)
-        ->AddComponent("cell", AmanziMesh::CELL, 1);
-    }
   }
 
   //
@@ -505,10 +507,12 @@ OverlandPressureFlow::UpdatePermeabilityData_(const Tag& tag)
 
     // -- need to apply BCs to get boundary flux directions correct
     FixBCsForOperator_(tag, face_matrix_diff_.ptr()); // deals with zero gradient condition
-    face_matrix_diff_->ApplyBCs(true, true, true);
 
     // -- now we can calculate the flux direction
+    // face_matrix_diff_->UpdateMatrices(Teuchos::null, Teuchos::null); // can this be removed?
     face_matrix_diff_->UpdateFlux(pres_elev.ptr(), flux_dir.ptr());
+    flux_dir->scatterMasterToGhosted("face"); // for vis only
+    //face_matrix_diff_->ApplyBCs(true, true, true); // because we don't do this....
 
     // upwind
     // -- get upwind conductivity data

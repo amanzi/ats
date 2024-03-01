@@ -247,14 +247,12 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   Key mass_dens_key_;
   Key molar_dens_key_;
   Key source_key_;
-  Key source_molar_dens_key_;
   Key ss_flux_key_;
 
   // control switches
   Operators::UpwindMethod upwind_method_;
 
   bool is_source_term_;
-  bool source_in_meters_;
   // bool source_only_if_unfrozen_;
 
   bool modify_predictor_with_consistent_faces_;
