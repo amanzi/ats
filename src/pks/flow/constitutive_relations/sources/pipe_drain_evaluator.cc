@@ -12,6 +12,7 @@
 */
 
 #include "pipe_drain_evaluator.hh"
+#include "Geometry.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -98,12 +99,17 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   if (pipe_flag_ == true) {
     pipe_map_.resize(ncells_pipe);
     for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
-      const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
-      for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
-        const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
-        if ( (std::abs(mnhMask[0][c_pipe] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-          pipe_map_[c_pipe] = c_sw;
-          break; 
+      if (std::abs(mnhMask[0][c_pipe] - 1.0)  < 1.e-12) { 
+        const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+        for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
+          const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
+          std::vector<AmanziGeometry::Point> coords;
+          surface_mesh->cell_get_coordinates(c_sw, &coords);
+
+          if (AmanziGeometry::point_in_polygon(xc_pipe, coords) == true) {
+            pipe_map_[c_pipe] = c_sw;
+            break;
+          } 
         }
       }
     }
@@ -114,12 +120,17 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   if (sw_flag_ == true) {
     sw_map_.resize(ncells_sw);
     for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
-      const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
-      for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
-        const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
-        if ( (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12 ) && (std::abs(xc_sw[0] - xc_pipe[0]) < 1.e-12 ) && (std::abs(xc_sw[1] - xc_pipe[1]) < 1.e-12 ) ) {
-          sw_map_[c_sw] = c_pipe;
-          break; 
+      if (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12) {
+        const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
+        for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
+          const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+          std::vector<AmanziGeometry::Point> coords;
+          pipe_mesh->cell_get_coordinates(c_pipe, &coords);
+
+          if (AmanziGeometry::point_in_polygon(xc_sw, coords) == true) {
+            sw_map_[c_sw] = c_pipe;
+            break; 
+          }
         }
       }
     } 
