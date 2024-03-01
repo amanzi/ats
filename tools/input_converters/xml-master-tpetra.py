@@ -56,6 +56,11 @@ def change_eval_type(xml, name, old_type, new_type):
             return True
         return False
 
+def change_all_eval_type(xml, old_type, new_type):
+    for eval_list in asearch.find_path(xml, ["state", "evaluators"], no_skip=True):
+        if eval_list.getParameter("evaluator type").getValue() == old_type:
+            eval_list.getParameter("evaluator type").setValue(new_type)
+    
 def wrm(xml):
     change_eval_type(xml, "saturation_liquid", "WRM", "wrm van Genuchten by material")
     change_eval_type(xml, "saturation_gas", "WRM", "wrm van Genuchten by material")
@@ -66,7 +71,6 @@ def wrm(xml):
         poro_eval = asearch.find_path(xml, ["state", "evaluators", "porosity"])
         if poro_eval.isElement("compressible porosity model parameters"):
             poro_eval.getElement("compressible porosity model parameters").setName("model parameters")
-
 
 def hydraulic_conductivity(xml):
     try:
@@ -130,6 +134,8 @@ def update(xml):
     bcs_with_units(xml)
     hydraulic_conductivity(xml)
 
+    change_all_eval_type(xml, "additive evaluator", "additive")
+    change_all_eval_type(xml, "multiplicative evaluator", "multiplicative")
 
 if __name__ == "__main__":
     import argparse

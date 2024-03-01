@@ -100,6 +100,7 @@ set(ats_link_libs
   #ats_pks
   ats_flow
   ats_mpc
+  ats_surface_balance
   )
 
 

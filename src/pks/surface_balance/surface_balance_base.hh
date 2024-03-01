@@ -51,24 +51,28 @@ sinks.
 #include "Operator.hh"
 #include "PDE_Accumulation.hh"
 #include "PKFactory.hh"
-#include "pk_physical_bdf_default.hh"
+#include "PK_PhysicalBDF_Default.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 
 class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
  public:
-  SurfaceBalanceBase(Teuchos::ParameterList& pk_tree,
-                     const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                     const Teuchos::RCP<State>& S,
-                     const Teuchos::RCP<TreeVector>& solution);
+  SurfaceBalanceBase(const Comm_ptr_type& comm,
+                     Teuchos::ParameterList& pk_tree,
+                     const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                     const Teuchos::RCP<State>& S);
+
+  virtual const std::string& getType() const override { return pk_type_; }
+  virtual void parseParameterList() override;
+  virtual void modifyParameterList() override;
 
   // main methods
   // -- Setup data.
-  virtual void Setup() override;
+  virtual void setup() override;
 
   // -- Finalize a step as successful at the given tag.
-  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void commitStep(double t_old, double t_new, const Tag& tag) override;
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
@@ -89,6 +93,8 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
   ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
  protected:
+  static const std::string pk_type_;
+
   bool conserved_quantity_;
   bool is_source_, is_source_differentiable_, source_finite_difference_;
   Key source_key_;
@@ -98,6 +104,7 @@ class SurfaceBalanceBase : public PK_PhysicalBDF_Default {
 
   bool modify_predictor_positivity_preserving_;
 
+  Teuchos::RCP<Operators::Operator> preconditioner_;
   Teuchos::RCP<Operators::PDE_Accumulation> preconditioner_acc_;
 
  private:

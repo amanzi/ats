@@ -8,11 +8,12 @@
 */
 
 #include "surface_balance_base.hh"
+#include "registration_macro.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 
-RegisteredPKFactory<SurfaceBalanceBase> SurfaceBalanceBase::reg_("general surface balance");
+REGISTER_PK(SurfaceBalanceBase);
 
 } // namespace SurfaceBalance
 } // namespace Amanzi
