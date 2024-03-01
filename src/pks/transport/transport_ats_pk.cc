@@ -79,8 +79,6 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Exceptions::amanzi_throw(msg);
   }
 
-  // tag_flux_next_ts_ = Tag{ name() + "_flux_next_ts" }; // what is this for? --ETC
-
   // initialize io
   units_.Init(global_plist->sublist("units"));
 
@@ -421,6 +419,7 @@ void Transport_ATS::SetupTransport_()
       *vo_->os() << vo_->color("yellow") << "No BCs were specified." << vo_->reset() << std::endl;
     }
   }
+
 }
 
 
@@ -464,6 +463,7 @@ void Transport_ATS::SetupPhysicalEvaluators_()
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
+  // Need to figure out primary vs secondary -- are both in component names? --ETC
   auto primary_names = component_names_;
   requireAtNext(solid_residue_mass_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
@@ -482,7 +482,6 @@ void Transport_ATS::SetupPhysicalEvaluators_()
   // Note that component_names includes secondaries, but we only need primaries
   primary_names.emplace_back("H2O_old");
   primary_names.emplace_back("H2O_new");
-  
   requireAtNext(conserve_qty_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted(true)
