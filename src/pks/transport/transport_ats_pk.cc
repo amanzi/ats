@@ -499,6 +499,7 @@ Transport_ATS::Initialize()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
 
+  // Set initial values for transport variables.
   if (plist_->isSublist("initial condition")) {
     S_->GetRecordW(tcc_key_, tag_next_, passwd_)
       .Initialize(plist_->sublist("initial condition"));
@@ -507,11 +508,13 @@ Transport_ATS::Initialize()
   // initialize missed fields
   InitializeFields_();
 
-  // make this go away -- local pointers to data
+  // make this go away -- local pointers to data are a no-no! --ETC
+  // What is the best way here? --PL
   tcc_tmp = S_->GetPtrW<CompositeVector>(tcc_key_, tag_next_, passwd_);
   tcc = S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_);
   *tcc = *tcc_tmp;
 
+  // these are bad & will be changed with an interpolation evaluator --ETC & PL
   ws_ = S_->Get<CompositeVector>(saturation_key_, Tags::NEXT).ViewComponent("cell", false);
   ws_prev_ = S_->Get<CompositeVector>(saturation_key_, Tags::CURRENT).ViewComponent("cell", false);
 
@@ -520,12 +523,15 @@ Transport_ATS::Initialize()
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
   flux_ = S_->Get<CompositeVector>(flux_key_, Tags::NEXT).ViewComponent("face", true);
+  // porosity is used in StableTimeStep and other funcs()
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
   solid_qty_ = S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_)
                  .ViewComponent("cell", false);
   conserve_qty_ =
     S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).ViewComponent("cell", true);
 
+  // Remove these -- use the mesh to get these quantities when needed --ETC
+  // These vars are utilized extensively, using this way is better for clarity??? --PL
   ncells_owned =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
   ncells_wghost =
@@ -538,7 +544,7 @@ Transport_ATS::Initialize()
     mesh_->getNumEntities(AmanziMesh::Entity_kind::NODE, AmanziMesh::Parallel_kind::ALL);
 
   // extract control parameters
-  InitializeAll_();
+  InitializeAll_(); // Nearly all (maybe all) of this is parsing the parameter list, move into the constructor. --ETC
 
   // upwind
   IdentifyUpwindCells();
@@ -599,7 +605,6 @@ void
 Transport_ATS::InitializeFields_()
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-
   S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).PutScalar(0.0);
   S_->GetRecordW(solid_residue_mass_key_, tag_next_, name_).set_initialized();
   S_->GetW<CompositeVector>(conserve_qty_key_, tag_next_, name_).PutScalar(0.0);
