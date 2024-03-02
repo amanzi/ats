@@ -63,13 +63,6 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     
     sink_source_coeff_ = 1.0;
   }
-  // flags to ensure we create the cell maps only once
-  if (pipe_map_created_ != true) {
-    pipe_map_created_ = false;
-  }
-  if (sw_map_created_ != true) {
-    sw_map_created_ = false;
-  }
 }
 
 
