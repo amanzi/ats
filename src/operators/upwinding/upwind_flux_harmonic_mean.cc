@@ -20,7 +20,6 @@
 #include "Debugger.hh"
 #include "VerboseObject.hh"
 #include "upwind_flux_harmonic_mean.hh"
-#include "Epetra_IntVector.h"
 
 namespace Amanzi {
 namespace Operators {

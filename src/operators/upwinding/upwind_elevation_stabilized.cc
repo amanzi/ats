@@ -20,7 +20,6 @@
 #include "Debugger.hh"
 #include "VerboseObject.hh"
 #include "upwind_elevation_stabilized.hh"
-#include "Epetra_IntVector.h"
 
 namespace Amanzi {
 namespace Operators {

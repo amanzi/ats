@@ -8,7 +8,6 @@
 */
 
 //! Simple wrapper that takes a ParameterList and generates all needed meshes.
-#include "Epetra_MpiComm.h"
 #include "Teuchos_ParameterList.hpp"
 #include "Teuchos_TimeMonitor.hpp"
 #include "AmanziComm.hh"
