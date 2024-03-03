@@ -10,7 +10,9 @@
 //! Calculates source terms for surface fluxes to and from the atmosphere and a ground surface.
 /*!
 
-Calculates source terms for surface fluxes to and from the atmosphere and a ground surface characterized by three components -- snow, water-covered ground, and vegetated/bare soil.
+Calculates source terms for surface fluxes to and from the atmosphere and a
+ground surface characterized by three components -- snow, water-covered ground,
+and vegetated/bare soil.
 
 The surface energy balance on these area weighted patches are individually
 calculated then averaged to form the total quantities.  All down- and
@@ -19,6 +21,8 @@ calculated by a minimum threshold in snow and a depression depth/geometry-based
 approach for water.  All snow is assumed to first cover water (likely ice),
 then cover land, as both water and snow prefer low-lying depressions due to
 gravity- and wind-driven redistributions, respectively.
+
+`"evaluator type`" = `"surface energy balance, two components`"
 
 .. _seb-threecomponent-evaluator-spec:
 .. admonition:: seb-threecomponent-evaluator-spec
@@ -55,7 +59,7 @@ gravity- and wind-driven redistributions, respectively.
 
    DEPENDENCIES:
 
-   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation**[W m^-2]
+   - `"incoming shortwave radiation`" **DOMAIN-incoming_shortwave_radiation** [W m^-2]
    - `"incoming longwave radiation`" **DOMAIN-incoming_longwave_radiation** [W m^-2]
    - `"air temperature`" **DOMAIN-air_temperature** [K]
    - `"vapor pressure air`" **DOMAIN-vapor_pressure_air** [Pa]
@@ -74,8 +78,7 @@ gravity- and wind-driven redistributions, respectively.
 
    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
-   - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
-   - `"porosity`" [-] subsurface porosity
+   - `"rsoil`" **DOMAIN-rsoil** [s/m] soil resistance of top cells.
    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
    - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
@@ -89,10 +92,6 @@ gravity- and wind-driven redistributions, respectively.
      latent and sensible heat fluxes.
    - `"roughness length of snow-covered ground [m]`" ``[double]`` **0.004** Defines a
      fetch controlling latent and sensible heat fluxes.
-   - `"dessicated zone thickness [m]`" ``[double]`` Thickness of the immediate surface
-     layer over which vapor pressure diffusion must move water to evaporate
-     from dry soil.  More implies less evaporation.
-
 */
 
 #pragma once
@@ -143,8 +142,8 @@ class SEBThreeComponentEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key snow_depth_key_, snow_dens_key_, snow_death_rate_key_;
   Key ponded_depth_key_, unfrozen_fraction_key_;
   Key sg_albedo_key_, sg_emissivity_key_, area_frac_key_;
-  Key surf_temp_key_, surf_pres_key_;
-  Key sat_gas_key_, poro_key_, ss_pres_key_;
+  Key surf_temp_key_, surf_pres_key_, surf_rsoil_key_;
+  Key ss_pres_key_;
   Key mol_dens_key_, mass_dens_key_;
 
   Key melt_key_, evap_key_;

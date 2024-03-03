@@ -109,35 +109,34 @@ void
 RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& rad_bal_surf = *results[0]->viewComponent("cell", false);
-  Epetra_MultiVector& rad_bal_snow = *results[1]->viewComponent("cell", false);
-  Epetra_MultiVector& rad_bal_can = *results[2]->viewComponent("cell", false);
+  Epetra_MultiVector& rad_bal_surf = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& rad_bal_snow = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& rad_bal_can = *results[2]->ViewComponent("cell", false);
 
   const Epetra_MultiVector& albedo =
-    *S.Get<CompositeVector>(albedo_surf_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(albedo_surf_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& emiss =
-    *S.Get<CompositeVector>(emissivity_surf_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(emissivity_surf_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& sw_in =
-    *S.Get<CompositeVector>(sw_in_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(sw_in_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& lw_in =
-    *S.Get<CompositeVector>(lw_in_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(lw_in_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& temp_surf =
-    *S.Get<CompositeVector>(temp_surf_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(temp_surf_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& temp_snow =
-    *S.Get<CompositeVector>(temp_snow_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(temp_snow_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& temp_canopy =
-    *S.Get<CompositeVector>(temp_canopy_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(temp_canopy_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& area_frac =
-    *S.Get<CompositeVector>(area_frac_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(area_frac_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& lai =
-    *S.Get<CompositeVector>(lai_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(lai_key_, tag).ViewComponent("cell", false);
 
-  auto mesh = results[0]->getMesh();
+  auto mesh = results[0]->Mesh();
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->getSetEntities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // NOTE: emissivity = absorptivity, we use e to notate both
@@ -148,6 +147,10 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       // sw atm to canopy and surface
       double sw_atm_can = e_can_sw * sw_in[0][c];
       double sw_atm_surf = sw_in[0][c] - sw_atm_can;
+
+      // reflected sw (can be important off of snow)
+      double sw_grnd_can =
+        e_can_sw * sw_atm_surf * (albedo[0][c] * area_frac[0][c] + albedo[1][c] * area_frac[1][c]);
 
       // lw atm to canopy and surface
       double lw_atm_can = e_can_lw * lw_in[0][c];
@@ -167,8 +170,8 @@ RadiationBalanceEvaluator::Evaluate_(const State& S, const std::vector<Composite
       rad_bal_surf[0][c] = (1 - albedo[0][c]) * sw_atm_surf + lw_down - lw_up_surf;
       rad_bal_snow[0][c] = (1 - albedo[1][c]) * sw_atm_surf + lw_down - lw_up_snow;
 
-      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * sw_atm_can + lw_atm_can - 2 * lw_can +
-                          area_frac[0][c] * e_can_lw * lw_up_surf +
+      rad_bal_can[0][c] = (1 - lc.second.albedo_canopy) * (sw_atm_can + sw_grnd_can) + lw_atm_can -
+                          2 * lw_can + area_frac[0][c] * e_can_lw * lw_up_surf +
                           area_frac[1][c] * e_can_lw * lw_up_snow;
     }
   }
@@ -180,7 +183,7 @@ RadiationBalanceEvaluator::EvaluatePartialDerivative_(const State& S,
                                                       const Tag& wrt_tag,
                                                       const std::vector<CompositeVector*>& results)
 {
-  for (const auto& res : results) res->putScalar(0.);
+  for (const auto& res : results) res->PutScalar(0.);
 }
 
 

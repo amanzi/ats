@@ -119,13 +119,13 @@ MicroporeMacroporeFluxEvaluator::Evaluate_(const State& S,
   Teuchos::RCP<const CompositeVector> den = S.GetPtr<CompositeVector>(den_key_, tag);
 
   for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-    const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-    const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-    const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-    const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-    const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+    const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+    const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+    const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+    const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+    const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+    const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
     int ncomp = result[0]->size(*comp, false);
     for (int i = 0; i != ncomp; ++i) {
@@ -154,13 +154,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   if (wrt_key == pm_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -173,13 +173,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == pM_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -192,13 +192,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == krM_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -211,13 +211,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == krm_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -230,13 +230,13 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == K_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      const Epetra_MultiVector& den_v = *den->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      const Epetra_MultiVector& den_v = *den->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {
@@ -248,12 +248,12 @@ MicroporeMacroporeFluxEvaluator::EvaluatePartialDerivative_(
   } else if (wrt_key == den_key_) {
     for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
          ++comp) {
-      const Epetra_MultiVector& pm_v = *pm->viewComponent(*comp, false);
-      const Epetra_MultiVector& pM_v = *pM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krM_v = *krM->viewComponent(*comp, false);
-      const Epetra_MultiVector& krm_v = *krm->viewComponent(*comp, false);
-      const Epetra_MultiVector& K_v = *K->viewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->viewComponent(*comp, false);
+      const Epetra_MultiVector& pm_v = *pm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& pM_v = *pM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krM_v = *krM->ViewComponent(*comp, false);
+      const Epetra_MultiVector& krm_v = *krm->ViewComponent(*comp, false);
+      const Epetra_MultiVector& K_v = *K->ViewComponent(*comp, false);
+      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
       for (int i = 0; i != ncomp; ++i) {

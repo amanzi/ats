@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Evaluates a net radiation balance for surface, snow, and canopy.
 
+//! Evaluates a net radiation balance for surface, snow, and canopy.
 #include "canopy_radiation_evaluator.hh"
 
 namespace Amanzi {
@@ -91,25 +92,24 @@ void
 CanopyRadiationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& results)
 {
   Tag tag = my_keys_.front().second;
-  Epetra_MultiVector& down_sw = *results[0]->viewComponent("cell", false);
-  Epetra_MultiVector& down_lw = *results[1]->viewComponent("cell", false);
-  Epetra_MultiVector& rad_bal_can = *results[2]->viewComponent("cell", false);
+  Epetra_MultiVector& down_sw = *results[0]->ViewComponent("cell", false);
+  Epetra_MultiVector& down_lw = *results[1]->ViewComponent("cell", false);
+  Epetra_MultiVector& rad_bal_can = *results[2]->ViewComponent("cell", false);
 
   const Epetra_MultiVector& sw_in =
-    *S.Get<CompositeVector>(sw_in_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(sw_in_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& lw_in =
-    *S.Get<CompositeVector>(lw_in_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(lw_in_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& temp_canopy =
-    *S.Get<CompositeVector>(temp_canopy_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(temp_canopy_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& lai =
-    *S.Get<CompositeVector>(lai_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(lai_key_, tag).ViewComponent("cell", false);
 
-  auto mesh = results[0]->getMesh();
+  auto mesh = results[0]->Mesh();
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->getSetEntities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // NOTE: emissivity = absorptivity, we use e to notate both
@@ -145,7 +145,7 @@ CanopyRadiationEvaluator::EvaluatePartialDerivative_(const State& S,
                                                      const Tag& wrt_tag,
                                                      const std::vector<CompositeVector*>& results)
 {
-  for (const auto& res : results) res->putScalar(0.);
+  for (const auto& res : results) res->PutScalar(0.);
 }
 
 

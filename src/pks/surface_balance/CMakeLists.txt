@@ -16,17 +16,17 @@ set(ats_surface_balance_src_files
   # constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.cc
   # constitutive_relations/land_cover/evaporation_downregulation_model.cc
   # constitutive_relations/land_cover/evaporation_downregulation_evaluator.cc
-  # constitutive_relations/land_cover/LandCover.cc
+  constitutive_relations/land_cover/LandCover.cc
   # constitutive_relations/land_cover/drainage_evaluator.cc
   # constitutive_relations/land_cover/interception_fraction_evaluator.cc
   # constitutive_relations/land_cover/interception_fraction_model.cc
-  # constitutive_relations/land_cover/pet_priestley_taylor_evaluator.cc
+  constitutive_relations/land_cover/pet_priestley_taylor_evaluator.cc
   # constitutive_relations/land_cover/plant_wilting_factor_evaluator.cc
   # constitutive_relations/land_cover/plant_wilting_factor_model.cc  
-  # constitutive_relations/land_cover/rooting_depth_fraction_evaluator.cc  
-  # constitutive_relations/land_cover/rooting_depth_fraction_model.cc
+  constitutive_relations/land_cover/rooting_depth_fraction_evaluator.cc  
   # constitutive_relations/land_cover/snow_meltrate_evaluator.cc
   # constitutive_relations/land_cover/transpiration_distribution_evaluator.cc  
+  constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.cc  
   # constitutive_relations/land_cover/albedo_twocomponent_evaluator.cc
   # constitutive_relations/land_cover/albedo_threecomponent_evaluator.cc
   # constitutive_relations/land_cover/area_fractions_twocomponent_evaluator.cc
@@ -60,16 +60,16 @@ set(ats_surface_balance_inc_files
   # constitutive_relations/land_cover/incident_shortwave_radiation_evaluator.hh
   # constitutive_relations/land_cover/evaporation_downregulation_model.hh
   # constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh
-  # constitutive_relations/land_cover/LandCover.hh
+  constitutive_relations/land_cover/LandCover.hh
   # constitutive_relations/land_cover/drainage_evaluator.hh
   # constitutive_relations/land_cover/interception_fraction_evaluator.hh
   # constitutive_relations/land_cover/interception_fraction_model.hh
-  # constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh
+  constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh
   # constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh
   # constitutive_relations/land_cover/plant_wilting_factor_model.hh  
-  # constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh  
-  # constitutive_relations/land_cover/rooting_depth_fraction_model.hh
+  constitutive_relations/land_cover/rooting_depth_fraction_evaluator.hh  
   # constitutive_relations/land_cover/snow_meltrate_evaluator.hh
+  constitutive_relations/land_cover/transpiration_distribution_relperm_evaluator.hh  
   # constitutive_relations/land_cover/transpiration_distribution_evaluator.hh  
   # constitutive_relations/land_cover/albedo_twocomponent_evaluator.hh
   # constitutive_relations/land_cover/albedo_threecomponent_evaluator.hh
@@ -124,10 +124,10 @@ add_amanzi_library(ats_surface_balance
 # register evaluators/factories/pks
 
 # land_cover evalutors
-# register_evaluator_with_factory(
-#   HEADERFILE constitutive_relations/land_cover/land_cover_evaluator_reg.hh
-#   LISTNAME ATS_SURFACE_BALANCE_REG
-# )
+register_evaluator_with_factory(
+  HEADERFILE constitutive_relations/land_cover/land_cover_evaluator_reg.hh
+  LISTNAME ATS_SURFACE_BALANCE_REG
+)
 
 # register_evaluator_with_factory(
 #   HEADERFILE constitutive_relations/litter/micropore_macropore_flux_evaluator_reg.hh

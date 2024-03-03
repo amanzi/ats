@@ -34,13 +34,15 @@ include_directories(${CHEM_INCLUDES_DIR})
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/surface_subsurface_fluxes)
 # include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/generic_evaluators)
-# include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
+include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/column_integrators)
 include_directories(${ATS_SOURCE_DIR}/src/pks)
 include_directories(${ATS_SOURCE_DIR}/src/pks/mpc)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/energy)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/deformation)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/transport)
+include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance)
+include_directories(${ATS_SOURCE_DIR}/src/pks/surface_balance/constitutive_relations/land_cover)
 include_directories(${ATS_SOURCE_DIR}/src/operators/upwinding)
 # include_directories(${ATS_SOURCE_DIR}/src/operators/advection)
 # include_directories(${ATS_SOURCE_DIR}/src/operators/deformation)
@@ -101,6 +103,7 @@ set(ats_link_libs
   ats_flow
   ats_mpc
   ats_surface_balance
+  ats_column_integrator
   )
 
 

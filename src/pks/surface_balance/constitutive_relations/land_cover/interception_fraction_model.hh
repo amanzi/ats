@@ -13,7 +13,7 @@
 Based on CLM 4.5 and Lawrence et al 2007:
 
 .. math::
-  I = (P_{rain} + P_{snow}) * \alpha * (1 - exp(-.5(LAI+SAI)))
+  f_I = \alpha * (1 - exp(-.5 LAI)))
 
 The interception fraction is everything here after the precip.
 

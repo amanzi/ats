@@ -65,18 +65,18 @@ AreaFractionsThreeComponentMicrotopographyEvaluator::Evaluate_(
   const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
+  Epetra_MultiVector& res = *result[0]->ViewComponent("cell", false);
 
   const Epetra_MultiVector& pd =
-    *S.Get<CompositeVector>(ponded_depth_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& sd =
-    *S.Get<CompositeVector>(snow_depth_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& vsd =
-    *S.Get<CompositeVector>(vol_snow_depth_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(vol_snow_depth_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& del_max =
-    *S.Get<CompositeVector>(delta_max_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(delta_max_key_, tag).ViewComponent("cell", false);
   const Epetra_MultiVector& del_ex =
-    *S.Get<CompositeVector>(delta_ex_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(delta_ex_key_, tag).ViewComponent("cell", false);
 
   for (int c = 0; c != res.MyLength(); ++c) {
     // calculate area of land

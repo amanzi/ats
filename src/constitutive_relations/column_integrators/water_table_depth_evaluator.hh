@@ -24,6 +24,7 @@ Evaluator name: `"water table depth`"
 #pragma once
 
 #include "Factory.hh"
+#include "BlockVector_decl.hh"
 #include "EvaluatorColumnIntegrator.hh"
 
 namespace Amanzi {
@@ -37,20 +38,48 @@ struct ParserWaterTableDepth {
 
 class IntegratorWaterTableDepth {
  public:
+  using cView_type = BlockVector<double>::cMultiVectorView_type<Amanzi::DefaultDevice>;
+
   IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
-                            std::vector<const Epetra_MultiVector*>& deps,
-                            const AmanziMesh::Mesh* mesh);
-  int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
-  double coefficient(AmanziMesh::Entity_ID col);
+                            std::vector<cView_type>& deps,
+                            const AmanziMesh::Mesh& mesh);
+
+  KOKKOS_INLINE_FUNCTION
+  int scan(const AmanziMesh::Entity_ID col, const AmanziMesh::Entity_ID c, AmanziGeometry::Point& p) const;
+
+  KOKKOS_INLINE_FUNCTION
+  double coefficient(const AmanziMesh::Entity_ID col) const;
 
  private:
-  const Epetra_MultiVector* sat_;
-  const Epetra_MultiVector* cv_;
-  const Epetra_MultiVector* surf_cv_;
+  cView_type sat_;
+  cView_type cv_;
+  cView_type surf_cv_;
 };
 
 using WaterTableDepthEvaluator =
   EvaluatorColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
+
+
+KOKKOS_INLINE_FUNCTION
+int
+IntegratorWaterTableDepth::scan(const AmanziMesh::Entity_ID col,
+                                const AmanziMesh::Entity_ID c,
+                                AmanziGeometry::Point& p) const
+{
+  if (sat_(c, 0) > 0.0) {
+    p[0] += cv_(c, 0);
+    return false;
+  }
+  return true;
+}
+
+KOKKOS_INLINE_FUNCTION
+double
+IntegratorWaterTableDepth::coefficient(const AmanziMesh::Entity_ID col) const
+{
+  return 1. / surf_cv_(col, 0);
+}
+
 
 
 } //namespace Relations

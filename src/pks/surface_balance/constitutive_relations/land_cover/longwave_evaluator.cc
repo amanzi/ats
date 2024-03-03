@@ -50,9 +50,9 @@ void
 LongwaveEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).viewComponent("cell", false);
-  const auto& vp_air = *S.Get<CompositeVector>(vp_air_key_, tag).viewComponent("cell", false);
-  auto& res = *result[0]->viewComponent("cell", false);
+  const auto& air_temp = *S.Get<CompositeVector>(air_temp_key_, tag).ViewComponent("cell", false);
+  const auto& vp_air = *S.Get<CompositeVector>(vp_air_key_, tag).ViewComponent("cell", false);
+  auto& res = *result[0]->ViewComponent("cell", false);
 
   for (int c = 0; c != res.MyLength(); ++c) {
     res[0][c] = scale_ * Relations::IncomingLongwaveRadiation(air_temp[0][c], vp_air[0][c]);

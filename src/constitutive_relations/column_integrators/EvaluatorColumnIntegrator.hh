@@ -29,7 +29,7 @@ namespace Relations {
 template <class Parser, class Integrator>
 class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit EvaluatorColumnIntegrator(Teuchos::ParameterList& plist);
+  explicit EvaluatorColumnIntegrator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   EvaluatorColumnIntegrator(const EvaluatorColumnIntegrator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -37,7 +37,11 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
   virtual bool
   IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override;
 
+  std::string getType() const override { return eval_type; }
+
  protected:
+  static const std::string eval_type;
+
   // Implements custom EC to use dependencies from subsurface for surface
   // vector.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -57,10 +61,10 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
 
 template <class Parser, class Integrator>
 EvaluatorColumnIntegrator<Parser, Integrator>::EvaluatorColumnIntegrator(
-  Teuchos::ParameterList& plist)
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
-  Parser parser(plist_, my_keys_.front());
+  Parser parser(*plist_, my_keys_.front());
   dependencies_ = std::move(parser.dependencies);
 }
 
@@ -117,34 +121,38 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   const std::vector<CompositeVector*>& result)
 {
   // collect the dependencies and mesh, and instantiate the integrator functor
-  std::vector<const Epetra_MultiVector*> deps;
+  std::vector<typename Integrator::cView_type> deps;
   for (const auto& dep : dependencies_) {
     deps.emplace_back(
-      S.Get<CompositeVector>(dep.first, dep.second).viewComponent("cell", false).get());
+      S.Get<CompositeVector>(dep.first, dep.second).viewComponent("cell", false));
   }
-  auto mesh = result[0]->getMesh()->getParentMesh();
-  Integrator integrator(plist_, deps, &*mesh);
 
-  Epetra_MultiVector& res = *result[0]->viewComponent("cell", false);
+  const AmanziMesh::Mesh& mesh = *result[0]->getMesh()->getParentMesh();
+  Integrator integrator(*plist_, deps, *result[0]->getMesh());
 
-  for (int col = 0; col != res.MyLength(); ++col) {
-    // for each column, loop over cells calling the integrator until stop is
-    // requested or the column is complete
-    AmanziGeometry::Point val(0., 0.);
-    auto& col_cell = mesh->cells_of_column(col);
-    for (int i = 0; i != col_cell.size(); ++i) {
-      bool completed = integrator.scan(col, col_cell[i], val);
-      if (completed) break;
-    }
+  auto res = result[0]->viewComponent("cell", false);
 
-    // val[1] is typically e.g. cell volume, but can be 0 to indicate no
-    // denominator.  Coefficient provides a hook for column-wide multiples
-    // (e.g. 1/surface area).
-    if (val[1] > 0.)
-      res[0][col] = integrator.coefficient(col) * val[0] / val[1];
-    else
-      res[0][col] = integrator.coefficient(col) * val[0];
-  }
+  // NOTE: this should probably get updated for some hierarchical parallelism...
+  Kokkos::parallel_for("EvaluatorColumnIntegrator::Evaluate_",
+                       res.extent(0),
+                       KOKKOS_LAMBDA(const int col) {
+                         // for each column, loop over cells calling the integrator until stop is
+                         // requested or the column is complete
+                         AmanziGeometry::Point val(0., 0.);
+                         auto col_cell = mesh.columns.getCells(col);
+                         for (int i = 0; i != col_cell.size(); ++i) {
+                           bool completed = integrator.scan(col, col_cell[i], val);
+                           if (completed) break;
+                         }
+
+                         // val[1] is typically e.g. cell volume, but can be 0 to indicate no
+                         // denominator.  Coefficient provides a hook for column-wide multiples
+                         // (e.g. 1/surface area).
+                         if (val[1] > 0.)
+                           res(col, 0) = integrator.coefficient(col) * val[0] / val[1];
+                         else
+                           res(col, 0) = integrator.coefficient(col) * val[0];
+                       });
 }
 
 

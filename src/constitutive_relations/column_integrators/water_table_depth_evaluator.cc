@@ -31,31 +31,13 @@ ParserWaterTableDepth::ParserWaterTableDepth(Teuchos::ParameterList& plist, cons
 
 
 IntegratorWaterTableDepth::IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
-                                                     std::vector<const Epetra_MultiVector*>& deps,
-                                                     const AmanziMesh::Mesh* mesh)
+                                                     std::vector<cView_type>& deps,
+                                                     const AmanziMesh::Mesh& mesh)
 {
-  AMANZI_ASSERT(deps.size() == 3);
+  assert(deps.size() == 3);
   sat_ = deps[0];
   cv_ = deps[1];
   surf_cv_ = deps[2];
-}
-
-int
-IntegratorWaterTableDepth::scan(AmanziMesh::Entity_ID col,
-                                AmanziMesh::Entity_ID c,
-                                AmanziGeometry::Point& p)
-{
-  if ((*sat_)[0][c] > 0.0) {
-    p[0] += (*cv_)[0][c];
-    return false;
-  }
-  return true;
-}
-
-double
-IntegratorWaterTableDepth::coefficient(AmanziMesh::Entity_ID col)
-{
-  return 1. / (*surf_cv_)[0][col];
 }
 
 } // namespace Relations

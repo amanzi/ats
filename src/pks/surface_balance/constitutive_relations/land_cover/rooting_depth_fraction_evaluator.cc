@@ -9,14 +9,15 @@
 
 //! Provides a depth-based profile of root density.
 #include "rooting_depth_fraction_evaluator.hh"
-#include "rooting_depth_fraction_model.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
+const std::string RootingDepthFractionEvaluator::eval_type = "root fraction";
+
 // Constructor from ParameterList
-RootingDepthFractionEvaluator::RootingDepthFractionEvaluator(Teuchos::ParameterList& plist)
+RootingDepthFractionEvaluator::RootingDepthFractionEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
@@ -31,6 +32,14 @@ RootingDepthFractionEvaluator::Clone() const
 }
 
 
+KOKKOS_INLINE_FUNCTION
+double
+RootingDepthFractionEvaluator::computeIntegralRootFunc(double z, double alpha, double beta) const
+{
+  return -0.5 * (std::exp(-alpha * z) + std::exp(-beta * z));
+}
+
+
 // Initialize by setting up dependencies
 void
 RootingDepthFractionEvaluator::InitializeFromPlist_()
@@ -38,19 +47,13 @@ RootingDepthFractionEvaluator::InitializeFromPlist_()
   // Set up my dependencies
   // - defaults to prefixed via domain
   domain_sub_ = Keys::getDomain(my_keys_.front().first);
-  domain_surf_ = Keys::readDomainHint(plist_, domain_sub_, "domain", "surface");
+  domain_surf_ = Keys::readDomainHint(*plist_, domain_sub_, "domain", "surface");
   Tag tag = my_keys_.front().second;
 
-  // - pull Keys from plist
-  // dependency: depth
-  z_key_ = Keys::readKey(plist_, domain_sub_, "depth", "depth");
-  dependencies_.insert(KeyTag{ z_key_, tag });
-
-  // cell volume, surface area
-  cv_key_ = Keys::readKey(plist_, domain_sub_, "cell volume", "cell_volume");
+  cv_key_ = Keys::readKey(*plist_, domain_sub_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
 
-  surf_cv_key_ = Keys::readKey(plist_, domain_surf_, "surface cell volume", "cell_volume");
+  surf_cv_key_ = Keys::readKey(*plist_, domain_surf_, "surface cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ surf_cv_key_, tag });
 }
 
@@ -60,35 +63,65 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
                                          const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
-  const Epetra_MultiVector& z = *S.Get<CompositeVector>(z_key_, tag).viewComponent("cell", false);
-  const Epetra_MultiVector& cv = *S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
-  const Epetra_MultiVector& surf_cv =
-    *S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
-  Epetra_MultiVector& result_v = *result[0]->viewComponent("cell", false);
+  auto cv = S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
+  auto surf_cv = S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
+  auto result_v = result[0]->viewComponent("cell", false);
 
-  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
-  auto& surf_mesh = *S.GetMesh(domain_surf_);
+  AmanziMesh::Mesh& subsurf_mesh = *S.GetMesh(domain_sub_);
+  AmanziMesh::Mesh& surf_mesh = *S.GetMesh(domain_surf_);
 
-  for (const auto& region_model : models_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    surf_mesh.getSetEntities(
-      region_model.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
+  for (const auto& lc : land_cover_) {
+    const LandCover& lc_pars = lc.second;
+    auto lc_ids = surf_mesh.getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-    for (int sc : lc_ids) {
-      double column_total = 0.;
-      double f_root_total = 0.;
-      for (auto c : subsurf_mesh.cells_of_column(sc)) {
-        result_v[0][c] = region_model.second->RootingDepthFraction(z[0][c]);
-        column_total += result_v[0][c] * cv[0][c];
-      }
+    Kokkos::parallel_for("RootingDepthFractionEvaluator::Evaluate",
+                         lc_ids.extent(0),
+                         KOKKOS_LAMBDA(const int j) {
+                           AmanziMesh::Entity_ID sc = lc_ids(j);
+                           double depth = 0.;
+                           double total = 0.;
 
-      // normalize to 1 over the column
-      if (column_total > 0) {
-        for (auto c : subsurf_mesh.cells_of_column(sc)) {
-          result_v[0][c] = result_v[0][c] * 1.0 * surf_cv[0][sc] / column_total;
-        }
-      }
-    }
+                           double at_max = 1.0 + computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                   lc_pars.rooting_profile_alpha,
+                                   lc_pars.rooting_profile_beta);
+                           const auto& col_cells = subsurf_mesh.columns.getCells(sc);
+                           int i = 0;
+                           for (auto c : col_cells) {
+                             result_v(c, 0) = -computeIntegralRootFunc(
+                               depth, lc_pars.rooting_profile_alpha, lc_pars.rooting_profile_beta) /
+                               at_max;
+                             depth += cv(c, 0) / surf_cv(sc, 0);
+                             i++;
+
+                             if (depth <= lc_pars.rooting_depth_max) {
+                               if (i == (col_cells.size())) {
+                                 // max depth is bigger than the domain, remainder goes in the bottom-most cell
+                                 result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                         lc_pars.rooting_profile_alpha,
+                                         lc_pars.rooting_profile_beta) /
+                                   at_max;
+                                 total += result_v(c, 0);
+                               } else {
+                                 result_v(c, 0) += computeIntegralRootFunc(depth,
+                                         lc_pars.rooting_profile_alpha,
+                                         lc_pars.rooting_profile_beta) /
+                                   at_max;
+                                 total += result_v(c, 0);
+                               }
+                             } else {
+                               // max depth stops in this cell, just compute to there
+                               result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                       lc_pars.rooting_profile_alpha,
+                                       lc_pars.rooting_profile_beta) /
+                                 at_max;
+
+                               total += result_v(c, 0);
+                               break;
+                             }
+                           }
+                           assert(std::abs(total - 1.0) < 1.e-8);
+                         });
   }
 }
 
@@ -108,13 +141,10 @@ RootingDepthFractionEvaluator::EvaluatePartialDerivative_(
 void
 RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  if (models_.size() == 0) {
+  if (land_cover_.size() == 0) {
     land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"),
-                   { "rooting_profile_alpha", "rooting_profile_beta", "rooting_depth_max" });
-    for (const auto& lc : land_cover_) {
-      models_[lc.first] = Teuchos::rcp(new RootingDepthFractionModel(lc.second));
-    }
+      getLandCover(S.ConstantsList().sublist("land cover types"),
+                   { "rooting_depth_max", "rooting_profile_alpha", "rooting_profile_beta" });
   }
 
   Key domain = Keys::getDomain(my_keys_.front().first);
@@ -125,8 +155,6 @@ RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
   dep_fac_one.SetMesh(S.GetMesh(domain))
     ->SetGhosted(true)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-
-  S.Require<CompositeVector, CompositeVectorSpace>(z_key_, tag).Update(dep_fac_one);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac_one);
 
   CompositeVectorSpace surf_fac_one;

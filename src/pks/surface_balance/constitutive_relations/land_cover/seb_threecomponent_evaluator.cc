@@ -152,12 +152,10 @@ SEBThreeComponentEvaluator::SEBThreeComponentEvaluator(Teuchos::ParameterList& p
   dependencies_.insert(KeyTag{ surf_temp_key_, tag });
   surf_pres_key_ = Keys::readKey(plist, domain_, "pressure", "pressure");
   dependencies_.insert(KeyTag{ surf_pres_key_, tag });
+  surf_rsoil_key_ = Keys::readKey(plist, domain_, "soil resistance", "soil_resistance");
+  dependencies_.insert(KeyTag{ surf_rsoil_key_, tag });
 
   // -- subsurface properties for evaporating bare soil
-  sat_gas_key_ = Keys::readKey(plist, domain_ss_, "gas saturation", "saturation_gas");
-  dependencies_.insert(KeyTag{ sat_gas_key_, tag });
-  poro_key_ = Keys::readKey(plist, domain_ss_, "porosity", "porosity");
-  dependencies_.insert(KeyTag{ poro_key_, tag });
   ss_pres_key_ = Keys::readKey(plist, domain_ss_, "subsurface pressure", "pressure");
   dependencies_.insert(KeyTag{ ss_pres_key_, tag });
 
@@ -174,56 +172,56 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
   const Relations::ModelParams params(plist_);
 
   // collect met data
-  const auto& qSW_in = *S.Get<CompositeVector>(met_sw_key_, tag).viewComponent("cell", false);
-  const auto& qLW_in = *S.Get<CompositeVector>(met_lw_key_, tag).viewComponent("cell", false);
+  const auto& qSW_in = *S.Get<CompositeVector>(met_sw_key_, tag).ViewComponent("cell", false);
+  const auto& qLW_in = *S.Get<CompositeVector>(met_lw_key_, tag).ViewComponent("cell", false);
   const auto& air_temp =
-    *S.Get<CompositeVector>(met_air_temp_key_, tag).viewComponent("cell", false);
-  const auto& vp_air = *S.Get<CompositeVector>(met_vp_air_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(met_air_temp_key_, tag).ViewComponent("cell", false);
+  const auto& vp_air = *S.Get<CompositeVector>(met_vp_air_key_, tag).ViewComponent("cell", false);
   const auto& wind_speed =
-    *S.Get<CompositeVector>(met_wind_speed_key_, tag).viewComponent("cell", false);
-  const auto& Prain = *S.Get<CompositeVector>(met_prain_key_, tag).viewComponent("cell", false);
-  const auto& Psnow = *S.Get<CompositeVector>(met_psnow_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(met_wind_speed_key_, tag).ViewComponent("cell", false);
+  const auto& Prain = *S.Get<CompositeVector>(met_prain_key_, tag).ViewComponent("cell", false);
+  const auto& Psnow = *S.Get<CompositeVector>(met_psnow_key_, tag).ViewComponent("cell", false);
 
   // collect snow properties
   const auto& snow_volumetric_depth =
-    *S.Get<CompositeVector>(snow_depth_key_, tag).viewComponent("cell", false);
-  const auto& snow_dens = *S.Get<CompositeVector>(snow_dens_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
+  const auto& snow_dens = *S.Get<CompositeVector>(snow_dens_key_, tag).ViewComponent("cell", false);
   const auto& snow_death_rate =
-    *S.Get<CompositeVector>(snow_death_rate_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(snow_death_rate_key_, tag).ViewComponent("cell", false);
 
   // collect skin properties
-  const auto& mol_dens = *S.Get<CompositeVector>(mol_dens_key_, tag).viewComponent("cell", false);
-  const auto& mass_dens = *S.Get<CompositeVector>(mass_dens_key_, tag).viewComponent("cell", false);
+  const auto& mol_dens = *S.Get<CompositeVector>(mol_dens_key_, tag).ViewComponent("cell", false);
+  const auto& mass_dens = *S.Get<CompositeVector>(mass_dens_key_, tag).ViewComponent("cell", false);
   const auto& ponded_depth =
-    *S.Get<CompositeVector>(ponded_depth_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
   const auto& unfrozen_fraction =
-    *S.Get<CompositeVector>(unfrozen_fraction_key_, tag).viewComponent("cell", false);
-  const auto& sg_albedo = *S.Get<CompositeVector>(sg_albedo_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(unfrozen_fraction_key_, tag).ViewComponent("cell", false);
+  const auto& sg_albedo = *S.Get<CompositeVector>(sg_albedo_key_, tag).ViewComponent("cell", false);
   const auto& emissivity =
-    *S.Get<CompositeVector>(sg_emissivity_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(sg_emissivity_key_, tag).ViewComponent("cell", false);
   const auto& area_fracs =
-    *S.Get<CompositeVector>(area_frac_key_, tag).viewComponent("cell", false);
-  const auto& surf_pres = *S.Get<CompositeVector>(surf_pres_key_, tag).viewComponent("cell", false);
-  const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).viewComponent("cell", false);
+    *S.Get<CompositeVector>(area_frac_key_, tag).ViewComponent("cell", false);
+  const auto& surf_pres = *S.Get<CompositeVector>(surf_pres_key_, tag).ViewComponent("cell", false);
+  const auto& surf_temp = *S.Get<CompositeVector>(surf_temp_key_, tag).ViewComponent("cell", false);
+  const auto& surf_rsoil =
+    *S.Get<CompositeVector>(surf_rsoil_key_, tag).ViewComponent("cell", false);
 
   // collect subsurface properties
-  const auto& sat_gas = *S.Get<CompositeVector>(sat_gas_key_, tag).viewComponent("cell", false);
-  const auto& poro = *S.Get<CompositeVector>(poro_key_, tag).viewComponent("cell", false);
-  const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).viewComponent("cell", false);
+  const auto& ss_pres = *S.Get<CompositeVector>(ss_pres_key_, tag).ViewComponent("cell", false);
 
   // collect output vecs
-  auto& water_source = *results[0]->viewComponent("cell", false);
-  auto& energy_source = *results[1]->viewComponent("cell", false);
-  auto& ss_water_source = *results[2]->viewComponent("cell", false);
-  auto& ss_energy_source = *results[3]->viewComponent("cell", false);
-  auto& snow_source = *results[4]->viewComponent("cell", false);
-  auto& new_snow = *results[5]->viewComponent("cell", false);
-  water_source.putScalar(0.);
-  energy_source.putScalar(0.);
-  ss_water_source.putScalar(0.);
-  ss_energy_source.putScalar(0.);
-  snow_source.putScalar(0.);
-  new_snow.putScalar(0.);
+  auto& water_source = *results[0]->ViewComponent("cell", false);
+  auto& energy_source = *results[1]->ViewComponent("cell", false);
+  auto& ss_water_source = *results[2]->ViewComponent("cell", false);
+  auto& ss_energy_source = *results[3]->ViewComponent("cell", false);
+  auto& snow_source = *results[4]->ViewComponent("cell", false);
+  auto& new_snow = *results[5]->ViewComponent("cell", false);
+  water_source.PutScalar(0.);
+  energy_source.PutScalar(0.);
+  ss_water_source.PutScalar(0.);
+  ss_energy_source.PutScalar(0.);
+  snow_source.PutScalar(0.);
+  new_snow.PutScalar(0.);
 
   const auto& mesh = *S.GetMesh(domain_);
   const auto& mesh_ss = *S.GetMesh(domain_ss_);
@@ -232,37 +230,35 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
   Epetra_MultiVector *qE_sh(nullptr), *qE_lh(nullptr), *qE_sm(nullptr);
   Epetra_MultiVector *qE_lw_out(nullptr), *qE_cond(nullptr), *albedo(nullptr);
   if (diagnostics_) {
-    albedo = results[6]->viewComponent("cell", false).get();
-    albedo->putScalar(0.);
-    melt_rate = results[7]->viewComponent("cell", false).get();
-    melt_rate->putScalar(0.);
-    evap_rate = results[8]->viewComponent("cell", false).get();
-    evap_rate->putScalar(0.);
-    snow_temp = results[9]->viewComponent("cell", false).get();
-    snow_temp->putScalar(273.15);
-    qE_sh = results[10]->viewComponent("cell", false).get();
-    qE_sh->putScalar(0.);
-    qE_lh = results[11]->viewComponent("cell", false).get();
-    qE_lh->putScalar(0.);
-    qE_sm = results[12]->viewComponent("cell", false).get();
-    qE_sm->putScalar(0.);
-    qE_lw_out = results[13]->viewComponent("cell", false).get();
-    qE_lw_out->putScalar(0.);
-    qE_cond = results[14]->viewComponent("cell", false).get();
-    qE_cond->putScalar(0.);
+    albedo = results[6]->ViewComponent("cell", false).get();
+    albedo->PutScalar(0.);
+    melt_rate = results[7]->ViewComponent("cell", false).get();
+    melt_rate->PutScalar(0.);
+    evap_rate = results[8]->ViewComponent("cell", false).get();
+    evap_rate->PutScalar(0.);
+    snow_temp = results[9]->ViewComponent("cell", false).get();
+    snow_temp->PutScalar(273.15);
+    qE_sh = results[10]->ViewComponent("cell", false).get();
+    qE_sh->PutScalar(0.);
+    qE_lh = results[11]->ViewComponent("cell", false).get();
+    qE_lh->PutScalar(0.);
+    qE_sm = results[12]->ViewComponent("cell", false).get();
+    qE_sm->PutScalar(0.);
+    qE_lw_out = results[13]->ViewComponent("cell", false).get();
+    qE_lw_out->PutScalar(0.);
+    qE_cond = results[14]->ViewComponent("cell", false).get();
+    qE_cond->PutScalar(0.);
   }
 
   unsigned int ncells = water_source.MyLength();
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh.getSetEntities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
+    auto lc_ids = mesh.getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // get the top cell
       AmanziMesh::Entity_ID subsurf_f = mesh.getEntityParent(AmanziMesh::Entity_kind::CELL, c);
-      AmanziMesh::Entity_ID_List cells;
-      cells = mesh_ss.getFaceCells(subsurf_f, AmanziMesh::Parallel_kind::OWNED);
+      auto cells = mesh_ss.getFaceCells(subsurf_f);
       AMANZI_ASSERT(cells.size() == 1);
 
       // met data structure
@@ -282,13 +278,10 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.pressure = ss_pres[0][cells[0]];
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
-        surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.albedo = sg_albedo[0][c];
         surf.emissivity = emissivity[0][c];
         surf.ponded_depth = 0.; // by definition
-        surf.porosity = poro[0][cells[0]];
-        surf.saturation_gas = sat_gas[0][cells[0]];
+        surf.rsoil = surf_rsoil[0][c];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
 
@@ -353,13 +346,10 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.pressure = surf_pres[0][c];
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
-        surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[1][c];
         surf.albedo = sg_albedo[1][c];
         surf.ponded_depth = std::max(lc.second.water_transition_depth, ponded_depth[0][c]);
-        surf.porosity = 1.;
-        surf.saturation_gas = 0.;
+        surf.rsoil = surf_rsoil[0][c];
         surf.unfrozen_fraction = unfrozen_fraction[0][c];
         surf.water_transition_depth = lc.second.water_transition_depth;
 
@@ -424,13 +414,10 @@ SEBThreeComponentEvaluator::Evaluate_(const State& S, const std::vector<Composit
         surf.pressure = surf_pres[0][c];
         surf.roughness = lc.second.roughness_ground;
         surf.density_w = mass_dens[0][c];
-        surf.dz = lc.second.dessicated_zone_thickness;
-        surf.clapp_horn_b = lc.second.clapp_horn_b;
         surf.emissivity = emissivity[2][c];
         surf.albedo = sg_albedo[2][c];
-        surf.ponded_depth = 0;                            // does not matter
-        surf.saturation_gas = 0.;                         // does not matter
-        surf.porosity = 1.;                               // does not matter
+        surf.ponded_depth = 0; // does not matter
+        surf.rsoil = surf_rsoil[0][c];
         surf.unfrozen_fraction = unfrozen_fraction[0][c]; // does not matter
         surf.water_transition_depth = lc.second.water_transition_depth;
 
@@ -629,12 +616,9 @@ SEBThreeComponentEvaluator::EnsureCompatibility_ToDeps_(State& S)
     }
 
     if (land_cover_.size() == 0)
-      land_cover_ = getLandCover(S.ICList().sublist("land cover types"),
-                                 { "roughness_snow",
-                                   "roughness_ground",
-                                   "water_transition_depth",
-                                   "dessicated_zone_thickness",
-                                   "clapp_horn_b" });
+      land_cover_ =
+        getLandCover(S.ICList().sublist("land cover types"),
+                     { "roughness_snow", "roughness_ground", "water_transition_depth" });
 
     // use domain name to set the mesh type
     CompositeVectorSpace domain_fac;

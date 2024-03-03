@@ -49,15 +49,14 @@ AreaFractionsThreeComponentEvaluator::Evaluate_(const State& S,
                                                 const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
-  auto mesh = result[0]->getMesh();
-  auto& res = *result[0]->viewComponent("cell", false);
-  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).viewComponent("cell", false);
-  const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).viewComponent("cell", false);
+  auto mesh = result[0]->Mesh();
+  auto& res = *result[0]->ViewComponent("cell", false);
+  const auto& sd = *S.Get<CompositeVector>(snow_depth_key_, tag).ViewComponent("cell", false);
+  const auto& pd = *S.Get<CompositeVector>(ponded_depth_key_, tag).ViewComponent("cell", false);
 
   for (const auto& lc : land_cover_) {
-    AmanziMesh::Entity_ID_List lc_ids;
-    mesh->getSetEntities(
-      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED, &lc_ids);
+    auto lc_ids = mesh->getSetEntities(
+      lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     for (auto c : lc_ids) {
       // calculate area of land

@@ -85,7 +85,7 @@ BeersLawAbsorptivity(double k_extinction, double lai);
 // Wind speed term D_he
 // ------------------------------------------------------------------------------------------
 double
-WindFactor(double Us, double Z_Us, double Z_rough, double c_von_Karman, double KB);
+WindFactor(double Us, double Z_Us, double Z_rough, double KB);
 
 //
 // Stability of convective overturning term Zeta AKA Sqig
@@ -122,14 +122,7 @@ VaporPressureGround(const GroundProperties& surf, const ModelParams& params);
 double
 EvaporativeResistanceGround(const GroundProperties& surf,
                             const MetData& met,
-                            const ModelParams& params,
                             double vapor_pressure_ground);
-
-double
-EvaporativeResistanceCoef(double saturation_gas,
-                          double porosity,
-                          double dessicated_zone_thickness,
-                          double Clapp_Horn_b);
 
 
 //
@@ -183,7 +176,7 @@ DetermineSnowTemperature(const GroundProperties& surf,
                          const ModelParams& params,
                          SnowProperties& snow,
                          EnergyBalance& eb,
-                         std::string method = "toms");
+                         std::string method = "brent");
 
 
 //
@@ -263,7 +256,7 @@ class SnowTemperatureFunctor_ {
     : surf_(surf), params_(params), snow_(snow), met_(met), eb_(eb)
   {}
 
-  double operator()(double temp)
+  double operator()(double temp) const
   {
     snow_->temp = temp;
     UpdateEnergyBalanceWithSnow_Inner(*surf_, *snow_, *met_, *params_, *eb_);
@@ -279,13 +272,6 @@ class SnowTemperatureFunctor_ {
   EnergyBalance* const eb_;
 };
 
-
-// Convergence criteria for root-finding
-struct Tol_ {
-  Tol_(double eps) : eps_(eps) {}
-  bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
-  double eps_;
-};
 
 } // namespace Relations
 } // namespace SurfaceBalance
