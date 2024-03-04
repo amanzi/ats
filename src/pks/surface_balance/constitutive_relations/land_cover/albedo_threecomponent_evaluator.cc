@@ -51,9 +51,7 @@ AlbedoThreeComponentEvaluator::AlbedoThreeComponentEvaluator(Teuchos::ParameterL
   a_ice_ = plist_.get<double>("albedo ice [-]", 0.44);
   a_water_ = plist_.get<double>("albedo water [-]", 0.1168);
   is_constant_snow_albedo_ = plist_.isParameter("albedo snow [-]");
-  if (is_constant_snow_albedo_) {
-    a_snow_ = plist_.get<double>("albedo snow [-]");
-  }
+  if (is_constant_snow_albedo_) { a_snow_ = plist_.get<double>("albedo snow [-]"); }
 
   e_ice_ = plist_.get<double>("emissivity ice [-]", 0.98);
   e_water_ = plist_.get<double>("emissivity water [-]", 0.995);
@@ -88,7 +86,8 @@ AlbedoThreeComponentEvaluator::Evaluate_(const State& S,
 
     for (auto c : lc_ids) {
       // albedo of the snow
-      albedo[2][c] = is_constant_snow_albedo_ ? a_snow_ : Relations::CalcAlbedoSnow((*snow_dens)[0][c]); 
+      albedo[2][c] =
+        is_constant_snow_albedo_ ? a_snow_ : Relations::CalcAlbedoSnow((*snow_dens)[0][c]);
 
       // a and e of water
       albedo[1][c] = unfrozen_fraction[0][c] * a_water_ + (1 - unfrozen_fraction[0][c]) * a_ice_;

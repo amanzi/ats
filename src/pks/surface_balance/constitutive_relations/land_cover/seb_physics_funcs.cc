@@ -403,17 +403,18 @@ DetermineSnowTemperature(const GroundProperties& surf,
   int max_it(my_max_it);
   double result(0.);
   if (method == "bisection") {
-    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer "
+                        "supported -- use \"brent\"");
     Exceptions::amanzi_throw(msg);
   } else if (method == "toms") {
-    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer supported -- use \"brent\"");
+    Errors::Message msg("SurfaceEnergyBalance: root finding method \"bisection\" is not longer "
+                        "supported -- use \"brent\"");
     Exceptions::amanzi_throw(msg);
   } else if (method == "brent") {
     result = Utils::findRootBrent(func, left, right, ENERGY_BALANCE_TOL, &max_it);
   } else {
     Errors::Message emsg;
-    emsg << "SurfaceEnergyBalance: invalid solver method \""
-         << method << "\", use \"brent\"";
+    emsg << "SurfaceEnergyBalance: invalid solver method \"" << method << "\", use \"brent\"";
     Exceptions::amanzi_throw(emsg);
   }
 
