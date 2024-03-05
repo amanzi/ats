@@ -104,8 +104,8 @@ PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const Composit
 
 int
 PredictorDelegateBCFlux::CalculateLambda_(int f,
-        const Teuchos::Ptr<const CompositeVector>& pres,
-        double& lambda)
+                                          const Teuchos::Ptr<const CompositeVector>& pres,
+                                          double& lambda)
 {
 #if DEBUG_FLAG
   std::cout << " Flux correcting face " << f << ": q = " << (*bc_values_)[f] << std::endl;

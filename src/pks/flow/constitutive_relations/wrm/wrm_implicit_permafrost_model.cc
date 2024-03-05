@@ -358,17 +358,19 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
   int max_it(max_it_);
 
   if (solver_ == "bisection") {
-    Errors::Message emsg("WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
+    Errors::Message emsg(
+      "WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
     Exceptions::amanzi_throw(emsg);
   } else if (solver_ == "toms") {
-    Errors::Message emsg("WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
+    Errors::Message emsg(
+      "WRMImplicitPermafrostModel:: invalid solver method \"bisection\", use \"brent\"");
     Exceptions::amanzi_throw(emsg);
   } else if (solver_ == "brent") {
     result = Utils::findRootBrent(func, left, right, eps_, &max_it);
   } else {
     Errors::Message emsg;
-    emsg << "WRMImplicitPermafrostModel: invalid solver method \""
-         << solver_ << "\", use \"brent\"";
+    emsg << "WRMImplicitPermafrostModel: invalid solver method \"" << solver_
+         << "\", use \"brent\"";
     Exceptions::amanzi_throw(emsg);
   }
 
@@ -378,8 +380,8 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
   if (max_it >= max_it_) {
     // did not converge?  May be ABS converged but not REL converged!
     std::cerr << "WRMImplicitPermafrostModel did not converge, " << max_it
-             << " iterations, error = " << func(si) << ", s_i = " << si
-             << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
+              << " iterations, error = " << func(si) << ", s_i = " << si
+              << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
     if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimeStep()); }
   }
   return si;
