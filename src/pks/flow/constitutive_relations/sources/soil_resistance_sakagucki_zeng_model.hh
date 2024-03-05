@@ -69,7 +69,7 @@ class SoilResistanceSakaguckiZengModel {
     d_ = plist_.get<double>("dessicated zone thickness [m]", 0.1);
     sr_ = plist_.get<double>("residual saturation [-]", 0.0);
 
-    if (plist_.get<std::string>("WRM Type") == "van Genuchten") {
+    if (plist_.get<std::string>("wrm type") == "van Genuchten") {
       if (plist_.isParameter("van Genuchten m [-]")) {
         double m = plist_.get<double>("van Genuchten m [-]");
         double n = 1.0 / (1.0 - m);
@@ -80,7 +80,7 @@ class SoilResistanceSakaguckiZengModel {
         double lambda = (n - 1) * (1 - std::pow(0.5, n / (n - 1)));
         b_ = 1. / lambda;
       }
-    } else if (plist_.get<std::string>("WRM Type") == "Brooks-Corey") {
+    } else if (plist_.get<std::string>("wrm type") == "Brooks-Corey") {
       double lambda = plist_.get<double>("Brooks Corey lambda [-]");
       b_ = 1. / lambda;
     } else {

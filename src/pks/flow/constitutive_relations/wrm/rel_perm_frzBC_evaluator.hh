@@ -55,7 +55,7 @@ method 2.
    * `"omega [-]`" ``[double]`` **2.0** A scale dependent parameter in the relative permeability model.
      See paper Niu & Yang (2006) for details about the model. Typical values range from 2-3.
 
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+   * `"model parameters`" ``[string]``  **WRM parameters** ``[wrm-typedinline-spec-list]``
      List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
      under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
      relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
@@ -100,7 +100,7 @@ parameters to Brooks-Corey parameters.
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
@@ -111,7 +111,7 @@ parameters to Brooks-Corey parameters.
       <ParameterList name="relative permeability parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="Brooks-Corey" />
+          <Parameter name="wrm type" type="string" value="Brooks-Corey" />
           <Parameter name="Brooks Corey lambda [-]" type="double" value="0.49" />
           <Parameter name="Brooks Corey saturted matric suction [Pa]" type="double" value="32439.03" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />

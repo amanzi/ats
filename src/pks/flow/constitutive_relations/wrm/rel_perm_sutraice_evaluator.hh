@@ -42,7 +42,7 @@ Some additional parameters are available.
      and K_sat is very small.  To avoid roundoff propagation issues, rescaling
      this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+   * `"model parameters`" ``[string]``  **WRM parameters** ``[wrm-typedinline-spec-list]``
      List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
      under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
      relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
@@ -82,7 +82,7 @@ Using the same set of van Genuchten model paramters for WRM and relative permeab
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
