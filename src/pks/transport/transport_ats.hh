@@ -388,6 +388,8 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   int get_num_gaseous_component() { return num_gaseous; };
 
 
+  void ChangedSolutionPK(const Tag& tag);
+
  private:
   void InitializeFields_();
   void SetupTransport_();

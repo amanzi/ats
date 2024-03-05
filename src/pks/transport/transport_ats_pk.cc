@@ -849,6 +849,8 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   }
 
   StableTimeStep();
+
+  ChangedSolutionPK(tag_next_);
   return failed;
 }
 
@@ -1054,6 +1056,7 @@ Transport_ATS::CommitStep(double t_old, double t_new, const Tag& tag_next)
   Tag tag_current = tag_next == tag_next_ ? tag_current_ : Tags::CURRENT;
 
   assign(tcc_key_, tag_current, tag_next, *S_);
+
   if (tag_next == Tags::NEXT) {
     assign(saturation_key_, tag_current, tag_next, *S_);
     assign(molar_density_key_, tag_current, tag_next, *S_);
@@ -1628,6 +1631,12 @@ Transport_ATS::InterpolateCellVector(const Epetra_MultiVector& v0,
   double a = dt_int / dt;
   double b = 1.0 - a;
   v_int.Update(b, v0, a, v1, 0.);
+}
+
+void
+Transport_ATS::ChangedSolutionPK(const Tag& tag)
+{
+  changedEvaluatorPrimary(key_, tag, *S_);
 }
 
 } // namespace Transport
