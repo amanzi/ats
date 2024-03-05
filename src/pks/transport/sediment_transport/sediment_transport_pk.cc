@@ -27,6 +27,7 @@
 #include "Evaluator.hh"
 #include "GMVMesh.hh"
 #include "Mesh.hh"
+#include "MFD3D_Diffusion.hh"
 #include "OperatorDefs.hh"
 #include "PDE_DiffusionFactory.hh"
 #include "PDE_Diffusion.hh"
@@ -39,7 +40,7 @@
 
 
 namespace Amanzi {
-namespace SedimentTransport {
+namespace Transport {
 
 /* ******************************************************************
 * New constructor compatible with new MPC framework.
@@ -1413,7 +1414,7 @@ SedimentTransport_PK::ComputeAddSourceTerms(double tp,
         if (num_vectors == 1) imap = 0;
 
         double value;
-        if (srcs_[m]->name() == "domain coupling") {
+        if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
           value = values[k];
         } else {
           value = mesh_->getCellVolume(c) * values[k];
@@ -1456,7 +1457,7 @@ SedimentTransport_PK::Sinks2TotalOutFlux(Epetra_MultiVector& tcc,
         if (num_vectors == 1) imap = 0;
 
         if ((values[k] < 0) && (tcc[imap][c] > 0)) {
-          if (srcs_[m]->name() == "domain coupling") {
+          if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
             // if (values[k]<0) {
             val = std::max(val, fabs(values[k]) / tcc[imap][c]);
             //}
@@ -1582,5 +1583,29 @@ SedimentTransport_PK::InterpolateCellVector(const Epetra_MultiVector& v0,
   v_int.Update(b, v0, a, v1, 0.);
 }
 
-} // namespace SedimentTransport
+
+/* *******************************************************************
+* Calculate dispersive tensor from given Darcy fluxes. The flux is
+* assumed to be scaled by face area.
+******************************************************************* */
+void
+SedimentTransport_PK::CalculateDiffusionTensor_(const Epetra_MultiVector& km,
+                                                const Epetra_MultiVector& ws,
+                                                const Epetra_MultiVector& mol_density)
+{
+  D_.resize(ncells_owned);
+  for (int c = 0; c < ncells_owned; c++) D_[c].Init(dim, 1);
+
+  //AmanziGeometry::Point velocity(dim);
+  AmanziMesh::Entity_ID_List faces;
+  WhetStone::MFD3D_Diffusion mfd3d(mesh_);
+
+  for (int c = 0; c < ncells_owned; ++c) {
+    double mol_den = mol_density[0][c];
+    double ponded_depth = ws[0][c];
+    D_[c].PutScalar(km[0][c] * mol_den * ponded_depth);
+  }
+}
+
+} // namespace Transport
 } // namespace Amanzi

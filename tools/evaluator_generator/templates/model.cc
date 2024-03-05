@@ -36,20 +36,12 @@ namespace Amanzi {
 
 
         // Initialize parameters
-        void{ evalClassName } Model::InitializeFromPlist_(Teuchos::ParameterList & plist)
-        {
-          {
-            {
-              modelInitializeParamsList
-            }
-          }
-        }
+        void{ evalClassName } Model::InitializeFromPlist_(
+          Teuchos::ParameterList & plist){ { { modelInitializeParamsList } } }
 
 
         // main method
-        {
-          modelMethodImplementation
-        }
+        { modelMethodImplementation }
 
         {
           modelDerivImplementationList
