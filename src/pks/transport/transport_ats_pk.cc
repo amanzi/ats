@@ -593,15 +593,15 @@ Transport_ATS::StableTimeStep()
   // Epetra_MultiVector& tcc_prev = *S_->GetPtrW<CompositeVector>(tcc_key_, tag_current_, passwd_)->ViewComponent("cell");
   // std::cout << tcc_prev << std::endl << std::flush;
 
-  int ncells_wghost =
+  int ncells_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::ALL);
-  int nfaces_wghost =
+  int nfaces_all =
     mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
 
   // loop over faces and accumulate upwinding fluxes
-  std::vector<double> total_outflux(ncells_wghost, 0.0);
+  std::vector<double> total_outflux(ncells_all, 0.0);
 
-  for (int f = 0; f < nfaces_wghost; f++) {
+  for (int f = 0; f < nfaces_all; f++) {
     int c = (*upwind_cell_)[f];
     if (c >= 0) { total_outflux[c] += fabs((*flux)[0][f]); }
   }
@@ -727,7 +727,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 #ifdef ALQUIMIA_ENABLED
   if (plist_->sublist("source terms").isSublist("geochemical")) {
     for (auto& src : srcs_) {
-      if (src->name() == "alquimia source") {
+      if (src->getType() == DomainFunction_kind::ALQUIMIA) {
         // src_factor = water_source / molar_density_liquid, both flow
         // quantities, see note above.
         S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
@@ -742,7 +742,7 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
 
   if (plist_->sublist("boundary conditions").isSublist("geochemical")) {
     for (auto& bc : bcs_) {
-      if (bc->name() == "alquimia bc") {
+      if (bc->getType() == DomainFunction_kind::ALQUIMIA) {
         Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc_alq =
           Teuchos::rcp_dynamic_cast<TransportBoundaryFunction_Alquimia_Units>(bc);
         bc_alq->set_conversion(1000.0, mol_dens_, true);
@@ -1443,7 +1443,7 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       if (c >= conserve_qty.MyLength()) continue;
 
 
-      if (srcs_[m]->name() == "domain coupling" && n0 == 0) {
+      if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
         conserve_qty[num_vectors - 2][c] += values[num_vectors - 2];
       }
 
@@ -1498,8 +1498,8 @@ Transport_ATS::Sinks2TotalOutFlux(Epetra_MultiVector& tcc_c,
         int imap = i;
         if (num_vectors == 1) imap = 0;
 
-        if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {  // why negative source value? what does this mean? --PL
-          if (srcs_[m]->name() == "domain coupling") {
+        if ((values[k] < 0) && (tcc_c[imap][c] > 1e-16)) {
+          if (srcs_[m]->getType() == DomainFunction_kind::COUPLING) {
             const Epetra_MultiVector& flux_interface_ =
               *S_->Get<CompositeVector>("surface-surface_subsurface_flux", Tags::NEXT).ViewComponent("cell", false);
             val = std::max(val, fabs(flux_interface_[0][c]));

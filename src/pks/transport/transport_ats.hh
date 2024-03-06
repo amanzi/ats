@@ -342,9 +342,18 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 #endif
 
   // -- access members
-  inline double get_cfl() { return cfl_; }
-  Teuchos::RCP<const State> get_state() { return S_; }
-  Teuchos::RCP<CompositeVector> get_total_component_concentration() { return tcc_tmp; }
+  inline double get_cfl()
+  {
+    return cfl_;
+  }
+  Teuchos::RCP<const State> get_state()
+  {
+    return S_;
+  }
+  Teuchos::RCP<CompositeVector> get_total_component_concentration()
+  {
+    return tcc_tmp;
+  }
 
   // -- control members
   void CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents);
@@ -383,9 +392,18 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                              Teuchos::RCP<CompositeVector>& gradient,
                              Teuchos::RCP<Epetra_Vector>& limiter);
 
-  const std::vector<std::string> get_component_names() { return component_names_; };
-  int get_num_aqueous_component() { return num_aqueous; };
-  int get_num_gaseous_component() { return num_gaseous; };
+  const std::vector<std::string> get_component_names()
+  {
+    return component_names_;
+  };
+  int get_num_aqueous_component()
+  {
+    return num_aqueous;
+  };
+  int get_num_gaseous_component()
+  {
+    return num_gaseous;
+  };
 
 
   void ChangedSolutionPK(const Tag& tag);
@@ -416,8 +434,14 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                              double dT,
                              Epetra_MultiVector& v_int);
 
-  const Teuchos::RCP<Epetra_IntVector>& get_upwind_cell() { return upwind_cell_; }
-  const Teuchos::RCP<Epetra_IntVector>& get_downwind_cell() { return downwind_cell_; }
+  const Teuchos::RCP<Epetra_IntVector>& get_upwind_cell()
+  {
+    return upwind_cell_;
+  }
+  const Teuchos::RCP<Epetra_IntVector>& get_downwind_cell()
+  {
+    return downwind_cell_;
+  }
 
   // physical models
   // -- dispersion and diffusion

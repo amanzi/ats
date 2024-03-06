@@ -16,7 +16,7 @@
 #define AMANZI_TRANSPORT_CONSTANTS_HH_
 
 namespace Amanzi {
-namespace SedimentTransport {
+namespace Transport {
 
 // const int TRANSPORT_PHASE_LIQUID = 0;  // phases from 0 to 1
 // const int TRANSPORT_PHASE_GAS = 1;
@@ -57,7 +57,7 @@ const double TRANSPORT_LIMITER_TOLERANCE = 1e-14;
 
 const int TRANSPORT_INTERNAL_ERROR = 911; // contact (lipnikov@lanl.gov)
 
-} // namespace SedimentTransport
+} // namespace Transport
 } // namespace Amanzi
 
 #endif
