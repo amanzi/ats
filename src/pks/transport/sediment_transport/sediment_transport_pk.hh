@@ -51,7 +51,7 @@ pointers to the original variables.
 ****************************************************************** */
 
 namespace Amanzi {
-namespace SedimentTransport {
+namespace Transport {
 
 typedef double
 AnalyticFunction(const AmanziGeometry::Point&, const double);
@@ -286,7 +286,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   static RegisteredPKFactory<SedimentTransport_PK> reg_;
 };
 
-} // namespace SedimentTransport
+} // namespace Transport
 } // namespace Amanzi
 
 #endif

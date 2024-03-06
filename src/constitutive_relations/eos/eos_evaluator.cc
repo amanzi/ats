@@ -112,7 +112,8 @@ EOSEvaluator::ParsePlistConc_()
   Tag tag = my_keys_.front().second;
 
   // -- concentration
-  conc_key_ = Keys::readKeyTag(plist_, domain_name, "concentration", "total_component_concentration", tag);
+  conc_key_ =
+    Keys::readKeyTag(plist_, domain_name, "concentration", "total_component_concentration", tag);
   dependencies_.insert(conc_key_);
 }
 
@@ -156,9 +157,12 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
 
   // Pull dependencies out of state.
   auto tag = my_keys_.front().second;
-  if (eos_->IsConcentration()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
-  if (eos_->IsTemperature()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
-  if (eos_->IsPressure()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_.first, pres_key_.second).get());
+  if (eos_->IsConcentration())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
+  if (eos_->IsTemperature())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
+  if (eos_->IsPressure())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_.first, pres_key_.second).get());
 
   CompositeVector* molar_dens(nullptr);
   CompositeVector* mass_dens(nullptr);
@@ -241,13 +245,16 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
   std::vector<double> eos_params(num_dep);
   std::vector<const CompositeVector*> dep_cv;
   std::vector<const Epetra_MultiVector*> dep_vec(num_dep, nullptr);
-  KeyTag wrt{wrt_key, wrt_tag};
+  KeyTag wrt{ wrt_key, wrt_tag };
 
   // Pull dependencies out of state.
   auto tag = my_keys_.front().second;
-  if (eos_->IsConcentration()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
-  if (eos_->IsTemperature()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
-  if (eos_->IsPressure()) dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_.first, pres_key_.second).get());
+  if (eos_->IsConcentration())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(conc_key_.first, conc_key_.second).get());
+  if (eos_->IsTemperature())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(temp_key_.first, temp_key_.second).get());
+  if (eos_->IsPressure())
+    dep_cv.emplace_back(S.GetPtr<CompositeVector>(pres_key_.first, pres_key_.second).get());
 
   CompositeVector* molar_dens(nullptr);
   CompositeVector* mass_dens(nullptr);
