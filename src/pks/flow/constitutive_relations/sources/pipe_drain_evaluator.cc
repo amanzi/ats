@@ -26,7 +26,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   energ_loss_coeff_subweir_ = plist.get<double>("energy losses coeff submerged weir", 0.056);
   energ_loss_coeff_orifice_ = plist.get<double>("energy losses coeff orifice", 0.167);
   sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
-  pipe_domain_name_ = plist.get<std::string>("pipe domain name", ""); 
+  pipe_domain_name_ = plist.get<std::string>("pipe domain name", "pipe"); 
   Tag tag = my_keys_.front().second;
 
   // my dependencies
@@ -54,7 +54,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
     sink_source_coeff_ = -1.0;
   }
-  else {
+  else if (domain == sw_domain_name_){
     pipe_flag_ = false;
     sw_flag_ = true;
 
@@ -62,6 +62,10 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
     dependencies_.insert(KeyTag{mask_key_, tag});
     
     sink_source_coeff_ = 1.0;
+  }
+  else{
+     std::cout<<"Unknown domain in pipe drain evaluator"<<std::endl;
+     AMANZI_ASSERT(0);
   }
 }
 
