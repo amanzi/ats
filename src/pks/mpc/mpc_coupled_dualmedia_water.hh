@@ -59,7 +59,7 @@ class MPCCoupledDualMediaWater : public StrongMPC<PK_BDF_Default> {
   //         const Teuchos::RCP<TreeVector>& Pu);
 
   void GenerateOffDiagonalBlocks();
-  void UpdateOffDiagonalBlocks();
+  void UpdateOffDiagonalBlocks(Teuchos::RCP<const TreeVector> up);
 
  protected:
   Teuchos::RCP<Operators::TreeOperator> op_tree_matrix_, op_tree_pc_;

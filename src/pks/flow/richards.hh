@@ -369,6 +369,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // coupling terms
   bool coupled_to_surface_via_head_; // surface-subsurface Dirichlet coupler
   bool coupled_to_surface_via_flux_; // surface-subsurface Neumann coupler
+  bool coupled_to_surface_via_seepage_; // surface-subsurface Seepage coupler
 
   bool compute_boundary_values_;
 

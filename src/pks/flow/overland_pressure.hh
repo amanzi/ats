@@ -100,6 +100,7 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
 
     * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
     * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
+    * `"coupled to subsurface via seepage`" ``[bool]`` **false** Set by MPC.
 
     * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
       The inverse of the accumulation operator.  See PDE_Accumulation_.
@@ -288,6 +289,7 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // coupling term
   bool coupled_to_subsurface_via_head_;
   bool coupled_to_subsurface_via_flux_;
+  bool coupled_to_subsurface_via_seepage_;
 
   // newton correction
   bool jacobian_;

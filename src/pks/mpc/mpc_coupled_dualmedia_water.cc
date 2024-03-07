@@ -39,7 +39,9 @@ MPCCoupledDualMediaWater::Setup()
   
   pks_list_->sublist(subnames[0]).set("coupled to surface via flux", true);
   pks_list_->sublist(subnames[1]).set("coupled to subsurface via flux", true);
-  pks_list_->sublist(names[1]).set("coupled to surface via head", true);
+  pks_list_->sublist(names[1]).set("coupled to surface via seepage", true);
+  // pks_list_->sublist(names[1]).set("coupled to surface via head", true);
+  
   pks_list_->sublist(names[1]).set("surface domain name", domain_surf_);
   
   ss_flux_key_ =
@@ -175,8 +177,7 @@ void MPCCoupledDualMediaWater::GenerateOffDiagonalBlocks(){
   std::shared_ptr<std::vector<std::vector<int>>> inds_matrix = std::make_shared<std::vector<std::vector<int>>>(nsurf_cells);
   std::shared_ptr<std::vector<double>> values = std::make_shared<std::vector<double>>(nsurf_cells);
             
-  matrix_local_op_ = *(op2->begin());
-  
+  matrix_local_op_ = *(op2->begin());  
 
   std::string name = "Coupling Surface2Matrix: CELL_FACE+CELL";
   coupling02_local_op_ = Teuchos::rcp(new Operators::Op_Cell_FaceCell(name, domain_mesh_));
@@ -195,7 +196,7 @@ void MPCCoupledDualMediaWater::GenerateOffDiagonalBlocks(){
     (*inds_macro)[sc].resize(1);
     (*inds_matrix)[sc][0] = f;
     (*inds_macro)[sc][0] = f;
-    (*values)[sc] = -1;
+    (*values)[sc] = 0.0;
   }
 
   op_coupling02->OpErase(op_coupling02->begin(), op_coupling02->end());
@@ -239,34 +240,35 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   // propagate updated info into state
   Solution_to_State(*u_new, tag_next_);
 
-  const Epetra_MultiVector& matrix_ss_flux = *S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_)->ViewComponent("cell",false);
-  //const Epetra_MultiVector& macro_ss_flux = *S_->GetPtr<CompositeVector>(ss_macro_flux_key_, tag_next_)->ViewComponent("cell",false);
+  //const Epetra_MultiVector& matrix_ss_flux = *S_->GetPtr<CompositeVector>(ss_flux_key_, tag_next_)->ViewComponent("cell",false);
+  const Epetra_MultiVector& macro_ss_flux = *S_->GetPtr<CompositeVector>(ss_macro_flux_key_, tag_next_)->ViewComponent("cell",false);
 
-  Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_)->ViewComponent("cell",false);
-  //Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_)->ViewComponent("cell",false);
+  //Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_)->ViewComponent("cell",false);
+  Epetra_MultiVector& source = *S_->GetPtrW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_)->ViewComponent("cell",false);
 
-  //std::cout<<"Solution\n";
-  //std::cout<<"macro cell\n"<<*u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  //Epetra_MultiVector& tmp = *u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false);
-  //std::cout<<"Solution macro face "<<tmp[0][250]<<"\n";
-  //std::cout<<"subsurface cell\n"<<*u_new->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  //std::cout<<"Solution subsurface face "<<(*u_new->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
-  //std::cout<<"Solution surface "<<(*u_new->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
-  //std::cout<<"\n";
+  std::cout<<"Solution FunctionalResidual\n";
+  std::cout<<"sub cell\n"<< std::setprecision(14)<<*u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  Epetra_MultiVector& tmp = *u_new->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false);
+  std::cout<<"Solution sub face "<< std::setprecision(14)<<tmp<<"\n";
+  std::cout<<"macro cell\n"<< std::setprecision(14)<<*u_new->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  std::cout<<"Solution macro face "<< std::setprecision(14)<<(*u_new->SubVector(1)->Data()->ViewComponent("face",false))<<"\n";
+  std::cout<<"Solution surface "<< std::setprecision(14)<<(*u_new->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
+  std::cout<<"\n";
   
   single_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(1),
                             u_new->SubVector(1), g->SubVector(1));
 
-  std::cout<<"single pk cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"single pk face\n" <<*g->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+  // std::cout<<"single pk cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"single pk face\n" <<*g->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
 
   //std::cout<<"Matrix\n"<<*S_->GetPtr<CompositeVector>(matrix_flux_key_, tag_next_)->ViewComponent("face",false)<<"\n";
 
-  //CopySubsurfaceToSurface(S_->Get<CompositeVector>(macro_flux_key_, tag_next_),
-  //			  S_->GetW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_));
   
-  CopySubsurfaceToSurface(S_->Get<CompositeVector>(matrix_flux_key_, tag_next_),
-         		  S_->GetW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_));
+  // CopySubsurfaceToSurface(S_->Get<CompositeVector>(matrix_flux_key_, tag_next_),
+  //        		  S_->GetW<CompositeVector>(ss_flux_key_, tag_next_, ss_flux_key_));
+
+  CopySubsurfaceToSurface(S_->Get<CompositeVector>(macro_flux_key_, tag_next_),
+         		  S_->GetW<CompositeVector>(ss_macro_flux_key_, tag_next_, ss_macro_flux_key_));
   
   //std::cout<<"Matrix\n"<<matrix_ss_flux<<"\n";
   //std::cout<<"Surface\n"<<source<<"\n";
@@ -282,11 +284,11 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   
   //std::cout<<"Surface\n"<<source<<"\n";
 
-  source.Update(-1, matrix_ss_flux, 1);
-  //source.Update(-1, macro_ss_flux, 1);
+  //source.Update(-1, matrix_ss_flux, 1);
+  source.Update(-1, macro_ss_flux, 1);
   
-  changedEvaluatorPrimary(ss_macro_flux_key_, tag_next_, *S_);
-  //changedEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
+  //changedEvaluatorPrimary(ss_macro_flux_key_, tag_next_, *S_);
+  changedEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
   
   // Evaluate the macropore residual, which uses this flux as a Neumann BC.
   embedded_flow_pk_->FunctionalResidual(t_old, t_new, u_old->SubVector(0)->SubVector(0),
@@ -298,11 +300,11 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
 
   //std::cout<<"Residual\n";
   //std::cout<<"macro cell\n"<<*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"Residual macro face "<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))[0][250]<<"\n";
+  // std::cout<<"Residual macro face "<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))<<"\n";
   //std::cout<<"subsurfcace cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"Residual subsurface face " <<(*g->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
-  std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
-  std::cout<<"\n";
+  // std::cout<<"Residual subsurface face " <<(*g->SubVector(1)->Data()->ViewComponent("face",false))<<"\n";
+  // std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))<<"\n";
+  // std::cout<<"\n";
 
 
 
@@ -368,13 +370,13 @@ MPCCoupledDualMediaWater::FunctionalResidual(double t_old,
   // // All surface to macropore fluxes have been taken by the macropore
   // g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)->PutScalar(0.);
 
-  // //std::cout<<"Residual\n";
-  // //std::cout<<"macro cell\n"<<*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  // std::cout<<"Residual macro face "<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))[0][250]<<"\n";
-  // //std::cout<<"subsurfcace cell\n"<<*g->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  // std::cout<<"Residual subsurface face " <<(*g->SubVector(1)->Data()->ViewComponent("face",false))[0][250]<<"\n";
-  // std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
-  // std::cout<<"\n";
+  //std::cout<<"Residual\n";
+  std::cout<<"macro cell\n"<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false))[0][7]<<"\n";
+  std::cout<<"Residual macro face "<<(*g->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))[0][40]<<"\n";
+  std::cout<<"subsurfcace cell\n"<<(*g->SubVector(1)->Data()->ViewComponent("cell",false))[0][7]<<"\n";
+  std::cout<<"Residual subsurface face " <<(*g->SubVector(1)->Data()->ViewComponent("face",false))[0][40]<<"\n";
+  std::cout<<"Residual surface "   <<(*g->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false))[0][0]<<"\n";
+  std::cout<<"\n";
 
 }
 
@@ -385,13 +387,13 @@ MPCCoupledDualMediaWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 {
   int ierr;
 
-  std::cout<<"Vector u\n";
-  std::cout<<"embeded cell\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"emdbbed face\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
-  std::cout<<"surface\n"   <<*u->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"single cell\n"<<*u->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"singleface face\n" <<*u->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
-  std::cout<<"\n";
+  // std::cout<<"Vector u\n";
+  // std::cout<<"embeded cell\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"emdbbed face\n"<<*u->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
+  // std::cout<<"surface\n"   <<*u->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"single cell\n"<<*u->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
+  // std::cout<<"singleface face\n" <<*u->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+  // std::cout<<"\n";
 
   Comm_ptr_type comm = solution_->Comm();
   Teuchos::RCP<TreeVector> u_reduced = Teuchos::rcp(new TreeVector(tvs_));
@@ -420,7 +422,8 @@ MPCCoupledDualMediaWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
   //int ok = StrongMPC<PK_BDF_Default>::ApplyPreconditioner(u, Pu);
 
-  const Epetra_MultiVector& subsurface_vec_f = *Pu->SubVector(1)->Data()->ViewComponent("face",false); 
+  const Epetra_MultiVector& subsurface_vec_f = *Pu->SubVector(1)->Data()->ViewComponent("face",false);
+  const Epetra_MultiVector& macropore_vec_f = *Pu->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false); 
   Epetra_MultiVector& surface_vec = *Pu->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false);
   unsigned int ncells_surface = surface_vec.MyLength();
 
@@ -431,7 +434,8 @@ MPCCoupledDualMediaWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
     domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
     AMANZI_ASSERT(cells.size() == 1);
 #endif
-    surface_vec[0][c] = subsurface_vec_f[0][f];
+    // surface_vec[0][c] = subsurface_vec_f[0][f];
+    surface_vec[0][c] = macropore_vec_f[0][f];
   }
 
   // std::cout<<"Vector Pu_reduced\n";
@@ -443,15 +447,14 @@ MPCCoupledDualMediaWater::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 
   
   std::cout<<"Vector Pu\n";
-  std::cout<<"macro cell\n"<<*Pu->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"macro face\n"<<*Pu->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"subsurface cell\n"<<(*Pu->SubVector(0)->SubVector(0)->Data()->ViewComponent("cell",false))[0][7]<<"\n";
+  std::cout<<"subsurface face\n"<<(*Pu->SubVector(0)->SubVector(0)->Data()->ViewComponent("face",false))[0][40]<<"\n";
   std::cout<<"surface\n"   <<*Pu->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"subsurfcace cell\n"<<*Pu->SubVector(1)->Data()->ViewComponent("cell",false)<<"\n";
-  std::cout<<"subsurface face\n" <<*Pu->SubVector(1)->Data()->ViewComponent("face",false)<<"\n";
+  std::cout<<"macro cell\n"<<(*Pu->SubVector(1)->Data()->ViewComponent("cell",false))[0][7]<<"\n";
+  std::cout<<"macro face\n" <<(*Pu->SubVector(1)->Data()->ViewComponent("face",false))[0][40]<<"\n";
   std::cout<<"\n";
-
-
-  //  exit(-1);
+  std::cout<<"mpc_coupled_dualmedia.cc:456\n";
+  // exit(-1);
 
   return ok;
 }
@@ -466,7 +469,13 @@ MPCCoupledDualMediaWater::UpdatePreconditioner(double t,
   if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   StrongMPC<PK_BDF_Default>::UpdatePreconditioner(t, up, h);
-  UpdateOffDiagonalBlocks();
+
+  // int ncells_owned = surf_mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  // for (int sc=0; sc<ncells_owned; ++sc){
+  //   matrix_local_op_->matrices_shadow[f_cells[0]] = matrix_local_op_->matrices[f_cells[0]];
+  // }
+  
+  UpdateOffDiagonalBlocks(up);
   
   op_tree_pc_->ComputeInverse();
 
@@ -474,41 +483,60 @@ MPCCoupledDualMediaWater::UpdatePreconditioner(double t,
 }
 
 void
-MPCCoupledDualMediaWater::UpdateOffDiagonalBlocks(){
+MPCCoupledDualMediaWater::UpdateOffDiagonalBlocks(Teuchos::RCP<const TreeVector> up){
 
   std::cout<<"UpdateOffDiagonalBlocks\n";
+  const Epetra_MultiVector& surface_vec = *up->SubVector(0)->SubVector(1)->Data()->ViewComponent("cell",false);
   int ncells_owned = surf_mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  std::vector<double>& block_val = *coupling20_local_op_->get_values();
+
+  
   for (int sc=0; sc<ncells_owned; ++sc){    
     AmanziMesh::Entity_ID f = surf_mesh_->entity_get_parent(AmanziMesh::CELL, sc);
-    std::cout<<"FACE: "<<f<<"\n";
+    std::cout<<"FACE: "<<f<<" "<<surface_vec[0][sc]<<"\n";
     AmanziMesh::Entity_ID_List f_cells;
     domain_mesh_->face_get_cells(f, AmanziMesh::Parallel_type::OWNED, &f_cells);
     AMANZI_ASSERT(f_cells.size() == 1);
-    std::cout << matrix_local_op_->matrices[f_cells[0]]<<"\n";
+    //std::cout << matrix_local_op_->matrices[f_cells[0]]<<"\n";
     AmanziMesh::Entity_ID_List c_faces = domain_mesh_->cell_get_faces(f_cells[0]);
     int num_faces = c_faces.size();
     for (int i=0; i<num_faces; ++i){
       if (c_faces[i]==f){
-	for (int j=0; j<num_faces+1; j++){
-	  (coupling02_local_op_->matrices[f_cells[0]])(i,j) = (matrix_local_op_->matrices_shadow[f_cells[0]])(i,j);
-	  //(coupling02_local_op_->matrices[f_cells[0]])(i,j) = 88800.0;
-	  if (j==i){
-	    (matrix_local_op_->matrices[f_cells[0]])(i,j) = 1.;
-	  }else{
-	    (matrix_local_op_->matrices[f_cells[0]])(i,j) = 0;
-	  }
-	}
+        std::cout<<"Surface pressure "<< surface_vec[0][sc] <<"\n";
+        if (surface_vec[0][sc] >= p_atm) {
+          for (int j=0; j<num_faces+1; j++){
+            (coupling02_local_op_->matrices[f_cells[0]])(i,j) = (matrix_local_op_->matrices_shadow[f_cells[0]])(i,j);
+            if (j==i){
+              (matrix_local_op_->matrices[f_cells[0]])(i,j) = 1.;
+            }else{
+              (matrix_local_op_->matrices[f_cells[0]])(i,j) = 0;
+            }
+          }
+          block_val[sc] = -1.0;
+        } else {
+          for (int j=0; j<num_faces+1; j++){
+            (coupling02_local_op_->matrices[f_cells[0]])(i,j) = 0.0;
+            //matrix_local_op_->matrices[f_cells[0]](i,j) = matrix_local_op_->matrices_shadow[f_cells[0]](i,j);
+            //matrix_local_op_->matrices[f_cells[0]](i,i) = 1000.0;
+          }
+          block_val[sc] = 0.0;
+        }
       }
     }
     std::cout << matrix_local_op_->matrices[f_cells[0]] <<"\n";
     std::cout << coupling02_local_op_->matrices[f_cells[0]] <<"\n";
-    std::cout << matrix_local_op_->matrices_shadow[f_cells[0]] <<"\n";
+    // std::cout << matrix_local_op_->matrices_shadow[f_cells[0]] <<"\n";
     // std::cout << coupling02_local_op_->matrices_shadow[f_cells[0]] <<"\n";
     
   }
+
+  coupling20_local_op_ -> UpdateMatrices(Teuchos::null, Teuchos::null);  
+  
  
   //op_coupling02->AssembleMatrix();
 
+  //exit(0);
   
 }
 

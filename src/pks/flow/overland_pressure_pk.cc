@@ -42,6 +42,7 @@ OverlandPressureFlow::OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
     is_source_term_(false),
     coupled_to_subsurface_via_head_(false),
     coupled_to_subsurface_via_flux_(false),
+    coupled_to_subsurface_via_seepage_(false),
     perm_update_required_(true),
     update_flux_(UPDATE_FLUX_ITERATION),
     source_only_if_unfrozen_(false),
@@ -288,9 +289,10 @@ OverlandPressureFlow::SetupOverlandFlow_()
   // -- coupling to subsurface
   coupled_to_subsurface_via_flux_ = plist_->get<bool>("coupled to subsurface via flux", false);
   coupled_to_subsurface_via_head_ = plist_->get<bool>("coupled to subsurface via head", false);
-  AMANZI_ASSERT(!(coupled_to_subsurface_via_flux_ && coupled_to_subsurface_via_head_));
+  coupled_to_subsurface_via_seepage_ = plist_->get<bool>("coupled to subsurface via seepage", false);
+  AMANZI_ASSERT(!(coupled_to_subsurface_via_flux_ && (coupled_to_subsurface_via_seepage_ || coupled_to_subsurface_via_head_)));
 
-  if (coupled_to_subsurface_via_head_) {
+  if (coupled_to_subsurface_via_head_ || coupled_to_subsurface_via_seepage_) {
     // -- source term from subsurface, filled in by evaluator,
     //    which picks the fluxes from "water_flux" field.
     ss_flux_key_ = Keys::readKey(*plist_, domain_, "surface-subsurface flux", "subsurface_flux");

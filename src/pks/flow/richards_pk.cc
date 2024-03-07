@@ -46,6 +46,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
     PK_PhysicalBDF_Default(pk_tree, glist, S, solution),
     coupled_to_surface_via_head_(false),
     coupled_to_surface_via_flux_(false),
+    coupled_to_surface_via_seepage_(false),
     infiltrate_only_if_unfrozen_(false),
     modify_predictor_with_consistent_faces_(false),
     modify_predictor_wc_(false),
@@ -371,8 +372,24 @@ Richards::SetupRichardsFlow_()
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
+  // -- coupling done by a Dirichlet condition
+  coupled_to_surface_via_seepage_ = plist_->get<bool>("coupled to surface via seepage", false);
+  if (coupled_to_surface_via_seepage_) {
+    Key domain_surf = Keys::readDomainHint(*plist_, domain_, "subsurface", "surface");
+    ss_primary_key_ = Keys::readKey(*plist_, domain_surf, "pressure", "pressure");
+    S_->Require<CompositeVector, CompositeVectorSpace>(ss_primary_key_, tag_next_)
+      .SetMesh(S_->GetMesh(domain_surf))
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    ss_flux_key_ =
+      Keys::readKey(*plist_, domain_surf, "surface-subsurface flux", domain_surf+"_"+domain_+"_"+"flux");
+    S_->Require<CompositeVector, CompositeVectorSpace>(ss_flux_key_, tag_next_)
+      .SetMesh(S_->GetMesh(domain_surf))
+      ->AddComponent("cell", AmanziMesh::CELL, 1);
+    requireEvaluatorPrimary(ss_flux_key_, tag_next_, *S_);
+  }
+  
   // -- Make sure coupling isn't flagged multiple ways.
-  if (coupled_to_surface_via_flux_ && coupled_to_surface_via_head_) {
+  if (coupled_to_surface_via_flux_ && (coupled_to_surface_via_head_||coupled_to_surface_via_seepage_)) {
     Errors::Message message("Richards PK requested both flux and head coupling -- choose one.");
     Exceptions::amanzi_throw(message);
   }
@@ -1185,7 +1202,7 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 
   if (coupled_to_surface_via_head_) {
     // Face is Dirichlet with value of surface head
-    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh("surface");
+    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_primary_key_));
     const Epetra_MultiVector& head =
       *S_->GetPtr<CompositeVector>(ss_primary_key_, tag)->ViewComponent("cell", false);
 
@@ -1235,6 +1252,45 @@ Richards::UpdateBoundaryConditions_(const Tag& tag, bool kr)
 
       if (!kr && rel_perm[0][f] > 0.) values[f] /= rel_perm[0][f];
     }
+  }
+
+    // surface coupling
+  bc_counts.push_back(0);
+  bc_names.push_back("surface coupling (seepage)");
+  if (coupled_to_surface_via_seepage_) {
+    // Face is Dirichlet with value of surface head
+    Teuchos::RCP<const AmanziMesh::Mesh> surface = S_->GetMesh(Keys::getDomain(ss_primary_key_));
+    const Epetra_MultiVector& head =
+      *S_->GetPtr<CompositeVector>(ss_primary_key_, tag)->ViewComponent("cell", false);
+
+    unsigned int ncells_surface = head.MyLength();
+    bc_counts[bc_counts.size() - 1] = ncells_surface;
+
+    for (unsigned int c = 0; c != ncells_surface; ++c) {
+      // -- get the surface cell's equivalent subsurface face
+      AmanziMesh::Entity_ID f = surface->entity_get_parent(AmanziMesh::CELL, c);
+#ifdef ENABLE_DBC
+      AmanziMesh::Entity_ID_List cells;
+      mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+      AMANZI_ASSERT(cells.size() == 1);
+#endif
+      const double& p_atm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
+
+      if (head[0][c] >= p_atm) {
+        // -- set that value to dirichlet
+        markers[f] = Operators::OPERATOR_BC_DIRICHLET;
+        // values[f] = head[0][c];        
+        // *vo_->os() <<"Seepage DIRICHLET "<<values[f]<<"\n";
+        values[f] = p_atm;        
+        *vo_->os() <<"Seepage DIRICHLET "<<p_atm<<"\n";
+      }else{
+        // -- set no-flow BC
+        markers[f] = Operators::OPERATOR_BC_NEUMANN;
+        values[f] = 0.0;
+        *vo_->os() <<"Seepage NEUMANN\n";
+      }
+    }
+
   }
 
   // mark all remaining boundary conditions as zero flux conditions
@@ -1454,6 +1510,13 @@ Richards::IsAdmissible(Teuchos::RCP<const TreeVector> up)
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Checking admissibility..." << std::endl;
 
+        std::cout<<"NKA update\n";
+        std::cout<<domain_<<" cell\n"<<(*up->Data()->ViewComponent("cell",false))[0][7]<<"\n";
+        std::cout<<domain_<<" face\n"<<(*up->Data()->ViewComponent("face",false))[0][40]<<"\n";
+        std::cout<<"\n";        
+
+
+  
   // For some reason, wandering PKs break most frequently with an unreasonable
   // pressure.  This simply tries to catch that before it happens.
   Teuchos::RCP<const CompositeVector> pres = up->Data();
