@@ -58,7 +58,7 @@ Example:
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
