@@ -13,8 +13,7 @@ namespace Amanzi {
 namespace Flow {
 
 // registry of method
-Utils::RegisteredFactory<Evaluator, WRMEvaluator> WRMEvaluator::factory_("WRM");
-Utils::RegisteredFactory<Evaluator, WRMEvaluator> WRMEvaluator::factory2_("wrm");
+Utils::RegisteredFactory<Evaluator, WRMEvaluator> WRMEvaluator::reg_("water retention model");
 
 } // namespace Flow
 } // namespace Amanzi

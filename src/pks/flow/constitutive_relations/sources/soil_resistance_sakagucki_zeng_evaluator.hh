@@ -26,9 +26,9 @@ referred to Sakagucki and Zeng (2009).
     through method 2 in Ma et al. (1999). Originally this method is from
     Lenhard et al. (1989).
 
-    - If `"Brooks-Corey`" is used for WRM, `"Brooks Corey lambda [-]`" will
+    - If `"Brooks-Corey`" is used for WRM, `"Brooks-Corey lambda [-]`" will
     be used to determine Clapp-Hornberger-b, which is the reciprocal of
-    `"Brooks Corey lambda [-]`".
+    `"Brooks-Corey lambda [-]`".
 
     - `"residual saturation [-]`" ``[double]`` **0.0**
 
