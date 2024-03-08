@@ -63,7 +63,7 @@ Utils::RegisteredFactory<Evaluator, PETPriestleyTaylorEvaluator>
   PETPriestleyTaylorEvaluator::reg_("potential evapotranspiration, Priestley-Taylor");
 
 Utils::RegisteredFactory<Evaluator, EvaporationDownregulationEvaluator>
-  EvaporationDownregulationEvaluator::reg_("evaporation downregulation via soil resistance");
+  EvaporationDownregulationEvaluator::reg_("evaporation downregulation, soil resistance");
 
 Utils::RegisteredFactory<Evaluator, PlantWiltingFactorEvaluator>
   PlantWiltingFactorEvaluator::reg_("plant wilting factor");
@@ -72,10 +72,10 @@ Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator>
   RootingDepthFractionEvaluator::reg_("root fraction");
 
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator>
-  TranspirationDistributionEvaluator::reg_("transpiration distribution via rooting depth");
+  TranspirationDistributionEvaluator::reg_("transpiration distribution, rooting depth");
 Utils::RegisteredFactory<Evaluator, TranspirationDistributionRelPermEvaluator>
   TranspirationDistributionRelPermEvaluator::reg_(
-    "transpiration distribution via relative permeability");
+    "transpiration distribution, relative permeability");
 
 Utils::RegisteredFactory<Evaluator, SnowMeltRateEvaluator>
   SnowMeltRateEvaluator::reg_("snow melt rate");

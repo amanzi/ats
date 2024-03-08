@@ -114,8 +114,7 @@ class WRMEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key cap_pres_key_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator, WRMEvaluator> factory_;
-  static Utils::RegisteredFactory<Evaluator, WRMEvaluator> factory2_;
+  static Utils::RegisteredFactory<Evaluator, WRMEvaluator> reg_;
 };
 
 } // namespace Flow

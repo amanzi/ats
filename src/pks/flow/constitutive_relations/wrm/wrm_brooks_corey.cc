@@ -30,9 +30,9 @@ WRMBrooksCorey::WRMBrooksCorey(Teuchos::ParameterList& plist) : plist_(plist)
 void
 WRMBrooksCorey::InitializeFromPlist_()
 {
-  lambda_ = plist_.get<double>("Brooks Corey lambda [-]");
+  lambda_ = plist_.get<double>("Brooks-Corey lambda [-]");
   b_ = 1. / lambda_; // clapp hornberger b
-  p_sat_ = plist_.get<double>("Brooks Corey saturated matric suction [Pa]");
+  p_sat_ = plist_.get<double>("Brooks-Corey saturated matric suction [Pa]");
   sr_ = plist_.get<double>("residual saturation [-]", 0.0);
 
   s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);

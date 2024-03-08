@@ -112,8 +112,8 @@ parameters to Brooks-Corey parameters.
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
           <Parameter name="wrm type" type="string" value="Brooks-Corey" />
-          <Parameter name="Brooks Corey lambda [-]" type="double" value="0.49" />
-          <Parameter name="Brooks Corey saturted matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
+          <Parameter name="Brooks-Corey saturted matric suction [Pa]" type="double" value="32439.03" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
           <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
         </ParameterList>

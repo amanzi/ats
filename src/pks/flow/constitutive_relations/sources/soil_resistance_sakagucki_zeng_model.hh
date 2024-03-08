@@ -81,7 +81,7 @@ class SoilResistanceSakaguckiZengModel {
         b_ = 1. / lambda;
       }
     } else if (plist_.get<std::string>("wrm type") == "Brooks-Corey") {
-      double lambda = plist_.get<double>("Brooks Corey lambda [-]");
+      double lambda = plist_.get<double>("Brooks-Corey lambda [-]");
       b_ = 1. / lambda;
     } else {
       b_ = plist_.get<double>("Clapp-Hornberger b [-]");
