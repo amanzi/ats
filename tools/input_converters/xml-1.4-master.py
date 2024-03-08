@@ -431,16 +431,17 @@ def rename_wrm_rel_perm_evaluator(xml):
             eval_type.setValue("relative permeability, van Genuchten")
         
 
-def copy_gas_liquid(xml):
-    evals_list = asearch.find_path(xml, ["state", "evaluators"], no_skip=True)
-    try:
-        sat_gas_eval = next(eval_list for eval_list in evals_list if "saturation_gas" in eval_list.getName())
-    except StopIteration:
-        return
-    else:
-        sat_liq_eval = copy.deepcopy(sat_gas_eval)
-        sat_liq_eval.setName(sat_gas_eval.getName().replace("saturation_gas", "saturation_liquid"))
-        evals_list.append(sat_liq_eval)
+def lowercase_wrmtype(xml):
+    def _wrmtype(match, wrmtype_uppercase):
+        name = match.getName()
+        if wrmtype_uppercase in name:
+            name = name.replace(wrmtype_uppercase, 'wrm type')
+            match.setName(name)
+            
+    matches = xml.findall('.//')
+    for match in matches:
+        for i in ['WRM Type', 'WRM type']:
+            _wrmtype(match, i)
 
             
 def update(xml, transpiration_distribution=False, frozen_krel=False,
@@ -469,7 +470,7 @@ def update(xml, transpiration_distribution=False, frozen_krel=False,
 
     move_wrm_to_state_evaluators(xml)
     rename_wrm_rel_perm_evaluator(xml)
-    copy_gas_liquid(xml)
+    lowercase_wrmtype(xml)
     
 
 if __name__ == "__main__":

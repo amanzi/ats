@@ -12,7 +12,7 @@
   <ul>Native Spec Example</>
     <ParameterList name="moss" type="ParameterList">
       <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM Type" type="string" value="van Genuchten" />
+      <Parameter name="wrm type" type="string" value="van Genuchten" />
       <Parameter name="van Genuchten alpha" type="double" value="0.002" />
       <Parameter name="van Genuchten m" type="double" value="0.2" />
       <Parameter name="residual saturation" type="double" value="0.0" />
