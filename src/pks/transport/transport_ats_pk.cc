@@ -279,12 +279,11 @@ Transport_ATS::SetupTransport_()
         std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
         wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
         wc_eval.set<std::string>("reciprocal", dep[1]);
-
-        requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
-          .SetMesh(mesh_)
-          ->SetGhosted(true)
-          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
+      requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+        .SetMesh(mesh_)
+        ->SetGhosted(true)
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);      
     }    
   }
 
@@ -414,16 +413,18 @@ Transport_ATS::SetupPhysicalEvaluators_()
   // Require a copy of saturation at the old time tag
   requireAtCurrent(saturation_key_, Tags::CURRENT, *S_);
 
-  requireAtNext(porosity_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  requireAtCurrent();
 
-  requireAtNext(molar_density_key_, Tags::NEXT, *S_)
-    .SetMesh(mesh_)
-    ->SetGhosted(true)
-    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-  requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
+  // requireAtNext(porosity_key_, Tags::NEXT, *S_)
+  //   .SetMesh(mesh_)
+  //   ->SetGhosted(true)
+  //   ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+
+  // requireAtNext(molar_density_key_, Tags::NEXT, *S_)
+  //   .SetMesh(mesh_)
+  //   ->SetGhosted(true)
+  //   ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  // requireAtCurrent(molar_density_key_, Tags::CURRENT, *S_);
 
   requireAtNext(tcc_key_, tag_next_, *S_, passwd_)
     .SetMesh(mesh_)
@@ -628,10 +629,11 @@ Transport_ATS::StableTimeStep()
   for (int c = 0; c < ncells_owned; c++) {
     double outflux = total_outflux[c];
 
-    if ((outflux > 0) && ((*ws_prev_)[0][c] > 0) && ((*ws_)[0][c] > 0) && ((*phi_)[0][c] > 0)) {
+    if ((outflux > 0) && ((*ws_prev_)[0][c] > 0) && ((*ws_)[0][c] > 0)) { // should be water content
       vol = mesh_->getCellVolume(c);
-      dt_cell = vol * (*mol_dens_)[0][c] * (*phi_)[0][c] *
-                std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
+      dt_cell = std::min((*ws_prev_)[0][c],(*ws_)[0][c]) / outflux;  // should be water content
+      // vol * (*mol_dens_)[0][c] * (*phi_)[0][c] *
+      //           std::min((*ws_prev_)[0][c], (*ws_)[0][c]) / outflux;
     }
     if (dt_cell < dt_) {
       dt_ = dt_cell;
@@ -1091,11 +1093,12 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
   double mass_current = 0., tmp1, mass;
 
   int num_components = tcc_next.NumVectors();
-  conserve_qty_->PutScalar(0.);
+  Epetra_MultiVector& conserve_qty = *S_->GetW<CompositeVector>(conserve_qty_key_, tag_current_, conserve_qty_key_).ViewComponent("cell",false);
+  conserve_qty.PutScalar(0.);
 
-  for (int c = 0; c < ncells_owned; c++) {
+  for (int c = 0; c < conserve_qty.MyLength(); c++) {
     double vol_phi_ws_den =
-      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
+      mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];  // should be water content
     (*conserve_qty_)[num_components + 1][c] = vol_phi_ws_den;
 
     for (int i = 0; i < num_advect; i++) {

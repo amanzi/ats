@@ -492,13 +492,13 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 
   Key passwd_;
 
-  Teuchos::RCP<CompositeVector> tcc_w_src;
-  Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
-  Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
-  Teuchos::RCP<const Epetra_MultiVector> flux_;
-  Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
-  Teuchos::RCP<Epetra_MultiVector> flux_copy_;
+  // // Teuchos::RCP<CompositeVector> tcc_w_src;
+  // // Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
+  // // Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
+  // Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
+  // Teuchos::RCP<const Epetra_MultiVector> flux_;
+  // Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
+  // Teuchos::RCP<Epetra_MultiVector> flux_copy_;
 
 #ifdef ALQUIMIA_ENABLED
   Teuchos::RCP<AmanziChemistry::Alquimia_PK> chem_pk_;
@@ -508,10 +508,10 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<Epetra_IntVector> upwind_cell_;
   Teuchos::RCP<Epetra_IntVector> downwind_cell_;
 
-  Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
-  Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
+  // Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
+  // Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
+  // Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
+  // Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
 
   int current_component_; // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
