@@ -279,12 +279,11 @@ Transport_ATS::SetupTransport_()
         std::vector<std::string> dep{ water_src_key_, molar_density_key_ };
         wc_eval.set<Teuchos::Array<std::string>>("dependencies", dep);
         wc_eval.set<std::string>("reciprocal", dep[1]);
-
-        requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
-          .SetMesh(mesh_)
-          ->SetGhosted(true)
-          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
       }
+      requireAtNext(geochem_src_factor_key_, Tags::NEXT, *S_)
+        .SetMesh(mesh_)
+        ->SetGhosted(true)
+        ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     }    
   }
 
@@ -298,13 +297,13 @@ Transport_ATS::SetupTransport_()
   if (plist_->isSublist("boundary conditions")) {
     // -- try tracer-type conditions
     PK_DomainFunctionFactory<TransportDomainFunction> factory(mesh_, S_);
-    Teuchos::ParameterList& conc_bcs_list =
-      plist_->sublist("boundary conditions").sublist("concentration");
+    auto bcs_list = Teuchos::sublist(plist_, "boundary conditions");
+    auto conc_bcs_list = Teuchos::sublist(bcs_list, "concentration");
 
-    for (const auto& it : conc_bcs_list) {
+    for (const auto& it : *conc_bcs_list) {
       std::string name = it.first;
-      if (conc_bcs_list.isSublist(name)) {
-        Teuchos::ParameterList& bc_list = conc_bcs_list.sublist(name);
+      if (conc_bcs_list->isSublist(name)) {
+        Teuchos::ParameterList& bc_list = conc_bcs_list->sublist(name);
         std::string bc_type = bc_list.get<std::string>("spatial distribution method", "none");
 
         if (bc_type == "domain coupling") {
@@ -364,20 +363,15 @@ Transport_ATS::SetupTransport_()
 
 #ifdef ALQUIMIA_ENABLED
     // -- try geochemical conditions
-    Teuchos::ParameterList& geochem_plist =
-      plist_->sublist("boundary conditions").sublist("geochemical");
+    auto geochem_list = Teuchos::sublist(bcs_list, "geochemical");
 
-    for (Teuchos::ParameterList::ConstIterator it = geochem_plist.begin();
-         it != geochem_plist.end();
-         ++it) {
-      std::string specname = it->first;
-      Teuchos::ParameterList& spec = geochem_plist.sublist(specname);
-
+    for (const auto& it : *geochem_list) {
+      std::string specname = it.first;
+      Teuchos::ParameterList& spec = geochem_list->sublist(specname);
       Teuchos::RCP<TransportBoundaryFunction_Alquimia_Units> bc = Teuchos::rcp(
         new TransportBoundaryFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
       bc->set_conversion(1000.0, mol_dens_, true);
-      //bc->set_name("alquimia bc");
       std::vector<int>& tcc_index = bc->tcc_index();
       std::vector<std::string>& tcc_names = bc->tcc_names();
 
@@ -470,7 +464,7 @@ Transport_ATS::SetupPhysicalEvaluators_()
 //
 void
 Transport_ATS::Initialize()
-{
+{ 
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // Set initial values for transport variables.
@@ -531,33 +525,36 @@ Transport_ATS::Initialize()
   VV_CheckInfluxBC();
 
   // Move to Setup() with other sources? --ETC
+  // This must be called after S_->setup() since "water_source" data not created before this step. --PL
   if (plist_->isSublist("source terms")) {
+    auto sources_list = Teuchos::sublist(plist_, "source terms");
+    if (sources_list->isSublist("geochemical")) {
 #ifdef ALQUIMIA_ENABLED
-    // -- try geochemical conditions
-    Teuchos::ParameterList& geochem_list = plist_->sublist("source terms").sublist("geochemical");
+      // -- try geochemical conditions
+      auto geochem_list = Teuchos::sublist(sources_list, "geochemical");
 
-    for (auto it = geochem_list.begin(); it != geochem_list.end(); ++it) {
-      std::string specname = it->first;
-      Teuchos::ParameterList& spec = geochem_list.sublist(specname);
+      for (const auto& it : *geochem_list) {
+        std::string specname = it.first;
+        Teuchos::ParameterList& spec = geochem_list->sublist(specname);
+        Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src = Teuchos::rcp(
+          new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
 
-      Teuchos::RCP<TransportSourceFunction_Alquimia_Units> src = Teuchos::rcp(
-        new TransportSourceFunction_Alquimia_Units(spec, mesh_, chem_pk_, chem_engine_));
+        if (S_->HasEvaluator(geochem_src_factor_key_, Tags::NEXT)) {
+          S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
+        }
 
-      if (S_->HasEvaluator(geochem_src_factor_key_, Tags::NEXT)) {
-        S_->GetEvaluator(geochem_src_factor_key_, Tags::NEXT).Update(*S_, name_);
+        auto src_factor =
+          S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell", false);
+        src->set_conversion(-1000., src_factor, false);
+
+        for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber(n)); }
+
+        srcs_.push_back(src);
       }
-
-      auto src_factor =
-        S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell", false);
-      src->set_conversion(-1000., src_factor, false);
-
-      for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber(n)); }
-
-      srcs_.push_back(src);
-    }
 #endif
+    }
   }
-
+   
   // Temporarily Transport hosts Henry law.
   PrepareAirWaterPartitioning_();
 
