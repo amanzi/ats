@@ -15,6 +15,8 @@
    ------------------------------------------------------------------------- */
 
 #include <string>
+
+#include "errors.hh"
 #include "wrm_factory.hh"
 
 namespace Amanzi {
@@ -26,14 +28,23 @@ WRMFactory::createWRM(Teuchos::ParameterList& plist)
 {
   std::string wrm_typename;
   // need to deprecate "WRM Type"
-  if (plist.isParameter("wrm type"))
+  if (plist.isParameter("wrm type")) {
     wrm_typename = plist.get<std::string>("wrm type");
-  else if (plist.isParameter("WRM Type"))
-    wrm_typename = plist.get<std::string>("WRM Type");
-  else if (plist.isParameter("WRM type"))
-    wrm_typename = plist.get<std::string>("WRM type");
-  else
+  } else if (plist.isParameter("WRM Type")) {
+    Errors::Message msg;
+    msg << "WRMFactory: deprecated parameter \"WRM Type\" in list \""
+        << plist.name() << "\" -- new parameter name is \"wrm type\"";
+    Exceptions::amanzi_throw(msg);
+  } else if (plist.isParameter("WRM type")) {
+    Errors::Message msg;
+    msg << "WRMFactory: deprecated parameter \"WRM type\" in list \""
+        << plist.name() << "\" -- new parameter name is \"wrm type\"";
+    Exceptions::amanzi_throw(msg);
+  } else {
+    // throw the missing parameter error
     wrm_typename = plist.get<std::string>("wrm type");
+  }
+
   return Teuchos::rcp(CreateInstance(wrm_typename, plist));
 };
 

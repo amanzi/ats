@@ -62,19 +62,19 @@ main(int argc, char* argv[])
   }
 
   std::stringstream filename_s_stream;
-  filename_s_stream << plist.get<std::string>("WRM Type") << "_sat.txt";
+  filename_s_stream << plist.get<std::string>("wrm type") << "_sat.txt";
   std::string filename_s(filename_s_stream.str());
   for (int j = 0; j != filename_s.length(); ++j)
     if (filename_s[j] == ' ') filename_s[j] = '_';
 
   std::stringstream filename_pc_stream;
-  filename_pc_stream << plist.get<std::string>("WRM Type") << "_pc.txt";
+  filename_pc_stream << plist.get<std::string>("wrm type") << "_pc.txt";
   std::string filename_pc(filename_pc_stream.str());
   for (int j = 0; j != filename_pc.length(); ++j)
     if (filename_pc[j] == ' ') filename_pc[j] = '_';
 
   std::stringstream filename_krel_stream;
-  filename_krel_stream << plist.get<std::string>("WRM Type") << "_krel.txt";
+  filename_krel_stream << plist.get<std::string>("wrm type") << "_krel.txt";
   std::string filename_krel(filename_krel_stream.str());
   for (int j = 0; j != filename_krel.length(); ++j)
     if (filename_krel[j] == ' ') filename_krel[j] = '_';

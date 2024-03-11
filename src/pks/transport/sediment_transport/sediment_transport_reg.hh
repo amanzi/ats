@@ -15,9 +15,9 @@
 #include "sediment_transport_pk.hh"
 
 namespace Amanzi {
-namespace SedimentTransport {
+namespace Transport {
 
 RegisteredPKFactory<SedimentTransport_PK> SedimentTransport_PK::reg_("sediment transport");
 
-} // namespace SedimentTransport
+} // namespace Transport
 } // namespace Amanzi

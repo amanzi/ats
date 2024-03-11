@@ -8,7 +8,7 @@
            Bo Gao (gaob@ornl.gov)
 */
 
-//! WRMBrooksCorey : water retention model using Brooks Corey's parameterization
+//! WRMBrooksCorey : water retention model using Brooks-Corey's parameterization
 /*!
 
 Brooks-Corey's water retention curve, typically used to determine relative
@@ -19,8 +19,8 @@ to Brooks-Corey parameters.
 .. admonition:: WRM-Brooks-Corey-spec
 
     * `"region`" ``[string]`` Region to which this applies
-    * `"Brooks Corey lambda [-]`" ``[double]`` Brooks Corey's lambda
-    * `"Brooks Corey saturated matric suction [Pa]`" ``[double]`` Brooks Corey
+    * `"Brooks-Corey lambda [-]`" ``[double]`` Brooks-Corey's lambda
+    * `"Brooks-Corey saturated matric suction [Pa]`" ``[double]`` Brooks-Corey
     saturated matric suction in Pa
 
     END
@@ -35,8 +35,8 @@ Example:
     <ParameterList name="moss" type="ParameterList">
       <Parameter name="region" type="string" value="moss" />
       <Parameter name="WRM type" type="string" value="Brooks-Corey" />
-      <Parameter name="Brooks Corey lambda [-]" type="double" value="0.5" />
-      <Parameter name="Brooks Corey saturated matric suction [Pa]" type="double" value="1.e3" />
+      <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.5" />
+      <Parameter name="Brooks-Corey saturated matric suction [Pa]" type="double" value="1.e3" />
       <Parameter name="residual saturation [-]" type="double" value="0.0" />
       <Parameter name="smoothing interval width [saturation]" type="double" value=".05" />
     </ParameterList>

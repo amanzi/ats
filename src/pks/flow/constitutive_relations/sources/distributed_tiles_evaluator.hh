@@ -71,11 +71,11 @@ class DistributedTilesRateEvaluator : public EvaluatorSecondary {
   // my dependencies
   Key catch_id_key_;
   Key pres_key_;
-  Key mol_dens_key_;
+  Key mol_dens_key_, mass_dens_key_, visc_key_;
   Key factor_key_;
 
   double p_enter_;
-  double k_;
+  double ka_, kb_, d_, L_, th_;
   int num_ditches_;
   int num_components_;
 

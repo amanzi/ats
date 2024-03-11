@@ -26,9 +26,9 @@ referred to Sakagucki and Zeng (2009).
     through method 2 in Ma et al. (1999). Originally this method is from
     Lenhard et al. (1989).
 
-    - If `"Brooks-Corey`" is used for WRM, `"Brooks Corey lambda [-]`" will
+    - If `"Brooks-Corey`" is used for WRM, `"Brooks-Corey lambda [-]`" will
     be used to determine Clapp-Hornberger-b, which is the reciprocal of
-    `"Brooks Corey lambda [-]`".
+    `"Brooks-Corey lambda [-]`".
 
     - `"residual saturation [-]`" ``[double]`` **0.0**
 
@@ -48,7 +48,7 @@ Example:
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />

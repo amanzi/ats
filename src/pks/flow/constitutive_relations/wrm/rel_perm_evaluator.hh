@@ -83,7 +83,7 @@ Using the same set of van Genuchten model paramters for WRM and relative permeab
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
@@ -131,7 +131,7 @@ parameters to Brooks-Corey parameters.
       <ParameterList name="WRM parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="van Genuchten" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
           <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
           <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
@@ -142,9 +142,9 @@ parameters to Brooks-Corey parameters.
       <ParameterList name="relative permeability parameters" type="ParameterList">
         <ParameterList name="domain" type="ParameterList">
           <Parameter name="region" type="string" value="domain" />
-          <Parameter name="WRM Type" type="string" value="Brooks-Corey" />
-          <Parameter name="Brooks Corey lambda [-]" type="double" value="0.49" />
-          <Parameter name="Brooks Corey saturted matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="wrm type" type="string" value="Brooks-Corey" />
+          <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
+          <Parameter name="Brooks-Corey saturted matric suction [Pa]" type="double" value="32439.03" />
           <Parameter name="residual saturation [-]" type="double" value="0.2" />
           <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
         </ParameterList>

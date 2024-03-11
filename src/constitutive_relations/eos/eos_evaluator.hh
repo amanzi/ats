@@ -54,7 +54,7 @@ class EOSEvaluator : public EvaluatorSecondaryMonotypeCV {
   // the actual model
   Teuchos::RCP<EOS> eos_;
 
-  Key temp_key_, pres_key_, conc_key_;
+  KeyTag temp_key_, pres_key_, conc_key_;
   EOSMode mode_;
   bool updated_once_;
 
