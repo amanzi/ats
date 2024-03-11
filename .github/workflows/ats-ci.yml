@@ -43,7 +43,8 @@ jobs:
       run: |
         # This should really be a conditional, if the first test is empty, then fall back to master.
         # echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
-        echo "ATS_TESTS_BRANCH=master" >> $GITHUB_ENV
+        # Hard code special case for now:
+        echo "ATS_TESTS_BRANCH=sergi/amanzi-tpls-0.98.8" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
       run: |
