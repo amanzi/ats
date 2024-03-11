@@ -49,12 +49,12 @@ class RichardsWaterContentModel {
 
   RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    WC_key_ = Keys::cleanPListName(*plist);
-    auto domain = Keys::getDomain(WC_key_);
-    nl_key_ = Keys::readKey(*plist, domain, "molar density", "molar_density_liquid");
-    sl_key_ = Keys::readKey(*plist, domain, "saturation", "saturation_liquid");
-    phi_key_ = Keys::readKey(*plist, domain, "porosity", "porosity");
-    cv_key_ = Keys::readKey(*plist, domain, "cell volume", "cell_volume");
+    WC_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    auto domain = Keys::getDomain(WC_key_.first);
+    nl_key_ = Keys::readKeyTag(*plist, domain, "molar density", "molar_density_liquid", WC_key_.second);
+    sl_key_ = Keys::readKeyTag(*plist, domain, "saturation", "saturation_liquid", WC_key_.second);
+    phi_key_ = Keys::readKeyTag(*plist, domain, "porosity", "porosity", WC_key_.second);
+    cv_key_ = Keys::readKeyTag(*plist, domain, "cell volume", "cell_volume", WC_key_.second);
   }
 
   void
@@ -69,8 +69,8 @@ class RichardsWaterContentModel {
     cv_ = deps[3];
   }
 
-  KeyVector getMyKeys() const { return { WC_key_ }; }
-  KeyVector getDependencies() const { return { nl_key_, sl_key_, phi_key_, cv_key_ }; }
+  KeyTagVector getMyKeys() const { return { WC_key_, }; }
+  KeyTagVector getDependencies() const { return { nl_key_, sl_key_, phi_key_, cv_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
@@ -98,8 +98,8 @@ class RichardsWaterContentModel {
   View_type WC_;
   cView_type nl_, sl_, phi_, cv_;
 
-  Key WC_key_;
-  Key nl_key_, sl_key_, phi_key_, cv_key_;
+  KeyTag WC_key_;
+  KeyTag nl_key_, sl_key_, phi_key_, cv_key_;
 };
 
 template <class cView_type, class View_type>

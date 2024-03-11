@@ -53,10 +53,10 @@ class PondedDepthModel {
 
   PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    WC_key_ = Keys::cleanPListName(*plist);
-    auto domain = Keys::getDomain(WC_key_);
-    pres_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
-    rho_key_ = Keys::readKey(*plist, domain, "mass density", "mass_density_liquid");
+    pd_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    auto domain = Keys::getDomain(pd_key_.first);
+    pres_key_ = Keys::readKeyTag(*plist, domain, "pressure", "pressure", pd_key_.second);
+    rho_key_ = Keys::readKeyTag(*plist, domain, "mass density", "mass_density_liquid", pd_key_.second);
 
     bar_ = plist->get<bool>("allow negative ponded depth", false);
   }
@@ -66,7 +66,7 @@ class PondedDepthModel {
   {
     AMANZI_ASSERT(deps.size() == n_dependencies);
     AMANZI_ASSERT(res.size() == n_results);
-    WC_ = res[0];
+    pd_ = res[0];
     pres_ = deps[0];
     rho_ = deps[1];
 
@@ -75,43 +75,43 @@ class PondedDepthModel {
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   }
 
-  KeyVector getMyKeys() const { return { WC_key_ }; }
-  KeyVector getDependencies() const { return { pres_key_, rho_key_ }; }
+  KeyTagVector getMyKeys() const { return { pd_key_, }; }
+  KeyTagVector getDependencies() const { return { pres_key_, rho_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int c) const
   {
     if (bar_) {
-      WC_(c, 0) = (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
+      pd_(c, 0) = (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
     } else {
-      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
+      pd_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : (pres_(c, 0) - p_atm_) / (gz_ * rho_(c, 0));
     }
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int c) const
   {
     if (bar_) {
-      WC_(c, 0) = 1.0 / (gz_ * rho_(c, 0));
+      pd_(c, 0) = 1.0 / (gz_ * rho_(c, 0));
     } else {
-      WC_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : 1.0 / (gz_ * rho_(c, 0));
+      pd_(c, 0) = pres_(c, 0) < p_atm_ ? 0. : 1.0 / (gz_ * rho_(c, 0));
     }
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int c) const
   {
     if (bar_) {
-      WC_(c, 0) = -gz_ * (pres_(c, 0) - p_atm_) / std::pow(gz_ * rho_(c, 0), 2);
+      pd_(c, 0) = -gz_ * (pres_(c, 0) - p_atm_) / std::pow(gz_ * rho_(c, 0), 2);
     } else {
-      WC_(c, 0) =
+      pd_(c, 0) =
         pres_(c, 0) < p_atm_ ? 0. : -gz_ * (pres_(c, 0) - p_atm_) / std::pow(gz_ * rho_(c, 0), 2);
     }
   }
 
  private:
-  View_type WC_;
+  View_type pd_;
   cView_type pres_, rho_;
 
-  Key WC_key_;
-  Key pres_key_, rho_key_;
+  KeyTag pd_key_;
+  KeyTag pres_key_, rho_key_;
 
   bool bar_;
   double gz_;

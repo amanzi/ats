@@ -18,8 +18,6 @@ set(ats_surface_balance_src_files
   # constitutive_relations/land_cover/evaporation_downregulation_evaluator.cc
   constitutive_relations/land_cover/LandCover.cc
   # constitutive_relations/land_cover/drainage_evaluator.cc
-  # constitutive_relations/land_cover/interception_fraction_evaluator.cc
-  # constitutive_relations/land_cover/interception_fraction_model.cc
   constitutive_relations/land_cover/pet_priestley_taylor_evaluator.cc
   # constitutive_relations/land_cover/plant_wilting_factor_evaluator.cc
   # constitutive_relations/land_cover/plant_wilting_factor_model.cc  
@@ -62,8 +60,7 @@ set(ats_surface_balance_inc_files
   # constitutive_relations/land_cover/evaporation_downregulation_evaluator.hh
   constitutive_relations/land_cover/LandCover.hh
   # constitutive_relations/land_cover/drainage_evaluator.hh
-  # constitutive_relations/land_cover/interception_fraction_evaluator.hh
-  # constitutive_relations/land_cover/interception_fraction_model.hh
+  constitutive_relations/land_cover/interception_fraction_model.hh
   constitutive_relations/land_cover/pet_priestley_taylor_evaluator.hh
   # constitutive_relations/land_cover/plant_wilting_factor_evaluator.hh
   # constitutive_relations/land_cover/plant_wilting_factor_model.hh  

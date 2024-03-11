@@ -63,8 +63,12 @@ def change_all_eval_type(xml, old_type, new_type):
     
 def wrm(xml):
     change_eval_type(xml, "saturation_liquid", "WRM", "wrm van Genuchten by material")
+    change_eval_type(xml, "saturation_liquid", "water retention model", "wrm van Genuchten by material")
     change_eval_type(xml, "saturation_gas", "WRM", "wrm van Genuchten by material")
+    change_eval_type(xml, "saturation_gas", "water retention model", "wrm van Genuchten by material")
     change_eval_type(xml, "relative_permeability", "relative permeability, van Genuchten",
+                     "relative permeability van Genuchten by material")
+    change_eval_type(xml, "relative_permeability", "relative permeability, water retention model",
                      "relative permeability van Genuchten by material")
     did_poro = change_eval_type(xml, "porosity", "compressible porosity", "compressible porosity linear by material")
     if did_poro:

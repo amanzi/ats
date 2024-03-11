@@ -110,7 +110,11 @@ class VisFile:
             print('using key', a_field)
 
         self.cycles = list(sorted(self.d[a_field].keys(), key=int))
-        self.times = np.array([self.d['time'].attrs[cycle] for cycle in self.cycles]) * self.time_factor
+        try:
+            self.times = np.array([self.d['time'].attrs[cycle] for cycle in self.cycles]) * self.time_factor
+        except KeyError:
+            self.times = np.array([self.d[a_field][cycle].attrs['Time'] for cycle in self.cycles]) * self.time_factor
+
 
     def filterIndices(self, indices):
         """Filter based on the index into the current set of cycles.

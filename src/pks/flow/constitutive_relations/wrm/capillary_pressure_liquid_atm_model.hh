@@ -46,9 +46,9 @@ class CapillaryPressureLiquidAtmModel {
 
   CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    my_key_ = Keys::cleanPListName(*plist);
-    auto domain = Keys::getDomain(my_key_);
-    p_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
+    my_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    auto domain = Keys::getDomain(my_key_.first);
+    p_key_ = Keys::readKeyTag(*plist, domain, "pressure", "pressure", my_key_.second);
   }
 
   void
@@ -59,8 +59,8 @@ class CapillaryPressureLiquidAtmModel {
     p_ = deps[0];
   }
 
-  KeyVector getMyKeys() const { return { my_key_ }; }
-  KeyVector getDependencies() const { return { p_key_ }; }
+  KeyTagVector getMyKeys() const { return { my_key_, }; }
+  KeyTagVector getDependencies() const { return { p_key_, }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const { res_(i, 0) = p_atm_ - p_(i, 0); }
 
@@ -71,8 +71,8 @@ class CapillaryPressureLiquidAtmModel {
   cView_type p_;
   double p_atm_;
 
-  Key my_key_;
-  Key p_key_;
+  KeyTag my_key_;
+  KeyTag p_key_;
 };
 
 template <class cView_type, class View_type>

@@ -118,7 +118,7 @@ SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, const View_type& r
 }
 
 
-const std::string TranspirationDistributionRelPermEvaluator::eval_type = "transpiration distribution via relative permeability";
+const std::string TranspirationDistributionRelPermEvaluator::eval_type = "transpiration distribution, relative permeability";
 
 // Constructor from ParameterList
 TranspirationDistributionRelPermEvaluator::TranspirationDistributionRelPermEvaluator(
@@ -167,7 +167,7 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
 
   // dependency: soil rel perm
   soil_kr_key_ =
-    Keys::readKey(*plist_, domain_sub_, "soil relative permeability", "relative_permeability");
+    Keys::readKey(*plist_, domain_sub_, "soil hydraulic conductivity", "relative_hydraulic_conductivity");
   dependencies_.insert(KeyTag{ soil_kr_key_, tag });
 
   // dependency: rooting_depth_fraction

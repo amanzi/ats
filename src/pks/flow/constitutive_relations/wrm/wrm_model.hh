@@ -43,26 +43,27 @@ class WRMModel {
     // my keys are for saturation, note that order matters, liquid -> gas
     Key akey = Keys::cleanPListName(*plist);
     Key domain_name = Keys::getDomain(akey);
+    Tag tag(plist->get<std::string>("tag"));
 
     std::size_t liq_pos = akey.find("liquid");
     std::size_t gas_pos = akey.find("gas");
     if (liq_pos != std::string::npos) {
-      sl_key_ = akey;
+      sl_key_ = KeyTag{akey, tag};
       Key otherkey = akey.substr(0, liq_pos) + "gas" + akey.substr(liq_pos + 6);
-      sg_key_ = Keys::readKey(*plist, domain_name, "other saturation", otherkey);
+      sg_key_ = Keys::readKeyTag(*plist, domain_name, "other saturation", otherkey, tag);
 
     } else if (gas_pos != std::string::npos) {
-      sl_key_ = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
-      sl_key_ = Keys::readKey(*plist, domain_name, "saturation", sl_key_);
-      sg_key_ = akey;
+      Key sl_key = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
+      sl_key_ = Keys::readKeyTag(*plist, domain_name, "saturation", sl_key, tag);
+      sg_key_ = KeyTag{akey, tag};
 
     } else {
-      sl_key_ = Keys::readKey(*plist, domain_name, "saturation");
-      sg_key_ = Keys::readKey(*plist, domain_name, "other saturation");
+      sl_key_ = Keys::readKeyTag(*plist, domain_name, "saturation", tag);
+      sg_key_ = Keys::readKeyTag(*plist, domain_name, "other saturation", tag);
     }
 
     pc_key_ =
-      Keys::readKey(*plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq");
+      Keys::readKeyTag(*plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq", tag);
   }
 
   void
@@ -73,8 +74,8 @@ class WRMModel {
     pc_ = deps[0];
   }
 
-  KeyVector getMyKeys() const { return { sl_key_, sg_key_ }; }
-  KeyVector getDependencies() const { return { pc_key_ }; }
+  KeyTagVector getMyKeys() const { return { sl_key_, sg_key_ }; }
+  KeyTagVector getDependencies() const { return { pc_key_ }; }
   WRM_type& getModel() { return model_; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
@@ -92,8 +93,8 @@ class WRMModel {
  private:
   View_type sl_, sg_;
   cView_type pc_;
-  Key pc_key_;
-  Key sl_key_, sg_key_;
+  KeyTag pc_key_;
+  KeyTag sl_key_, sg_key_;
 
   WRM_type model_;
 };

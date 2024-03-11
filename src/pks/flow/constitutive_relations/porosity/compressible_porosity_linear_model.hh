@@ -70,10 +70,11 @@ class CompressiblePorosityLinearModel {
 
   CompressiblePorosityLinearModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    my_key_ = Keys::cleanPListName(*plist);
-    auto domain = Keys::getDomain(my_key_);
-    phi_key_ = Keys::readKey(*plist, domain, "porosity", "base_porosity");
-    p_key_ = Keys::readKey(*plist, domain, "pressure", "pressure");
+    my_key_ = KeyTag{ Keys::cleanPListName(*plist), plist->get<std::string>("tag") };
+
+    auto domain = Keys::getDomain(my_key_.first);
+    phi_key_ = Keys::readKeyTag(*plist, domain, "porosity", "base_porosity", my_key_.second);
+    p_key_ = Keys::readKeyTag(*plist, domain, "pressure", "pressure", my_key_.second);
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     compressibility_ = model_list.get<double>("pore compressibility [Pa^-1]");
@@ -90,8 +91,8 @@ class CompressiblePorosityLinearModel {
     patm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
   }
 
-  KeyVector getMyKeys() const { return { my_key_ }; }
-  KeyVector getDependencies() const { return { phi_key_, p_key_ }; }
+  KeyTagVector getMyKeys() const { return { my_key_ }; }
+  KeyTagVector getDependencies() const { return { phi_key_, p_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
@@ -139,7 +140,7 @@ class CompressiblePorosityLinearModel {
  private:
   View_type res_;
   cView_type phi_, p_;
-  Key my_key_, phi_key_, p_key_;
+  KeyTag my_key_, phi_key_, p_key_;
 
   double patm_;
 
