@@ -838,6 +838,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   S_->GetEvaluator(molar_density_key_, Tags::NEXT).Update(*S_, name_);
   mol_dens_ = S_->Get<CompositeVector>(molar_density_key_, Tags::NEXT).ViewComponent("cell", false);
   S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
+  mol_dens_prev_ = S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
+
+  S_->GetEvaluator(molar_density_key_, Tags::CURRENT).Update(*S_, name_);
   mol_dens_prev_ =
     S_->Get<CompositeVector>(molar_density_key_, Tags::CURRENT).ViewComponent("cell", false);
 
