@@ -406,7 +406,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   };
 
 
-  void ChangedSolutionPK(const Tag& tag);
+  virtual void ChangedSolutionPK(const Tag& tag) override;
 
  private:
   void InitializeFields_();
