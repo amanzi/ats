@@ -55,6 +55,10 @@ RootingDepthFractionEvaluator::InitializeFromPlist_()
 
   surf_cv_key_ = Keys::readKey(*plist_, domain_surf_, "surface cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ surf_cv_key_, tag });
+
+  land_cover_ =
+    getLandCoverMap(plist_->sublist("model parameters"),
+                    { "rooting_depth_max", "rooting_profile_alpha", "rooting_profile_beta" });
 }
 
 
@@ -133,20 +137,13 @@ RootingDepthFractionEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  // this should only change if the mesh deforms.  don't do that!
-  result[0]->putScalar(0.);
+  AMANZI_ASSERT(false);
 }
 
 
 void
 RootingDepthFractionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  if (land_cover_.size() == 0) {
-    land_cover_ =
-      getLandCover(S.ConstantsList().sublist("land cover types"),
-                   { "rooting_depth_max", "rooting_profile_alpha", "rooting_profile_beta" });
-  }
-
   Key domain = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
 

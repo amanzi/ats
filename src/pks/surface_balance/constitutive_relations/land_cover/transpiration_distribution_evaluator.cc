@@ -74,6 +74,9 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
   year_duration_ = plist_.get<double>("year duration", 1.0);
   std::string year_duration_units = plist_.get<std::string>("year duration units", "noleap");
 
+  // new state!
+  land_cover_ = getLandCoverMap(plist_->sublist("model parameters"), { "leaf_on_doy", "leaf_off_doy" });
+
   // deal with units
   Amanzi::Utils::Units units;
   bool flag;
@@ -161,12 +164,6 @@ void
 TranspirationDistributionEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   Tag tag = my_keys_.front().second;
-
-  // new state!
-  if (land_cover_.size() == 0)
-    land_cover_ =
-      getLandCover(S.ICList().sublist("land cover types"), { "leaf_on_doy", "leaf_off_doy" });
-
   Key domain = Keys::getDomain(my_keys_.front().first);
 
   // Create an unowned factory to check my dependencies.

@@ -39,20 +39,24 @@ https://github.com/landlab/landlab/blob/master/landlab/components/radiation/radi
 */
 
 #include "incident_shortwave_radiation_evaluator.hh"
-#include "incident_shortwave_radiation_model.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
+const std::string IncidentShortwaveRadiationEvaluator::eval_type = "incident shortwave radiation";
+
 // Constructor from ParameterList
 IncidentShortwaveRadiationEvaluator::IncidentShortwaveRadiationEvaluator(
-  Teuchos::ParameterList& plist)
-  : EvaluatorSecondaryMonotypeCV(plist)
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
+  : EvaluatorModelCV<IncidentShortwaveRadiationModel>(plist)
 {
-  Teuchos::ParameterList& sublist = plist_.sublist("incident shortwave radiation parameters");
-  model_ = Teuchos::rcp(new IncidentShortwaveRadiationModel(sublist));
-  InitializeFromPlist_();
+  doy0_ = plist->sublist("model parameters").get<int>("day of year at time 0 [Julian days]", 0);
+  if (doy0_ < 0 || doy0_ > 364) {
+    Errors::Message msg("IncidentShortwaveRadiationModel: \"day of year at time 0 [Julian days]\" "
+                        "not in valid range [0,364]");
+    Exceptions::amanzi_throw(msg);
+  }
 }
 
 
@@ -64,117 +68,22 @@ IncidentShortwaveRadiationEvaluator::Clone() const
 }
 
 
-// Initialize by setting up dependencies
-void
-IncidentShortwaveRadiationEvaluator::InitializeFromPlist_()
-{
-  // Set up my dependencies
-  // - defaults to prefixed via domain
-  Tag tag = my_keys_.front().second;
-  Key domain_name = Keys::getDomain(my_keys_.front().first);
-
-  // - pull Keys from plist
-  // dependency: slope
-  slope_key_ = Keys::readKey(plist_, domain_name, "slope magnitude", "slope_magnitude");
-  dependencies_.insert(KeyTag{ slope_key_, tag });
-
-  // dependency: aspect
-  aspect_key_ = Keys::readKey(plist_, domain_name, "aspect", "aspect");
-  dependencies_.insert(KeyTag{ aspect_key_, tag });
-
-  // dependency: incoming_shortwave_radiation
-  qSWin_key_ = Keys::readKey(
-    plist_, domain_name, "incoming shortwave radiation", "incoming_shortwave_radiation");
-  dependencies_.insert(KeyTag{ qSWin_key_, tag });
-}
-
-
 void
 IncidentShortwaveRadiationEvaluator::Evaluate_(const State& S,
                                                const std::vector<CompositeVector*>& result)
 {
-  Tag tag = my_keys_.front().second;
-  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
-  Teuchos::RCP<const CompositeVector> aspect = S.GetPtr<CompositeVector>(aspect_key_, tag);
-  Teuchos::RCP<const CompositeVector> qSWin = S.GetPtr<CompositeVector>(qSWin_key_, tag);
-
-  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
-    const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-    const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-    const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-    Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
-    double time = S.get_time();
-
-    int ncomp = result[0]->size(*comp, false);
-    for (int i = 0; i != ncomp; ++i) {
-      result_v[0][i] =
-        model_->IncidentShortwaveRadiation(slope_v[0][i], aspect_v[0][i], qSWin_v[0][i], time);
-    }
+  double time_days = S.get_time(my_keys_.front().second) / 86400;
+  double doy = std::fmod((double)doy0_ + time_days, (double)365);
+  int doy_i = std::lround(doy);
+  if (doy_i == 365) {
+    // can round up!
+    doy_i = 0;
+    doy = doy - 365.0;
   }
-}
 
-
-void
-IncidentShortwaveRadiationEvaluator::EvaluatePartialDerivative_(
-  const State& S,
-  const Key& wrt_key,
-  const Tag& wrt_tag,
-  const std::vector<CompositeVector*>& result)
-{
-  Tag tag = my_keys_.front().second;
-  Teuchos::RCP<const CompositeVector> slope = S.GetPtr<CompositeVector>(slope_key_, tag);
-  Teuchos::RCP<const CompositeVector> aspect = S.GetPtr<CompositeVector>(aspect_key_, tag);
-  Teuchos::RCP<const CompositeVector> qSWin = S.GetPtr<CompositeVector>(qSWin_key_, tag);
-  double time = S.get_time();
-
-  if (wrt_key == slope_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
-         ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
-
-      int ncomp = result[0]->size(*comp, false);
-      for (int i = 0; i != ncomp; ++i) {
-        result_v[0][i] = model_->DIncidentShortwaveRadiationDSlope(
-          slope_v[0][i], aspect_v[0][i], qSWin_v[0][i], time);
-      }
-    }
-
-  } else if (wrt_key == aspect_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
-         ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
-
-      int ncomp = result[0]->size(*comp, false);
-      for (int i = 0; i != ncomp; ++i) {
-        result_v[0][i] = model_->DIncidentShortwaveRadiationDAspect(
-          slope_v[0][i], aspect_v[0][i], qSWin_v[0][i], time);
-      }
-    }
-
-  } else if (wrt_key == qSWin_key_) {
-    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
-         ++comp) {
-      const Epetra_MultiVector& slope_v = *slope->ViewComponent(*comp, false);
-      const Epetra_MultiVector& aspect_v = *aspect->ViewComponent(*comp, false);
-      const Epetra_MultiVector& qSWin_v = *qSWin->ViewComponent(*comp, false);
-      Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
-
-      int ncomp = result[0]->size(*comp, false);
-      for (int i = 0; i != ncomp; ++i) {
-        result_v[0][i] = model_->DIncidentShortwaveRadiationDIncomingShortwaveRadiation(
-          slope_v[0][i], aspect_v[0][i], qSWin_v[0][i], time);
-      }
-    }
-
-  } else {
-    AMANZI_ASSERT(false);
-  }
+  model_->doy = doy;
+  model_->doy_i = doy_i;
+  EvaluatorModelCV<IncidentShortwaveRadiationModel>::Evaluate_(S, result);
 }
 
 

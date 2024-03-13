@@ -42,6 +42,7 @@ template <class cView_type, class View_type>
 class CapillaryPressureLiquidAtmModel {
  public:
   static const int n_dependencies = 1;
+  static const bool provides_derivatives = true;
   static const std::string eval_type;
 
   CapillaryPressureLiquidAtmModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -57,6 +58,12 @@ class CapillaryPressureLiquidAtmModel {
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
     res_ = res[0];
     p_ = deps[0];
+  }
+
+  void freeViews()
+  {
+    res_ = View_type();
+    p_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { my_key_, }; }

@@ -35,6 +35,7 @@ template <class cView_type, class View_type, class WRM_type>
 class WRMModel {
  public:
   static const int n_dependencies = 1;
+  static const bool provides_derivatives = true;
   static const std::string eval_type;
 
   WRMModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -72,6 +73,13 @@ class WRMModel {
     sl_ = res[0];
     sg_ = res[1];
     pc_ = deps[0];
+  }
+
+  void freeViews()
+  {
+    sl_ = View_type();
+    sg_ = View_type();
+    pc_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { sl_key_, sg_key_ }; }

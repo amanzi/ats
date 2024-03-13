@@ -50,6 +50,7 @@ class OverlandPressureWaterContentModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 2;
+  static const bool provides_derivatives = true;
   static const std::string eval_type; // = "overland pressure water content";
 
   OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -76,6 +77,13 @@ class OverlandPressureWaterContentModel {
     const auto& gravity = s.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     Mgz_ = -gravity[gravity.dim() - 1] * M_;
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  }
+
+  void freeViews()
+  {
+    WC_ = View_type();
+    pres_ = cView_type();
+    cv_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { WC_key_, }; }

@@ -67,39 +67,40 @@ class InterceptionFractionModel {
  public:
 
   static const int n_dependencies = 5;
+  static const bool provides_derivatives = true;
   static const std::string eval_type;
 
   explicit InterceptionFractionModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
     Key akey = Keys::cleanPListName(*plist);
-    Key domain_name = Keys::getDomain(akey);
+    Key domain = Keys::getDomain(akey);
     Tag tag(plist->get<std::string>("tag"));
 
     akey = Keys::getVarName(akey);
-    Key domain_surf = Keys::readDomainHint(plist_, domain, "canopy", "surface");
-    Key domain_snow = Keys::readDomainHint(plist_, domain, "canopy", "snow");
+    Key domain_surf = Keys::readDomainHint(*plist, domain, "canopy", "surface");
+    Key domain_snow = Keys::readDomainHint(*plist, domain, "canopy", "snow");
 
     // my keys
     Key interception_key = Keys::in(akey, "interception") ? akey : "interception";
-    interception_key_ = Keys::readKeyTag(plist_, domain, "interception", interception_key, tag);
+    interception_key_ = Keys::readKeyTag(*plist, domain, "interception", interception_key, tag);
 
     Key throughfall_rain_key =
       (Keys::in(akey, "rain") && Keys::in(akey, "throughfall")) ? akey : "throughfall_drainage_rain";
     throughfall_rain_key_ =
-      Keys::readKeyTag(plist_, domain, "throughfall and drainage rain", throughfall_rain_key, tag);
+      Keys::readKeyTag(*plist, domain, "throughfall and drainage rain", throughfall_rain_key, tag);
 
     Key throughfall_snow_key =
       (Keys::in(akey, "snow") && Keys::in(akey, "throughfall")) ? akey : "throughfall_drainage_snow";
     throughfall_snow_key_ =
-      Keys::readKeyTag(plist_, domain, "throughfall and drainage snow", throughfall_snow_key, tag);
+      Keys::readKeyTag(*plist, domain, "throughfall and drainage snow", throughfall_snow_key, tag);
 
     // - pull Keys from plist
     // dependency: surface-area_index
-    ai_key_ = Keys::readKeyTag(plist_, domain, "area index", "area_index", tag);
-    rain_key_ = Keys::readKeyTag(plist_, domain_surf, "precipitation rain", "precipitation_rain", tag);
-    snow_key_ = Keys::readKeyTag(plist_, domain_snow, "precipitation snow", "precipitation", tag);
-    drainage_key_ = Keys::readKeyTag(plist_, domain, "drainage", "drainage", tag);
-    air_temp_key_ = Keys::readKeyTag(plist_, domain_surf, "air temperature", "air_temperature", tag);
+    ai_key_ = Keys::readKeyTag(*plist, domain, "area index", "area_index", tag);
+    rain_key_ = Keys::readKeyTag(*plist, domain_surf, "precipitation rain", "precipitation_rain", tag);
+    snow_key_ = Keys::readKeyTag(*plist, domain_snow, "precipitation snow", "precipitation", tag);
+    drainage_key_ = Keys::readKeyTag(*plist, domain, "drainage", "drainage", tag);
+    air_temp_key_ = Keys::readKeyTag(*plist, domain_surf, "air temperature", "air_temperature", tag);
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     alpha_ = model_list.get<double>("leaf area interception fraction [-]", 0.25);
@@ -108,7 +109,7 @@ class InterceptionFractionModel {
       msg << "InterceptionFraction: invalid \"leaf area interception fraction [-]\", must be in "
         "[0,1] (provided: "
           << alpha_ << ")";
-      Exceptions::amanzi_throw(alpha_);
+      Exceptions::amanzi_throw(msg);
     }
   }
 
@@ -127,12 +128,25 @@ class InterceptionFractionModel {
     air_temp_ = deps[4];
   }
 
+  void freeViews()
+  {
+    interception_ = View_type();
+    throughfall_rain_ = View_type();
+    throughfall_snow_ = View_type();
+
+    ai_ = cView_type();
+    rain_ = cView_type();
+    snow_ = cView_type();
+    drainage_ = cView_type();
+    air_temp_ = cView_type();
+  }
+
   KeyTagVector getMyKeys() const { return { interception_key_, throughfall_rain_key_, throughfall_snow_key_ }; }
   KeyTagVector getDependencies() const { return { ai_key_, rain_key_, snow_key_, drainage_key_, air_temp_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double coef = alpha_ * (1 - exp(-0.5 * ai(i,0)));
+    double coef = alpha_ * (1 - exp(-0.5 * ai_(i,0)));
     double total_precip = rain_(i,0) + snow_(i,0);
     interception_(i,0) = total_precip * coef;
 
@@ -143,16 +157,23 @@ class InterceptionFractionModel {
   }
 
   // d/d_ai
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) {}
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
+    assert(false);
+  }
 
   // d/d_rain
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) {}
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const {
+    assert(false);
+  }
 
   // d/d_snow
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) {}
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<2>, const int i) const {
+    assert(false);
+  }
 
   // d/d_drainage
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<3>, const int i) {
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<3>, const int i) const
+  {
     interception_(i,0) = 0.;
 
     double total_precip = rain_(i,0) + snow_(i,0);
@@ -163,7 +184,9 @@ class InterceptionFractionModel {
   }
 
   // d/d_air_temp
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<4>, const int i) {}
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<4>, const int i) const {
+    assert(false);
+  }
 
  private:
   View_type interception_, throughfall_rain_, throughfall_snow_;

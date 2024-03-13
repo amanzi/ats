@@ -57,6 +57,7 @@ template <class cView_type, class View_type, class WRM_type>
 class RelativePermeabilityModel {
  public:
   static const int n_dependencies = 1;
+  static const bool provides_derivatives = true;
   static const std::string eval_type;
 
   RelativePermeabilityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -73,6 +74,12 @@ class RelativePermeabilityModel {
   {
     res_ = res[0];
     s_ = deps[0];
+  }
+
+  void freeViews()
+  {
+    res_ = View_type();
+    s_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { my_key_, }; }

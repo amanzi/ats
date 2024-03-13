@@ -121,6 +121,7 @@ namespace SurfaceBalance {
 // LandCover, or PFT struct
 //
 struct LandCover {
+  LandCover() {}
   LandCover(Teuchos::ParameterList& plist);
 
   // rooting profiles
@@ -166,16 +167,20 @@ struct LandCover {
 
 // this one includes error checking for NaNs
 using LandCoverMap = std::map<std::string, LandCover>;
+
 LandCoverMap
-getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars);
+getLandCoverMap(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars);
+
+// a single land cover object
+LandCover
+getLandCover(const std::string& region,
+             Teuchos::ParameterList& plist,
+             const std::vector<std::string>& required_pars);
 
 namespace Impl {
 
 void
 checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
-LandCoverMap
-getLandCover(Teuchos::ParameterList& plist);
-
 
 } // namespace Impl
 

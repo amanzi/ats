@@ -66,6 +66,7 @@ template <class cView_type, class View_type>
 class CompressiblePorosityLinearModel {
  public:
   static const int n_dependencies = 2;
+  static const bool provides_derivatives = true;
   static const std::string eval_type;
 
   CompressiblePorosityLinearModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -89,6 +90,13 @@ class CompressiblePorosityLinearModel {
     phi_ = deps[0];
     p_ = deps[1];
     patm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  }
+
+  void freeViews()
+  {
+    res_ = View_type();
+    phi_ = cView_type();
+    p_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { my_key_ }; }
