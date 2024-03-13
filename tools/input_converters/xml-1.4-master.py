@@ -430,10 +430,10 @@ def add_frz_relp_to_model_parameters(xml):
 
 
 def lowercase_wrmtype(xml):
-    rename_element(xml, "WRM type", "wrm type")
-    rename_element(xml, "WRM Type", "wrm type")
-    rename_element(xml, "permafrost WRM type", "permafrost wrm type")
-    rename_element(xml, "permafrost WRM Type", "permafrost wrm type")
+    replace_string_in_name(xml, "WRM type", "wrm type")
+    replace_string_in_name(xml, "WRM Type", "wrm type")
+    replace_string_in_name(xml, "permafrost WRM type", "permafrost wrm type")
+    replace_string_in_name(xml, "permafrost WRM Type", "permafrost wrm type")
 
     
 def brooks_corey(xml):
