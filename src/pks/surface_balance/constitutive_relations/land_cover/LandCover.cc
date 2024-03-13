@@ -12,7 +12,7 @@
 #include "errors.hh"
 
 #include "LandCover.hh"
-#include "seb_nan.hh"
+#include "AmanziNaN.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -30,6 +30,7 @@ readPositiveLandCoverParameter(Teuchos::ParameterList& plist, const std::string&
   return res;
 }
 
+
 double
 readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
 {
@@ -42,6 +43,7 @@ readNegativeLandCoverParameter(Teuchos::ParameterList& plist, const std::string&
   }
   return res;
 }
+
 
 double
 readZeroOneLandCoverParameter(Teuchos::ParameterList& plist, const std::string& name)
@@ -89,34 +91,32 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
 
 
 LandCoverMap
-getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars)
-{
-  LandCoverMap lcm = Impl::getLandCover(plist);
-  for (const auto& lc : lcm) {
-    for (const auto& par : required_pars) { Impl::checkValid(lc.first, lc.second, par); }
-  }
-  return lcm;
-}
-
-
-namespace Impl {
-
-LandCoverMap
-getLandCover(Teuchos::ParameterList& plist)
+getLandCoverMap(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars)
 {
   LandCoverMap lc;
   for (auto& item : plist) {
     if (plist.isSublist(item.first)) {
-      lc.insert({ item.first, LandCover{ plist.sublist(item.first) } });
+      lc.insert({ item.first, getLandCover(item.first, plist.sublist(item.first), required_pars) });
     }
   }
   if (lc.size() == 0) {
-    Errors::Message message("LandCover is used, but no entries were found in the 'state->initial "
-                            "conditions->land cover types' list.");
+    Errors::Message message("LandCover is used, but no entries were found in the model parameters list.");
     Exceptions::amanzi_throw(message);
   }
   return lc;
 }
+
+
+LandCover
+getLandCover(const std::string& region, Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars)
+{
+  LandCover lc(plist);
+  for (const auto& par : required_pars) {
+    Impl::checkValid(region, lc, par);
+  }
+  return lc;
+}
+
 
 void
 throwInvalid(const std::string& region, const std::string& parstr)
@@ -126,6 +126,7 @@ throwInvalid(const std::string& region, const std::string& parstr)
   Exceptions::amanzi_throw(msg);
 }
 
+namespace Impl {
 
 void
 checkValid(const std::string& region, const LandCover& lc, const std::string& parname)

@@ -988,7 +988,7 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
     auto wrm_eval_as_eval = S_->GetEvaluatorPtr(sat_key_, tag_next_);
     auto wrm_eval_as_wrm = Teuchos::rcp_dynamic_cast<PredictorDelegateBCFlux::WRMEval_type>(wrm_eval_as_eval);
     if (wrm_eval_as_wrm == Teuchos::null) {
-      Errors::Message msg("To use Richards option \"modify predictor for flux BCs\", may only use WRM evaluator of type \"wrm van Genuchten by material\"");
+      Errors::Message msg("To use Richards option \"modify predictor for flux BCs\", may only use WRM evaluator of type \"wrm van Genuchten\"");
       Exceptions::amanzi_throw(msg);
     }
     auto mesh_on_host = AmanziMesh::onMemSpace<MemSpace_kind::HOST>(mesh_);

@@ -44,38 +44,30 @@ which is released under the MIT license.
 #pragma once
 
 #include "Factory.hh"
-#include "EvaluatorSecondaryMonotype.hh"
+#include "EvaluatorModelCV.hh"
+#include "incident_shortwave_radiation_model.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-class IncidentShortwaveRadiationModel;
 
-class IncidentShortwaveRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
+class IncidentShortwaveRadiationEvaluator : public EvaluatorModelCV<IncidentShortwaveRadiationModel> {
  public:
-  explicit IncidentShortwaveRadiationEvaluator(Teuchos::ParameterList& plist);
+  IncidentShortwaveRadiationEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-
-  Teuchos::RCP<IncidentShortwaveRadiationModel> get_model() { return model_; }
+  virtual bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override {
+    return false;
+  }
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
-  virtual void EvaluatePartialDerivative_(const State& S,
-                                          const Key& wrt_key,
-                                          const Tag& wrt_tag,
-                                          const std::vector<CompositeVector*>& result) override;
-  void InitializeFromPlist_();
 
- protected:
-  Key slope_key_;
-  Key aspect_key_;
-  Key qSWin_key_;
-
-  Teuchos::RCP<IncidentShortwaveRadiationModel> model_;
+  static const std::string eval_type;
+  int doy0_;
 
  private:
   static Utils::RegisteredFactory<Evaluator, IncidentShortwaveRadiationEvaluator> reg_;

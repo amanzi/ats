@@ -189,6 +189,9 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   c0_ = plist_->get<double>("total maximal conductance [mol m^-2 s^-1 MPa^-1]", 10.) *
         1.e-6; // per MPa --> per Pa
   krp_ = plist_->get<double>("plant relative conductance [-]", 0.);
+
+  land_cover_ = getLandCoverMap(plist_->sublist("model parameters"),
+                   { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
 }
 
 
@@ -287,8 +290,7 @@ TranspirationDistributionRelPermEvaluator::EvaluatePartialDerivative_(
   const Tag& wrt_tag,
   const std::vector<CompositeVector*>& result)
 {
-  // this would be a nontrivial calculation, as it is technically nonlocal due to rescaling issues?
-  result[0]->putScalar(0.);
+  AMANZI_ASSERT(false);
 }
 
 
@@ -296,12 +298,6 @@ void
 TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   Tag tag = my_keys_.front().second;
-
-  // new state!
-  if (land_cover_.size() == 0)
-    land_cover_ =
-      getLandCover(S.ConstantsList().sublist("land cover types"),
-                   { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
 
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh

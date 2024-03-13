@@ -100,11 +100,6 @@ OverlandPressureFlow::parseParameterList()
                                                   std::vector<std::string>{ pd_key_, elev_key_ });
   potential_list.set("dependency tags are my tag", true);
 
-  // -- elevation evaluator
-  auto& elev_plist = S_->GetEvaluatorList(elev_key_);
-  if (!elev_plist.isParameter("evaluator type"))
-    elev_plist.set("evaluator type", "meshed elevation");
-
   // limiters
   p_limit_ = plist_->get<double>("limit correction to pressure change [Pa]", -1.);
   patm_limit_ =

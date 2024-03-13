@@ -45,6 +45,7 @@ class RichardsWaterContentModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 4;
+  static const bool provides_derivatives = true;
   static const std::string eval_type; // = "richards water content";
 
   RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -67,6 +68,15 @@ class RichardsWaterContentModel {
     sl_ = deps[1];
     phi_ = deps[2];
     cv_ = deps[3];
+  }
+
+  void freeViews()
+  {
+    WC_ = View_type();
+    nl_ = cView_type();
+    sl_ = cView_type();
+    phi_ = cView_type();
+    cv_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { WC_key_, }; }

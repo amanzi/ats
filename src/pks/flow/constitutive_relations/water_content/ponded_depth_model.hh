@@ -49,6 +49,7 @@ class PondedDepthModel {
  public:
   static const int n_results = 1;
   static const int n_dependencies = 2;
+  static const bool provides_derivatives = true;
   static const std::string eval_type; // = "overland pressure water content";
 
   PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
@@ -73,6 +74,13 @@ class PondedDepthModel {
     const auto& gravity = s.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
     gz_ = -gravity[gravity.dim() - 1];
     p_atm_ = s.Get<double>("atmospheric_pressure", Tags::DEFAULT);
+  }
+
+  void freeViews()
+  {
+    pd_ = View_type();
+    pres_ = cView_type();
+    rho_ = cView_type();
   }
 
   KeyTagVector getMyKeys() const { return { pd_key_, }; }

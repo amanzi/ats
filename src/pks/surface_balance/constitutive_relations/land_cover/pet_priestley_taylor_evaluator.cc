@@ -10,7 +10,7 @@
 
 #include "Key.hh"
 #include "pet_priestley_taylor_evaluator.hh"
-#include "seb_physics_funcs.hh"
+#include "seb_funcs.hh"
 
 namespace Amanzi {
 namespace SurfaceBalance {
@@ -66,6 +66,8 @@ PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(const Teuchos::RCP<Teuc
     one_minus_limiter_nvecs_ = plist->get<int>("1 - limiter number of dofs", 1);
     one_minus_limiter_dof_ = plist->get<int>("1 - limiter dof", 0);
   }
+
+  land_cover_ = getLandCoverMap(plist->sublist("model parameters"), { "pt_alpha_" + evap_type_ });
 }
 
 // Required methods from EvaluatorSecondaryMonotypeCV
@@ -128,12 +130,16 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
   // apply a limiter if requested
   if (limiter_) {
     const auto& limiter = *S.Get<CompositeVector>(limiter_key_, tag).getComponent("cell");
-    auto& res = *result[0]->getComponent("cell")->getVectorNonConst(0);
+    AMANZI_ASSERT(result.size() == 1);
+    AMANZI_ASSERT(result[0]->hasComponent("cell"));
+    auto& res = *result[0]->getComponent("cell");
     res.elementWiseMultiply(1, *limiter.getVector(limiter_dof_), res, 0);
   }
   if (one_minus_limiter_) {
     const auto& limiter = *S.Get<CompositeVector>(one_minus_limiter_key_, tag).getComponent("cell");
-    auto& res = *result[0]->getComponent("cell")->getVectorNonConst(0);
+    AMANZI_ASSERT(result.size() == 1);
+    AMANZI_ASSERT(result[0]->hasComponent("cell"));
+    auto& res = *result[0]->getComponent("cell");
     res.elementWiseMultiply(-1, *limiter.getVector(one_minus_limiter_dof_), res, 1);
   }
 }
@@ -155,7 +161,10 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
                          res.extent(0),
                          KOKKOS_LAMBDA(const int c) {
                            double limiter_val = limiter(c, limiter_dof_);
-                           res(c,0) = limiter_val > 1.e5 ? evap_val(c,0) / limiter_val : 0.;
+                           res(c,0) = limiter_val > 1.e-5 ? evap_val(c,0) / limiter_val : 0.;
+                           std::cout << "evap_val = " << evap_val(c,0) << std::endl;
+                           std::cout << "limiter_val = " << limiter_val << std::endl;
+                           std::cout << "res_val = " << res(c,0) << std::endl;
                          });
 
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
@@ -167,7 +176,7 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
                          res.extent(0),
                          KOKKOS_LAMBDA(const int c) {
                            double limiter_val = limiter(c, one_minus_limiter_dof_);
-                           res(c,0) = limiter_val > 1.e5 ? -evap_val(c, 0) / (1 - limiter_val) : 0.;
+                           res(c,0) = limiter_val > 1.e-5 ? -evap_val(c, 0) / (1 - limiter_val) : 0.;
                          });
   }
 }
@@ -177,9 +186,6 @@ void
 PETPriestleyTaylorEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
   if (!compatible_) {
-    land_cover_ =
-      getLandCover(S.ConstantsList().sublist("land cover types"), { "pt_alpha_" + evap_type_ });
-
     Tag tag = my_keys_.front().second;
     for (auto& dep : dependencies_) {
       auto& fac = S.Require<CompositeVector, CompositeVectorSpace>(dep.first, tag);

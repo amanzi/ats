@@ -13,6 +13,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/water_content)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosity)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
 # include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
@@ -57,6 +58,8 @@ set(ats_flow_inc_files
   constitutive_relations/wrm/relative_hydraulic_conductivity_evaluator.hh
   constitutive_relations/overland_conductivity/manning_conductivity_model.hh
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.hh
+  constitutive_relations/sources/soil_resistance_sakagucki_zeng_model.hh
+  constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh
   predictor_delegate_bc_flux.hh
 
   richards.hh
@@ -101,6 +104,8 @@ register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/water_con
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/porosity/flow_relations_porosity_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/wrm/flow_relations_wrm_reg.hh"
+  LISTNAME ATS_FLOW_RELATIONS_REG)
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/sources/flow_relations_sources_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/overland_conductivity/flow_relations_overland_conductivity_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
