@@ -8,7 +8,7 @@
 # collect all sources
 list(APPEND subdirs elevation overland_conductivity porosity water_content wrm sources)
 set(ats_flow_relations_src_files "")
-set(ats_flow_relations_inc_files "")
+set(ats_flow_relations_inc_files "PK_Utils.hh")
 
 foreach(lcv IN LISTS subdirs)
   include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/${lcv})
