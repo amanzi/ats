@@ -89,19 +89,18 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)->ViewComponent("cell",false);
   
   // loop over mesh cells and create map
-  int ncells_pipe = pipe_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  int ncells_sw = surface_mesh->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
+  int ncells_pipe = pipe_mesh_->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+  int ncells_sw = surface_mesh->->getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
   // SW map from pipe -> SW domain
   if (pipe_flag_ == true) {
     pipe_map_.resize(ncells_pipe);
     for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
       if (std::abs(mnhMask[0][c_pipe] - 1.0)  < 1.e-12) { 
-        const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->cell_centroid(c_pipe);
+        const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->getCellCentroid(c_pipe);
         for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
-          const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->cell_centroid(c_sw);
-          std::vector<AmanziGeometry::Point> coords;
-          surface_mesh->cell_get_coordinates(c_sw, &coords);
+          const Amanzi::AmanziGeometry::Point& xc_sw = surface_mesh->getCellCentroid(c_sw);
+          auto coords = PKUtils_EntityCoordinates(*c_sw, AmanziMesh::Entity_kind::CELL, *surface_mesh);
 
           if (AmanziGeometry::point_in_polygon(xc_pipe, coords) == true) {
             pipe_map_[c_pipe] = c_sw;
@@ -118,11 +117,10 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
     sw_map_.resize(ncells_sw);
     for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
       if (std::abs(mnhMask[0][c_sw] - 1.0) < 1.e-12) {
-        const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->cell_centroid(c_sw);
+        const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->getCellCentroid(c_sw);
         for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
-          const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->cell_centroid(c_pipe);
-          std::vector<AmanziGeometry::Point> coords;
-          pipe_mesh->cell_get_coordinates(c_pipe, &coords);
+          const Amanzi::AmanziGeometry::Point& xc_pipe = pipe_mesh->getCellCentroid(c_pipe);
+          auto coords = PKUtils_EntityCoordinates(*c_pipe, AmanziMesh::Entity_kind::CELL, *pipe_mesh);
 
           if (AmanziGeometry::point_in_polygon(xc_sw, coords) == true) {
             sw_map_[c_sw] = c_pipe;
