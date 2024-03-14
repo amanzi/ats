@@ -101,7 +101,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
         const Amanzi::AmanziGeometry::Point &xc_pipe = pipe_mesh->getCellCentroid(c_pipe);
         for (int c_sw = 0; c_sw < ncells_sw; ++c_sw) {
           std::vector<AmanziGeometry::Point> coords;
-          auto cnodes = mesh_->getCellNodes(c_sw);
+          auto cnodes = surface_mesh_->getCellNodes(c_sw);
           for (int node_sw=0; node_sw<cnodes.size(); node_sw++){
              coords.push_back( PKUtils_EntityCoordinates(node_sw, AmanziMesh::Entity_kind::NODE, *surface_mesh));
           }
@@ -124,7 +124,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
         const Amanzi::AmanziGeometry::Point &xc_sw = surface_mesh->getCellCentroid(c_sw);
         for (int c_pipe = 0; c_pipe < ncells_pipe; ++c_pipe) {
           std::vector<AmanziGeometry::Point> coords;
-          auto cnodes = mesh_->getCellNodes(c_pipe);
+          auto cnodes = pipe_mesh_->getCellNodes(c_pipe);
           for (int node_pipe=0; node_pipe<cnodes.size(); node_pipe++){
              coords.push_back( PKUtils_EntityCoordinates(node_pipe, AmanziMesh::Entity_kind::NODE, *pipe_mesh));
           }
