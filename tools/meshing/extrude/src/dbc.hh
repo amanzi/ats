@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #ifndef _DBC_H_
 #define _DBC_H_
 
@@ -8,12 +17,12 @@ namespace DBC {
 /* DBC_assertion
  *
  * An exception class for DBC asserion volations.
- * 
+ *
  */
 class Assertion : public Exceptions::Amanzi_exception {
-public:
-  Assertion (const char* condition, const char* file, unsigned int line);
-  const char* what () const throw ();
+ public:
+  Assertion(const char* condition, const char* file, unsigned int line);
+  const char* what() const throw();
 
  public:
   const char* assertion_;
@@ -21,7 +30,8 @@ public:
   unsigned int line_number_;
 };
 
-void amanzi_assert(const char * cond, const char * file, unsigned int line);
+void
+amanzi_assert(const char* cond, const char* file, unsigned int line);
 
 } // namespace DBC
 
@@ -36,11 +46,16 @@ void amanzi_assert(const char * cond, const char * file, unsigned int line);
 // unused variables in the expression a.
 
 #ifdef ENABLE_DBC
-#define AMANZI_ASSERT(bool_expression) do { if (!(bool_expression)) DBC::amanzi_assert( #bool_expression, __FILE__, __LINE__ ); } while (0)
+#  define AMANZI_ASSERT(bool_expression)                                                           \
+    do {                                                                                           \
+      if (!(bool_expression)) DBC::amanzi_assert(#bool_expression, __FILE__, __LINE__);            \
+    } while (0)
 #else
-#define AMANZI_ASSERT(a) do { (void)sizeof(a); } while (0);
+#  define AMANZI_ASSERT(a)                                                                         \
+    do {                                                                                           \
+      (void)sizeof(a);                                                                             \
+    } while (0);
 #endif /* ENABLE_DBC */
 
 
 #endif /* _DBC_H_ */
-

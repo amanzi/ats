@@ -1,5 +1,13 @@
 /*
-Author: Ethan Coon
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
+/*
 
 Painter's permafrost model.
 
@@ -11,7 +19,8 @@ Painter's permafrost model.
 namespace Amanzi {
 namespace Flow {
 
-Utils::RegisteredFactory<WRMPermafrostModel,WRMOldPermafrostModel> WRMOldPermafrostModel::factory_("old permafrost model");
+Utils::RegisteredFactory<WRMPermafrostModel, WRMOldPermafrostModel>
+  WRMOldPermafrostModel::factory_("old permafrost model");
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

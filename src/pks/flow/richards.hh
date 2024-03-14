@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Two-phase, variable density Richards equation.
 
+//! Two-phase, variable density Richards equation.
 /*!
 
 Solves Richards equation:
@@ -43,9 +44,11 @@ Solves Richards equation:
      State.
 
    IF
+
    * `"source term`" ``[bool]`` **false** Is there a source term?
 
    THEN
+
    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
      set, as the default is good. ``[mol s^-1]``
    * `"source term is differentiable`" ``[bool]`` **true** Can the
@@ -92,10 +95,10 @@ Solves Richards equation:
      - `"upwind with gravity`" Upwinds according to the gravitational
        flux direction
      - `"cell centered`" This corresponds to the harmonic mean, and is
-        most accurate if the problem is always wet, but has issues
-        when it is dry.
+       most accurate if the problem is always wet, but has issues
+       when it is dry.
      - `"arithmetic mean`" Face value is the mean of the neighboring
-        cells.  Not a good method.
+       cells.  Not a good method.
 
    Globalization and other process-based hacks:
 
@@ -138,7 +141,7 @@ Solves Richards equation:
      The inverse of the accumulation operator.  See PDE_Accumulation_.
      Typically not provided by users, as defaults are correct.
 
-   * `"absolute error tolerance`" ``[double]`` **2750.0** ``[mol]``
+   * `"absolute error tolerance`" ``[double]`` **2750.0** in units of [mol].
 
    * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
      face unknowns on discretizations that are cell-only (e.g. FV).  This can
@@ -153,12 +156,14 @@ Solves Richards equation:
      (:math:`\rho / \mu`).
 
    IF
+
    * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
      surface boundary conditions from an exchange flux.  Note, if this is a
      coupled problem, it is probably set by the MPC.  No need for a user to
      set it.
 
    THEN
+
    * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
 
    END
@@ -234,14 +239,14 @@ namespace Amanzi {
 // forward declarations
 class MPCSubsurface;
 class PredictorDelegateBCFlux;
-namespace WhetStone { class Tensor; }
+namespace WhetStone {
+class Tensor;
+}
 
 namespace Flow {
 
 class Richards : public PK_PhysicalBDF_Default {
-
-public:
-
+ public:
   Richards(Teuchos::ParameterList& pk_tree,
            const Teuchos::RCP<Teuchos::ParameterList>& plist,
            const Teuchos::RCP<State>& S,
@@ -266,17 +271,21 @@ public:
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // problems with pressures -- setting a range of admissible pressures
   virtual bool IsAdmissible(Teuchos::RCP<const TreeVector> up) override;
@@ -286,16 +295,18 @@ public:
 
   // methods used only for testing
   Teuchos::RCP<Operators::Operator> get_operator() { return matrix_; }
-  void set_fixed_kr(bool fixed=true) { fixed_kr_ = fixed; }
+  void set_fixed_kr(bool fixed = true) { fixed_kr_ = fixed; }
 
  protected:
   // Create of physical evaluators.
   virtual void SetupPhysicalEvaluators_();
   virtual void SetupRichardsFlow_();
+  // customization of upwinding
+  virtual void RequireNonlinearCoefficient_(const Key& key, const std::string& coef_location);
 
   // boundary condition members
   void ComputeBoundaryConditions_(const Tag& tag);
-  virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr=true);
+  virtual void UpdateBoundaryConditions_(const Tag& tag, bool kr = true);
 
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
   virtual void SetAbsolutePermeabilityTensor_(const Tag& tag);
@@ -307,8 +318,7 @@ public:
 
   // physical methods
   // -- diffusion term
-  virtual void ApplyDiffusion_(const Tag& tag,
-          const Teuchos::Ptr<CompositeVector>& g);
+  virtual void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
 
   // virtual void AddVaporDiffusionResidual_(const Tag& tag,
   //         const Teuchos::Ptr<CompositeVector>& g);
@@ -320,8 +330,7 @@ public:
   virtual void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
 
   // -- Add any source terms into the residual.
-  virtual void AddSources_(const Tag& tag,
-                           const Teuchos::Ptr<CompositeVector>& f);
+  virtual void AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& f);
   virtual void AddSourcesToPrecon_(double h);
 
   // Nonlinear version of CalculateConsistentFaces()
@@ -335,9 +344,10 @@ public:
 
   // -- Possibly modify the correction before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                       Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // control switches
@@ -364,7 +374,7 @@ public:
   double surface_head_eps_;
 
   // permeability
-  Teuchos::RCP<std::vector<WhetStone::Tensor> > K_;  // absolute permeability
+  Teuchos::RCP<std::vector<WhetStone::Tensor>> K_; // absolute permeability
   Teuchos::RCP<Operators::Upwinding> upwinding_;
   Teuchos::RCP<Operators::Upwinding> upwinding_deriv_;
   Teuchos::RCP<Flow::WRMPartition> wrms_;
@@ -391,6 +401,7 @@ public:
   // boundary condition data
   Teuchos::RCP<Functions::BoundaryFunction> bc_pressure_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_head_;
+  int bc_head_global_count_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_flux_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_seepage_;
@@ -438,9 +449,17 @@ public:
   Key capillary_pressure_gas_liq_key_;
   Key capillary_pressure_liq_ice_key_;
   Key deform_key_;
+  Key depth_key_;
 
   // debugging control
   bool fixed_kr_;
+
+  // -- access methods
+  virtual Teuchos::RCP<Operators::Operator>
+  my_operator(const Operators::OperatorType& type) override
+  {
+    return matrix_;
+  }
 
  private:
   // factory registration
@@ -448,10 +467,9 @@ public:
 
   // Richards has a friend in couplers...
   friend class Amanzi::MPCSubsurface;
-
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

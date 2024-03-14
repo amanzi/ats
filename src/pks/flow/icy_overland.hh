@@ -1,12 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Two-phase overland flow equation.
 
+//! Two-phase overland flow equation.
 /*!
 
 This modifies the diffusion wave equation for overland flow that includes
@@ -34,21 +35,21 @@ generating the input file, and this class would go away.
 
 namespace Amanzi {
 
-namespace Operators { class Upwinding; }
+namespace Operators {
+class Upwinding;
+}
 
 namespace Flow {
 
 
 class IcyOverlandFlow : public OverlandPressureFlow {
-
  public:
-
   IcyOverlandFlow(Teuchos::ParameterList& pk_tree,
                   const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                   const Teuchos::RCP<State>& S,
-                  const Teuchos::RCP<TreeVector>& solution) :
-    PK(pk_tree, global_list, S, solution),
-    OverlandPressureFlow(pk_tree, global_list, S, solution) {}
+                  const Teuchos::RCP<TreeVector>& solution)
+    : PK(pk_tree, global_list, S, solution), OverlandPressureFlow(pk_tree, global_list, S, solution)
+  {}
 
   // Virtual destructor
   virtual ~IcyOverlandFlow() override {}
@@ -62,7 +63,7 @@ class IcyOverlandFlow : public OverlandPressureFlow {
   static RegisteredPKFactory<IcyOverlandFlow> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace AmanziFlow
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

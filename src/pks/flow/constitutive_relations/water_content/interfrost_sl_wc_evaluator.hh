@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The interfrost sl water content evaluator is an algebraic evaluator of a given model.
 
   Generated via evaluator_generator with:
 Interfrost water content portion sl.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_FLOW_INTERFROST_SL_WC_EVALUATOR_HH_
@@ -20,10 +28,8 @@ namespace Relations {
 class InterfrostSlWcModel;
 
 class InterfrostSlWcEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  InterfrostSlWcEvaluator(Teuchos::ParameterList& plist);
+  explicit InterfrostSlWcEvaluator(Teuchos::ParameterList& plist);
   InterfrostSlWcEvaluator(const InterfrostSlWcEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
@@ -31,11 +37,11 @@ class InterfrostSlWcEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   void InitializeFromPlist_();
 
@@ -49,12 +55,11 @@ class InterfrostSlWcEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<InterfrostSlWcModel> model_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,InterfrostSlWcEvaluator> reg_;
-
+  static Utils::RegisteredFactory<Evaluator, InterfrostSlWcEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

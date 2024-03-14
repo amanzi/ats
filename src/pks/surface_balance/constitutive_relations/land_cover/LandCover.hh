@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (coonet@ornl.gov)
 */
-//! Basic land cover/plant function type
 
+//! Basic land cover/plant function type
 /*!
 
 This is a simple base class for PFTs, but currently called LandCover_t to
@@ -44,12 +45,12 @@ same region-based partitioning.
     * `"rooting profile beta [-]`" ``[double]``  **NaN** beta in the rooting profile
       function [-] Note that these are from the CLM 4.5 Technical Note.
 
-    * `"mafic potential at fully closed stomata [Pa]`" ``[double]``  **NaN** 
-    * `"mafic potential at fully open stomata [Pa]`" ``[double]``  **NaN** Transpiration
-      is typically multipled by a limiter that is empirically modeling stomata
-      closure.  Typically it varies linearly from 0 to 1 as a function of
-      mafic potential (soil pore capillary pressure), between these two
-      values. [Pa]
+    * `"capillary pressure at fully closed stomata [Pa]`" ``[double]``  **NaN**
+    * `"capillary pressure at fully open stomata [Pa]`" ``[double]`` **NaN**
+      Transpiration is typically downregulated by a limiter that is empirically
+      modeling stomata closure.  Typically it varies linearly from 0 to 1 as a
+      function of capillary pressure, between these two values.  Note that
+      these should be positive! [Pa]
 
     * `"leaf on time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
        begin transpiring.  Note that -1 implies evergreen. [doy]
@@ -74,8 +75,6 @@ same region-based partitioning.
       cover type's bare ground, ranging from [0,1]
     * `"albedo of canopy [-]`" ``[double]``  **NaN** Albedo of the land cover type's
       canopy, ranging from [0,1]
-    * `"emissivity of canopy [-]`" ``[double]``  **NaN** Emissivity of the land
-      cover type's canopy, ranging from [0,1]
 
     * `"Beer's law extinction coefficient, shortwave [-]`"  ``[double]``  **NaN**
     * `"Beer's law extinction coefficient, longwave [-]`" ``[double]`` **NaN**
@@ -97,20 +96,6 @@ same region-based partitioning.
       ponded depth.  Then, multiple surface energy balances (SEBs) are
       calculated, one assuming the ponded depth is this thick, and the various
       components of the SEB are averaged by that area fraction.
-
-    * `"dessicated zone thickness [m]`" ``[double]`` **NaN** The thickness of soil
-      across which water vapor must diffuse to reach the free atmosphere.
-      Effectively, the bigger this value, the faster that bare-soil evaporation
-      shuts off as a function of pressure/liquid saturation.
-
-    * `"Clapp and Hornberger b [-]`" ``[double]`` **NaN** This is unfortunate, and
-      should go away at some point.  Clapp & Hornberger is a soil retention
-      curve, and this WRM is hard-coded into a few CLM models that we use here.
-      It would be much better to refactor this out, as we almost never use C&H
-      and instead use van Genuchten WRMs, and those parameters are soil
-      properties, not land cover properties.  Until those models are re-derived
-      and/or refactored, we must provide this value.  When in doubt, just use
-      1.
 
     * `"roughness length of bare ground [m]`" ``[double]`` **NaN** Roughness length of
       the bare soil, used in calculating sensible/latent heat in the
@@ -143,9 +128,9 @@ struct LandCover {
   double rooting_profile_alpha;
   double rooting_profile_beta;
 
-  // stomatal limiters
-  double stomata_closed_mafic_potential;
-  double stomata_open_mafic_potential;
+  // parameters in the transpiration reduction function
+  double stomata_closed_capillary_pressure;
+  double stomata_open_capillary_pressure;
 
   // manning's coef
   double mannings_n;
@@ -171,31 +156,29 @@ struct LandCover {
 
   // transition thickness between snow and bare ground
   // likely this is a property of the understory veg
-  double snow_transition_depth; // [m]
+  double snow_transition_depth;  // [m]
   double water_transition_depth; // [m]
 
   // soil properties controlling evaporation
-  double dessicated_zone_thickness; // [m] Thickness over which vapor must diffuse
-      //  when the soil is dry.
-  double clapp_horn_b; // [-] exponent of the WRM, Clapp & Hornberger eqn 1
   double roughness_ground; // [m] Fetch length for latent/sensible heat fluxes.
-  double roughness_snow; // [m] Fetch length for latent/sensible heat fluxes.
+  double roughness_snow;   // [m] Fetch length for latent/sensible heat fluxes.
 };
 
 // this one includes error checking for NaNs
 using LandCoverMap = std::map<std::string, LandCover>;
-LandCoverMap getLandCover(Teuchos::ParameterList& plist,
-                          const std::vector<std::string>& required_pars);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars);
 
 namespace Impl {
 
-void checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
-LandCoverMap getLandCover(Teuchos::ParameterList& plist);
+void
+checkValid(const std::string& region, const LandCover& lc, const std::string& parname);
+LandCoverMap
+getLandCover(Teuchos::ParameterList& plist);
 
 
 } // namespace Impl
 
 
 } // namespace SurfaceBalance
-} // namespace ATS
-
+} // namespace Amanzi

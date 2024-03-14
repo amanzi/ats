@@ -1,32 +1,39 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
 
 /*
   Delegate for modifying the predictor in the case of infiltration into dry soil.
 
-  License: BSD
-  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
-#include "boost/math/tools/roots.hpp"
-#include "predictor_delegate_bc_flux.hh"
-
+#include "Brent.hh"
 #include "Op.hh"
+
+#include "predictor_delegate_bc_flux.hh"
 
 namespace Amanzi {
 namespace Flow {
 
 #define DEBUG_FLAG 0
 
-bool PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u) {
-  Epetra_MultiVector& u_f = *u->ViewComponent("face",false);
-  
+bool
+PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
+{
+  Epetra_MultiVector& u_f = *u->ViewComponent("face", false);
+
   int nfaces = bc_values_->size();
-  for (int f=0; f!=nfaces; ++f) {
+  for (int f = 0; f != nfaces; ++f) {
     if ((*bc_markers_)[f] == Operators::OPERATOR_BC_NEUMANN) {
       double lambda = u_f[0][f];
       // only do if below saturated
       if (lambda < 101325.) {
-        int ierr = CalculateLambdaToms_(f, u, lambda);
+        int ierr = CalculateLambda_(f, u, lambda);
         AMANZI_ASSERT(!ierr);
         if (!ierr) u_f[0][f] = lambda;
       }
@@ -37,67 +44,69 @@ bool PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector
 
 
 Teuchos::RCP<PredictorDelegateBCFlux::FluxBCFunctor>
-PredictorDelegateBCFlux::CreateFunctor_(int f,
-        const Teuchos::Ptr<const CompositeVector>& pres) {
+PredictorDelegateBCFlux::CreateFunctor_(int f, const Teuchos::Ptr<const CompositeVector>& pres)
+{
   // inner cell and its water retention model
-  AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  auto cells = mesh_->getFaceCells(f);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 
   // that cell's faces
-  AmanziMesh::Entity_ID_List faces;
-  std::vector<int> dirs;
-  mesh_->cell_get_faces_and_dirs(c, &faces, &dirs);
+  const auto& [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
   // index within that cell's faces
   unsigned int n = std::find(faces.begin(), faces.end(), f) - faces.begin();
   AMANZI_ASSERT(n != faces.size());
 
   // local matrix row, vector
-  Teuchos::RCP< std::vector<double> > Aff = Teuchos::rcp(new std::vector<double>());
+  Teuchos::RCP<std::vector<double>> Aff = Teuchos::rcp(new std::vector<double>());
   Aff->resize(faces.size());
-  Teuchos::RCP< std::vector<double> > lambda = Teuchos::rcp(new std::vector<double>());
+  Teuchos::RCP<std::vector<double>> lambda = Teuchos::rcp(new std::vector<double>());
   lambda->resize(faces.size());
 
   // collect physics
   const auto& wrm = wrms_->second[(*wrms_->first)[c]];
   const auto& pres_f = *pres->ViewComponent("face", false);
   const auto& pres_c = *pres->ViewComponent("cell", false);
-  const auto& rhs_f = *matrix_->global_operator()->rhs()->ViewComponent("face",false);
-  
+  const auto& rhs_f = *matrix_->global_operator()->rhs()->ViewComponent("face", false);
+
   // unscale the Aff for my cell with rel perm
   double Krel = wrm->k_relative(wrm->saturation(101325. - pres_f[0][f]));
 
   // fill the arrays
   const auto& Aff_g = matrix_->local_op()->matrices[c];
-  for (unsigned int i=0; i!=faces.size(); ++i) {
-    (*Aff)[i] = Aff_g(n,i) / Krel;
+  for (unsigned int i = 0; i != faces.size(); ++i) {
+    (*Aff)[i] = Aff_g(n, i) / Krel;
     (*lambda)[i] = pres_f[0][faces[i]];
   }
 
   // gravity flux
-  double bc_flux = mesh_->face_area(f) * (*bc_values_)[f];
+  double bc_flux = mesh_->getFaceArea(f) * (*bc_values_)[f];
   double gflux = rhs_f[0][faces[n]] / Krel;
 
 #if DEBUG_FLAG
   std::cout << "   Aff = ";
-  for (unsigned int i=0; i!=faces.size(); ++i) std::cout << (*Aff)[i] << ", ";
+  for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*Aff)[i] << ", ";
   std::cout << std::endl << "   lambda = ";
-  for (unsigned int i=0; i!=faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
-  std::cout << std::endl << "   p_cell = " << (*pres)("cell",c) << std::endl;
-  std::cout << "    and init K_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(wrms_->second[(*wrms_->first)[c]]->saturation(101325. - (*lambda)[n])) << std::endl;
+  for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
+  std::cout << std::endl << "   p_cell = " << (*pres)("cell", c) << std::endl;
+  std::cout << "    and init K_rel = "
+            << wrms_->second[(*wrms_->first)[c]]->k_relative(
+                 wrms_->second[(*wrms_->first)[c]]->saturation(101325. - (*lambda)[n]))
+            << std::endl;
   std::cout << "    to match fluxes: bc = " << bc_flux << " and grav = " << gflux << std::endl;
 #endif
 
   // create and return
-  return Teuchos::rcp(new FluxBCFunctor(Aff, lambda, n, pres_c[0][c],
-          bc_flux, gflux, dirs[n], 101325.0, wrm));
+  return Teuchos::rcp(
+    new FluxBCFunctor(Aff, lambda, n, pres_c[0][c], bc_flux, gflux, dirs[n], 101325.0, wrm));
 }
 
-int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
-        const Teuchos::Ptr<const CompositeVector>& pres, double& lambda) {
-
+int
+PredictorDelegateBCFlux::CalculateLambda_(int f,
+                                          const Teuchos::Ptr<const CompositeVector>& pres,
+                                          double& lambda)
+{
 #if DEBUG_FLAG
   std::cout << " Flux correcting face " << f << ": q = " << (*bc_values_)[f] << std::endl;
 #endif
@@ -105,13 +114,12 @@ int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   // start by making sure lambda is a reasonable guess, which may not be the case
   if (std::abs(lambda) > 1.e7) lambda = 101325.;
 
-  Teuchos::RCP<FluxBCFunctor> func = CreateFunctor_(f,pres);
+  Teuchos::RCP<FluxBCFunctor> func = CreateFunctor_(f, pres);
 
   // -- convergence criteria
   double eps = std::max(1.e-4 * std::abs((*bc_values_)[f]), 1.e-8);
-  Tol_ tol(eps);
-  boost::uintmax_t max_it = 100;
-  boost::uintmax_t actual_it(max_it);
+  int max_it = 100;
+  int actual_it(max_it);
 
   double res = (*func)(lambda);
   double left = 0.;
@@ -121,16 +129,16 @@ int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
 
   if (std::abs(res) < eps) {
 #if DEBUG_FLAG
-  std::cout << "  Converged to " << lambda << " in " << 0 << " steps." << std::endl;
+    std::cout << "  Converged to " << lambda << " in " << 0 << " steps." << std::endl;
 #endif
     return 0;
   }
-    
+
 
   if (res > 0.) {
     left = lambda;
     lres = res;
-    right = std::max(lambda,101325.);
+    right = std::max(lambda, 101325.);
     rres = (*func)(right);
     while (rres > 0.) {
       right += 101325.;
@@ -150,27 +158,29 @@ int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
   }
 
 #if DEBUG_FLAG
-  std::cout << "   bracket (res): " << left << " (" << lres << "), "
-            << right << " (" << rres << ")" << std::endl;
+  std::cout << "   bracket (res): " << left << " (" << lres << "), " << right << " (" << rres << ")"
+            << std::endl;
 #endif
 
-  std::pair<double,double> result =
-      boost::math::tools::toms748_solve(*func, left, right, lres, rres, tol, actual_it);
+  double result = Utils::findRootBrent(*func, left, right, eps, &actual_it);
   if (actual_it >= max_it) {
     std::cout << " Failed to converged in " << actual_it << " steps." << std::endl;
     return 3;
   }
 
-  lambda = (result.first + result.second) / 2.;
+  lambda = result;
 #if DEBUG_FLAG
   std::cout << "  Converged to " << lambda << " in " << actual_it << " steps." << std::endl;
 
   AmanziMesh::Entity_ID_List cells;
-  mesh_->face_get_cells(f, AmanziMesh::Parallel_type::ALL, &cells);
+  cells = mesh_->getFaceCells(f);
   AMANZI_ASSERT(cells.size() == 1);
   int c = cells[0];
 
-  std::cout << "      with k_rel = " << wrms_->second[(*wrms_->first)[c]]->k_relative(wrms_->second[(*wrms_->first)[c]]->saturation(101325. - lambda)) << std::endl;
+  std::cout << "      with k_rel = "
+            << wrms_->second[(*wrms_->first)[c]]->k_relative(
+                 wrms_->second[(*wrms_->first)[c]]->saturation(101325. - lambda))
+            << std::endl;
 
 
 #endif
@@ -178,6 +188,5 @@ int PredictorDelegateBCFlux::CalculateLambdaToms_(int f,
 }
 
 
-
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

@@ -7,17 +7,36 @@ def rh2vp(filename_rh_h5, filename_vp_h5):
     attrs = {}
     with h5py.File(filename_rh_h5, 'r') as f:
         for k, v in f.items():
-            data[k] = v[:]
+            try:
+                data[k] = v[:]
+            except TypeError:
+                data_t = {}
+                for tk, tv in v.items():
+                    data_t[tk] = tv[:]
+                data[k] = data_t
+
         for k, v in f.attrs.items():
             attrs[k] = v
-            
-    vp_sat = 611.2*np.exp(17.67*(data['air temperature [K]']-273.15)/(data['air temperature [K]']-273.15+243.5))
-    data['vapor pressure air [Pa]'] = data['relative humidity [-]']*vp_sat
+    
+    if type(data['air temperature [K]']) != dict:
+        vp_sat = 611.2*np.exp(17.67*(data['air temperature [K]']-273.15)/(data['air temperature [K]']-273.15+243.5))
+        data['vapor pressure air [Pa]'] = data['relative humidity [-]']*vp_sat
+    else:
+        data['vapor pressure air [Pa]'] = {}
+        for k, v in data['air temperature [K]'].items():
+            vp_sat = 611.2*np.exp(17.67*(v-273.15)/(v-273.15+243.5))
+            data['vapor pressure air [Pa]'][k] = data['relative humidity [-]'][k]*vp_sat
     data.pop('relative humidity [-]')
     
     with h5py.File(filename_vp_h5, 'w') as f:
         for k, v in data.items():
-            f.create_dataset(k, data=v)
+            try:
+                f.create_dataset(k, data=v)
+            except TypeError:
+                g = f.create_group(k)
+                for tk, tv in v.items():
+                    g.create_dataset(tk, data=tv)
+
         for k, v in attrs.items():
             f.attrs[k] = v
             

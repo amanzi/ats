@@ -1,3 +1,12 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include <iostream>
 #include "UnitTest++.h"
 
@@ -6,7 +15,8 @@
 #include "pc_ice_water.hh"
 
 
-TEST(implicitPermafrost) {
+TEST(implicitPermafrost)
+{
   using namespace Amanzi::Flow::Flow;
 
   double m = 0.8;
@@ -44,15 +54,15 @@ TEST(implicitPermafrost) {
 
   // -- derivatives
   double eps = 1.e-3;
-  p1.saturations(pc_liq+eps, pc_ice, sats2);
-  p1.saturations(pc_liq-eps, pc_ice, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2*eps);
+  p1.saturations(pc_liq + eps, pc_ice, sats2);
+  p1.saturations(pc_liq - eps, pc_ice, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2 * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2 * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2 * eps);
   p1.dsaturations_dpc_liq(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3);
 
 
   // saturated, above freezing
@@ -62,15 +72,15 @@ TEST(implicitPermafrost) {
   CHECK_CLOSE(sats[1], wrm->saturation(pc_liq), 1.e-8);
 
   // -- derivatives
-  p1.saturations(pc_liq+eps, pc_ice, sats2);
-  p1.saturations(pc_liq-eps, pc_ice, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2*eps);
+  p1.saturations(pc_liq + eps, pc_ice, sats2);
+  p1.saturations(pc_liq - eps, pc_ice, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2 * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2 * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2 * eps);
   p1.dsaturations_dpc_liq(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3);
 
   // saturated, below freezing
   // -- value
@@ -82,25 +92,25 @@ TEST(implicitPermafrost) {
   CHECK_CLOSE(sats[2], 0.9999939451111052, 1.e-8);
 
   // -- derivatives
-  p1.saturations(pc_liq+eps, pc_ice, sats2);
-  p1.saturations(pc_liq-eps, pc_ice, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2*eps);
+  p1.saturations(pc_liq + eps, pc_ice, sats2);
+  p1.saturations(pc_liq - eps, pc_ice, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2 * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2 * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2 * eps);
   p1.dsaturations_dpc_liq(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3 + 1.e-10);
 
-  p1.saturations(pc_liq, pc_ice+eps, sats2);
-  p1.saturations(pc_liq, pc_ice-eps, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2.*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2.*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2.*eps);
+  p1.saturations(pc_liq, pc_ice + eps, sats2);
+  p1.saturations(pc_liq, pc_ice - eps, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2. * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2. * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2. * eps);
   p1.dsaturations_dpc_ice(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3 + 1.e-10);
 
   // unsaturated, below freezing
   // -- value
@@ -112,25 +122,25 @@ TEST(implicitPermafrost) {
 
 
   // -- derivatives
-  p1.saturations(pc_liq+eps, pc_ice, sats2);
-  p1.saturations(pc_liq-eps, pc_ice, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2*eps);
+  p1.saturations(pc_liq + eps, pc_ice, sats2);
+  p1.saturations(pc_liq - eps, pc_ice, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2 * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2 * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2 * eps);
   p1.dsaturations_dpc_liq(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3 + 1.e-10);
 
-  p1.saturations(pc_liq, pc_ice+eps, sats2);
-  p1.saturations(pc_liq, pc_ice-eps, sats3);
-  sats2[0] = (sats2[0] - sats3[0])/(2*eps);
-  sats2[1] = (sats2[1] - sats3[1])/(2*eps);
-  sats2[2] = (sats2[2] - sats3[2])/(2*eps);
+  p1.saturations(pc_liq, pc_ice + eps, sats2);
+  p1.saturations(pc_liq, pc_ice - eps, sats3);
+  sats2[0] = (sats2[0] - sats3[0]) / (2 * eps);
+  sats2[1] = (sats2[1] - sats3[1]) / (2 * eps);
+  sats2[2] = (sats2[2] - sats3[2]) / (2 * eps);
   p1.dsaturations_dpc_ice(pc_liq, pc_ice, sats);
-  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3 + 1.e-10);
-  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1]) / 1.e3 + 1.e-10);
+  CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2]) / 1.e3 + 1.e-10);
 
   // unsaturated, below freezing
   // -- value
@@ -162,5 +172,4 @@ TEST(implicitPermafrost) {
   // CHECK_CLOSE(sats[0], sats2[0], std::abs(sats[0])/1.e3 + 1.e-10);
   // CHECK_CLOSE(sats[1], sats2[1], std::abs(sats[1])/1.e3 + 1.e-10);
   // CHECK_CLOSE(sats[2], sats2[2], std::abs(sats[2])/1.e3 + 1.e-10);
-
 }

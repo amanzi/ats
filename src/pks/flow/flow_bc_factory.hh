@@ -1,6 +1,7 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
@@ -124,12 +125,12 @@ Example:
 
 Neumann (fix level flux) boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Used for surface only,  this provides fixed level ([m])  velocity data (in [mol m^-3 s^-1], in the outward normal direction on boundaries.
+Used for surface only,  this provides fixed level ([m])  velocity data (in [m s^-1], in the outward normal direction on boundaries.
 
 Example:
 
 .. code-block:: xml
-    
+
      <ParameterList name="boundary conditions">
        <ParameterList name="fixed level flux">
           <ParameterList name="river level south">
@@ -141,15 +142,15 @@ Example:
             </ParameterList>
             <ParameterList name="velocity">
                <ParameterList name="function-constant">
-                 <Parameter name="value" type="double" value="-25"/>
+                 <Parameter name="value" type="double" value="2.5"/>
                </ParameterList>
-            </ParameterList>            
+            </ParameterList>
           </ParameterList>
        </ParameterList>
     </ParameterList>
 
 
- 
+
 Seepage face boundary conditions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -181,7 +182,7 @@ Example: pressure (for surface or subsurface)
 
 
 Example: head (for surface)
- 
+
 .. code-block:: xml
 
  <ParameterList name="boundary conditions">
@@ -303,7 +304,7 @@ The type of boundary conditions maybe changed in time depending on the switch fu
          <Parameter name="form" type="Array(string)" value="{constant}"/>
        </ParameterList>
      </ParameterList>
-          
+
      <ParameterList name="bcs">
        <Parameter name="bc types" type="Array(string)" value="{head, water flux}"/>
        <Parameter name="bc functions" type="Array(string)" value="{boundary head, outward water flux}"/>
@@ -322,7 +323,7 @@ The type of boundary conditions maybe changed in time depending on the switch fu
           </ParameterList>
        </ParameterList>
 
-       <ParameterList name="head">  
+       <ParameterList name="head">
           <ParameterList name="BC west">
             <Parameter name="regions" type="Array(string)" value="{surface west}"/>
             <ParameterList name="boundary head">
@@ -342,75 +343,86 @@ The type of boundary conditions maybe changed in time depending on the switch fu
  */
 
 
-
 namespace Amanzi {
 namespace Flow {
 
 class FlowBCFactory : public Amanzi::BCFactory {
-
-public:
-  FlowBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh> &mesh,
+ public:
+  FlowBCFactory(const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
                 const Teuchos::ParameterList& plist)
-      : Amanzi::BCFactory(mesh,plist) {}
+    : Amanzi::BCFactory(mesh, plist)
+  {}
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreatePressure() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreatePressure() const
+  {
     return CreateWithFunction("pressure", "boundary pressure");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateHead() const
+  {
     return CreateWithFunction("head", "boundary head");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateMassFlux() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateMassFlux() const
+  {
     return CreateWithFunction("water flux", "outward water flux");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateZeroGradient() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateZeroGradient() const
+  {
     return CreateWithoutFunction("zero gradient");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFaceHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFaceHead() const
+  {
     return CreateWithFunction("seepage face head", "boundary head");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateTidalHead() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateTidalHead() const
+  {
     return CreateWithFunction("tidal head", "boundary head");
   }
-  
-  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFacePressure() const {
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateSeepageFacePressure() const
+  {
     return CreateWithFunction("seepage face pressure", "boundary pressure");
   }
 
   std::pair<bool, Teuchos::RCP<Functions::BoundaryFunction>>
-  CreateSeepageFacePressureWithInfiltration() {
+  CreateSeepageFacePressureWithInfiltration()
+  {
     bool is_explicit = CheckExplicitFlag("seepage face with infiltration");
     auto bfunc = CreateWithFunction("seepage face with infiltration", "outward water flux");
     return std::make_pair(is_explicit, bfunc);
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateCriticalDepth() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateCriticalDepth() const
+  {
     return CreateWithoutFunction("critical depth");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevel() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevel() const
+  {
     return CreateWithFunction("fixed level", "fixed level");
   }
 
-  Teuchos::RCP<Functions::DynamicBoundaryFunction> CreateDynamic() const {
+  Teuchos::RCP<Functions::DynamicBoundaryFunction> CreateDynamic() const
+  {
     return CreateDynamicFunction("dynamic");
   }
-  
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const {
+
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Level() const
+  {
     return CreateWithFunction("fixed level flux", "fixed level");
   }
 
-  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const {
+  Teuchos::RCP<Functions::BoundaryFunction> CreateFixedLevelFlux_Velocity() const
+  {
     return CreateWithFunction("fixed level flux", "velocity");
   }
-
 };
 
-}  // namespace
-}  // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif // AMANZI_FLOW_BC_FACTORY_HH_

@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 // -----------------------------------------------------------------------------
 // ATS
-//
-// License: see $ATS_DIR/COPYRIGHT
-// Author: Ethan Coon (ecoon@lanl.gov)
 //
 // Scheme for taking coefficients for div-grad operators from cells to
 // faces.
@@ -39,32 +43,39 @@ enum UpwindMethod {
 };
 
 class Upwinding {
-
  public:
   virtual ~Upwinding() = default;
 
-  virtual void
-  Update(const CompositeVector& data,
-         CompositeVector& uw_data,
-         const State& S,
-         const Teuchos::Ptr<Debugger>& db=Teuchos::null) const = 0;
+  virtual void Update(const CompositeVector& data,
+                      CompositeVector& uw_data,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const = 0;
 
-  virtual void
-  UpdateDerivatives(const Teuchos::Ptr<State>& S,
-                    std::string potential_key,
-                    const CompositeVector& dconductivity,
-                    const std::vector<int>& bc_markers,
-                    const std::vector<double>& bc_values,
-                    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double> > >* Jpp_faces) const {
+  virtual void Update(const CompositeVector& cells,
+                      const std::string cell_component,
+                      CompositeVector& faces,
+                      const std::string face_component,
+                      const State& S,
+                      const Teuchos::Ptr<Debugger>& db = Teuchos::null) const
+  {
+    AMANZI_ASSERT(0);
+  }
+
+  virtual void UpdateDerivatives(
+    const Teuchos::Ptr<State>& S,
+    std::string potential_key,
+    const CompositeVector& dconductivity,
+    const std::vector<int>& bc_markers,
+    const std::vector<double>& bc_values,
+    std::vector<Teuchos::RCP<Teuchos::SerialDenseMatrix<int, double>>>* Jpp_faces) const
+  {
     AMANZI_ASSERT(0);
   }
 
   virtual std::string CoefficientLocation() const = 0;
-
-
 };
 
-} // namespace
-} // namespace
+} // namespace Operators
+} // namespace Amanzi
 
 #endif

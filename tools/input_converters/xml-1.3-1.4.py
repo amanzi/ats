@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ATS input converter from main development branch to new-state development branch"""
+"""ATS input converter from version 1.3 to version 1.4"""
 
 import sys, os
 try:
@@ -139,16 +139,29 @@ def density_units(xml):
 
 def rh_to_vp(xml):
     """Converts relative humidity to vapor pressure."""
-    import warnings
+    import logging
+
     for ev in asearch.findall_path(xml, ["state", "evaluators", "surface-relative_humidity"], no_skip=True):
-        try:
-            y_header = asearch.find_path(ev, ["function", "domain", "function", "function-tabular", "y header"], no_skip=True)
-        except aerrors.MissingXMLError:
-            warnings.warn("Unable to update relative_humidity --> vapor_pressure_air: this must be done manually.")
-        else:
-            warnings.warn("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
-            ev.setName("surface-vapor_pressure_air")
-            y_header.setValue("vapor pressure air [Pa]")
+        ev.setName("surface-vapor_pressure_air")
+        for fname, hname in zip(["function-tabular", "function-bilinear-and-time"], ["y header", "value header"]):
+            try:
+                y_header = asearch.find_path(ev, ["function", "domain", "function", fname, hname], no_skip=True)
+                y_header.setValue("vapor pressure air [Pa]")
+            except aerrors.MissingXMLError:
+                logging.warning("Manually update is required! Make sure to use the name of the air vapor pressure in your forcing dataset for the \"value header\" of \"surface-vapor_pressure_air\".")
+            else:
+                logging.warning("Changing relative_humidity --> vapor_pressure; please update your forcing data to include vapor pressure rather than relative humidity.  One way to do this is to run `$ATS_SRC_DIR/tools/utils/rh_to_vp.py --inplace path/to/daymet.h5`")
+    
+    for match in asearch.findall_path(xml, ["observations", "variable"]):
+        if "relative_humidity" in match.getValue():
+            match.setValue(match.getValue().replace("relative_humidity", "vapor_pressure_air"))
+            logging.warning("The surface-relative_humidity in observations has been changed to surface-vapor_pressure_air. You may want to change the corresponding output variable name, e.g., from \"relative humidity [-]\" to \"vapor pressure air [Pa]\".")
+
+    # delete relative humidity key if exists
+    try:
+        _ = asearch.remove_element(xml, "relative humidity key", allow_multiple=True)
+    except aerrors.MissingXMLError:
+        pass
 
 
 def pk_flow_reactive_transport(xml):

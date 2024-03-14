@@ -1,10 +1,18 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
   The ideal gas equation of state model is an algebraic model with dependencies.
 
   Generated via evaluator_generator with:
 
-    
-  Authors: Ethan Coon (ecoon@lanl.gov)
+
 */
 
 #include "Teuchos_ParameterList.hpp"
@@ -35,7 +43,7 @@ EosIdealGasModel::InitializeFromPlist_(Teuchos::ParameterList& plist)
 double
 EosIdealGasModel::Density(double temp, double pres) const
 {
-  return cv_*(-T0_ + temp);
+  return cv_ * (-T0_ + temp);
 }
 
 double
@@ -50,7 +58,6 @@ EosIdealGasModel::DDensityDPressure(double temp, double pres) const
   return 0;
 }
 
-} //namespace
-} //namespace
-} //namespace
-  
+} // namespace Relations
+} // namespace General
+} // namespace Amanzi

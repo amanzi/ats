@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Capillary pressure of ice on water.
 
+//! Capillary pressure of ice on water.
 /*!
 .. _pc-ice-water-spec
 .. admonition:: pc-ice-water-spec
@@ -37,8 +38,7 @@ namespace Amanzi {
 namespace Flow {
 
 class PCIceWater {
-
-public:
+ public:
   explicit PCIceWater(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -47,7 +47,7 @@ public:
   double DCapillaryPressureDT(double T, double dens);
   double DCapillaryPressureDRho(double T, double dens);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList pc_plist_;
@@ -61,7 +61,7 @@ private:
   double halfwidth_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

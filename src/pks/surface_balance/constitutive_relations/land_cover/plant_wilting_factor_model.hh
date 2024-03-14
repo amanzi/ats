@@ -1,10 +1,12 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! Plant wilting factor provides a moisture availability-based limiter on transpiration.
 /*!
 
@@ -13,11 +15,11 @@ This implements the simple water-based limiter, given pressure in [Pa]:
 .. math:
    \beta =  \frac{p_{closed} - p}{p_{closed} - p_{open}}
 
-where p is the capillary pressure or soil mafic potential, and closed and open
+where p is the capillary pressure or water potential, and closed and open
 indicate the values at which stomates are fully open or fully closed (the
 wilting point).  These two parameters are provided by the LandCover object.
 
-All parameters are in units of [Pa], and are positive (mafic potential).
+All parameters are in units of [Pa], and are positive (water potential).
 
 */
 
@@ -31,8 +33,7 @@ namespace Relations {
 
 class PlantWiltingFactorModel {
  public:
-  explicit
-  PlantWiltingFactorModel(const LandCover& lc);
+  explicit PlantWiltingFactorModel(const LandCover& lc);
 
   double PlantWiltingFactor(double pc) const;
 
@@ -42,8 +43,6 @@ class PlantWiltingFactorModel {
   const LandCover& lc_;
 };
 
-} //namespace
-} //namespace
-} //namespace
-
-
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

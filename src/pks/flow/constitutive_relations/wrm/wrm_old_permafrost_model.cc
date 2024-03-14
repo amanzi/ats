@@ -1,5 +1,13 @@
 /*
-Author: Ethan Coon
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
+/*
 
 Painter's permafrost model.
 
@@ -12,7 +20,9 @@ namespace Amanzi {
 namespace Flow {
 
 // sats[0] = s_g, sats[1] = s_l, sats[2] = s_i
-void WRMOldPermafrostModel::saturations(double pc_liq, double pc_ice, double (&sats)[3]) {
+void
+WRMOldPermafrostModel::saturations(double pc_liq, double pc_ice, double (&sats)[3])
+{
   if (pc_ice == 0.) {
     sats[2] = 0.;
     sats[1] = wrm_->saturation(pc_liq);
@@ -28,7 +38,9 @@ void WRMOldPermafrostModel::saturations(double pc_liq, double pc_ice, double (&s
 }
 
 
-void WRMOldPermafrostModel::dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3]) {
+void
+WRMOldPermafrostModel::dsaturations_dpc_liq(double pc_liq, double pc_ice, double (&dsats)[3])
+{
   if (pc_ice == 0.) {
     dsats[2] = 0.;
     dsats[1] = wrm_->d_saturation(pc_liq);
@@ -39,15 +51,16 @@ void WRMOldPermafrostModel::dsaturations_dpc_liq(double pc_liq, double pc_ice, d
 
     double B = 1.0 / wrm_->saturation(pc_liq);
     double A = 1.0 / wrm_->saturation(pc_ice);
-    dsats[1] = sl*sl*B*B*wrm_->d_saturation(pc_liq);
-    dsats[0] = dsats[1] * (B - 1.) + sl * (-B*B*wrm_->d_saturation(pc_liq));
+    dsats[1] = sl * sl * B * B * wrm_->d_saturation(pc_liq);
+    dsats[0] = dsats[1] * (B - 1.) + sl * (-B * B * wrm_->d_saturation(pc_liq));
     dsats[2] = dsats[1] * (A - 1.);
   }
 }
 
 
-
-void WRMOldPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, double (&dsats)[3]) {
+void
+WRMOldPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, double (&dsats)[3])
+{
   if (pc_ice == 0.) {
     dsats[2] = 0.;
     dsats[1] = 0.;
@@ -59,12 +72,12 @@ void WRMOldPermafrostModel::dsaturations_dpc_ice(double pc_liq, double pc_ice, d
     double B = 1.0 / wrm_->saturation(pc_liq);
     double A = 1.0 / wrm_->saturation(pc_ice);
 
-    dsats[1] = sl*sl*A*A*wrm_->d_saturation(pc_ice);
+    dsats[1] = sl * sl * A * A * wrm_->d_saturation(pc_ice);
     dsats[0] = dsats[1] * (B - 1.);
-    dsats[2] = dsats[1] * (A - 1.)  + sl * (-A*A*wrm_->d_saturation(pc_ice));
+    dsats[2] = dsats[1] * (A - 1.) + sl * (-A * A * wrm_->d_saturation(pc_ice));
   }
 }
 
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

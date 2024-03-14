@@ -1,14 +1,13 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
-  Amanzi is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Ethan Coon (ecoon@ornl.gov)
+  Authors: Ethan Coon (ecoon@ornl.gov)
 */
 
 //! A set of helper functions for doing common things in PKs.
-
 #pragma once
 
 #include "Teuchos_TimeMonitor.hpp"
@@ -44,7 +43,9 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u);
 //  -- internal cell
 // -----------------------------------------------------------------------------
 double
-getFaceOnBoundaryValue(AmanziMesh::Entity_ID f, const CompositeVector& u, const Operators::BCs& bcs);
+getFaceOnBoundaryValue(AmanziMesh::Entity_ID f,
+                       const CompositeVector& u,
+                       const Operators::BCs& bcs);
 
 
 // -----------------------------------------------------------------------------
@@ -72,8 +73,11 @@ changedEvaluatorPrimary(const Key& key, const Tag& tag, State& S, bool or_die = 
 // Require a vector and a primary variable evaluator at current tag(s).
 // -----------------------------------------------------------------------------
 CompositeVectorSpace&
-requireAtCurrent(const Key& key, const Tag& tag, State& S,
-                 const Key& name = "", bool is_eval = true);
+requireAtCurrent(const Key& key,
+                 const Tag& tag,
+                 State& S,
+                 const Key& name = "",
+                 bool is_eval = true);
 
 
 // -----------------------------------------------------------------------------
@@ -95,8 +99,6 @@ void
 assign(const Key& key, const Tag& tag_dest, const Tag& tag_source, State& S);
 
 
-
-
 // -----------------------------------------------------------------------------
 // Helper functions for working with Amanzi's Chemistry PK
 // -----------------------------------------------------------------------------
@@ -114,19 +116,18 @@ convertConcentrationToATS(const Epetra_MultiVector& mol_den,
 
 bool
 advanceChemistry(Teuchos::RCP<AmanziChemistry::Chemistry_PK> chem_pk,
-                 double t_old, double t_new, bool reinit,
+                 double t_old,
+                 double t_new,
+                 bool reinit,
                  const Epetra_MultiVector& mol_dens,
                  Teuchos::RCP<Epetra_MultiVector> tcc,
                  Teuchos::Time& timer);
 
 
 void
-copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh,
-                            CompositeVector& vec);
+copyMeshCoordinatesToVector(const AmanziMesh::Mesh& mesh, CompositeVector& vec);
 void
-copyVectorToMeshCoordinates(const CompositeVector& vec,
-                            AmanziMesh::Mesh& mesh);
-
+copyVectorToMeshCoordinates(const CompositeVector& vec, AmanziMesh::Mesh& mesh);
 
 
 // Compute pairs of value + location
@@ -135,7 +136,9 @@ typedef struct ValLoc {
   AmanziMesh::Entity_ID gid;
 } ENorm_t;
 
-int commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global);
-ValLoc maxValLoc(const Epetra_Vector& vec);
+int
+commMaxValLoc(const Comm_type& comm, const ValLoc& local, ValLoc& global);
+ValLoc
+maxValLoc(const Epetra_Vector& vec);
 
 } // namespace Amanzi

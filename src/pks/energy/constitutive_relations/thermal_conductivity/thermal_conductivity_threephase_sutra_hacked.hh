@@ -1,16 +1,21 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -------------------------------------------------------------------------
-ATS
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
+/*!
 
-Hacky TC model with constant values as a function of temperature, requires the
-sutra model for permafrost WRM to also be used.  This only exists to support
-the INTERFROST comparison.
+Thermal conductivity model with constant values as a function of temperature,
+requires the sutra model for permafrost WRM to also be used.  This only exists
+to support the INTERFROST comparison.
 
 Usage:
+
+.. code:: xml
 
   <ParameterList name="Thermal Conductivity Model">
     <Parameter name="Thermal Conductivity Type" type="string" value="sutra hacked"/>
@@ -20,8 +25,8 @@ Usage:
     <Parameter name="residual saturation" type="double" value=""/>
   </ParameterList>
 
-Units: ????
-------------------------------------------------------------------------- */
+Units: [W m^-1 K^-1]
+*/
 
 #ifndef PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_SUTRA_HACKEED_HH_
 #define PK_ENERGY_RELATIONS_THERMAL_CONDUCTIVITY_THREEPHASE_SUTRA_HACKEED_HH_
@@ -35,13 +40,12 @@ namespace Amanzi {
 namespace Energy {
 
 class ThermalConductivityThreePhaseSutraHacked : public ThermalConductivityThreePhase {
-
-public:
+ public:
   ThermalConductivityThreePhaseSutraHacked(Teuchos::ParameterList& plist);
 
   double ThermalConductivity(double porosity, double sat_liq, double sat_ice, double temp);
 
-private:
+ private:
   void InitializeFromPlist_();
 
   Teuchos::ParameterList plist_;
@@ -51,13 +55,13 @@ private:
   double k_mushy_;
   double sr_;
 
-private:
+ private:
   static Utils::RegisteredFactory<ThermalConductivityThreePhase,
-                                  ThermalConductivityThreePhaseSutraHacked> factory_;
-
+                                  ThermalConductivityThreePhaseSutraHacked>
+    factory_;
 };
 
-}
-}
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

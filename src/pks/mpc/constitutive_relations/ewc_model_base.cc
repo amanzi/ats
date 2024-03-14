@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 EWCModelBase provides some of the functionality of EWCModel for inverse
 evaluating.
@@ -19,10 +24,11 @@ namespace Amanzi {
 // ----------------------------------------------------------------------
 // Lightweight wrapper to forward-evaluate the model.
 // ----------------------------------------------------------------------
-int EWCModelBase::Evaluate(double T, double p,
-        double& energy, double& wc) {
+int
+EWCModelBase::Evaluate(double T, double p, double& energy, double& wc)
+{
   AmanziGeometry::Point res(2);
-  int ierr = EvaluateEnergyAndWaterContent_(T,p,res);
+  int ierr = EvaluateEnergyAndWaterContent_(T, p, res);
   energy = res[0];
   wc = res[1];
   return ierr;
@@ -43,9 +49,9 @@ Error codes:
   2 = Iteration did not converge in max_steps (hard-coded to be 100 for
       now).
 ---------------------------------------------------------------------- */
-int EWCModelBase::InverseEvaluate(double energy, double wc,
-        double& T, double& p, bool verbose) {
-
+int
+EWCModelBase::InverseEvaluate(double energy, double wc, double& T, double& p, bool verbose)
+{
   // -- scaling for the norms
   double wc_scale = 1.;
   double e_scale = 1.;
@@ -57,8 +63,8 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
   // get the initial residual
   AmanziGeometry::Point res(2);
-  WhetStone::Tensor jac(2,2);
-  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T,p,res,jac);
+  WhetStone::Tensor jac(2, 2);
+  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T, p, res, jac);
   if (ierr) {
     std::cout << "Error in evaluation: " << ierr << std::endl;
     return ierr + 10;
@@ -66,7 +72,8 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
   if (verbose) {
     std::cout << "Inverse Evaluating, e=" << energy << ", wc=" << wc << std::endl;
-    std::cout << "   guess T,p (res) = " << T << ", " << p << " (" << res[0] << ", " << res[1] << ")" << std::endl;
+    std::cout << "   guess T,p (res) = " << T << ", " << p << " (" << res[0] << ", " << res[1]
+              << ")" << std::endl;
   }
 
   AmanziGeometry::Point f(2);
@@ -76,7 +83,8 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
   // check convergence
   AmanziGeometry::Point scaled_res(res);
-  scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+  scaled_res[0] = res[0] / e_scale;
+  scaled_res[1] = res[1] / wc_scale;
   double norm = AmanziGeometry::norm(scaled_res);
 
   bool converged = norm < tol;
@@ -84,8 +92,10 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
   // workspace
   AmanziGeometry::Point x(2);
   AmanziGeometry::Point x_tmp(2);
-  x[0] = T; x[1] = p;
-  x_tmp[0] = T; x_tmp[1] = p;
+  x[0] = T;
+  x[1] = p;
+  x_tmp[0] = T;
+  x_tmp[1] = p;
 
   while (!converged) {
     // calculate the update size
@@ -94,8 +104,8 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
     if (std::abs(detJ) < 1.e-20) {
       std::cout << " Zero determinant of Jacobian:" << std::endl;
-      std::cout << "   [" << jac(0,0) << "," << jac(0,1) << "]" << std::endl;
-      std::cout << "   [" << jac(1,0) << "," << jac(1,1) << "]" << std::endl;
+      std::cout << "   [" << jac(0, 0) << "," << jac(0, 1) << "]" << std::endl;
+      std::cout << "   [" << jac(1, 0) << "," << jac(1, 1) << "]" << std::endl;
       std::cout << "  at T,p = " << x_tmp[0] << ", " << x_tmp[1] << std::endl;
       std::cout << "  with res(e,wc) = " << res[0] << ", " << res[1] << std::endl;
       return 1;
@@ -107,18 +117,16 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
     // cap the correction
     double scale = 1.;
-    if (std::abs(correction[0]) > T_corr_cap) {
-      scale = T_corr_cap / std::abs(correction[0]);
-    }
+    if (std::abs(correction[0]) > T_corr_cap) { scale = T_corr_cap / std::abs(correction[0]); }
     if (std::abs(correction[1]) > p_corr_cap) {
       double pscale = p_corr_cap / std::abs(correction[1]);
-      scale = std::min(scale,pscale);
+      scale = std::min(scale, pscale);
     }
     correction *= scale;
 
     // perform the update
     x_tmp = x - correction;
-    ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0],x_tmp[1],res,jac);
+    ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0], x_tmp[1], res, jac);
     if (ierr) {
       std::cout << "Error in evaluation: " << ierr << std::endl;
       return ierr + 10;
@@ -126,13 +134,14 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
     res = res - f;
 
     // check convergence and damping
-    scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+    scaled_res[0] = res[0] / e_scale;
+    scaled_res[1] = res[1] / wc_scale;
     double norm_new = AmanziGeometry::norm(scaled_res);
 
     if (verbose) {
       std::cout << "  Iter: " << stepnum;
-      std::cout << " corrected T,p (res) [norm] = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0] << ", " << res[1] << ") ["
-                << norm_new << "]" << std::endl;
+      std::cout << " corrected T,p (res) [norm] = " << x_tmp[0] << ", " << x_tmp[1] << " ("
+                << res[0] << ", " << res[1] << ") [" << norm_new << "]" << std::endl;
     }
 
     double damp = 1.;
@@ -145,7 +154,7 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
       x_tmp = x - (damp * correction);
 
       // evaluate the damped value
-      ierr = EvaluateEnergyAndWaterContent_(x_tmp[0],x_tmp[1],res);
+      ierr = EvaluateEnergyAndWaterContent_(x_tmp[0], x_tmp[1], res);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -153,20 +162,20 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
       res = res - f;
 
       // check the new residual
-      scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+      scaled_res[0] = res[0] / e_scale;
+      scaled_res[1] = res[1] / wc_scale;
       norm_new = AmanziGeometry::norm(scaled_res);
 
       if (verbose) {
         std::cout << "    Damping: " << stepnum;
-        std::cout << " corrected T,p (res) [norm] = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0] << ", " << res[1] << ") ["
-                  << norm_new << "]" << std::endl;
+        std::cout << " corrected T,p (res) [norm] = " << x_tmp[0] << ", " << x_tmp[1] << " ("
+                  << res[0] << ", " << res[1] << ") [" << norm_new << "]" << std::endl;
       }
-
     }
 
     if (backtracking_required) {
       // must recalculate the Jacobian at the new value
-      ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0],x_tmp[1],res,jac);
+      ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0], x_tmp[1], res, jac);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -184,8 +193,8 @@ int EWCModelBase::InverseEvaluate(double energy, double wc,
 
     stepnum++;
     if (stepnum > max_steps && !converged) {
-      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) "
-                << norm << " (" << tol << ")" << std::endl;
+      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) " << norm << " ("
+                << tol << ")" << std::endl;
       return 2;
     }
   }
@@ -210,9 +219,9 @@ Error codes:
   2 = Iteration did not converge in max_steps (hard-coded to be 100 for
       now).
 ---------------------------------------------------------------------- */
-int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
-        double& T) {
-
+int
+EWCModelBase::InverseEvaluateEnergy(double energy, double p, double& T)
+{
   // -- scaling for the norms
   double e_scale = 1.;
   double T_corr_cap = 2.;
@@ -222,8 +231,8 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
 
   // get the initial residual
   AmanziGeometry::Point res(2);
-  WhetStone::Tensor jac(2,2);
-  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T,p,res,jac);
+  WhetStone::Tensor jac(2, 2);
+  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T, p, res, jac);
   if (ierr) {
     std::cout << "Error in evaluation: " << ierr << std::endl;
     return ierr + 10;
@@ -246,12 +255,12 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
 
   while (!converged) {
     // calculate the update size
-    double detJ = jac(0,0);
+    double detJ = jac(0, 0);
     double correction;
 
     if (std::abs(detJ) < 1.e-20) {
       std::cout << " Zero determinant of Jacobian:" << std::endl;
-      std::cout << "   [" << jac(0,0) << "]" << std::endl;
+      std::cout << "   [" << jac(0, 0) << "]" << std::endl;
       std::cout << "  at T,p = " << T_tmp2 << ", " << p << std::endl;
       std::cout << "  with res(e) = " << f << std::endl;
       return 1;
@@ -266,7 +275,7 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
 
     // perform the update
     T_tmp2 = T_tmp - correction;
-    ierr = EvaluateEnergyAndWaterContentAndJacobian_(T_tmp2,p,res,jac);
+    ierr = EvaluateEnergyAndWaterContentAndJacobian_(T_tmp2, p, res, jac);
     if (ierr) {
       std::cout << "Error in evaluation: " << ierr << std::endl;
       return ierr + 10;
@@ -277,8 +286,9 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
     double norm_new = std::abs(f);
 
 #if DEBUG_FLAG
-      std::cout << "  Iter: " << stepnum;
-      std::cout << " corrected T,p (res) [norm] = " << T_tmp2 << ", " << p << " (" << f << ")" << std::endl;
+    std::cout << "  Iter: " << stepnum;
+    std::cout << " corrected T,p (res) [norm] = " << T_tmp2 << ", " << p << " (" << f << ")"
+              << std::endl;
 #endif
 
     double damp = 1.;
@@ -291,7 +301,7 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
       T_tmp2 = T_tmp - (damp * correction);
 
       // evaluate the damped value
-      ierr = EvaluateEnergyAndWaterContent_(T_tmp2,p,res);
+      ierr = EvaluateEnergyAndWaterContent_(T_tmp2, p, res);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -303,14 +313,14 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
 
 #if DEBUG_FLAG
       std::cout << "    Damping: " << stepnum;
-      std::cout << " corrected T,p (res) [norm] = " << T_tmp2 << ", " << p << " (" << f << ")" << std::endl;
+      std::cout << " corrected T,p (res) [norm] = " << T_tmp2 << ", " << p << " (" << f << ")"
+                << std::endl;
 #endif
-
     }
 
     if (backtracking_required) {
       // must recalculate the Jacobian at the new value
-      ierr = EvaluateEnergyAndWaterContentAndJacobian_(T_tmp2,p,res,jac);
+      ierr = EvaluateEnergyAndWaterContentAndJacobian_(T_tmp2, p, res, jac);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -325,8 +335,8 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
     converged = norm < tol || std::abs(correction) < 1.e-3;
     stepnum++;
     if (stepnum > max_steps && !converged) {
-      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) "
-                << norm << " (" << tol << ")" << std::endl;
+      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) " << norm << " ("
+                << tol << ")" << std::endl;
       return 2;
     }
   }
@@ -336,14 +346,22 @@ int EWCModelBase::InverseEvaluateEnergy(double energy, double p,
 }
 
 
-int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_(double T, double p,
-        AmanziGeometry::Point& result, WhetStone::Tensor& jac) {
+int
+EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_(double T,
+                                                        double p,
+                                                        AmanziGeometry::Point& result,
+                                                        WhetStone::Tensor& jac)
+{
   return EvaluateEnergyAndWaterContentAndJacobian_FD_(T, p, result, jac);
 }
 
 
-int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double p,
-        AmanziGeometry::Point& result, WhetStone::Tensor& jac) {
+int
+EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
+                                                           double p,
+                                                           AmanziGeometry::Point& result,
+                                                           WhetStone::Tensor& jac)
+{
   double eps_T = 1.e-7;
   double eps_p = 1.e-3;
 
@@ -353,8 +371,8 @@ int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double 
   AmanziGeometry::Point test2(result);
 
   // d / dT
-  jac(0,0) = 0.;
-  jac(1,0) = 0.;
+  jac(0, 0) = 0.;
+  jac(1, 0) = 0.;
 
   bool done = false;
   int its = 0;
@@ -362,18 +380,18 @@ int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double 
     ierr = EvaluateEnergyAndWaterContent_(T + eps_T, p, test);
     if (ierr) return ierr;
 
-    jac(0,0) = (test[0] - result[0]) / (eps_T);
-    jac(1,0) = (test[1] - result[1]) / (eps_T);
+    jac(0, 0) = (test[0] - result[0]) / (eps_T);
+    jac(1, 0) = (test[1] - result[1]) / (eps_T);
 
     its++;
-    done = (std::abs(jac(0,0)) > 1.e-12) || (std::abs(jac(1,0)) > 1.e-12);
+    done = (std::abs(jac(0, 0)) > 1.e-12) || (std::abs(jac(1, 0)) > 1.e-12);
     done |= (its > 30);
     eps_T *= 2;
   }
 
   // d / dp
-  jac(0,1) = 0.;
-  jac(1,1) = 0.;
+  jac(0, 1) = 0.;
+  jac(1, 1) = 0.;
 
   // failure point seems to be d/dp = 0, and p seems to need to be centered
   done = false;
@@ -384,11 +402,11 @@ int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double 
     ierr = EvaluateEnergyAndWaterContent_(T, p - eps_p, test2);
     if (ierr) return ierr;
 
-    jac(0,1) = (test[0] - test2[0]) / (2*eps_p);
-    jac(1,1) = (test[1] - test2[1]) / (2*eps_p);
+    jac(0, 1) = (test[0] - test2[0]) / (2 * eps_p);
+    jac(1, 1) = (test[1] - test2[1]) / (2 * eps_p);
 
     its++;
-    done = (std::abs(jac(0,1)) > 1.e-12) || (std::abs(jac(1,1)) > 1.e-12);
+    done = (std::abs(jac(0, 1)) > 1.e-12) || (std::abs(jac(1, 1)) > 1.e-12);
     done |= (its > 30);
     eps_p *= 2;
   }
@@ -397,5 +415,4 @@ int EWCModelBase::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double 
 }
 
 
-
-} // namespace
+} // namespace Amanzi

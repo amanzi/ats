@@ -1,10 +1,15 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   No special limits as p_surf -> p_atm.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #ifndef AMANZI_FLOWRELATIONS_UNFROZEN_FRACTION_KR_MODEL_
@@ -26,12 +31,14 @@ class UnfrozenFractionRelPermModel : public SurfaceRelPermModel {
 
   virtual double SurfaceRelPerm(double uf, double h);
 
-  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h) {
+  virtual double DSurfaceRelPermDUnfrozenFraction(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
 
-  virtual double DSurfaceRelPermDPondedDepth(double uf, double h) {
+  virtual double DSurfaceRelPermDPondedDepth(double uf, double h)
+  {
     AMANZI_ASSERT(0);
     return 0.;
   }
@@ -43,11 +50,10 @@ class UnfrozenFractionRelPermModel : public SurfaceRelPermModel {
   const double pi_;
 
  private:
-  static Utils::RegisteredFactory<SurfaceRelPermModel,UnfrozenFractionRelPermModel> reg_;
-  
+  static Utils::RegisteredFactory<SurfaceRelPermModel, UnfrozenFractionRelPermModel> reg_;
 };
 
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

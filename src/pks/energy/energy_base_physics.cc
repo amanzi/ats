@@ -1,10 +1,14 @@
-/* -*-  mode++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Solves:
 
@@ -16,7 +20,7 @@ de/dt + q dot grad h = div Ke grad T + S?
 #include "energy_base.hh"
 #include "Op.hh"
 #include "pk_helpers.hh"
-#include "Mesh_Algorithms.hh"
+#include "MeshAlgorithms.hh"
 
 namespace Amanzi {
 namespace Energy {
@@ -24,7 +28,9 @@ namespace Energy {
 // -------------------------------------------------------------
 // Accumulation of energy term de/dt
 // -------------------------------------------------------------
-void EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
+void
+EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g)
+{
   double dt = S_->get_time(tag_next_) - S_->get_time(tag_current_);
 
   // update the energy at both the old and new times.
@@ -33,22 +39,26 @@ void EnergyBase::AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g) {
 
   // get the energy at each time
   Teuchos::RCP<const CompositeVector> e1 = S_->GetPtr<CompositeVector>(conserved_key_, tag_next_);
-  Teuchos::RCP<const CompositeVector> e0 = S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
+  Teuchos::RCP<const CompositeVector> e0 =
+    S_->GetPtr<CompositeVector>(conserved_key_, tag_current_);
 
   // Update the residual with the accumulation of energy over the
   // timestep, on cells.
   g->ViewComponent("cell", false)
-    ->Update(1.0/dt, *e1->ViewComponent("cell", false),
-          -1.0/dt, *e0->ViewComponent("cell", false), 1.0);
+    ->Update(1.0 / dt,
+             *e1->ViewComponent("cell", false),
+             -1.0 / dt,
+             *e0->ViewComponent("cell", false),
+             1.0);
 };
 
 
 // -------------------------------------------------------------
 // Advective term for transport of enthalpy, q dot grad h.
 // -------------------------------------------------------------
-void EnergyBase::AddAdvection_(const Tag& tag,
-        const Teuchos::Ptr<CompositeVector>& g, bool negate) {
-
+void
+EnergyBase::AddAdvection_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g, bool negate)
+{
   // set up the operator
 
   // NOTE: fluxes are a MOLAR flux by choice of the flow pk, i.e.
@@ -65,7 +75,7 @@ void EnergyBase::AddAdvection_(const Tag& tag,
   db_->WriteBoundaryConditions(bc_adv_->bc_model(), bc_adv_->bc_value());
   Teuchos::RCP<const CompositeVector> flux = S_->GetPtr<CompositeVector>(flux_key_, tag);
   Teuchos::RCP<const CompositeVector> enth = S_->GetPtr<CompositeVector>(enthalpy_key_, tag);
-  db_->WriteVectors({" adv flux", " enthalpy"}, {flux.ptr(), enth.ptr()}, true);
+  db_->WriteVectors({ " adv flux", " enthalpy" }, { flux.ptr(), enth.ptr() }, true);
 
   matrix_adv_->global_operator()->Init();
   matrix_adv_->Setup(*flux);
@@ -74,7 +84,8 @@ void EnergyBase::AddAdvection_(const Tag& tag,
   matrix_adv_->ApplyBCs(false, true, false);
 
   // update the flux
-  Teuchos::RCP<CompositeVector> adv_energy = S_->GetPtrW<CompositeVector>(adv_energy_flux_key_, tag, name_);
+  Teuchos::RCP<CompositeVector> adv_energy =
+    S_->GetPtrW<CompositeVector>(adv_energy_flux_key_, tag, name_);
   matrix_adv_->UpdateFlux(enth.ptr(), flux.ptr(), bc_adv_, adv_energy.ptr());
   changedEvaluatorPrimary(adv_energy_flux_key_, tag, *S_);
 
@@ -84,10 +95,12 @@ void EnergyBase::AddAdvection_(const Tag& tag,
 // -------------------------------------------------------------
 // Diffusion term, div K grad T
 // -------------------------------------------------------------
-void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
+void
+EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 {
   // force mass matrices to change
-  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" matrix"))
+  if (!deform_key_.empty() &&
+      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " matrix"))
     matrix_diff_->SetTensorCoefficient(Teuchos::null);
 
   // update the thermal conductivity
@@ -115,65 +128,64 @@ void EnergyBase::ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVec
 // ---------------------------------------------------------------------
 // Add in energy source, which are accumulated by a single evaluator.
 // ---------------------------------------------------------------------
-void EnergyBase::AddSources_(const Tag& tag,
-        const Teuchos::Ptr<CompositeVector>& g) {
+void
+EnergyBase::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
+{
   Teuchos::OSTab tab = vo_->getOSTab();
 
-  Epetra_MultiVector& g_c = *g->ViewComponent("cell",false);
+  Epetra_MultiVector& g_c = *g->ViewComponent("cell", false);
 
   S_->GetEvaluator(cell_vol_key_, tag_next_).Update(*S_, name_);
   const Epetra_MultiVector& cv =
-    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell",false);
+    *S_->Get<CompositeVector>(cell_vol_key_, tag_next_).ViewComponent("cell", false);
 
   // external sources of energy
   if (is_source_term_) {
     // Update the source term
     S_->GetEvaluator(source_key_, tag).Update(*S_, name_);
     const Epetra_MultiVector& source1 =
-      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell",false);
-  
+      *S_->Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false);
+
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c=0; c!=ncells; ++c) {
-      g_c[0][c] -= source1[0][c] * cv[0][c];
-    }
+    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
 
-    if (vo_->os_OK(Teuchos::VERB_EXTREME))
-      *vo_->os() << "Adding external source term" << std::endl;
+    if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Adding external source term" << std::endl;
     db_->WriteVector("  Q_ext", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);
-
   }
 }
 
 
-void EnergyBase::AddSourcesToPrecon_(double h) {
+void
+EnergyBase::AddSourcesToPrecon_(double h)
+{
   // external sources of energy (temperature dependent source)
   if (is_source_term_ && is_source_term_differentiable_ &&
-    S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
-
+      S_->GetEvaluator(source_key_, tag_next_).IsDifferentiableWRT(*S_, key_, tag_next_)) {
     Teuchos::RCP<CompositeVector> dsource_dT;
 
     if (is_source_term_finite_differentiable_) {
-
       // evaluate the derivative through finite differences
       double eps = 1.e-8;
       S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(eps);
       ChangedSolution();
       S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
-      auto dsource_dT_nc = Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
+      auto dsource_dT_nc =
+        Teuchos::rcp(new CompositeVector(S_->Get<CompositeVector>(source_key_, tag_next_)));
 
       S_->GetW<CompositeVector>(key_, tag_next_, name_).Shift(-eps);
       ChangedSolution();
       S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
 
-      dsource_dT_nc->Update(-1/eps, S_->Get<CompositeVector>(source_key_, tag_next_), 1/eps);
+      dsource_dT_nc->Update(-1 / eps, S_->Get<CompositeVector>(source_key_, tag_next_), 1 / eps);
       dsource_dT = dsource_dT_nc;
 
     } else {
       // evaluate the derivative through the dag
       S_->GetEvaluator(source_key_, tag_next_).UpdateDerivative(*S_, name_, key_, tag_next_);
-      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(source_key_, tag_next_, key_, tag_next_, source_key_);
+      dsource_dT = S_->GetDerivativePtrW<CompositeVector>(
+        source_key_, tag_next_, key_, tag_next_, source_key_);
     }
     db_->WriteVector("  dQ_ext/dT", dsource_dT.ptr(), false);
     preconditioner_acc_->AddAccumulationTerm(*dsource_dT, -1.0, "cell", true);
@@ -184,15 +196,16 @@ void EnergyBase::AddSourcesToPrecon_(double h) {
 // Plug enthalpy into the boundary faces manually.
 // This will be removed once boundary faces exist.
 // -------------------------------------------------------------
-void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag) {
-
+void
+EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag)
+{
   // in the diffusive flux condition, first update the boundary face temperatures for FV
   auto& T_vec = *S_->GetPtrW<CompositeVector>(key_, tag, name_);
   if (T_vec.HasComponent("boundary_face")) {
     Epetra_MultiVector& T_bf = *T_vec.ViewComponent("boundary_face", false);
     const Epetra_MultiVector& T_c = *T_vec.ViewComponent("cell", false);
 
-    for (int bf=0; bf!=T_bf.MyLength(); ++bf) {
+    for (int bf = 0; bf != T_bf.MyLength(); ++bf) {
       AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
 
       // NOTE: this should get refactored into a helper class, much like predictor_delegate_bc_flux
@@ -203,7 +216,7 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag) {
         // diffusive flux BC
         AmanziMesh::Entity_ID c = getFaceOnBoundaryInternalCell(*mesh_, f);
         const auto& Acc = matrix_diff_->local_op()->matrices_shadow[f];
-        T_bf[0][bf] = (Acc(0,0)*T_c[0][c] - bc_values()[f]*mesh_->face_area(f)) / Acc(0,0);
+        T_bf[0][bf] = (Acc(0, 0) * T_c[0][c] - bc_values()[f] * mesh_->getFaceArea(f)) / Acc(0, 0);
       }
     }
   }
@@ -212,10 +225,10 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag) {
   S_->GetEvaluator(enthalpy_key_, tag).Update(*S_, name_);
 
   const Epetra_MultiVector& enth_bf =
-    *S_->Get<CompositeVector>(enthalpy_key_, tag).ViewComponent("boundary_face",false);
+    *S_->Get<CompositeVector>(enthalpy_key_, tag).ViewComponent("boundary_face", false);
 
   int nbfaces = enth_bf.MyLength();
-  for (int bf=0; bf!=nbfaces; ++bf) {
+  for (int bf = 0; bf != nbfaces; ++bf) {
     AmanziMesh::Entity_ID f = getBoundaryFaceFace(*mesh_, bf);
 
     if (bc_adv_->bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
@@ -223,7 +236,6 @@ void EnergyBase::ApplyDirichletBCsToEnthalpy_(const Tag& tag) {
     }
   }
 }
-
 
 
 } //namespace Energy

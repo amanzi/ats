@@ -1,12 +1,15 @@
 /*
-  Transport PK
-
-  Copyright 2010-201x held jointly by LANS/LANL, LBNL, and PNNL.
-  Amanzi is released under the three-clause BSD License.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
-  Author: Konstantin Lipnikov (lipnikov@lanl.gov)
+  Authors: Konstantin Lipnikov (lipnikov@lanl.gov)
+*/
+
+/*
+  Transport PK
+
 */
 
 #include <algorithm>
@@ -26,34 +29,40 @@ namespace Transport {
 /* ****************************************************************
 * Construct default state for unit tests.
 **************************************************************** */
-void Transport_ATS::CreateDefaultState(
-    Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents)
+void
+Transport_ATS::CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents)
 {
   std::string name("state");
   S_->Require<double>("fluid_density", Tags::DEFAULT, name);
 
   if (!S_->HasRecord(saturation_key_, Tags::NEXT)) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::NEXT,  name).SetMesh(mesh)->SetGhosted(true)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, Tags::NEXT, name)
+      .SetMesh(mesh)
+      ->SetGhosted(true)
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   if (!S_->HasRecord(saturation_key_, Tags::CURRENT)) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(saturation_key_, Tags::CURRENT,  name).SetMesh(mesh_)->SetGhosted(true)
-        ->SetComponent("cell", AmanziMesh::CELL, 1);
+    S_->Require<CompositeVector, CompositeVectorSpace>(saturation_key_, Tags::CURRENT, name)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   if (!S_->HasRecord(flux_key_, Tags::NEXT)) {
-    S_->Require<CompositeVector,CompositeVectorSpace>(flux_key_, Tags::NEXT,  name).SetMesh(mesh_)->SetGhosted(true)
-        ->SetComponent("face", AmanziMesh::FACE, 1);
+    S_->Require<CompositeVector, CompositeVectorSpace>(flux_key_, Tags::NEXT, name)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
   }
 
   if (!S_->HasRecord(tcc_key_, Tags::NEXT)) {
     std::vector<std::string> subfield_names;
-    for (int i = 0; i != ncomponents; ++i) {
-      subfield_names.push_back(component_names_[i]);
-    }
-    S_->Require<CompositeVector,CompositeVectorSpace>(tcc_key_, Tags::NEXT, name)
-      .SetMesh(mesh_)->SetGhosted(true)->SetComponent("cell", AmanziMesh::CELL, ncomponents);
+    for (int i = 0; i != ncomponents; ++i) { subfield_names.push_back(component_names_[i]); }
+    S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, Tags::NEXT, name)
+      .SetMesh(mesh_)
+      ->SetGhosted(true)
+      ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, ncomponents);
     S_->GetRecordSetW(tcc_key_).set_subfieldnames(subfield_names);
   }
 
@@ -83,9 +92,10 @@ void Transport_ATS::CreateDefaultState(
 /* *******************************************************************
 * Routine verifies that the velocity field is divergence free
 ******************************************************************* */
-void Transport_ATS::Policy(const Tag& tag)
+void
+Transport_ATS::Policy(const Tag& tag)
 {
-  if (mesh_->get_comm()->NumProc() > 1) {
+  if (mesh_->getComm()->NumProc() > 1) {
     if (!S_->Get<CompositeVector>(tcc_key_, tag).Ghosted()) {
       Errors::Message msg;
       msg << "Field \"total component concentration\" has no ghost values."
@@ -99,7 +109,8 @@ void Transport_ATS::Policy(const Tag& tag)
 /* *******************************************************************
 * Calculates extrema of specified solutes and print them.
 ******************************************************************* */
-void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
+void
+Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double dT_MPC)
 {
   int num_components = tcc_next.NumVectors();
   double tccmin_vec[num_components];
@@ -111,7 +122,7 @@ void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, do
   for (int n = 0; n < runtime_solutes_.size(); n++) {
     int i = FindComponentNumber(runtime_solutes_[n]);
     double tccmin, tccmax;
-    tcc_next.Comm().MinAll(&(tccmin_vec[i]), &tccmin, 1);  // find the global extrema
+    tcc_next.Comm().MinAll(&(tccmin_vec[i]), &tccmin, 1); // find the global extrema
     tcc_next.Comm().MaxAll(&(tccmax_vec[i]), &tccmax, 1);
 
     int nregions = runtime_regions_.size();
@@ -119,20 +130,19 @@ void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, do
     bool flag(false);
 
     for (int k = 0; k < nregions; k++) {
-      if (mesh_->valid_set_name(runtime_regions_[k], AmanziMesh::FACE)) {
+      if (mesh_->isValidSetName(runtime_regions_[k], AmanziMesh::Entity_kind::FACE)) {
         flag = true;
-        AmanziMesh::Entity_ID_List block;
-        mesh_->get_set_entities(runtime_regions_[k], AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED, &block);
+        auto block = mesh_->getSetEntities(
+          runtime_regions_[k], AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
         int nblock = block.size();
 
         for (int m = 0; m < nblock; m++) {
           int f = block[m];
 
-          Amanzi::AmanziMesh::Entity_ID_List cells;
-          mesh_->face_get_cells(f, Amanzi::AmanziMesh::Parallel_type::ALL, &cells);
+          auto cells = mesh_->getFaceCells(f);
           int dir, c = cells[0];
 
-          const AmanziGeometry::Point& normal = mesh_->face_normal(f, false, c, &dir);
+          const AmanziGeometry::Point& normal = mesh_->getFaceNormal(f, c, &dir);
           double u = (*flux_)[0][f] * dir;
           if (u > 0) solute_flux += u * tcc_next[i][c];
         }
@@ -142,20 +152,21 @@ void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, do
     //solute_flux *= units_.concentration_factor();
 
     double tmp = solute_flux;
-    mesh_->get_comm()->SumAll(&tmp, &solute_flux, 1);
+    mesh_->getComm()->SumAll(&tmp, &solute_flux, 1);
 
     double ws_min, ws_max;
     ws_->MinValue(&ws_min);
     ws_->MaxValue(&ws_max);
 
-    *vo_->os() << runtime_solutes_[n] << ": min=" << tccmin  << " max=" << tccmax<<" ws: "<<"min="<<ws_min<<" max="<<ws_max<<"\n";
+    *vo_->os() << runtime_solutes_[n] << ": min=" << tccmin << " max=" << tccmax << " ws: "
+               << "min=" << ws_min << " max=" << ws_max << "\n";
     if (flag) *vo_->os() << ", flux=" << solute_flux << " mol/s";
 
     // old capability
     //mass_solutes_exact_[i] += VV_SoluteVolumeChangePerSecond(i) * dT_MPC;
     double mass_solute(0.0);
     for (int c = 0; c < ncells_owned; c++) {
-      double vol = mesh_->cell_volume(c);
+      double vol = mesh_->getCellVolume(c);
       mass_solute += (*ws_)[0][c] * (*phi_)[0][c] * tcc_next[i][c] * vol * (*mol_dens_)[0][c];
     }
     // mass_solute /= units_.concentration_factor();
@@ -164,11 +175,11 @@ void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, do
 
     double tmp1 = mass_solute, tmp2 = mass_solutes_exact_[i], mass_exact;
     double tmp_start = mass_solutes_stepstart_[i];
-    double tmp_bc =  mass_solutes_bc_[i];
-    mesh_->get_comm()->SumAll(&tmp1, &mass_solute, 1);
-    mesh_->get_comm()->SumAll(&tmp2, &mass_exact, 1);
-    mesh_->get_comm()->SumAll(&tmp_start, &(mass_solutes_stepstart_[i]), 1);
-    mesh_->get_comm()->SumAll(&tmp_bc, &(mass_solutes_bc_[i]), 1);
+    double tmp_bc = mass_solutes_bc_[i];
+    mesh_->getComm()->SumAll(&tmp1, &mass_solute, 1);
+    mesh_->getComm()->SumAll(&tmp2, &mass_exact, 1);
+    mesh_->getComm()->SumAll(&tmp_start, &(mass_solutes_stepstart_[i]), 1);
+    mesh_->getComm()->SumAll(&tmp_bc, &(mass_solutes_bc_[i]), 1);
   }
 }
 
@@ -176,9 +187,10 @@ void Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, do
 /********************************************************************
 * Check completeness of influx boundary conditions.
 ****************************************************************** */
-void Transport_ATS::VV_CheckInfluxBC() const
+void
+Transport_ATS::VV_CheckInfluxBC() const
 {
- int number_components = tcc->ViewComponent("cell")->NumVectors();
+  int number_components = tcc->ViewComponent("cell")->NumVectors();
   std::vector<int> influx_face(nfaces_wghost);
 
   for (int i = 0; i < number_components; i++) {
@@ -222,7 +234,8 @@ void Transport_ATS::VV_CheckInfluxBC() const
 /* *******************************************************************
  * Check that global extrema diminished
  ****************************************************************** */
-void Transport_ATS::VV_CheckGEDproperty(Epetra_MultiVector& tracer) const
+void
+Transport_ATS::VV_CheckGEDproperty(Epetra_MultiVector& tracer) const
 {
   int i, num_components = tracer.NumVectors();
   double tr_min[num_components];
@@ -241,7 +254,8 @@ void Transport_ATS::VV_CheckGEDproperty(Epetra_MultiVector& tracer) const
       std::cout << "    min/max values = " << tr_min[i] << " " << tr_max[i] << std::endl;
 
       Errors::Message msg;
-      msg << "Concentration violates GED property." << "\n";
+      msg << "Concentration violates GED property."
+          << "\n";
       Exceptions::amanzi_throw(msg);
     }
   }
@@ -251,11 +265,12 @@ void Transport_ATS::VV_CheckGEDproperty(Epetra_MultiVector& tracer) const
 /* *******************************************************************
  * Check that the tracer is between 0 and 1.
  ****************************************************************** */
-void Transport_ATS::VV_CheckTracerBounds(Epetra_MultiVector& tracer,
-                                        int component,
-                                        double lower_bound,
-                                        double upper_bound,
-                                        double tol) const
+void
+Transport_ATS::VV_CheckTracerBounds(Epetra_MultiVector& tracer,
+                                    int component,
+                                    double lower_bound,
+                                    double upper_bound,
+                                    double tol) const
 {
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
@@ -268,12 +283,13 @@ void Transport_ATS::VV_CheckTracerBounds(Epetra_MultiVector& tracer,
       std::cout << "    component = " << component << std::endl;
       std::cout << "    simulation time = " << t_physics_ << std::endl;
       std::cout << "      cell = " << c << std::endl;
-      std::cout << "      center = " << mesh_->cell_centroid(c) << std::endl;
+      std::cout << "      center = " << mesh_->getCellCentroid(c) << std::endl;
       std::cout << "      value (old) = " << tcc_prev[component][c] << std::endl;
       std::cout << "      value (new) = " << value << std::endl;
 
       Errors::Message msg;
-      msg << "Tracer violates bounds." << "\n";
+      msg << "Tracer violates bounds."
+          << "\n";
       Exceptions::amanzi_throw(msg);
     }
   }
@@ -284,7 +300,8 @@ void Transport_ATS::VV_CheckTracerBounds(Epetra_MultiVector& tracer,
 * Calculate change of tracer volume per second due to boundary flux.
 * This is the simplified version (lipnikov@lanl.gov).
 ****************************************************************** */
-double Transport_ATS::VV_SoluteVolumeChangePerSecond(int idx_tracer)
+double
+Transport_ATS::VV_SoluteVolumeChangePerSecond(int idx_tracer)
 {
   double volume = 0.0;
 
@@ -314,15 +331,19 @@ double Transport_ATS::VV_SoluteVolumeChangePerSecond(int idx_tracer)
 /* *******************************************************************
 * Error estimate uses analytic function and solution.
 * ***************************************************************** */
-void Transport_ATS::CalculateLpErrors(
-    AnalyticFunction f, double t, Epetra_Vector* sol, double* L1, double* L2)
+void
+Transport_ATS::CalculateLpErrors(AnalyticFunction f,
+                                 double t,
+                                 Epetra_Vector* sol,
+                                 double* L1,
+                                 double* L2)
 {
   *L1 = *L2 = 0.0;
   for (int c = 0; c < sol->MyLength(); c++) {
-    const AmanziGeometry::Point& xc = mesh_->cell_centroid(c);
+    const AmanziGeometry::Point& xc = mesh_->getCellCentroid(c);
     double d = (*sol)[c] - f(xc, t);
 
-    double volume = mesh_->cell_volume(c);
+    double volume = mesh_->getCellVolume(c);
     *L1 += fabs(d) * volume;
     *L2 += d * d * volume;
   }
@@ -331,40 +352,42 @@ void Transport_ATS::CalculateLpErrors(
 }
 
 
-double Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c, int i)
+double
+Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c, int i)
 {
   double mass_solute(0.0);
   for (int c = 0; c < ncells_owned; c++) {
-    double vol = mesh_->cell_volume(c);
-    mass_solute += (*ws_next)[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * (*mol_dens_next)[0][c] + (*solid_qty_)[i][c];
+    double vol = mesh_->getCellVolume(c);
+    mass_solute += (*ws_next)[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * (*mol_dens_next)[0][c] +
+                   (*solid_qty_)[i][c];
   }
   //mass_solute /= units_.concentration_factor();
 
   double tmp1 = mass_solute;
-  mesh_->get_comm()->SumAll(&tmp1, &mass_solute, 1);
+  mesh_->getComm()->SumAll(&tmp1, &mass_solute, 1);
 
   return mass_solute;
 }
 
 
-double Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c,
-                                       const Epetra_MultiVector& ws,
-                                       const Epetra_MultiVector& den,
-                                       int i)
+double
+Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c,
+                             const Epetra_MultiVector& ws,
+                             const Epetra_MultiVector& den,
+                             int i)
 {
   double mass_solute(0.0);
   for (int c = 0; c < ncells_owned; c++) {
-    double vol = mesh_->cell_volume(c);
+    double vol = mesh_->getCellVolume(c);
     mass_solute += ws[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * den[0][c] + (*solid_qty_)[i][c];
   }
   //mass_solute /= units_.concentration_factor();
 
   double tmp1 = mass_solute;
-  mesh_->get_comm()->SumAll(&tmp1, &mass_solute, 1);
+  mesh_->getComm()->SumAll(&tmp1, &mass_solute, 1);
 
   return mass_solute;
 }
 
-}  // namespace Transport
-}  // namespace Amanzi
-
+} // namespace Transport
+} // namespace Amanzi

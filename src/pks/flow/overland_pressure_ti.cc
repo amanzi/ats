@@ -1,10 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -----------------------------------------------------------------------------
-This is the overland flow component of ATS.
-License: BSD
-Authors: Ethan Coon (ecoon@lanl.gov)
------------------------------------------------------------------------------ */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 #include "overland_pressure.hh"
 #include "Op.hh"
@@ -18,19 +19,20 @@ namespace Flow {
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
 // -----------------------------------------------------------------------------
-void OverlandPressureFlow::FunctionalResidual( double t_old,
-                        double t_new,
-                        Teuchos::RCP<TreeVector> u_old,
-                        Teuchos::RCP<TreeVector> u_new,
-                        Teuchos::RCP<TreeVector> g )
+void
+OverlandPressureFlow::FunctionalResidual(double t_old,
+                                         double t_new,
+                                         Teuchos::RCP<TreeVector> u_old,
+                                         Teuchos::RCP<TreeVector> u_new,
+                                         Teuchos::RCP<TreeVector> g)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
   // bookkeeping
   double h = t_new - t_old;
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4*h);
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4 * h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // zero out residual
   Teuchos::RCP<CompositeVector> res = g->Data();
@@ -42,15 +44,15 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Residual calculation: t0 = " << t_old
-               << " t1 = " << t_new << " h = " << h << std::endl;
+               << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << h
+               << std::endl;
 
   // unnecessary here if not debeugging, but doesn't hurt either
   S_->GetEvaluator(potential_key_, tag_next_).Update(*S_, name_);
 
   // debugging -- write primary variables to screen
   db_->WriteCellInfo(true);
-  std::vector<std::string> vnames{"p_old", "p_new", "z", "h_old", "h_new", "h+z"};
+  std::vector<std::string> vnames{ "p_old", "p_new", "z", "h_old", "h_new", "h+z" };
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     vnames.emplace_back("pd - dd");
     vnames.emplace_back("frac_cond");
@@ -64,8 +66,11 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   vecs.emplace_back(S_->GetPtr<CompositeVector>(potential_key_, tag_next_).ptr());
   if (plist_->isSublist("overland conductivity subgrid evaluator")) {
     // fixme -- add keys!
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"mobile_depth"), tag_next_).ptr());
-    vecs.emplace_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"fractional_conductance"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "mobile_depth"), tag_next_).ptr());
+    vecs.emplace_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "fractional_conductance"), tag_next_)
+        .ptr());
   }
   db_->WriteVectors(vnames, vecs, true);
 
@@ -78,18 +83,23 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
   ApplyDiffusion_(tag_next_, res.ptr());
 
   // more debugging -- write diffusion/flux variables to screen
-  vnames.clear(); vecs.clear();
-  if (S_->HasRecord(Keys::getKey(domain_,"unfrozen_fraction"), tag_next_) &&
-      S_->HasRecord(Keys::getKey(domain_,"unfrozen_fraction"), tag_current_)) {
-    Key uf_key = Keys::getKey(domain_,"unfrozen_fraction");
-    vnames = {"uf_frac_old", "uf_frac_new"};
-    vecs = {S_->GetPtr<CompositeVector>(uf_key, tag_current_).ptr(),
-      S_->GetPtr<CompositeVector>(uf_key, tag_next_).ptr()};
+  vnames.clear();
+  vecs.clear();
+  if (S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_next_) &&
+      S_->HasRecord(Keys::getKey(domain_, "unfrozen_fraction"), tag_current_)) {
+    Key uf_key = Keys::getKey(domain_, "unfrozen_fraction");
+    vnames = { "uf_frac_old", "uf_frac_new" };
+    vecs = { S_->GetPtr<CompositeVector>(uf_key, tag_current_).ptr(),
+             S_->GetPtr<CompositeVector>(uf_key, tag_next_).ptr() };
   }
-  vnames.emplace_back("uw_dir"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
-  vnames.emplace_back("k"); vecs.emplace_back(S_->GetPtr<CompositeVector>(cond_key_, tag_next_).ptr());
-  vnames.emplace_back("k_uw"); vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_).ptr());
-  vnames.emplace_back("q_surf"); vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
+  vnames.emplace_back("uw_dir");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_dir_key_, tag_next_).ptr());
+  vnames.emplace_back("k");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(cond_key_, tag_next_).ptr());
+  vnames.emplace_back("k_uw");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_).ptr());
+  vnames.emplace_back("q_surf");
+  vecs.emplace_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
   db_->WriteVectors(vnames, vecs, true);
   db_->WriteVector("res (diff)", res.ptr(), true);
 
@@ -106,12 +116,12 @@ void OverlandPressureFlow::FunctionalResidual( double t_old,
 // -----------------------------------------------------------------------------
 // Apply the preconditioner to u and return the result in Pu.
 // -----------------------------------------------------------------------------
-int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-        Teuchos::RCP<TreeVector> Pu)
+int
+OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
+                                          Teuchos::RCP<TreeVector> Pu)
 {
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH))
-    *vo_->os() << "Precon application:" << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) *vo_->os() << "Precon application:" << std::endl;
   AMANZI_ASSERT(!precon_scaled_); // otherwise this factor was built into the matrix
 
   // apply the preconditioner
@@ -122,13 +132,11 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   // tack on the variable change
   const Epetra_MultiVector& dh_dp =
     *S_->GetDerivative<CompositeVector>(pd_bar_key_, tag_next_, key_, tag_next_)
-    .ViewComponent("cell",false);
-  Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell",false);
+       .ViewComponent("cell", false);
+  Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell", false);
 
   unsigned int ncells = Pu_c.MyLength();
-  for (unsigned int c=0; c!=ncells; ++c) {
-    Pu_c[0][c] /= dh_dp[0][c];
-  }
+  for (unsigned int c = 0; c != ncells; ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
   db_->WriteVector("PC*h_res (p-coords)", Pu->Data().ptr(), true);
 
   return (ierr > 0) ? 0 : 1;
@@ -138,21 +146,20 @@ int OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
 // -----------------------------------------------------------------------------
 // Update the preconditioner at time t and u = up
 // -----------------------------------------------------------------------------
-void OverlandPressureFlow::UpdatePreconditioner(double t,
-        Teuchos::RCP<const TreeVector> up, double h)
+void
+OverlandPressureFlow::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_EXTREME))
-    *vo_->os() << "Precon update at t = " << t << std::endl;
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Precon update at t = " << t << std::endl;
 
   // update state with the solution up.
-  if (std::abs(t - iter_counter_time_)/t > 1.e-4) {
+  if (std::abs(t - iter_counter_time_) / t > 1.e-4) {
     iter_ = 0;
     iter_counter_time_ = t;
   }
 
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
   // calculating the operator is done in 3 steps:
@@ -162,8 +169,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
   // -- update the rel perm according to the boundary info and upwinding
   // -- scheme of choice
   UpdatePermeabilityData_(tag_next_);
-  if (jacobian_ && iter_ >= jacobian_lag_)
-    UpdatePermeabilityDerivativeData_(tag_next_);
+  if (jacobian_ && iter_ >= jacobian_lag_) UpdatePermeabilityDerivativeData_(tag_next_);
 
   // -- update boundary condition markers, which set the BC type
   ComputeBoundaryConditions_(tag_next_);
@@ -180,8 +186,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
     }
   }
   // -- primary term
-  Teuchos::RCP<const CompositeVector> cond =
-    S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
+  Teuchos::RCP<const CompositeVector> cond = S_->GetPtr<CompositeVector>(uw_cond_key_, tag_next_);
   preconditioner_diff_->SetScalarCoefficient(cond, dcond);
 
   // -- local matrices, primary term
@@ -220,48 +225,11 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
   db_->WriteVector("    dh_dp", dh_dp.ptr());
 
   CompositeVector dwc_dh(dwc_dp->Map());
-  dwc_dh.ReciprocalMultiply(1./h, *dh_dp, *dwc_dp, 0.);
+  dwc_dh.ReciprocalMultiply(1. / h, *dh_dp, *dwc_dp, 0.);
   preconditioner_acc_->AddAccumulationTerm(dwc_dh, "cell");
 
-  // Why is this turned off? #60 --etc
-  // // -- update the source term derivatives
-  // if (S_next_->GetEvaluator(source_key_)->IsDependency(S_next_.ptr(), key_)) {
-  //   S_next_->GetEvaluator(source_key_)
-  //       ->HasFieldDerivativeChanged(S_next_.ptr(), name_, key_);
-  //   Key dkey = Keys::getDerivKey(source_key_,key_);
-  //   const Epetra_MultiVector& dq_dp = *S_next_->GetPtr<CompositeVector>(dkey)
-  //       ->ViewComponent("cell",false);
-
-  //   const Epetra_MultiVector& cv =
-  //       *S_next_->Get<CompositeVector>("surface-cell_volume").ViewComponent("cell",false);
-
-  //   if (source_in_meters_) {
-  //     // External source term is in [m water / s], not in [mols / s], so a
-  //     // density is required.  This density should be upwinded.
-  //     S_next_->GetEvaluator("surface-molar_density_liquid")
-  //         ->HasFieldChanged(S_next_.ptr(), name_);
-  //     S_next_->GetEvaluator("surface-source_molar_density")
-  //         ->HasFieldChanged(S_next_.ptr(), name_);
-  //     const Epetra_MultiVector& nliq1 =
-  //         *S_next_->GetPtr<CompositeVector>("surface-molar_density_liquid")
-  //         ->ViewComponent("cell",false);
-  //     const Epetra_MultiVector& nliq1_s =
-  //       *S_next_->GetPtr<CompositeVector>("surface-source_molar_density")
-  //         ->ViewComponent("cell",false);
-  //     const Epetra_MultiVector& q = *S_next_->GetPtr<CompositeVector>(source_key_)
-  //         ->ViewComponent("cell",false);
-
-  //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       double s1 = q[0][c] > 0. ? dq_dp[0][c] * nliq1_s[0][c] : dq_dp[0][c] * nliq1[0][c];
-  //       Acc_cells[c] -= cv[0][c] * s1 / dh_dp[0][c];
-  //     }
-  //   } else {
-  //     for (int c=0; c!=cv.MyLength(); ++c) {
-  //       Acc_cells[c] -= cv[0][c] * dq_dp[0][c] / dh_dp[0][c];
-  //     }
-  //   }
-  // }
-
+  // -- update preconditioner with source term derivatives if needed
+  AddSourcesToPrecon_(h);
 
   // 3. Assemble and precompute the Schur complement for inversion.
   // 3.a: Patch up BCs in the case of zero conductivity
@@ -277,8 +245,7 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
       S_->GetDerivativePtr<CompositeVector>(pd_key_, tag_next_, key_, tag_next_);
     preconditioner_->Rescale(*dh0_dp);
 
-    if (vo_->os_OK(Teuchos::VERB_EXTREME))
-      *vo_->os() << "  Right scaling TPFA" << std::endl;
+    if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "  Right scaling TPFA" << std::endl;
     db_->WriteVector("    dh_dp", dh0_dp.ptr());
   }
 
@@ -286,5 +253,5 @@ void OverlandPressureFlow::UpdatePreconditioner(double t,
   iter_++;
 };
 
-}  // namespace Flow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi

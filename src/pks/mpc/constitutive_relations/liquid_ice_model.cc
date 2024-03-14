@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Ugly hackjob to enable direct evaluation of the full model, on a single
@@ -7,7 +14,6 @@
 
   Uses intensive, not extensive, forms.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "exceptions.hh"
@@ -36,9 +42,11 @@ namespace Amanzi {
 
 #define DEBUG_FLAG 0
 
-void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
-                                     const Tag& tag,
-                                     Teuchos::ParameterList& plist) {
+void
+LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
+                                const Tag& tag,
+                                Teuchos::ParameterList& plist)
+{
   tag_ = tag;
 
   // these are not yet initialized
@@ -53,7 +61,8 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
 
   Key liq_dens_key = Keys::readKey(plist, domain, "molar density liquid", "molar_density_liquid");
   Key ice_dens_key = Keys::readKey(plist, domain, "molar density ice", "molar_density_ice");
-  Key iem_liq_key = Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
+  Key iem_liq_key =
+    Keys::readKey(plist, domain, "internal energy liquid", "internal_energy_liquid");
   Key iem_ice_key = Keys::readKey(plist, domain, "internal energy ice", "internal_energy_ice");
   Key iem_rock_key = Keys::readKey(plist, domain, "internal energy rock", "internal_energy_rock");
   Key si_key = Keys::readKey(plist, domain, "ice saturation", "saturation_ice");
@@ -80,7 +89,8 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   // -- capillary pressure for ice/water
   use_pc_ice_ = plist.get<bool>("use pc_ice to determine sfc", true);
   if (use_pc_ice_) {
-    auto& pc_ice_eval = S->RequireEvaluator(Keys::getKey(domain, "capillary_pressure_liq_ice"), tag);
+    auto& pc_ice_eval =
+      S->RequireEvaluator(Keys::getKey(domain, "capillary_pressure_liq_ice"), tag);
     auto pc_ice_me = dynamic_cast<Flow::PCIceEvaluator*>(&pc_ice_eval);
     AMANZI_ASSERT(pc_ice_me != nullptr);
     pc_i_ = pc_ice_me->get_PCIceWater();
@@ -113,12 +123,11 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
   // -- porosity
   poro_leij_ = plist.get<bool>("porosity leijnse model", false);
   auto& poro_eval = S->RequireEvaluator(Keys::getKey(domain, "porosity"), tag);
-  if(!poro_leij_){
+  if (!poro_leij_) {
     auto poro_me = dynamic_cast<Flow::CompressiblePorosityEvaluator*>(&poro_eval);
     AMANZI_ASSERT(poro_me != nullptr);
     poro_models_ = poro_me->get_Models();
-  }
-  else {
+  } else {
     auto poro_me = dynamic_cast<Flow::CompressiblePorosityLeijnseEvaluator*>(&poro_eval);
     AMANZI_ASSERT(poro_me != nullptr);
     poro_leij_models_ = poro_me->get_Models();
@@ -126,13 +135,17 @@ void LiquidIceModel::InitializeModel(const Teuchos::Ptr<State>& S,
 }
 
 
-void LiquidIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
+void
+LiquidIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c)
+{
   // update scalars
   p_atm_ = S->Get<double>("atmospheric_pressure", Tags::DEFAULT);
-  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"density_rock"), tag_).ViewComponent("cell"))[0][c];
-  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain,"base_porosity"), tag_).ViewComponent("cell"))[0][c];
+  rho_rock_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "density_rock"), tag_)
+                  .ViewComponent("cell"))[0][c];
+  poro_ = (*S->Get<CompositeVector>(Keys::getKey(domain, "base_porosity"), tag_)
+              .ViewComponent("cell"))[0][c];
   wrm_ = wrms_->second[(*wrms_->first)[c]];
-  if(!poro_leij_)
+  if (!poro_leij_)
     poro_model_ = poro_models_->second[(*poro_models_->first)[c]];
   else
     poro_leij_model_ = poro_leij_models_->second[(*poro_leij_models_->first)[c]];
@@ -140,12 +153,13 @@ void LiquidIceModel::UpdateModel(const Teuchos::Ptr<State>& S, int c) {
   AMANZI_ASSERT(IsSetUp_());
 }
 
-bool LiquidIceModel::IsSetUp_() {
+bool
+LiquidIceModel::IsSetUp_()
+{
   if (wrm_ == Teuchos::null) return false;
   if (!poro_leij_) {
     if (poro_model_ == Teuchos::null) return false;
-  }
-  else {
+  } else {
     if (poro_leij_model_ == Teuchos::null) return false;
   }
   if (liquid_eos_ == Teuchos::null) return false;
@@ -164,13 +178,14 @@ bool LiquidIceModel::IsSetUp_() {
 
 
 bool
-LiquidIceModel::Freezing(double T, double p) {
+LiquidIceModel::Freezing(double T, double p)
+{
   double eff_p = std::max(p_atm_, p);
   std::vector<double> eos_param(2);
   eos_param[0] = T;
   eos_param[1] = eff_p;
 
-  double pc_l = pc_l_->CapillaryPressure(p,p_atm_);
+  double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
   double pc_i;
   if (use_pc_ice_) {
     if (pc_i_->IsMolarBasis()) {
@@ -182,11 +197,13 @@ LiquidIceModel::Freezing(double T, double p) {
     }
   }
 
-  return wrm_->freezing(T,pc_l,pc_i);
+  return wrm_->freezing(T, pc_l, pc_i);
 }
 
 
-int LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice) {
+int
+LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, double& s_liq, double& s_ice)
+{
   int ierr = 0;
   try {
     double eff_p = std::max(p_atm_, p);
@@ -218,15 +235,15 @@ int LiquidIceModel::EvaluateSaturations(double T, double p, double& s_gas, doubl
     s_ice = sats[2];
 
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
-int LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result) {
+int
+LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeometry::Point& result)
+{
   if (T < 100.0 || T > 373.0) {
     return 1; // invalid temperature
   }
@@ -278,15 +295,13 @@ int LiquidIceModel::EvaluateEnergyAndWaterContent_(double T, double p, AmanziGeo
     result[1] = poro * (rho_l * s_l + rho_i * s_i);
 
     // energy
-    result[0] = poro * (u_l * rho_l * s_l + u_i * rho_i * s_i)
-        + (1.0 - poro_) * (rho_rock_ * u_rock);
+    result[0] =
+      poro * (u_l * rho_l * s_l + u_i * rho_i * s_i) + (1.0 - poro_) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
-}
+} // namespace Amanzi

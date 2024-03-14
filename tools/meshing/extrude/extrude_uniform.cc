@@ -1,16 +1,27 @@
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors:
+*/
+
 #include "Mesh3D.hh"
 #include "writeMesh3D.hh"
 #include "readMesh2D.hh"
 
 
-int main() {
+int
+main()
+{
   using namespace Amanzi::AmanziGeometry;
 
   std::string mesh_in = "Mesh.txt";
   std::string mesh_out = "Mesh3D_2mSoil.exo";
-  
-  std::vector<double> ref_soil_mlay_dz = {0.02, 0.03, 0.05, 0.15, 0.25, 0.5, 1.0};
-  std::vector<double> ref_bedrock_mlay_dz = {10., 10.};
+
+  std::vector<double> ref_soil_mlay_dz = { 0.02, 0.03, 0.05, 0.15, 0.25, 0.5, 1.0 };
+  std::vector<double> ref_bedrock_mlay_dz = { 10., 10. };
 
   int nsoil_lay = ref_soil_mlay_dz.size();
   int nbedrock_lay = ref_bedrock_mlay_dz.size();
@@ -25,15 +36,13 @@ int main() {
   auto m = readMesh2D_text(mesh_in, soil_type, bedrock_type, depths, 630497, 4.04083e+06);
 
   int nsnodes = m.coords.size();
-  
+
   Mesh3D m3(&m, nsoil_lay + nbedrock_lay);
-  for (int ilay=0; ilay!=nsoil_lay; ++ilay) {
-    m3.extrude(ref_soil_mlay_dz[ilay], soil_type);
-  }
-  for (int ilay=0; ilay!=nbedrock_lay; ++ilay) {
+  for (int ilay = 0; ilay != nsoil_lay; ++ilay) { m3.extrude(ref_soil_mlay_dz[ilay], soil_type); }
+  for (int ilay = 0; ilay != nbedrock_lay; ++ilay) {
     m3.extrude(ref_bedrock_mlay_dz[ilay], bedrock_type);
   }
-  
+
   m3.finish();
 
   std::cout << "NNodes on the surf = " << m.coords.size() << std::endl;

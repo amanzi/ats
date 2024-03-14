@@ -1,13 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! An implicit PK for surface balance snow SWE conservation.
-
-
 /*!
 
 This is a balance PK whose conserved quantity is snow SWE.  The energy balance
@@ -29,16 +29,16 @@ There is also some wierd hackiness here about area fractions -- see ATS Issue
 
     Not typically set by user, defaults work:
 
-    * `"conserved quantity key`" ``[string]`` **LAYER-snow_water_equivalent**
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-snow_water_equivalent**
       Sets the default conserved quantity key, so this is likely not supplied
       by the user. `[m]`
-    * `"snow density key`" ``[string]`` **LAYER-density** Default snow density
+    * `"snow density key`" ``[string]`` **DOMAIN-density** Default snow density
       key. `[kg m^-3]`
-    * `"snow age key`" ``[string]`` **LAYER-age** Default snow age key. `[d]`
-    * `"new snow key`" ``[string]`` **LAYER-source** Default new snow key. `[m SWE s^-1]`
-    * `"area fractions key`" ``[string]`` **LAYER-fractional_areas** Subgrid
+    * `"snow age key`" ``[string]`` **DOMAIN-age** Default snow age key. `[d]`
+    * `"new snow key`" ``[string]`` **DOMAIN-source** Default new snow key. `[m SWE s^-1]`
+    * `"area fractions key`" ``[string]`` **DOMAIN-fractional_areas** Subgrid
       model fractional areas, see note above. `[-]`
-    * `"snow death rate key`" ``[string]`` **LAYER-death_rate** Deals with last
+    * `"snow death rate key`" ``[string]`` **DOMAIN-death_rate** Deals with last
       tiny bit of snowmelt.
 
 */
@@ -55,13 +55,11 @@ namespace Amanzi {
 namespace SurfaceBalance {
 
 class ImplicitSubgrid : public SurfaceBalanceBase {
-
-public:
-
+ public:
   ImplicitSubgrid(Teuchos::ParameterList& pk_tree,
-                         const Teuchos::RCP<Teuchos::ParameterList>& global_list,
-                         const Teuchos::RCP<State>& S,
-                         const Teuchos::RCP<TreeVector>& solution);
+                  const Teuchos::RCP<Teuchos::ParameterList>& global_list,
+                  const Teuchos::RCP<State>& S,
+                  const Teuchos::RCP<TreeVector>& solution);
 
   // main methods
   // -- Setup data.
@@ -70,20 +68,25 @@ public:
   // -- Initialize owned (dependent) variables.
   virtual void Initialize() override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-  ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                   Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
   // computes the non-linear functional g = g(t,u,udot)
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-                   Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // -- Commit any secondary (dependent) variables.
-  virtual void CommitStep(double t_old, double t_new,  const Tag& tag) override;
-  virtual void FailStep(double t_old, double t_new,  const Tag& tag) override;
+  virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
+  virtual void FailStep(double t_old, double t_new, const Tag& tag) override;
 
  protected:
   Key snow_dens_key_;
@@ -92,16 +95,16 @@ public:
   Key snow_source_key_;
   Key snow_death_rate_key_;
   Key area_frac_key_;
-  
+
   double density_snow_max_;
-  
+
 
  private:
   // factory registration
   static RegisteredPKFactory<ImplicitSubgrid> reg_;
 };
 
-}  // namespace AmanziFlow
-}  // namespace Amanzi
+} // namespace SurfaceBalance
+} // namespace Amanzi
 
 #endif

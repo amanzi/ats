@@ -1,4 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Ugly hackjob to enable direct evaluation of the full model, on a single
@@ -7,7 +14,6 @@
 
   Uses intensive, not extensive, forms.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "exceptions.hh"
@@ -33,7 +39,9 @@ namespace Amanzi {
 
 #define DEBUG_FLAG 1
 
-void ThermalRichardsModel::InitializeModel(const Teuchos::Ptr<State>& S) {
+void
+ThermalRichardsModel::InitializeModel(const Teuchos::Ptr<State>& S)
+{
   // these are not yet initialized
   rho_rock_ = -1.;
   p_atm_ = -1.e12;
@@ -41,11 +49,9 @@ void ThermalRichardsModel::InitializeModel(const Teuchos::Ptr<State>& S) {
   // Grab the models.
   // get the WRM models and their regions
   Teuchos::RCP<Evaluator> me = S->GetEvaluator("saturation_gas");
-  Teuchos::RCP<Flow::WRMEvaluator> wrm_me =
-      Teuchos::rcp_dynamic_cast<Flow::WRMEvaluator>(me);
+  Teuchos::RCP<Flow::WRMEvaluator> wrm_me = Teuchos::rcp_dynamic_cast<Flow::WRMEvaluator>(me);
   AMANZI_ASSERT(wrm_me != Teuchos::null);
-  Teuchos::RCP<Flow::WRMPartition> wrms =
-      wrm_me->get_WRMs();
+  Teuchos::RCP<Flow::WRMPartition> wrms = wrm_me->get_WRMs();
 
   // this needs fixed eventually, but for now assuming one WRM, and therefore
   // one model --etc
@@ -57,55 +63,57 @@ void ThermalRichardsModel::InitializeModel(const Teuchos::Ptr<State>& S) {
   // -- liquid EOS
   me = S->GetEvaluator("molar_density_liquid");
   Teuchos::RCP<Relations::EOSEvaluator> eos_liquid_me =
-      Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
   AMANZI_ASSERT(eos_liquid_me != Teuchos::null);
   liquid_eos_ = eos_liquid_me->get_EOS();
 
   // -- gas EOS
   me = S->GetEvaluator("molar_density_gas");
   Teuchos::RCP<Relations::EOSEvaluator> eos_gas_me =
-      Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Relations::EOSEvaluator>(me);
   AMANZI_ASSERT(eos_gas_me != Teuchos::null);
   gas_eos_ = eos_gas_me->get_EOS();
 
   // -- gas vapor pressure
   me = S->GetEvaluator("mol_frac_gas");
   Teuchos::RCP<Relations::MolarFractionGasEvaluator> mol_frac_me =
-      Teuchos::rcp_dynamic_cast<Relations::MolarFractionGasEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Relations::MolarFractionGasEvaluator>(me);
   AMANZI_ASSERT(mol_frac_me != Teuchos::null);
   vpr_ = mol_frac_me->get_VaporPressureRelation();
 
   // -- capillary pressure for liq/gas
   me = S->GetEvaluator("capillary_pressure_gas_liq");
   Teuchos::RCP<Flow::PCLiquidEvaluator> pc_liq_me =
-      Teuchos::rcp_dynamic_cast<Flow::PCLiquidEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Flow::PCLiquidEvaluator>(me);
   AMANZI_ASSERT(pc_liq_me != Teuchos::null);
   pc_l_ = pc_liq_me->get_PCLiqAtm();
 
   // -- iem for liquid
   me = S->GetEvaluator("internal_energy_liquid");
   Teuchos::RCP<Energy::IEMEvaluator> iem_liquid_me =
-      Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
   AMANZI_ASSERT(iem_liquid_me != Teuchos::null);
   liquid_iem_ = iem_liquid_me->get_IEM();
 
   // -- iem for gas
   me = S->GetEvaluator("internal_energy_gas");
   Teuchos::RCP<Energy::IEMWaterVaporEvaluator> iem_gas_me =
-      Teuchos::rcp_dynamic_cast<Energy::IEMWaterVaporEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Energy::IEMWaterVaporEvaluator>(me);
   AMANZI_ASSERT(iem_gas_me != Teuchos::null);
   gas_iem_ = iem_gas_me->get_IEM();
 
   // -- iem for rock
   me = S->GetEvaluator("internal_energy_rock");
   Teuchos::RCP<Energy::IEMEvaluator> iem_rock_me =
-      Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
+    Teuchos::rcp_dynamic_cast<Energy::IEMEvaluator>(me);
   AMANZI_ASSERT(iem_rock_me != Teuchos::null);
   rock_iem_ = iem_rock_me->get_IEM();
 }
 
 
-void ThermalRichardsModel::UpdateModel(const Teuchos::Ptr<State>& S) {
+void
+ThermalRichardsModel::UpdateModel(const Teuchos::Ptr<State>& S)
+{
   // update scalars
   rho_rock_ = *S->GetScalarData("rho_rock");
   p_atm_ = *S->GetScalarData("atmospheric_pressure", Tags::DEFAULT);
@@ -117,10 +125,11 @@ void ThermalRichardsModel::UpdateModel(const Teuchos::Ptr<State>& S) {
 // ----------------------------------------------------------------------
 // Lightweight wrapper to forward-evaluate the model.
 // ----------------------------------------------------------------------
-int ThermalRichardsModel::Evaluate(double T, double p, double poro,
-        double& energy, double& wc) {
+int
+ThermalRichardsModel::Evaluate(double T, double p, double poro, double& energy, double& wc)
+{
   AmanziGeometry::Point res(2);
-  int ierr = EvaluateEnergyAndWaterContent_(T,p,poro,res);
+  int ierr = EvaluateEnergyAndWaterContent_(T, p, poro, res);
   energy = res[0];
   wc = res[1];
   return ierr;
@@ -141,9 +150,9 @@ Error codes:
   2 = Iteration did not converge in max_steps (hard-coded to be 100 for
       now).
 ---------------------------------------------------------------------- */
-int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
-        double& T, double& p) {
-
+int
+ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro, double& T, double& p)
+{
   // -- scaling for the norms
   double wc_scale = 10.;
   double e_scale = 10000.;
@@ -153,8 +162,8 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
   // get the initial residual
   AmanziGeometry::Point res(2);
-  WhetStone::Tensor jac(2,2);
-  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T,p,poro,res,jac);
+  WhetStone::Tensor jac(2, 2);
+  int ierr = EvaluateEnergyAndWaterContentAndJacobian_(T, p, poro, res, jac);
   if (ierr) {
     std::cout << "Error in evaluation: " << ierr << std::endl;
     return ierr + 10;
@@ -162,7 +171,8 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
 #if DEBUG_FLAG
   std::cout << "Inverse Evaluating, e=" << energy << ", wc=" << wc << std::endl;
-  std::cout << "   guess T,p (res) = " << T << ", " << p << " (" << res[0] << ", " << res[1] << ")" << std::endl;
+  std::cout << "   guess T,p (res) = " << T << ", " << p << " (" << res[0] << ", " << res[1] << ")"
+            << std::endl;
 #endif
 
   AmanziGeometry::Point f(2);
@@ -172,7 +182,8 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
   // check convergence
   AmanziGeometry::Point scaled_res(res);
-  scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+  scaled_res[0] = res[0] / e_scale;
+  scaled_res[1] = res[1] / wc_scale;
   double norm = AmanziGeometry::norm(scaled_res);
 
   bool converged = norm < tol;
@@ -180,8 +191,10 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
   // workspace
   AmanziGeometry::Point x(2);
   AmanziGeometry::Point x_tmp(2);
-  x[0] = T; x[1] = p;
-  x_tmp[0] = T; x_tmp[1] = p;
+  x[0] = T;
+  x[1] = p;
+  x_tmp[0] = T;
+  x_tmp[1] = p;
 
   while (!converged) {
     // calculate the update size
@@ -190,8 +203,8 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
     if (std::abs(detJ) < 1.e-12) {
       std::cout << " Zero determinate of Jacobian:" << std::endl;
-      std::cout << "   [" << jac(0,0) << "," << jac(0,1) << "]" << std::endl;
-      std::cout << "   [" << jac(1,0) << "," << jac(1,1) << "]" << std::endl;
+      std::cout << "   [" << jac(0, 0) << "," << jac(0, 1) << "]" << std::endl;
+      std::cout << "   [" << jac(1, 0) << "," << jac(1, 1) << "]" << std::endl;
       std::cout << "  at T,p = " << x_tmp[0] << ", " << x_tmp[1] << std::endl;
       std::cout << "  with res(e,wc) = " << res[0] << ", " << res[1] << std::endl;
       return 1;
@@ -204,7 +217,7 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
     // perform the update
     x_tmp = x - correction;
-    ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0],x_tmp[1],poro,res,jac);
+    ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0], x_tmp[1], poro, res, jac);
     if (ierr) {
       std::cout << "Error in evaluation: " << ierr << std::endl;
       return ierr + 10;
@@ -212,12 +225,14 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
     res = res - f;
 
 #if DEBUG_FLAG
-      std::cout << "  Iter: " << stepnum;
-      std::cout << " corrected T,p (res) = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0] << ", " << res[1] << ")" << std::endl;
+    std::cout << "  Iter: " << stepnum;
+    std::cout << " corrected T,p (res) = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0] << ", "
+              << res[1] << ")" << std::endl;
 #endif
 
     // check convergence and damping
-    scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+    scaled_res[0] = res[0] / e_scale;
+    scaled_res[1] = res[1] / wc_scale;
     double norm_new = AmanziGeometry::norm(scaled_res);
 
     double damp = 1.;
@@ -230,7 +245,7 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
       x_tmp = x - (damp * correction);
 
       // evaluate the damped value
-      ierr = EvaluateEnergyAndWaterContent_(x_tmp[0],x_tmp[1],poro,res);
+      ierr = EvaluateEnergyAndWaterContent_(x_tmp[0], x_tmp[1], poro, res);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -239,17 +254,19 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 
 #if DEBUG_FLAG
       std::cout << "    Damping: " << stepnum;
-      std::cout << " corrected T,p (res) = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0] << ", " << res[1] << ")" << std::endl;
+      std::cout << " corrected T,p (res) = " << x_tmp[0] << ", " << x_tmp[1] << " (" << res[0]
+                << ", " << res[1] << ")" << std::endl;
 #endif
 
       // check the new residual
-      scaled_res[0] = res[0] / e_scale; scaled_res[1] = res[1] / wc_scale;
+      scaled_res[0] = res[0] / e_scale;
+      scaled_res[1] = res[1] / wc_scale;
       norm_new = AmanziGeometry::norm(scaled_res);
     }
 
     if (backtracking_required) {
       // must recalculate the Jacobian at the new value
-      ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0],x_tmp[1],poro,res,jac);
+      ierr = EvaluateEnergyAndWaterContentAndJacobian_(x_tmp[0], x_tmp[1], poro, res, jac);
       if (ierr) {
         std::cout << "Error in evaluation: " << ierr << std::endl;
         return ierr + 10;
@@ -264,8 +281,8 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
     converged = norm < tol;
     stepnum++;
     if (stepnum > max_steps && !converged) {
-      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) "
-                << norm << " (" << tol << ")" << std::endl;
+      std::cout << " Nonconverged after " << max_steps << " steps with norm (tol) " << norm << " ("
+                << tol << ")" << std::endl;
       return 2;
     }
   }
@@ -276,7 +293,9 @@ int ThermalRichardsModel::InverseEvaluate(double energy, double wc, double poro,
 }
 
 
-bool ThermalRichardsModel::IsSetUp_() {
+bool
+ThermalRichardsModel::IsSetUp_()
+{
   if (wrm_ == Teuchos::null) return false;
   if (liquid_eos_ == Teuchos::null) return false;
   if (gas_eos_ == Teuchos::null) return false;
@@ -291,20 +310,25 @@ bool ThermalRichardsModel::IsSetUp_() {
 }
 
 
-int ThermalRichardsModel::EvaluateEnergyAndWaterContent_(double T, double p, double poro, AmanziGeometry::Point& result) {
+int
+ThermalRichardsModel::EvaluateEnergyAndWaterContent_(double T,
+                                                     double p,
+                                                     double poro,
+                                                     AmanziGeometry::Point& result)
+{
   int ierr = 0;
   std::vector<double> eos_param(2);
-  
+
   try {
     double eff_p = std::max(p_atm_, p);
 
     eos_param[0] = T;
-    eos_param[1] = eff_p;        
-    
+    eos_param[1] = eff_p;
+
     double rho_l = liquid_eos_->MolarDensity(eos_params);
     double mass_rho_l = liquid_eos_->MassDensity(eos_params);
     double rho_g = gas_eos_->MolarDensity(eos_params);
-    double omega = vpr_->SaturatedVaporPressure(T)/p_atm_;
+    double omega = vpr_->SaturatedVaporPressure(T) / p_atm_;
 
     double pc_l = pc_l_->CapillaryPressure(p, p_atm_);
 
@@ -320,26 +344,34 @@ int ThermalRichardsModel::EvaluateEnergyAndWaterContent_(double T, double p, dou
     result[1] = poro * (rho_l * s_l + rho_g * s_g * omega);
 
     // energy
-    result[0] = poro * (u_l * rho_l * s_l + u_g * rho_g * s_g)
-        + (1.0 - poro) * (rho_rock_ * u_rock);
+    result[0] =
+      poro * (u_l * rho_l * s_l + u_g * rho_g * s_g) + (1.0 - poro) * (rho_rock_ * u_rock);
   } catch (const Exceptions::Amanzi_exception& e) {
-    if (e.what() == std::string("Cut time step")) {
-      ierr = 1;
-    }
+    if (e.what() == std::string("Cut time step")) { ierr = 1; }
   }
 
   return ierr;
 }
 
 
-int ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_(double T, double p,
-        double poro, AmanziGeometry::Point& result, WhetStone::Tensor& jac) {
+int
+ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_(double T,
+                                                                double p,
+                                                                double poro,
+                                                                AmanziGeometry::Point& result,
+                                                                WhetStone::Tensor& jac)
+{
   return EvaluateEnergyAndWaterContentAndJacobian_FD_(T, p, poro, result, jac);
 }
 
 
-int ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T, double p,
-        double poro, AmanziGeometry::Point& result, WhetStone::Tensor& jac) {
+int
+ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
+                                                                   double p,
+                                                                   double poro,
+                                                                   AmanziGeometry::Point& result,
+                                                                   WhetStone::Tensor& jac)
+{
   double eps_T = 1.e-7;
   double eps_p = 1.e-3;
 
@@ -348,21 +380,20 @@ int ThermalRichardsModel::EvaluateEnergyAndWaterContentAndJacobian_FD_(double T,
 
   AmanziGeometry::Point test(result);
   // d / dT
-  ierr = EvaluateEnergyAndWaterContent_(T+eps_T, p, poro, test);
+  ierr = EvaluateEnergyAndWaterContent_(T + eps_T, p, poro, test);
   if (ierr) return ierr;
 
-  jac(0,0) = (test[0] - result[0]) / (eps_T);
-  jac(1,0) = (test[1] - result[1]) / (eps_T);
+  jac(0, 0) = (test[0] - result[0]) / (eps_T);
+  jac(1, 0) = (test[1] - result[1]) / (eps_T);
 
   // d / dp
   ierr = EvaluateEnergyAndWaterContent_(T, p + eps_p, poro, test);
   if (ierr) return ierr;
 
-  jac(0,1) = (test[0] - result[0]) / (eps_p);
-  jac(1,1) = (test[1] - result[1]) / (eps_p);
+  jac(0, 1) = (test[0] - result[0]) / (eps_p);
+  jac(1, 1) = (test[1] - result[1]) / (eps_p);
   return 0;
 }
 
 
-
-}
+} // namespace Amanzi

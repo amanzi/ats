@@ -1,8 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
+*/
+
 /*
 Steady state solution of Richards equation
 
-Authors: Ethan Coon (ATS version) (ecoon@lanl.gov)
 */
 
 #include "richards_steadystate.hh"
@@ -11,29 +18,30 @@ namespace Amanzi {
 namespace Flow {
 
 RichardsSteadyState::RichardsSteadyState(Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& glist,
-        const Teuchos::RCP<State>& S,
-        const Teuchos::RCP<TreeVector>& solution)
-  : PK(pk_tree, glist, S, solution),
-    Richards(pk_tree, glist, S, solution) {}
+                                         const Teuchos::RCP<Teuchos::ParameterList>& glist,
+                                         const Teuchos::RCP<State>& S,
+                                         const Teuchos::RCP<TreeVector>& solution)
+  : PK(pk_tree, glist, S, solution), Richards(pk_tree, glist, S, solution)
+{}
 
 
 // RichardsSteadyState is a BDFFnBase
 // -----------------------------------------------------------------------------
 // computes the non-linear functional g = g(t,u,udot)
 // -----------------------------------------------------------------------------
-void RichardsSteadyState::FunctionalResidual(double t_old,
-        double t_new,
-        Teuchos::RCP<TreeVector> u_old,
-        Teuchos::RCP<TreeVector> u_new,
-        Teuchos::RCP<TreeVector> g)
+void
+RichardsSteadyState::FunctionalResidual(double t_old,
+                                        double t_new,
+                                        Teuchos::RCP<TreeVector> u_old,
+                                        Teuchos::RCP<TreeVector> u_new,
+                                        Teuchos::RCP<TreeVector> g)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
 
   double h = t_new - t_old;
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4*h);
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4*h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_current_) - t_old) < 1.e-4 * h);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t_new) < 1.e-4 * h);
 
   // pointer-copy temperature into state and update any auxilary data
   Solution_to_State(*u_new, tag_next_);
@@ -41,15 +49,17 @@ void RichardsSteadyState::FunctionalResidual(double t_old,
 
   if (vo_->os_OK(Teuchos::VERB_HIGH))
     *vo_->os() << "----------------------------------------------------------------" << std::endl
-               << "Residual calculation: t0 = " << t_old
-               << " t1 = " << t_new << " h = " << h << std::endl;
+               << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << h
+               << std::endl;
 
   // dump u_old, u_new
   db_->WriteCellInfo(true);
   std::vector<std::string> vnames;
-  vnames.push_back("p_old"); vnames.push_back("p_new");
-  std::vector< Teuchos::Ptr<const CompositeVector> > vecs;
-  vecs.push_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr()); vecs.push_back(u.ptr());
+  vnames.push_back("p_old");
+  vnames.push_back("p_new");
+  std::vector<Teuchos::Ptr<const CompositeVector>> vecs;
+  vecs.push_back(S_->GetPtr<CompositeVector>(key_, tag_current_).ptr());
+  vecs.push_back(u.ptr());
   db_->WriteVectors(vnames, vecs, true);
 
   // update boundary conditions
@@ -68,20 +78,24 @@ void RichardsSteadyState::FunctionalResidual(double t_old,
   S_->GetEvaluator(conserved_key_, tag_next_).Update(*S_, name_);
 
   // dump s_old, s_new
-  vnames[0] = "sl_old"; vnames[1] = "sl_new";
+  vnames[0] = "sl_old";
+  vnames[1] = "sl_new";
   vecs[0] = S_->GetPtr<CompositeVector>(sat_key_, tag_current_).ptr();
   vecs[1] = S_->GetPtr<CompositeVector>(sat_key_, tag_next_).ptr();
 
   if (S_->HasRecordSet(sat_ice_key_)) {
     vnames.push_back("si_old");
     vnames.push_back("si_new");
-    vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_current_).ptr());
-    vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"saturation_ice"), tag_next_).ptr());
+    vecs.push_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_current_).ptr());
+    vecs.push_back(
+      S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "saturation_ice"), tag_next_).ptr());
   }
   vnames.push_back("poro");
-  vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"porosity"), tag_next_).ptr());
+  vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "porosity"), tag_next_).ptr());
   vnames.push_back("perm_K");
-  vecs.push_back(S_->GetPtr<CompositeVector>(Keys::getKey(domain_,"permeability"), tag_next_).ptr());
+  vecs.push_back(
+    S_->GetPtr<CompositeVector>(Keys::getKey(domain_, "permeability"), tag_next_).ptr());
   vnames.push_back("k_rel");
   vecs.push_back(S_->GetPtr<CompositeVector>(coef_key_, tag_next_).ptr());
   vnames.push_back("wind");
@@ -90,7 +104,7 @@ void RichardsSteadyState::FunctionalResidual(double t_old,
   vecs.push_back(S_->GetPtr<CompositeVector>(uw_coef_key_, tag_next_).ptr());
   vnames.push_back("flux");
   vecs.push_back(S_->GetPtr<CompositeVector>(flux_key_, tag_next_).ptr());
-  db_->WriteVectors(vnames,vecs,true);
+  db_->WriteVectors(vnames, vecs, true);
 
   db_->WriteVector("res (diff)", res.ptr(), true);
 
@@ -109,19 +123,19 @@ void RichardsSteadyState::FunctionalResidual(double t_old,
 // -----------------------------------------------------------------------------
 // Update the preconditioner at time t and u = up
 // -----------------------------------------------------------------------------
-void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
+void
+RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h)
 {
   // VerboseObject stuff.
   Teuchos::OSTab tab = vo_->getOSTab();
-  if (vo_->os_OK(Teuchos::VERB_HIGH)) {
-    *vo_->os() << "Precon update at t = " << t << std::endl;
-  }
+  if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "Precon update at t = " << t << std::endl; }
 
   // Recreate mass matrices
-  if (!deform_key_.empty() && S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_+" precon"))
+  if (!deform_key_.empty() &&
+      S_->GetEvaluator(deform_key_, tag_next_).Update(*S_, name_ + " precon"))
     preconditioner_diff_->SetTensorCoefficient(K_);
 
-  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4*t);
+  AMANZI_ASSERT(std::abs(S_->get_time(tag_next_) - t) <= 1.e-4 * t);
   PK_PhysicalBDF_Default::Solution_to_State(*up, tag_next_);
 
   // update the rel perm according to the scheme of choice, also upwind derivatives of rel perm
@@ -147,8 +161,7 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
     if (!duw_coef_key_.empty()) {
       dkrdp = S_->GetPtr<CompositeVector>(duw_coef_key_, tag_next_);
     } else {
-      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_,
-              key_, tag_next_);
+      dkrdp = S_->GetDerivativePtr<CompositeVector>(coef_key_, tag_next_, key_, tag_next_);
     }
   }
 
@@ -176,6 +189,5 @@ void RichardsSteadyState::UpdatePreconditioner(double t, Teuchos::RCP<const Tree
 };
 
 
-
-} // namespace
-} // namespace
+} // namespace Flow
+} // namespace Amanzi

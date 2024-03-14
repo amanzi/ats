@@ -1,11 +1,18 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! WRMPlantChristoffersen : water retention model using van Genuchten's parameterization
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
+  Authors:
+*/
+
+//! WRMPlantChristoffersen : water retention model using van Genuchten's parameterization
 /*!
   <ul>Native Spec Example</>
     <ParameterList name="moss" type="ParameterList">
       <Parameter name="region" type="string" value="moss" />
-      <Parameter name="WRM Type" type="string" value="van Genuchten" />
+      <Parameter name="wrm type" type="string" value="van Genuchten" />
       <Parameter name="van Genuchten alpha" type="double" value="0.002" />
       <Parameter name="van Genuchten m" type="double" value="0.2" />
       <Parameter name="residual saturation" type="double" value="0.0" />
@@ -26,8 +33,7 @@ namespace Amanzi {
 namespace Flow {
 
 class WRMPlantChristoffersen : public WRM {
-
-public:
+ public:
   explicit WRMPlantChristoffersen(Teuchos::ParameterList& plist);
 
   // required methods from the base class
@@ -40,12 +46,12 @@ public:
   double d_capillaryPressure(double saturation);
   double residualSaturation() { return sr_; }
 
-  double operator()(const double &s) {
+  double operator()(const double& s) const
+  {
     return potentialLinear(s) - (potentialSol(s) + potentialP(s));
   }
 
  private:
-
   void InitializeFromPlist_();
 
   /*
@@ -55,16 +61,16 @@ public:
   double alpha_;
   double sr_;  // van Genuchten residual saturation
   */
-  
-  double potential(double s);
-  double potentialLinear(double s);
-  double potentialSol(double s);
-  double potentialP(double s);
 
-  double d_potential(double s);
-  double d_potentialLinear(double s);
-  double d_potentialSol(double s);
-  double d_potentialP(double s);
+  double potential(double s) const;
+  double potentialLinear(double s) const;
+  double potentialSol(double s) const;
+  double potentialP(double s) const;
+
+  double d_potential(double s) const;
+  double d_potentialLinear(double s) const;
+  double d_potentialSol(double s) const;
+  double d_potentialP(double s) const;
 
   Teuchos::ParameterList& plist_;
 
@@ -80,27 +86,24 @@ public:
   double scap_;
   double psitlp_;
   double mcap_;
-  double mcapstar_; 
+  double mcapstar_;
   double scapfttrans_;
   double psicapfttrans_;
 
 
-
   struct Tol_ {
     Tol_(double eps) : eps_(eps) {}
-    bool operator()(const double& a, const double& b) const {
-        return std::abs(a - b) <= eps_;
-    }
+    bool operator()(const double& a, const double& b) const { return std::abs(a - b) <= eps_; }
     double eps_;
   };
   int function_;
-  double pc0_;  // regularization threshold (usually 0 to 500 Pa)
-  double a_, b_, factor_dSdPc_;  // frequently used constant
+  double pc0_;                  // regularization threshold (usually 0 to 500 Pa)
+  double a_, b_, factor_dSdPc_; // frequently used constant
 
-  static Utils::RegisteredFactory<WRM,WRMPlantChristoffersen> factory_;
+  static Utils::RegisteredFactory<WRM, WRMPlantChristoffersen> factory_;
 };
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

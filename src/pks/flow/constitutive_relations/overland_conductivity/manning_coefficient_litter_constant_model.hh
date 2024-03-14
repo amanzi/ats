@@ -1,9 +1,17 @@
 /*
-  The manning coefficient with variable litter model is an algebraic model with dependencies.
-  
-  Constant values.
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
+*/
+
+/*
+  The manning coefficient with variable litter model is an algebraic model with dependencies.
+
+  Constant values.
+
 */
 
 #ifndef AMANZI_FLOW_MANNING_LITTER_COEFFICIENT_CONSTANT_MODEL_HH_
@@ -17,27 +25,30 @@ namespace Relations {
 
 class ManningCoefficientLitterConstantModel : public ManningCoefficientLitterModel {
  public:
-  ManningCoefficientLitterConstantModel(Teuchos::ParameterList& plist) {
-    n_ = plist.get<double>("manning coefficient [s m^-1/3]"); }
-    
-  
-  double ManningCoefficient(double litter_depth, double ponded_depth) const {
-    return n_; }
+  ManningCoefficientLitterConstantModel(Teuchos::ParameterList& plist)
+  {
+    n_ = plist.get<double>("manning coefficient [s m^-1/3]");
+  }
 
-  double DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const {
-    return 0; }
 
-  double DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const {
-    return 0; }
+  double ManningCoefficient(double litter_depth, double ponded_depth) const { return n_; }
+
+  double DManningCoefficientDLitterThickness(double litter_depth, double ponded_depth) const
+  {
+    return 0;
+  }
+
+  double DManningCoefficientDPondedDepth(double litter_depth, double ponded_depth) const
+  {
+    return 0;
+  }
 
  protected:
   double n_;
-
-  
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

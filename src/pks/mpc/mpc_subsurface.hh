@@ -1,13 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! A coupler which solves flow and energy in the subsurface.
-
-
 /*!
 
 This MPC provides most nearly all terms for an approximate Jacobian for
@@ -151,16 +151,14 @@ class Operator;
 class UpwindTotalFlux;
 class UpwindArithmeticMean;
 class Upwinding;
-}
+} // namespace Operators
 
 namespace Flow {
 class Richards;
 }
 
 class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
-
  public:
-
   MPCSubsurface(Teuchos::ParameterList& pk_tree_list,
                 const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                 const Teuchos::RCP<State>& S,
@@ -175,19 +173,20 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
 
   // -- Modify the predictor.
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> up0,
-          Teuchos::RCP<TreeVector> up) override;
+  virtual bool ModifyPredictor(double h,
+                               Teuchos::RCP<const TreeVector> up0,
+                               Teuchos::RCP<TreeVector> up) override;
 
   // -- Update the preconditioner to be physically consistent
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Apply preconditioner to u and returns the result in Pu.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   Teuchos::RCP<Operators::TreeOperator> preconditioner() { return preconditioner_; }
 
  protected:
-
   enum PreconditionerType {
     PRECON_NONE = 0,
     PRECON_BLOCK_DIAGONAL = 1,
@@ -264,13 +263,11 @@ class MPCSubsurface : public StrongMPC<PK_PhysicalBDF_Default> {
   int update_pcs_;
   Teuchos::RCP<Debugger> db_;
 
-private:
+ private:
   // factory registration
   static RegisteredPKFactory<MPCSubsurface> reg_;
 };
 
-} // namespace
+} // namespace Amanzi
 
 #endif
-
-

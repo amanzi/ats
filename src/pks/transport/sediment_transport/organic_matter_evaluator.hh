@@ -1,10 +1,16 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
+*/
 
 /*
   The erosion evaluator gets the erosion rates.
 
 
-  Authors: Daniil Svyatsky (dasvyat@lanl.gov)
 */
 
 #pragma once
@@ -18,7 +24,6 @@
 namespace Amanzi {
 
 class OrganicMatterRateEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit OrganicMatterRateEvaluator(Teuchos::ParameterList& plist);
   OrganicMatterRateEvaluator(const OrganicMatterRateEvaluator& other) = default;
@@ -26,10 +31,11 @@ class OrganicMatterRateEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
 
   double Bmax_;
@@ -37,9 +43,7 @@ class OrganicMatterRateEvaluator : public EvaluatorSecondaryMonotypeCV {
   double Q_on_Bmax_;
   Key biomass_key_;
 
-  static Utils::RegisteredFactory<Evaluator,OrganicMatterRateEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, OrganicMatterRateEvaluator> factory_;
 };
 
-} //namespace
-
+} // namespace Amanzi

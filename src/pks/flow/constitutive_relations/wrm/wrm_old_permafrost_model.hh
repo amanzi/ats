@@ -1,5 +1,13 @@
 /*
-Author: Ethan Coon
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
+/*
 
 Painter's permafrost model.
 
@@ -17,10 +25,8 @@ namespace Flow {
 class WRM;
 
 class WRMOldPermafrostModel : public WRMPermafrostModel {
-
  public:
-  WRMOldPermafrostModel(Teuchos::ParameterList& plist) :
-      WRMPermafrostModel(plist) {}
+  WRMOldPermafrostModel(Teuchos::ParameterList& plist) : WRMPermafrostModel(plist) {}
 
   // required methods from the base class
   // sats[0] = s_g, sats[1] = s_l, sats[2] = s_i
@@ -30,12 +36,11 @@ class WRMOldPermafrostModel : public WRMPermafrostModel {
   virtual void dsaturations_dpc_ice(double pc_liq, double pc_ice, double (&dsats)[3]);
 
  private:
-  static Utils::RegisteredFactory<WRMPermafrostModel,WRMOldPermafrostModel> factory_;
-
+  static Utils::RegisteredFactory<WRMPermafrostModel, WRMOldPermafrostModel> factory_;
 };
 
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

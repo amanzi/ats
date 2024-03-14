@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Weak MPC for subdomain model MPCs.
 
+//! Weak MPC for subdomain model MPCs.
 /*!
 
   A weak MPC that couples the same PK across many subdomains.  Note that this
@@ -22,11 +23,10 @@ namespace Amanzi {
 
 class MPCWeakSubdomain : public MPC<PK> {
  public:
-
   MPCWeakSubdomain(Teuchos::ParameterList& FElist,
-          const Teuchos::RCP<Teuchos::ParameterList>& plist,
-          const Teuchos::RCP<State>& S,
-          const Teuchos::RCP<TreeVector>& solution);
+                   const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                   const Teuchos::RCP<State>& S,
+                   const Teuchos::RCP<TreeVector>& solution);
 
   // PK methods
   // -- dt is the minimum of the sub pks
@@ -45,31 +45,20 @@ class MPCWeakSubdomain : public MPC<PK> {
   void init_();
 
   bool AdvanceStep_Standard_(double t_old, double t_new, bool reinit);
-  bool AdvanceStep_Subcycled_(double t_old, double t_new, bool reinit);
+  bool AdvanceStep_InternalSubcycling_(double t_old, double t_new, bool reinit);
 
-  Tag get_ds_tag_next_(const std::string& subdomain) {
-    if (subcycled_)
-      return Tag(Keys::getKey(subdomain, tag_next_.get()));
-    else return tag_next_;
-  }
-  Tag get_ds_tag_current_(const std::string& subdomain) {
-    if (subcycled_)
-      return Tag(Keys::getKey(subdomain, tag_current_.get()));
-    else return tag_current_;
-  }
+  Tag get_ds_tag_next_(const std::string& subdomain);
+  Tag get_ds_tag_current_(const std::string& subdomain);
 
   Comm_ptr_type comm_;
-  bool subcycled_;
-  double subcycled_target_dt_;
+  bool internal_subcycling_;
+  double internal_subcycling_target_dt_;
   double cycle_dt_;
   Key ds_name_;
 
  private:
   // factory registration
   static RegisteredPKFactory<MPCWeakSubdomain> reg_;
-
 };
 
 } // namespace Amanzi
-
-

@@ -1,10 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
 
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Default base with default implementations of methods for a PK integrated using
 Explicit.
@@ -20,7 +24,9 @@ namespace Amanzi {
 // -----------------------------------------------------------------------------
 // Setup
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Setup() {
+void
+PK_Explicit_Default::Setup()
+{
   // initial timestep
   dt_ = plist_->get<double>("initial time step", 1.);
 };
@@ -29,7 +35,9 @@ void PK_Explicit_Default::Setup() {
 // -----------------------------------------------------------------------------
 // Initialization of timestepper.
 // -----------------------------------------------------------------------------
-void PK_Explicit_Default::Initialize() {
+void
+PK_Explicit_Default::Initialize()
+{
   // set up the timestepping algorithm
   if (!plist_->get<bool>("strongly coupled PK", false)) {
     // -- instantiate time stepper
@@ -45,7 +53,9 @@ void PK_Explicit_Default::Initialize() {
 // -----------------------------------------------------------------------------
 // Advance from state S to state S_next at time S.time + dt.
 // -----------------------------------------------------------------------------
-bool PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
+bool
+PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit)
+{
   double dt = t_new - t_old;
 
   Teuchos::OSTab out = vo_->getOSTab();
@@ -64,4 +74,4 @@ bool PK_Explicit_Default::AdvanceStep(double t_old, double t_new, bool reinit) {
 };
 
 
-} // namespace
+} // namespace Amanzi

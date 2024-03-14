@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Internal energy based on a quadratic fit to data.
 
+//! Internal energy based on a quadratic fit to data.
 /*!
 
 Quadratic internal energy model -- function of Cv and temperature
@@ -21,22 +22,28 @@ Quadratic internal energy model -- function of Cv and temperature
 namespace Amanzi {
 namespace Energy {
 
-IEMQuadratic::IEMQuadratic(Teuchos::ParameterList& plist) :
-    plist_(plist) {
+IEMQuadratic::IEMQuadratic(Teuchos::ParameterList& plist) : plist_(plist)
+{
   InitializeFromPlist_();
 };
 
-double IEMQuadratic::InternalEnergy(double temp) {
+double
+IEMQuadratic::InternalEnergy(double temp)
+{
   double dT = temp - T0_;
-  return u0_ + (ka_ + kb_*dT) * dT;
+  return u0_ + (ka_ + kb_ * dT) * dT;
 };
 
-double IEMQuadratic::DInternalEnergyDT(double temp) {
+double
+IEMQuadratic::DInternalEnergyDT(double temp)
+{
   double dT = temp - T0_;
-  return ka_ + 2.0*kb_*dT;
+  return ka_ + 2.0 * kb_ * dT;
 };
 
-void IEMQuadratic::InitializeFromPlist_() {
+void
+IEMQuadratic::InitializeFromPlist_()
+{
   if (plist_.isParameter("quadratic u_0 [J kg^-1]")) {
     u0_ = 1.e-6 * plist_.get<double>("latent heat [J kg^-1]");
     ka_ = 1.e-6 * plist_.get<double>("heat capacity [J kg^-1 K^-1]");
@@ -53,5 +60,5 @@ void IEMQuadratic::InitializeFromPlist_() {
   T0_ = plist_.get<double>("reference temperature [K]", 273.15);
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi

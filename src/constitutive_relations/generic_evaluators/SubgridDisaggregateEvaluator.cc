@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,13 +7,14 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
+//! SubgridDisaggregateEvaluator restricts a field to the subgrid version of the same field.
 #include "SubgridDisaggregateEvaluator.hh"
 
 namespace Amanzi {
 namespace Relations {
 
-SubgridDisaggregateEvaluator::SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+SubgridDisaggregateEvaluator::SubgridDisaggregateEvaluator(Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain = Keys::getDomain(my_keys_.front().first);
   domain_index_ = domain;
@@ -25,7 +24,7 @@ SubgridDisaggregateEvaluator::SubgridDisaggregateEvaluator(Teuchos::ParameterLis
   source_key_ = Keys::readKey(plist_, source_domain_, "field", var_key);
 
   auto tag = my_keys_.front().second;
-  dependencies_.insert(KeyTag{source_key_, tag});
+  dependencies_.insert(KeyTag{ source_key_, tag });
 }
 
 Teuchos::RCP<Evaluator>
@@ -36,19 +35,21 @@ SubgridDisaggregateEvaluator::Clone() const
 
 // Required methods from EvaluatorSecondaryMonotypeCV
 void
-SubgridDisaggregateEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+SubgridDisaggregateEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& result)
 {
   auto tag = my_keys_.front().second;
   auto ds = S.GetDomainSet(domain_set_);
-  ds->DoExport(domain_index_,
+  ds->doExport(domain_index_,
                *S.Get<CompositeVector>(source_key_, tag).ViewComponent("cell", false),
                *result[0]->ViewComponent("cell", false));
 }
 
 void
-SubgridDisaggregateEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag, const std::vector<CompositeVector*>& result)
+SubgridDisaggregateEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
 {
   result[0]->PutScalar(1.);
 }
@@ -58,17 +59,17 @@ SubgridDisaggregateEvaluator::EvaluatePartialDerivative_(const State& S,
 void
 SubgridDisaggregateEvaluator::EnsureCompatibility_ToDeps_(State& S)
 {
-  auto& my_fac = S.Require<CompositeVector,CompositeVectorSpace>(my_keys_.front().first, my_keys_.front().second);
+  auto& my_fac = S.Require<CompositeVector, CompositeVectorSpace>(my_keys_.front().first,
+                                                                  my_keys_.front().second);
   if (my_fac.HasComponent("cell")) {
     int num_vectors = my_fac.NumVectors("cell");
     CompositeVectorSpace fac;
     fac.SetMesh(S.GetMesh(source_domain_))
-      ->AddComponent("cell", AmanziMesh::CELL, num_vectors);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_vectors);
     EvaluatorSecondaryMonotypeCV::EnsureCompatibility_ToDeps_(S, fac);
   }
 }
 
 
-} // namespace
-} // namespace
-
+} // namespace Relations
+} // namespace Amanzi

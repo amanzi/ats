@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 MPC for the Coupled Permafrost model.  This MPC sits at the top of the
 subtree:
@@ -26,4 +31,4 @@ namespace Amanzi {
 
 RegisteredPKFactory<MPCPermafrost> MPCPermafrost::reg_("permafrost model");
 
-} // namespace
+} // namespace Amanzi

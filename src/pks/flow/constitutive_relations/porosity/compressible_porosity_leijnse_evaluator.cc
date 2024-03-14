@@ -1,9 +1,15 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   Evaluates the porosity, given a small compressibility of rock.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 #include "compressible_porosity_leijnse_evaluator.hh"
@@ -12,19 +18,21 @@
 namespace Amanzi {
 namespace Flow {
 
-CompressiblePorosityLeijnseEvaluator::CompressiblePorosityLeijnseEvaluator(Teuchos::ParameterList& plist) :
-    EvaluatorSecondaryMonotypeCV(plist)
+CompressiblePorosityLeijnseEvaluator::CompressiblePorosityLeijnseEvaluator(
+  Teuchos::ParameterList& plist)
+  : EvaluatorSecondaryMonotypeCV(plist)
 {
   Key domain_name = Keys::getDomain(my_keys_.front().first);
   Tag tag = my_keys_.front().second;
   pres_key_ = Keys::readKey(plist_, domain_name, "pressure key", "pressure");
-  dependencies_.insert(KeyTag{pres_key_, tag});
+  dependencies_.insert(KeyTag{ pres_key_, tag });
 
   poro_key_ = Keys::readKey(plist_, domain_name, "base porosity key", "base_porosity");
-  dependencies_.insert(KeyTag{poro_key_, tag});
+  dependencies_.insert(KeyTag{ poro_key_, tag });
 
   AMANZI_ASSERT(plist_.isSublist("compressible porosity model parameters"));
-  models_ = createCompressiblePorosityLeijnseModelPartition(plist_.sublist("compressible porosity model parameters"));
+  models_ = createCompressiblePorosityLeijnseModelPartition(
+    plist_.sublist("compressible porosity model parameters"));
 }
 
 
@@ -36,8 +44,9 @@ CompressiblePorosityLeijnseEvaluator::Clone() const
 
 
 // Required methods from EvaluatorSecondaryMonotypeCV
-void CompressiblePorosityLeijnseEvaluator::Evaluate_(const State& S,
-        const std::vector<CompositeVector*>& result)
+void
+CompressiblePorosityLeijnseEvaluator::Evaluate_(const State& S,
+                                                const std::vector<CompositeVector*>& result)
 {
   // Initialize the MeshPartition
   if (!models_->first->initialized()) {
@@ -51,24 +60,29 @@ void CompressiblePorosityLeijnseEvaluator::Evaluate_(const State& S,
   const double& patm = S.Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
   // evaluate the model
-  for (CompositeVector::name_iterator comp=result[0]->begin();
-       comp!=result[0]->end(); ++comp) {
-    AMANZI_ASSERT(*comp == "cell");  // partition on cell only, could add boundary_face if needed (but not currently)
-    const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp,false));
-    const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp,false));
-    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
+  for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end(); ++comp) {
+    AMANZI_ASSERT(
+      *comp ==
+      "cell"); // partition on cell only, could add boundary_face if needed (but not currently)
+    const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp, false));
+    const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp, false));
+    Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
-    for (int id=0; id!=count; ++id) {
-      result_v[0][id] = models_->second[(*models_->first)[id]]->Porosity(poro_v[0][id], pres_v[0][id], patm);
+    for (int id = 0; id != count; ++id) {
+      result_v[0][id] =
+        models_->second[(*models_->first)[id]]->Porosity(poro_v[0][id], pres_v[0][id], patm);
     }
   }
 }
 
 
-void CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(const State& S,
-        const Key& wrt_key, const Tag& wrt_tag,
-        const std::vector<CompositeVector*>& result)
+void
+CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(
+  const State& S,
+  const Key& wrt_key,
+  const Tag& wrt_tag,
+  const std::vector<CompositeVector*>& result)
 {
   // Initialize the MeshPartition
   if (!models_->first->initialized()) {
@@ -83,31 +97,37 @@ void CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(const Stat
 
   if (wrt_key == pres_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp=result[0]->begin();
-         comp!=result[0]->end(); ++comp) {
-      AMANZI_ASSERT(*comp == "cell");  // partition on cell only, could add boundary_face if needed (but not currently)
-      const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp,false));
-      const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp,false));
-      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
+    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+         ++comp) {
+      AMANZI_ASSERT(
+        *comp ==
+        "cell"); // partition on cell only, could add boundary_face if needed (but not currently)
+      const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp, false));
+      const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp, false));
+      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
       int count = result[0]->size(*comp);
-      for (int id=0; id!=count; ++id) {
-        result_v[0][id] = models_->second[(*models_->first)[id]]->DPorosityDPressure(poro_v[0][id], pres_v[0][id], patm);
+      for (int id = 0; id != count; ++id) {
+        result_v[0][id] = models_->second[(*models_->first)[id]]->DPorosityDPressure(
+          poro_v[0][id], pres_v[0][id], patm);
       }
-  }
+    }
 
   } else if (wrt_key == poro_key_) {
     // evaluate the model
-    for (CompositeVector::name_iterator comp=result[0]->begin();
-         comp!=result[0]->end(); ++comp) {
-      AMANZI_ASSERT(*comp == "cell");  // partition on cell only, could add boundary_face if needed (but not currently)
-      const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp,false));
-      const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp,false));
-      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp,false));
+    for (CompositeVector::name_iterator comp = result[0]->begin(); comp != result[0]->end();
+         ++comp) {
+      AMANZI_ASSERT(
+        *comp ==
+        "cell"); // partition on cell only, could add boundary_face if needed (but not currently)
+      const Epetra_MultiVector& pres_v = *(pres->ViewComponent(*comp, false));
+      const Epetra_MultiVector& poro_v = *(poro->ViewComponent(*comp, false));
+      Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
       int count = result[0]->size(*comp);
-      for (int id=0; id!=count; ++id) {
-        result_v[0][id] = models_->second[(*models_->first)[id]]->DPorosityDBasePorosity(poro_v[0][id], pres_v[0][id], patm);
+      for (int id = 0; id != count; ++id) {
+        result_v[0][id] = models_->second[(*models_->first)[id]]->DPorosityDBasePorosity(
+          poro_v[0][id], pres_v[0][id], patm);
       }
     }
 
@@ -117,6 +137,5 @@ void CompressiblePorosityLeijnseEvaluator::EvaluatePartialDerivative_(const Stat
 }
 
 
-
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi

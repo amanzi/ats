@@ -1,22 +1,26 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 /*!
 
 Computes the depth to a saturated water table.
 
-Evaluator name: `"water table depth`"
+`"evaluator type`" = `"thaw depth`"
 
-.. _water-table-depth-spec:
-.. admonition:: water-table-depth-spec
+.. _thaw-depth-spec:
+.. admonition:: thaw-depth-spec
 
     KEYS:
-      `"saturation_gas`"
+
+    - `"temperature`" **SUBSURFACE_DOMAIN-temperature**
+    - `"subsurface cell volume`" **SUBSURFACE_DOMAIN-cell_volume**
+    - `"surface cell volume`" **DOMAIN-cell_volume**
 
 */
 
@@ -29,8 +33,7 @@ namespace Amanzi {
 namespace Relations {
 
 struct ParserThawDepth {
-  ParserThawDepth(Teuchos::ParameterList& plist,
-                        const KeyTag& key_tag);
+  ParserThawDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
   KeyTagSet dependencies;
 };
 
@@ -38,11 +41,9 @@ struct ParserThawDepth {
 class IntegratorThawDepth {
  public:
   IntegratorThawDepth(Teuchos::ParameterList& plist,
-                std::vector<const Epetra_MultiVector*>& deps,
-                const AmanziMesh::Mesh* mesh);
-  int scan(AmanziMesh::Entity_ID col,
-           AmanziMesh::Entity_ID c,
-           AmanziGeometry::Point& p);
+                      std::vector<const Epetra_MultiVector*>& deps,
+                      const AmanziMesh::Mesh* mesh);
+  int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
   double coefficient(AmanziMesh::Entity_ID col);
 
  private:
@@ -52,9 +53,7 @@ class IntegratorThawDepth {
   double trans_temp_;
 };
 
-using ThawDepthEvaluator =
-  EvaluatorColumnIntegrator<ParserThawDepth,
-                            IntegratorThawDepth>;
+using ThawDepthEvaluator = EvaluatorColumnIntegrator<ParserThawDepth, IntegratorThawDepth>;
 
 } //namespace Relations
 } //namespace Amanzi

@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
 ATS
-
-License: see $ATS_DIR/COPYRIGHT
-Author: Ethan Coon
 
 Implementation for the derived WeakMPC class.  Provides only the advance()
 method missing from MPC.hh.  In weak coupling, we simply loop over the
@@ -21,8 +26,7 @@ WeakMPC::WeakMPC(Teuchos::ParameterList& pk_tree,
                  const Teuchos::RCP<Teuchos::ParameterList>& global_plist,
                  const Teuchos::RCP<State>& S,
                  const Teuchos::RCP<TreeVector>& solution)
-    : PK(pk_tree, global_plist, S, solution),
-      MPC<PK>(pk_tree, global_plist, S, solution)
+  : PK(pk_tree, global_plist, S, solution), MPC<PK>(pk_tree, global_plist, S, solution)
 {
   MPC<PK>::init_(solution_->Comm());
 };
@@ -31,7 +35,8 @@ WeakMPC::WeakMPC(Teuchos::ParameterList& pk_tree,
 // -----------------------------------------------------------------------------
 // Calculate the min of sub PKs timestep sizes.
 // -----------------------------------------------------------------------------
-double WeakMPC::get_dt()
+double
+WeakMPC::get_dt()
 {
   double dt = std::numeric_limits<double>::max();
   for (auto& pk : sub_pks_) dt = std::min(dt, pk->get_dt());
@@ -40,9 +45,10 @@ double WeakMPC::get_dt()
 
 
 // -----------------------------------------------------------------------------
-// Set timestep for sub PKs 
+// Set timestep for sub PKs
 // -----------------------------------------------------------------------------
-void WeakMPC::set_dt( double dt)
+void
+WeakMPC::set_dt(double dt)
 {
   for (auto& pk : sub_pks_) pk->set_dt(dt);
 };
@@ -50,7 +56,8 @@ void WeakMPC::set_dt( double dt)
 // -----------------------------------------------------------------------------
 // Advance each sub-PK individually.
 // -----------------------------------------------------------------------------
-bool WeakMPC::AdvanceStep(double t_old, double t_new, bool reinit)
+bool
+WeakMPC::AdvanceStep(double t_old, double t_new, bool reinit)
 {
   bool fail = false;
   for (auto& pk : sub_pks_) {
@@ -61,4 +68,4 @@ bool WeakMPC::AdvanceStep(double t_old, double t_new, bool reinit)
 };
 
 
-} // namespace
+} // namespace Amanzi

@@ -1,10 +1,11 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
 
-/* -----------------------------------------------------------------------------
-This is the overland flow component of ATS.
-License: BSD
-Author: Ethan Coon (ecoon@lanl.gov)
------------------------------------------------------------------------------ */
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 #include "snow_distribution.hh"
 
@@ -13,6 +14,5 @@ namespace Flow {
 
 RegisteredPKFactory<SnowDistribution> SnowDistribution::reg_("snow distribution");
 
-} // namespace
-} // namespace
-
+} // namespace Flow
+} // namespace Amanzi

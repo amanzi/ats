@@ -1,9 +1,14 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon
+*/
+
 /* -------------------------------------------------------------------------
    ATS
-
-   License: see $ATS_DIR/COPYRIGHT
-   Author: Ethan Coon
 
    Interface for a general-purpose advection factory.
    ------------------------------------------------------------------------- */
@@ -15,8 +20,10 @@
 namespace Amanzi {
 namespace Operators {
 
-Teuchos::RCP<Advection> AdvectionFactory::create(Teuchos::ParameterList& plist,
-        const Teuchos::RCP<const AmanziMesh::Mesh> mesh) {
+Teuchos::RCP<Advection>
+AdvectionFactory::create(Teuchos::ParameterList& plist,
+                         const Teuchos::RCP<const AmanziMesh::Mesh> mesh)
+{
   std::string method = plist.get<std::string>("Advection method");
 
   if (method == "donor upwind") {

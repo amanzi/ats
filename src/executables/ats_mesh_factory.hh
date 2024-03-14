@@ -1,12 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! A list of mesh objects and their domain names.
 
+//! A list of mesh objects and their domain names.
 /*!
 
 All processes are simulated on a domain, which is discretized through a mesh.
@@ -36,29 +37,30 @@ through providing a "verify mesh" option.
 .. _mesh-typed-spec:
 .. admonition:: mesh-typed-spec
 
-    * `"mesh type`" ``[string]`` One of:
+   * `"mesh type`" ``[string]`` One of:
 
-      - `"generate mesh`" See `Generated Mesh`_.
-      - `"read mesh file`" See `Read Mesh File`_.
-      - `"logical`" See `Logical Mesh`_.
-      - `"surface`" See `Surface Mesh`_.
-      - `"subgrid`" See `Subgrid Meshes`_.
-      - `"column`" See `Column Meshes`_.
+     - `"generate mesh`" See `Generated Mesh`_.
+     - `"read mesh file`" See `Read Mesh File`_.
+     - `"logical`" See `Logical Mesh`_.
+     - `"surface`" See `Surface Mesh`_.
+     - `"extracted`" See `Extracted Mesh`_.
+     - `"domain set indexed`" See `Domain Set Meshes`_.
+     - `"domain set regions`" See `Domain Set Meshes`_.
+     - `"column`" See `Column Meshes`_.
+     - `"column surface`" See `Column Surface Meshes`_.
 
-    * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
-      associated with the type.
-    * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
-    * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+   * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
+     associated with the type.
+   * `"verify mesh`" ``[bool]`` **false** Perform a mesh audit.
+   * `"deformable mesh`" ``[bool]`` **false** Will this mesh be deformed?
+   * `"build columns from set`" ``[string]`` **optional** If provided, build
+     columnar structures from the provided set.
+   * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
+     mesh.  Note this only makes sense on the domain mesh.  One of:
 
-    * `"build columns from set`" ``[string]`` **optional** If provided, build
-       columnar structures from the provided set.
-
-    * `"partitioner`" ``[string]`` **zoltan_rcb** Method to partition the
-      mesh.  Note this only makes sense on the domain mesh.  One of:
-
-      - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
-      - `"metis`" uses the METIS graph partitioner
-      - `"zoltan`" uses the default Zoltan graph-based partitioner.
+     - `"zoltan_rcb`" a "map view" partitioning that keeps columns of cells together
+     - `"metis`" uses the METIS graph partitioner
+     - `"zoltan`" uses the default Zoltan graph-based partitioner.
 
 
 Generated Mesh
@@ -73,9 +75,9 @@ Specified by `"mesh type`" of `"generate mesh`".
 .. _mesh-generate-mesh-spec:
 .. admonition:: mesh-generate-mesh-spec
 
-    * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
-    * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
-    * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
+   * `"domain low coordinate`" ``[Array(double)]`` Location of low corner of domain
+   * `"domain high coordinate`" ``[Array(double)]`` Location of high corner of domain
+   * `"number of cells`" ``[Array(int)]`` the number of uniform cells in each coordinate direction
 
 Example:
 
@@ -89,8 +91,8 @@ Example:
          <Parameter name="domain low coordinate" type="Array(double)" value="{0.0, 0.0, 0.0}" />
          <Parameter name="domain high coordinate" type="Array(double)" value="{100.0, 1.0, 10.0}" />
        </ParameterList>
-     </ParameterList>   
-   </ParameterList>   
+     </ParameterList>
+   </ParameterList>
 
 
 Read Mesh File
@@ -111,7 +113,7 @@ Specified by `"mesh type`" of `"read mesh file`".
 .. _mesh-read-mesh-file-spec:
 .. admonition:: mesh-read-mesh-file-spec
 
-    * `"file`" ``[string]`` filename of a pre-generated mesh file
+   * `"file`" ``[string]`` filename of a pre-generated mesh file
 
 Example:
 
@@ -149,8 +151,8 @@ Specified by `"mesh type`" of `"logical`".
 .. _mesh-logical-spec:
 .. admonition:: mesh-logical-spec
 
-    Not yet completed...
-   
+   Not yet completed...
+
 Surface Mesh
 ============
 
@@ -168,19 +170,25 @@ Specified by `"mesh type`" of `"surface`".
 .. _mesh-surface-spec:
 .. admonition:: mesh-surface-spec
 
-    ONE OF
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
 
-    * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
+   ONE OF
 
-    OR
+   * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
 
-    * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+   OR
 
-    END
+   * `"surface sideset names`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
 
-    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-    * `"export mesh to file`" ``[string]`` **optional** Export the lifted
-      surface mesh to this filename.
+   END
+
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+     surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
 
 Example:
 
@@ -204,6 +212,40 @@ Example:
       </ParameterList>
     </ParameterList>
 
+Extracted Mesh
+==============
+
+A mesh is created by lifting a subset of entities from a parent mesh.  Locality
+is preserved, so all local entities in this mesh have parents whose entities
+are local on the parent mesh, so that no communication is ever done when
+passing info between an parent mesh and an extracted mesh.
+
+Specified by `"mesh type`" of `"extracted`".
+
+.. _mesh-extracted-spec:
+..admonition:: mesh-extracted-spec
+
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
+
+   ONE OF
+
+   * `"region`" ``[string]`` The Region_ name containing all surface faces.
+
+   OR
+
+   * `"regions`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
+   END
+
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+     surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
+
+
 
 Aliased Mesh
 ============
@@ -219,34 +261,101 @@ Specified by `"mesh type`" of `"aliased`".
 .. _mesh-aliased-spec:
 .. admonition:: mesh-aliased-spec
 
-    * `"target`" ``[string]`` Mesh that this alias points to.
+   * `"target`" ``[string]`` Mesh that this alias points to.
 
 
-Subgrid Meshes
-==============
+Domain Set Meshes
+=================
 
 A collection of meshes formed by associating a new mesh with each entity of a
-region.  Used for a few cases, including generating a 1D column for each
+region or set of indices.  This includes generating a 1D column for each
 surface face of a semi-structured subsurface mesh, or for hanging logical
 meshes off of each surface cell as a subgrid model, etc.
 
-The subgrid meshes are then named `"MESH_NAME_X"` for each X, which is an
-entity local ID, in a provided region of the provided entity type.
+The domain set meshes are then named `"MESH_NAME:X"` for each X, which can be a
+local ID of an entity (in the case of `"domain set indexed`") or a region name
+(in the case of `"domain set regions`").
 
-Specified by `"mesh type`" of `"subgrid`".
 
-.. _mesh-subgrid-spec:
-.. admonition:: mesh-subgrid-spec
+Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed`".
 
-    * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
-    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
-      region (usually `"cell`") on which each subgrid mesh will be associated.
-    * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-    * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
-      mesh instead of one per entity.
+.. _mesh-domain-set-indexed-spec:
+.. admonition:: mesh-domain-set-indexed-spec
 
-.. todo::
-   WIP: Add examples (intermediate scale model, transport subgrid model)
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
+   * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
+
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"entity LID`") that is filled in by this index.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="column:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set indexed" />
+      <ParameterList name="domain set indexed parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="surface" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{surface}" />
+        <ParameterList name="column:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="column" />
+          <ParameterList name="column parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+
+
+Region-based domain set meshes are specified by `"mesh type`" of `"domain set regions`".
+
+.. _mesh-domain-set-regions-spec:
+.. admonition:: mesh-domain-set-regions-spec
+
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
+   * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
+
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"region`") that is filled in by this domain set.
+
+Example: the below example shows how to extract two subdomains, making them
+each a proper mesh whose communicators only live where they have cells, thereby
+decomposing the domain mesh into two subdomains.
+
+.. code-block:: xml
+
+    <ParameterList name="watershed:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set regions" />
+      <ParameterList name="domain set regions parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="domain" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{upstream, downstream}" />
+        <ParameterList name="watershed:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="extracted" />
+          <ParameterList name="extracted parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+            <Parameter name="create subcommunicator" type="bool" value="true" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
 
 
 Column Meshes
@@ -254,7 +363,7 @@ Column Meshes
 
 .. warning::
    Note these are rarely if ever created manually by a user.  Instead use
-   `Subgrid Meshes`_, which generate a column mesh spec for every face
+   `Domain Set Meshes`_, which generate a column mesh spec for every face
    of a set.
 
 Specified by `"mesh type`" of `"column`".
@@ -262,11 +371,11 @@ Specified by `"mesh type`" of `"column`".
 .. _mesh-column-spec:
 .. admonition:: mesh-column-spec
 
-    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
-      Note that the `"build columns from set`" parameter must be set in that mesh.
-    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
-    * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
-    * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
+   * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+     Note that the `"build columns from set`" parameter must be set in that mesh.
+   * `"entity LID`" ``[int]`` Local ID of the surface cell that is the top of the column.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
 
 Example:
 
@@ -287,6 +396,27 @@ Example:
         </ParameterList>
       </ParameterList>
     </ParameterList>
+
+
+Column Surface Meshes
+=====================
+
+.. warning::
+   Note these are rarely if ever created manually by a user.  Instead use
+   `Domain Set Meshes`_, which generate a column surface mesh spec for every face
+   of a set.
+
+Specified by `"mesh type`" of `"column surface`".
+
+.. _mesh-column-spec:
+.. admonition:: mesh-column-spec
+
+   * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+     Note that the `"build columns from set`" parameter must be set in that mesh.
+   * `"surface region`" ``[string]`` Region of the surface of the parent mesh.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
+
 
 */
 
@@ -314,7 +444,7 @@ checkVerifyMesh(Teuchos::ParameterList& mesh_plist,
 //
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshFromFile(const std::string& mesh_name,
-                   Teuchos::ParameterList& mesh_plist,
+                   const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                    const Amanzi::Comm_ptr_type& comm,
                    const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                    Amanzi::State& S,
@@ -322,7 +452,7 @@ createMeshFromFile(const std::string& mesh_name,
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshGenerated(const std::string& mesh_name,
-                    Teuchos::ParameterList& mesh_plist,
+                    const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                     const Amanzi::Comm_ptr_type& comm,
                     const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                     Amanzi::State& S,
@@ -330,7 +460,7 @@ createMeshGenerated(const std::string& mesh_name,
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshLogical(const std::string& mesh_name,
-                  Teuchos::ParameterList& mesh_plist,
+                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                   const Amanzi::Comm_ptr_type& comm,
                   const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                   Amanzi::State& S,
@@ -338,20 +468,20 @@ createMeshLogical(const std::string& mesh_name,
 
 Teuchos::RCP<const Amanzi::AmanziMesh::Mesh>
 createMeshAliased(const std::string& mesh_name,
-                  Teuchos::ParameterList& mesh_plist,
+                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                   Amanzi::State& S,
                   Amanzi::VerboseObject& vo);
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshSurface(const std::string& mesh_name,
-                  Teuchos::ParameterList& mesh_plist,
+                  const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                   const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                   Amanzi::State& S,
                   Amanzi::VerboseObject& vo);
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshExtracted(const std::string& mesh_name,
-                    Teuchos::ParameterList& mesh_plist,
+                    const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                     const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                     Amanzi::State& S,
                     Amanzi::VerboseObject& vo);
@@ -359,45 +489,47 @@ createMeshExtracted(const std::string& mesh_name,
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshColumn(const std::string& mesh_name,
-                 Teuchos::ParameterList& mesh_plist,
+                 const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                  const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                  Amanzi::State& S,
                  Amanzi::VerboseObject& vo);
 
 Teuchos::RCP<Amanzi::AmanziMesh::Mesh>
 createMeshColumnSurface(const std::string& mesh_name,
-                        Teuchos::ParameterList& mesh_plist,
+                        const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                         const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                         Amanzi::State& S,
                         Amanzi::VerboseObject& vo);
 
 void
 createDomainSetIndexed(const std::string& mesh_name_pristine,
-                       Teuchos::ParameterList& mesh_plist,
+                       const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                        const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                        Amanzi::State& S,
                        Amanzi::VerboseObject& vo);
 
 void
 createDomainSetRegions(const std::string& mesh_name_pristine,
-                       Teuchos::ParameterList& mesh_plist,
+                       const Teuchos::RCP<Teuchos::ParameterList>& mesh_plist,
                        const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
                        Amanzi::State& S,
                        Amanzi::VerboseObject& vo);
 
 Teuchos::RCP<const Amanzi::AmanziMesh::Mesh>
-createMesh(Teuchos::ParameterList& plist,
+createMesh(const Teuchos::RCP<Teuchos::ParameterList>& plist,
            const Amanzi::Comm_ptr_type& comm,
            const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
            Amanzi::State& s,
            Amanzi::VerboseObject& vo);
 
 void
-createMeshes(Teuchos::ParameterList& plist,
+createMeshes(const Teuchos::RCP<Teuchos::ParameterList>& plist,
              const Amanzi::Comm_ptr_type& comm,
              const Teuchos::RCP<Amanzi::AmanziGeometry::GeometricModel>& gm,
              Amanzi::State& s);
 
+void
+setDefaultParameters(Teuchos::ParameterList& plist, const Amanzi::VerboseObject& vo);
 
 } // namespace Mesh
 } // namespace ATS

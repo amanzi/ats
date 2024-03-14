@@ -1,10 +1,16 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /*
   A linear sat-pc curve, plus a constant rel perm, makes the system linear, so
   nonlinear solver should always converge in one step.
 
-  Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
 /*!
@@ -37,8 +43,7 @@ const int FLOW_WRM_ONE = 3;
 
 
 class WRM {
-
-public:
+ public:
   virtual ~WRM() {}
 
   // required methods from the base class
@@ -49,14 +54,13 @@ public:
   virtual double capillaryPressure(double saturation) = 0;
   virtual double d_capillaryPressure(double saturation) = 0;
   virtual double residualSaturation() = 0;
-  virtual double suction_head(double saturation){return 0.;};
-  virtual double d_suction_head(double saturation){return 0.;};
-
+  virtual double suction_head(double saturation) { return 0.; };
+  virtual double d_suction_head(double saturation) { return 0.; };
 };
 
-typedef double(WRM::*KRelFn)(double pc);
+typedef double (WRM::*KRelFn)(double pc);
 
-} //namespace
-} //namespace
+} // namespace Flow
+} // namespace Amanzi
 
 #endif

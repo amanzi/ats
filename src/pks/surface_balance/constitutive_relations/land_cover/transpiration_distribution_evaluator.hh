@@ -1,12 +1,13 @@
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
-//! Distributes and downregulates potential transpiration to the rooting zone.
 
+//! Distributes and downregulates potential transpiration to the rooting zone.
 /*!
 
 The transpiration distribution evaluator looks to take a potential
@@ -58,21 +59,20 @@ from the LandCover type.
 
 .. _transpiration-distribution-evaluator-spec:
 .. admonition:: transpiration-distribution-evaluator-spec
+   * `"year duration`" ``[double]`` **1**
+   * `"year duration units`" ``[string]`` **noleap**
 
-    * `"year duration`" ``[double]`` **1**
-    * `"year duration units`" ``[string]`` **noleap**
+   * `"water limiter function`" ``[function-spec]`` **optional** If provided,
+     limit the total water sink as a function of the integral of the water
+     potential * rooting fraction.
 
-    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
-      limit the total water sink as a function of the integral of the water
-      potential * rooting fraction.
+   KEYS:
 
-    KEYS:
-
-    - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
-    - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
-    - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
-    - `"cell volume`" **DOMAIN-cell_volume**
-    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
+   - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
+   - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
+   - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
 
 */
 
@@ -90,19 +90,27 @@ namespace SurfaceBalance {
 namespace Relations {
 
 class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
   explicit TranspirationDistributionEvaluator(Teuchos::ParameterList& plist);
   TranspirationDistributionEvaluator(const TranspirationDistributionEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
+    // calculate of derivatives of this is a tricky thing to do, with
+    // non-cell-local terms due to rescaling.  Just turn off derivatives
+    // instead.
+    return false;
+  }
+
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
@@ -128,9 +136,9 @@ class TranspirationDistributionEvaluator : public EvaluatorSecondaryMonotypeCV {
   Teuchos::RCP<Function> limiter_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,TranspirationDistributionEvaluator> reg_;
+  static Utils::RegisteredFactory<Evaluator, TranspirationDistributionEvaluator> reg_;
 };
 
-} //namespace
-} //namespace
-} //namespace
+} // namespace Relations
+} // namespace SurfaceBalance
+} // namespace Amanzi

@@ -1,13 +1,13 @@
 /*
-  ATS is released under the three-clause BSD License. 
-  The terms of use and "as is" disclaimer for this license are 
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
 
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
+
 //! A coupler which solves flow and energy both surface and subsurface.
-
-
 /*!
 
 This MPC handles the coupling of surface energy and flow to subsurface energy
@@ -20,9 +20,9 @@ and flow for integrated hydrology with freeze/thaw processes.
      coupled PKs.  The order must be {subsurface_flow_pk, subsurface_energy_pk,
      surface_flow_pk, surface_energy_pk}.
 
-   * `"subsurface domain name`" ``[string]`` **domain** 
+   * `"subsurface domain name`" ``[string]`` **domain**
 
-   * `"surface domain name`" ``[string]`` **surface** 
+   * `"surface domain name`" ``[string]`` **surface**
 
    * `"mass exchange flux key`" ``[string]`` **SURFACE_DOMAIN-surface_subsurface_flux**
 
@@ -34,7 +34,7 @@ and flow for integrated hydrology with freeze/thaw processes.
    INCLUDES:
 
    - ``[mpc-subsurface-spec]`` *Is a* `Subsurface MPC`_
-    
+
  */
 
 #ifndef PKS_MPC_PERMAFROST_FOUR_HH_
@@ -48,12 +48,10 @@ namespace Amanzi {
 
 class MPCPermafrost : public MPCSubsurface {
  public:
-
-
   MPCPermafrost(Teuchos::ParameterList& FElist,
-                 const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                 const Teuchos::RCP<State>& S,
-                 const Teuchos::RCP<TreeVector>& soln);
+                const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                const Teuchos::RCP<State>& S,
+                const Teuchos::RCP<TreeVector>& soln);
 
 
   virtual void set_tags(const Tag& tag_current, const Tag& tag_next) override;
@@ -66,24 +64,29 @@ class MPCPermafrost : public MPCSubsurface {
 
   // -- computes the non-linear functional g = g(t,u,udot)
   //    By default this just calls each sub pk FunctionalResidual().
-  virtual void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  virtual void FunctionalResidual(double t_old,
+                                  double t_new,
+                                  Teuchos::RCP<TreeVector> u_old,
+                                  Teuchos::RCP<TreeVector> u_new,
+                                  Teuchos::RCP<TreeVector> g) override;
 
   // -- Apply preconditioner to r and returns the result in Pr.
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> r, Teuchos::RCP<TreeVector> Pr) override;
 
   // -- Update the preconditioner.
   virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
   // -- Modify the predictor.
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // -- Modify the correction.
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> r,
-                       Teuchos::RCP<const TreeVector> u, 
-                       Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> r,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
  protected:
   // sub PKs
@@ -135,10 +138,9 @@ class MPCPermafrost : public MPCSubsurface {
   static RegisteredPKFactory<MPCPermafrost> reg_;
 
   Key domain_surf, domain_ss;
-
 };
 
-} // namespace
+} // namespace Amanzi
 
 
 #endif

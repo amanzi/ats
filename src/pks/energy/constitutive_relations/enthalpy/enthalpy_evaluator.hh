@@ -1,13 +1,39 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
+/*
+  Copyright 2010-202x held jointly by participating institutions.
+  ATS is released under the three-clause BSD License.
+  The terms of use and "as is" disclaimer for this license are
+  provided in the top-level COPYRIGHT file.
+
+  Authors: Ethan Coon (ecoon@lanl.gov)
+*/
 
 /* -----------------------------------------------------------------------------
 ATS
 
-Authors: Ethan Coon (ecoon@lanl.gov)
-
 Evaluator for enthalpy.
 ----------------------------------------------------------------------------- */
 
+/*!
+
+Computes enthalpy [MJ / mol] of as a function of internal energy, pressure, and density.
+
+.. math::
+   e = u + 10^{-6} * \frac{p}{n_l}
+
+`"evaluator type`" = `"enthalpy`"
+
+.. _enthalpy-evaluator-spec:
+.. admonition:: enthalpy-evaluator-spec
+
+   * `"include work term`" ``[bool]`` **false** If false, e = u, ignoring the work term.
+
+   KEYS:
+
+   - `"internal energy`"
+   - `"pressure`"
+   - `"mass density`"
+
+*/
 
 #ifndef AMANZI_ENTHALPY_EVALUATOR_HH_
 #define AMANZI_ENTHALPY_EVALUATOR_HH_
@@ -21,21 +47,19 @@ namespace Amanzi {
 namespace Energy {
 
 class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
-
  public:
-  explicit
-  EnthalpyEvaluator(Teuchos::ParameterList& plist);
+  explicit EnthalpyEvaluator(Teuchos::ParameterList& plist);
   EnthalpyEvaluator(const EnthalpyEvaluator& other) = default;
 
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
  protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
-  virtual void Evaluate_(const State& S,
-          const std::vector<CompositeVector*>& result) override;
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key, const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& result) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& result) override;
 
  protected:
   Key pres_key_;
@@ -44,11 +68,10 @@ class EnthalpyEvaluator : public EvaluatorSecondaryMonotypeCV {
   bool include_work_;
 
  private:
-  static Utils::RegisteredFactory<Evaluator,EnthalpyEvaluator> factory_;
-
+  static Utils::RegisteredFactory<Evaluator, EnthalpyEvaluator> factory_;
 };
 
-} // namespace
-} // namespace
+} // namespace Energy
+} // namespace Amanzi
 
 #endif

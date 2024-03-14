@@ -1,7 +1,5 @@
-/* -*-  mode: c++; indent-tabs-mode: nil -*- */
-//! Overland flow using the diffusion wave equation.
-
 /*
+  Copyright 2010-202x held jointly by participating institutions.
   ATS is released under the three-clause BSD License.
   The terms of use and "as is" disclaimer for this license are
   provided in the top-level COPYRIGHT file.
@@ -9,7 +7,7 @@
   Authors: Ethan Coon (ecoon@lanl.gov)
 */
 
-
+//! Overland flow using the diffusion wave equation.
 /*!
 
 Solves the diffusion wave equation for overland flow with pressure as a primary variable:
@@ -45,8 +43,6 @@ Solves the diffusion wave equation for overland flow with pressure as a primary 
     * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
     * `"source term is differentiable`" ``[bool]`` **true** Can the source term
       be differentiated with respect to the primary variable?
-    * `"explicit source term`" ``[bool]`` **false** Apply the source term from
-      the previous time step.
 
     END
 
@@ -152,9 +148,7 @@ class HeightModel;
 
 //class OverlandPressureFlow : public PKPhysicalBDFBase {
 class OverlandPressureFlow : public PK_PhysicalBDF_Default {
-
-public:
-
+ public:
   OverlandPressureFlow(Teuchos::ParameterList& pk_tree,
                        const Teuchos::RCP<Teuchos::ParameterList>& global_list,
                        const Teuchos::RCP<State>& S,
@@ -178,30 +172,33 @@ public:
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)
-  void FunctionalResidual(double t_old, double t_new, Teuchos::RCP<TreeVector> u_old,
-           Teuchos::RCP<TreeVector> u_new, Teuchos::RCP<TreeVector> g) override;
+  void FunctionalResidual(double t_old,
+                          double t_new,
+                          Teuchos::RCP<TreeVector> u_old,
+                          Teuchos::RCP<TreeVector> u_new,
+                          Teuchos::RCP<TreeVector> g) override;
 
   // applies preconditioner to u and returns the result in Pu
-  virtual int ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
-          Teuchos::RCP<TreeVector> Pu) override;
+  virtual int
+  ApplyPreconditioner(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu) override;
 
   // updates the preconditioner
-  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
-          double h) override;
+  virtual void UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h) override;
 
-  virtual bool ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0,
-          Teuchos::RCP<TreeVector> u) override;
+  virtual bool
+  ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::RCP<TreeVector> u) override;
 
   // evaluating consistent faces for given BCs and cell values
   virtual void CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u);
 
   // -- Possibly modify the correction before it is applied
   virtual AmanziSolvers::FnBaseDefs::ModifyCorrectionResult
-      ModifyCorrection(double h, Teuchos::RCP<const TreeVector> res,
-                       Teuchos::RCP<const TreeVector> u,
-                       Teuchos::RCP<TreeVector> du) override;
+  ModifyCorrection(double h,
+                   Teuchos::RCP<const TreeVector> res,
+                   Teuchos::RCP<const TreeVector> u,
+                   Teuchos::RCP<TreeVector> du) override;
 
-protected:
+ protected:
   // setup methods
   virtual void SetupOverlandFlow_();
   virtual void SetupPhysicalEvaluators_();
@@ -210,10 +207,10 @@ protected:
   void ComputeBoundaryConditions_(const Tag& tag);
   virtual void UpdateBoundaryConditions_(const Tag& tag);
   virtual void ApplyBoundaryConditions_(const Teuchos::Ptr<CompositeVector>& u,
-          const Teuchos::Ptr<const CompositeVector>& elev);
+                                        const Teuchos::Ptr<const CompositeVector>& elev);
 
-  virtual void FixBCsForOperator_(const Tag& tag,
-          const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
+  virtual void
+  FixBCsForOperator_(const Tag& tag, const Teuchos::Ptr<Operators::PDE_Diffusion>& diff_op);
   virtual void FixBCsForPrecon_(const Tag& tag);
 
   // computational concerns in managing abs, rel perm
@@ -223,14 +220,14 @@ protected:
 
   // physical methods
   // -- diffusion term
-  void ApplyDiffusion_(const Tag& tag,const Teuchos::Ptr<CompositeVector>& g);
+  void ApplyDiffusion_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g);
   // -- accumulation term
   void AddAccumulation_(const Teuchos::Ptr<CompositeVector>& g);
   // -- source terms
   void AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g);
+  void AddSourcesToPrecon_(double h);
 
-  void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up,
-          double h);
+  void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
 
  protected:
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;
@@ -268,7 +265,7 @@ protected:
   Operators::UpwindMethod upwind_method_;
 
   bool is_source_term_;
-  bool source_in_meters_;
+  bool source_term_is_differentiable_;
   bool source_only_if_unfrozen_;
 
   bool modify_predictor_with_consistent_faces_;
@@ -315,7 +312,7 @@ protected:
   Teuchos::RCP<Functions::BoundaryFunction> bc_level_;
   Teuchos::RCP<Functions::BoundaryFunction> bc_tidal_;
   Teuchos::RCP<Functions::DynamicBoundaryFunction> bc_dynamic_;
-  Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_ ;
+  Teuchos::RCP<Functions::BoundaryFunction> bc_level_flux_lvl_, bc_level_flux_vel_;
 
   // needed physical models
   Teuchos::RCP<Flow::OverlandConductivityModel> cond_model_;
@@ -324,7 +321,7 @@ protected:
   static RegisteredPKFactory<OverlandPressureFlow> reg_;
 };
 
-}  // namespace Flow
-}  // namespace Amanzi
+} // namespace Flow
+} // namespace Amanzi
 
 #endif
