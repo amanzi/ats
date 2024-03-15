@@ -10,8 +10,6 @@ list(APPEND subdirs elevation overland_conductivity porosity water_content wrm s
 set(ats_flow_relations_src_files "")
 set(ats_flow_relations_inc_files "")
 
-include_directories(${PKS_SOURCE_DIR})
-
 foreach(lcv IN LISTS subdirs)
   include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/${lcv})
   
@@ -19,7 +17,7 @@ foreach(lcv IN LISTS subdirs)
   set(ats_flow_relations_src_files ${ats_flow_relations_src_files} ${subdir_sources})
 
   file(GLOB subdir_incs "./${lcv}/*.hh")
-  set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs})
+  set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs} ${PKS_SOURCE_DIR})
 
   file(GLOB registrations "./${lcv}/*_reg.hh" )
   foreach(reg_lcv IN LISTS registrations)
