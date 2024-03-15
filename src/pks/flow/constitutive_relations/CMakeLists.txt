@@ -14,10 +14,10 @@ foreach(lcv IN LISTS subdirs)
   include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/${lcv})
   
   file(GLOB subdir_sources "./${lcv}/*.cc")
-  set(ats_flow_relations_src_files ${ats_flow_relations_src_files} ${subdir_sources} ${PKS_SOURCE_DIR})
+  set(ats_flow_relations_src_files ${ats_flow_relations_src_files} ${subdir_sources})
 
   file(GLOB subdir_incs "./${lcv}/*.hh")
-  set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs})
+  set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs} "~/Amanzi/repos/amanzi_master/src/physics/ats/src/pks")
 
   file(GLOB registrations "./${lcv}/*_reg.hh" )
   foreach(reg_lcv IN LISTS registrations)
