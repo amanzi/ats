@@ -12,9 +12,10 @@ set(ats_flow_relations_inc_files "")
 
 foreach(lcv IN LISTS subdirs)
   include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/${lcv})
+  include_directories(${AMANZI_SRC_DIR}/src/pks)
   
   file(GLOB subdir_sources "./${lcv}/*.cc")
-  set(ats_flow_relations_src_files ${ats_flow_relations_src_files} ${subdir_sources} ${AMANZI_SOURCE_DIR}/src/pks)
+  set(ats_flow_relations_src_files ${ats_flow_relations_src_files} ${subdir_sources}) 
 
   file(GLOB subdir_incs "./${lcv}/*.hh")
   set(ats_flow_relations_inc_files ${ats_flow_relations_inc_files} ${subdir_incs}) 
