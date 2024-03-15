@@ -485,7 +485,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Key cv_key_;
 
  private:
-  bool subcycling_;
   int dim;
   int saturation_name_;
   bool vol_flux_conversion_;
@@ -495,7 +494,6 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<CompositeVector> tcc_w_src;
   Teuchos::RCP<CompositeVector> tcc_tmp; // next tcc
   Teuchos::RCP<CompositeVector> tcc;     // smart mirrow of tcc
-  Teuchos::RCP<Epetra_MultiVector> conserve_qty_, solid_qty_, water_qty_;
   Teuchos::RCP<const Epetra_MultiVector> flux_;
   Teuchos::RCP<const Epetra_MultiVector> ws_, ws_prev_, phi_, mol_dens_, mol_dens_prev_;
   Teuchos::RCP<Epetra_MultiVector> flux_copy_;
@@ -505,13 +503,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   Teuchos::RCP<AmanziChemistry::ChemistryEngine> chem_engine_;
 #endif
 
-  Teuchos::RCP<Epetra_IntVector> upwind_cell_;
-  Teuchos::RCP<Epetra_IntVector> downwind_cell_;
-
+  Teuchos::RCP<Epetra_IntVector> upwind_cell_, downwind_cell_;
   Teuchos::RCP<const Epetra_MultiVector> ws_current, ws_next;             // data for subcycling
   Teuchos::RCP<const Epetra_MultiVector> mol_dens_current, mol_dens_next; // data for subcycling
-  Teuchos::RCP<Epetra_MultiVector> ws_subcycle_current, ws_subcycle_next;
-  Teuchos::RCP<Epetra_MultiVector> mol_dens_subcycle_current, mol_dens_subcycle_next;
 
   int current_component_; // data for lifting
   Teuchos::RCP<Operators::ReconstructionCellLinear> lifting_;
@@ -547,8 +541,7 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   std::vector<std::string> runtime_solutes_; // solutes tracked for diagnostics
   std::vector<std::string> runtime_regions_;
 
-  int ncells_owned, ncells_wghost;
-  int nfaces_owned, nfaces_wghost;
+  // int nfaces_owned;
   int nnodes_wghost;
 
   std::vector<std::string> component_names_; // details of components

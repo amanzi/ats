@@ -68,7 +68,7 @@ Transport_ATS::MakeAirWaterPartitioning_()
     int ig = num_aqueous + i;
     int il = air_water_map_[i];
 
-    for (int c = 0; c < ncells_owned; c++) {
+    for (int c = 0; c < tcc_c.MyLength(); c++) {
       double sl = sat_l[0][c];
       double total = tcc_c[il][c] * sl + tcc_c[ig][c] * (1.0 - sl);
       tcc_c[ig][c] = total / (1.0 + (kH_[i] - 1.0) * sl);
