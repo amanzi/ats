@@ -13,7 +13,6 @@
 
 #include "pipe_drain_evaluator.hh"
 #include "Geometry.hh"
-#include "PK_Utils.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -103,7 +102,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           std::vector<AmanziGeometry::Point> coords;
           auto cnodes = surface_mesh->getCellNodes(c_sw);
           for (int node_sw=0; node_sw<cnodes.size(); node_sw++){
-             coords.push_back( PKUtils_EntityCoordinates(node_sw, AmanziMesh::Entity_kind::NODE, *surface_mesh));
+             coords.push_pack(getNodeCoordinate(node_sw);   
           }
 
           if (AmanziGeometry::point_in_polygon(xc_pipe, coords) == true) {
@@ -126,7 +125,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           std::vector<AmanziGeometry::Point> coords;
           auto cnodes = pipe_mesh->getCellNodes(c_pipe);
           for (int node_pipe=0; node_pipe<cnodes.size(); node_pipe++){
-             coords.push_back( PKUtils_EntityCoordinates(node_pipe, AmanziMesh::Entity_kind::NODE, *pipe_mesh));
+             coords.push_pack(getNodeCoordinate(node_pipe);   
           }
 
           if (AmanziGeometry::point_in_polygon(xc_sw, coords) == true) {
