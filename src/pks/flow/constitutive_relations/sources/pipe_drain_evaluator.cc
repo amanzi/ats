@@ -102,7 +102,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           std::vector<AmanziGeometry::Point> coords;
           auto cnodes = surface_mesh->getCellNodes(c_sw);
           for (int node_sw=0; node_sw<cnodes.size(); node_sw++){
-             coords.push_pack(getNodeCoordinate(node_sw);   
+             coords.push_back(getNodeCoordinates(node_sw);   
           }
 
           if (AmanziGeometry::point_in_polygon(xc_pipe, coords) == true) {
@@ -125,7 +125,7 @@ void PipeDrainEvaluator::CreateCellMap(const State& S)
           std::vector<AmanziGeometry::Point> coords;
           auto cnodes = pipe_mesh->getCellNodes(c_pipe);
           for (int node_pipe=0; node_pipe<cnodes.size(); node_pipe++){
-             coords.push_pack(getNodeCoordinate(node_pipe);   
+             coords.push_back(getNodeCoordinates(node_pipe);   
           }
 
           if (AmanziGeometry::point_in_polygon(xc_sw, coords) == true) {
