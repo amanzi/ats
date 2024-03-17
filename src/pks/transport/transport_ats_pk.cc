@@ -99,6 +99,7 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
     Keys::readKey(*plist_, domain_, "geochem source factor", "geochem_src_factor");
   water_content_key_ = Keys::readKey(*plist_, domain_, "water content", "water_content");
   cv_key_ = Keys::readKey(*plist_, domain_, "cell volume", "cell_volume");
+  key_ = tcc_key_;
 
   // other parameters
   water_tolerance_ = plist_->get<double>("water tolerance", 1e-6);
