@@ -62,12 +62,12 @@ IntegratorColumnSum::IntegratorColumnSum(Teuchos::ParameterList& plist,
   divide_by_density_ = plist.get<bool>("divide by density");
 
   if (volume_factor_) {
-    AMANZI_ASSERT(deps.size() > 3);
+    AMANZI_ASSERT(deps.size() >= 3);
     cv_ = deps[i_dep++];
     surf_cv_ = deps[i_dep++];
   }
   if (volume_average_) {
-    AMANZI_ASSERT(deps.size() > 2);
+    AMANZI_ASSERT(deps.size() >= 2);
     cv_ = deps[i_dep++];
   }
 
