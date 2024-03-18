@@ -18,15 +18,12 @@ to Brooks-Corey parameters.
 .. _WRM-Brooks-Corey-spec
 .. admonition:: WRM-Brooks-Corey-spec
 
-    * `"region`" ``[string]`` Region to which this applies
-    * `"Brooks-Corey lambda [-]`" ``[double]`` Brooks-Corey's lambda
-    * `"Brooks-Corey saturated matric suction [Pa]`" ``[double]`` Brooks-Corey
-    saturated matric suction in Pa
-
-    END
-
-    * `"residual saturation [-]`" ``[double]`` **0.0**
-    * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
+   * `"region`" ``[string]`` Region to which this applies
+   * `"Brooks-Corey lambda [-]`" ``[double]`` Brooks-Corey's lambda
+   * `"Brooks-Corey saturated matric suction [Pa]`" ``[double]`` Brooks-Corey
+     saturated matric suction in Pa
+   * `"residual saturation [-]`" ``[double]`` **0.0**
+   * `"smoothing interval width [saturation]`" ``[double]`` **0.0**
 
 Example:
 

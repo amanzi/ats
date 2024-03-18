@@ -22,7 +22,7 @@
    * `"freezing point [K]`" ``[double]`` **273.15** Center of the transition,
      at this point unfrozen fraction is 0.5.
 
-   * `"minimum unfrozen fraction [-]`` ``[double]`` **0** Sets a minimum value.
+   * `"minimum unfrozen fraction [-]`" ``[double]`` **0** Sets a minimum value.
 
 */
 
