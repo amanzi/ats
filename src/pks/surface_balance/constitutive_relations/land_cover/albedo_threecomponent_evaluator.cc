@@ -20,6 +20,16 @@ namespace Relations {
 AlbedoThreeComponentEvaluator::AlbedoThreeComponentEvaluator(Teuchos::ParameterList& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
+  // parameters
+  a_ice_ = plist_.get<double>("albedo ice [-]", 0.44);
+  a_water_ = plist_.get<double>("albedo water [-]", 0.1168);
+  is_constant_snow_albedo_ = plist_.isParameter("albedo snow [-]");
+  if (is_constant_snow_albedo_) { a_snow_ = plist_.get<double>("albedo snow [-]"); }
+
+  e_ice_ = plist_.get<double>("emissivity ice [-]", 0.98);
+  e_water_ = plist_.get<double>("emissivity water [-]", 0.995);
+  e_snow_ = plist_.get<double>("emissivity snow [-]", 0.98);
+
   // determine the domain
   Key akey = my_keys_.front().first;
   domain_ = Keys::getDomain(akey);
@@ -40,22 +50,14 @@ AlbedoThreeComponentEvaluator::AlbedoThreeComponentEvaluator(Teuchos::ParameterL
 
   // dependencies
   // -- snow properties
-  snow_dens_key_ = Keys::readKey(plist, domain_snow_, "snow density", "density");
-  dependencies_.insert(KeyTag{ snow_dens_key_, tag });
+  if (!is_constant_snow_albedo_) {
+    snow_dens_key_ = Keys::readKey(plist, domain_snow_, "snow density", "density");
+    dependencies_.insert(KeyTag{ snow_dens_key_, tag });
+  }
 
   // -- skin properties
   unfrozen_fraction_key_ = Keys::readKey(plist, domain_, "unfrozen fraction", "unfrozen_fraction");
   dependencies_.insert(KeyTag{ unfrozen_fraction_key_, tag });
-
-  // parameters
-  a_ice_ = plist_.get<double>("albedo ice [-]", 0.44);
-  a_water_ = plist_.get<double>("albedo water [-]", 0.1168);
-  is_constant_snow_albedo_ = plist_.isParameter("albedo snow [-]");
-  if (is_constant_snow_albedo_) { a_snow_ = plist_.get<double>("albedo snow [-]"); }
-
-  e_ice_ = plist_.get<double>("emissivity ice [-]", 0.98);
-  e_water_ = plist_.get<double>("emissivity water [-]", 0.995);
-  e_snow_ = plist_.get<double>("emissivity snow [-]", 0.98);
 }
 
 // Required methods from EvaluatorSecondaryMonotypeCV
@@ -113,7 +115,10 @@ AlbedoThreeComponentEvaluator::EvaluatePartialDerivative_(
 void
 AlbedoThreeComponentEvaluator::EnsureCompatibility_Structure_(State& S)
 {
-  S.GetRecordSetW(my_keys_.front().first).set_subfieldnames({ "bare", "water", "snow" });
+  EnsureCompatibility_StructureSame_(S);
+  for (const auto& key : my_keys_) {
+    S.GetRecordSetW(key.first).set_subfieldnames({ "bare", "water", "snow" });
+  }
 }
 
 
