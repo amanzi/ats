@@ -21,10 +21,9 @@ WRMs are available in a collection of types:
 .. admonition:: wrm-typedinline-spec
 
    * `"region`" ``[string]`` Region to which this applies
-   * `"wrm type`" ``[string]`` Type of the WRM.  One of:
-
-     - `"van Genuchten`"
-     - `"linear system`" saturation a linear function of pressure
+   * `"wrm type`" ``[string]`` Type of the WRM.  One of `"van Genuchten`",
+     `"Brooks-Corey`", or `"linear system`", a saturation given as a linear
+     function of pressure
 
 */
 

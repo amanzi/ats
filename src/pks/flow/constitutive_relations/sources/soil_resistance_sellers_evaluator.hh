@@ -14,8 +14,8 @@ referred to Sellers et al. (1992).
 
 `"evaluator type`" = `"soil resistance, Sellers`"
 
-.. _compressible-porosity-evaluator-spec
-.. admonition:: compressible-porosity-evaluator-spec
+.. _soil-resistance-sellers-evaluator-spec
+.. admonition:: soil-resistance-sellers-evaluator-spec
 
    KEYS:
 
