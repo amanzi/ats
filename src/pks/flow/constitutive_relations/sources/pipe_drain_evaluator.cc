@@ -25,8 +25,10 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   energ_loss_coeff_weir_ = plist.get<double>("energy losses coeff weir", 0.54);
   energ_loss_coeff_subweir_ = plist.get<double>("energy losses coeff submerged weir", 0.056);
   energ_loss_coeff_orifice_ = plist.get<double>("energy losses coeff orifice", 0.167);
-  sw_domain_name_ = plist.get<std::string>("sw domain name", "surface"); 
+
+  sw_domain_name_ = plist.get<std::string>("surface domain name", "surface"); 
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", "pipe"); 
+
   Tag tag = my_keys_.front().second;
 
   // my dependencies
@@ -34,8 +36,8 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   dependencies_.insert(KeyTag{surface_depth_key_, tag});
 
   // bathymetry
-  surface_bathymetry_key_ = Keys::getKey(sw_domain_name_, "bathymetry");
-  pipe_bathymetry_key_ = Keys::getKey(pipe_domain_name_, "bathymetry");
+  surface_bathymetry_key_ = Keys::readKey(plist_, sw_domain_name_, "surface bathymetry", "bathymetry");
+  pipe_bathymetry_key_ = Keys::readKey(plist_, pipe_domain_name_, "pipe bathymetry", "bathymetry");
 
   if(!pipe_domain_name_.empty()){
      pressure_head_key_ = Keys::readKey(plist_, pipe_domain_name_, "pressure head", "pressure_head");
