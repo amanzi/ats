@@ -85,6 +85,9 @@ class CanopyRadiationEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
+  virtual void EnsureCompatibility_Structure_(State& S) {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;

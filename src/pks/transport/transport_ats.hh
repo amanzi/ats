@@ -34,107 +34,106 @@ The advection-diffusion equation for component *i* in the surface may be written
 .. _transport-spec:
 .. admonition:: transport-spec
 
-    * `"PK type`" ``[string]`` **"transport ats"**
+   * `"PK type`" ``[string]`` **"transport ats"**
 
-    * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
-      the domain of this PK.
+   * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
+     the domain of this PK.
 
-    * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-      components that will be transported. Must be in the order: aqueous, gaseous, solid.
+   * `"component names`" ``[Array(string)]`` No default. Provides the names of the
+     components that will be transported. Must be in the order: aqueous, gaseous, solid.
 
-    * `"number of aqueous components`" ``[int]`` **-1** The total number of
-      aqueous components.  Default value is the length of `"component names`"
+   * `"number of aqueous components`" ``[int]`` **-1** The total number of
+     aqueous components.  Default value is the length of `"component names`"
 
-    * `"number of gaseous components`" ``[int]`` **0** The total number of
-      gaseous components.
+   * `"number of gaseous components`" ``[int]`` **0** The total number of
+     gaseous components.
 
-    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
-      transport are dependent on the boundary conditions for flow. See
-      `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
+   * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
+     transport are dependent on the boundary conditions for flow. See
+     `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
 
-    * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
-      each component.
+   * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
+     each component.
 
-    * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
-      solutes in aqueous and gaseous phases and related diffusivity values.
+   * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
+     solutes in aqueous and gaseous phases and related diffusivity values.
 
-    * "material properties" [material-properties-spec-list] Defines material
-      properties see below).
+   * "material properties" ``[material-properties-spec-list]`` Defines material
+     properties see below).
 
-    Source terms:
+   Source terms:
 
-    * `"source terms`" [transport-source-spec-list] Provides solute source.
+   * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
-    Physical model and assumptions:
+   Physical model and assumptions:
 
-    * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
+   * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
 
-    * `"effective transport porosity`" [bool] If *true*, effective transport porosity
-      will be used by dispersive-diffusive fluxes instead of total porosity.
-      Default is *false*.
+   * `"effective transport porosity`" ``[bool]`` **false** If *true*, effective transport porosity
+     will be used by dispersive-diffusive fluxes instead of total porosity.
 
-    Math and solver algorithm options:
+   Math and solver algorithm options:
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-      Typically we use finite volume here.  See PDE_Diffusion_
+   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+     Typically we use finite volume here.  See PDE_Diffusion_
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
-      above.  Likely only Jacobian term options are needed here, as the others
-      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+     above.  Likely only Jacobian term options are needed here, as the others
+     default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
-    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
 
-    * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
+   * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
 
-    * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
-      It permits values 1 or 2. Default value is 1.
+   * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
+     It permits values 1 or 2. Default value is 1.
 
-    * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
-      It permits values 1 or 2 and values 3 or 4 when expert parameter
-      `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
-      Default value is 1.
+   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
+     It permits values 1 or 2 and values 3 or 4 when expert parameter
+     `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
+     Default value is 1.
 
-    * `"reconstruction`" [list] collects reconstruction parameters. The available options are
+   * `"reconstruction`" [list] collects reconstruction parameters. The available options are
       describe in the separate section below.
 
-    * `"transport subcycling`" ``[bool]`` **true** The code will default to
+   * `"transport subcycling`" ``[bool]`` **true** The code will default to
       subcycling for transport within the master PK if there is one.
 
 
-    Developer parameters:
+   Developer parameters:
 
-    * `"enable internal tests`" [bool] turns on various internal tests during
+   * `"enable internal tests`" [bool] turns on various internal tests during
       run time. Default value is `"false`".
 
-    * `"generic RK implementation`" [bool] leads to generic implementation of
+   * `"generic RK implementation`" [bool] leads to generic implementation of
       all Runge-Kutta methods. Default value is `"false`".
 
-    * `"internal tests tolerance`" [double] tolerance for internal tests such as the
+   * `"internal tests tolerance`" [double] tolerance for internal tests such as the
       divergence-free condition. The default value is 1e-6.
 
-    * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
+   * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
       tracked closely each time step if verbosity `"high`". Default value is the first
       solute in the global list of `"aqueous names`" and the first gas in the global list
       of `"gaseous names`".
 
-    * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
+   * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
       tracking solutes. Default value is a seepage face boundary, see Flow PK.
 
-    KEYS
+   KEYS
 
-    - `"saturation liquid`" This variable is a multiplier in in the
+   - `"saturation liquid`" This variable is a multiplier in in the
       accumulation term. For subsurface transport, this will typically be the
       saturation (`"saturation_liquid`"). For surface transport, this will
       typically be the ponded depth (`"ponded_depth`").
 
-    - `"previous saturation liquid`"
+   - `"previous saturation liquid`"
 
-    - `"molar density liquid`"  Transport is solved
+   - `"molar density liquid`"  Transport is solved
       for concentrations in units of mol fractions. Molar density is needed for conversion.
 
-    - `"water flux`"
+   - `"water flux`"
 
-    - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
+   - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
       surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
       concentrations specified by the `"geochemical conditions`".  Note that if
       this PK is coupled to a surface flow PK, the unit of the water source

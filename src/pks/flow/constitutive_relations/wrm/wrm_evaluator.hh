@@ -19,7 +19,7 @@ commonly used in practice is the van Genuchten model, but others are available d
 .. _wrm-evaluator-spec:
 .. admonition:: wrm-evaluator-spec
 
-   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+   * `"model parameters`" ``[string]``
      List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
      under state here to evaluate WRM.
 
