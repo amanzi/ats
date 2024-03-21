@@ -29,6 +29,11 @@ Transport_ATS::FunctionalTimeDerivative(double t,
                                         const Epetra_Vector& component,
                                         Epetra_Vector& f_component)
 {
+  int nfaces_owned =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);  
+  int nfaces_all =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
+
   // distribute vector
   auto component_tmp = Teuchos::rcp(new Epetra_Vector(component));
   component_tmp->Import(component, tcc->importer("cell"), Insert);
@@ -38,8 +43,8 @@ Transport_ATS::FunctionalTimeDerivative(double t,
   lifting_->Compute(component_tmp);
 
   // extract boundary conditions for the current component
-  std::vector<int> bc_model(nfaces_wghost, Operators::OPERATOR_BC_NONE);
-  std::vector<double> bc_value(nfaces_wghost);
+  std::vector<int> bc_model(nfaces_all, Operators::OPERATOR_BC_NONE);
+  std::vector<double> bc_value(nfaces_all);
 
   for (int m = 0; m < bcs_.size(); m++) {
     std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -67,7 +72,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
   // Min-max condition will enforce robustness w.r.t. these errors.
 
   f_component.PutScalar(0.0);
-  for (int f = 0; f < nfaces_wghost; f++) { // loop over master and slave faces
+  for (int f = 0; f < nfaces_all; f++) { // loop over master and slave faces
     int c1 = (*upwind_cell_)[f];
     int c2 = (*downwind_cell_)[f];
 
@@ -87,7 +92,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
     const AmanziGeometry::Point& xf = mesh_->getFaceCentroid(f);
 
     double upwind_tcc, tcc_flux;
-    if (c1 >= 0 && c1 < ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+    if (c1 >= 0 && c1 < f_component.MyLength() && c2 >= 0 && c2 < f_component.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -96,7 +101,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       f_component[c1] -= tcc_flux;
       f_component[c2] += tcc_flux;
 
-    } else if (c1 >= 0 && c1 < ncells_owned && (c2 >= ncells_owned || c2 < 0)) {
+    } else if (c1 >= 0 && c1 < f_component.MyLength() && (c2 >= f_component.MyLength() || c2 < 0)) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -104,7 +109,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
 
-    } else if (c1 >= 0 && c1 < ncells_owned && (c2 < 0)) {
+    } else if (c1 >= 0 && c1 < f_component.MyLength() && (c2 < 0)) {
       upwind_tcc = component[c1];
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -112,7 +117,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       tcc_flux = u * upwind_tcc;
       f_component[c1] -= tcc_flux;
 
-    } else if (c1 >= ncells_owned && c2 >= 0 && c2 < ncells_owned) {
+    } else if (c1 >= f_component.MyLength() && c2 >= 0 && c2 < f_component.MyLength() ) {
       upwind_tcc = limiter_->getValue(c1, xf);
       upwind_tcc = std::max(upwind_tcc, umin);
       upwind_tcc = std::min(upwind_tcc, umax);
@@ -128,7 +133,7 @@ Transport_ATS::FunctionalTimeDerivative(double t,
   }
 
 
-  for (int c = 0; c < ncells_owned; c++) { // calculate conservative quantatity
+  for (int c = 0; c < f_component.MyLength() ; c++) { // calculate conservative quantatity
     double vol_phi_ws_den =
       mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_current)[0][c] * (*mol_dens_current)[0][c];
     if ((*ws_current)[0][c] < 1e-12)
