@@ -463,7 +463,7 @@ def update(xml, transpiration_distribution=False, frozen_krel=False,
         relp_name = add_rel_perm(xml, "relative permeability, freezing Brooks-Corey")
         add_frz_relp_to_model_parameters(xml)
     else:
-        relp_name = add_rel_perm(xml, "relative permeability, water retention model")
+        relp_name = add_rel_perm(xml)
 
     if relp_name is not None:
         for par in ["minimum rel perm cutoff", "use surface rel perm"]:
