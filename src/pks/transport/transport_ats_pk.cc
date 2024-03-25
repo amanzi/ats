@@ -107,6 +107,89 @@ Transport_ATS::Transport_ATS(Teuchos::ParameterList& pk_tree,
   max_tcc_ = plist_->get<double>("maximum concentration", 0.9);
   dim = mesh_->getSpaceDimension();
   db_ = Teuchos::rcp(new Debugger(mesh_, name_, *plist_));
+
+  // CFL condition
+  cfl_ = plist_->get<double>("cfl", 1.0);
+
+  // Discretization order
+  spatial_disc_order = plist_->get<int>("spatial discretization order", 1);
+  if (spatial_disc_order < 1 || spatial_disc_order > 2) spatial_disc_order = 1;
+  temporal_disc_order = plist_->get<int>("temporal discretization order", 1);
+  if (temporal_disc_order < 1 || temporal_disc_order > 2) temporal_disc_order = 1;
+
+  // Get number of components
+  num_aqueous = plist_->get<int>("number of aqueous components", component_names_.size());
+  num_advect = plist_->get<int>("number of aqueous components advected", num_aqueous);
+  num_gaseous = plist_->get<int>("number of gaseous components", 0);  
+
+  if (plist_->isSublist("material properties")) {
+    Teuchos::ParameterList& dlist = plist_->sublist("material properties");
+
+    int nblocks = 0;
+    for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {
+      if (dlist.isSublist(dlist.name(i))) nblocks++;
+    }
+
+    mat_properties_.resize(nblocks);
+
+    int iblock = 0;
+    for (Teuchos::ParameterList::ConstIterator i = dlist.begin(); i != dlist.end(); i++) {
+      if (dlist.isSublist(dlist.name(i))) {
+        Teuchos::ParameterList& model_list = dlist.sublist(dlist.name(i));
+        mat_properties_[iblock] = Teuchos::rcp(new MaterialProperties());        
+        mat_properties_[iblock]->tau[0] = model_list.get<double>("aqueous tortuosity", 0.0);
+        mat_properties_[iblock]->tau[1] = model_list.get<double>("gaseous tortuosity", 0.0);
+        mat_properties_[iblock]->regions =
+          model_list.get<Teuchos::Array<std::string>>("regions").toVector();
+        iblock++;
+      }
+    }
+  }
+
+  // transport diffusion (default is none)
+  diffusion_phase_.resize(TRANSPORT_NUMBER_PHASES, Teuchos::null);
+  if (plist_->isSublist("molecular diffusion")) {
+    Teuchos::ParameterList& dlist = plist_->sublist("molecular diffusion");
+    if (dlist.isParameter("aqueous names")) {
+      diffusion_phase_[0] = Teuchos::rcp(new DiffusionPhase());
+      diffusion_phase_[0]->names() =
+        dlist.get<Teuchos::Array<std::string>>("aqueous names").toVector();
+      diffusion_phase_[0]->values() =
+        dlist.get<Teuchos::Array<double>>("aqueous values").toVector();
+    }
+
+    if (dlist.isParameter("gaseous names")) {
+      diffusion_phase_[1] = Teuchos::rcp(new DiffusionPhase());
+      diffusion_phase_[1]->names() =
+        dlist.get<Teuchos::Array<std::string>>("gaseous names").toVector();
+      diffusion_phase_[1]->values() =
+        dlist.get<Teuchos::Array<double>>("gaseous values").toVector();
+    }
+  }
+
+  // statistics of solutes
+  if (plist_->isParameter("runtime diagnostics: solute names")) {
+    runtime_solutes_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: solute names").toVector();
+    if (runtime_solutes_.size() == 1 && runtime_solutes_[0] == "all") {
+      runtime_solutes_ = component_names_;
+    }
+  }
+  mass_solutes_exact_.assign(num_aqueous + num_gaseous, 0.0);
+  mass_solutes_source_.assign(num_aqueous + num_gaseous, 0.0);
+  mass_solutes_bc_.assign(num_aqueous + num_gaseous, 0.0);
+  mass_solutes_stepstart_.assign(num_aqueous + num_gaseous, 0.0);
+
+  if (plist_->isParameter("runtime diagnostics: regions")) {
+    runtime_regions_ =
+      plist_->get<Teuchos::Array<std::string>>("runtime diagnostics: regions").toVector();
+  }
+
+  internal_tests = plist_->get<bool>("enable internal tests", false);
+  tests_tolerance =
+    plist_->get<double>("internal tests tolerance", TRANSPORT_CONCENTRATION_OVERSHOOT);
+  dt_debug_ = plist_->get<double>("maximum time step", TRANSPORT_LARGE_TIME_STEP);
+
 }
 
 void
@@ -494,9 +577,6 @@ Transport_ATS::Initialize()
 
   // do we really need porosity?  How is it used? --ETC  
   phi_ = S_->Get<CompositeVector>(porosity_key_, Tags::NEXT).ViewComponent("cell", false);
-
-  // extract control parameters
-  InitializeAll_(); // Nearly all (maybe all) of this is parsing the parameter list, move into the constructor. --ETC
 
   // upwind
   IdentifyUpwindCells();
