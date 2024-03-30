@@ -29,8 +29,8 @@ jobs:
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run: |
-        # This should really be smarter, dropping the name marker for example 
-        # echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        : # This should really be smarter, dropping the name marker for example 
+        : # echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
         echo "AMANZI_BRANCH=ecoon/amanzi-tpls-0.98.9" >> $GITHUB_ENV
     - name: If so, checkout Amanzi to get the right TPLs version
       id: amanzi_branch_checkout
@@ -43,9 +43,9 @@ jobs:
       id: ats_tests_branch
       working-directory: src/physics/ats/testing/ats-regression-tests
       run: |
-        # This should really be a conditional, if the first test is empty, then fall back to master.
-        # echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
-        # Hard code special case for now:
+        : # This should really be a conditional, if the first test is empty, then fall back to master.
+        : # echo "ATS_TESTS_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        : # Hard code special case for now:
         echo "ATS_TESTS_BRANCH=sergi/amanzi-tpls-0.98.8" >> $GITHUB_ENV
     - name: Filter the branch name to generate a tag for Docker
       id: tag
