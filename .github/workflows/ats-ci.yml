@@ -29,7 +29,9 @@ jobs:
     - name: Does Amanzi branch of the same name exist?
       id: amanzi_branch
       run: |
-        echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        # This should really be smarter, dropping the name marker for example 
+        # echo "AMANZI_BRANCH=$(git ls-remote --heads origin ${GITHUB_REF_NAME} | sed 's/.*refs\/heads\///')" >> $GITHUB_ENV
+        echo "AMANZI_BRANCH=ecoon/amanzi-tpls-0.98.9" >> $GITHUB_ENV
     - name: If so, checkout Amanzi to get the right TPLs version
       id: amanzi_branch_checkout
       uses: actions/checkout@v4
