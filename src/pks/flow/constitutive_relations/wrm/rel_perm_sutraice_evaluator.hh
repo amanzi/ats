@@ -154,7 +154,6 @@ class RelPermSutraIceEvaluator : public EvaluatorSecondaryMonotypeCV {
   Key surf_domain_;
   BoundaryRelPerm boundary_krel_;
 
-  double perm_scale_;
   double min_val_;
   double omega_;
 

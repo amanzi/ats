@@ -90,7 +90,7 @@ Richards::Richards(Teuchos::ParameterList& pk_tree,
 
   // scaling for permeability for better "nondimensionalization"
   perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
+  S_->ICList().sublist("permeability_rescaling").set<double>("value", perm_scale_);
 }
 
 // -------------------------------------------------------------
@@ -117,6 +117,8 @@ Richards::SetupRichardsFlow_()
     .SetMesh(mesh_)
     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireEvaluator(cell_vol_key_, tag_next_);
+
+  S_->Require<double>("permeability_rescaling", Tags::DEFAULT);
 
   // Set up Operators
   // -- boundary conditions

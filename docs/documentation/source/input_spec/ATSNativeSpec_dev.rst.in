@@ -1224,7 +1224,7 @@ Initial condition specs are used in three places:
 * Within the PK_ spec which describes the initial condition of primary variables (true
   initial conditions).
 
-* In `IndependentVariableEvaluator Constant <Constant_>`_
+* In `EvaluatorIndependentConstant`_
 
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific

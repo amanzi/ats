@@ -16,61 +16,58 @@ availability and rooting depths.  It also potentially limits the transpiration
 to avoid taking water where it is not available (thereby crashing the code).
 
 This is a new model developed by Painter and Coon that uses a competing rates
-approach.  It assumes that the water potential in the plant is constant, and
-that the flux of water between any given grid cell and the plant is given by a
-potential difference multiplied by a conductance:
+approach.  Given a capillary pressure at the plant collar, :math:`\Psi_p`,
 
 .. math::
-   Q_{T} = Q_{pot T} \beta(\Psi_p) = \sum_{i} Q_{i} = c_i k_r(\Psi_i, \Psi_p + \rho g z_i)[\Psi_i - \Psi_p]
+   Q_{T}(\Psi_p) = \sum_{i} Q_{i} = \frac{n}{\nu}} K r_i k_r(\Psi_i, \Psi_p + \rho g z_i)[\Psi_i - (\Psi_p + \rho g z_i)]
 
-where :math:`Q_{T}` is the total actual transpiration, :math:`Q_{pot T}` the
-potential transpiration, :math:`\beta` a transpiration reduction function that
-is only a function of the plant water potential, :math:`\Psi_p` and
-:math:`\Psi_i` the water potential (capillary pressure) in the plant and the
-soil cell :math:`i`, respectively, :math:`\rho` is the density of water,
-:math:`g` the gravitational force (so that :math:`\Psi_p + \rho g z_i` is the
-pressure in the root in soil cell :math:`i`), :math:`Q_i` is the transpiration
-taken from each grid cell, :math:`c_i` is a maximum conductance of cell i,
-which is proportional to the root fraction in cell :math:`i`, and :math:`k_r`
-is the relative permeability (which is often upwinded between soil relative
-permeability and a plant relative permeability that can be used to control
-hydraulic redistribution).
+where:
 
-The second and fourth terms above are set equal, and solved using a scalar
-root-finding algorithm for :math:`\Psi_p`.  Doing so requires the functional
-form of both :math:`\beta` and :math:`c_i`:
+- :math:`Q_{T}` is the total actual transpiration formed as a sum over grid
+  cells :math:`i`,
+- :math:`n` and :math:`\nu` are the liquid water density and
+  viscosity, respectively,
+- :math:`K` is the permeability of the root-soil interface,
+- :math:`r_i` is the fraction of the plant's roots in cell :math:`i`,
+- k_r is the upwinded relative permeability, which may be either the soil
+  relative peremability or the root relative permeability (see below),
+- :math:`\Psi_p` and :math:`\Psi_i` the water potential (capillary pressure) at
+  the plant collar and the soil cell :math:`i`, respectively,
+- :math:`\rho` is the density of water and :math:`g` the gravitational force
+  (so that :math:`\Psi_p + \rho g z_i` is the pressure in the root in soil cell
+  :math:`i`),
+- and :math:`Q_i` is the transpiration taken from each grid cell.
+
+Given a potential transpiration :math:`Q_{pot T}`, which is provided by the
+user through another model (e.g. Priestley-Taylor or comparable), we first
+compare to a maximum plant capillary pressure, :math:`\Psi_{max}`, which is a
+parameter of the plant (e.g. the wilting point).  If :math:`Q_{T}(\Psi_p =
+\Psi_{max})` results in a value less than the potential transpiration, this is
+used directly and :math:`Q_i` are computed directly.  If this results in a
+tranpiration greater than the potential, then we set
 
 .. math::
-   \beta(\Psi_p) = max(0, min(1, \frac{\Psi_p - \Psi_{ft}}{\Psi_{wp} - \Psi_{ft}} ))
+   Q_{T} = Q_{pot T}
 
-where :math:`\Psi_{ft}` is the water potential at full turgor, e.g. the point
-at which stomates are completely open, and :math:`\Psi_{wp}` is the water
-potential at the wilting point, e.g. the point at which stomates are completely
-closed.  Both are properties of the plant.
+and the above equations are solved using a scalar root-finding algorithm for
+:math:`\Psi_p`.
 
-.. math::
-   c_i = c0 \rho_i
-
-where :math:`c0` is a maximal conductance, here assumed to be constant as
-prescribed by Verhoef and Egea (2014), and :math:`\rho_i` is the rooting
-fraction in cell :math:`i`.
-
-Additionally, since :math:`k_r` is upwinded, we need a plant relative
-permeability describing what value is used when the potential in the plant is
-higher than that in the soil.  If this is set to 0, no hydraulic
-redistribution, e.g. flow from plant to soil, is allowed.  If it is set to 1,
-hydraulic redistribution is the maximal flow rate, e.g. no regulation by the
-plant is assumed.
+Additionally, :math:`k_r` is upwinded (e.g. :math:`k_r` of the soil is used if
+capillary pressure in the root is smaller than that of the soil; otherwise the
+plant's relative permeability is used).  The plant relative permeability is
+chosen by the user; if it is set to 0, no hydraulic redistribution, e.g. flow
+from plant to soil, is allowed.  If it is set to 1, hydraulic redistribution is
+the maximal flow rate, e.g. no regulation by the plant is assumed.
 
 
 .. _transpiration-distribution-relperm-evaluator-spec:
 .. admonition:: transpiration-distribution-relperm-evaluator-spec
 
-   * `"total maximal conductance [mol m^-2 s^-1 MPa^-1]`" ``[double]`` **10**
-     :math:`c0` above, the total maximal conductance
-   * `"plant relative conductance [-]`" ``[double]`` **0** Relative conductance
-     of the plant -- 0 indicates no hydraulic redistribution, 1 indicates
-     maximal redistribution.
+   * `"plant permeability per m [m]`" ``[double]`` **1.e-12**
+     :math:`K` above, the total plant permeability.
+   * `"plant relative permeability [-]`" ``[double]`` **0** Relative
+     permeability of the plant -- 0 indicates no hydraulic redistribution, 1
+     indicates maximal redistribution.
    * `"tolerance`" ``[double]`` **1.e-12** Tolerance of the root-finding
      algorithm, which is a mixed absolute and relative tolerance.  Note that
      the default is likely fine for most problems.
@@ -81,15 +78,18 @@ plant is assumed.
    KEYS:
 
    - `"soil water potential`" **DOMAIN-capillary_pressure_gas_liq**
-   - `"soil relative permeability`" **DOMAIN-relative_permeability**
+   - `"soil relative conductance`" **DOMAIN-relative_permeability**
+   - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
+   - `"density`" **DOMAIN-molar_density_liquid**
+   - `"viscosity`" **DOMAIN-viscosity_liquid**
    - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
    - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
    - `"cell volume`" **DOMAIN-cell_volume**
    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
    - `"depth`" **DOMAIN-depth**
 
-   Note this also uses `"water potential at fully closed stomata [Pa]`" and
-   `"water potential at fully open stomata [Pa]`" from the land cover.
+   Note this also uses `"maximum xylem capillary pressure [Pa]`"from the land
+   cover parameters.
 
 */
 
@@ -112,11 +112,13 @@ struct SoilPlantFluxFunctor {
                        const Epetra_MultiVector& soil_kr,
                        const Epetra_MultiVector& f_root,
                        const Epetra_MultiVector& pet,
+                       const Epetra_MultiVector& rho,
+                       const Epetra_MultiVector& nliq,
+                       const Epetra_MultiVector& visc,
                        const Epetra_MultiVector& cv,
                        const Epetra_MultiVector& sa,
-                       double c0,
+                       double K,
                        double krp,
-                       double rho,
                        double g);
 
   // error function used for rootfinder
@@ -124,18 +126,19 @@ struct SoilPlantFluxFunctor {
 
   // right hand side
   double computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const;
-  void computeSoilPlantFluxes(double root_pc, Epetra_MultiVector& trans) const;
-
-  // beta in left hand side
-  double computeTranspirationReductionFunction(double plant_pc) const;
+  double computeSoilPlantFluxes(double root_pc, Epetra_MultiVector* trans=nullptr) const;
 
   const LandCover& lc;
   const Epetra_MultiVector& soil_pc;
   const Epetra_MultiVector& soil_kr;
   const Epetra_MultiVector& f_root;
   const Epetra_MultiVector& pet;
-  const Epetra_MultiVector &cv, sa;
-  double c0, krp, rho_g;
+  const Epetra_MultiVector& rho;
+  const Epetra_MultiVector& nliq;
+  const Epetra_MultiVector& visc;
+  const Epetra_MultiVector& cv;
+  const Epetra_MultiVector& sa;
+  double K, krp, g;
 
   AmanziMesh::Entity_ID sc;
   AmanziMesh::Entity_ID_View cells_of_col;
@@ -179,6 +182,9 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   Key domain_surf_;
   Key domain_sub_;
 
+  Key rho_key_;
+  Key nliq_key_;
+  Key visc_key_;
   Key soil_pc_key_;
   Key soil_kr_key_;
   Key f_root_key_;
@@ -186,9 +192,8 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   Key sa_key_;
   Key cv_key_;
 
-  double c0_;
+  double K_;
   double krp_;
-  double rho_;
 
   double tol_;
   int nits_;
