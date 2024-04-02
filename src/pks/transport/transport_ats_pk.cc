@@ -40,6 +40,8 @@
 #include "TransportSourceFunction_Alquimia.hh"
 #include "TransportDomainFunction_UnitConversion.hh"
 
+#include "PK_DomainFunction.hh"
+
 #include "transport_ats.hh"
 
 namespace Amanzi {
@@ -214,7 +216,8 @@ Transport_ATS::SetupTransport_()
       for (const auto& it : *conc_sources_list) {
         std::string name = it.first;
         if (conc_sources_list->isSublist(name)) {
-          auto src_list = Teuchos::sublist(conc_sources_list, name);          
+          auto src_list = Teuchos::sublist(conc_sources_list, name);  
+          convert_to_field_[name] = src_list->get<bool>("convert to field", false);        
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
           if (src_type == "domain coupling" || src_type == "field") {
@@ -240,6 +243,11 @@ Transport_ATS::SetupTransport_()
                 .SetMesh(mesh_)
                 ->SetGhosted(true)
                 ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
+              if (convert_to_field_[name]) {
+                  requireAtNext(Keys::cleanName(name) , Tags::NEXT, *S_)
+                  .SetMesh(mesh_)
+                  ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
+                }
             }
           } else {
             // all others work on a subset of components
@@ -1447,6 +1455,15 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       if (srcs_[m]->getType() == DomainFunction_kind::COUPLING && n0 == 0) {
         conserve_qty[num_vectors - 2][c] += values[num_vectors - 2];
       }
+
+      if (convert_to_field_[srcs_[m]->getName()]) {
+          copyToCompositeVector(*srcs_[m], 
+          conserve_qty,
+          );
+          changedEvaluatorPrimary(Keys::cleanName(srcs_[m]->getName()), tag_next_, *S_);
+       }
+
+// const Epetra_MultiVector& flux_interface_ =
 
       for (int k = 0; k < tcc_index.size(); ++k) {
         int i = tcc_index[k];
