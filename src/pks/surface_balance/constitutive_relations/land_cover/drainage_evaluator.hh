@@ -72,6 +72,10 @@ class DrainageEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& results) override;
 
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
+
  protected:
   Key drainage_key_;
   Key fracwet_key_;

@@ -14,6 +14,9 @@ Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
 a simple, single layer.
 
+This evaluator requires that the surface temperature, snow temperature, and
+canopy temperature are known, or at least being solved for.
+
 Requires the use of LandCover types, for albedo and Beer's law coefficients.
 
 This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
@@ -90,6 +93,9 @@ class RadiationBalanceEvaluator : public EvaluatorSecondaryMonotypeCV {
 
  protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
+  virtual void EnsureCompatibility_Structure_(State& S) override {
+    EnsureCompatibility_StructureSame_(S);
+  }
 
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
