@@ -321,7 +321,7 @@ def del_lc_params(xml):
         
         
 
-def add_rel_perm(xml, relp_option="relative permeability, van Genuchten"):
+def add_rel_perm(xml, relp_option="relative permeability, water retention model"):
     """Ensures there is an evaluator for "relative_permeability"
     """
     eval_list = asearch.find_path(xml, ["state", "evaluators"], no_skip=True)
@@ -344,7 +344,7 @@ def add_rel_perm(xml, relp_option="relative permeability, van Genuchten"):
     except aerrors.MissingXMLError:
         relp_list = eval_list.sublist(relp_name)
         relp_list.append(parameter.StringParameter("evaluator type", relp_option))
-        if relp_option == "relative permeability, van Genuchten":
+        if relp_option == "relative permeability, water retention model":
             relp_list.append(parameter.StringParameter("model parameters", "WRM parameters"))
         else:
             assert(relp_option == "relative permeability, freezing Brooks-Corey")
@@ -463,7 +463,7 @@ def update(xml, transpiration_distribution=False, frozen_krel=False,
         relp_name = add_rel_perm(xml, "relative permeability, freezing Brooks-Corey")
         add_frz_relp_to_model_parameters(xml)
     else:
-        relp_name = add_rel_perm(xml)
+        relp_name = add_rel_perm(xml, "relative permeability, water retention model")
 
     if relp_name is not None:
         for par in ["minimum rel perm cutoff", "use surface rel perm"]:
