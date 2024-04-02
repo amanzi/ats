@@ -431,7 +431,7 @@ passing info between an parent mesh and an extracted mesh.
 Specified by `"mesh type`" of `"extracted`".
 
 .. _mesh-extracted-spec:
-..admonition:: mesh-extracted-spec
+.. admonition:: mesh-extracted-spec
 
    * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
 
@@ -452,8 +452,7 @@ Specified by `"mesh type`" of `"extracted`".
      of this mesh is the same as the parent mesh.  If true, the communicator of
      this mesh is the subset of the parent mesh comm that has entries on the
      surface.
-
-
+     
 
 Aliased Mesh
 ============
@@ -616,8 +615,8 @@ Column Surface Meshes
 
 Specified by `"mesh type`" of `"column surface`".
 
-.. _mesh-column-spec:
-.. admonition:: mesh-column-spec
+.. _mesh-column-surface-spec:
+.. admonition:: mesh-column-surface-spec
 
    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
      Note that the `"build columns from set`" parameter must be set in that mesh.
@@ -1892,7 +1891,7 @@ daily (which all defaults are set for).
 .. admonition:: snow-distribution-spec
 
     * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
-    * `"precipitation function`" ``[function-spec]`` Snow precipitation Function_ spec.
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
 
     * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
       Typically we use finite volume here.  See PDE_Diffusion_
@@ -3227,6 +3226,7 @@ provided in a few forms:
 
 Constant
 ^^^^^^^^
+.. _EvaluatorIndependentConstant:
  A field evaluator with no dependencies, a constant value.
 
 This evaluator is typically used for providing data that is a simple constant
@@ -5814,12 +5814,6 @@ gravity- and wind-driven redistributions, respectively.
 
 
 
-Common Land Model (ParFlow-CLM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is included here because it should eventually get split into
-evaluators.  Currently, the CLM SEB model is a PK only, see `Common
-Land Model PK`_.
 
 Snow evaluators
 ---------------
@@ -6357,7 +6351,7 @@ Initial condition specs are used in three places:
 * Within the PK_ spec which describes the initial condition of primary variables (true
   initial conditions).
 
-* In `IndependentVariableEvaluator Constant <Constant_>`_
+* In `EvaluatorIndependentConstant`_
 
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
@@ -7432,7 +7426,57 @@ the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
 
 Solver: Newton with Line Search
 -------------------------------
-** DOC GENERATION ERROR: file not found ' SolverBT ' **
+ Line search on the provided correction as a solver.
+
+Line Search accepts a correction from the Jacobian, then uses a
+process to attempt to minimize or at least ensure a reduction in the residual
+while searching *in that direction*, but not necessarily with the same
+magnitude, as the provided correction.  The scalar multiple of the search
+direction is given by :math:`\alpha`.
+
+This globalization recognizes that a true inverse Jacobian is a local
+measurement of the steepest descent direction, and so while the direction is
+guaranteed to be the direction which best reduces the residual, it may not
+provide the correct magnitude.
+
+The algorithm is a reimplementation based on PETSc SNES type BT, which in turn
+is from Numerical Methods for Unconstrained Optimization and Nonlinear
+Equations by Dennis & Schnabel, pg 325.
+
+Note, this always monitors the residual.
+
+.. _solver-line-search-spec:
+.. admonition:: solver-line-search-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+      Set to a negative value to ignore this check.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"modify correction`" ``[bool]`` **false** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10**
+
+    * `"min valid alpha`" ``[double]`` **0**
+
+    * `"max valid alpha`" ``[double]`` **10.**
+
+    * `"max line search iterations`" ``[int]`` **10**
+
+ 
+
 
 Solver: Nonlinear Continuation
 ------------------------------
@@ -8282,6 +8326,7 @@ Example:
 Other Common Specs
 ##################
 
+
 IOEvent
 =======
  IOEvent: base time/timestep control determing when in time to do something.
@@ -8332,6 +8377,7 @@ The IOEvent is used for multiple objects that need to indicate simulation times 
 
 
 
+
 Verbose Object
 ==============
 
@@ -8372,6 +8418,7 @@ Example:
 
 
 
+
 Debugger
 ========
  A mesh and vector structure aware utility for printing info.
@@ -8397,6 +8444,7 @@ from the `"Verbose Object`" spec is set to `"high`" or higher.
 
 
 
+
 Residual Debugger
 =================
 
@@ -8417,9 +8465,9 @@ process for use with vis tools.
 
 
    
+Functions
+=========
 
-Function
-===================
  A base class for all functions of space and time.
 
 Analytic, algabraic functions of space and time are used for a variety of
@@ -9481,13 +9529,14 @@ Function values u:
 
   /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
 
-.. _column-initialization-spec
+.. _column-initialization-spec:
 .. admonition:: column-initialization-spec
 
    * `"file`" ``[string]`` HDF5 filename
    * `"z header`" ``[string]`` name of the z-coordinate data: `z` above.  Depth
      coordinates (positive downward from the surface), [m]
    * `"f header`" ``[string]`` name of the function data: `f` above.
+
 
 
 

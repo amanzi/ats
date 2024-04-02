@@ -223,7 +223,7 @@ passing info between an parent mesh and an extracted mesh.
 Specified by `"mesh type`" of `"extracted`".
 
 .. _mesh-extracted-spec:
-..admonition:: mesh-extracted-spec
+.. admonition:: mesh-extracted-spec
 
    * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
 
@@ -244,8 +244,7 @@ Specified by `"mesh type`" of `"extracted`".
      of this mesh is the same as the parent mesh.  If true, the communicator of
      this mesh is the subset of the parent mesh comm that has entries on the
      surface.
-
-
+     
 
 Aliased Mesh
 ============
@@ -408,8 +407,8 @@ Column Surface Meshes
 
 Specified by `"mesh type`" of `"column surface`".
 
-.. _mesh-column-spec:
-.. admonition:: mesh-column-spec
+.. _mesh-column-surface-spec:
+.. admonition:: mesh-column-surface-spec
 
    * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
      Note that the `"build columns from set`" parameter must be set in that mesh.
