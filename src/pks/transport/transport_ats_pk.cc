@@ -217,6 +217,7 @@ Transport_ATS::SetupTransport_()
         std::string name = it.first;
         if (conc_sources_list->isSublist(name)) {
           auto src_list = Teuchos::sublist(conc_sources_list, name);  
+
           convert_to_field_[name] = src_list->get<bool>("convert to field", false);        
           std::string src_type = src_list->get<std::string>("spatial distribution method", "none");
 
@@ -244,7 +245,11 @@ Transport_ATS::SetupTransport_()
                 ->SetGhosted(true)
                 ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
               if (convert_to_field_[name]) {
-                  requireAtNext(Keys::cleanName(name) , Tags::NEXT, *S_)
+                  name = Keys::cleanName(name);
+                  if (Keys::getDomain(name)!=domain_){
+                    name = Keys::getKey(domain_, name);
+                  }
+                  requireAtNext(name, Tags::NEXT, *S_)
                   .SetMesh(mesh_)
                   ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
                 }
@@ -1457,8 +1462,13 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
       }
 
       if (convert_to_field_[srcs_[m]->getName()]) {
+          std::string name = srcs_[m]->getName();
+          name = Keys::cleanName(name);
+          if (Keys::getDomain(name)!=domain_){
+            name = Keys::getKey(domain_, name);
+          }
           copyToCompositeVector(*srcs_[m], 
-          conserve_qty,
+          S_->GetW<CompositeVector>(name, tag_next_, name)
           );
           changedEvaluatorPrimary(Keys::cleanName(srcs_[m]->getName()), tag_next_, *S_);
        }
