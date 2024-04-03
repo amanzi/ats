@@ -244,15 +244,7 @@ Transport_ATS::SetupTransport_()
                 .SetMesh(mesh_)
                 ->SetGhosted(true)
                 ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);
-              if (convert_to_field_[name]) {
-                  name = Keys::cleanName(name);
-                  if (Keys::getDomain(name)!=domain_){
-                    name = Keys::getKey(domain_, name);
-                  }
-                  requireAtNext(name, Tags::NEXT, *S_)
-                  .SetMesh(mesh_)
-                  ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
-                }
+
             }
           } else {
             // all others work on a subset of components
@@ -261,6 +253,16 @@ Transport_ATS::SetupTransport_()
             src->set_tcc_names(src_list->get<Teuchos::Array<std::string>>("component names").toVector());
             for (const auto& n : src->tcc_names()) {
               src->tcc_index().push_back(FindComponentNumber(n));
+            }
+
+          if (convert_to_field_[name]) {
+              name = Keys::cleanName(name);
+              if (Keys::getDomain(name)!=domain_){
+                name = Keys::getKey(domain_, name);
+              }
+              requireAtNext(name, Tags::NEXT, *S_, name)
+              .SetMesh(mesh_)
+              ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, num_components);     
             }
 
             src->set_state(S_);
@@ -1470,7 +1472,7 @@ Transport_ATS::ComputeAddSourceTerms(double tp,
           copyToCompositeVector(*srcs_[m], 
           S_->GetW<CompositeVector>(name, tag_next_, name)
           );
-          changedEvaluatorPrimary(Keys::cleanName(srcs_[m]->getName()), tag_next_, *S_);
+          changedEvaluatorPrimary(name, tag_next_, *S_);
        }
 
 // const Epetra_MultiVector& flux_interface_ =
