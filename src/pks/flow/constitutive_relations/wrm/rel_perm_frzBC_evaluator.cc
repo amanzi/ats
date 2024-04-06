@@ -103,7 +103,6 @@ RelPermFrzBCEvaluator::InitializeFromPlist_()
 
   // cutoff above 0?
   min_val_ = plist_.get<double>("minimum rel perm cutoff", 0.);
-  perm_scale_ = plist_.get<double>("permeability rescaling");
   omega_ = plist_.get<double>("omega [-]", 2.0);
 }
 
@@ -131,6 +130,9 @@ RelPermFrzBCEvaluator::EnsureCompatibility_ToDeps_(State& S)
       }
     }
   }
+
+  // this is used to rescale perm and keep coefficients order 1
+  S.Require<double>("permeability_rescaling", Tags::DEFAULT);
 }
 
 
@@ -263,7 +265,8 @@ RelPermFrzBCEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
   }
 
   // Finally, scale by a permeability rescaling from absolute perm.
-  result[0]->Scale(1. / perm_scale_);
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
+  result[0]->Scale(1. / perm_scale);
 }
 
 
@@ -280,6 +283,7 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
   }
 
   Tag tag = my_keys_.front().second;
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
 
   if (wrt_key == sat_key_) {
     // dkr / dsl = rho/mu * dkr/dpc * dpc/dsl
@@ -324,7 +328,7 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
     // rescale as neeeded
-    result[0]->Scale(1. / perm_scale_);
+    result[0]->Scale(1. / perm_scale);
 
   } else if (wrt_key == sat_gas_key_) {
     // Evaluate k_rel.
@@ -368,7 +372,7 @@ RelPermFrzBCEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
     // rescale as neeeded
-    result[0]->Scale(1. / perm_scale_);
+    result[0]->Scale(1. / perm_scale);
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);
