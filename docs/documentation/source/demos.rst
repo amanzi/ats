@@ -19,7 +19,7 @@ but new demos are always welcome contributions.
 The problems are organized by type of capability, and include
 multiple examples.  For instance, the ecohydrology notebook includes
 examples of evaporation and transpiration through a broad range of
-complexity of approaches, from prescribed values to Priestly-Taylor
+complexity of approaches, from prescribed values to Priestley-Taylor
 evaporation to fully biogeophysical models.
 
 Note that ats-demos is its own repo.  This repo can be checked out
