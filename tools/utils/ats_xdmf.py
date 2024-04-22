@@ -340,7 +340,7 @@ def meshElemPolygons(etype, coords, conn):
     if etype != 'HEX':
         raise RuntimeError("Only works for Hexs")
 
-    y_mean = np.array([c[1] for c in coords.values()]).mean()
+    y_mean = np.array([c[1] for c in coords]).mean()
     
     coords2 = np.array([[coords[i][0::2] for i in c[1:] if coords[i][1] > y_mean] for c in conn])
     try:
