@@ -787,7 +787,9 @@ SedimentTransport_PK::AdvanceStep(double t_old, double t_new, bool reinit)
   while (dt_sum < dt_MPC - 1e-5) {
     // update boundary conditions
     time = t_physics_ + dt_cycle / 2;
-    for (int i = 0; i < bcs_.size(); i++) { bcs_[i]->Compute(time, time); }
+    for (int i = 0; i < bcs_.size(); i++) {
+      bcs_[i]->Compute(time, time);
+    }
 
     double dt_try = dt_MPC - dt_sum;
     double tol = 1e-10 * (dt_try + dt_stable);
@@ -918,8 +920,12 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
     for (int i = 0; i < num_aqueous; i++) {
       // set initial guess
       Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
-      for (int c = 0; c < ncells_owned; c++) { sol_cell[0][c] = tcc_next[i][c]; }
-      if (sol.HasComponent("face")) { sol.ViewComponent("face")->PutScalar(0.0); }
+      for (int c = 0; c < ncells_owned; c++) {
+        sol_cell[0][c] = tcc_next[i][c];
+      }
+      if (sol.HasComponent("face")) {
+        sol.ViewComponent("face")->PutScalar(0.0);
+      }
 
       op->Init();
       Teuchos::RCP<std::vector<WhetStone::Tensor>> Dptr = Teuchos::rcpFromRef(D_);
@@ -928,7 +934,9 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
 
       // add accumulation term
       Epetra_MultiVector& fac = *factor.ViewComponent("cell");
-      for (int c = 0; c < ncells_owned; c++) { fac[0][c] = (*ws_)[0][c] * (*mol_dens_)[0][c]; }
+      for (int c = 0; c < ncells_owned; c++) {
+        fac[0][c] = (*ws_)[0][c] * (*mol_dens_)[0][c];
+      }
       op2->AddAccumulationDelta(sol, factor, factor, dt_MPC, "cell");
 
       op1->ApplyBCs(true, true, true);
@@ -945,7 +953,9 @@ SedimentTransport_PK ::Advance_Diffusion(double t_old, double t_new)
       residual += op->residual();
       num_itrs += op->num_itrs();
 
-      for (int c = 0; c < ncells_owned; c++) { tcc_next[i][c] = sol_cell[0][c]; }
+      for (int c = 0; c < ncells_owned; c++) {
+        tcc_next[i][c] = sol_cell[0][c];
+      }
     }
 
     if (vo_->getVerbLevel() >= Teuchos::VERB_MEDIUM) {
@@ -1100,7 +1110,9 @@ SedimentTransport_PK::AdvanceDonorUpwind(double dt_cycle)
 
   double mass_final = 0;
   for (int c = 0; c < ncells_owned; c++) {
-    for (int i = 0; i < num_advect; i++) { mass_final += (*conserve_qty_)[i][c]; }
+    for (int i = 0; i < num_advect; i++) {
+      mass_final += (*conserve_qty_)[i][c];
+    }
   }
 
   tmp1 = mass_final;

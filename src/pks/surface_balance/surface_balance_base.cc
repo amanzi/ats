@@ -96,13 +96,13 @@ SurfaceBalanceBase::Setup()
       .SetMesh(mesh_)
       ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
     S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
-      conserved_key_, tag_next_, key_, tag_next_)
-          .SetMesh(mesh_)
-          ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-        // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
-        // The mesh should get set by the evaluator, but when
-        // the evaluator isn't actually differentiable, it
-        // doesn't get done.
+        conserved_key_, tag_next_, key_, tag_next_)
+      .SetMesh(mesh_)
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+    // NOTE, remove SetMesh/AddComponent lines after fixing amanzi/ats#167.
+    // The mesh should get set by the evaluator, but when
+    // the evaluator isn't actually differentiable, it
+    // doesn't get done.
 
     //    and at the current time, where it is a copy evaluator
     requireAtCurrent(conserved_key_, tag_current_, *S_, name_);

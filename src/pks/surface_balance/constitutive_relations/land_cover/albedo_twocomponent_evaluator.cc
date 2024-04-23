@@ -24,7 +24,9 @@ AlbedoTwoComponentEvaluator::AlbedoTwoComponentEvaluator(Teuchos::ParameterList&
   a_ice_ = plist_.get<double>("albedo ice [-]", 0.44);
   a_water_ = plist_.get<double>("albedo water [-]", 0.1168);
   is_constant_snow_albedo_ = plist_.isParameter("albedo snow [-]");
-  if (is_constant_snow_albedo_) { a_snow_ = plist_.get<double>("albedo snow [-]"); }
+  if (is_constant_snow_albedo_) {
+    a_snow_ = plist_.get<double>("albedo snow [-]");
+  }
 
   e_ice_ = plist_.get<double>("emissivity ice [-]", 0.98);
   e_water_ = plist_.get<double>("emissivity water [-]", 0.995);

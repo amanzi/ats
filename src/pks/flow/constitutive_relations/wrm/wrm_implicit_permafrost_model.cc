@@ -382,7 +382,9 @@ WRMImplicitPermafrostModel::si_frozen_unsaturated_nospline_(double pc_liq,
     std::cerr << "WRMImplicitPermafrostModel did not converge, " << max_it
               << " iterations, error = " << func(si) << ", s_i = " << si
               << ", PC_{lg,il} = " << pc_liq << "," << pc_ice << std::endl;
-    if (throw_ok) { Exceptions::amanzi_throw(Errors::CutTimeStep()); }
+    if (throw_ok) {
+      Exceptions::amanzi_throw(Errors::CutTimeStep());
+    }
   }
   return si;
 }

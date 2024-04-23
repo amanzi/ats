@@ -109,8 +109,12 @@ PFT::Init(double col_area)
   carbon2biomass = 2;
   aroot_radius = 0.002;
 
-  for (int i = 0; i < 10; i++) { annCBalance[i] = 0; }
-  for (int c = 0; c != BRootSoil.Length(); ++c) { BRootSoil[c] = 0.; }
+  for (int i = 0; i < 10; i++) {
+    annCBalance[i] = 0;
+  }
+  for (int c = 0; c != BRootSoil.Length(); ++c) {
+    BRootSoil[c] = 0.;
+  }
 }
 
 void
@@ -184,7 +188,9 @@ PFT::InitRoots(const Epetra_SerialDenseVector& SoilTArr,
     totalweights = 1.0;
   }
 
-  for (int c = 0; c != nSoilLayers; ++c) { BRootSoil[c] = BRootSoil[c] / totalweights * Broot; }
+  for (int c = 0; c != nSoilLayers; ++c) {
+    BRootSoil[c] = BRootSoil[c] / totalweights * Broot;
+  }
 
   AssertRootBalance_or_die();
   return;

@@ -58,7 +58,9 @@ MPCDelegateEWCSurface::modify_predictor_smart_ewc_(double h, Teuchos::RCP<TreeVe
   // Ensure the necessity of doing this... if max(pres_guess_c) < p_atm then there is no water anywhere.
   double p_max;
   p1.MaxValue(&p_max);
-  if (p_max < 101325.) { return false; }
+  if (p_max < 101325.) {
+    return false;
+  }
 
   // project energy and water content
   double dt_next = S_->get_time(tag_next_) - S_->get_time(tag_current_);

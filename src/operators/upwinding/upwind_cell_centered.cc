@@ -35,7 +35,9 @@ UpwindCellCentered::Update(const CompositeVector& cells,
                            const Teuchos::Ptr<Debugger>& db) const
 {
   *faces.ViewComponent("cell") = *cells.ViewComponent("cell");
-  if (faces.HasComponent("face")) { faces.ViewComponent("face", true)->PutScalar(1.0); }
+  if (faces.HasComponent("face")) {
+    faces.ViewComponent("face", true)->PutScalar(1.0);
+  }
 };
 
 

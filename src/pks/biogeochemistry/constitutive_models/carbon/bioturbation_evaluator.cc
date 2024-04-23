@@ -91,7 +91,9 @@ BioturbationEvaluator::Evaluate_(const State& S, const std::vector<CompositeVect
       }
 
       double dz = dz_dn == 0. ? dz_up : dz_up == 0. ? dz_dn : (dz_up + dz_dn) / 2.;
-      for (int p = 0; p != carbon.NumVectors(); ++p) { res_c[p][c] = (dC_dn[p] - dC_up[p]) / dz; }
+      for (int p = 0; p != carbon.NumVectors(); ++p) {
+        res_c[p][c] = (dC_dn[p] - dC_up[p]) / dz;
+      }
       ++ci;
     }
   }

@@ -69,7 +69,9 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
   Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.Mesh();
 
   // initialize the face coefficients
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // communicate needed ghost values
   cell_coef.ScatterMasterToGhosted("cell");

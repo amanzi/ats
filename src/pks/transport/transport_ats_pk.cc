@@ -621,7 +621,9 @@ Transport_ATS::Initialize()
         S_->Get<CompositeVector>(geochem_src_factor_key_, Tags::NEXT).ViewComponent("cell", false);
       src->set_conversion(-1000., src_factor, false);
 
-      for (const auto& n : src->tcc_names()) { src->tcc_index().push_back(FindComponentNumber(n)); }
+      for (const auto& n : src->tcc_names()) {
+        src->tcc_index().push_back(FindComponentNumber(n));
+      }
 
       srcs_.push_back(src);
     }
@@ -716,7 +718,9 @@ Transport_ATS::StableTimeStep()
 
   for (int f = 0; f < nfaces_wghost; f++) {
     int c = (*upwind_cell_)[f];
-    if (c >= 0) { total_outflux[c] += fabs((*flux_)[0][f]); }
+    if (c >= 0) {
+      total_outflux[c] += fabs((*flux_)[0][f]);
+    }
   }
 
   Sinks2TotalOutFlux(tcc_prev, total_outflux, 0, num_aqueous - 1);
@@ -960,7 +964,9 @@ Transport_ATS::AdvanceStep(double t_old, double t_new, bool reinit)
   while (dt_sum < dt_MPC - 1e-6) {
     // update boundary conditions
     time = t_physics_ + dt_cycle / 2;
-    for (int i = 0; i < bcs_.size(); i++) { bcs_[i]->Compute(t_physics_, t_physics_ + dt_cycle); }
+    for (int i = 0; i < bcs_.size(); i++) {
+      bcs_[i]->Compute(t_physics_, t_physics_ + dt_cycle);
+    }
 
     double dt_try = dt_MPC - dt_sum;
     double tol = 1e-10 * (dt_try + dt_stable);
@@ -1091,7 +1097,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
     zero.PutScalar(0.0);
 
     // populate the dispersion operator (if any)
-    if (flag_dispersion_) { CalculateDispersionTensor_(*flux_, *phi_, *ws_, *mol_dens_); }
+    if (flag_dispersion_) {
+      CalculateDispersionTensor_(*flux_, *phi_, *ws_, *mol_dens_);
+    }
 
     int phase, num_itrs(0);
     bool flag_op1(true);
@@ -1110,8 +1118,12 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
       // set initial guess
       Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
-      for (int c = 0; c < ncells_owned; c++) { sol_cell[0][c] = tcc_next[i][c]; }
-      if (sol.HasComponent("face")) { sol.ViewComponent("face")->PutScalar(0.0); }
+      for (int c = 0; c < ncells_owned; c++) {
+        sol_cell[0][c] = tcc_next[i][c];
+      }
+      if (sol.HasComponent("face")) {
+        sol.ViewComponent("face")->PutScalar(0.0);
+      }
 
       if (flag_op1) {
         op->Init();
@@ -1148,7 +1160,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       residual += op->residual();
       num_itrs += op->num_itrs();
 
-      for (int c = 0; c < ncells_owned; c++) { tcc_next[i][c] = sol_cell[0][c]; }
+      for (int c = 0; c < ncells_owned; c++) {
+        tcc_next[i][c] = sol_cell[0][c];
+      }
       if (sol.HasComponent("face")) {
         if (tcc_tmp->HasComponent("boundary_face")) {
           Epetra_MultiVector& tcc_tmp_bf = *tcc_tmp->ViewComponent("boundary_face", false);
@@ -1181,8 +1195,12 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
 
       // set initial guess
       Epetra_MultiVector& sol_cell = *sol.ViewComponent("cell");
-      for (int c = 0; c < ncells_owned; c++) { sol_cell[0][c] = tcc_next[i][c]; }
-      if (sol.HasComponent("face")) { sol.ViewComponent("face")->PutScalar(0.0); }
+      for (int c = 0; c < ncells_owned; c++) {
+        sol_cell[0][c] = tcc_next[i][c];
+      }
+      if (sol.HasComponent("face")) {
+        sol.ViewComponent("face")->PutScalar(0.0);
+      }
 
       op->Init();
       Teuchos::RCP<std::vector<WhetStone::Tensor>> Dptr = Teuchos::rcpFromRef(D_);
@@ -1218,7 +1236,9 @@ Transport_ATS ::Advance_Dispersion_Diffusion(double t_old, double t_new)
       residual += op->residual();
       num_itrs += op->num_itrs();
 
-      for (int c = 0; c < ncells_owned; c++) { tcc_next[i][c] = sol_cell[0][c]; }
+      for (int c = 0; c < ncells_owned; c++) {
+        tcc_next[i][c] = sol_cell[0][c];
+      }
     }
 
     if (vo_->os_OK(Teuchos::VERB_MEDIUM)) {
@@ -1421,7 +1441,9 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
 
   double mass_final = 0;
   for (int c = 0; c < ncells_owned; c++) {
-    for (int i = 0; i < num_advect; i++) { mass_final += (*conserve_qty_)[i][c]; }
+    for (int i = 0; i < num_advect; i++) {
+      mass_final += (*conserve_qty_)[i][c];
+    }
   }
 
   tmp1 = mass_final;
@@ -1432,7 +1454,9 @@ Transport_ATS::AdvanceDonorUpwind(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) {
+    VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+  }
 }
 
 
@@ -1524,7 +1548,9 @@ Transport_ATS::AdvanceSecondOrderUpwindRK1(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) {
+    VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+  }
 }
 
 
@@ -1601,7 +1627,9 @@ Transport_ATS::AdvanceSecondOrderUpwindRK2(double dt_cycle)
     mass_solutes_exact_[i] += mass_solutes_source_[i] * dt_ / 2;
   }
 
-  if (internal_tests) { VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell")); }
+  if (internal_tests) {
+    VV_CheckGEDproperty(*tcc_tmp->ViewComponent("cell"));
+  }
 }
 
 

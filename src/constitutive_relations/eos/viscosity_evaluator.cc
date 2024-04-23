@@ -82,7 +82,9 @@ ViscosityEvaluator::EvaluatePartialDerivative_(const State& S,
     Epetra_MultiVector& result_v = *(result[0]->ViewComponent(*comp, false));
 
     int count = result[0]->size(*comp);
-    for (int id = 0; id != count; ++id) { result_v[0][id] = visc_->DViscosityDT(temp_v[0][id]); }
+    for (int id = 0; id != count; ++id) {
+      result_v[0][id] = visc_->DViscosityDT(temp_v[0][id]);
+    }
   }
 }
 

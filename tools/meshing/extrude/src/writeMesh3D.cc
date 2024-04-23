@@ -91,7 +91,9 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename)
   // make the coordinate arrays, set the coordinates
   // NOTE: exodus seems to only deal with floats!
   std::vector<std::vector<float>> coords(3);
-  for (int i = 0; i != 3; ++i) { coords[i].resize(m.coords.size()); }
+  for (int i = 0; i != 3; ++i) {
+    coords[i].resize(m.coords.size());
+  }
 
   for (int n = 0; n != coords[0].size(); ++n) {
     coords[0][n] = m.coords[n][0];
@@ -160,7 +162,9 @@ writeMesh3D_exodus(const Mesh3D& m, const std::string& filename)
     auto& s = m.side_sets[lcvs];
     std::vector<int> elems_copy(s.first.size(), -1);
     auto faces_copy(s.second);
-    for (int i = 0; i != elems_copy.size(); ++i) { elems_copy[i] = cell_map[s.first[i]] + 1; }
+    for (int i = 0; i != elems_copy.size(); ++i) {
+      elems_copy[i] = cell_map[s.first[i]] + 1;
+    }
     for (auto& e : faces_copy) e++;
     ierr |= ex_put_set_param(fid, EX_SIDE_SET, m.side_sets_id[lcvs], elems_copy.size(), 0);
     AMANZI_ASSERT(!ierr);

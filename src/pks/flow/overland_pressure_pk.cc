@@ -603,7 +603,9 @@ OverlandPressureFlow::CalculateDiagnostics(const Tag& tag)
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux_f[0][f];
         matrix(i, i) += normal[i] * normal[i];
-        for (int j = i + 1; j < d; ++j) { matrix(j, i) = matrix(i, j) += normal[i] * normal[j]; }
+        for (int j = i + 1; j < d; ++j) {
+          matrix(j, i) = matrix(i, j) += normal[i] * normal[j];
+        }
       }
     }
 
@@ -1301,7 +1303,9 @@ OverlandPressureFlow::ModifyCorrection(double h,
   }
 
   if (n_limited_spurt > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limiting the spurt." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc
@@ -1344,7 +1348,9 @@ OverlandPressureFlow::ModifyCorrection(double h,
   }
 
   if (n_limited_change > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by pressure." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc

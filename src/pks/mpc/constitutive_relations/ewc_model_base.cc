@@ -117,7 +117,9 @@ EWCModelBase::InverseEvaluate(double energy, double wc, double& T, double& p, bo
 
     // cap the correction
     double scale = 1.;
-    if (std::abs(correction[0]) > T_corr_cap) { scale = T_corr_cap / std::abs(correction[0]); }
+    if (std::abs(correction[0]) > T_corr_cap) {
+      scale = T_corr_cap / std::abs(correction[0]);
+    }
     if (std::abs(correction[1]) > p_corr_cap) {
       double pscale = p_corr_cap / std::abs(correction[1]);
       scale = std::min(scale, pscale);

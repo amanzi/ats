@@ -491,7 +491,9 @@ MPCSubsurface::set_tags(const Tag& tag_current, const Tag& tag_next)
 void
 MPCSubsurface::CommitStep(double t_old, double t_new, const Tag& tag)
 {
-  if (ewc_ != Teuchos::null) { ewc_->commit_state(); }
+  if (ewc_ != Teuchos::null) {
+    ewc_->commit_state();
+  }
 
   update_pcs_ = 0;
   StrongMPC<PK_PhysicalBDF_Default>::CommitStep(t_old, t_new, tag);
@@ -719,7 +721,9 @@ MPCSubsurface::UpdatePreconditioner(double t, Teuchos::RCP<const TreeVector> up,
     if (vecs.size() > 0) db_->WriteVectors(vnames, vecs, false);
   }
 
-  if (precon_type_ == PRECON_EWC) { ewc_->UpdatePreconditioner(t, up, h); }
+  if (precon_type_ == PRECON_EWC) {
+    ewc_->UpdatePreconditioner(t, up, h);
+  }
   update_pcs_++;
 }
 

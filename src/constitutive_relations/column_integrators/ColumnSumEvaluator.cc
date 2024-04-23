@@ -86,8 +86,12 @@ IntegratorColumnSum::scan(AmanziMesh::Entity_ID col,
                           AmanziGeometry::Point& p)
 {
   double contrib = (*integrand_)[0][c];
-  if (volume_average_ || volume_factor_) { contrib *= (*cv_)[0][c]; }
-  if (divide_by_density_) { contrib /= (*dens_)[0][c]; }
+  if (volume_average_ || volume_factor_) {
+    contrib *= (*cv_)[0][c];
+  }
+  if (divide_by_density_) {
+    contrib /= (*dens_)[0][c];
+  }
   p[0] += contrib;
 
   if (volume_average_) p[1] += (*cv_)[0][c];

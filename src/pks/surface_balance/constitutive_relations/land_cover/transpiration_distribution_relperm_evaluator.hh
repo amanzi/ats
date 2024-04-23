@@ -126,7 +126,7 @@ struct SoilPlantFluxFunctor {
 
   // right hand side
   double computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const;
-  double computeSoilPlantFluxes(double root_pc, Epetra_MultiVector* trans=nullptr) const;
+  double computeSoilPlantFluxes(double root_pc, Epetra_MultiVector* trans = nullptr) const;
 
   const LandCover& lc;
   const Epetra_MultiVector& soil_pc;

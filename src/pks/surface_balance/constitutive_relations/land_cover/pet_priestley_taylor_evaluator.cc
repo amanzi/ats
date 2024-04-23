@@ -206,7 +206,9 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(1, *limiter(limiter_dof_), *evap_val(0), 0);
     for (int c = 0; c != res_c.MyLength(); ++c) {
-      if (limiter[limiter_dof_][c] < 1.e-5) { res_c[c] = 0.; }
+      if (limiter[limiter_dof_][c] < 1.e-5) {
+        res_c[c] = 0.;
+      }
     }
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
     const auto& limiter =
@@ -216,7 +218,9 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto& res_c = *(*result[0]->ViewComponent("cell", false))(0);
     res_c.ReciprocalMultiply(-1, *limiter(one_minus_limiter_dof_), *evap_val(0), 0);
     for (int c = 0; c != res_c.MyLength(); ++c) {
-      if (limiter[one_minus_limiter_dof_][c] < 1.e-5) { res_c[c] = 0.; }
+      if (limiter[one_minus_limiter_dof_][c] < 1.e-5) {
+        res_c[c] = 0.;
+      }
     }
   }
 }

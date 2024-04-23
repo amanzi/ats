@@ -172,7 +172,9 @@ MPCCoupledReactiveTransport::get_dt()
   double dTtran = coupled_transport_pk_->get_dt();
   double dTchem = coupled_chemistry_pk_->get_dt();
 
-  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
+  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) {
+    dTchem *= 0.5;
+  }
 
   if (dTtran > dTchem) dTtran = dTchem;
 

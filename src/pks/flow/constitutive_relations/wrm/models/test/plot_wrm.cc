@@ -48,7 +48,9 @@ main(int argc, char* argv[])
   Epetra_Vector pc(sat);
   Epetra_Vector krel(sat);
 
-  for (int i = 0; i != count; ++i) { sat[i] = i / (count - 1.0); }
+  for (int i = 0; i != count; ++i) {
+    sat[i] = i / (count - 1.0);
+  }
 
   double eps = 1e-8;
   bool warned = false;

@@ -119,16 +119,22 @@ InterfrostWaterContent::EvaluatePartialDerivative_(const State& S,
       result_v[0][c] = phi[0][c] * s_l[0][c] * (1 + beta_ * pr);
     }
   } else if (wrt_key == "saturation_ice") {
-    for (int c = 0; c != ncells; ++c) { result_v[0][c] = phi[0][c] * n_i[0][c]; }
+    for (int c = 0; c != ncells; ++c) {
+      result_v[0][c] = phi[0][c] * n_i[0][c];
+    }
   } else if (wrt_key == "molar_density_ice") {
-    for (int c = 0; c != ncells; ++c) { result_v[0][c] = phi[0][c] * s_i[0][c]; }
+    for (int c = 0; c != ncells; ++c) {
+      result_v[0][c] = phi[0][c] * s_i[0][c];
+    }
   } else if (wrt_key == "pressure") {
     for (int c = 0; c != ncells; ++c) {
       result_v[0][c] = phi[0][c] * s_l[0][c] * n_l[0][c] * beta_;
     }
   }
 
-  for (int c = 0; c != ncells; ++c) { result_v[0][c] *= cell_volume[0][c]; }
+  for (int c = 0; c != ncells; ++c) {
+    result_v[0][c] *= cell_volume[0][c];
+  }
 };
 
 

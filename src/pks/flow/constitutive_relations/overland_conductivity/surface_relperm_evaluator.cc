@@ -78,7 +78,9 @@ SurfaceRelPermEvaluator::Evaluate_(const State& S, const std::vector<CompositeVe
       Epetra_MultiVector& result_v = *result[0]->ViewComponent(*comp, false);
 
       int ncomp = result[0]->size(*comp, false);
-      for (int i = 0; i != ncomp; ++i) { result_v[0][i] = model_->SurfaceRelPerm(0., h_v[0][i]); }
+      for (int i = 0; i != ncomp; ++i) {
+        result_v[0][i] = model_->SurfaceRelPerm(0., h_v[0][i]);
+      }
     }
   }
 }

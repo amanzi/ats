@@ -254,7 +254,9 @@ Morphology_PK::AdvanceStep(double t_old, double t_new, bool reinit)
 
   while (!done) {
     dt_next = flow_pk_->get_dt();
-    if (t_old + dt_done + dt_next > t_DNS_end) { dt_next = t_DNS_end - t_old - dt_done; }
+    if (t_old + dt_done + dt_next > t_DNS_end) {
+      dt_next = t_DNS_end - t_old - dt_done;
+    }
 
     fail = true;
     while (fail) {
@@ -389,7 +391,9 @@ Morphology_PK::Initialize_MeshVertices_(const Teuchos::Ptr<State>& S,
   for (int iV = 0; iV < nV; iV++) {
     // get the coords of the node
     coords = mesh->getNodeCoordinate(iV);
-    for (int s = 0; s < dim; ++s) { vc[s][iV] = coords[s]; }
+    for (int s = 0; s < dim; ++s) {
+      vc[s][iV] = coords[s];
+    }
   }
 
   S->GetPtrW<CompositeVector>(vert_field_key, "state")->ScatterMasterToGhosted("node");

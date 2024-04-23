@@ -78,7 +78,9 @@ class PKFactory {
  protected:
   static map_type* GetMap()
   {
-    if (!map_) { map_ = new map_type; }
+    if (!map_) {
+      map_ = new map_type;
+    }
     return map_;
   }
 

@@ -411,7 +411,9 @@ Coordinator::report_memory()
     double mem = rss_usage();
 
     double percell(mem);
-    if (local_ncells > 0) { percell = mem / local_ncells; }
+    if (local_ncells > 0) {
+      percell = mem / local_ncells;
+    }
 
     double max_percell(0.0);
     double min_percell(0.0);
@@ -521,7 +523,9 @@ Coordinator::get_dt(bool after_fail)
   }
 
   // cap the max step size
-  if (dt > max_dt_) { dt = max_dt_; }
+  if (dt > max_dt_) {
+    dt = max_dt_;
+  }
 
   // ask the step manager if this step is ok
   dt = tsm_->TimeStep(S_->get_time(Amanzi::Tags::NEXT), dt, after_fail);
@@ -602,13 +606,19 @@ Coordinator::visualize(bool force)
   double time = S_->get_time();
 
   if (!dump) {
-    for (const auto& vis : visualization_) { dump |= vis->DumpRequested(cycle, time); }
+    for (const auto& vis : visualization_) {
+      dump |= vis->DumpRequested(cycle, time);
+    }
   }
 
-  if (dump) { pk_->CalculateDiagnostics(Amanzi::Tags::NEXT); }
+  if (dump) {
+    pk_->CalculateDiagnostics(Amanzi::Tags::NEXT);
+  }
 
   for (const auto& vis : visualization_) {
-    if (force || vis->DumpRequested(cycle, time)) { WriteVis(*vis, *S_); }
+    if (force || vis->DumpRequested(cycle, time)) {
+      WriteVis(*vis, *S_);
+    }
   }
   return dump;
 }

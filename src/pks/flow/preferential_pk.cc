@@ -192,7 +192,9 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
+        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) {
+          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
+        }
       }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
@@ -219,7 +221,9 @@ Preferential::UpdatePermeabilityData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
 
   return update_perm;
 };
@@ -258,7 +262,9 @@ Preferential::UpdatePermeabilityDerivativeData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
   return update_perm;
 };
 

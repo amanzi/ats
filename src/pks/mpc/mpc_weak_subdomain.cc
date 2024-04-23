@@ -306,7 +306,9 @@ MPCWeakSubdomain::CommitStep(double t_old, double t_new, const Tag& tag_next)
         << "MPCWeakSubdomain, but not both.";
     Exceptions::amanzi_throw(msg);
   }
-  for (const auto& pk : sub_pks_) { pk->CommitStep(t_old, t_new, tag_next); }
+  for (const auto& pk : sub_pks_) {
+    pk->CommitStep(t_old, t_new, tag_next);
+  }
 }
 
 

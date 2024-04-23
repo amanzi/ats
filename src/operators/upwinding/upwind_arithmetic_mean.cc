@@ -56,7 +56,9 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 
   // initialize the face coefficients
   face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or
@@ -85,7 +87,9 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
     mesh->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
   for (unsigned int f = 0; f != f_owned; ++f) {
     auto cells = mesh->getFaceCells(f);
-    if (cells.size() == 1) { face_coef_f[0][f] *= 2.; }
+    if (cells.size() == 1) {
+      face_coef_f[0][f] *= 2.;
+    }
   }
 };
 

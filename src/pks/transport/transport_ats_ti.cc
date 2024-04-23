@@ -135,7 +135,9 @@ Transport_ATS::FunctionalTimeDerivative(double t,
       vol_phi_ws_den =
         mesh_->getCellVolume(c) * (*phi_)[0][c] * (*ws_next)[0][c] * (*mol_dens_next)[0][c];
 
-    if (vol_phi_ws_den > water_tolerance_) { f_component[c] /= vol_phi_ws_den; }
+    if (vol_phi_ws_den > water_tolerance_) {
+      f_component[c] /= vol_phi_ws_den;
+    }
   }
 
   // BOUNDARY CONDITIONS for ADVECTION
@@ -159,7 +161,9 @@ Transport_ATS::FunctionalTimeDerivative(double t,
                                (*mol_dens_next)[0][c2];
 
             double tcc_flux = u * values[i];
-            if (vol_phi_ws_den > water_tolerance_) { f_component[c2] += tcc_flux / vol_phi_ws_den; }
+            if (vol_phi_ws_den > water_tolerance_) {
+              f_component[c2] += tcc_flux / vol_phi_ws_den;
+            }
           }
         }
       }

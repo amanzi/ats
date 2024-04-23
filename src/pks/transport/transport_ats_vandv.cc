@@ -58,7 +58,9 @@ Transport_ATS::CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, in
 
   if (!S_->HasRecord(tcc_key_, Tags::NEXT)) {
     std::vector<std::string> subfield_names;
-    for (int i = 0; i != ncomponents; ++i) { subfield_names.push_back(component_names_[i]); }
+    for (int i = 0; i != ncomponents; ++i) {
+      subfield_names.push_back(component_names_[i]);
+    }
     S_->Require<CompositeVector, CompositeVectorSpace>(tcc_key_, Tags::NEXT, name)
       .SetMesh(mesh_)
       ->SetGhosted(true)

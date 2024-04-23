@@ -63,7 +63,9 @@ UpwindGravityFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef
 
   // initialize the face coefficients
   face_coef.ViewComponent(face_component, true)->PutScalar(0.0);
-  if (face_coef.HasComponent("cell")) { face_coef.ViewComponent("cell", true)->PutScalar(1.0); }
+  if (face_coef.HasComponent("cell")) {
+    face_coef.ViewComponent("cell", true)->PutScalar(1.0);
+  }
 
   // Note that by scattering, and then looping over all Parallel_kind::ALL cells, we
   // end up getting the correct upwind values in all faces (owned or

@@ -148,7 +148,9 @@ EnergyBase::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      g_c[0][c] -= source1[0][c] * cv[0][c];
+    }
 
     if (vo_->os_OK(Teuchos::VERB_EXTREME)) *vo_->os() << "Adding external source term" << std::endl;
     db_->WriteVector("  Q_ext", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);

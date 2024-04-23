@@ -38,7 +38,9 @@ EnergyTest::initialize()
   initialize_water_flux();
 
   // finish checking state and create the state at the new timestep
-  if (!S0->CheckAllInitialized()) { std::cout << "DID NOT INITIALIZE THINGS!" << std::endl; }
+  if (!S0->CheckAllInitialized()) {
+    std::cout << "DID NOT INITIALIZE THINGS!" << std::endl;
+  }
   S1 = Teuchos::rcp(new State(*S0));
   *S1 = *S0;
   EPK->set_states(S0, S0, S1);

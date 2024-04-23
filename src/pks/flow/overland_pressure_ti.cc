@@ -136,7 +136,9 @@ OverlandPressureFlow::ApplyPreconditioner(Teuchos::RCP<const TreeVector> u,
   Epetra_MultiVector& Pu_c = *Pu->Data()->ViewComponent("cell", false);
 
   unsigned int ncells = Pu_c.MyLength();
-  for (unsigned int c = 0; c != ncells; ++c) { Pu_c[0][c] /= dh_dp[0][c]; }
+  for (unsigned int c = 0; c != ncells; ++c) {
+    Pu_c[0][c] /= dh_dp[0][c];
+  }
   db_->WriteVector("PC*h_res (p-coords)", Pu->Data().ptr(), true);
 
   return (ierr > 0) ? 0 : 1;

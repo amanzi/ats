@@ -615,7 +615,9 @@ FATES_PK::FieldToColumn_(AmanziMesh::Entity_ID col,
                          int ncol)
 {
   auto& col_iter = mesh_->columns.getCells(col);
-  for (std::size_t i = 0; i != col_iter.size(); ++i) { col_vec[i] = vec[col_iter[i]]; }
+  for (std::size_t i = 0; i != col_iter.size(); ++i) {
+    col_vec[i] = vec[col_iter[i]];
+  }
 }
 
 // helper function for collecting column dz and depth

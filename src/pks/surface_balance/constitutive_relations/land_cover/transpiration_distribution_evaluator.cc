@@ -136,7 +136,9 @@ TranspirationDistributionEvaluator::Evaluate_(const State& S,
 
           for (auto c : subsurf_mesh.columns.getCells(sc)) {
             result_v[0][c] *= coef;
-            if (limiter_local_) { result_v[0][c] *= f_wp[0][c]; }
+            if (limiter_local_) {
+              result_v[0][c] *= f_wp[0][c];
+            }
           }
         }
       }

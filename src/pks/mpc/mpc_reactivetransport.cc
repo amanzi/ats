@@ -114,7 +114,9 @@ MPCReactiveTransport::get_dt()
   double dTtran = transport_pk_->get_dt();
   double dTchem = chemistry_pk_->get_dt();
 
-  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) { dTchem *= 0.5; }
+  if (!chem_step_succeeded_ && (dTchem / dTtran > 0.99)) {
+    dTchem *= 0.5;
+  }
   return dTchem;
 }
 

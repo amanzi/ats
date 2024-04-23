@@ -85,7 +85,9 @@ AdditiveEvaluator::EvaluatePartialDerivative_(const State& S,
       auto& res = *result[0]->ViewComponent(name, false);
       const auto& value_v = *value.ViewComponent(name, false);
       for (int i = 0; i != res.MyLength(); ++i) {
-        if (value_v[0][i] == 0.0) { res[0][i] = 0.; }
+        if (value_v[0][i] == 0.0) {
+          res[0][i] = 0.;
+        }
       }
     }
   }

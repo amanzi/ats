@@ -72,7 +72,9 @@ ReciprocalEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector
   if (positive_) {
     for (const auto& comp : *result[0]) {
       Epetra_MultiVector& res_c = *result[0]->ViewComponent(comp, false);
-      for (int c = 0; c != res_c.MyLength(); ++c) { res_c[0][c] = std::max(res_c[0][c], 0.); }
+      for (int c = 0; c != res_c.MyLength(); ++c) {
+        res_c[0][c] = std::max(res_c[0][c], 0.);
+      }
     }
   }
 }

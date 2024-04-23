@@ -601,7 +601,9 @@ VolumetricDeformation::AdvanceStep(double t_old, double t_new, bool reinit)
         new_positions[n][2] -= nodal_dz[0][n];
       }
 
-      for (auto& p : new_positions) { AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.); }
+      for (auto& p : new_positions) {
+        AMANZI_ASSERT(AmanziGeometry::norm(p) >= 0.);
+      }
       AmanziMesh::deform(*mesh_nc_, node_ids, new_positions);
       deformed_this_step_ = true;
       // INSERT EXTRA CODE TO UNDEFORM THE MESH FOR MIN_VOLS!
@@ -709,7 +711,9 @@ VolumetricDeformation::CommitStep(double t_old, double t_new, const Tag& tag_nex
     assign(poro_key_, tag_current, tag_next, *S_);
   }
 
-  if (strategy_ == DEFORM_STRATEGY_MSTK) { assign(poro_key_, tag_current, tag_next, *S_); }
+  if (strategy_ == DEFORM_STRATEGY_MSTK) {
+    assign(poro_key_, tag_current, tag_next, *S_);
+  }
 
   // lastly, save the new coordinates for checkpointing
   if (deformed_this_step_) {

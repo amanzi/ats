@@ -826,7 +826,9 @@ EnergyBase::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
     int ncells = cells.size();
 
     double face_value = 0.0;
-    for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
+    for (int n = 0; n != ncells; ++n) {
+      face_value += u_c[0][cells[n]];
+    }
     u_f[0][f] = face_value / ncells;
   }
   ChangedSolution();
@@ -916,7 +918,9 @@ EnergyBase::ModifyCorrection(double h,
   }
 
   if (n_limited > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by temperature." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by temperature." << std::endl;
+    }
     return AmanziSolvers::FnBaseDefs::CORRECTION_MODIFIED;
   }
   return AmanziSolvers::FnBaseDefs::CORRECTION_NOT_MODIFIED;

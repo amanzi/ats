@@ -220,10 +220,14 @@ WRMVanGenuchten::InitializeFromPlist_()
   }
 
   s0_ = 1.0 - plist_.get<double>("smoothing interval width [saturation]", 0.0);
-  if (s0_ < 1.) { fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_), 1.0, 1.0, 0.0); }
+  if (s0_ < 1.) {
+    fit_kr_.Setup(s0_, k_relative(s0_), d_k_relative(s0_), 1.0, 1.0, 0.0);
+  }
 
   pc0_ = plist_.get<double>("saturation smoothing interval [Pa]", 0.0);
-  if (pc0_ > 0.) { fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_)); }
+  if (pc0_ > 0.) {
+    fit_s_.Setup(0.0, 1.0, 0.0, pc0_, saturation(pc0_), d_saturation(pc0_));
+  }
 };
 
 /* ******************************************************************

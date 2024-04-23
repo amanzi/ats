@@ -104,7 +104,9 @@ Richards::AddSources_(const Tag& tag, const Teuchos::Ptr<CompositeVector>& g)
 
     // Add into residual
     unsigned int ncells = g_c.MyLength();
-    for (unsigned int c = 0; c != ncells; ++c) { g_c[0][c] -= source1[0][c] * cv[0][c]; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      g_c[0][c] -= source1[0][c] * cv[0][c];
+    }
 
     db_->WriteVector("  source", S_->GetPtr<CompositeVector>(source_key_, tag).ptr(), false);
     db_->WriteVector("res (src)", g, false);
@@ -142,7 +144,9 @@ Richards::SetAbsolutePermeabilityTensor_(const Tag& tag)
   unsigned int ndofs = perm.NumVectors();
   int space_dim = mesh_->getSpaceDimension();
   if (ndofs == 1) { // isotropic
-    for (unsigned int c = 0; c != ncells; ++c) { (*K_)[c](0, 0) = perm[0][c] * perm_scale_; }
+    for (unsigned int c = 0; c != ncells; ++c) {
+      (*K_)[c](0, 0) = perm[0][c] * perm_scale_;
+    }
   } else if (ndofs == 2 && space_dim == 3) {
     // horizontal and vertical perms
     for (unsigned int c = 0; c != ncells; ++c) {
@@ -216,7 +220,9 @@ Richards::UpdateVelocity_(const Tag& tag)
       for (int i = 0; i != d; ++i) {
         rhs[i] += normal[i] * flux[0][f];
         matrix(i, i) += normal[i] * normal[i];
-        for (int j = i + 1; j < d; ++j) { matrix(j, i) = matrix(i, j) += normal[i] * normal[j]; }
+        for (int j = i + 1; j < d; ++j) {
+          matrix(j, i) = matrix(i, j) += normal[i] * normal[j];
+        }
       }
     }
 

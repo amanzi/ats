@@ -97,7 +97,9 @@ main(int argc, char* argv[])
 #define STR(s) #s
     // check for version info request
     if (version) {
-      if (rank == 0) { std::cout << "ATS version " << XSTR(ATS_VERSION) << std::endl; }
+      if (rank == 0) {
+        std::cout << "ATS version " << XSTR(ATS_VERSION) << std::endl;
+      }
       Kokkos::finalize();
       return 0;
     }
@@ -188,7 +190,8 @@ main(int argc, char* argv[])
 
     // -- parse input file
     Teuchos::RCP<Teuchos::ParameterList> plist;
-    if (Amanzi::Keys::ends_with(input_filename, ".yaml") || Amanzi::Keys::ends_with(input_filename, ".YAML")) {
+    if (Amanzi::Keys::ends_with(input_filename, ".yaml") ||
+        Amanzi::Keys::ends_with(input_filename, ".YAML")) {
       plist = Teuchos::YAMLParameterList::parseYamlFile(input_filename);
     } else {
       plist = Teuchos::getParametersFromXmlFile(input_filename);
@@ -221,10 +224,14 @@ main(int argc, char* argv[])
       try {
         ret = driver.run();
       } catch (std::string& s) {
-        if (rank == 0) { std::cerr << "ERROR:" << std::endl << s << std::endl; }
+        if (rank == 0) {
+          std::cerr << "ERROR:" << std::endl << s << std::endl;
+        }
         return 1;
       } catch (int& ierr) {
-        if (rank == 0) { std::cerr << "ERROR: unknown error code " << ierr << std::endl; }
+        if (rank == 0) {
+          std::cerr << "ERROR: unknown error code " << ierr << std::endl;
+        }
         return ierr;
       }
     }

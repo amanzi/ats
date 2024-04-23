@@ -186,7 +186,9 @@ EOSEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>& res
       auto& dens_v = *(molar_dens->ViewComponent(*comp, false));
       int count = dens_v.MyLength();
       for (int id = 0; id != count; ++id) {
-        for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+        for (int k = 0; k < num_dep; k++) {
+          eos_params[k] = (*dep_vec[k])[0][id];
+        }
         dens_v[0][id] = eos_->MolarDensity(eos_params);
         AMANZI_ASSERT(dens_v[0][id] > 0);
       }
@@ -280,17 +282,23 @@ EOSEvaluator::EvaluatePartialDerivative_(const State& S,
 
       if (wrt == conc_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDC(eos_params);
         }
       } else if (wrt == pres_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDp(eos_params);
         }
       } else if (wrt == temp_key_) {
         for (int id = 0; id != count; ++id) {
-          for (int k = 0; k < num_dep; k++) { eos_params[k] = (*dep_vec[k])[0][id]; }
+          for (int k = 0; k < num_dep; k++) {
+            eos_params[k] = (*dep_vec[k])[0][id];
+          }
           dens_v[0][id] = eos_->DMolarDensityDT(eos_params);
         }
       } else {

@@ -167,13 +167,17 @@ Mesh3D::finish()
 
   // move the 2d cell sets to face sets on the surface
   std::set<int> set_ids;
-  for (auto& part : m->cell_sets) { set_ids.insert(part.begin(), part.end()); }
+  for (auto& part : m->cell_sets) {
+    set_ids.insert(part.begin(), part.end());
+  }
 
   for (int sid : set_ids) {
     std::vector<int> set_cells;
     for (auto& part : m->cell_sets) {
       for (int c = 0; c != part.size(); ++c) {
-        if (part[c] == sid) { set_cells.push_back(side_sets[1].first[c]); }
+        if (part[c] == sid) {
+          set_cells.push_back(side_sets[1].first[c]);
+        }
       }
     }
     std::vector<int> set_faces(set_cells.size(), 0);

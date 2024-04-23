@@ -35,7 +35,9 @@ applyDirichletBCs(const Operators::BCs& bcs, CompositeVector& u)
   if (u.HasComponent("face")) {
     Epetra_MultiVector& u_f = *u.ViewComponent("face", false);
     for (unsigned int f = 0; f != u_f.MyLength(); ++f) {
-      if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) { u_f[0][f] = bcs.bc_value()[f]; }
+      if (bcs.bc_model()[f] == Operators::OPERATOR_BC_DIRICHLET) {
+        u_f[0][f] = bcs.bc_value()[f];
+      }
     }
   }
 
@@ -195,7 +197,9 @@ requireAtNext(const Key& key, const Tag& tag, State& S, const Key& name)
     S.RequireEvaluator(key, tag);
   }
 
-  if (tag != Tags::NEXT) { aliasVector(S, key, tag, Tags::NEXT); }
+  if (tag != Tags::NEXT) {
+    aliasVector(S, key, tag, Tags::NEXT);
+  }
   return cvs;
 }
 

@@ -595,7 +595,9 @@ Richards::InitializeHydrostatic_(const Tag& tag)
     { // context for viewcomponent -- do cells
       Epetra_MultiVector& pres_c = *pres->ViewComponent("cell", false);
       Teuchos::RCP<Epetra_MultiVector> pres_f = Teuchos::null;
-      if (pres->HasComponent("face")) { pres_f = pres->ViewComponent("face", false); }
+      if (pres->HasComponent("face")) {
+        pres_f = pres->ViewComponent("face", false);
+      }
 
       int ncells_per = -1;
       for (int col = 0; col != ncols; ++col) {
@@ -696,7 +698,9 @@ Richards::CommitStep(double t_old, double t_new, const Tag& tag_next)
 
   // also save saturation
   assign(sat_key_, tag_current, tag_next, *S_);
-  if (S_->HasRecordSet(sat_ice_key_)) { assign(sat_ice_key_, tag_current, tag_next, *S_); }
+  if (S_->HasRecordSet(sat_ice_key_)) {
+    assign(sat_ice_key_, tag_current, tag_next, *S_);
+  }
 };
 
 
@@ -861,7 +865,9 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
       const auto& bfmap = mesh_->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE, true);
       for (int bf = 0; bf != rel_perm_bf.MyLength(); ++bf) {
         auto f = fmap.LID(bfmap.GID(bf));
-        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) { uw_rel_perm_f[0][f] = rel_perm_bf[0][bf]; }
+        if (rel_perm_bf[0][bf] > uw_rel_perm_f[0][f]) {
+          uw_rel_perm_f[0][f] = rel_perm_bf[0][bf];
+        }
       }
     } else if (clobber_policy_ == "unsaturated") {
       // clobber only when the interior cell is unsaturated
@@ -885,7 +891,9 @@ Richards::UpdatePermeabilityData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
   return update_perm;
 };
 
@@ -913,7 +921,9 @@ Richards::UpdatePermeabilityDerivativeData_(const Tag& tag)
   }
 
   // debugging
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) { *vo_->os() << " " << update_perm << std::endl; }
+  if (vo_->os_OK(Teuchos::VERB_EXTREME)) {
+    *vo_->os() << " " << update_perm << std::endl;
+  }
   return update_perm;
 };
 
@@ -1276,9 +1286,13 @@ Richards::ModifyPredictor(double h, Teuchos::RCP<const TreeVector> u0, Teuchos::
     changed |= ModifyPredictorFluxBCs_(h, u);
   }
 
-  if (modify_predictor_wc_) { changed |= ModifyPredictorWC_(h, u); }
+  if (modify_predictor_wc_) {
+    changed |= ModifyPredictorWC_(h, u);
+  }
 
-  if (modify_predictor_with_consistent_faces_) { changed |= ModifyPredictorConsistentFaces_(h, u); }
+  if (modify_predictor_with_consistent_faces_) {
+    changed |= ModifyPredictorConsistentFaces_(h, u);
+  }
   return changed;
 }
 
@@ -1391,7 +1405,9 @@ Richards::CalculateConsistentFaces(const Teuchos::Ptr<CompositeVector>& u)
     int ncells = cells.size();
 
     double face_value = 0.0;
-    for (int n = 0; n != ncells; ++n) { face_value += u_c[0][cells[n]]; }
+    for (int n = 0; n != ncells; ++n) {
+      face_value += u_c[0][cells[n]];
+    }
     u_f[0][f] = face_value / ncells;
   }
   ChangedSolution();
@@ -1586,7 +1602,9 @@ Richards::ModifyCorrection(double h,
   }
 
   if (n_limited_spurt > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limiting the spurt." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limiting the spurt." << std::endl;
+    }
   }
 
   // debugging -- remove me! --etc
@@ -1641,7 +1659,9 @@ Richards::ModifyCorrection(double h,
   }
 
   if (n_limited_change > 0) {
-    if (vo_->os_OK(Teuchos::VERB_HIGH)) { *vo_->os() << "  limited by pressure." << std::endl; }
+    if (vo_->os_OK(Teuchos::VERB_HIGH)) {
+      *vo_->os() << "  limited by pressure." << std::endl;
+    }
   }
 
   if (n_limited_spurt > 0) {
