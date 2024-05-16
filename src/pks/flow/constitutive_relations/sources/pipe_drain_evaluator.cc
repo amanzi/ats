@@ -30,10 +30,12 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
   pipe_domain_name_ = plist.get<std::string>("pipe domain name", "pipe"); 
 
   Tag tag = my_keys_.front().second;
+  Tag tag_explicit = Tags::CURRENT;
 
+  
   // my dependencies
   surface_depth_key_ = Keys::readKey(plist_, sw_domain_name_, "ponded depth", "ponded_depth");
-  dependencies_.insert(KeyTag{surface_depth_key_, tag});
+  dependencies_.insert(KeyTag{surface_depth_key_, tag_explicit});
 
   // bathymetry
   surface_bathymetry_key_ = Keys::readKey(plist_, sw_domain_name_, "surface bathymetry", "bathymetry");
@@ -41,7 +43,7 @@ PipeDrainEvaluator::PipeDrainEvaluator(Teuchos::ParameterList& plist) :
 
   if(!pipe_domain_name_.empty()){
      pressure_head_key_ = Keys::readKey(plist_, pipe_domain_name_, "pressure head", "pressure_head");
-     dependencies_.insert(KeyTag{pressure_head_key_, tag});
+     dependencies_.insert(KeyTag{pressure_head_key_, tag_explicit});
   }
 
   // figure out if SW or pipe is calling the evaluator
@@ -166,11 +168,12 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
         const std::vector<CompositeVector*>& result)
 {
   Tag tag = my_keys_.front().second;
+  Tag tag_explicit = Tags::CURRENT;
   Epetra_MultiVector& res = *result[0]->ViewComponent("cell",false);
 
-  const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag)
+  const Epetra_MultiVector& srfcDepth = *S.GetPtr<CompositeVector>(surface_depth_key_, tag_explicit)
      ->ViewComponent("cell",false);
-  
+
   const Epetra_MultiVector& mnhMask = *S.GetPtr<CompositeVector>(mask_key_, tag)
       ->ViewComponent("cell",false);
   
@@ -199,8 +202,9 @@ void PipeDrainEvaluator::Evaluate_(const State& S,
   double drain_length;
 
   if(!pipe_domain_name_.empty()){
-     const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag)
+     const Epetra_MultiVector& pressHead = *S.GetPtr<CompositeVector>(pressure_head_key_, tag_explicit)
          ->ViewComponent("cell",false);
+
      int c_pipe, c_sw;
 
      for (int c=0; c!=ncells; ++c) {
