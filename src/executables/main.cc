@@ -14,6 +14,7 @@
 #include "Teuchos_ParameterXMLFileReader.hpp"
 #include "Teuchos_XMLParameterListHelpers.hpp"
 #include "Teuchos_CommandLineProcessor.hpp"
+#include "Teuchos_YamlParser_decl.hpp"
 #include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
 #include "Teuchos_DefaultComm.hpp"
@@ -30,6 +31,7 @@
 
 #include "dbc.hh"
 #include "errors.hh"
+#include "Key.hh"
 #include "ats_driver.hh"
 
 // registration files
@@ -58,8 +60,10 @@ main(int argc, char* argv[])
     clp.setDocString(
       "Run ATS simulations for ecosystem hydrology.\n\nStandard usage: ats input.xml\n");
 
+    std::string opt_xml_input_filename = "";
+    clp.setOption("xml_file", &opt_xml_input_filename, "XML input file");
     std::string opt_input_filename = "";
-    clp.setOption("xml_file", &opt_input_filename, "XML input file");
+    clp.setOption("input_file", &opt_input_filename, "input file");
 
     bool version(false);
     clp.setOption("version", "no_version", &version, "Print version number and exit.");
@@ -154,15 +158,22 @@ main(int argc, char* argv[])
     }
 
     // parse the input file and check validity
-    if (input_filename.empty() && !opt_input_filename.empty()) input_filename = opt_input_filename;
     if (input_filename.empty()) {
-      if (rank == 0) {
-        std::cerr << "ERROR: no input file provided" << std::endl;
-        clp.printHelpMessage("ats", std::cerr);
+      if (!opt_input_filename.empty()) {
+        input_filename = opt_input_filename;
+      } else if (!opt_xml_input_filename.empty()) {
+        input_filename = opt_xml_input_filename;
+      } else {
+        if (rank == 0) {
+          std::cerr << "ERROR: no input file provided" << std::endl;
+          clp.printHelpMessage("ats", std::cerr);
+        }
+        Kokkos::finalize();
+        return 1;
       }
-      Kokkos::finalize();
-      return 1;
-    } else if (!std::filesystem::exists(input_filename)) {
+    }
+
+    if (!std::filesystem::exists(input_filename)) {
       if (rank == 0) {
         std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
       }
@@ -176,7 +187,12 @@ main(int argc, char* argv[])
     auto teuchos_comm = Teuchos::DefaultComm<int>::getComm();
 
     // -- parse input file
-    Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
+    Teuchos::RCP<Teuchos::ParameterList> plist;
+    if (Amanzi::Keys::ends_with(input_filename, ".yaml") || Amanzi::Keys::ends_with(input_filename, ".YAML")) {
+      plist = Teuchos::YAMLParameterList::parseYamlFile(input_filename);
+    } else {
+      plist = Teuchos::getParametersFromXmlFile(input_filename);
+    }
 
     // -- set default verbosity level
     Teuchos::RCP<Teuchos::FancyOStream> fos;

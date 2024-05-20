@@ -96,7 +96,6 @@ RelPermEvaluator::InitializeFromPlist_()
 
   // cutoff above 0?
   min_val_ = plist_.get<double>("minimum rel perm cutoff", 0.);
-  perm_scale_ = plist_.get<double>("permeability rescaling");
 }
 
 
@@ -123,6 +122,9 @@ RelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
       }
     }
   }
+
+  // this is used to rescale perm and keep coefficients order 1
+  S.Require<double>("permeability_rescaling", Tags::DEFAULT);
 }
 
 
@@ -238,7 +240,8 @@ RelPermEvaluator::Evaluate_(const State& S, const std::vector<CompositeVector*>&
   }
 
   // Finally, scale by a permeability rescaling from absolute perm.
-  result[0]->Scale(1. / perm_scale_);
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
+  result[0]->Scale(1. / perm_scale);
 }
 
 
@@ -295,7 +298,8 @@ RelPermEvaluator::EvaluatePartialDerivative_(const State& S,
     }
 
     // rescale as neeeded
-    result[0]->Scale(1. / perm_scale_);
+    double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
+    result[0]->Scale(1. / perm_scale);
 
   } else if (wrt_key == dens_key_) {
     AMANZI_ASSERT(is_dens_visc_);

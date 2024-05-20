@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Loads and plots timestep history for a given run."""
 import numpy as np
+from unicodedata import normalize
 from matplotlib import pyplot as plt
 
 def print_headers():
@@ -8,9 +9,14 @@ def print_headers():
 
 def parse_line(line):
     sline = line.split()
-    cyc = int(sline[4][:-1])
-    time = float(sline[8][:-1])
-    dt = float(sline[12])
+    start = sline.index('|')
+    cyc = int(sline[start+3][:-1])
+    time = float(sline[start+7][:-1])
+
+    dt_s = sline[start+11]
+    # color character here sometimes, for some versions
+    dt_s = dt_s.split('\x1b')[0]
+    dt = float(dt_s)
     return cyc, time, dt
     
 def parse_logfile(fid, wallclock=False):
@@ -26,12 +32,12 @@ def parse_logfile(fid, wallclock=False):
     total_cycles = 0
     for i, line in enumerate(fid):
         if "Cycle =" in line:
-            try:
+            # try:
                 cyc, time, dt = parse_line(line)
-            except:
-                print(f"  Failed parsing line {i}.  Continuing, but there may be missing data.")
-                continue
-            else:
+            # except:
+            #     print(f"  Failed parsing line {i}.  Continuing, but there may be missing data.")
+            #     continue
+            # else:
                 if len(data) > 0 and data[-1][0] == cyc:
                     faildata.append(data.pop())
                 data.append([cyc,time,dt])

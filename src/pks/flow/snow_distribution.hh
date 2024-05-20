@@ -25,7 +25,7 @@ daily (which all defaults are set for).
 .. admonition:: snow-distribution-spec
 
     * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
-    * `"precipitation function`" ``[function-spec]`` Snow precipitation Function_ spec.
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
 
     * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
       Typically we use finite volume here.  See PDE_Diffusion_

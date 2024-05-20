@@ -536,6 +536,7 @@ provided in a few forms:
 
 Constant
 ^^^^^^^^
+.. _EvaluatorIndependentConstant:
 { EvaluatorIndependentConstant }
 
 From Function
@@ -1090,12 +1091,6 @@ Bare Soil Surface Energy Balance
 
 { seb_threecomponent_evaluator }
 
-Common Land Model (ParFlow-CLM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is included here because it should eventually get split into
-evaluators.  Currently, the CLM SEB model is a PK only, see `Common
-Land Model PK`_.
 
 Snow evaluators
 ---------------
@@ -1224,7 +1219,7 @@ Initial condition specs are used in three places:
 * Within the PK_ spec which describes the initial condition of primary variables (true
   initial conditions).
 
-* In `IndependentVariableEvaluator Constant <Constant_>`_
+* In `EvaluatorIndependentConstant`_
 
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
@@ -1358,7 +1353,7 @@ Solver: Jacobian-Free Newton Krylov
 
 Solver: Newton with Line Search
 -------------------------------
-{ SolverBT }
+{ SolverLS }
 
 Solver: Nonlinear Continuation
 ------------------------------
@@ -1453,26 +1448,30 @@ ML (Trilinos AMG)
 Other Common Specs
 ##################
 
+
 IOEvent
 =======
 { IOEvent }
+
 
 Verbose Object
 ==============
 { VerboseObject }
 
+
 Debugger
 ========
 { Debugger }
+
 
 Residual Debugger
 =================
 { ResidualDebugger }
 
    
+Functions
+=========
 
-Function
-===================
 { Function }
 
 It is straightforward to add new functions as needed.

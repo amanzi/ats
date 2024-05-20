@@ -251,8 +251,11 @@ through providing a "verify mesh" option.
      - `"read mesh file`" See `Read Mesh File`_.
      - `"logical`" See `Logical Mesh`_.
      - `"surface`" See `Surface Mesh`_.
-     - `"subgrid`" See `Subgrid Meshes`_.
+     - `"extracted`" See `Extracted Mesh`_.
+     - `"domain set indexed`" See `Domain Set Meshes`_.
+     - `"domain set regions`" See `Domain Set Meshes`_.
      - `"column`" See `Column Meshes`_.
+     - `"column surface`" See `Column Surface Meshes`_.
 
    * `"_mesh_type_ parameters`" ``[_mesh_type_-spec]`` List of parameters
      associated with the type.
@@ -375,6 +378,8 @@ Specified by `"mesh type`" of `"surface`".
 .. _mesh-surface-spec:
 .. admonition:: mesh-surface-spec
 
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
+
    ONE OF
 
    * `"surface sideset name`" ``[string]`` The Region_ name containing all surface faces.
@@ -388,6 +393,10 @@ Specified by `"mesh type`" of `"surface`".
    * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
    * `"export mesh to file`" ``[string]`` **optional** Export the lifted
      surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
 
 Example:
 
@@ -411,6 +420,39 @@ Example:
       </ParameterList>
     </ParameterList>
 
+Extracted Mesh
+==============
+
+A mesh is created by lifting a subset of entities from a parent mesh.  Locality
+is preserved, so all local entities in this mesh have parents whose entities
+are local on the parent mesh, so that no communication is ever done when
+passing info between an parent mesh and an extracted mesh.
+
+Specified by `"mesh type`" of `"extracted`".
+
+.. _mesh-extracted-spec:
+.. admonition:: mesh-extracted-spec
+
+   * `"parent domain`" ``[string]`` **domain** Parent mesh's name.
+
+   ONE OF
+
+   * `"region`" ``[string]`` The Region_ name containing all surface faces.
+
+   OR
+
+   * `"regions`" ``[Array(string)]`` A list of Region_ names containing the surface faces.
+
+   END
+
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"export mesh to file`" ``[string]`` **optional** Export the lifted
+     surface mesh to this filename.
+   * `"create subcommunicator`" ``[bool]`` **false** If false, the communicator
+     of this mesh is the same as the parent mesh.  If true, the communicator of
+     this mesh is the subset of the parent mesh comm that has entries on the
+     surface.
+     
 
 Aliased Mesh
 ============
@@ -429,31 +471,98 @@ Specified by `"mesh type`" of `"aliased`".
    * `"target`" ``[string]`` Mesh that this alias points to.
 
 
-Subgrid Meshes
-==============
+Domain Set Meshes
+=================
 
 A collection of meshes formed by associating a new mesh with each entity of a
-region.  Used for a few cases, including generating a 1D column for each
+region or set of indices.  This includes generating a 1D column for each
 surface face of a semi-structured subsurface mesh, or for hanging logical
 meshes off of each surface cell as a subgrid model, etc.
 
-The subgrid meshes are then named `"MESH_NAME_X"` for each X, which is an
-entity local ID, in a provided region of the provided entity type.
+The domain set meshes are then named `"MESH_NAME:X"` for each X, which can be a
+local ID of an entity (in the case of `"domain set indexed`") or a region name
+(in the case of `"domain set regions`").
 
-Specified by `"mesh type`" of `"subgrid`".
 
-.. _mesh-subgrid-spec:
-.. admonition:: mesh-subgrid-spec
+Indexed domain set meshes are specified by `"mesh type`" of `"domain set indexed`".
 
-   * `"subgrid region name`" ``[string]`` Region on which each subgrid mesh will be associated.
+.. _mesh-domain-set-indexed-spec:
+.. admonition:: mesh-domain-set-indexed-spec
+
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
    * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
-     region (usually `"cell`") on which each subgrid mesh will be associated.
-   * `"parent domain`" ``[string]`` **domain** Mesh which includes the above region.
-   * `"flyweight mesh`" ``[bool]`` **False** NOT YET SUPPORTED.  Allows a single
-     mesh instead of one per entity.
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
 
-.. todo::
-   WIP: Add examples (intermediate scale model, transport subgrid model)
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"entity LID`") that is filled in by this index.
+
+Example:
+
+.. code-block:: xml
+
+    <ParameterList name="column:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set indexed" />
+      <ParameterList name="domain set indexed parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="surface" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{surface}" />
+        <ParameterList name="column:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="column" />
+          <ParameterList name="column parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+
+
+Region-based domain set meshes are specified by `"mesh type`" of `"domain set regions`".
+
+.. _mesh-domain-set-regions-spec:
+.. admonition:: mesh-domain-set-regions-spec
+
+   * `"regions`" ``[Array(string)]`` Regions from which indices are created.
+   * `"entity kind`" ``[string]`` One of `"cell`", `"face`", etc.  Entity of the
+     region (usually `"cell`") on which each mesh will be associated.
+   * `"indexing parent domain`" ``[string]`` **domain** Mesh which includes the above region.
+   * `"referencing parent domain`" ``[string]`` **optional** Mesh from which
+     the entities of the mesh will be extracted.  For instance, columns may be
+     indexed from a surface mesh and referenced from the volume mesh below that
+     surface.
+
+Note, additionally, there must be a sublist of the name of the domain set,
+which itself is a `"mesh-typed-spec`"_, but may be missing some info
+(e.g. `"region`") that is filled in by this domain set.
+
+Example: the below example shows how to extract two subdomains, making them
+each a proper mesh whose communicators only live where they have cells, thereby
+decomposing the domain mesh into two subdomains.
+
+.. code-block:: xml
+
+    <ParameterList name="watershed:*" type="ParameterList">
+      <Parameter name="mesh type" type="string" value="domain set regions" />
+      <ParameterList name="domain set regions parameters" type="ParameterList">
+        <Parameter name="indexing parent domain" type="string" value="domain" />
+        <Parameter name="entity kind" type="string" value="cell" />
+        <Parameter name="referencing parent domain" type="string" value="domain" />
+        <Parameter name="regions" type="Array(string)" value="{upstream, downstream}" />
+        <ParameterList name="watershed:*" type="ParameterList">
+          <Parameter name="mesh type" type="string" value="extracted" />
+          <ParameterList name="extracted parameters" type="ParameterList">
+            <Parameter name="parent domain" type="string" value="domain" />
+            <Parameter name="create subcommunicator" type="bool" value="true" />
+          </ParameterList>
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
 
 
 Column Meshes
@@ -461,7 +570,7 @@ Column Meshes
 
 .. warning::
    Note these are rarely if ever created manually by a user.  Instead use
-   `Subgrid Meshes`_, which generate a column mesh spec for every face
+   `Domain Set Meshes`_, which generate a column mesh spec for every face
    of a set.
 
 Specified by `"mesh type`" of `"column`".
@@ -494,6 +603,27 @@ Example:
         </ParameterList>
       </ParameterList>
     </ParameterList>
+
+
+Column Surface Meshes
+=====================
+
+.. warning::
+   Note these are rarely if ever created manually by a user.  Instead use
+   `Domain Set Meshes`_, which generate a column surface mesh spec for every face
+   of a set.
+
+Specified by `"mesh type`" of `"column surface`".
+
+.. _mesh-column-surface-spec:
+.. admonition:: mesh-column-surface-spec
+
+   * `"parent domain`" ``[string]`` The name of the 3D mesh from which columns are generated.
+     Note that the `"build columns from set`" parameter must be set in that mesh.
+   * `"surface region`" ``[string]`` Region of the surface of the parent mesh.
+   * `"verify mesh`" ``[bool]`` **false** Verify validity of surface mesh.
+   * `"deformable mesh`" ``[bool]`` **false**  Used for deformation PKs to allow non-const access.
+
 
 
 
@@ -1173,7 +1303,7 @@ to disk by the UnstructuredObservation_ object.
     * `"modifier`" ``[function-typedinline-spec]`` **optional** If provided, defines a
       function used to modify the `"variable`" prior to applying the
       `"reduction`".
-        
+
     * `"direction normalized flux`" ``[bool]`` **false** For flux observations,
       dots the face-normal flux with a vector to ensure fluxes are integrated
       pointing the same direction.
@@ -1761,7 +1891,7 @@ daily (which all defaults are set for).
 .. admonition:: snow-distribution-spec
 
     * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
-    * `"precipitation function`" ``[function-spec]`` Snow precipitation Function_ spec.
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
 
     * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
       Typically we use finite volume here.  See PDE_Diffusion_
@@ -1817,107 +1947,106 @@ The advection-diffusion equation for component *i* in the surface may be written
 .. _transport-spec:
 .. admonition:: transport-spec
 
-    * `"PK type`" ``[string]`` **"transport ats"**
+   * `"PK type`" ``[string]`` **"transport ats"**
 
-    * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
-      the domain of this PK.
+   * `"domain name`" ``[string]`` **domain** specifies mesh name that defines
+     the domain of this PK.
 
-    * `"component names`" ``[Array(string)]`` No default. Provides the names of the
-      components that will be transported. Must be in the order: aqueous, gaseous, solid.
+   * `"component names`" ``[Array(string)]`` No default. Provides the names of the
+     components that will be transported. Must be in the order: aqueous, gaseous, solid.
 
-    * `"number of aqueous components`" ``[int]`` **-1** The total number of
-      aqueous components.  Default value is the length of `"component names`"
+   * `"number of aqueous components`" ``[int]`` **-1** The total number of
+     aqueous components.  Default value is the length of `"component names`"
 
-    * `"number of gaseous components`" ``[int]`` **0** The total number of
-      gaseous components.
+   * `"number of gaseous components`" ``[int]`` **0** The total number of
+     gaseous components.
 
-    * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
-      transport are dependent on the boundary conditions for flow. See
-      `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
+   * `"boundary conditions`" ``[transport-bc-spec]`` Boundary conditions for
+     transport are dependent on the boundary conditions for flow. See
+     `Flow-specific Boundary Conditions`_ and `Transport-specific Boundary Conditions`_
 
-    * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
-      each component.
+   * `"component molar masses`" ``[Array(double)]`` No default. Molar mass of
+     each component.
 
-    * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
-      solutes in aqueous and gaseous phases and related diffusivity values.
+   * `"molecular diffusion`" ``[molecular-diffusion-spec]`` defines names of
+     solutes in aqueous and gaseous phases and related diffusivity values.
 
-    * "material properties" [material-properties-spec-list] Defines material
-      properties see below).
+   * "material properties" ``[material-properties-spec-list]`` Defines material
+     properties see below).
 
-    Source terms:
+   Source terms:
 
-    * `"source terms`" [transport-source-spec-list] Provides solute source.
+   * `"source terms`" ``[transport-source-spec-list]`` Provides solute source.
 
-    Physical model and assumptions:
+   Physical model and assumptions:
 
-    * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
+   * `"physical models and assumptions`" [material-properties-spec] Defines material properties.
 
-    * `"effective transport porosity`" [bool] If *true*, effective transport porosity
-      will be used by dispersive-diffusive fluxes instead of total porosity.
-      Default is *false*.
+   * `"effective transport porosity`" ``[bool]`` **false** If *true*, effective transport porosity
+     will be used by dispersive-diffusive fluxes instead of total porosity.
 
-    Math and solver algorithm options:
+   Math and solver algorithm options:
 
-    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
-      Typically we use finite volume here.  See PDE_Diffusion_
+   * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+     Typically we use finite volume here.  See PDE_Diffusion_
 
-    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
-      above.  Likely only Jacobian term options are needed here, as the others
-      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+     above.  Likely only Jacobian term options are needed here, as the others
+     default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
 
-    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+   * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
 
-    * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
+   * `"cfl`" [double] Time step limiter, a number less than 1. Default value is 1.
 
-    * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
-      It permits values 1 or 2. Default value is 1.
+   * `"spatial discretization order`" [int] defines accuracy of spatial discretization.
+     It permits values 1 or 2. Default value is 1.
 
-    * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
-      It permits values 1 or 2 and values 3 or 4 when expert parameter
-      `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
-      Default value is 1.
+   * `"temporal discretization order`" [int] defines accuracy of temporal discretization.
+     It permits values 1 or 2 and values 3 or 4 when expert parameter
+     `"generic RK implementation`" is set to true. Note that RK3 is not monotone.
+     Default value is 1.
 
-    * `"reconstruction`" [list] collects reconstruction parameters. The available options are
+   * `"reconstruction`" [list] collects reconstruction parameters. The available options are
       describe in the separate section below.
 
-    * `"transport subcycling`" ``[bool]`` **true** The code will default to
+   * `"transport subcycling`" ``[bool]`` **true** The code will default to
       subcycling for transport within the master PK if there is one.
 
 
-    Developer parameters:
+   Developer parameters:
 
-    * `"enable internal tests`" [bool] turns on various internal tests during
+   * `"enable internal tests`" [bool] turns on various internal tests during
       run time. Default value is `"false`".
 
-    * `"generic RK implementation`" [bool] leads to generic implementation of
+   * `"generic RK implementation`" [bool] leads to generic implementation of
       all Runge-Kutta methods. Default value is `"false`".
 
-    * `"internal tests tolerance`" [double] tolerance for internal tests such as the
+   * `"internal tests tolerance`" [double] tolerance for internal tests such as the
       divergence-free condition. The default value is 1e-6.
 
-    * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
+   * `"runtime diagnostics: solute names`" [Array(string)] defines solutes that will be
       tracked closely each time step if verbosity `"high`". Default value is the first
       solute in the global list of `"aqueous names`" and the first gas in the global list
       of `"gaseous names`".
 
-    * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
+   * `"runtime diagnostics: regions`" [Array(string)] defines a boundary region for
       tracking solutes. Default value is a seepage face boundary, see Flow PK.
 
-    KEYS
+   KEYS
 
-    - `"saturation liquid`" This variable is a multiplier in in the
+   - `"saturation liquid`" This variable is a multiplier in in the
       accumulation term. For subsurface transport, this will typically be the
       saturation (`"saturation_liquid`"). For surface transport, this will
       typically be the ponded depth (`"ponded_depth`").
 
-    - `"previous saturation liquid`"
+   - `"previous saturation liquid`"
 
-    - `"molar density liquid`"  Transport is solved
+   - `"molar density liquid`"  Transport is solved
       for concentrations in units of mol fractions. Molar density is needed for conversion.
 
-    - `"water flux`"
+   - `"water flux`"
 
-    - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
+   - `"water source`" Defines the water injection rate [mol H2O m^-2 s^-1] in
       surface and [mol H2O m^-3 s^-1] in subsurface) which applies to
       concentrations specified by the `"geochemical conditions`".  Note that if
       this PK is coupled to a surface flow PK, the unit of the water source
@@ -2998,6 +3127,9 @@ various fields.
      that `"initial conditions`" is not a particularly descriptive name here --
      PDE initial conditions are generally not here.  This list consists of
 
+   * `"model parameters`" ``[list]`` A list of shared model parameters that can
+     be used across all evaluators.
+
 .. _evaluator-typedinline-spec:
 .. admonition:: evaluator-typedinline-spec
 
@@ -3094,6 +3226,7 @@ provided in a few forms:
 
 Constant
 ^^^^^^^^
+.. _EvaluatorIndependentConstant:
  A field evaluator with no dependencies, a constant value.
 
 This evaluator is typically used for providing data that is a simple constant
@@ -3119,7 +3252,7 @@ This evaluator is typically used for providing data that are functions of space
 and time.  The evaluator consists of a list of region,function pairs, and the
 functions are evaluated across that region at each timestep.  If the problem is
 time-independent, the `"constant in time`" option results in a performance
-boost (as the functions need only be evaluated once).  This leverages the
+improvement (as the functions need only be evaluated once).  This leverages the
 exaustive functional format capability provided in Amanzi's Functions_ library.
 
 This evaluator is used by providing the option:
@@ -3188,7 +3321,7 @@ This evaluator is used by providing the option:
     <Parameter name="mesh entity" type="string" value="cell"/>
     <Parameter name="number of dofs" type="int" value="1"/>
 
-    <ParameterList name="time function">  
+    <ParameterList name="time function">
       <Parameter name="times" type="Array(double)" value="{1.0, 2.0, 3.0}"/>
     </ParameterList>
   </ParameterList>
@@ -3616,7 +3749,9 @@ commonly used in practice is the van Genuchten model, but others are available d
 .. _wrm-evaluator-spec:
 .. admonition:: wrm-evaluator-spec
 
-   * `"WRM parameters`" ``[WRM-typedinline-spec-list]``
+   * `"model parameters`" ``[string]``
+     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
+     under state here to evaluate WRM.
 
    KEYS:
 
@@ -3628,6 +3763,42 @@ commonly used in practice is the van Genuchten model, but others are available d
      from the evaluator name and need not be set.
    - `"capillary pressure`"` **DOMAIN-capillary_pressure_gas_liq**
      The name of the capillary pressure.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    ...
+  </ParameterList>
 
 
 
@@ -3658,7 +3829,7 @@ flow PKs.
 
 Some additional parameters are available.
 
-`"evaluator type`" = `"WRM rel perm`"
+`"evaluator type`" = `"relative permeability, van Genuchten`"
 
 .. _rel-perm-evaluator-spec:
 .. admonition:: rel-perm-evaluator-spec
@@ -3682,7 +3853,13 @@ Some additional parameters are available.
      and K_sat is very small.  To avoid roundoff propagation issues, rescaling
      this quantity by offsetting and equal values is encourage.  Typically 10^7 or so is good.
 
-   * `"WRM parameters`" ``[wrm-typedinline-spec-list]``  List (by region) of WRM specs.
+   * `"model parameters`" ``[string]``  **WRM parameters** ``[WRM-typedinline-spec-list]``
+     List (by region) of WRM specs. This will copy `"WRM parameters`" given in `"model parameters`"
+     under state here to evaluate relative permeability. If use `"WRM parameters`", both WRM and
+     relative permeability evaluators use the same set of `"WRM parameters`", which can be van Genuchten
+     or Brooks-Corey. If use a customed name, e.g., `"relative permeability parameters`", and declare
+     `"relative permeability parameters`" in `"model parameters`" under state, this allows to use
+     different models for WRM (by default through `"WRM parameters`") and relative permeability.
 
    KEYS:
 
@@ -3691,6 +3868,108 @@ Some additional parameters are available.
    - `"density`" (if `"use density on viscosity in rel perm`" == true)
    - `"viscosity`" (if `"use density on viscosity in rel perm`" == true)
    - `"surface relative permeability`" (if `"boundary rel perm strategy`" == `"surface rel perm`")
+
+Example 1:
+Using the same set of van Genuchten model paramters for WRM and relative permeability
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+Example 2:
+Using different set of model/paramters for WRM and relative permeability,
+van Genuchten for WRM and Brooks-Corey for relative permeability. Note that
+in this case, van Genuchten parameters and Brooks-Corey parameters need to
+be consistent. Using tool `"convert_parameters_vg2bc.py`" to convert van Genuchten
+parameters to Brooks-Corey parameters.
+
+.. code-block:: xml
+
+  <ParameterList name="PKs" type="ParameterList">
+    ...
+    <ParameterList name="flow" type="ParameterList">
+      ...
+      <ParameterList name="water retention evaluator" type="ParameterList">
+        <Parameter name="model parameters" type="string" value="WRM parameters" />
+        ...
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
+
+  <ParameterList name="state" type="ParameterList">
+    <ParameterList name="model parameters" type="ParameterList">
+      <ParameterList name="WRM parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="van Genuchten" />
+          <Parameter name="van Genuchten alpha [Pa^-1]" type="double" value="2e-05" />
+          <Parameter name="van Genuchten n [-]" type="double" value="1.58" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+          <Parameter name="dessicated zone thickness [m]" type="double" value="0.1" />
+        </ParameterList>
+      </ParameterList>
+      <ParameterList name="relative permeability parameters" type="ParameterList">
+        <ParameterList name="domain" type="ParameterList">
+          <Parameter name="region" type="string" value="domain" />
+          <Parameter name="wrm type" type="string" value="Brooks-Corey" />
+          <Parameter name="Brooks-Corey lambda [-]" type="double" value="0.49" />
+          <Parameter name="Brooks-Corey saturted matric suction [Pa]" type="double" value="32439.03" />
+          <Parameter name="residual saturation [-]" type="double" value="0.2" />
+          <Parameter name="smoothing interval width [saturation]" type="double" value="0.05" />
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+    <ParameterList name="evaluators" type="ParameterList">
+      <ParameterList name="relative_permeability" type="ParameterList">
+        <Parameter name="evaluator type" type="string" value="relative permeability, van Genuchten" />
+        <Parameter name="model parameters" type="string" value="relative permeability parameters" />
+        <Parameter name="use surface rel perm" type="bool" value="true" />
+        <Parameter name="minimum rel perm cutoff" type="double" value=" 0" />
+      </ParameterList>
+      ...
+    </ParameterList>
+    ...
+  </ParameterList>
 
 
 
@@ -3766,7 +4045,7 @@ Original Implicit model
 
     * `"converged tolerance`" ``[double]`` **1.e-12** Convergence tolerance of the implicit solve.
     * `"max iterations`" ``[int]`` **100** Maximum allowable iterations of the implicit solve.
-    * `"solver algorithm [bisection/toms]`" ``[string]`` **bisection** Use bisection or the TOMS algorithm from boost.
+    * `"solver algorithm [brent]`" ``[string]`` **brent** Only brent is currently supported.
 
 
 
@@ -4061,7 +4340,7 @@ sinusoidal curve from 0 to 1 over a given transition in temperature.
    * `"freezing point [K]`" ``[double]`` **273.15** Center of the transition,
      at this point unfrozen fraction is 0.5.
 
-   * `"minimum unfrozen fraction [-]`` ``[double]`` **0** Sets a minimum value.
+   * `"minimum unfrozen fraction [-]`" ``[double]`` **0** Sets a minimum value.
 
 
 
@@ -4100,7 +4379,7 @@ SurfacePotential
 .. math::
    h + z
 
-`"evaluator type`" = 
+`"evaluator type`" =
 
 .. _pres-elev-evaluator-spec:
 .. admonition:: pres-elev-evaluator-spec
@@ -4980,21 +5259,20 @@ from the LandCover type.
 
 .. _transpiration-distribution-evaluator-spec:
 .. admonition:: transpiration-distribution-evaluator-spec
+   * `"year duration`" ``[double]`` **1**
+   * `"year duration units`" ``[string]`` **noleap**
 
-    * `"year duration`" ``[double]`` **1**
-    * `"year duration units`" ``[string]`` **noleap**
+   * `"water limiter function`" ``[function-spec]`` **optional** If provided,
+     limit the total water sink as a function of the integral of the water
+     potential * rooting fraction.
 
-    * `"water limiter function`" ``[function-spec]`` **optional** If provided,
-      limit the total water sink as a function of the integral of the water
-      potential * rooting fraction.
+   KEYS:
 
-    KEYS:
-
-    - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
-    - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
-    - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
-    - `"cell volume`" **DOMAIN-cell_volume**
-    - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
+   - `"plant wilting factor`" **DOMAIN-plant_wilting_factor**
+   - `"rooting depth fraction`" **DOMAIN-rooting_depth_fraction**
+   - `"potential transpiration`" **DOMAIN_SURF-potential_transpiration**
+   - `"cell volume`" **DOMAIN-cell_volume**
+   - `"surface cell volume`" **DOMAIN_SURF-cell_volume**
 
 
 
@@ -5003,16 +5281,20 @@ Rooting Depth Fraction
 ~~~~~~~~~~~~~~~~~~~~~~
  Provides a depth-based profile of root density.
 
-Sets the root fraction as a function of depth,
+Sets the (discrete) root fraction as a function of depth.  The rooting density
+is given by:
 
 .. math:
-   F_root =  ( \alpha \; exp(-\alpha z) + \beta \; exp(-\beta z) ) / 2
+   \rho_root =  \frac{1}{2} ( \alpha \; exp(-\alpha z) + \beta \; exp(-\beta z) )
 
-This function is such that the integral over depth = [0,inf) is 1, but
-an artificial cutoff is generated.
+This function is such that the integral over depth = [0,inf) is 1.  Then,
+computing this over the vertical corridor is done by integrating this function
+between the depth of the face above and below for each grid cell, with the
+bottom-most grid cell integrating to infinity.
 
-Note that all three parameters, a, b, and the cutoff, are provided in the
-LandCover type.
+Note that the two parameters, :math:`\alpha` and :math:`\beta` are provided in
+the Land Cover class as `"rooting profile alpha`" and `"rooting profile beta`"
+respectively.
 
 .. _rooting-depth-fraction-evaluator-spec:
 .. admonition:: rooting-depth-fraction-evaluator-spec
@@ -5021,9 +5303,8 @@ LandCover type.
 
    KEYS:
 
-   - `"depth`" **DOMAIN-depth**
    - `"cell volume`" **DOMAIN-cell_volume**
-   - `"surface cell volume`" **SURFACE_DOMAIN-cell_volume**
+   - `"surface area`" **SURFACE_DOMAIN-cell_volume**
 
 
 
@@ -5038,11 +5319,11 @@ factor, or the transpiration reduction function.
 .. math::
    Beta =  (p_closed - p) / (p_closed - p_open)
 
-where p is the capillary pressure or soil mafic potential, and closed
+where p is the capillary pressure or water potential, and closed
 and open indicate the values at which stomates are fully open or fully
 closed (the wilting point).
 
-Note this makes use of LandCover objects for mafic potential of fully open and
+Note this makes use of LandCover objects for water potential of fully open and
 fully closed stomata.
 
 Note the challenges of using this model with arbitrary van Genuchten WRMs.  See
@@ -5063,24 +5344,10 @@ https://doi.org/10.1016/j.agrformet.2014.02.009
 
 Soil Resistance
 ^^^^^^^^^^^^^^^
- Downregulates evaporation via vapor diffusion through a dessicated zone.
 
-Calculates evaporative resistance through a dessicated zone.
-
-Sakagucki and Zeng 2009 equations 9 and 10.
-
-Requires the use of LandCover types, for dessicated zone thickness and Clapp &
-Hornberger b.
-
-.. _evaporation-downregulation-evaluator-spec:
-.. admonition:: evaporation-downregulation-evaluator-spec
-
-   KEYS:
-
-   - `"saturation gas`" **DOMAIN_SUB-saturation_gas**
-   - `"saturation liquid`" **DOMAIN_SUB-saturation_liquid**
-   - `"porosity`" **DOMAIN_SUB-porosity**
-   - `"potential evaporation`" **DOMAIN_SUB-potential_evaporation**
+Downregulates evaporation through a dessicated zone via soil resistance.
+Currently support two soil resistance methods: Sakagucki-Zeng and Sellers.
+This will call soil resistance evaluator.
 
 
 
@@ -5104,6 +5371,9 @@ Here the net radiation is positive for energy inputs to the layer.  Note that
 ground is based on the two-channel (land + snow) while canopy is assumed to be
 a simple, single layer.
 
+This evaluator requires that the surface temperature, snow temperature, and
+canopy temperature are known, or at least being solved for.
+
 Requires the use of LandCover types, for albedo and Beer's law coefficients.
 
 This is combination of CLM v4.5 Tech Note and Beer's law for attenuation of
@@ -5122,10 +5392,10 @@ Computes:
    surface itself.  [W m^-2] of actual area -- this does NOT include the
    surface area fraction factor which would be required to compute a total
    energy flux in W.
-   
+
 2. "snow radiation balance" -- Net radiation seen by the snow.  See surface
    above -- all are the same except using snow properties. [W m^-2]
-   
+
 3. "canopy radiation balance" -- this is a compute computation of the net
    radiation experienced by the canopy.  It includes the portion of shortwave
    and longwave from the atmosphere that are absorbed via Beer's law, minus the
@@ -5155,7 +5425,7 @@ coefficients.
 
 Note that this is a superset of the physics in the "canopy radiation
 evaluator," and is therefore mutually exclusive with that model.
-     
+
 
 
 
@@ -5174,12 +5444,12 @@ Computes:
 1. canopy-downward_shortwave_radiation -- transmitted shortwave.  Note that
    incoming shortwave is attenuated by Beer's law, and partially transmitted
    without attenuation when there are gaps (e.g. LAI < 1) in the canopy.
-   
+
 2. canopy-downward_longwave_radiation -- transmitted longwave (see above,
    noting that Beer's law coefficients should be used that absorb most if not
    all the longwave radiation), along with longwave emitted by the canopy
    computed using a canopy leaf temperature and a Bolzmann equation.
-   
+
 3. canopy-downward_net_radiation -- this is a partial computation of the net
    radiation experienced by the canopy.  It includes the portion of shortwave
    and longwave from the atmosphere that are absorbed via Beer's law, minus the
@@ -5191,7 +5461,7 @@ Computes:
 
 Here the net radiation is positive for energy added to the canopy, while the
 other two are positive for energy sent to the layer below.
-   
+
 In the canopy-downward_net_radiation, we cannot include the upward terms YET,
 because these are a function of snow and surface temperature, which in turn
 depend upon the downward radiation computed here.  So we choose to break the
@@ -5433,9 +5703,7 @@ the ground from the atmosphere.
 
    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
-   - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
-   - `"liquid saturation`" **DOMAIN_SS-saturation_liquid** [-] subsurface liquid saturation
-   - `"porosity`" [-] subsurface porosity
+   - `"rsoil`" **DOMAIN-rsoil** [s/m] soil resistance of top cells.
    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
    - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
@@ -5449,9 +5717,6 @@ the ground from the atmosphere.
      latent and sensible heat fluxes.
    - `"roughness length of snow-covered ground [m]`" ``[double]`` **0.004** Defines a
      fetch controlling latent and sensible heat fluxes.
-   - `"dessicated zone thickness [m]`" ``[double]`` Thickness of the immediate surface
-     layer over which vapor pressure diffusion must move water to evaporate
-     from dry soil.  More implies less evaporation.
    - `"snow transition depth [m]`" **0.02** Snow height at which bare
      ground starts to stick out due to subgrid topography, vegetation, etc.
      Defines a transitional zone between "snow-covered" and "bare ground".
@@ -5532,9 +5797,7 @@ gravity- and wind-driven redistributions, respectively.
 
    - `"temperature`" **DOMAIN-temperature**  [K] surface skin temperature.
    - `"pressure`" **DOMAIN-pressure** [Pa] surface skin pressure.
-   - `"gas saturation`" **DOMAIN_SS-saturation_gas** [-] subsurface gas saturation
-   - `"liquid saturation`" **DOMAIN_SS-saturation_liquid** [-] subsurface liquid saturation
-   - `"porosity`" [-] subsurface porosity
+   - `"rsoil`" **DOMAIN-rsoil** [s/m] soil resistance of top cells.
    - `"subsurface pressure`" **DOMAIN_SS-pressure** [Pa]
    - `"molar density liquid`" **DOMAIN-molar_density_liquid** [mol m^-3]
    - `"mass density liquid`" **DOMAIN-mass_density_liquid** [kg m^-3]
@@ -5548,19 +5811,9 @@ gravity- and wind-driven redistributions, respectively.
      latent and sensible heat fluxes.
    - `"roughness length of snow-covered ground [m]`" ``[double]`` **0.004** Defines a
      fetch controlling latent and sensible heat fluxes.
-   - `"dessicated zone thickness [m]`" ``[double]`` Thickness of the immediate surface
-     layer over which vapor pressure diffusion must move water to evaporate
-     from dry soil.  More implies less evaporation.
 
 
 
-
-Common Land Model (ParFlow-CLM)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This is included here because it should eventually get split into
-evaluators.  Currently, the CLM SEB model is a PK only, see `Common
-Land Model PK`_.
 
 Snow evaluators
 ---------------
@@ -5588,9 +5841,9 @@ snow precip, so defines what we mean by low-lying.
      Typically on the order of 1e4-1e7. This timestep times the wave speed of
      snow provides an approximate length of how far snow precip can travel.
      Extremely tunable! [s]
-                
+
    KEYS:
-                
+
    - `"ponded depth`" **SURFACE_DOMAIN-ponded_depth** [m]
    - `"snow depth`" **DOMAIN-depth** [m]
    - `"precipitation snow`" **DOMAIN-precipitation** [m s^-1]
@@ -5720,7 +5973,7 @@ Drainage
 A simple model based on relaxation from current water content to a saturated water content.
 
 .. code::
-   
+
           |
           | source
           V
@@ -5838,7 +6091,7 @@ Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|`
      intelligent default by stripping "surface" from this domain.
    * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
      elevation changes in time, and adds the `"deformation`" dependency.
-   
+
    MY KEYS:
 
    - `"elevation`" **DOMAIN-elevation** Name the elevation variable. [m]
@@ -6052,15 +6305,17 @@ For example, one might write a dependency:
 .. _secondary-variable-from-function-evaluator-spec:
 .. admonition:: secondary-variable-from-function-evaluator-spec
 
-   ONE OF:
+   ONE OF
 
    * `"functions`" ``[composite-vector-function-spec-list]`` Note this is used
      for multiple Degress of Freedom.
 
-   OR:
+   OR
 
    * `"function`" ``[composite-vector-function-spec]`` Used for a single degree
      of freedom.
+
+   END
 
 Example:
 
@@ -6096,7 +6351,7 @@ Initial condition specs are used in three places:
 * Within the PK_ spec which describes the initial condition of primary variables (true
   initial conditions).
 
-* In `IndependentVariableEvaluator Constant <Constant_>`_
+* In `EvaluatorIndependentConstant`_
 
 The first may be of multiple types of data, while the latter two are
 nearly always fields on a mesh (e.g. CompositeVectors).  The specific
@@ -6830,7 +7085,7 @@ Note this also accepts an object that provides the `BDF1 Solver Interface`_.
 
       <Parameter name="solver type" type="string" value="nka"/>
       <ParameterList name="nka parameters">
-        ... 
+        ...
       </ParameterList>
     </ParameterList>
   </ParameterList>
@@ -6923,7 +7178,7 @@ nonlinear iterations required to solve step :math:`k`:.
   </ParameterList>
 
 In this example, the time step is increased by factor 1.2 when the nonlinear
-solver converges in 10 or less iterations. 
+solver converges in 10 or less iterations.
 The time step is not changed when the number of nonlinear iterations is
 between 11 and 15.
 The time step will be cut twice if the number of nonlinear iterations exceeds 15.
@@ -7073,6 +7328,10 @@ method is Newton.  If it applies an appoximation, it is inexact Newton.
       the solution increment grows on too many consecutive iterations, the
       solver is terminated.
 
+    * `"make one iteration`" ``[bool]`` **false** require at least one iteration
+      to be performed before declaring success. This options makes any effect
+      only when `"monitor residual`" is choose.
+
     * `"modify correction`" ``[bool]`` **true** allows a PK to modify the
       solution increment. One example is a physics-based clipping of extreme
       solution values.
@@ -7167,7 +7426,7 @@ the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
 
 Solver: Newton with Line Search
 -------------------------------
- Backtracking line search on the provided correction as a solver.
+ Line search on the provided correction as a solver.
 
 Line Search accepts a correction from the Jacobian, then uses a
 process to attempt to minimize or at least ensure a reduction in the residual
@@ -7180,10 +7439,14 @@ measurement of the steepest descent direction, and so while the direction is
 guaranteed to be the direction which best reduces the residual, it may not
 provide the correct magnitude.
 
+The algorithm is a reimplementation based on PETSc SNES type BT, which in turn
+is from Numerical Methods for Unconstrained Optimization and Nonlinear
+Equations by Dennis & Schnabel, pg 325.
+
 Note, this always monitors the residual.
 
-.. _solver-backtracking-spec:
-.. admonition:: solver-backtracking-spec
+.. _solver-line-search-spec:
+.. admonition:: solver-line-search-spec
 
     * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
       tolerance. The error is calculated by a PK.
@@ -7211,7 +7474,6 @@ Note, this always monitors the residual.
     * `"max valid alpha`" ``[double]`` **10.**
 
     * `"max line search iterations`" ``[int]`` **10**
-
 
  
 
@@ -7309,6 +7571,10 @@ especially with an approximate Jacobian.
       identify divergence pattern on earlier iterations. If the maximum norm of
       the solution increment grows on too many consecutive iterations, the
       solver is terminated.
+
+    * `"make one iteration`" ``[bool]`` **false** require at least one iteration
+      to be performed before declaring success. This options makes any effect
+      only when `"monitor residual`" is choose.
 
     * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
       solution increment. One example is a physics-based clipping of extreme
@@ -7414,7 +7680,6 @@ Note, this always monitors the residual.
     * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
       allowed orthogonality between vectors in the local space. If a new vector
       does not satisfy this requirement, the space is modified.
-
 
 
 
@@ -7732,8 +7997,8 @@ List `"amesos parameters`" contains parameters that understood by this library.
 These parameters may violate the camel-case convention employed by this spec.
 Additional parameters are:
 
-* `"solver name`" [string] declares name of one of the supported direct solvers. 
-  Available options are `"klu`", `"superludist`", `"basker`", etc, see Amesos and 
+* `"solver name`" [string] declares name of one of the supported direct solvers.
+  Available options are `"klu`", `"superludist`", `"basker`", etc, see Amesos and
   Amesos2 manuals for details. The default value is serial solver `"klu`".
 
 * `"amesos version`" [int] specifies version of Amesos. Available options are 1 and 2.
@@ -7781,14 +8046,14 @@ Preconditioners
 
 This sublist contains entries for various
 preconditioners required by a simulation. At the moment, we support Trilinos multilevel
-preconditioner, Hypre BoomerAMG preconditioner, ILU preconditioner, Hypre's Euclid ILU
-preconditioner, and identity preconditioner. 
+preconditioner, Hypre BoomerAMG preconditioner, ILU preconditioner, Hypre's ILU
+preconditioner, and identity preconditioner.
 
 * `"preconditioning method`" [string] defines preconditioner algorithm.
 
-* `"xxx parameters`" [list] provides parameters for the preconditioner specified 
+* `"xxx parameters`" [list] provides parameters for the preconditioner specified
   by parameter `"preconditioning method`".
- 
+
 .. code-block:: xml
 
   <ParameterList>  <!-- parent list -->
@@ -7796,7 +8061,7 @@ preconditioner, and identity preconditioner.
     <ParameterList name="_TRILINOS ML">
       <Parameter name="preconditioning method" type="string" value="ml"/>
       <ParameterList name="ml parameters">
-        ... 
+        ...
       </ParameterList>
     </ParameterList>
 
@@ -8002,24 +8267,17 @@ Example:
   </ParameterList>
 
 
-Euclid is a Parallel Incomplete LU, provided as part of the HYPRE project
+ILU is a Parallel Incomplete LU, provided as part of the HYPRE project
 through the Ifpack interface.
-The algorithm was presented at SC99 and published in expanded 
-form in the SIAM Journal on Scientific Computing. 
-Scalability means that the factorization (setup) and application (triangular solve) timings remain
-nearly constant when the global problem size is scaled in proportion to the number of processors.
-As with all ILU preconditioning methods, the number of iterations is expected to increase with
-global problem size.
 
-This is provided when using the `"preconditioning method`"=`"euclid`" or
-=`"hypre: euclid`" in the `Preconditioner`_ spec.
+This is provided when using the `"preconditioning method`"=`"ILU`" or
+=`"hypre: ILU`" in the `Preconditioner`_ spec.
 
-.. _preconditioner-euclid-spec:
-.. admonition:: preconditioner-euclid-spec:
+.. _preconditioner-ILU-spec:
+.. admonition:: preconditioner-ILU-spec:
 
     * `"ilu(k) fill level`" ``[int]`` **1** The factorization level.
     * `"ilut drop tolerance`" ``[double]`` **0** Defines a drop tolerance relative to the largest absolute value of any entry in the row being factored.
-    * `"rescale row`" ``[bool]`` **false** If true, values are scaled prior to factorization so that largest value in any row is +1 or -1. Note that this can destroy matrix symmetry.
     * `"verbosity`" ``[int]`` **0** Prints a summary of runtime settings and timing information to stdout.
 
 
@@ -8067,6 +8325,7 @@ Example:
 
 Other Common Specs
 ##################
+
 
 IOEvent
 =======
@@ -8118,6 +8377,7 @@ The IOEvent is used for multiple objects that need to indicate simulation times 
 
 
 
+
 Verbose Object
 ==============
 
@@ -8158,6 +8418,7 @@ Example:
 
 
 
+
 Debugger
 ========
  A mesh and vector structure aware utility for printing info.
@@ -8183,6 +8444,7 @@ from the `"Verbose Object`" spec is set to `"high`" or higher.
 
 
 
+
 Residual Debugger
 =================
 
@@ -8203,9 +8465,9 @@ process for use with vis tools.
 
 
    
+Functions
+=========
 
-Function
-===================
  A base class for all functions of space and time.
 
 Analytic, algabraic functions of space and time are used for a variety of
@@ -8590,7 +8852,7 @@ A piecewise bilinear function extends the linear form of the tabular function to
 Define :math:`i(x) = i : x_i < x <= x_{{i+1}}` and similarly :math:`j(y) = j : y_j < y <= y_{{j+1}}` for monotonically increasing :math:`x_i` and :math:`y_j`.
 
 Given a two-dimensional array :math:`u_{i,j}`, :math:`f` is then defined by
-bilinear interpolation on :math:`u_{i(x),j(y)}, u_{i(x)+1,j(y)}, u_{i(x),j(y)+1}, u_{i(x)+1,j(y)+1}`, 
+bilinear interpolation on :math:`u_{i(x),j(y)}, u_{i(x)+1,j(y)}, u_{i(x),j(y)+1}, u_{i(x)+1,j(y)+1}`,
 if :math:`(x,y)` is in :math:`[x_0,x_n] \times [y_0,y_m]`, linear interpolation if one of :math:`x,y`
 are out of those bounds, and constant at the corner value if both are out of
 bounds.
@@ -8722,7 +8984,7 @@ better yet a dimension could/should be added upon request).
        `"atan`"
      - hyperbolic trig operators: `"cosh`", `"sinh`", `"tanh`"
      - power/log operators: `"pow`", `"exp`", `"log`", `"log10`", `"sqrt`",
-     - integral operators: `"ceil`", `"floor`", `"mod`", 
+     - integral operators: `"ceil`", `"floor`", `"mod`",
      - `"abs`", `"fabs`", `"positive`" (0 for negative values), `"negative`" (0
        for positive values), `"heaviside`", `"sign`"
 
@@ -8761,9 +9023,9 @@ Operator
 
 Operators are discrete forms of linearized PDEs operators.
 They form a layer between physical process kernels and solvers
-and include accumulation, diffusion, advection, elasticity, reaction, 
+and include accumulation, diffusion, advection, elasticity, reaction,
 and source operators.
-The residual associated with an operator :math:`L_h` helps to 
+The residual associated with an operator :math:`L_h` helps to
 understand the employed sign convention:
 
 .. math::
@@ -8796,8 +9058,8 @@ a single operator that combines two operators representing diffusion and advecti
 Collection of operators must be used for implicit solvers and for building preconditioners.
 In such a case, the collections acts as a single operator.
 
-Operators use a few tools that are generic in nature and can be used independently by PKs. 
-The list includes reconstruction and limiting algorithms. 
+Operators use a few tools that are generic in nature and can be used independently by PKs.
+The list includes reconstruction and limiting algorithms.
 
 
 Schema
@@ -8808,7 +9070,7 @@ Old operators use a simple schema which is simply the list of geometric objects 
 scalar degrees of freedom are defined.
 New operators use a list to define location, type, and number of degrees of freedom.
 In addition, the base of local stencil is either *face* or *cell*.
-A rectangular operator needs two schemas do describe its domain (called `"schema domain`") 
+A rectangular operator needs two schemas do describe its domain (called `"schema domain`")
 and its range (called `"schema range`").
 A square operator may use either two identical schema lists or a single list called `"schema`".
 
@@ -8830,11 +9092,11 @@ A square operator may use either two identical schema lists or a single list cal
   </ParameterList>
 
 This example describes a square operator with two degrees of freedom per mesh node and one
-degree of freedom per mesh face. 
-The face-based degree of freedom is the normal component of a vector field. 
-Such set of degrees of freedom is used in the Bernardi-Raugel element for discretizing 
+degree of freedom per mesh face.
+The face-based degree of freedom is the normal component of a vector field.
+Such set of degrees of freedom is used in the Bernardi-Raugel element for discretizing
 Stokes equations.
-Parameter `"base`" indicates that local matrices are associated with mesh cells. 
+Parameter `"base`" indicates that local matrices are associated with mesh cells.
 
 
 
@@ -8932,15 +9194,15 @@ Diffusion is the most frequently used operator. It employs the old schema.
     `"mfd: default`", `"mfd: support operator`", `"mfd: two-point flux approximation`",
     `"fv: default`", and `"nlfv: default`".
     The first option is recommended for general meshes.
-    The second option is recommended for orthogonal meshes and diagonal absolute 
-    permeability tensor. 
+    The second option is recommended for orthogonal meshes and diagonal absolute
+    permeability tensor.
 
   * `"discretization secondary`" [string] specifies the most robust discretization method
     that is used when the primary selection fails to satisfy all a priori conditions.
     Default value is equal to that for the primary discretization.
 
   * `"diffusion tensor`" [string] specifies additional properties of the diffusion tensor.
-    It allows us to solve problems with non-symmetric but positive definite tensors. 
+    It allows us to solve problems with non-symmetric but positive definite tensors.
     Available options are *symmetric* (default) and *nonsymmetric*.
 
   * `"nonlinear coefficient`" [string] specifies a method for treating nonlinear diffusion
@@ -8952,36 +9214,36 @@ Diffusion is the most frequently used operator. It employs the old schema.
     that must be provided by a physical PK.
     Default is `"none`".
 
-  * `"schema`" [Array(string)] defines the operator stencil. It is a collection of 
-    geometric objects. It equals to `"{cell}`" for finite volume schemes. 
+  * `"schema`" [Array(string)] defines the operator stencil. It is a collection of
+    geometric objects. It equals to `"{cell}`" for finite volume schemes.
     It is typically `"{face, cell}`" for mimetic discretizations.
 
   * `"preconditioner schema`" [Array(string)] defines the preconditioner stencil.
-    It is needed only when the default assembling procedure is not desirable. 
-    If skipped, the `"schema`" is used instead. 
+    It is needed only when the default assembling procedure is not desirable.
+    If skipped, the `"schema`" is used instead.
 
   * `"gravity`" [bool] specifies if flow is driven also by the gravity.
 
-  * `"gravity term discretization`" [string] selects a model for discretizing the 
-    gravity term. Available options are `"hydraulic head`" [default] and `"finite volume`". 
+  * `"gravity term discretization`" [string] selects a model for discretizing the
+    gravity term. Available options are `"hydraulic head`" [default] and `"finite volume`".
     The first option starts with equation for the shifted solution, i.e. the hydraulic head,
     and derives gravity discretization by the reserve shifting.
     The second option is based on the divergence formula.
 
   * `"gravity magnitude`" [double] defined magnitude of the gravity vector.
 
-  * `"Newton correction`" [string] specifies a model for correction (non-physical) terms 
+  * `"Newton correction`" [string] specifies a model for correction (non-physical) terms
     that must be added to the preconditioner. These terms approximate some Jacobian terms.
     Available options are `"true Jacobian`" and `"approximate Jacobian`".
     The FV scheme accepts only the first options. The othre schemes accept only the second option.
 
   * `"scaled constraint equation`" [bool] rescales flux continuity equations on mesh faces.
-    These equations are divided by the nonlinear coefficient. This option allows us to 
-    treat the case of zero nonlinear coefficient. At moment this feature does not work 
+    These equations are divided by the nonlinear coefficient. This option allows us to
+    treat the case of zero nonlinear coefficient. At moment this feature does not work
     with non-zero gravity term. Default is *false*.
 
   * `"constraint equation scaling cutoff"`" [double] specifies the cutoff value for
-    applying rescaling strategy described above.  
+    applying rescaling strategy described above.
 
   * `"consistent faces`" [list] may contain a `"preconditioner`" and
     `"linear operator`" list (see sections Preconditioners_ and LinearSolvers_
@@ -9022,7 +9284,7 @@ Example:
   </ParameterList>
 
 This example creates a p-lambda system, i.e. the pressure is
-discretized in mesh cells and on mesh faces. 
+discretized in mesh cells and on mesh faces.
 The preconditioner is defined on faces only, i.e. cell-based unknowns
 are eliminated explicitly and the preconditioner is applied to the
 Schur complement.
@@ -9072,7 +9334,7 @@ Additional options available only for the MFD family of discretizations include:
   (default) and *nonsymmetric*.
 
 * `"use manifold flux`"  ``[bool]`` **false** Computes the flux using algorithms
-  and data structures for manifolds or fracture networks. 
+  and data structures for manifolds or fracture networks.
 
 
 
@@ -9100,7 +9362,7 @@ PDE_Advection
 
 A high-order advection operator may have different domain and range and therefore requires two schemas.
 The structure of the new schema is described in the previous section.
-A high-order advection operator has two terms in a weak formulation, corresponding to 
+A high-order advection operator has two terms in a weak formulation, corresponding to
 volume and surface integrals. These two terms are discretixed using two operators with
 matrix of types *advection* and *flux*, respectively.
 
@@ -9109,14 +9371,14 @@ matrix of types *advection* and *flux*, respectively.
 
   * `"method`" [string] defines a discretization method. The available option is `"dg modal`".
 
-  * `"method order`" [int] defines method order. For example, the classical low-order finite 
+  * `"method order`" [int] defines method order. For example, the classical low-order finite
     volume scheme is equivalent to DG of order 0.
 
   * `"matrix type`" [string] defines matrix type. The supported options are `"advection`"
     and `"flux`".
 
-  * `"dg basis`" [string] defines bases for DG schemes. The available options are 
-    `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`" 
+  * `"dg basis`" [string] defines bases for DG schemes. The available options are
+    `"regularized`" (recommended), `"normalized`", `"orthonormalized`", and `"natural`"
     (not recommended).
 
   * `"gradient operator on test function`" [bool] defines place of the gradient operator.
@@ -9127,12 +9389,12 @@ matrix of types *advection* and *flux*, respectively.
     For integration by parts schemes, the jump operator is applied to a test function.
     This option is needed for discretizing surface fluxes.
 
-  * `"flux formula`" [string] defines type of the flux. The available options 
+  * `"flux formula`" [string] defines type of the flux. The available options
     are `"Rusanov`" (default), `"upwind`", `"downwind`", and `"NavierStokes`".
 
   * `"schema domain`" [list] defines a discretization schema for the operator domain.
 
-  * `"schema range`" [list] defines a discretization schema for the operator range. 
+  * `"schema range`" [list] defines a discretization schema for the operator range.
 
 .. code-block:: xml
 
@@ -9160,7 +9422,7 @@ matrix of types *advection* and *flux*, respectively.
 In this example, we construct an operator for volumetric integrals in a weak formulation
 of advection problem.
 
-The only low-order advection operator in Amanzi is the upwind operator. 
+The only low-order advection operator in Amanzi is the upwind operator.
 It employes the old schema.
 
 .. code-block:: xml
@@ -9267,7 +9529,7 @@ Function values u:
 
   /f[:] = (f_0(z_0), f_1(z_1), ..., f_n(z_n))
 
-.. _column-initialization-spec
+.. _column-initialization-spec:
 .. admonition:: column-initialization-spec
 
    * `"file`" ``[string]`` HDF5 filename
@@ -9275,17 +9537,6 @@ Function values u:
      coordinates (positive downward from the surface), [m]
    * `"f header`" ``[string]`` name of the function data: `f` above.
 
-   ONE OF
-
-   * `"surface sideset`" ``[string]`` Region on the surface domain from which
-     to start to determine columns.
-
-   OR
-
-   * `"surface sidesets`" ``[Array(string)]`` Regions on the surface domain
-     from which to start to determine columns.
-
-   END
 
 
 

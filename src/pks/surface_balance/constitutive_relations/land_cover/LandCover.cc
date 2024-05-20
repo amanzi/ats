@@ -65,6 +65,8 @@ LandCover::LandCover(Teuchos::ParameterList& plist)
       readPositiveLandCoverParameter(plist, "capillary pressure at fully closed stomata [Pa]")),
     stomata_open_capillary_pressure(
       readPositiveLandCoverParameter(plist, "capillary pressure at fully open stomata [Pa]")),
+    maximum_xylem_capillary_pressure(
+      readPositiveLandCoverParameter(plist, "maximum xylem capillary pressure [Pa]")),
     leaf_on_doy(plist.get<double>("leaf on time [doy]", NAN)),
     leaf_off_doy(plist.get<double>("leaf off time [doy]", NAN)),
     pt_alpha_snow(readPositiveLandCoverParameter(plist, "Priestley-Taylor alpha of snow [-]")),
@@ -139,10 +141,13 @@ checkValid(const std::string& region, const LandCover& lc, const std::string& pa
 
   if (parname == "stomata_closed_capillary_pressure" &&
       std::isnan(lc.stomata_closed_capillary_pressure))
-    throwInvalid(region, "water potential at fully closed stomata [Pa]");
+    throwInvalid(region, "capillary pressure at fully closed stomata [Pa]");
   if (parname == "stomata_open_capillary_pressure" &&
       std::isnan(lc.stomata_open_capillary_pressure))
-    throwInvalid(region, "water potential at fully open stomata [Pa]");
+    throwInvalid(region, "capillary pressure at fully open stomata [Pa]");
+  if (parname == "maximum_xylem_capillary_pressure" &&
+      std::isnan(lc.maximum_xylem_capillary_pressure))
+    throwInvalid(region, "maximum xylem capillary pressure [Pa]");
 
   if (parname == "pt_alpha_snow" && std::isnan(lc.pt_alpha_snow))
     throwInvalid(region, "Priestley-Taylor alpha of snow [-]");
