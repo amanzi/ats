@@ -185,8 +185,8 @@ add_amanzi_executable(ats
 
 # set this here for now
 # add option to bootstrap before completion
-set (BUILD_ELM_ATS_API true)
-if (BUILD_ELM_ATS_API)
+#set (BUILD_ELM_ATS_API true)
+#if (BUILD_ELM_ATS_API)
   message("building elm_ats api")
   add_subdirectory(elm_ats_api)
-endif()
+#endif()
