@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <filesystem>
 
 #include <Epetra_Comm.h>
 #include <Epetra_MpiComm.h>
@@ -24,20 +25,6 @@
 // registration files
 #include "ats_registration_files.hh"
 
-
-// include fenv if it exists
-#include "boost/version.hpp"
-#if (BOOST_VERSION / 100 % 1000 >= 46)
-#include "boost/config.hpp"
-#ifndef BOOST_NO_FENV_H
-#ifdef _GNU_SOURCE
-#define AMANZI_USE_FENV
-#include "boost/detail/fenv.hpp"
-#endif
-#endif
-#endif
-
-#include "boost/filesystem.hpp"
 
 #include "elm_ats_driver.hh"
 #include "elm_ats_api.h"

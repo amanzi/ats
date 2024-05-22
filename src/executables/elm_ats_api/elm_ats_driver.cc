@@ -1,6 +1,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/resource.h>
+#include <filesystem>
 #include "errors.hh"
 #include "dbc.hh"
 
@@ -14,19 +15,6 @@
 
 // registration files
 #include "ats_registration_files.hh"
-
-// include fenv if it exists
-#include "boost/version.hpp"
-#if (BOOST_VERSION / 100 % 1000 >= 46)
-#include "boost/config.hpp"
-#ifndef BOOST_NO_FENV_H
-#ifdef _GNU_SOURCE
-#define AMANZI_USE_FENV
-#include "boost/detail/fenv.hpp"
-#endif
-#endif
-#endif
-#include "boost/filesystem.hpp"
 
 #include "AmanziComm.hh"
 #include "CompositeVector.hh"
@@ -53,7 +41,7 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts) {
   if (input_filename.empty()) {
     if (rank == 0)
       std::cerr << "ERROR: no input file provided" << std::endl;
-  } else if (!boost::filesystem::exists(input_filename)) {
+  } else if (!std::filesystem::exists(input_filename)) {
     if (rank == 0)
       std::cerr << "ERROR: input file \"" << input_filename << "\" does not exist." << std::endl;
   }
