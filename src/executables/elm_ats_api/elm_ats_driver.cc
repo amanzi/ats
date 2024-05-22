@@ -98,7 +98,7 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   wc_key_ = Keys::readKey(*plist_, domain_subsurf_, "conserved", "water_content");
   pc_key_ = Keys::readKey(*plist_, domain_subsurf_, "capillary_pressure_gas_liq", "capillary_pressure_gas_liq");
   sat_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation", "saturation_liquid");
-  
+
   // water fluxes
   infilt_key_ = Keys::readKey(*plist_, domain_surf_, "surface-subsurface flux", "surface_subsurface_flux");
   evap_key_ = Keys::readKey(*plist_, domain_surf_, "evaporation", "evaporation");
@@ -133,10 +133,10 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   //    if coupling zone is the entire subsurface mesh (as currently coded) or
   //    a portion of the total depth specified by # of cells into the
   //    subsurface
-  auto& col_zero = mesh_subsurf_->column.getCells(0);
+  auto& col_zero = mesh_subsurf_->columns.getCells(0);
   ncells_per_col_ = col_zero.size();
   for (int col=0; col!=ncolumns_; ++col)
-    AMANZI_ASSERT(mesh_subsurf_->column.getCells(col).size() == ncells_per_col_);
+    AMANZI_ASSERT(mesh_subsurf_->columns.getCells(col).size() == ncells_per_col_);
 }
 
 
@@ -176,7 +176,7 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(wtd_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
-  
+
   // per cell ATS water state
   requireAtNext(pc_key_, Amanzi::Tags::NEXT, *S_)
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
@@ -211,7 +211,7 @@ ELM_ATSDriver::setup()
     .SetMesh(mesh_subsurf_)->AddComponent("cell", AmanziMesh::CELL, 1);
 
 
-  
+
   requireAtNext(evap_key_, Amanzi::Tags::NEXT, *S_)
    .SetMesh(mesh_surf_)->AddComponent("cell", AmanziMesh::CELL, 1);
   requireAtNext(trans_key_, Amanzi::Tags::NEXT, *S_)
@@ -256,10 +256,10 @@ void ELM_ATSDriver::get_mesh_info(int& ncols_local,
   for (int i=0; i!=ncolumns_; ++i) pft[i] = 1;
 
   nlevgrnd = ncells_per_col_;
-  const auto& cells_in_col = mesh_subsurf_->cells_of_column(0);
-  const auto& fc = mesh_subsurf_->getCentroid(mesh_subsurf_->column.getFaces(0)[0]);
+  const auto& cells_in_col = mesh_subsurf_->columns.getCells(0);
+  const auto& fc = mesh_subsurf_->getCentroid(mesh_subsurf_->columns.getFaces(0)[0]);
   for (int i=0; i!=ncells_per_col_; ++i) {
-    depth[i] = fc[2] - mesh_subsurf_->cell_centroid(cells_in_col[i])[2];
+    depth[i] = fc[2] - mesh_subsurf_->getCentroid(cells_in_col[i])[2];
   }
 
   // hard-coded Toledo OH for now...
@@ -337,7 +337,7 @@ void ELM_ATSDriver::init_pressure_from_wc_(double const * const elm_water_conten
   // per-column hydrostatic pressure in areas of continuous total saturation
   // unsaturated areas are considered to be in contact with atmosphere
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
     int top_sat_idx = -1;
     double sat_depth = 0.0;
     for (int j=0; j!=ncells_per_col_; ++j) {
@@ -548,8 +548,8 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
 
   // TODO look into ELM effective porosity, ATS ice density, ice saturation
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& faces = mesh_subsurf_->column.getFaces(i);
-    const auto& cells_of_col = mesh_subsurf_->column.getCells(i);
+    const auto& faces = mesh_subsurf_->columns.getFaces(i);
+    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
       const double dz = mesh_subsurf_->getCentroid(faces[j])[2] - mesh_subsurf_->getCentroid(faces[j + 1])[2];
       sat_liq[j * ncolumns_ + i] = satl[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]] * dz;
@@ -573,11 +573,11 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
 //  int z_index = mesh_subsurf_->space_dimension() - 1;
 //  const auto& gravity = S_->Get<AmanziGeometry::Point>("gravity", Amanzi::Tags::DEFAULT);
 //  const double g_inv = 1.0 / gravity[z_index]; // should be -9.80665 m s^-2
-//    
+//
 //  S_->GetEvaluator(pres_key_, Amanzi::Tags::NEXT).Update(*S_, pres_key_);
 //   const auto& pres = *S_->Get<CompositeVector>(pres_key_, Amanzi::Tags::NEXT)
 //     .ViewComponent("cell", false);
-//  
+//
 //  S_->GetEvaluator(pc_key_, Amanzi::Tags::NEXT).Update(*S_, "ELM");
 //  const auto& pc = *S_->Get<CompositeVector>(pc_key_, Amanzi::Tags::NEXT)
 //    .ViewComponent("cell", false);
@@ -639,8 +639,8 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
   // convert mol/m3/s to mmH2O/s by integrating over dz - NO?
   // treat the same as surface fluxes?
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& faces = mesh_subsurf_->column.getFaces(i);
-    const auto& cells = mesh_subsurf_->column.getCells(i);
+    const auto& faces = mesh_subsurf_->columns.getFaces(i);
+    const auto& cells = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
       double dz = mesh_subsurf_->getCentroid(faces[j])[2] - mesh_subsurf_->getCentroid(faces[j + 1])[2];
       AMANZI_ASSERT(dz > 0.);
@@ -685,7 +685,7 @@ void ELM_ATSDriver::copyToSub_(double const * const in, const Key& key, Key owne
     .ViewComponent("cell", false);
 
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
       vec[0][cells_of_col[j]] = in[j * ncolumns_ + i];
     }
@@ -716,7 +716,7 @@ void ELM_ATSDriver::copyFromSub_(double * const out, const Key& key) const
     .ViewComponent("cell", false);
 
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
       out[j * ncolumns_ + i] = vec[0][cells_of_col[j]];
     }
