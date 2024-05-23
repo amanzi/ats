@@ -11,6 +11,7 @@
 #include "Teuchos_TimeMonitor.hpp"
 #include "Teuchos_StandardParameterEntryValidators.hpp"
 #include "Teuchos_VerboseObjectParameterListHelpers.hpp"
+#include "Teuchos_DefaultMpiComm.hpp"
 #include "VerboseObject.hh"
 
 // registration files
@@ -31,6 +32,7 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts) {
   //auto comm = getDefaultComm();
   auto c_comm = MPI_Comm_f2c(*f_comm);
   auto comm = getComm(c_comm);
+  auto teuchos_comm = Teuchos::rcp(new Teuchos::MpiComm<int>(c_comm));
   auto rank = comm->MyPID();
 
   // convert input file to std::string for easier handling
@@ -48,14 +50,17 @@ createELM_ATSDriver(MPI_Fint *f_comm, const char *infile, int npfts) {
 
   // -- parse input file
   Teuchos::RCP<Teuchos::ParameterList> plist = Teuchos::getParametersFromXmlFile(input_filename);
-  return new ELM_ATSDriver(plist, comm, npfts);
+
+  auto wallclock_timer = Teuchos::TimeMonitor::getNewCounter("wallclock duration");
+  return new ELM_ATSDriver(plist, wallclock_timer, teuchos_comm, comm, npfts);
 }
 
-
 ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                             const Comm_ptr_type& comm,
+                             const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
+                             const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
+                             const Amanzi::Comm_ptr_type& comm,
                              int npfts)
-  : Coordinator(plist, comm),
+  : Coordinator(plist, wallclock_timer, teuchos_comm, comm),
     npfts_(npfts),
     ncolumns_(-1),
     ncells_per_col_(-1)
@@ -122,18 +127,15 @@ ELM_ATSDriver::ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
   //sat_gas_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation gas", "saturation_gas"); // probably never needed
   //sat_ice_key_ = Keys::readKey(*plist_, domain_subsurf_, "saturation ice", "saturation_ice"); // not until energy
 
-  // -- build columns to allow indexing by column
-  mesh_subsurf_->buildColumns();
-
   // -- check that number of surface cells = number of columns
-  ncolumns_ = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  AMANZI_ASSERT(ncolumns_ == mesh_subsurf_->columns(false));
+  ncolumns_ = mesh_surf_->getNumEntities(AmanziMesh::CELL, AmanziMesh::Parallel_kind::OWNED);
+  AMANZI_ASSERT(ncolumns_ == mesh_subsurf_->columns.num_columns_owned);
 
   // -- get num cells per column - include consistency check later need to know
   //    if coupling zone is the entire subsurface mesh (as currently coded) or
   //    a portion of the total depth specified by # of cells into the
   //    subsurface
-  auto& col_zero = mesh_subsurf_->columns.getCells(0);
+  auto col_zero = mesh_subsurf_->columns.getCells(0);
   ncells_per_col_ = col_zero.size();
   for (int col=0; col!=ncolumns_; ++col)
     AMANZI_ASSERT(mesh_subsurf_->columns.getCells(col).size() == ncells_per_col_);
@@ -244,7 +246,7 @@ void ELM_ATSDriver::get_mesh_info(int& ncols_local,
         double * const depth)
 {
   ncols_local = ncolumns_;
-  ncols_global = mesh_surf_->cell_map(AmanziMesh::Entity_kind::CELL).NumGlobalElements();
+  ncols_global = mesh_surf_->getMap(AmanziMesh::Entity_kind::CELL, false).NumGlobalElements();
 
   // copyFromSurf_(elev, elev_key_);
   // copyFromSurf_(surface_area, surf_cv_key_);
@@ -257,9 +259,15 @@ void ELM_ATSDriver::get_mesh_info(int& ncols_local,
 
   nlevgrnd = ncells_per_col_;
   const auto& cells_in_col = mesh_subsurf_->columns.getCells(0);
-  const auto& fc = mesh_subsurf_->getCentroid(mesh_subsurf_->columns.getFaces(0)[0]);
+  double ldepth = 0.;
+  double top_face_z = mesh_subsurf_->getFaceCentroid(mesh_subsurf_->columns.getFaces(0)[0])[2];
   for (int i=0; i!=ncells_per_col_; ++i) {
-    depth[i] = fc[2] - mesh_subsurf_->getCentroid(cells_in_col[i])[2];
+    double bottom_face_z = mesh_subsurf_->getFaceCentroid(mesh_subsurf_->columns.getFaces(0)[i+1])[2];
+    double dz = top_face_z - bottom_face_z;
+    ldepth += dz/2.;
+    depth[i] = ldepth;
+    top_face_z = bottom_face_z;
+    ldepth += dz/2.;
   }
 
   // hard-coded Toledo OH for now...
@@ -548,11 +556,11 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
 
   // TODO look into ELM effective porosity, ATS ice density, ice saturation
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& faces = mesh_subsurf_->columns.getFaces(i);
-    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
+    const auto faces = mesh_subsurf_->columns.getFaces(i);
+    const auto cells = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      const double dz = mesh_subsurf_->getCentroid(faces[j])[2] - mesh_subsurf_->getCentroid(faces[j + 1])[2];
-      sat_liq[j * ncolumns_ + i] = satl[0][cells_of_col[j]] * por[0][cells_of_col[j]] * dens[0][cells_of_col[j]] * dz;
+      const double dz = mesh_subsurf_->getFaceCentroid(faces[j])[2] - mesh_subsurf_->getFaceCentroid(faces[j + 1])[2];
+      sat_liq[j * ncolumns_ + i] = satl[0][cells[j]] * por[0][cells[j]] * dens[0][cells[j]] * dz;
     }
   }
 
@@ -583,10 +591,10 @@ ELM_ATSDriver::get_waterstate(double * const ponded_depth,
 //    .ViewComponent("cell", false);
 //
 //  for (int i=0; i!=ncolumns_; ++i) {
-//    const auto& cells_of_col = mesh_subsurf_->cells_of_column(i);
+//    const auto& cells = mesh_subsurf_->columns.getCells(i);
 //    for (int j=0; j!=ncells_per_col_; ++j) {
-//      matric_potential[j * ncolumns_ + i] = pc[0][cells_of_col[j]] * g_inv;
-//      soil_water_potential[j * ncolumns_ + i] = 0.101325 - 1.e-6 * pres[0][cells_of_col[j]];
+//      matric_potential[j * ncolumns_ + i] = pc[0][cells[j]] * g_inv;
+//      soil_water_potential[j * ncolumns_ + i] = 0.101325 - 1.e-6 * pres[0][cells[j]];
 //    }
 //  }
 }
@@ -642,7 +650,7 @@ ELM_ATSDriver::get_water_fluxes(double * const surf_subsurf_flx,
     const auto& faces = mesh_subsurf_->columns.getFaces(i);
     const auto& cells = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      double dz = mesh_subsurf_->getCentroid(faces[j])[2] - mesh_subsurf_->getCentroid(faces[j + 1])[2];
+      double dz = mesh_subsurf_->getFaceCentroid(faces[j])[2] - mesh_subsurf_->getFaceCentroid(faces[j + 1])[2];
       AMANZI_ASSERT(dz > 0.);
       const double factor = dz * 1000.0 / subsurfdens[0][cells[j]];
       transpiration[j * ncolumns_ + i] = trans[0][cells[j]] * factor;
@@ -685,9 +693,9 @@ void ELM_ATSDriver::copyToSub_(double const * const in, const Key& key, Key owne
     .ViewComponent("cell", false);
 
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
+    const auto& cells = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      vec[0][cells_of_col[j]] = in[j * ncolumns_ + i];
+      vec[0][cells[j]] = in[j * ncolumns_ + i];
     }
   }
 
@@ -716,9 +724,9 @@ void ELM_ATSDriver::copyFromSub_(double * const out, const Key& key) const
     .ViewComponent("cell", false);
 
   for (int i=0; i!=ncolumns_; ++i) {
-    const auto& cells_of_col = mesh_subsurf_->columns.getCells(i);
+    const auto cells = mesh_subsurf_->columns.getCells(i);
     for (int j=0; j!=ncells_per_col_; ++j) {
-      out[j * ncolumns_ + i] = vec[0][cells_of_col[j]];
+      out[j * ncolumns_ + i] = vec[0][cells[j]];
     }
   }
 }

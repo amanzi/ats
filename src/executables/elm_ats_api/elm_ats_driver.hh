@@ -49,7 +49,9 @@ class ELM_ATSDriver : public Coordinator {
 public:
 
   ELM_ATSDriver(const Teuchos::RCP<Teuchos::ParameterList>& plist,
-                const Comm_ptr_type& comm,
+                const Teuchos::RCP<Teuchos::Time>& wallclock_timer,
+                const Teuchos::RCP<const Teuchos::Comm<int>>& teuchos_comm,
+                const Amanzi::Comm_ptr_type& comm,
                 int npfts = 17);
 
   void finalize();
