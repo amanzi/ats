@@ -111,6 +111,10 @@ add_amanzi_library(ats_mpc
                    HEADERS ${ats_mpc_inc_files}
 		   LINK_LIBS ${ats_mpc_link_libs})
 
+if (APPLE)
+  set_target_properties(ats_mpc PROPERTIES LINK_FLAGS "-ld_classic")
+endif()
+
 # register factories
 register_evaluator_with_factory(
   HEADERFILE weak_mpc_reg.hh

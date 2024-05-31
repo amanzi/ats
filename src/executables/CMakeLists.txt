@@ -142,7 +142,7 @@ add_amanzi_library(ats_executable
   HEADERS ${ats_inc_files}
   LINK_LIBS ${amanzi_link_libs} ${tpl_link_libs})
 if (APPLE AND BUILD_SHARED_LIBS)
-  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+  set_target_properties(ats_executable PROPERTIES LINK_FLAGS "-ld_classic -Wl,-undefined,dynamic_lookup")
 endif()
 
 if (BUILD_TESTS)
@@ -165,6 +165,9 @@ if (BUILD_TESTS)
            KIND int
            SOURCE test/Main.cc test/executable_mesh_factory.cc
            LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+  if (APPLE)
+    set_target_properties(executable_mesh_factory PROPERTIES LINK_FLAGS "-ld_classic")
+  endif()			  
   add_amanzi_test(executable_mesh_factory_np2 executable_mesh_factory NPROCS 2 KIND uint)
   add_amanzi_test(executable_mesh_factory_np4 executable_mesh_factory NPROCS 4 KIND uint)
 
@@ -173,6 +176,9 @@ if (BUILD_TESTS)
     KIND int
     SOURCE test/Main.cc test/executable_coupled_water.cc
     LINK_LIBS ats_executable ${ats_link_libs} ${UnitTest_LIBRARIES} ${NOX_LIBRARIES} ${HDF5_LIBRARIES})
+  if (APPLE)
+    set_target_properties(executable_coupled_water PROPERTIES LINK_FLAGS "-ld_classic")
+  endif()			  
 
 endif()
 
@@ -181,6 +187,9 @@ add_amanzi_executable(ats
   LINK_LIBS ats_executable ${fates_link_libs} ${tpl_link_libs} ${ats_link_libs} ${amanzi_link_libs}
   OUTPUT_NAME ats
   OUTPUT_DIRECTORY ${ATS_BINARY_DIR})
+if (APPLE)
+  set_target_properties(ats PROPERTIES LINK_FLAGS "-ld_classic")
+endif()
 
 # set this here for now
 # add option to bootstrap before completion

@@ -65,6 +65,10 @@ add_amanzi_library(ats_transport
                    HEADERS ${ats_transport_inc_files}
 		   LINK_LIBS ${ats_transport_link_libs})
 
+if (APPLE)
+  set_target_properties(ats_transport PROPERTIES LINK_FLAGS "-ld_classic")
+endif()
+
 #================================================
 # register evaluators/factories/pks
 
