@@ -17,9 +17,9 @@ namespace SurfaceBalance {
 const std::string SurfaceBalanceBase::pk_type_ = "general surface balance";
 
 SurfaceBalanceBase::SurfaceBalanceBase(const Comm_ptr_type& comm,
-        Teuchos::ParameterList& pk_tree,
-        const Teuchos::RCP<Teuchos::ParameterList>& plist,
-        const Teuchos::RCP<State>& S)
+                                       Teuchos::ParameterList& pk_tree,
+                                       const Teuchos::RCP<Teuchos::ParameterList>& plist,
+                                       const Teuchos::RCP<State>& S)
   : PK_PhysicalBDF_Default(comm, pk_tree, plist, S)
 {}
 
@@ -212,7 +212,8 @@ SurfaceBalanceBase::FunctionalResidual(double t_old,
 
     if (theta_ > 0.0) {
       S_->GetEvaluator(source_key_, tag_next_).Update(*S_, name_);
-      g->getData()->elementWiseMultiply(-theta_, S_->Get<CompositeVector>(source_key_, tag_next_), cv, 1.);
+      g->getData()->elementWiseMultiply(
+        -theta_, S_->Get<CompositeVector>(source_key_, tag_next_), cv, 1.);
       if (vo_->os_OK(Teuchos::VERB_HIGH)) {
         db_->WriteVector(
           "source1", S_->GetPtr<CompositeVector>(source_key_, tag_next_).ptr(), false);
@@ -302,17 +303,20 @@ SurfaceBalanceBase::ModifyPredictor(double h,
     int n_modified_local = 0;
     for (const auto& compname : *u->getData()) {
       auto u_c = u->getData()->viewComponent(compname, false);
-      Kokkos::parallel_reduce("SurfaceBalanceBase::ModifyPredictor",
-              u_c.extent(0),
-              KOKKOS_LAMBDA(const int i, int& n_modified) {
-                if (u_c(i,0) < 0.) {
-                  n_modified++;
-                  u_c(i,0) = 0.;
-                }
-              }, n_modified_local);
+      Kokkos::parallel_reduce(
+        "SurfaceBalanceBase::ModifyPredictor",
+        u_c.extent(0),
+        KOKKOS_LAMBDA(const int i, int& n_modified) {
+          if (u_c(i, 0) < 0.) {
+            n_modified++;
+            u_c(i, 0) = 0.;
+          }
+        },
+        n_modified_local);
     }
     int n_modified_global = 0;
-    Teuchos::reduceAll(*u->getData()->getComm(), Teuchos::REDUCE_SUM, 1, &n_modified_local, &n_modified_global);
+    Teuchos::reduceAll(
+      *u->getData()->getComm(), Teuchos::REDUCE_SUM, 1, &n_modified_local, &n_modified_global);
     return n_modified_global > 0;
   }
   return false;

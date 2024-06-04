@@ -55,7 +55,7 @@ class OverlandPressureWaterContentModel {
 
   OverlandPressureWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    WC_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    WC_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
     auto domain = Keys::getDomain(WC_key_.first);
     pres_key_ = Keys::readKeyTag(*plist, domain, "pressure", "pressure", WC_key_.second);
     cv_key_ = Keys::readKeyTag(*plist, domain, "cell volume", "cell_volume", WC_key_.second);
@@ -86,7 +86,12 @@ class OverlandPressureWaterContentModel {
     cv_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { WC_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      WC_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { pres_key_, cv_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int c) const

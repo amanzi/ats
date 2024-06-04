@@ -75,7 +75,8 @@ TranspirationDistributionEvaluator::InitializeFromPlist_()
   std::string year_duration_units = plist_.get<std::string>("year duration units", "noleap");
 
   // new state!
-  land_cover_ = getLandCoverMap(plist_->sublist("model parameters"), { "leaf_on_doy", "leaf_off_doy" });
+  land_cover_ =
+    getLandCoverMap(plist_->sublist("model parameters"), { "leaf_on_doy", "leaf_off_doy" });
 
   // deal with units
   Amanzi::Utils::Units units;

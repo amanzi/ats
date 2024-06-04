@@ -14,14 +14,17 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-const std::string RadiationBalanceEvaluator::eval_type = "radiation balance, surface, snow, and canopy";
+const std::string RadiationBalanceEvaluator::eval_type =
+  "radiation balance, surface, snow, and canopy";
 
-RadiationBalanceEvaluator::RadiationBalanceEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+RadiationBalanceEvaluator::RadiationBalanceEvaluator(
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorModelCVByMaterial<RadiationBalanceModel>(plist)
 {}
 
 
-Teuchos::RCP<Evaluator> RadiationBalanceEvaluator::Clone() const
+Teuchos::RCP<Evaluator>
+RadiationBalanceEvaluator::Clone() const
 {
   return Teuchos::rcp(new RadiationBalanceEvaluator(*this));
 }
@@ -36,8 +39,7 @@ RadiationBalanceEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   for (const auto& dep : dependencies_) {
     // dependencies on same mesh, but some have two
-    if (dep.first == albedo_key || dep.first == emiss_key ||
-        dep.first == area_frac_key) {
+    if (dep.first == albedo_key || dep.first == emiss_key || dep.first == area_frac_key) {
       S.Require<CompositeVector, CompositeVectorSpace>(dep.first, dep.second)
         .SetMesh(S.GetMesh(Keys::getDomain(dep.first)))
         ->SetGhosted(false)

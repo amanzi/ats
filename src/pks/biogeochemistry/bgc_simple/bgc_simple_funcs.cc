@@ -699,8 +699,8 @@ BGCAdvance(double t,
         pft.Bstore += pft.Broot / (pft.Bleaf + pft.Bleafmemory) * storagecleaf *
                       pft.storagecroot2sw / pft.storagecleaf2sw;
       } //end of year check
-    }   //biomass check
-  }     // loop for different PFTs
+    } //biomass check
+  } // loop for different PFTs
 
   //---------------------------------------------------------------------------------
   //calculate shaded radiations for soil

@@ -68,7 +68,9 @@ class IntegratorColumnSum {
                       const AmanziMesh::Mesh& mesh);
 
   KOKKOS_INLINE_FUNCTION
-  int scan(const AmanziMesh::Entity_ID col, const AmanziMesh::Entity_ID c, AmanziGeometry::Point& p) const;
+  int scan(const AmanziMesh::Entity_ID col,
+           const AmanziMesh::Entity_ID c,
+           AmanziGeometry::Point& p) const;
 
   KOKKOS_INLINE_FUNCTION
   double coefficient(const AmanziMesh::Entity_ID col) const;

@@ -50,9 +50,10 @@ class RichardsWaterContentModel {
 
   RichardsWaterContentModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    WC_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    WC_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
     auto domain = Keys::getDomain(WC_key_.first);
-    nl_key_ = Keys::readKeyTag(*plist, domain, "molar density", "molar_density_liquid", WC_key_.second);
+    nl_key_ =
+      Keys::readKeyTag(*plist, domain, "molar density", "molar_density_liquid", WC_key_.second);
     sl_key_ = Keys::readKeyTag(*plist, domain, "saturation", "saturation_liquid", WC_key_.second);
     phi_key_ = Keys::readKeyTag(*plist, domain, "porosity", "porosity", WC_key_.second);
     cv_key_ = Keys::readKeyTag(*plist, domain, "cell volume", "cell_volume", WC_key_.second);
@@ -79,7 +80,12 @@ class RichardsWaterContentModel {
     cv_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { WC_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      WC_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { nl_key_, sl_key_, phi_key_, cv_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
@@ -113,7 +119,8 @@ class RichardsWaterContentModel {
 };
 
 template <class cView_type, class View_type>
-const std::string RichardsWaterContentModel<cView_type, View_type>::eval_type = "richards water content";
+const std::string RichardsWaterContentModel<cView_type, View_type>::eval_type =
+  "richards water content";
 
 } // namespace Relations
 } // namespace Flow

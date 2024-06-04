@@ -30,19 +30,19 @@ PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
 
   int nfaces = u_f.extent(0);
   for (auto& region_wrm : wrms_) {
-    auto rfaces = mesh_->getSetEntities(region_wrm.first, AmanziMesh::Entity_kind::FACE,
-            AmanziMesh::Parallel_kind::OWNED);
+    auto rfaces = mesh_->getSetEntities(
+      region_wrm.first, AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (AmanziMesh::Entity_ID f : rfaces) {
-      if (markers_f(f,0) == Operators::OPERATOR_BC_NEUMANN) {
-        double lambda = u_f(f,0);
+      if (markers_f(f, 0) == Operators::OPERATOR_BC_NEUMANN) {
+        double lambda = u_f(f, 0);
         // only do if below saturated
         if (lambda < 101325.) {
           auto fcells = mesh_->getFaceCells(f);
           AMANZI_ASSERT(fcells.size() == 1);
           int ierr = CalculateLambda_(f, fcells(0), region_wrm.second, u, lambda);
           AMANZI_ASSERT(!ierr);
-          if (!ierr) u_f(f,0) = lambda;
+          if (!ierr) u_f(f, 0) = lambda;
         }
       }
     }
@@ -53,16 +53,17 @@ PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
 
 Teuchos::RCP<PredictorDelegateBCFlux::FluxBCFunctor>
 PredictorDelegateBCFlux::CreateFunctor_(AmanziMesh::Entity_ID f,
-        AmanziMesh::Entity_ID c,
-        const Teuchos::RCP<WRMModel_type>& wrm,
-        const Teuchos::Ptr<const CompositeVector>& pres)
+                                        AmanziMesh::Entity_ID c,
+                                        const Teuchos::RCP<WRMModel_type>& wrm,
+                                        const Teuchos::Ptr<const CompositeVector>& pres)
 {
   // get cell's faces
   auto [faces, dirs] = mesh_->getCellFacesAndDirections(c);
 
   // index within that cell's faces
   unsigned int n = 0;
-  for (; n != faces.size(); ++n) if (faces(n) == f) break;
+  for (; n != faces.size(); ++n)
+    if (faces(n) == f) break;
   AMANZI_ASSERT(n != faces.size());
 
   // local matrix row, vector
@@ -76,47 +77,47 @@ PredictorDelegateBCFlux::CreateFunctor_(AmanziMesh::Entity_ID f,
   const auto& bc_values = bc_values_->viewComponent("face", false);
 
   // unscale the Aff for my cell with rel perm
-  double Krel = wrm->getModel().k_relative(wrm->getModel().saturation(101325. - pres_f(f,0)));
+  double Krel = wrm->getModel().k_relative(wrm->getModel().saturation(101325. - pres_f(f, 0)));
 
   // fill the arrays
   const auto& Aff_g = matrix_->local_op()->A.at(c);
   for (unsigned int i = 0; i != faces.size(); ++i) {
     Aff(i) = Aff_g(n, i) / Krel;
-    lambda(i) = pres_f(faces(i),0);
+    lambda(i) = pres_f(faces(i), 0);
   }
 
   // gravity flux
-  double bc_flux = mesh_->getFaceArea(f) * bc_values(f,0);
-  double gflux = rhs_f(faces(n),0) / Krel;
+  double bc_flux = mesh_->getFaceArea(f) * bc_values(f, 0);
+  double gflux = rhs_f(faces(n), 0) / Krel;
 
-// #if DEBUG_FLAG
-//   std::cout << "   Aff = ";
-//   for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*Aff)[i] << ", ";
-//   std::cout << std::endl << "   lambda = ";
-//   for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
-//   std::cout << std::endl << "   p_cell = " << (*pres)("cell", c) << std::endl;
-//   std::cout << "    and init K_rel = "
-//             << wrms_->second[(*wrms_->first)[c]]->k_relative(
-//                  wrms_->second[(*wrms_->first)[c]]->saturation(101325. - (*lambda)[n]))
-//             << std::endl;
-//   std::cout << "    to match fluxes: bc = " << bc_flux << " and grav = " << gflux << std::endl;
-// #endif
+  // #if DEBUG_FLAG
+  //   std::cout << "   Aff = ";
+  //   for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*Aff)[i] << ", ";
+  //   std::cout << std::endl << "   lambda = ";
+  //   for (unsigned int i = 0; i != faces.size(); ++i) std::cout << (*lambda)[i] << ", ";
+  //   std::cout << std::endl << "   p_cell = " << (*pres)("cell", c) << std::endl;
+  //   std::cout << "    and init K_rel = "
+  //             << wrms_->second[(*wrms_->first)[c]]->k_relative(
+  //                  wrms_->second[(*wrms_->first)[c]]->saturation(101325. - (*lambda)[n]))
+  //             << std::endl;
+  //   std::cout << "    to match fluxes: bc = " << bc_flux << " and grav = " << gflux << std::endl;
+  // #endif
 
   // create and return
-  return Teuchos::rcp(
-    new FluxBCFunctor(Aff, lambda, n, pres_c(c,0), bc_flux, gflux, dirs(n), 101325.0, wrm->getModel()));
+  return Teuchos::rcp(new FluxBCFunctor(
+    Aff, lambda, n, pres_c(c, 0), bc_flux, gflux, dirs(n), 101325.0, wrm->getModel()));
 }
 
 int
 PredictorDelegateBCFlux::CalculateLambda_(AmanziMesh::Entity_ID f,
-        AmanziMesh::Entity_ID c,
-        const Teuchos::RCP<WRMModel_type>& wrm,
-        const Teuchos::Ptr<const CompositeVector>& pres,
-        double& lambda)
+                                          AmanziMesh::Entity_ID c,
+                                          const Teuchos::RCP<WRMModel_type>& wrm,
+                                          const Teuchos::Ptr<const CompositeVector>& pres,
+                                          double& lambda)
 {
-// #if DEBUG_FLAG
-//   std::cout << " Flux correcting face " << f << ": q = " << (*bc_values_)[f] << std::endl;
-// #endif
+  // #if DEBUG_FLAG
+  //   std::cout << " Flux correcting face " << f << ": q = " << (*bc_values_)[f] << std::endl;
+  // #endif
 
   // start by making sure lambda is a reasonable guess, which may not be the case
   if (std::abs(lambda) > 1.e7) lambda = 101325.;
@@ -125,7 +126,7 @@ PredictorDelegateBCFlux::CalculateLambda_(AmanziMesh::Entity_ID f,
 
   // -- convergence criteria
   const auto& bc_values = bc_values_->viewComponent("face", false);
-  double eps = std::max(1.e-4 * std::abs(bc_values(f,0)), 1.e-8);
+  double eps = std::max(1.e-4 * std::abs(bc_values(f, 0)), 1.e-8);
   int max_it = 100;
   int actual_it(max_it);
 

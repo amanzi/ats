@@ -31,7 +31,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class SoilResistanceSakaguckiZengModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = false;
   static const std::string eval_type;
@@ -90,7 +89,12 @@ class SoilResistanceSakaguckiZengModel {
     poro_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { my_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      my_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { sat_gas_key_, poro_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int sc) const
@@ -99,14 +103,14 @@ class SoilResistanceSakaguckiZengModel {
     AmanziMesh::Entity_ID c = AmanziMesh::getFaceOnBoundaryInternalCell(mesh_sub_, f);
 
     double r_soil;
-    if (sat_gas_(c,0) == 0.) {
+    if (sat_gas_(c, 0) == 0.) {
       r_soil = 0.; // ponded water
     } else {
-      double vp_diffusion = 2.2e-5 * pow(poro_(c,0), 2) * pow(1 - sr_, 2 + 3 * b_);
-      double L_Rsoil = d_ * (exp(pow(sat_gas_(c,0), 5)) - 1) / (exp(1) - 1);
+      double vp_diffusion = 2.2e-5 * pow(poro_(c, 0), 2) * pow(1 - sr_, 2 + 3 * b_);
+      double L_Rsoil = d_ * (exp(pow(sat_gas_(c, 0), 5)) - 1) / (exp(1) - 1);
       r_soil = L_Rsoil / vp_diffusion;
     }
-    res_(sc,0) = r_soil;
+    res_(sc, 0) = r_soil;
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { assert(false); }

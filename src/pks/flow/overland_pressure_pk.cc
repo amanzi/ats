@@ -322,7 +322,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
     if (source_in_meters) {
       // create multiplicative evaluator for the product of density and the source
       Key source_key_meters = source_key_;
-      source_key_ = source_key_meters+"_mols_per_s";
+      source_key_ = source_key_meters + "_mols_per_s";
 
       S_->GetEvaluatorList(source_key_)
         .set<std::string>("evaluator type", "multiplicative")

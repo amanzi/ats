@@ -16,10 +16,12 @@ namespace Amanzi {
 namespace SurfaceBalance {
 namespace Relations {
 
-const std::string PETPriestleyTaylorEvaluator::eval_type = "potential evapotranspiration, Priestley-Taylor";
+const std::string PETPriestleyTaylorEvaluator::eval_type =
+  "potential evapotranspiration, Priestley-Taylor";
 
 
-PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+PETPriestleyTaylorEvaluator::PETPriestleyTaylorEvaluator(
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist),
     compatible_(false),
     limiter_(false),
@@ -101,29 +103,28 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
         alpha = lc.second.pt_alpha_transpiration;
       }
 
-      Kokkos::parallel_for("PETPriestleyTaylorEvaluator::Evaluate",
-                           lc_ids.extent(0),
-                           KOKKOS_LAMBDA(const int i) {
-                             AmanziMesh::Entity_ID c = lc_ids(i);
-                             double lh_vap;
-                             if (is_snow)
-                               lh_vap = PriestleyTaylor::latentHeatVaporization_snow(air_temp(c,0));
-                             else
-                               lh_vap = PriestleyTaylor::latentHeatVaporization_water(air_temp(c,0));
+      Kokkos::parallel_for(
+        "PETPriestleyTaylorEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_LAMBDA(const int i) {
+          AmanziMesh::Entity_ID c = lc_ids(i);
+          double lh_vap;
+          if (is_snow)
+            lh_vap = PriestleyTaylor::latentHeatVaporization_snow(air_temp(c, 0));
+          else
+            lh_vap = PriestleyTaylor::latentHeatVaporization_water(air_temp(c, 0));
 
-                             double ps_const = PriestleyTaylor::psychrometricConstant(lh_vap, elev(c,0));
-                             double vp_slope = PriestleyTaylor::vaporPressureSlope(air_temp(c,0));
-                             double hf_ground = PriestleyTaylor::groundHeatFlux(surf_temp(c,0), air_temp(c,0));
+          double ps_const = PriestleyTaylor::psychrometricConstant(lh_vap, elev(c, 0));
+          double vp_slope = PriestleyTaylor::vaporPressureSlope(air_temp(c, 0));
+          double hf_ground = PriestleyTaylor::groundHeatFlux(surf_temp(c, 0), air_temp(c, 0));
 
-                             double s1 = vp_slope / (vp_slope + ps_const);
-                             double s2 = rad(c,0) - hf_ground; // net radiation balance in W/m^2
+          double s1 = vp_slope / (vp_slope + ps_const);
+          double s2 = rad(c, 0) - hf_ground; // net radiation balance in W/m^2
 
-                             // 1000, density of water kg/m^2/s --> m/s
-                             res(c,0) = alpha / lh_vap * s1 * s2 / 1000.;
+          // 1000, density of water kg/m^2/s --> m/s
+          res(c, 0) = alpha / lh_vap * s1 * s2 / 1000.;
 
-                             // do not allow condensation in P-T
-                             res(c,0) = std::max(res(c,0), 0.0);
-                           });
+          // do not allow condensation in P-T
+          res(c, 0) = std::max(res(c, 0), 0.0);
+        });
     }
   }
 
@@ -154,30 +155,34 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
   Tag tag = my_keys_.front().second;
   if (limiter_ && wrt_key == limiter_key_) {
     auto limiter = S.Get<CompositeVector>(limiter_key_, tag).viewComponent("cell", false);
-    auto evap_val = S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
+    auto evap_val =
+      S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
     auto res = result[0]->viewComponent("cell", false);
 
-    Kokkos::parallel_for("PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
-                         res.extent(0),
-                         KOKKOS_LAMBDA(const int c) {
-                           double limiter_val = limiter(c, limiter_dof_);
-                           res(c,0) = limiter_val > 1.e-5 ? evap_val(c,0) / limiter_val : 0.;
-                           std::cout << "evap_val = " << evap_val(c,0) << std::endl;
-                           std::cout << "limiter_val = " << limiter_val << std::endl;
-                           std::cout << "res_val = " << res(c,0) << std::endl;
-                         });
+    Kokkos::parallel_for(
+      "PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
+      res.extent(0),
+      KOKKOS_LAMBDA(const int c) {
+        double limiter_val = limiter(c, limiter_dof_);
+        res(c, 0) = limiter_val > 1.e-5 ? evap_val(c, 0) / limiter_val : 0.;
+        std::cout << "evap_val = " << evap_val(c, 0) << std::endl;
+        std::cout << "limiter_val = " << limiter_val << std::endl;
+        std::cout << "res_val = " << res(c, 0) << std::endl;
+      });
 
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
     auto limiter = S.Get<CompositeVector>(one_minus_limiter_key_, tag).viewComponent("cell", false);
-    auto evap_val = S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
+    auto evap_val =
+      S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
     auto res = result[0]->viewComponent("cell", false);
 
-    Kokkos::parallel_for("PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
-                         res.extent(0),
-                         KOKKOS_LAMBDA(const int c) {
-                           double limiter_val = limiter(c, one_minus_limiter_dof_);
-                           res(c,0) = limiter_val > 1.e-5 ? -evap_val(c, 0) / (1 - limiter_val) : 0.;
-                         });
+    Kokkos::parallel_for(
+      "PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
+      res.extent(0),
+      KOKKOS_LAMBDA(const int c) {
+        double limiter_val = limiter(c, one_minus_limiter_dof_);
+        res(c, 0) = limiter_val > 1.e-5 ? -evap_val(c, 0) / (1 - limiter_val) : 0.;
+      });
   }
 }
 

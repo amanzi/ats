@@ -45,7 +45,9 @@ class IntegratorWaterTableDepth {
                             const AmanziMesh::Mesh& mesh);
 
   KOKKOS_INLINE_FUNCTION
-  int scan(const AmanziMesh::Entity_ID col, const AmanziMesh::Entity_ID c, AmanziGeometry::Point& p) const;
+  int scan(const AmanziMesh::Entity_ID col,
+           const AmanziMesh::Entity_ID c,
+           AmanziGeometry::Point& p) const;
 
   KOKKOS_INLINE_FUNCTION
   double coefficient(const AmanziMesh::Entity_ID col) const;
@@ -79,7 +81,6 @@ IntegratorWaterTableDepth::coefficient(const AmanziMesh::Entity_ID col) const
 {
   return 1. / surf_cv_(col, 0);
 }
-
 
 
 } //namespace Relations

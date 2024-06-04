@@ -58,7 +58,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class AlbedosThreeComponentModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = false;
   static const int n_dofs = 3;
@@ -81,7 +80,8 @@ class AlbedosThreeComponentModel {
     emissivity_key_ = Keys::readKeyTag(*plist, domain, "emissivities", emissivity_key, tag);
 
     // dependencies
-    unfrozen_fraction_key_ = Keys::readKeyTag(*plist, domain, "unfrozen fraction", "unfrozen_fraction", tag);
+    unfrozen_fraction_key_ =
+      Keys::readKeyTag(*plist, domain, "unfrozen fraction", "unfrozen_fraction", tag);
 
     // parameters
     is_constant_snow_albedo_ = plist->isParameter("albedo snow [-]");
@@ -91,9 +91,7 @@ class AlbedosThreeComponentModel {
 
     a_ice_ = plist->get<double>("albedo ice [-]", 0.44);
     a_water_ = plist->get<double>("albedo water [-]", 0.1168);
-    if (is_constant_snow_albedo_) {
-      a_snow_ = plist->get<double>("albedo snow [-]");
-    }
+    if (is_constant_snow_albedo_) { a_snow_ = plist->get<double>("albedo snow [-]"); }
 
     e_ice_ = plist->get<double>("emissivity ice [-]", 0.98);
     e_water_ = plist->get<double>("emissivity water [-]", 0.995);
@@ -123,9 +121,12 @@ class AlbedosThreeComponentModel {
   }
 
   KeyTagVector getMyKeys() const { return { albedo_key_, emissivity_key_ }; }
-  KeyTagVector getDependencies() const {
+  KeyTagVector getDependencies() const
+  {
     if (is_constant_snow_albedo_) {
-      return { unfrozen_fraction_key_, };
+      return {
+        unfrozen_fraction_key_,
+      };
     } else {
       return { unfrozen_fraction_key_, snow_dens_key_ };
     }
@@ -133,13 +134,13 @@ class AlbedosThreeComponentModel {
 
   KOKKOS_INLINE_FUNCTION void operator()(const int c) const
   {
-    albedo_(c,0) = land_cover_.albedo_ground;
-    albedo_(c,1) = uf_(c,0) * a_water_ + (1 - uf_(c,0)) * a_ice_;
-    albedo_(c,2) = is_constant_snow_albedo_ ? a_snow_ : Functions::albedoSnow(snow_dens_(c,0));
+    albedo_(c, 0) = land_cover_.albedo_ground;
+    albedo_(c, 1) = uf_(c, 0) * a_water_ + (1 - uf_(c, 0)) * a_ice_;
+    albedo_(c, 2) = is_constant_snow_albedo_ ? a_snow_ : Functions::albedoSnow(snow_dens_(c, 0));
 
-    emissivity_(c,0) = land_cover_.emissivity_ground;
-    emissivity_(c,1) = uf_(c,0) * e_water_ + (1 - uf_(c,0)) * e_ice_;
-    emissivity_(c,2) = e_snow_;
+    emissivity_(c, 0) = land_cover_.emissivity_ground;
+    emissivity_(c, 1) = uf_(c, 0) * e_water_ + (1 - uf_(c, 0)) * e_ice_;
+    emissivity_(c, 2) = e_snow_;
   }
 
   // derivatives not currently provided
@@ -165,11 +166,15 @@ const std::string AlbedosThreeComponentModel<cView_type, View_type>::eval_type =
   "albedos, three components";
 
 template <class cView_type, class View_type>
-const std::vector<std::string> AlbedosThreeComponentModel<cView_type, View_type>::subfield_names =
-{ "ground", "water", "snow" };
+const std::vector<std::string> AlbedosThreeComponentModel<cView_type, View_type>::subfield_names = {
+  "ground",
+  "water",
+  "snow"
+};
 
 
-using AlbedoThreeComponentEvaluator = EvaluatorMultiDOFModelCVByMaterial<AlbedosThreeComponentModel>;
+using AlbedoThreeComponentEvaluator =
+  EvaluatorMultiDOFModelCVByMaterial<AlbedosThreeComponentModel>;
 
 } // namespace Relations
 } // namespace SurfaceBalance

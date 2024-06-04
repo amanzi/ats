@@ -55,19 +55,7 @@ createMeshFromFile(const std::string& mesh_name,
   AmanziMesh::MeshFactory factory(comm, gm, mesh_plist);
   auto mesh = factory.create(file);
 
-  if (mesh != Teuchos::null) {
-    // potentially build columns
-    if (mesh_plist->isParameter("build columns from set")) {
-      std::vector<std::string> regionname = { mesh_plist->get<std::string>(
-        "build columns from set") };
-      mesh->buildColumns(regionname);
-    } else if (mesh_plist->get("build columns", true)) {
-      mesh->buildColumns();
-    }
-
-    // verify
-    checkVerifyMesh(*mesh_plist, mesh);
-  }
+  if (mesh != Teuchos::null) checkVerifyMesh(*mesh_plist, mesh);
 
   // check for deformable
   bool deformable = mesh_plist->get<bool>("deformable mesh", false);
@@ -97,19 +85,7 @@ createMeshGenerated(const std::string& mesh_name,
   AmanziMesh::MeshFactory factory(comm, gm, mesh_plist);
   auto mesh = factory.create(mesh_generated_plist);
 
-  if (mesh != Teuchos::null) {
-    // build columns
-    if (mesh_plist->isParameter("build columns from set")) {
-      std::vector<std::string> regionname = { mesh_plist->get<std::string>(
-        "build columns from set") };
-      mesh->buildColumns(regionname);
-    } else if (mesh_plist->get("build columns", false)) {
-      mesh->buildColumns();
-    }
-
-    // verify
-    checkVerifyMesh(*mesh_plist, mesh);
-  }
+  if (mesh != Teuchos::null) checkVerifyMesh(*mesh_plist, mesh);
 
   // check for deformable
   bool deformable = mesh_plist->get<bool>("deformable mesh", false);
@@ -390,16 +366,8 @@ createMeshColumn(const std::string& mesh_name,
   auto mesh = factory.createColumn(parent, lid, parent_list);
   bool deformable = mesh_plist->get<bool>("deformable mesh", false);
 
-  // build columns and verify
-  if (mesh != Teuchos::null) {
-    if (mesh_plist->isParameter("build columns from set")) {
-      std::string regionname = mesh_plist->get<std::string>("build columns from set");
-      mesh->buildColumns({ regionname });
-    } else if (mesh_plist->get("build columns", false)) {
-      mesh->buildColumns();
-    }
-    checkVerifyMesh(*mesh_plist, mesh);
-  }
+  // verify
+  if (mesh != Teuchos::null) checkVerifyMesh(*mesh_plist, mesh);
   S.RegisterMesh(mesh_name, mesh, deformable);
   if (vo.os_OK(Teuchos::VERB_HIGH)) {
     *vo.os() << "  based on column LID: " << lid << std::endl

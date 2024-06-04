@@ -30,14 +30,14 @@
 
 namespace Amanzi {
 
-template<>
+template <>
 REGISTER(SurfaceBalance::Relations::AlbedoTwoComponentEvaluator);
-template<>
+template <>
 REGISTER(SurfaceBalance::Relations::AlbedoThreeComponentEvaluator);
 
-template<>
+template <>
 REGISTER(SurfaceBalance::Relations::AreaFractionsTwoComponentEvaluator);
-template<>
+template <>
 REGISTER(SurfaceBalance::Relations::AreaFractionsThreeComponentEvaluator);
 
 REGISTER(SurfaceBalance::Relations::IncidentShortwaveRadiationEvaluator);

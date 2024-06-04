@@ -35,8 +35,7 @@ A boundary condition evaluator for seepage faces.
 
 namespace Amanzi {
 
-class EvaluatorFlowBCsSeepage
-  : public EvaluatorSecondary {
+class EvaluatorFlowBCsSeepage : public EvaluatorSecondary {
  public:
   explicit EvaluatorFlowBCsSeepage(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   EvaluatorFlowBCsSeepage(const EvaluatorFlowBCsSeepage& other) = default;

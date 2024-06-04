@@ -52,13 +52,16 @@ namespace SurfaceBalance {
 namespace Relations {
 
 
-class IncidentShortwaveRadiationEvaluator : public EvaluatorModelCV<IncidentShortwaveRadiationModel> {
+class IncidentShortwaveRadiationEvaluator
+  : public EvaluatorModelCV<IncidentShortwaveRadiationModel> {
  public:
   IncidentShortwaveRadiationEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
   IncidentShortwaveRadiationEvaluator(const IncidentShortwaveRadiationEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
-  virtual bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override {
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
     return false;
   }
 

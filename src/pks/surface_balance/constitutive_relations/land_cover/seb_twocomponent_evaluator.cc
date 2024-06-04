@@ -332,10 +332,9 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         new_snow[0][c] += area_fracs[0][c] * met.Ps;
 
         if (vo_.os_OK(Teuchos::VERB_EXTREME))
-          *vo_.os() << "CELL " << c << " NO_SNOW"
-                    << ": Ms = " << flux.M_surf << ", Es = " << flux.E_surf * 1.e-6
-                    << ", Mss = " << ss_water_source_l << ", Ess = " << ss_energy_source_l
-                    << ", Sn = " << flux.M_snow << std::endl;
+          *vo_.os() << "CELL " << c << " NO_SNOW" << ": Ms = " << flux.M_surf
+                    << ", Es = " << flux.E_surf * 1.e-6 << ", Mss = " << ss_water_source_l
+                    << ", Ess = " << ss_energy_source_l << ", Sn = " << flux.M_snow << std::endl;
 
         // diagnostics
         if (diagnostics_) {
@@ -400,10 +399,9 @@ SEBTwoComponentEvaluator::Evaluate_(const State& S, const std::vector<CompositeV
         new_snow[0][c] += std::max(met.Ps + mb.Me, 0.) * area_fracs[1][c];
 
         if (vo_.os_OK(Teuchos::VERB_EXTREME))
-          *vo_.os() << "CELL " << c << " SNOW"
-                    << ": Ms = " << flux.M_surf << ", Es = " << flux.E_surf * 1.e-6
-                    << ", Mss = " << 0. << ", Ess = " << 0. << ", Sn = " << flux.M_snow
-                    << std::endl;
+          *vo_.os() << "CELL " << c << " SNOW" << ": Ms = " << flux.M_surf
+                    << ", Es = " << flux.E_surf * 1.e-6 << ", Mss = " << 0. << ", Ess = " << 0.
+                    << ", Sn = " << flux.M_snow << std::endl;
 
         // diagnostics
         if (diagnostics_) {

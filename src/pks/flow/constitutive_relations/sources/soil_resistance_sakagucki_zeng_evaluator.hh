@@ -35,15 +35,19 @@ template <class Evaluator_type>
 class SoilResistanceSakaguckiZengEvaluator_ : public Evaluator_type {
  public:
   SoilResistanceSakaguckiZengEvaluator_(const Teuchos::RCP<Teuchos::ParameterList>& plist)
-    : Evaluator_type(plist) {}
-  SoilResistanceSakaguckiZengEvaluator_(const SoilResistanceSakaguckiZengEvaluator_& other) = default;
+    : Evaluator_type(plist)
+  {}
+  SoilResistanceSakaguckiZengEvaluator_(const SoilResistanceSakaguckiZengEvaluator_& other) =
+    default;
 
-  virtual Teuchos::RCP<Evaluator> Clone() const override {
+  virtual Teuchos::RCP<Evaluator> Clone() const override
+  {
     return Teuchos::rcp(new SoilResistanceSakaguckiZengEvaluator_(*this));
   }
 
  protected:
-  virtual void EnsureCompatibility_ToDeps_(State& S) override {
+  virtual void EnsureCompatibility_ToDeps_(State& S) override
+  {
     Teuchos::RCP<const AmanziMesh::Mesh> parent =
       S.GetMesh(Keys::getDomain(my_keys_.front().first))->getParentMesh();
     AMANZI_ASSERT(parent != Teuchos::null);
@@ -62,15 +66,14 @@ class SoilResistanceSakaguckiZengEvaluator_ : public Evaluator_type {
 
  private:
   static Utils::RegisteredFactory<Evaluator, SoilResistanceSakaguckiZengEvaluator_> reg_;
-
 };
 
 
 using SoilResistanceSakaguckiZengEvaluator =
   SoilResistanceSakaguckiZengEvaluator_<EvaluatorModelCV<SoilResistanceSakaguckiZengModel>>;
 
-using SoilResistanceSakaguckiZengEvaluatorByMaterial =
-  SoilResistanceSakaguckiZengEvaluator_<EvaluatorModelCVByMaterial<SoilResistanceSakaguckiZengModel>>;
+using SoilResistanceSakaguckiZengEvaluatorByMaterial = SoilResistanceSakaguckiZengEvaluator_<
+  EvaluatorModelCVByMaterial<SoilResistanceSakaguckiZengModel>>;
 
 } // namespace Relations
 } // namespace Flow

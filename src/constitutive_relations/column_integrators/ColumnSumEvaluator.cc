@@ -15,8 +15,8 @@ namespace Relations {
 namespace Impl {
 
 IntegratorColumnSum::IntegratorColumnSum(Teuchos::ParameterList& plist,
-        std::vector<cView_type>& deps,
-        const AmanziMesh::Mesh& mesh)
+                                         std::vector<cView_type>& deps,
+                                         const AmanziMesh::Mesh& mesh)
 {
   int i_dep(0);
   integrand_ = deps[i_dep++];

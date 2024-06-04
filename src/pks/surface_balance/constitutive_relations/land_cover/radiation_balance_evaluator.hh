@@ -81,7 +81,9 @@ class RadiationBalanceEvaluator : public EvaluatorModelCVByMaterial<RadiationBal
 
   static const std::string eval_type;
 
-  virtual bool IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override {
+  virtual bool
+  IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
+  {
     return false;
   }
 

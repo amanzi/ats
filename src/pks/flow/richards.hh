@@ -386,7 +386,7 @@ class Richards : public PK_PhysicalBDF_Default {
   bool upwind_from_prev_flux_;
 
   // mathematical operators
-  Teuchos::RCP<Operators::Operator> matrix_; // pc in PKPhysicalBDFBase
+  Teuchos::RCP<Operators::Operator> matrix_;         // pc in PKPhysicalBDFBase
   Teuchos::RCP<Operators::Operator> preconditioner_; // pc in PKPhysicalBDFBase
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> matrix_diff_;
   Teuchos::RCP<Operators::PDE_DiffusionWithGravity> preconditioner_diff_;

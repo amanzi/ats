@@ -60,7 +60,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class AlbedosTwoComponentModel {
  public:
-
   static const int n_dependencies = 3;
   static const bool provides_derivatives = false;
   static const int n_dofs = 2;
@@ -83,7 +82,8 @@ class AlbedosTwoComponentModel {
     emissivity_key_ = Keys::readKeyTag(*plist, domain, "emissivities", emissivity_key, tag);
 
     // dependencies
-    unfrozen_fraction_key_ = Keys::readKeyTag(*plist, domain, "unfrozen fraction", "unfrozen_fraction", tag);
+    unfrozen_fraction_key_ =
+      Keys::readKeyTag(*plist, domain, "unfrozen fraction", "unfrozen_fraction", tag);
     ponded_depth_key_ = Keys::readKeyTag(*plist, domain, "ponded depth", "ponded_depth", tag);
 
     // parameters
@@ -94,9 +94,7 @@ class AlbedosTwoComponentModel {
 
     a_ice_ = plist->get<double>("albedo ice [-]", 0.44);
     a_water_ = plist->get<double>("albedo water [-]", 0.1168);
-    if (is_constant_snow_albedo_) {
-      a_snow_ = plist->get<double>("albedo snow [-]");
-    }
+    if (is_constant_snow_albedo_) { a_snow_ = plist->get<double>("albedo snow [-]"); }
 
     e_ice_ = plist->get<double>("emissivity ice [-]", 0.98);
     e_water_ = plist->get<double>("emissivity water [-]", 0.995);
@@ -128,7 +126,8 @@ class AlbedosTwoComponentModel {
   }
 
   KeyTagVector getMyKeys() const { return { albedo_key_, emissivity_key_ }; }
-  KeyTagVector getDependencies() const {
+  KeyTagVector getDependencies() const
+  {
     if (is_constant_snow_albedo_) {
       return { unfrozen_fraction_key_, ponded_depth_key_ };
     } else {
@@ -138,27 +137,25 @@ class AlbedosTwoComponentModel {
 
   KOKKOS_INLINE_FUNCTION void operator()(const int c) const
   {
-    double albedo_water =
-      uf_(c,0) * a_water_ + (1 - uf_(c,0)) * a_ice_;
-    if (pd_(c,0) > 0.1) {
-      albedo_(c,0) = albedo_water;
+    double albedo_water = uf_(c, 0) * a_water_ + (1 - uf_(c, 0)) * a_ice_;
+    if (pd_(c, 0) > 0.1) {
+      albedo_(c, 0) = albedo_water;
     } else {
-      double frac = pd_(c,0) / 0.1;
-      albedo_(c,0) = frac * albedo_water + (1 - frac) * land_cover_.albedo_ground;
+      double frac = pd_(c, 0) / 0.1;
+      albedo_(c, 0) = frac * albedo_water + (1 - frac) * land_cover_.albedo_ground;
     }
 
-    albedo_(c,1) = is_constant_snow_albedo_ ? a_snow_ : Functions::albedoSnow(snow_dens_(c,0));
+    albedo_(c, 1) = is_constant_snow_albedo_ ? a_snow_ : Functions::albedoSnow(snow_dens_(c, 0));
 
-    double emissivity_water =
-      uf_(c,0) * e_water_ + (1 - uf_(c,0)) * e_ice_;
-    if (pd_(c,0) > 0.02) {
-      emissivity_(c,0) = emissivity_water;
+    double emissivity_water = uf_(c, 0) * e_water_ + (1 - uf_(c, 0)) * e_ice_;
+    if (pd_(c, 0) > 0.02) {
+      emissivity_(c, 0) = emissivity_water;
     } else {
-      double frac = pd_(c,0) / 0.02;
-      emissivity_(c,0) = frac * emissivity_water + (1 - frac) * land_cover_.emissivity_ground;
+      double frac = pd_(c, 0) / 0.02;
+      emissivity_(c, 0) = frac * emissivity_water + (1 - frac) * land_cover_.emissivity_ground;
     }
 
-    emissivity_(c,1) = e_snow_;
+    emissivity_(c, 1) = e_snow_;
   }
 
   // derivatives not currently provided
@@ -185,8 +182,10 @@ const std::string AlbedosTwoComponentModel<cView_type, View_type>::eval_type =
   "albedos, two components";
 
 template <class cView_type, class View_type>
-const std::vector<std::string> AlbedosTwoComponentModel<cView_type, View_type>::subfield_names =
-  { "ground_or_water", "snow" };
+const std::vector<std::string> AlbedosTwoComponentModel<cView_type, View_type>::subfield_names = {
+  "ground_or_water",
+  "snow"
+};
 
 
 using AlbedoTwoComponentEvaluator = EvaluatorMultiDOFModelCVByMaterial<AlbedosTwoComponentModel>;

@@ -49,22 +49,22 @@ class WRMModel {
     std::size_t liq_pos = akey.find("liquid");
     std::size_t gas_pos = akey.find("gas");
     if (liq_pos != std::string::npos) {
-      sl_key_ = KeyTag{akey, tag};
+      sl_key_ = KeyTag{ akey, tag };
       Key otherkey = akey.substr(0, liq_pos) + "gas" + akey.substr(liq_pos + 6);
       sg_key_ = Keys::readKeyTag(*plist, domain_name, "other saturation", otherkey, tag);
 
     } else if (gas_pos != std::string::npos) {
       Key sl_key = akey.substr(0, gas_pos) + "liquid" + akey.substr(gas_pos + 3);
       sl_key_ = Keys::readKeyTag(*plist, domain_name, "saturation", sl_key, tag);
-      sg_key_ = KeyTag{akey, tag};
+      sg_key_ = KeyTag{ akey, tag };
 
     } else {
       sl_key_ = Keys::readKeyTag(*plist, domain_name, "saturation", tag);
       sg_key_ = Keys::readKeyTag(*plist, domain_name, "other saturation", tag);
     }
 
-    pc_key_ =
-      Keys::readKeyTag(*plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq", tag);
+    pc_key_ = Keys::readKeyTag(
+      *plist, domain_name, "capillary pressure", "capillary_pressure_gas_liq", tag);
   }
 
   void
@@ -109,7 +109,8 @@ class WRMModel {
 
 
 template <class cView_type, class View_type, class WRM_type>
-const std::string WRMModel<cView_type, View_type, WRM_type>::eval_type = "wrm " + WRM_type::eval_type;
+const std::string WRMModel<cView_type, View_type, WRM_type>::eval_type =
+  "wrm " + WRM_type::eval_type;
 
 
 template <class cView_type, class View_type>

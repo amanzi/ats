@@ -33,16 +33,16 @@ namespace Flow {
 
 class PredictorDelegateBCFlux {
  public:
-
   using WRMEval_type = EvaluatorModelCVByMaterial<Relations::WRMVanGenuchtenModel>;
   using WRMModel_type = WRMEval_type::Model_type;
 
-  PredictorDelegateBCFlux(const Teuchos::RCP<const State>& S_next,
-                          const Teuchos::RCP<const AmanziMesh::MeshHost>& mesh,
-                          const Teuchos::RCP<Operators::PDE_Diffusion>& matrix,
-                          const std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>>& wrms,
-                          const Teuchos::RCP<const CompositeVector_<int>> bc_markers,
-                          const Teuchos::RCP<const CompositeVector> bc_values)
+  PredictorDelegateBCFlux(
+    const Teuchos::RCP<const State>& S_next,
+    const Teuchos::RCP<const AmanziMesh::MeshHost>& mesh,
+    const Teuchos::RCP<Operators::PDE_Diffusion>& matrix,
+    const std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>>& wrms,
+    const Teuchos::RCP<const CompositeVector_<int>> bc_markers,
+    const Teuchos::RCP<const CompositeVector> bc_values)
     : S_next_(S_next),
       mesh_(mesh),
       matrix_(matrix),
@@ -88,8 +88,7 @@ class PredictorDelegateBCFlux {
       double Krel = wrm_.k_relative(s);
 
       double q = 0;
-      for (unsigned int n = 0; n != lambda_.extent(0); ++n)
-        q += Aff_(n) * (cell_p_ - lambda_(n));
+      for (unsigned int n = 0; n != lambda_.extent(0); ++n) q += Aff_(n) * (cell_p_ - lambda_(n));
 
       return (q + g_flux_) * Krel - bc_flux_;
     }
@@ -108,11 +107,10 @@ class PredictorDelegateBCFlux {
   };
 
  protected:
-  Teuchos::RCP<FluxBCFunctor>
-  CreateFunctor_(AmanziMesh::Entity_ID f,
-                 AmanziMesh::Entity_ID c,
-                 const Teuchos::RCP<WRMModel_type>& wrm,
-                 const Teuchos::Ptr<const CompositeVector>& pres);
+  Teuchos::RCP<FluxBCFunctor> CreateFunctor_(AmanziMesh::Entity_ID f,
+                                             AmanziMesh::Entity_ID c,
+                                             const Teuchos::RCP<WRMModel_type>& wrm,
+                                             const Teuchos::Ptr<const CompositeVector>& pres);
 
   int CalculateLambda_(AmanziMesh::Entity_ID f,
                        AmanziMesh::Entity_ID c,

@@ -98,8 +98,8 @@ OverlandPressureFlow::AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g)
       ->elementWiseMultiply(
         -1.0,
         *S_->Get<CompositeVector>(cell_vol_key_, tag_next_)
-        .getComponent("cell", false)
-        ->getVector(0),
+           .getComponent("cell", false)
+           ->getVector(0),
         *S_->Get<CompositeVector>(source_key_, tag_next_).getComponent("cell", false),
         1.0);
   }

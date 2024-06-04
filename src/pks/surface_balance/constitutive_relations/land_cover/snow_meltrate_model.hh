@@ -60,7 +60,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class SnowMeltRateModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = true;
   static const std::string eval_type;
@@ -71,7 +70,8 @@ class SnowMeltRateModel {
     my_key_ = { Keys::cleanPListName(*plist), tag };
     auto domain = Keys::getDomain(my_key_.first);
 
-    exp_temp_key_ = Keys::readKeyTag(*plist, domain, "expected snow temperature", "expected_temperature", tag);
+    exp_temp_key_ =
+      Keys::readKeyTag(*plist, domain, "expected snow temperature", "expected_temperature", tag);
     swe_key_ = Keys::readKeyTag(*plist, domain, "snow water equivalent", "water_equivalent", tag);
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
@@ -104,43 +104,48 @@ class SnowMeltRateModel {
     swe_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { my_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      my_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { exp_temp_key_, swe_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-      if (exp_temp_(i,0) > 273.15) {
-        res_(i,0) = melt_rate_ * (exp_temp_(i,0) - 273.15);
+    if (exp_temp_(i, 0) > 273.15) {
+      res_(i, 0) = melt_rate_ * (exp_temp_(i, 0) - 273.15);
 
-        if (swe_(i,0) < land_cover_.snow_transition_depth) {
-          res_(i,0) *= std::max(0., swe_(i,0) / land_cover_.snow_transition_depth);
-        }
-
-      } else {
-        res_(i,0) = 0.0;
+      if (swe_(i, 0) < land_cover_.snow_transition_depth) {
+        res_(i, 0) *= std::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
       }
+
+    } else {
+      res_(i, 0) = 0.0;
+    }
   }
 
   // d/d_ai
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const
   {
-    if (exp_temp_(i,0) > 273.15) {
-      res_(i,0) = melt_rate_;
-      if (swe_(i,0) < land_cover_.snow_transition_depth) {
-        res_(i,0) *= std::max(0., swe_(i,0) / land_cover_.snow_transition_depth);
+    if (exp_temp_(i, 0) > 273.15) {
+      res_(i, 0) = melt_rate_;
+      if (swe_(i, 0) < land_cover_.snow_transition_depth) {
+        res_(i, 0) *= std::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
       }
     } else {
-      res_(i,0) = 0.0;
+      res_(i, 0) = 0.0;
     }
   }
 
   // d/d_rain
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
   {
-    if (swe_(i,0) < land_cover_.snow_transition_depth && exp_temp_(i,0) > 273.15) {
-      res_(i,0) = melt_rate_ * (exp_temp_(i,0) - 273.15) / land_cover_.snow_transition_depth;
+    if (swe_(i, 0) < land_cover_.snow_transition_depth && exp_temp_(i, 0) > 273.15) {
+      res_(i, 0) = melt_rate_ * (exp_temp_(i, 0) - 273.15) / land_cover_.snow_transition_depth;
     } else {
-      res_(i,0) = 0.0;
+      res_(i, 0) = 0.0;
     }
   }
 

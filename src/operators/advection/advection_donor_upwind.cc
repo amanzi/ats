@@ -44,7 +44,7 @@ AdvectionDonorUpwind::Apply(const Teuchos::RCP<Functions::BoundaryFunction>& bc_
                             bool include_bc_fluxes){
 
   // Part 1: Collect fluxes in faces
-  { field_->scatterMasterToGhosted("cell"); // communicate the cells
+  { field_ -> scatterMasterToGhosted("cell"); // communicate the cells
 const Epetra_MultiVector& field_c = *field_->viewComponent("cell", true);
 Epetra_MultiVector& field_f = *field_->viewComponent("face", true);
 

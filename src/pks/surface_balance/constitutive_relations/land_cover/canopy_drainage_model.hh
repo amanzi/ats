@@ -62,7 +62,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class CanopyDrainageModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = true;
   static const std::string eval_type;
@@ -89,11 +88,13 @@ class CanopyDrainageModel {
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     tau_ = model_list.get<double>("drainage timescale [s]", 864);
     if (tau_ <= 0) {
-      Errors::Message msg("CanopyDrainageModel: invalid \"drainage timescale [s]\", must be positive.");
+      Errors::Message msg(
+        "CanopyDrainageModel: invalid \"drainage timescale [s]\", must be positive.");
       Exceptions::amanzi_throw(msg);
     }
 
-    wc_sat_ = model_list.get<double>("saturated specific water content [m^3 H2O / m^2 leaf area]", 1.e-4);
+    wc_sat_ =
+      model_list.get<double>("saturated specific water content [m^3 H2O / m^2 leaf area]", 1.e-4);
     if (wc_sat_ < 0) {
       Errors::Message msg("\"saturated specific water content\" must be greater than 0.");
       Exceptions::amanzi_throw(msg);
@@ -124,15 +125,15 @@ class CanopyDrainageModel {
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    double wc_cell = fmax(wc_(i,0), 0.);
-    double ai_cell = fmax(ai_(i,0), 0.);
+    double wc_cell = fmax(wc_(i, 0), 0.);
+    double ai_cell = fmax(ai_(i, 0), 0.);
 
     // convert from m^3 H20/ m^2 leaf area to m^3 H20 / m^2 cell area
     double wc_cell_sat = wc_sat_ * ai_cell;
-    fracwet_(i,0) = wc_cell_sat > 0. ? wc_cell / wc_cell_sat : 0.;
+    fracwet_(i, 0) = wc_cell_sat > 0. ? wc_cell / wc_cell_sat : 0.;
 
     // must be in [0,1] -- note that wc_cell can be > wc_cell_sat
-    fracwet_(i,0) = fmax(fmin(fracwet_(i,0), 1.0), 0.0);
+    fracwet_(i, 0) = fmax(fmin(fracwet_(i, 0), 1.0), 0.0);
 
     if (wc_cell > wc_cell_sat) {
       //  is oversaturated and draining
@@ -140,27 +141,26 @@ class CanopyDrainageModel {
       // res_drainage_c(i,0) = (wc_cell - wc_cell_sat) / ai(i,0) / tau_;
       // to make it proportional in units of m^3 H20 per m^2 leaf area
       // but then we would have to multiply by ai to use it as a source
-      drainage_(i,0) = (wc_cell - wc_cell_sat) / tau_;
+      drainage_(i, 0) = (wc_cell - wc_cell_sat) / tau_;
     } else {
-      drainage_(i,0) = 0.;
+      drainage_(i, 0) = 0.;
     }
   }
 
   // d/d_ai
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const {
-    assert(false);
-  }
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { assert(false); }
 
   // d/d_wc
-  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const {
-    double wc_cell = fmax(wc_(i,0), 0.);
-    double wc_cell_sat = wc_sat_ * ai_(i,0);
-    fracwet_(i,0) = wc_cell_sat > 0. ? 1 / wc_cell_sat : 0;
+  KOKKOS_INLINE_FUNCTION void operator()(Deriv<1>, const int i) const
+  {
+    double wc_cell = fmax(wc_(i, 0), 0.);
+    double wc_cell_sat = wc_sat_ * ai_(i, 0);
+    fracwet_(i, 0) = wc_cell_sat > 0. ? 1 / wc_cell_sat : 0;
     if (wc_cell > wc_cell_sat) {
       //  is oversaturated and draining
-      drainage_(i,0) = 1.0 / tau_;
+      drainage_(i, 0) = 1.0 / tau_;
     } else {
-      drainage_(i,0) = 0.;
+      drainage_(i, 0) = 0.;
     }
   }
 
@@ -176,8 +176,7 @@ class CanopyDrainageModel {
 
 
 template <class cView_type, class View_type>
-const std::string CanopyDrainageModel<cView_type, View_type>::eval_type =
-  "canopy drainage";
+const std::string CanopyDrainageModel<cView_type, View_type>::eval_type = "canopy drainage";
 
 } // namespace Relations
 } // namespace SurfaceBalance

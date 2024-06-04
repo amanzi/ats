@@ -300,12 +300,17 @@ class IncidentShortwaveRadiationModel {
 
   explicit IncidentShortwaveRadiationModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    my_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    my_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
     auto domain = Keys::getDomain(my_key_.first);
 
-    slope_key_ = Keys::readKeyTag(*plist, domain, "slope magnitude", "slope_magnitude", my_key_.second);
+    slope_key_ =
+      Keys::readKeyTag(*plist, domain, "slope magnitude", "slope_magnitude", my_key_.second);
     aspect_key_ = Keys::readKeyTag(*plist, domain, "aspect", "aspect", my_key_.second);
-    sw_in_key_ = Keys::readKeyTag(*plist, domain, "incoming shortwave radiation", "incoming_shortwave_radiation", my_key_.second);
+    sw_in_key_ = Keys::readKeyTag(*plist,
+                                  domain,
+                                  "incoming shortwave radiation",
+                                  "incoming_shortwave_radiation",
+                                  my_key_.second);
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     daily_avg_ = model_list.get<bool>("daily averaged", true);
@@ -316,7 +321,6 @@ class IncidentShortwaveRadiationModel {
                           "not in valid range [-90,90]");
       Exceptions::amanzi_throw(msg);
     }
-
   }
 
   void
@@ -337,7 +341,12 @@ class IncidentShortwaveRadiationModel {
     sw_in = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { my_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      my_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { slope_key_, aspect_key_, sw_in_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
@@ -347,23 +356,27 @@ class IncidentShortwaveRadiationModel {
       double hour = 12;
       // to keep this function smooth, we interpolate between neighboring days
       if (doy_i < doy) {
-        double rad_i = Functions::radiation(slope(i,0), aspect(i,0), doy_i, hour, lat_, sw_in(i,0));
+        double rad_i =
+          Functions::radiation(slope(i, 0), aspect(i, 0), doy_i, hour, lat_, sw_in(i, 0));
         int doy_ii = doy_i + 1;
         if (doy_ii > 364) doy_ii = 0;
-        double rad_ii = Functions::radiation(slope(i,0), aspect(i,0), doy_ii, hour, lat_, sw_in(i,0));
+        double rad_ii =
+          Functions::radiation(slope(i, 0), aspect(i, 0), doy_ii, hour, lat_, sw_in(i, 0));
         rad = rad_i + (doy - doy_i) * rad_ii;
       } else {
-        double rad_i = Functions::radiation(slope(i,0), aspect(i,0), doy_i, hour, lat_, sw_in(i,0));
+        double rad_i =
+          Functions::radiation(slope(i, 0), aspect(i, 0), doy_i, hour, lat_, sw_in(i, 0));
         int doy_ii = doy_i - 1;
         if (doy_ii < 0) doy_ii = 364;
-        double rad_ii = Functions::radiation(slope(i,0), aspect(i,0), doy_ii, hour, lat_, sw_in(i,0));
+        double rad_ii =
+          Functions::radiation(slope(i, 0), aspect(i, 0), doy_ii, hour, lat_, sw_in(i, 0));
         rad = rad_i + (doy_i - doy) * rad_ii;
       }
     } else {
       double hour = 12.0 + 24 * (doy - doy_i);
-      rad = Functions::radiation(slope(i,0), aspect(i,0), doy_i, hour, lat_, sw_in(i,0));
+      rad = Functions::radiation(slope(i, 0), aspect(i, 0), doy_i, hour, lat_, sw_in(i, 0));
     }
-    sw(i,0) = rad;
+    sw(i, 0) = rad;
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { assert(false); }
@@ -387,16 +400,13 @@ class IncidentShortwaveRadiationModel {
 
   View_type sw;
   cView_type slope, aspect, sw_in;
-
 };
 
 
 template <class cView_type, class View_type>
-const std::string IncidentShortwaveRadiationModel<cView_type, View_type>::eval_type =
-  "NOT_USED";
+const std::string IncidentShortwaveRadiationModel<cView_type, View_type>::eval_type = "NOT_USED";
 
 
 } // namespace Relations
 } // namespace SurfaceBalance
 } // namespace Amanzi
-

@@ -100,7 +100,8 @@ getLandCoverMap(Teuchos::ParameterList& plist, const std::vector<std::string>& r
     }
   }
   if (lc.size() == 0) {
-    Errors::Message message("LandCover is used, but no entries were found in the model parameters list.");
+    Errors::Message message(
+      "LandCover is used, but no entries were found in the model parameters list.");
     Exceptions::amanzi_throw(message);
   }
   return lc;
@@ -108,12 +109,12 @@ getLandCoverMap(Teuchos::ParameterList& plist, const std::vector<std::string>& r
 
 
 LandCover
-getLandCover(const std::string& region, Teuchos::ParameterList& plist, const std::vector<std::string>& required_pars)
+getLandCover(const std::string& region,
+             Teuchos::ParameterList& plist,
+             const std::vector<std::string>& required_pars)
 {
   LandCover lc(plist);
-  for (const auto& par : required_pars) {
-    Impl::checkValid(region, lc, par);
-  }
+  for (const auto& par : required_pars) { Impl::checkValid(region, lc, par); }
   return lc;
 }
 

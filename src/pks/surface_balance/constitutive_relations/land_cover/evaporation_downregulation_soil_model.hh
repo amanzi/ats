@@ -27,7 +27,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class EvaporationDownregulationSoilModel {
  public:
-
   static const int n_dependencies = 2;
 
   // this will mostly be differentiated with respect to pressure for flow
@@ -46,7 +45,8 @@ class EvaporationDownregulationSoilModel {
     Key domain = Keys::getDomain(my_key_.first);
 
     // dependencies
-    pet_key_ = Keys::readKeyTag(*plist, domain, "potential evaporation", "potential_evaporation", tag);
+    pet_key_ =
+      Keys::readKeyTag(*plist, domain, "potential evaporation", "potential_evaporation", tag);
     rsoil_key_ = Keys::readKeyTag(*plist, domain, "soil resistance", "soil_resistance", tag);
   }
 
@@ -67,12 +67,17 @@ class EvaporationDownregulationSoilModel {
     rsoil_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { my_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      my_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { pet_key_, rsoil_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    res_(i,0) = pet_(i,0) / (1. + rsoil_(i,0));
+    res_(i, 0) = pet_(i, 0) / (1. + rsoil_(i, 0));
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { assert(false); }
@@ -94,5 +99,3 @@ const std::string EvaporationDownregulationSoilModel<cView_type, View_type>::eva
 } // namespace Relations
 } // namespace SurfaceBalance
 } // namespace Amanzi
-
-

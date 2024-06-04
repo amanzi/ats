@@ -17,11 +17,15 @@ namespace Amanzi {
 namespace Relations {
 
 // registry of method
-template<> const std::string ColumnSumEvaluator::eval_type = "column sum evaluator";
-template<> REGISTER(ColumnSumEvaluator);
+template <>
+const std::string ColumnSumEvaluator::eval_type = "column sum evaluator";
+template <>
+REGISTER(ColumnSumEvaluator);
 
-template<> const std::string WaterTableDepthEvaluator::eval_type = "water table depth";
-template<> REGISTER(WaterTableDepthEvaluator);
+template <>
+const std::string WaterTableDepthEvaluator::eval_type = "water table depth";
+template <>
+REGISTER(WaterTableDepthEvaluator);
 
 // template <>
 // Utils::RegisteredFactory<Evaluator, ActiveLayerAverageTempEvaluator>

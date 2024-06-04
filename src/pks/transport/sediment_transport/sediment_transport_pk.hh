@@ -75,11 +75,11 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Initialize(const Teuchos::Ptr<State>& S);
 
   virtual double getDt();
-  virtual void setDt(double dt){};
+  virtual void setDt(double dt) {};
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false);
   virtual void CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& S);
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
   virtual std::string name() { return "sediment transport"; }
   Key get_domain_name() { return domain_name_; }
@@ -142,7 +142,7 @@ class SedimentTransport_PK : public PK_PhysicalExplicit<Epetra_Vector> {
   // time integration members
   void FunctionalTimeDerivative(const double t,
                                 const Epetra_Vector& component,
-                                Epetra_Vector& f_component){};
+                                Epetra_Vector& f_component) {};
   //  void Functional(const double t, const Epetra_Vector& component, TreeVector& f_component);
 
   void IdentifyUpwindCells();

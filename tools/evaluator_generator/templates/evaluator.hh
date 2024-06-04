@@ -65,7 +65,7 @@ namespace Amanzi {
        private:
         static Utils::RegisteredFactory<Evaluator, { evalClassName } Evaluator> reg_;
 
-      }  // namespace Relations
+      } // namespace Relations
       }; // namespace Relations
     }
   } // namespace }

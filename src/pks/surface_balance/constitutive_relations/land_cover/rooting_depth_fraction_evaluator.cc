@@ -17,7 +17,8 @@ namespace Relations {
 const std::string RootingDepthFractionEvaluator::eval_type = "root fraction";
 
 // Constructor from ParameterList
-RootingDepthFractionEvaluator::RootingDepthFractionEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist)
+RootingDepthFractionEvaluator::RootingDepthFractionEvaluator(
+  const Teuchos::RCP<Teuchos::ParameterList>& plist)
   : EvaluatorSecondaryMonotypeCV(plist)
 {
   InitializeFromPlist_();
@@ -79,53 +80,52 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
     auto lc_ids = surf_mesh.getSetEntities(
       lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
-    Kokkos::parallel_for("RootingDepthFractionEvaluator::Evaluate",
-                         lc_ids.extent(0),
-                         KOKKOS_LAMBDA(const int j) {
-                           AmanziMesh::Entity_ID sc = lc_ids(j);
-                           double depth = 0.;
-                           double total = 0.;
+    Kokkos::parallel_for(
+      "RootingDepthFractionEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_LAMBDA(const int j) {
+        AmanziMesh::Entity_ID sc = lc_ids(j);
+        double depth = 0.;
+        double total = 0.;
 
-                           double at_max = 1.0 + computeIntegralRootFunc(lc_pars.rooting_depth_max,
-                                   lc_pars.rooting_profile_alpha,
-                                   lc_pars.rooting_profile_beta);
-                           const auto& col_cells = subsurf_mesh.columns.getCells(sc);
-                           int i = 0;
-                           for (auto c : col_cells) {
-                             result_v(c, 0) = -computeIntegralRootFunc(
-                               depth, lc_pars.rooting_profile_alpha, lc_pars.rooting_profile_beta) /
-                               at_max;
-                             depth += cv(c, 0) / surf_cv(sc, 0);
-                             i++;
+        double at_max = 1.0 + computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                                      lc_pars.rooting_profile_alpha,
+                                                      lc_pars.rooting_profile_beta);
+        const auto& col_cells = subsurf_mesh.columns.getCells(sc);
+        int i = 0;
+        for (auto c : col_cells) {
+          result_v(c, 0) = -computeIntegralRootFunc(
+                             depth, lc_pars.rooting_profile_alpha, lc_pars.rooting_profile_beta) /
+                           at_max;
+          depth += cv(c, 0) / surf_cv(sc, 0);
+          i++;
 
-                             if (depth <= lc_pars.rooting_depth_max) {
-                               if (i == (col_cells.size())) {
-                                 // max depth is bigger than the domain, remainder goes in the bottom-most cell
-                                 result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
-                                         lc_pars.rooting_profile_alpha,
-                                         lc_pars.rooting_profile_beta) /
-                                   at_max;
-                                 total += result_v(c, 0);
-                               } else {
-                                 result_v(c, 0) += computeIntegralRootFunc(depth,
-                                         lc_pars.rooting_profile_alpha,
-                                         lc_pars.rooting_profile_beta) /
-                                   at_max;
-                                 total += result_v(c, 0);
-                               }
-                             } else {
-                               // max depth stops in this cell, just compute to there
-                               result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
-                                       lc_pars.rooting_profile_alpha,
-                                       lc_pars.rooting_profile_beta) /
-                                 at_max;
+          if (depth <= lc_pars.rooting_depth_max) {
+            if (i == (col_cells.size())) {
+              // max depth is bigger than the domain, remainder goes in the bottom-most cell
+              result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                                        lc_pars.rooting_profile_alpha,
+                                                        lc_pars.rooting_profile_beta) /
+                                at_max;
+              total += result_v(c, 0);
+            } else {
+              result_v(c, 0) += computeIntegralRootFunc(depth,
+                                                        lc_pars.rooting_profile_alpha,
+                                                        lc_pars.rooting_profile_beta) /
+                                at_max;
+              total += result_v(c, 0);
+            }
+          } else {
+            // max depth stops in this cell, just compute to there
+            result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+                                                      lc_pars.rooting_profile_alpha,
+                                                      lc_pars.rooting_profile_beta) /
+                              at_max;
 
-                               total += result_v(c, 0);
-                               break;
-                             }
-                           }
-                           assert(std::abs(total - 1.0) < 1.e-8);
-                         });
+            total += result_v(c, 0);
+            break;
+          }
+        }
+        assert(std::abs(total - 1.0) < 1.e-8);
+      });
   }
 }
 

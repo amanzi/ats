@@ -16,7 +16,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
-                                           const AmanziMesh::Entity_ID_View& cells_of_col_,
+                                           const AmanziMesh::Mesh::cEntity_ID_View& cells_of_col_,
                                            const LandCover& lc_,
                                            const cView_type& soil_pc_,
                                            const cView_type& soil_kr_,
@@ -92,8 +92,8 @@ SoilPlantFluxFunctor::computeTranspirationReductionFunction(double plant_pc) con
 double
 SoilPlantFluxFunctor::computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const
 {
-  double kr = (root_pc > soil_pc(c,0)) ? soil_kr(c,0) : krp;
-  return -c0 * f_root(c,0) * kr * (soil_pc(c,0) - root_pc);
+  double kr = (root_pc > soil_pc(c, 0)) ? soil_kr(c, 0) : krp;
+  return -c0 * f_root(c, 0) * kr * (soil_pc(c, 0) - root_pc);
 }
 
 
@@ -102,15 +102,15 @@ void
 SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, const View_type& res) const
 {
   double root_pc = plant_pc;
-  double sa_col = sa(sc,0) * 2.0;
+  double sa_col = sa(sc, 0) * 2.0;
   for (auto c : cells_of_col) {
-    double dz_on_2 = cv(c,0) / sa_col;
+    double dz_on_2 = cv(c, 0) / sa_col;
 
     // top half-cell
     root_pc += rho_g * dz_on_2;
 
     // compute flux
-    res(c,0) = computeSoilPlantFlux(root_pc, c) * sa(sc,0) / cv(c,0);
+    res(c, 0) = computeSoilPlantFlux(root_pc, c) * sa(sc, 0) / cv(c, 0);
 
     // bottom half-cell
     root_pc += rho_g * dz_on_2;
@@ -118,7 +118,8 @@ SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, const View_type& r
 }
 
 
-const std::string TranspirationDistributionRelPermEvaluator::eval_type = "transpiration distribution, relative permeability";
+const std::string TranspirationDistributionRelPermEvaluator::eval_type =
+  "transpiration distribution, relative permeability";
 
 // Constructor from ParameterList
 TranspirationDistributionRelPermEvaluator::TranspirationDistributionRelPermEvaluator(
@@ -166,8 +167,8 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   dependencies_.insert(KeyTag{ soil_pc_key_, tag });
 
   // dependency: soil rel perm
-  soil_kr_key_ =
-    Keys::readKey(*plist_, domain_sub_, "soil hydraulic conductivity", "relative_hydraulic_conductivity");
+  soil_kr_key_ = Keys::readKey(
+    *plist_, domain_sub_, "soil hydraulic conductivity", "relative_hydraulic_conductivity");
   dependencies_.insert(KeyTag{ soil_kr_key_, tag });
 
   // dependency: rooting_depth_fraction
@@ -190,8 +191,9 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
         1.e-6; // per MPa --> per Pa
   krp_ = plist_->get<double>("plant relative conductance [-]", 0.);
 
-  land_cover_ = getLandCoverMap(plist_->sublist("model parameters"),
-                   { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
+  land_cover_ =
+    getLandCoverMap(plist_->sublist("model parameters"),
+                    { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
 }
 
 
@@ -212,7 +214,8 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
   double g = gravity[gravity.dim() - 1];
 
   // on the surface
-  auto potential_trans = S.Get<CompositeVector>(potential_trans_key_, tag).viewComponent("cell", false);
+  auto potential_trans =
+    S.Get<CompositeVector>(potential_trans_key_, tag).viewComponent("cell", false);
 
   auto trans_v = result[0]->viewComponent("cell", false);
   auto plant_pc_v = result[1]->viewComponent("cell", false);
@@ -226,60 +229,62 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
     const LandCover& lc_pars = region_lc.second;
 
     if (lc_ids.size() > 0) {
-      Kokkos::parallel_for("TranspirationDistributionRelPermEvaluator::Evaluate",
-                           lc_ids.size(),
-                           KOKKOS_LAMBDA(const int i) {
-                             AmanziMesh::Entity_ID sc = lc_ids(i);
-                             if (potential_trans(sc,0) > 0. || krp_ > 0.) {
-                               SoilPlantFluxFunctor func(sc,
-                                       subsurf_mesh.columns.getCells(sc),
-                                       lc_pars,
-                                       soil_pc,
-                                       soil_kr,
-                                       f_root,
-                                       potential_trans,
-                                       cv,
-                                       sa,
-                                       c0_,
-                                       krp_,
-                                       rho_,
-                                       g);
+      Kokkos::parallel_for(
+        "TranspirationDistributionRelPermEvaluator::Evaluate",
+        lc_ids.size(),
+        KOKKOS_LAMBDA(const int i) {
+          AmanziMesh::Entity_ID sc = lc_ids(i);
+          if (potential_trans(sc, 0) > 0. || krp_ > 0.) {
+            SoilPlantFluxFunctor func(sc,
+                                      subsurf_mesh.columns.getCells(sc),
+                                      lc_pars,
+                                      soil_pc,
+                                      soil_kr,
+                                      f_root,
+                                      potential_trans,
+                                      cv,
+                                      sa,
+                                      c0_,
+                                      krp_,
+                                      rho_,
+                                      g);
 
-                               // bracket the root -- linear to the left of 1, log to the right of 1
-                               std::pair<double, double> ab;
-                               if (func(0.) > 0.) {
-                                 ab.first = 0.;
-                                 ab.second = 1.e4;
-                                 while (func(ab.second) > 0) {
-                                   ab.first = ab.second;
-                                   ab.second *= 10;
-                                   assert(ab.second < 1.e14); // failed to bracket root
-                                 }
-                               } else {
-                                 ab.second = 0.;
-                                 ab.first = -1.e4;
-                                 while (func(ab.first) < 0) {
-                                   ab.second = ab.first;
-                                   ab.first *= 10;
-                                   assert(ab.first > -1.e14); // failed to bracket root
-                                 }
-                               }
+            // bracket the root -- linear to the left of 1, log to the right of 1
+            std::pair<double, double> ab;
+            if (func(0.) > 0.) {
+              ab.first = 0.;
+              ab.second = 1.e4;
+              while (func(ab.second) > 0) {
+                ab.first = ab.second;
+                ab.second *= 10;
+                assert(ab.second < 1.e14); // failed to bracket root
+              }
+            } else {
+              ab.second = 0.;
+              ab.first = -1.e4;
+              while (func(ab.first) < 0) {
+                ab.second = ab.first;
+                ab.first *= 10;
+                assert(ab.first > -1.e14); // failed to bracket root
+              }
+            }
 
-                               // compute the plant capillary pressure using a root-finder
-                               int itrs = nits_;
-                               plant_pc_v(sc,0) = Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
-                               assert(itrs > 0 && itrs <= nits_);
+            // compute the plant capillary pressure using a root-finder
+            int itrs = nits_;
+            plant_pc_v(sc, 0) =
+              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
+            assert(itrs > 0 && itrs <= nits_);
 
-                               // compute the distributed transpiration fluxes for each grid cell
-                               func.computeSoilPlantFluxes(plant_pc_v(sc,0), trans_v);
+            // compute the distributed transpiration fluxes for each grid cell
+            func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
 
-                             } else {
-                               for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c,0) = 0.; }
-                             }
-                           });
+          } else {
+            for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c, 0) = 0.; }
+          }
+        });
     }
   }
-  AMANZI_ASSERT(!std::isnan(trans_v(0,0)));
+  AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
 }
 
 

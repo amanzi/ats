@@ -26,7 +26,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class RadiationBalanceModel {
  public:
-
   static const int n_dependencies = 9;
   static const bool provides_derivatives = false;
   static const std::string eval_type;
@@ -59,28 +58,38 @@ class RadiationBalanceModel {
     akey = Keys::getVarName(akey);
 
     // my keys
-    rad_bal_surf_key_ = Keys::readKeyTag(*plist, domain_surf, "surface radiation balance",
-            dtype == "surface" ? akey : "radiation_balance");
-    rad_bal_snow_key_ = Keys::readKeyTag(*plist, domain_snow, "snow radiation balance",
-            dtype == "snow" ? akey : "radiation_balance");
-    rad_bal_canopy_key_ = Keys::readKeyTag(*plist, domain_canopy, "canopy radiation balance",
-            dtype == "canopy" ? akey : "radiation_balance");
+    rad_bal_surf_key_ = Keys::readKeyTag(*plist,
+                                         domain_surf,
+                                         "surface radiation balance",
+                                         dtype == "surface" ? akey : "radiation_balance");
+    rad_bal_snow_key_ = Keys::readKeyTag(
+      *plist, domain_snow, "snow radiation balance", dtype == "snow" ? akey : "radiation_balance");
+    rad_bal_canopy_key_ = Keys::readKeyTag(*plist,
+                                           domain_canopy,
+                                           "canopy radiation balance",
+                                           dtype == "canopy" ? akey : "radiation_balance");
 
     // dependencies
     albedo_surf_key_ = Keys::readKeyTag(*plist, domain_surf, "surface albedos", "albedos", tag);
-    emissivity_surf_key_ = Keys::readKeyTag(*plist, domain_surf, "surface emissivities", "emissivities", tag);
-    sw_in_key_ = Keys::readKeyTag(*plist, domain_surf, "incoming shortwave radiation", "incoming_shortwave_radiation", tag);
-    lw_in_key_ = Keys::readKeyTag(*plist, domain_surf, "incoming longwave radiation", "incoming_longwave_radiation", tag);
-    temp_surf_key_ = Keys::readKeyTag(*plist, domain_surf, "surface temperature", "temperature", tag);
+    emissivity_surf_key_ =
+      Keys::readKeyTag(*plist, domain_surf, "surface emissivities", "emissivities", tag);
+    sw_in_key_ = Keys::readKeyTag(
+      *plist, domain_surf, "incoming shortwave radiation", "incoming_shortwave_radiation", tag);
+    lw_in_key_ = Keys::readKeyTag(
+      *plist, domain_surf, "incoming longwave radiation", "incoming_longwave_radiation", tag);
+    temp_surf_key_ =
+      Keys::readKeyTag(*plist, domain_surf, "surface temperature", "temperature", tag);
     temp_snow_key_ = Keys::readKeyTag(*plist, domain_snow, "snow temperature", "temperature", tag);
-    temp_canopy_key_ = Keys::readKeyTag(*plist, domain_canopy, "canopy temperature", "temperature", tag);
+    temp_canopy_key_ =
+      Keys::readKeyTag(*plist, domain_canopy, "canopy temperature", "temperature", tag);
     area_frac_key_ = Keys::readKeyTag(*plist, domain_surf, "area fractions", "area_fractions", tag);
     lai_key_ = Keys::readKeyTag(*plist, domain_canopy, "leaf area index", "leaf_area_index", tag);
 
     // land cover struct
     std::string region_name = plist->sublist("model parameters").get<std::string>("region");
-    lc_ = getLandCover(region_name, plist->sublist("model parameters"),
-                       {"albedo_canopy", "beers_k_lw", "beers_k_sw"});
+    lc_ = getLandCover(region_name,
+                       plist->sublist("model parameters"),
+                       { "albedo_canopy", "beers_k_lw", "beers_k_sw" });
   }
 
   void
@@ -119,48 +128,53 @@ class RadiationBalanceModel {
     lai = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { rad_bal_surf_key_, rad_bal_snow_key_, rad_bal_canopy_key_ }; }
-  KeyTagVector getDependencies() const {
-    return { albedo_surf_key_, emissivity_surf_key_, sw_in_key_, lw_in_key_,
-      temp_surf_key_, temp_snow_key_, temp_canopy_key_, area_frac_key_, lai_key_ };
+  KeyTagVector getMyKeys() const
+  {
+    return { rad_bal_surf_key_, rad_bal_snow_key_, rad_bal_canopy_key_ };
+  }
+  KeyTagVector getDependencies() const
+  {
+    return { albedo_surf_key_, emissivity_surf_key_, sw_in_key_,     lw_in_key_, temp_surf_key_,
+             temp_snow_key_,   temp_canopy_key_,     area_frac_key_, lai_key_ };
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
     // NOTE: emissivity = absorptivity, we use e to notate both
     // Beer's law to find absorptivity of canopy
-    double e_can_sw = Functions::beersLawAbsorptivity(lc_.beers_k_sw, lai(i,0));
-    double e_can_lw = Functions::beersLawAbsorptivity(lc_.beers_k_lw, lai(i,0));
+    double e_can_sw = Functions::beersLawAbsorptivity(lc_.beers_k_sw, lai(i, 0));
+    double e_can_lw = Functions::beersLawAbsorptivity(lc_.beers_k_lw, lai(i, 0));
 
     // sw atm to canopy and surface
-    double sw_atm_can = e_can_sw * sw_in(i,0);
-    double sw_atm_surf = sw_in(i,0) - sw_atm_can;
+    double sw_atm_can = e_can_sw * sw_in(i, 0);
+    double sw_atm_surf = sw_in(i, 0) - sw_atm_can;
 
     // reflected sw (can be important off of snow)
     double sw_grnd_can =
-      e_can_sw * sw_atm_surf * (albedo_surf(i,0) * area_frac(i,0) + albedo_surf(i,1) * area_frac(i,1));
+      e_can_sw * sw_atm_surf *
+      (albedo_surf(i, 0) * area_frac(i, 0) + albedo_surf(i, 1) * area_frac(i, 1));
 
     // lw atm to canopy and surface
-    double lw_atm_can = e_can_lw * lw_in(i,0);
-    double lw_atm_surf = lw_in(i,0) - lw_atm_can;
+    double lw_atm_can = e_can_lw * lw_in(i, 0);
+    double lw_atm_surf = lw_in(i, 0) - lw_atm_can;
 
     // lw out of each layer
-    double lw_surf = Functions::outgoingLongwaveRadiation(temp_surf(i,0), emissivity_surf(i,0));
-    double lw_snow = Functions::outgoingLongwaveRadiation(temp_snow(i,0), emissivity_surf(i,1));
-    double lw_can = Functions::outgoingLongwaveRadiation(temp_canopy(i,0), e_can_lw);
+    double lw_surf = Functions::outgoingLongwaveRadiation(temp_surf(i, 0), emissivity_surf(i, 0));
+    double lw_snow = Functions::outgoingLongwaveRadiation(temp_snow(i, 0), emissivity_surf(i, 1));
+    double lw_can = Functions::outgoingLongwaveRadiation(temp_canopy(i, 0), e_can_lw);
 
     // surface connections
     double lw_down = lw_atm_surf + lw_can;
-    double lw_up_surf = (1 - emissivity_surf(i,0)) * lw_down + lw_surf;
-    double lw_up_snow = (1 - emissivity_surf(i,1)) * lw_down + lw_snow;
+    double lw_up_surf = (1 - emissivity_surf(i, 0)) * lw_down + lw_surf;
+    double lw_up_snow = (1 - emissivity_surf(i, 1)) * lw_down + lw_snow;
 
     // radiation balances -- see Figure 4.1 in CLM Tech Note
-    rad_bal_surf(i,0) = (1 - albedo_surf(i,0)) * sw_atm_surf + lw_down - lw_up_surf;
-    rad_bal_snow(i,0) = (1 - albedo_surf(i,1)) * sw_atm_surf + lw_down - lw_up_snow;
+    rad_bal_surf(i, 0) = (1 - albedo_surf(i, 0)) * sw_atm_surf + lw_down - lw_up_surf;
+    rad_bal_snow(i, 0) = (1 - albedo_surf(i, 1)) * sw_atm_surf + lw_down - lw_up_snow;
 
-    rad_bal_canopy(i,0) = (1 - lc_.albedo_canopy) * (sw_atm_can + sw_grnd_can) + lw_atm_can -
-      2 * lw_can + area_frac(i,0) * e_can_lw * lw_up_surf +
-      area_frac(i,1) * e_can_lw * lw_up_snow;
+    rad_bal_canopy(i, 0) = (1 - lc_.albedo_canopy) * (sw_atm_can + sw_grnd_can) + lw_atm_can -
+                           2 * lw_can + area_frac(i, 0) * e_can_lw * lw_up_surf +
+                           area_frac(i, 1) * e_can_lw * lw_up_snow;
   }
 
   KOKKOS_INLINE_FUNCTION void operator()(Deriv<0>, const int i) const { assert(false); }
@@ -187,8 +201,7 @@ class RadiationBalanceModel {
 
 
 template <class cView_type, class View_type>
-const std::string RadiationBalanceModel<cView_type, View_type>::eval_type =
-  "radiation balance";
+const std::string RadiationBalanceModel<cView_type, View_type>::eval_type = "radiation balance";
 
 } // namespace Relations
 } // namespace SurfaceBalance

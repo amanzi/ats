@@ -57,7 +57,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class AreaFractionsThreeComponentModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = false;
   static const int n_dofs = 3;
@@ -85,7 +84,8 @@ class AreaFractionsThreeComponentModel {
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     std::string region = model_list.get<std::string>("region");
-    land_cover_ = getLandCover(region, model_list, { "snow_transition_depth", "water_transition_depth" });
+    land_cover_ =
+      getLandCover(region, model_list, { "snow_transition_depth", "water_transition_depth" });
   }
 
 
@@ -110,68 +110,68 @@ class AreaFractionsThreeComponentModel {
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
     // calculate area of land
-    if (sd_(i,0) >= land_cover_.snow_transition_depth) {
-      res_(i,1) = 0.;
-      res_(i,2) = 1.;
+    if (sd_(i, 0) >= land_cover_.snow_transition_depth) {
+      res_(i, 1) = 0.;
+      res_(i, 2) = 1.;
     } else {
-      if (sd_(i,0) <= 0.) {
-        res_(i,2) = 0.;
+      if (sd_(i, 0) <= 0.) {
+        res_(i, 2) = 0.;
       } else {
-        res_(i,2) = sd_(i,0) / land_cover_.snow_transition_depth;
+        res_(i, 2) = sd_(i, 0) / land_cover_.snow_transition_depth;
       }
 
       // snow preferentially covers water, as both go to low lying areas
-      if (pd_(i,0) >= land_cover_.water_transition_depth) {
-        res_(i,1) = 1 - res_(i,2);
-      } else if (pd_(i,0) <= 0.) {
-        res_(i,1) = 0.;
+      if (pd_(i, 0) >= land_cover_.water_transition_depth) {
+        res_(i, 1) = 1 - res_(i, 2);
+      } else if (pd_(i, 0) <= 0.) {
+        res_(i, 1) = 0.;
       } else {
-        double water_covered = pd_(i,0) / land_cover_.water_transition_depth;
-        if (res_(i,2) > water_covered) {
-          res_(i,1) = 0;
+        double water_covered = pd_(i, 0) / land_cover_.water_transition_depth;
+        if (res_(i, 2) > water_covered) {
+          res_(i, 1) = 0;
         } else {
-          res_(i,1) = water_covered - res_(i,2);
+          res_(i, 1) = water_covered - res_(i, 2);
         }
       }
     }
-    res_(i,0) = 1 - res_(i,1) - res_(i,2);
+    res_(i, 0) = 1 - res_(i, 1) - res_(i, 2);
 
     // if any area is less than eps, give to others
     // if any area fraction is less than eps, give it to the others
-    if (res_(i,0) > 0 && res_(i,0) < min_area_) {
-      if (res_(i,1) < min_area_) {
-        res_(i,2) = 1.;
-        res_(i,1) = 0.;
-        res_(i,0) = 0.;
+    if (res_(i, 0) > 0 && res_(i, 0) < min_area_) {
+      if (res_(i, 1) < min_area_) {
+        res_(i, 2) = 1.;
+        res_(i, 1) = 0.;
+        res_(i, 0) = 0.;
       } else {
-        res_(i,1) += res_(i,0) * res_(i,1) / (res_(i,1) + res_(i,2));
-        res_(i,2) += res_(i,0) * res_(i,2) / (res_(i,1) + res_(i,2));
-        res_(i,0) = 0.;
+        res_(i, 1) += res_(i, 0) * res_(i, 1) / (res_(i, 1) + res_(i, 2));
+        res_(i, 2) += res_(i, 0) * res_(i, 2) / (res_(i, 1) + res_(i, 2));
+        res_(i, 0) = 0.;
       }
-    } else if (res_(i,1) > 0 && res_(i,1) < min_area_) {
-      if (res_(i,2) < min_area_) {
-        res_(i,0) = 1.;
-        res_(i,1) = 0.;
-        res_(i,2) = 0.;
+    } else if (res_(i, 1) > 0 && res_(i, 1) < min_area_) {
+      if (res_(i, 2) < min_area_) {
+        res_(i, 0) = 1.;
+        res_(i, 1) = 0.;
+        res_(i, 2) = 0.;
       } else {
-        res_(i,0) += res_(i,1) * res_(i,0) / (res_(i,0) + res_(i,2));
-        res_(i,2) += res_(i,1) * res_(i,2) / (res_(i,0) + res_(i,2));
-        res_(i,1) = 0.;
+        res_(i, 0) += res_(i, 1) * res_(i, 0) / (res_(i, 0) + res_(i, 2));
+        res_(i, 2) += res_(i, 1) * res_(i, 2) / (res_(i, 0) + res_(i, 2));
+        res_(i, 1) = 0.;
       }
-    } else if (res_(i,2) > 0 && res_(i,2) < min_area_) {
-      res_(i,0) += res_(i,2) * res_(i,0) / (res_(i,0) + res_(i,1));
-      res_(i,1) += res_(i,2) * res_(i,1) / (res_(i,0) + res_(i,1));
-      res_(i,2) = 0.;
+    } else if (res_(i, 2) > 0 && res_(i, 2) < min_area_) {
+      res_(i, 0) += res_(i, 2) * res_(i, 0) / (res_(i, 0) + res_(i, 1));
+      res_(i, 1) += res_(i, 2) * res_(i, 1) / (res_(i, 0) + res_(i, 1));
+      res_(i, 2) = 0.;
     }
 
-    assert(fabs(res_(i,0) + res_(i,1) + res_(i,2) - 1.0) < 1.e-10);
-    assert(-1.e-10 <= res_(i,0) && res_(i,0) <= 1. + 1.e-10);
-    assert(-1.e-10 <= res_(i,1) && res_(i,1) <= 1. + 1.e-10);
-    assert(-1.e-10 <= res_(i,2) && res_(i,1) <= 1. + 1.e-10);
+    assert(fabs(res_(i, 0) + res_(i, 1) + res_(i, 2) - 1.0) < 1.e-10);
+    assert(-1.e-10 <= res_(i, 0) && res_(i, 0) <= 1. + 1.e-10);
+    assert(-1.e-10 <= res_(i, 1) && res_(i, 1) <= 1. + 1.e-10);
+    assert(-1.e-10 <= res_(i, 2) && res_(i, 1) <= 1. + 1.e-10);
 
-    res_(i,0) = fmin(fmax(0., res_(i,0)), 1.);
-    res_(i,1) = fmin(fmax(0., res_(i,1)), 1.);
-    res_(i,2) = fmin(fmax(0., res_(i,2)), 1.);
+    res_(i, 0) = fmin(fmax(0., res_(i, 0)), 1.);
+    res_(i, 1) = fmin(fmax(0., res_(i, 1)), 1.);
+    res_(i, 2) = fmin(fmax(0., res_(i, 2)), 1.);
   }
 
   // derivatives not currently provided
@@ -195,11 +195,14 @@ const std::string AreaFractionsThreeComponentModel<cView_type, View_type>::eval_
   "area fractions, three components";
 
 template <class cView_type, class View_type>
-const std::vector<std::string> AreaFractionsThreeComponentModel<cView_type, View_type>::subfield_names =
-  { "ground", "water", "snow" };
+const std::vector<std::string>
+  AreaFractionsThreeComponentModel<cView_type, View_type>::subfield_names = { "ground",
+                                                                              "water",
+                                                                              "snow" };
 
 
-using AreaFractionsThreeComponentEvaluator = EvaluatorMultiDOFModelCVByMaterial<AreaFractionsThreeComponentModel>;
+using AreaFractionsThreeComponentEvaluator =
+  EvaluatorMultiDOFModelCVByMaterial<AreaFractionsThreeComponentModel>;
 
 } // namespace Relations
 } // namespace SurfaceBalance

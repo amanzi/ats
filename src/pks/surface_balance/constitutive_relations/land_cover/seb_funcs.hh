@@ -56,9 +56,9 @@ KOKKOS_INLINE_FUNCTION
 double
 vaporPressureSlope(double temp_air)
 {
-  double tempC = temp_air - 273.15;                            // C
-  double vp_sat = saturatedVaporPressure(temp_air); // Pa
-  return 4098 * vp_sat / std::pow(tempC + 237.3, 2);           // Pa/C
+  double tempC = temp_air - 273.15;                  // C
+  double vp_sat = saturatedVaporPressure(temp_air);  // Pa
+  return 4098 * vp_sat / std::pow(tempC + 237.3, 2); // Pa/C
 }
 
 

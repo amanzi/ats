@@ -39,7 +39,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class IncomingLongwaveRadiationModel {
  public:
-
   static const int n_dependencies = 2;
   static const bool provides_derivatives = false;
   static const std::string eval_type;
@@ -79,7 +78,7 @@ class IncomingLongwaveRadiationModel {
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
-    res_(i,0) = scaling_ * Functions::atmosphereLongwaveRadiation(air_temp_(i,0), vp_air_(i,0));
+    res_(i, 0) = scaling_ * Functions::atmosphereLongwaveRadiation(air_temp_(i, 0), vp_air_(i, 0));
   }
 
   // derivatives not currently provided

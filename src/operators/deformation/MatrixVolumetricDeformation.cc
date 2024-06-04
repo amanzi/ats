@@ -397,7 +397,7 @@ MatrixVolumetricDeformation::Assemble(
 
 
 void
-MatrixVolumetricDeformation::set_inverse_parameters(){};
+MatrixVolumetricDeformation::set_inverse_parameters() {};
 
 } // namespace Operators
 } // namespace Amanzi

@@ -58,8 +58,6 @@ namespace SurfaceBalance {
 namespace Relations {
 
 
-
-
 class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
   explicit PETPriestleyTaylorEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
@@ -71,7 +69,7 @@ class PETPriestleyTaylorEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   std::string getType() const override { return eval_type; }
 
-protected:
+ protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   // Required methods from EvaluatorSecondaryMonotypeCV

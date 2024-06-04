@@ -54,7 +54,8 @@ MPCCoupledWater::parseParameterList()
   domain_surf_ = pks_list_->sublist(names[1]).get<std::string>("domain name", "surface");
 
   // keys
-  exfilt_key_ = Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
+  exfilt_key_ =
+    Keys::readKey(*plist_, domain_surf_, "exfiltration flux", "surface_subsurface_flux");
 }
 
 
@@ -120,13 +121,17 @@ MPCCoupledWater::setup()
     const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
 
     std::vector<AmanziMesh::Entity_ID> surf_debug_cells;
+    auto mesh_on_host = AmanziMesh::onMemHost(domain_mesh_);
+    auto surf_mesh_on_host = AmanziMesh::onMemHost(surf_mesh_);
+
     for (int sc = 0; sc != ncells_surf; ++sc) {
-      int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+      int f = surf_mesh_on_host->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       auto c = AmanziMesh::getFaceOnBoundaryInternalCell(*domain_mesh_, f);
 
-      auto c_gid = domain_mesh_->getEntityGID(AmanziMesh::Entity_kind::CELL, c);
+      auto c_gid = mesh_on_host->getEntityGID(AmanziMesh::Entity_kind::CELL, c);
       if (std::find(debug_cells.begin(), debug_cells.end(), c_gid) != debug_cells.end())
-        surf_debug_cells.emplace_back(surf_mesh_->getEntityGID(AmanziMesh::Entity_kind::CELL, sc));
+        surf_debug_cells.emplace_back(
+          surf_mesh_on_host->getEntityGID(AmanziMesh::Entity_kind::CELL, sc));
     }
     if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
   }
@@ -155,7 +160,6 @@ MPCCoupledWater::initialize()
 
   // now we can initialize the bdf time integrator with the initial solution
   PK_BDF_Default::initialize();
-
 }
 
 
@@ -178,17 +182,20 @@ MPCCoupledWater::FunctionalResidual(double t_old,
   // The residual of the surface flow equation provides the water flux from
   // subsurface to surface.
   {
-    auto bc = S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).viewComponent("cell", false);
+    auto bc =
+      S_->GetW<CompositeVector>(exfilt_key_, tag_next_, exfilt_key_).viewComponent("cell", false);
     auto g_surf = g->getSubVector(1)->getData()->viewComponent("cell", false);
 
     // take off the face area factor to allow it to be used as boundary condition
     const AmanziMesh::Mesh& mc = *domain_mesh_;
     const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
-    Kokkos::parallel_for("MPCCoupledWater::FunctionalResidual copy to BC", g_surf.extent(0),
-                         KOKKOS_LAMBDA(const int sc) {
-                           AmanziMesh::Entity_ID f = mc_surf.getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
-                           bc(sc, 0) = g_surf(sc, 0) / mc.getFaceArea(f);
-                         });
+    Kokkos::parallel_for(
+      "MPCCoupledWater::FunctionalResidual copy to BC",
+      g_surf.extent(0),
+      KOKKOS_LAMBDA(const int sc) {
+        AmanziMesh::Entity_ID f = mc_surf.getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+        bc(sc, 0) = g_surf(sc, 0) / mc.getFaceArea(f);
+      });
   }
   PKHelpers::changedEvaluatorPrimary(exfilt_key_, tag_next_, *S_);
 

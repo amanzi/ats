@@ -85,9 +85,10 @@ Richards::parseParameterList()
   mass_dens_key_ = Keys::readKey(*plist_, domain_, "mass density", "mass_density_liquid");
   molar_dens_key_ = Keys::readKey(*plist_, domain_, "molar density", "molar_density_liquid");
   perm_key_ = Keys::readKey(*plist_, domain_, "permeability", "permeability");
-  coef_key_ = Keys::readKey(*plist_, domain_, "relative hydraulic conductivity", "relative_hydraulic_conductivity");
-  uw_coef_key_ =
-    Keys::readKey(*plist_, domain_, "upwinded conductivity", "upwind_relative_hydraulic_conductivity");
+  coef_key_ = Keys::readKey(
+    *plist_, domain_, "relative hydraulic conductivity", "relative_hydraulic_conductivity");
+  uw_coef_key_ = Keys::readKey(
+    *plist_, domain_, "upwinded conductivity", "upwind_relative_hydraulic_conductivity");
   flux_key_ = Keys::readKey(*plist_, domain_, "darcy flux", "water_flux");
   flux_dir_key_ = Keys::readKey(*plist_, domain_, "darcy flux direction", "water_flux_direction");
   velocity_key_ = Keys::readKey(*plist_, domain_, "darcy velocity", "darcy_velocity");
@@ -156,16 +157,16 @@ Richards::parseParameterList()
         .set<std::string>("function list name", "water flux")
         .set<std::string>("function inner list name", "outward water flux [mol m^-2 s^-1]");
       bcs_found.emplace_back(bc_flux_name);
-    // } else if (bc_sublist.first == "seepage face pressure") {
-    // requires the addition of an EvaluatorFlowBCsSeepage
-    //   // -- seepage condition where a max pressure is supplied
-    //   std::string bc_pressure_name = name_ + "_bcs_seepage_face_pressure";
-    //   Teuchos::ParameterList& bc_pressure_list = S_->GetEvaluatorList(bc_pressure_name);
-    //   bc_pressure_list.set("pressure", bc_plist->sublist("pressure"));
-    //   bc_pressure_list.set<std::string>("evaluator type", "independent variable patch")
-    //     .set<std::string>("function list name", "pressure")
-    //     .set<std::string>("function inner list name", "boundary pressure [Pa]");
-    //   bcs_found.emplace_back(bc_pressure_name);
+      // } else if (bc_sublist.first == "seepage face pressure") {
+      // requires the addition of an EvaluatorFlowBCsSeepage
+      //   // -- seepage condition where a max pressure is supplied
+      //   std::string bc_pressure_name = name_ + "_bcs_seepage_face_pressure";
+      //   Teuchos::ParameterList& bc_pressure_list = S_->GetEvaluatorList(bc_pressure_name);
+      //   bc_pressure_list.set("pressure", bc_plist->sublist("pressure"));
+      //   bc_pressure_list.set<std::string>("evaluator type", "independent variable patch")
+      //     .set<std::string>("function list name", "pressure")
+      //     .set<std::string>("function inner list name", "boundary pressure [Pa]");
+      //   bcs_found.emplace_back(bc_pressure_name);
     }
   }
 
@@ -174,7 +175,7 @@ Richards::parseParameterList()
     std::string bc_flux_name = name_ + "_bcs_surface_coupling_via_flux";
     Teuchos::ParameterList& bc_flux_list = S_->GetEvaluatorList(bc_flux_name);
     bc_flux_list.set<std::string>("evaluator type", "vector as patch")
-      .set<Teuchos::Array<std::string>>("dependencies", std::vector<std::string>{ss_flux_key_})
+      .set<Teuchos::Array<std::string>>("dependencies", std::vector<std::string>{ ss_flux_key_ })
       .set<std::string>("region", "surface");
     bcs_found.emplace_back(bc_flux_name);
   }
@@ -225,10 +226,12 @@ Richards::SetupRichardsFlow_()
     S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_water_flux", tag_next_)
       .set_flag(Operators::OPERATOR_BC_NEUMANN);
   if (plist_->sublist("boundary conditions").isSublist("seepage face pressure"))
-    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_seepage_face_pressure", tag_next_)
+    S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_seepage_face_pressure",
+                                                     tag_next_)
       .set_flag(Operators::OPERATOR_BC_CONDITIONAL);
   if (coupled_to_surface_via_flux_) {
-    auto& mps = S_->Require<MultiPatch<double>, MultiPatchSpace>(name_ + "_bcs_surface_coupling_via_flux", tag_next_);
+    auto& mps = S_->Require<MultiPatch<double>, MultiPatchSpace>(
+      name_ + "_bcs_surface_coupling_via_flux", tag_next_);
     mps.set_flag(Operators::OPERATOR_BC_NEUMANN);
     // THIS IS BROKEN AND FRAGILE.... HOW DO WE DO THIS CORRECTLY? --ETC
     mps.addPatch("surface", AmanziMesh::Entity_kind::FACE, 1);
@@ -601,27 +604,30 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Kokkos::deep_copy(touched, 0);
       }
 
-      Kokkos::parallel_for("Richards::InitializeHydrostatic cells", mesh_->columns.num_columns_owned,
-                           KOKKOS_LAMBDA(const int col) {
-                             const auto& col_cells = mesh_->columns.getCells(col);
-                             const auto& col_faces = mesh_->columns.getFaces(col);
-                             double z_wt = mesh_->getFaceCentroid(col_faces(0))[z_index] + head_wt;
+      AMANZI_ASSERT(mesh_->columns.num_columns_owned >= 0);
+      Kokkos::parallel_for(
+        "Richards::InitializeHydrostatic cells",
+        mesh_->columns.num_columns_owned,
+        KOKKOS_LAMBDA(const int col) {
+          const auto& col_cells = mesh_->columns.getCells(col);
+          const auto& col_faces = mesh_->columns.getFaces(col);
+          double z_wt = mesh_->getFaceCentroid(col_faces(0))[z_index] + head_wt;
 
-                             if (has_faces) {
-                               pres_f(col_faces(0), 0) = p_atm + rho * g * head_wt;
-                               touched(col_faces(0)) = 1;
-                             }
+          if (has_faces) {
+            pres_f(col_faces(0), 0) = p_atm + rho * g * head_wt;
+            touched(col_faces(0)) = 1;
+          }
 
-                             for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
-                               AmanziMesh::Entity_ID c = col_cells(lcv_c);
-                               AmanziMesh::Entity_ID f = col_faces(lcv_c + 1);
-                               pres_c(c,0) = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
-                               if (has_faces) {
-                                 pres_f(f,0) = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
-                                 touched(f) = 1;
-                               }
-                             }
-                           });
+          for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
+            AmanziMesh::Entity_ID c = col_cells(lcv_c);
+            AmanziMesh::Entity_ID f = col_faces(lcv_c + 1);
+            pres_c(c, 0) = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+            if (has_faces) {
+              pres_f(f, 0) = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+              touched(f) = 1;
+            }
+          }
+        });
     }
 
     if (has_faces) {
@@ -630,22 +636,22 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       {
         auto pres_c = pres->viewComponent("cell", false);
         auto pres_f = pres->viewComponent("face", false);
-        Kokkos::parallel_for("Richards::InitializeHydrostatic faces", pres_f.extent(0),
-                             KOKKOS_LAMBDA(const int f) {
-                               if (!touched(f)) {
-                                 const auto& f_cells = mesh_->getFaceCells(f);
-                                 if (f_cells.size() == 1) {
-                                   // boundary face, use the cell value as the water table is
-                                   // assumed to parallel the cell structure
-                                   pres_f(f,0) = pres_c(f_cells(0), 0);
-                                   touched(f) = 1;
-                                 } else {
-                                   // interpolate between cells
-                                   pres_f(f,0) = (pres_c(f_cells(0), 0) + pres_c(f_cells(1), 0)) / 2.;
-                                   touched(f) = 1;
-                                 }
-                               }
-                             });
+        Kokkos::parallel_for(
+          "Richards::InitializeHydrostatic faces", pres_f.extent(0), KOKKOS_LAMBDA(const int f) {
+            if (!touched(f)) {
+              const auto& f_cells = mesh_->getFaceCells(f);
+              if (f_cells.size() == 1) {
+                // boundary face, use the cell value as the water table is
+                // assumed to parallel the cell structure
+                pres_f(f, 0) = pres_c(f_cells(0), 0);
+                touched(f) = 1;
+              } else {
+                // interpolate between cells
+                pres_f(f, 0) = (pres_c(f_cells(0), 0) + pres_c(f_cells(1), 0)) / 2.;
+                touched(f) = 1;
+              }
+            }
+          });
       }
     }
     S_->GetRecordW(key_, tag, getName()).set_initialized();
@@ -715,7 +721,8 @@ Richards::isValidStep()
 
   if (sat_change_limit_ > 0.0) {
     const auto& sl_new = *S_->Get<CompositeVector>(sat_key_, tag_next_).getComponent("cell", false);
-    const auto& sl_old = *S_->Get<CompositeVector>(sat_key_, tag_current_).getComponent("cell", false);
+    const auto& sl_old =
+      *S_->Get<CompositeVector>(sat_key_, tag_current_).getComponent("cell", false);
     MultiVector_type dsl(sl_new.getMap(), 1);
     dsl.update(-1., sl_old, 1., sl_new, 0.);
     auto change = Reductions::reduceAllMaxLoc(*dsl.getVector(0));
@@ -756,7 +763,8 @@ Richards::isValidStep()
 // Update any diagnostic variables prior to vis (in this case velocity field).
 // -----------------------------------------------------------------------------
 void
-Richards::calculateDiagnostics(const Tag& tag){
+Richards::calculateDiagnostics(const Tag& tag)
+{
   AMANZI_ASSERT(tag == Tags::NEXT); // what else would this be?
   Teuchos::OSTab tab = vo_->getOSTab();
   if (vo_->os_OK(Teuchos::VERB_EXTREME))
@@ -983,18 +991,19 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
     *vo_->os() << "  modifications to deal with nonlinearity at flux BCs" << std::endl;
 
   if (flux_predictor_ == Teuchos::null) {
-    const auto& bcs = S_->Get<Operators::BCs>(name_+"_bcs", tag_next_);
+    const auto& bcs = S_->Get<Operators::BCs>(name_ + "_bcs", tag_next_);
 
     auto wrm_eval_as_eval = S_->GetEvaluatorPtr(sat_key_, tag_next_);
-    auto wrm_eval_as_wrm = Teuchos::rcp_dynamic_cast<PredictorDelegateBCFlux::WRMEval_type>(wrm_eval_as_eval);
+    auto wrm_eval_as_wrm =
+      Teuchos::rcp_dynamic_cast<PredictorDelegateBCFlux::WRMEval_type>(wrm_eval_as_eval);
     if (wrm_eval_as_wrm == Teuchos::null) {
-      Errors::Message msg("To use Richards option \"modify predictor for flux BCs\", may only use WRM evaluator of type \"wrm van Genuchten\"");
+      Errors::Message msg("To use Richards option \"modify predictor for flux BCs\", may only use "
+                          "WRM evaluator of type \"wrm van Genuchten\"");
       Exceptions::amanzi_throw(msg);
     }
-    auto mesh_on_host = AmanziMesh::onMemSpace<MemSpace_kind::HOST>(mesh_);
-    flux_predictor_ =
-      Teuchos::rcp(new PredictorDelegateBCFlux(S_, mesh_on_host, matrix_diff_,
-              wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
+    auto mesh_on_host = AmanziMesh::onMemHost(mesh_);
+    flux_predictor_ = Teuchos::rcp(new PredictorDelegateBCFlux(
+      S_, mesh_on_host, matrix_diff_, wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
   }
 
   UpdatePermeabilityData_(tag_next_);
@@ -1011,8 +1020,8 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
 
   flux_predictor_->ModifyPredictor(h, u);
   markChangedSolutionPK(tag_next_); // mark the solution as changed, as modifying with
-                     // consistent faces will then get the updated boundary
-                     // conditions
+                                    // consistent faces will then get the updated boundary
+                                    // conditions
   return true;
 }
 

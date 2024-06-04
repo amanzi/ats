@@ -48,12 +48,12 @@ namespace Amanzi {
 namespace Flow {
 namespace Relations {
 
-class RelativeHydraulicConductivityEvaluator :
-    public EvaluatorSecondaryMonotype<CompositeVector,CompositeVectorSpace> {
-
+class RelativeHydraulicConductivityEvaluator
+  : public EvaluatorSecondaryMonotype<CompositeVector, CompositeVectorSpace> {
  public:
   RelativeHydraulicConductivityEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
-  RelativeHydraulicConductivityEvaluator(const RelativeHydraulicConductivityEvaluator& other) = default;
+  RelativeHydraulicConductivityEvaluator(const RelativeHydraulicConductivityEvaluator& other) =
+    default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
   std::string getType() const override { return eval_type; }
@@ -61,9 +61,9 @@ class RelativeHydraulicConductivityEvaluator :
  protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
-          const Key& wrt_key,
-          const Tag& wrt_tag,
-          const std::vector<CompositeVector*>& results) override;
+                                          const Key& wrt_key,
+                                          const Tag& wrt_tag,
+                                          const std::vector<CompositeVector*>& results) override;
 
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
@@ -86,5 +86,3 @@ class RelativeHydraulicConductivityEvaluator :
 } // namespace Relations
 } // namespace Flow
 } // namespace Amanzi
-
-

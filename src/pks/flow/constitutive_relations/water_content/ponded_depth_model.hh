@@ -54,10 +54,11 @@ class PondedDepthModel {
 
   PondedDepthModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    pd_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    pd_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
     auto domain = Keys::getDomain(pd_key_.first);
     pres_key_ = Keys::readKeyTag(*plist, domain, "pressure", "pressure", pd_key_.second);
-    rho_key_ = Keys::readKeyTag(*plist, domain, "mass density", "mass_density_liquid", pd_key_.second);
+    rho_key_ =
+      Keys::readKeyTag(*plist, domain, "mass density", "mass_density_liquid", pd_key_.second);
 
     bar_ = plist->get<bool>("allow negative ponded depth", false);
   }
@@ -83,7 +84,12 @@ class PondedDepthModel {
     rho_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { pd_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      pd_key_,
+    };
+  }
   KeyTagVector getDependencies() const { return { pres_key_, rho_key_ }; }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int c) const

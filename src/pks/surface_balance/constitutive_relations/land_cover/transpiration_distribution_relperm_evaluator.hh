@@ -111,7 +111,7 @@ struct SoilPlantFluxFunctor {
 
   KOKKOS_INLINE_FUNCTION
   SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc,
-                       const AmanziMesh::Entity_ID_View& cells_of_col,
+                       const AmanziMesh::Mesh::cEntity_ID_View& cells_of_col,
                        const LandCover& lc,
                        const cView_type& soil_pc,
                        const cView_type& soil_kr,
@@ -149,13 +149,14 @@ struct SoilPlantFluxFunctor {
   double c0, krp, rho_g;
 
   AmanziMesh::Entity_ID sc;
-  AmanziMesh::Entity_ID_View cells_of_col;
+  AmanziMesh::Mesh::cEntity_ID_View cells_of_col;
 };
 
 
 class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonotypeCV {
  public:
-  explicit TranspirationDistributionRelPermEvaluator(const Teuchos::RCP<Teuchos::ParameterList>& plist);
+  explicit TranspirationDistributionRelPermEvaluator(
+    const Teuchos::RCP<Teuchos::ParameterList>& plist);
   TranspirationDistributionRelPermEvaluator(
     const TranspirationDistributionRelPermEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
@@ -171,7 +172,7 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
 
   std::string getType() const override { return eval_type; }
 
-protected:
+ protected:
   static const std::string eval_type;
 
   // Required methods from EvaluatorSecondaryMonotypeCV

@@ -123,8 +123,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   // collect the dependencies and mesh, and instantiate the integrator functor
   std::vector<typename Integrator::cView_type> deps;
   for (const auto& dep : dependencies_) {
-    deps.emplace_back(
-      S.Get<CompositeVector>(dep.first, dep.second).viewComponent("cell", false));
+    deps.emplace_back(S.Get<CompositeVector>(dep.first, dep.second).viewComponent("cell", false));
   }
 
   const AmanziMesh::Mesh& mesh = *result[0]->getMesh()->getParentMesh();
@@ -133,26 +132,25 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   auto res = result[0]->viewComponent("cell", false);
 
   // NOTE: this should probably get updated for some hierarchical parallelism...
-  Kokkos::parallel_for("EvaluatorColumnIntegrator::Evaluate_",
-                       res.extent(0),
-                       KOKKOS_LAMBDA(const int col) {
-                         // for each column, loop over cells calling the integrator until stop is
-                         // requested or the column is complete
-                         AmanziGeometry::Point val(0., 0.);
-                         auto col_cell = mesh.columns.getCells(col);
-                         for (int i = 0; i != col_cell.size(); ++i) {
-                           bool completed = integrator.scan(col, col_cell[i], val);
-                           if (completed) break;
-                         }
+  Kokkos::parallel_for(
+    "EvaluatorColumnIntegrator::Evaluate_", res.extent(0), KOKKOS_LAMBDA(const int col) {
+      // for each column, loop over cells calling the integrator until stop is
+      // requested or the column is complete
+      AmanziGeometry::Point val(0., 0.);
+      auto col_cell = mesh.columns.getCells(col);
+      for (int i = 0; i != col_cell.size(); ++i) {
+        bool completed = integrator.scan(col, col_cell[i], val);
+        if (completed) break;
+      }
 
-                         // val[1] is typically e.g. cell volume, but can be 0 to indicate no
-                         // denominator.  Coefficient provides a hook for column-wide multiples
-                         // (e.g. 1/surface area).
-                         if (val[1] > 0.)
-                           res(col, 0) = integrator.coefficient(col) * val[0] / val[1];
-                         else
-                           res(col, 0) = integrator.coefficient(col) * val[0];
-                       });
+      // val[1] is typically e.g. cell volume, but can be 0 to indicate no
+      // denominator.  Coefficient provides a hook for column-wide multiples
+      // (e.g. 1/surface area).
+      if (val[1] > 0.)
+        res(col, 0) = integrator.coefficient(col) * val[0] / val[1];
+      else
+        res(col, 0) = integrator.coefficient(col) * val[0];
+    });
 }
 
 

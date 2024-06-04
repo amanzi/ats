@@ -63,10 +63,9 @@ class RelativePermeabilityModel {
   RelativePermeabilityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
     : model_(plist->sublist("model parameters"))
   {
-    my_key_ = { Keys::cleanPListName(*plist), Tag{plist->get<std::string>("tag")} };
+    my_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
     auto domain = Keys::getDomain(my_key_.first);
     s_key_ = Keys::readKeyTag(*plist, domain, "saturation", "saturation_liquid", my_key_.second);
-
   }
 
   void
@@ -82,8 +81,18 @@ class RelativePermeabilityModel {
     s_ = cView_type();
   }
 
-  KeyTagVector getMyKeys() const { return { my_key_, }; }
-  KeyTagVector getDependencies() const { return { s_key_, }; }
+  KeyTagVector getMyKeys() const
+  {
+    return {
+      my_key_,
+    };
+  }
+  KeyTagVector getDependencies() const
+  {
+    return {
+      s_key_,
+    };
+  }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {

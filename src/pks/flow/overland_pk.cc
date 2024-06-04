@@ -381,7 +381,7 @@ OverlandFlow::CommitStep(double t_old, double t_new, const Teuchos::RCP<State>& 
 // Update diagnostics -- used prior to vis.
 // -----------------------------------------------------------------------------
 void
-OverlandFlow::CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+OverlandFlow::CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
 
 // -----------------------------------------------------------------------------

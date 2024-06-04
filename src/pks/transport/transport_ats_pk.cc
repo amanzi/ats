@@ -789,8 +789,7 @@ Transport_ATS::StableTimeStep()
     if (fabs(3 - tmp_package[5]) < 1e-10) *vo_->os() << ", " << tmp_package[4];
     *vo_->os() << ")" << std::endl;
     *vo_->os() << "Stable time step " << dt_ << " is limited by saturation/ponded_depth "
-               << tmp_package[0] << " and "
-               << "output flux " << tmp_package[1] << std::endl;
+               << tmp_package[0] << " and " << "output flux " << tmp_package[1] << std::endl;
   }
   return dt_;
 }

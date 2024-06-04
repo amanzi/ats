@@ -87,7 +87,7 @@ class SnowDistribution : public PK_PhysicalBDF_Default {
 
   // -- Update diagnostics for vis.
   //virtual void calculate_diagnostics(const Teuchos::RCP<State>& S) {}
-  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S){};
+  virtual void CalculateDiagnostics(const Teuchos::RCP<State>& S) {};
 
   // ConstantTemperature is a BDFFnBase
   // computes the non-linear functional g = g(t,u,udot)

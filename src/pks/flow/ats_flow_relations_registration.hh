@@ -81,8 +81,10 @@ REGISTER(Flow::Relations::RelativeHydraulicConductivityEvaluator);
 
 namespace Amanzi {
 
-template<> REGISTER(Flow::Relations::SoilResistanceSakaguckiZengEvaluator);
-template<> REGISTER(Flow::Relations::SoilResistanceSakaguckiZengEvaluatorByMaterial);
+template <>
+REGISTER(Flow::Relations::SoilResistanceSakaguckiZengEvaluator);
+template <>
+REGISTER(Flow::Relations::SoilResistanceSakaguckiZengEvaluatorByMaterial);
 
 } // namespace Amanzi
 #include "Factory.hh"

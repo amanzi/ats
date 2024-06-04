@@ -322,12 +322,12 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
   virtual void Initialize() override;
 
   virtual double getDt() override;
-  virtual void setDt(double dt) override{};
+  virtual void setDt(double dt) override {};
   virtual void setTags(const Tag& current, const Tag& next) override;
 
   virtual bool AdvanceStep(double t_old, double t_new, bool reinit = false) override;
   virtual void CommitStep(double t_old, double t_new, const Tag& tag) override;
-  virtual void CalculateDiagnostics(const Tag& tag) override{};
+  virtual void CalculateDiagnostics(const Tag& tag) override {};
 
   // main transport members
   // -- calculation of a stable time step needs saturations and darcy flux
@@ -342,18 +342,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
 #endif
 
   // -- access members
-  inline double get_cfl()
-  {
-    return cfl_;
-  }
-  Teuchos::RCP<const State> get_state()
-  {
-    return S_;
-  }
-  Teuchos::RCP<CompositeVector> get_total_component_concentration()
-  {
-    return tcc_tmp;
-  }
+  inline double get_cfl() { return cfl_; }
+  Teuchos::RCP<const State> get_state() { return S_; }
+  Teuchos::RCP<CompositeVector> get_total_component_concentration() { return tcc_tmp; }
 
   // -- control members
   void CreateDefaultState(Teuchos::RCP<const AmanziMesh::Mesh>& mesh, int ncomponents);
@@ -392,18 +383,9 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                              Teuchos::RCP<CompositeVector>& gradient,
                              Teuchos::RCP<Epetra_Vector>& limiter);
 
-  const std::vector<std::string> get_component_names()
-  {
-    return component_names_;
-  };
-  int get_num_aqueous_component()
-  {
-    return num_aqueous;
-  };
-  int get_num_gaseous_component()
-  {
-    return num_gaseous;
-  };
+  const std::vector<std::string> get_component_names() { return component_names_; };
+  int get_num_aqueous_component() { return num_aqueous; };
+  int get_num_gaseous_component() { return num_gaseous; };
 
 
  private:
@@ -430,14 +412,8 @@ class Transport_ATS : public PK_PhysicalExplicit<Epetra_Vector> {
                              double dT,
                              Epetra_MultiVector& v_int);
 
-  const Teuchos::RCP<Epetra_IntVector>& get_upwind_cell()
-  {
-    return upwind_cell_;
-  }
-  const Teuchos::RCP<Epetra_IntVector>& get_downwind_cell()
-  {
-    return downwind_cell_;
-  }
+  const Teuchos::RCP<Epetra_IntVector>& get_upwind_cell() { return upwind_cell_; }
+  const Teuchos::RCP<Epetra_IntVector>& get_downwind_cell() { return downwind_cell_; }
 
   // physical models
   // -- dispersion and diffusion

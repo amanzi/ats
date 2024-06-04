@@ -19,6 +19,7 @@ SUITE(FLOW_RELATIONS)
   TEST(RICHARDS_WATER_CONTENT)
   {
     auto plist = Teuchos::rcp(new Teuchos::ParameterList("saturation"));
+    plist->set<std::string>("tag", "");
     Flow::Relations::RichardsWaterContentModel<cView_type, View_type> model(plist);
     View_type sat("saturation", 4, 1);
     sat(0, 0) = 0.;

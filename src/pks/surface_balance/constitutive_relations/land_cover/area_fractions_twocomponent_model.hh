@@ -54,7 +54,6 @@ namespace Relations {
 template <class cView_type, class View_type>
 class AreaFractionsTwoComponentModel {
  public:
-
   static const int n_dependencies = 1;
   static const bool provides_derivatives = false;
   static const int n_dofs = 2;
@@ -81,7 +80,11 @@ class AreaFractionsTwoComponentModel {
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     std::string region = model_list.get<std::string>("region");
-    land_cover_ = getLandCover(region, model_list, { "snow_transition_depth", });
+    land_cover_ = getLandCover(region,
+                               model_list,
+                               {
+                                 "snow_transition_depth",
+                               });
   }
 
 
@@ -104,21 +107,21 @@ class AreaFractionsTwoComponentModel {
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
     // calculate area of land
-    if (sd_(i,0) >= land_cover_.snow_transition_depth) {
-      res_(i,1) = 1.;
-    } else if (sd_(i,0) <= 0.) {
-      res_(i,1) = 0.;
+    if (sd_(i, 0) >= land_cover_.snow_transition_depth) {
+      res_(i, 1) = 1.;
+    } else if (sd_(i, 0) <= 0.) {
+      res_(i, 1) = 0.;
     } else {
-      res_(i,1) = sd_(i,0) / land_cover_.snow_transition_depth;
+      res_(i, 1) = sd_(i, 0) / land_cover_.snow_transition_depth;
     }
 
     // if any area is less than eps, give to other
-    if (res_(i,1) < min_area_) {
-      res_(i,1) = 0.;
-    } else if (res_(i,1) > (1 - min_area_)) {
-      res_(i,1) = 1.;
+    if (res_(i, 1) < min_area_) {
+      res_(i, 1) = 0.;
+    } else if (res_(i, 1) > (1 - min_area_)) {
+      res_(i, 1) = 1.;
     }
-    res_(i,0) = 1 - res_(i,1);
+    res_(i, 0) = 1 - res_(i, 1);
   }
 
   // derivatives not currently provided
@@ -141,11 +144,13 @@ const std::string AreaFractionsTwoComponentModel<cView_type, View_type>::eval_ty
   "area fractions, two components";
 
 template <class cView_type, class View_type>
-const std::vector<std::string> AreaFractionsTwoComponentModel<cView_type, View_type>::subfield_names =
-  { "ground_or_water", "snow" };
+const std::vector<std::string>
+  AreaFractionsTwoComponentModel<cView_type, View_type>::subfield_names = { "ground_or_water",
+                                                                            "snow" };
 
 
-using AreaFractionsTwoComponentEvaluator = EvaluatorMultiDOFModelCVByMaterial<AreaFractionsTwoComponentModel>;
+using AreaFractionsTwoComponentEvaluator =
+  EvaluatorMultiDOFModelCVByMaterial<AreaFractionsTwoComponentModel>;
 
 } // namespace Relations
 } // namespace SurfaceBalance
