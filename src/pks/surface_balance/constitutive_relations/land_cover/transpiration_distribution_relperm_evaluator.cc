@@ -223,71 +223,71 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
   auto& subsurf_mesh = *S.GetMesh(domain_sub_);
   auto& surf_mesh = *S.GetMesh(domain_surf_);
 
-  // for (const auto& region_lc : land_cover_) {
-  //   auto lc_ids = surf_mesh.getSetEntities(
-  //     region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
-  //   const LandCover& lc_pars = region_lc.second;
-  //   double krp(krp_), c0(c0_), rho(rho_), tol(tol_);
+  for (const auto& region_lc : land_cover_) {
+    auto lc_ids = surf_mesh.getSetEntities(
+      region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
+    const LandCover& lc_pars = region_lc.second;
+    double krp(krp_), c0(c0_), rho(rho_), tol(tol_);
 
-  //   if (lc_ids.size() > 0) {
-  //     int nits(nits_);
+    if (lc_ids.size() > 0) {
+      int nits(nits_);
 
-  //     Kokkos::parallel_for(
-  //       "TranspirationDistributionRelPermEvaluator::Evaluate",
-  //       lc_ids.size(),
-  //       KOKKOS_LAMBDA(const int i) {
-  //         AmanziMesh::Entity_ID sc = lc_ids(i);
-  //         if (potential_trans(sc, 0) > 0. || krp > 0.) {
-  //           SoilPlantFluxFunctor func(sc,
-  //                                     subsurf_mesh.columns.getCells(sc),
-  //                                     lc_pars,
-  //                                     soil_pc,
-  //                                     soil_kr,
-  //                                     f_root,
-  //                                     potential_trans,
-  //                                     cv,
-  //                                     sa,
-  //                                     c0,
-  //                                     krp,
-  //                                     rho,
-  //                                     g);
+      Kokkos::parallel_for(
+        "TranspirationDistributionRelPermEvaluator::Evaluate",
+        lc_ids.size(),
+        KOKKOS_LAMBDA(const int i) {
+          AmanziMesh::Entity_ID sc = lc_ids(i);
+          if (potential_trans(sc, 0) > 0. || krp > 0.) {
+            SoilPlantFluxFunctor func(sc,
+                    subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc),
+                    lc_pars,
+                    soil_pc,
+                    soil_kr,
+                    f_root,
+                    potential_trans,
+                    cv,
+                    sa,
+                    c0,
+                    krp,
+                    rho,
+                    g);
 
-  //           // bracket the root -- linear to the left of 1, log to the right of 1
-  //           Kokkos::pair<double, double> ab;
-  //           if (func(0.) > 0.) {
-  //             ab.first = 0.;
-  //             ab.second = 1.e4;
-  //             while (func(ab.second) > 0) {
-  //               ab.first = ab.second;
-  //               ab.second *= 10;
-  //               assert(ab.second < 1.e14); // failed to bracket root
-  //             }
-  //           } else {
-  //             ab.second = 0.;
-  //             ab.first = -1.e4;
-  //             while (func(ab.first) < 0) {
-  //               ab.second = ab.first;
-  //               ab.first *= 10;
-  //               assert(ab.first > -1.e14); // failed to bracket root
-  //             }
-  //           }
+            // bracket the root -- linear to the left of 1, log to the right of 1
+            Kokkos::pair<double, double> ab;
+            if (func(0.) > 0.) {
+              ab.first = 0.;
+              ab.second = 1.e4;
+              while (func(ab.second) > 0) {
+                ab.first = ab.second;
+                ab.second *= 10;
+                assert(ab.second < 1.e14); // failed to bracket root
+              }
+            } else {
+              ab.second = 0.;
+              ab.first = -1.e4;
+              while (func(ab.first) < 0) {
+                ab.second = ab.first;
+                ab.first *= 10;
+                assert(ab.first > -1.e14); // failed to bracket root
+              }
+            }
 
-  //           // compute the plant capillary pressure using a root-finder
-  //           int itrs = nits;
-  //           plant_pc_v(sc, 0) =
-  //             Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol, &itrs);
-  //           assert(itrs > 0 && itrs <= nits);
+            // compute the plant capillary pressure using a root-finder
+            int itrs = nits;
+            plant_pc_v(sc, 0) =
+              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol, &itrs);
+            assert(itrs > 0 && itrs <= nits);
 
-  //           // compute the distributed transpiration fluxes for each grid cell
-  //           func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
+            // compute the distributed transpiration fluxes for each grid cell
+            func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
 
-  //         } else {
-  //           for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c, 0) = 0.; }
-  //         }
-  //       });
-  //   }
-  // }
-  // AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
+          } else {
+            for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c, 0) = 0.; }
+          }
+        });
+    }
+  }
+  AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
 }
 
 
