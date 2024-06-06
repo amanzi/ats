@@ -62,7 +62,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
                                               const std::string face_component,
                                               const Teuchos::Ptr<Debugger>& db) const
 {
-  const AmanziMesh::Mesh* mesh = face_coef.getMesh().get();
+  const AmanziMesh::Mesh& m = *face_coef.getMesh();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -83,12 +83,12 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
     Kokkos::parallel_for(
       "upwind_total_flux", nfaces_local, KOKKOS_LAMBDA(const int& f) {
-        auto fcells = mesh->getFaceCells(f);
+        auto fcells = m.getFaceCells(f);
 
         int uw = -1, dw = -1;
         int c0 = fcells(0);
         int orientation = 0;
-        mesh->getFaceNormal(f, c0, &orientation);
+        m.getFaceNormal(f, c0, &orientation);
         if (flux_v(f, 0) * orientation > 0) {
           uw = c0;
           if (fcells.size() == 2) dw = fcells(1);

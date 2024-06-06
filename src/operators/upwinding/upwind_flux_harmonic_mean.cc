@@ -49,7 +49,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
                                                      CompositeVector& face_coef,
                                                      const Teuchos::Ptr<Debugger>& db) const
 {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.getMesh();
+  const AmanziMesh::Mesh& m = *face_coef.getMesh();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -66,12 +66,12 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for(
       "upwind_flux_harmonic_mean", nfaces_local, KOKKOS_LAMBDA(const int& f) {
-        auto fcells = mesh->getFaceCells(f);
+        auto fcells = m.getFaceCells(f);
 
         int uw = -1, dw = -1;
         int c0 = fcells(0);
         int orientation = 0;
-        mesh->getFaceNormal(f, c0, &orientation);
+        m.getFaceNormal(f, c0, &orientation);
         if (flux_v(f, 0) * orientation > 0) {
           uw = c0;
           if (fcells.size() == 2) dw = fcells(1);
@@ -112,8 +112,8 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           coef_faces(f, 0) = coefs[0];
         } else {
           double dist[2];
-          dist[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
-          dist[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          dist[0] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(uw));
+          dist[1] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(dw));
 
           double hmean = 0.0;
           if ((coefs[0] != 0.0) && (coefs[1] != 0.0))
@@ -125,23 +125,23 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           double coef_jump = 0.0;
           double amean_scaling[2];
           if (coefs[0] != coefs[1]) {
-            amean_scaling[0] = (coefs[0] > 1e-15) ? std::pow(10.0,
+            amean_scaling[0] = (coefs[0] > 1e-15) ? pow(10.0,
                                                              -amean_order_of_supression * coefs[1] *
                                                                (coefs[0] + coefs[1]) /
-                                                               std::pow(coefs[0] - coefs[1], 2.0)) :
+                                                               pow(coefs[0] - coefs[1], 2.0)) :
                                                     0.0;
-            amean_scaling[1] = (coefs[1] > 1e-15) ? std::pow(10.0,
+            amean_scaling[1] = (coefs[1] > 1e-15) ? pow(10.0,
                                                              -amean_order_of_supression * coefs[0] *
                                                                (coefs[0] + coefs[1]) /
-                                                               std::pow(coefs[0] - coefs[1], 2.0)) :
+                                                               pow(coefs[0] - coefs[1], 2.0)) :
                                                     0.0;
 
             coef_face += amean * amean_scaling[0];
-            coef_jump = amean * std::abs(amean_scaling[0] - amean_scaling[1]);
+            coef_jump = amean * fabs(amean_scaling[0] - amean_scaling[1]);
           }
 
-          if ((std::abs(flux_v(f, 0)) < flow_eps) && (coef_jump > 1e-15)) {
-            double param = std::abs(flux_v(f, 0)) / flow_eps;
+          if ((fabs(flux_v(f, 0)) < flow_eps) && (coef_jump > 1e-15)) {
+            double param = fabs(flux_v(f, 0)) / flow_eps;
             double alt_coef_face = hmean + amean * amean_scaling[1];
             coef_faces(f, 0) = param * coef_face + (1 - param) * alt_coef_face;
           } else {

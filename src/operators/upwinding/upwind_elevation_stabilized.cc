@@ -70,7 +70,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
                                                         CompositeVector& face_coef,
                                                         const Teuchos::Ptr<Debugger>& db) const
 {
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.getMesh();
+  const AmanziMesh::Mesh& m = *face_coef.getMesh();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -95,10 +95,10 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
     const auto pd_bf = ponded_depth.viewComponent("boundary_face", false);
 
     double slope_regularization = slope_regularization_;
-    double manning_exp = manning_exp_;
+    double manning_exp = manning_exp_ + 1;
 
-    // const auto& face_map = mesh->getMap(AmanziMesh::Entity_kind::FACE,false);
-    // const auto& bface_map = mesh->getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
+    // const auto& face_map = m.getMap(AmanziMesh::Entity_kind::FACE,false);
+    // const auto& bface_map = m.getMap(AmanziMesh::Entity_kind::BOUNDARY_FACE,false);
 
     // Determine the face coefficient of local faces.
     //
@@ -110,7 +110,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for(
       "upwind_flux_elevation_stabilized", nfaces_local, KOKKOS_LAMBDA(const int& f) {
-        auto fcells = mesh->getFaceCells(f);
+        auto fcells = m.getFaceCells(f);
 
         double denom[2] = { 0., 0. };
         double weight[2] = { 0., 0. };
@@ -119,18 +119,18 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
         double dens[2] = { 0., 0. };
 
         weight[0] =
-          AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(fcells[0]));
+          AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(fcells[0]));
         denom[0] = manning_coef_v(fcells[0], 0) *
-                   std::sqrt(std::max(slope_v(fcells[0], 0), slope_regularization));
+                   std::sqrt(fmax(slope_v(fcells[0], 0), slope_regularization));
         pres_elev[0] = pd_v(fcells[0], 0) + elev_v(fcells[0], 0);
         elev[0] = elev_v(fcells[0], 0);
         dens[0] = dens_v(fcells[0], 0);
 
         if (fcells.size() > 1) {
           weight[1] =
-            AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(fcells[1]));
+            AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(fcells[1]));
           denom[1] = manning_coef_v(fcells[1], 0) *
-                     std::sqrt(std::max(slope_v(fcells[1], 0), slope_regularization));
+                     std::sqrt(fmax(slope_v(fcells[1], 0), slope_regularization));
           pres_elev[1] = pd_v(fcells[1], 0) + elev_v(fcells[1], 0);
           elev[1] = elev_v(fcells[1], 0);
           dens[1] = dens_v(fcells[1], 0);
@@ -138,7 +138,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
           // boundary face
           weight[1] = weight[0];
           denom[1] = denom[0];
-          int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(*mesh, f);
+          int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(m, f);
           pres_elev[1] = pd_bf(bf, 0) + elev_bf(bf, 0);
           elev[1] = elev_bf(bf, 0);
           dens[1] = dens[0];
@@ -147,8 +147,8 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
         // harmonic mean of the denominator
         double denom_f = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
         double dens_f = (weight[0] + weight[1]) / (weight[0] / dens[0] + weight[1] / dens[1]);
-        double h_f = std::max(pres_elev[0], pres_elev[1]) - std::max(elev[0], elev[1]);
-        coef_faces(f, 0) = dens_f * std::pow(h_f, 1 + manning_exp) / denom_f;
+        double h_f = fmax(pres_elev[0], pres_elev[1]) - fmax(elev[0], elev[1]);
+        coef_faces(f, 0) = dens_f * pow(h_f, manning_exp) / denom_f;
       });
   }
   face_coef.scatterMasterToGhosted("face");

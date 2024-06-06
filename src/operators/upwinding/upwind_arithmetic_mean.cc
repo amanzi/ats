@@ -58,14 +58,14 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 
   // communicate ghosted cells
   cell_coef.scatterMasterToGhosted(cell_component);
-  const AmanziMesh::Mesh* mesh = face_coef.getMesh().get();
+  const AmanziMesh::Mesh& m = *face_coef.getMesh();
   {
     auto face_coef_f = face_coef.viewComponent(face_component, false);
     auto cell_coef_c = cell_coef.viewComponent(cell_component, true);
 
     Kokkos::parallel_for(
       "upwind_arithmetic_mean", face_coef_f.extent(0), KOKKOS_LAMBDA(const int& f) {
-        auto cells = mesh->getFaceCells(f);
+        auto cells = m.getFaceCells(f);
         for (const auto& c : cells) { face_coef_f(f, 0) += cell_coef_c(c, 0); }
         face_coef_f(f, 0) /= cells.size();
       });

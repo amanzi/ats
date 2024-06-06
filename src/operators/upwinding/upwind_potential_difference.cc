@@ -54,7 +54,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   // initialize the cell coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
-  Teuchos::RCP<const AmanziMesh::Mesh> mesh = face_coef.getMesh();
+  const AmanziMesh::Mesh& m = *face_coef.getMesh();
   AmanziMesh::Entity_ID_List cells;
   std::vector<int> dirs;
   double eps = 1.e-16;
@@ -75,7 +75,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
     int nfaces_local = face_coef_f.extent(0);
     Kokkos::parallel_for(
       "upwind_total_flux", nfaces_local, KOKKOS_LAMBDA(const int& f) {
-        auto cells = mesh->getFaceCells(f);
+        auto cells = m.getFaceCells(f);
 
         if (cells.size() == 1) {
           if (potential_f.extent(0) > 0) {
@@ -88,12 +88,12 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
         } else {
           // Determine the size of the overlap region, a smooth transition region
           // near zero potential difference.
-          double ol0 = std::max(0., overlap_c(cells[0], 0));
-          double ol1 = std::max(0., overlap_c(cells[1], 0));
+          double ol0 = fmax(0., overlap_c(cells[0], 0));
+          double ol1 = fmax(0., overlap_c(cells[1], 0));
 
           double flow_eps = 0.0;
           if ((ol0 > 0) || (ol1 > 0)) { flow_eps = (ol0 * ol1) / (ol0 + ol1); }
-          flow_eps = std::max(flow_eps, eps);
+          flow_eps = fmax(flow_eps, eps);
 
           // Determine the coefficient.
           if (potential_c(cells[0], 0) - potential_c(cells[1], 0) > flow_eps) {

@@ -28,7 +28,7 @@ ManningConductivityModel::ManningConductivityModel(
 }
 
 double
-ManningConductivityModel::Conductivity(double depth, double slope, double coef)
+ManningConductivityModel::Conductivity(double depth, double slope, double coef) const
 {
   if (depth <= 0.) return 0.;
   double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));
@@ -36,7 +36,7 @@ ManningConductivityModel::Conductivity(double depth, double slope, double coef)
 }
 
 double
-ManningConductivityModel::DConductivityDDepth(double depth, double slope, double coef)
+ManningConductivityModel::DConductivityDDepth(double depth, double slope, double coef) const
 {
   if (depth <= 0.) return 0.;
   double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));

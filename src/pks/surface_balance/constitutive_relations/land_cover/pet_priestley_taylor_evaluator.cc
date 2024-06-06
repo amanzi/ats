@@ -123,7 +123,7 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
           res(c, 0) = alpha / lh_vap * s1 * s2 / 1000.;
 
           // do not allow condensation in P-T
-          res(c, 0) = std::max(res(c, 0), 0.0);
+          res(c, 0) = fmax(res(c, 0), 0.0);
         });
     }
   }
@@ -158,16 +158,14 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto evap_val =
       S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
     auto res = result[0]->viewComponent("cell", false);
+    int limiter_dof(limiter_dof_);
 
     Kokkos::parallel_for(
       "PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
       res.extent(0),
       KOKKOS_LAMBDA(const int c) {
-        double limiter_val = limiter(c, limiter_dof_);
+        double limiter_val = limiter(c, limiter_dof);
         res(c, 0) = limiter_val > 1.e-5 ? evap_val(c, 0) / limiter_val : 0.;
-        std::cout << "evap_val = " << evap_val(c, 0) << std::endl;
-        std::cout << "limiter_val = " << limiter_val << std::endl;
-        std::cout << "res_val = " << res(c, 0) << std::endl;
       });
 
   } else if (one_minus_limiter_ && wrt_key == one_minus_limiter_key_) {
@@ -175,12 +173,13 @@ PETPriestleyTaylorEvaluator::EvaluatePartialDerivative_(const State& S,
     auto evap_val =
       S.Get<CompositeVector>(my_keys_.front().first, tag).viewComponent("cell", false);
     auto res = result[0]->viewComponent("cell", false);
+    int one_minus_limiter_dof(one_minus_limiter_dof_);
 
     Kokkos::parallel_for(
       "PETPriestleyTaylorEvaluator::EvaluatePartialDerivative(limiter)",
       res.extent(0),
       KOKKOS_LAMBDA(const int c) {
-        double limiter_val = limiter(c, one_minus_limiter_dof_);
+        double limiter_val = limiter(c, one_minus_limiter_dof);
         res(c, 0) = limiter_val > 1.e-5 ? -evap_val(c, 0) / (1 - limiter_val) : 0.;
       });
   }

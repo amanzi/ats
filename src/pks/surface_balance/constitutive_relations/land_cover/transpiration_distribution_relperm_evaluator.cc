@@ -227,6 +227,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
     auto lc_ids = surf_mesh.getSetEntities(
       region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     const LandCover& lc_pars = region_lc.second;
+    double krp(krp_), c0(c0_), rho(rho_), tol(tol_);
 
     if (lc_ids.size() > 0) {
       Kokkos::parallel_for(
@@ -234,7 +235,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
         lc_ids.size(),
         KOKKOS_LAMBDA(const int i) {
           AmanziMesh::Entity_ID sc = lc_ids(i);
-          if (potential_trans(sc, 0) > 0. || krp_ > 0.) {
+          if (potential_trans(sc, 0) > 0. || krp > 0.) {
             SoilPlantFluxFunctor func(sc,
                                       subsurf_mesh.columns.getCells(sc),
                                       lc_pars,
@@ -244,13 +245,13 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
                                       potential_trans,
                                       cv,
                                       sa,
-                                      c0_,
-                                      krp_,
-                                      rho_,
+                                      c0,
+                                      krp,
+                                      rho,
                                       g);
 
             // bracket the root -- linear to the left of 1, log to the right of 1
-            std::pair<double, double> ab;
+            Kokkos::pair<double, double> ab;
             if (func(0.) > 0.) {
               ab.first = 0.;
               ab.second = 1.e4;
@@ -272,7 +273,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
             // compute the plant capillary pressure using a root-finder
             int itrs = nits_;
             plant_pc_v(sc, 0) =
-              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol_, &itrs);
+              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol, &itrs);
             assert(itrs > 0 && itrs <= nits_);
 
             // compute the distributed transpiration fluxes for each grid cell

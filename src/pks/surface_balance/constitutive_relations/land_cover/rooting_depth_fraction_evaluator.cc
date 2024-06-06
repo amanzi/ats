@@ -81,7 +81,7 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
       lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     Kokkos::parallel_for(
-      "RootingDepthFractionEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_LAMBDA(const int j) {
+      "RootingDepthFractionEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_CLASS_LAMBDA(const int j) {
         AmanziMesh::Entity_ID sc = lc_ids(j);
         double depth = 0.;
         double total = 0.;

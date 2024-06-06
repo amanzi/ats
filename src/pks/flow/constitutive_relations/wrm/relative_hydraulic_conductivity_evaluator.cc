@@ -77,9 +77,11 @@ RelativeHydraulicConductivityEvaluator::Evaluate_(const State& S,
     auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("cell", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
     auto res = results[0]->viewComponent("cell", false);
+    double rescaling(rescaling_);
+
     Kokkos::parallel_for(
       "relativepermeabilityevaluator: rho/visc cells", res.extent(0), KOKKOS_LAMBDA(const int c) {
-        res(c, 0) = rescaling_ * dens(c, 0) * res(c, 0) / visc(c, 0);
+        res(c, 0) = rescaling * dens(c, 0) * res(c, 0) / visc(c, 0);
       });
   }
 
@@ -87,12 +89,13 @@ RelativeHydraulicConductivityEvaluator::Evaluate_(const State& S,
     auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("boundary_face", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("boundary_face", false);
     auto res = results[0]->viewComponent("boundary_face", false);
+    double rescaling(rescaling_);
 
     Kokkos::parallel_for(
       "relativepermeabilityevaluator: rho/visc boundary faces",
       res.extent(0),
       KOKKOS_LAMBDA(const int bf) {
-        res(bf, 0) = rescaling_ * dens(bf, 0) * res(bf, 0) / visc(bf, 0);
+        res(bf, 0) = rescaling * dens(bf, 0) * res(bf, 0) / visc(bf, 0);
       });
   }
 }
@@ -125,23 +128,25 @@ RelativeHydraulicConductivityEvaluator::EvaluatePartialDerivative_(
     auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("boundary_face", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
     auto krel = S.Get<CompositeVector>(krel_key_).viewComponent("cell", false);
+    double rescaling(rescaling_);
 
     Kokkos::parallel_for(
       "RelativeHydraulicConductivityEvaluator: deriv wrt visc",
       res.extent(0),
       KOKKOS_LAMBDA(const int c) {
-        res(c, 0) = -rescaling_ * dens(c, 0) * krel(c, 0) / (visc(c, 0) * visc(c, 0));
+        res(c, 0) = -rescaling * dens(c, 0) * krel(c, 0) / (visc(c, 0) * visc(c, 0));
       });
 
   } else if (wrt == krel_key_) {
     auto res = results[0]->viewComponent("cell", false);
     auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("boundary_face", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
+    double rescaling(rescaling_);
 
     Kokkos::parallel_for(
       "RelativeHydraulicConductivityEvaluator: deriv wrt krel",
       res.extent(0),
-      KOKKOS_LAMBDA(const int c) { res(c, 0) = rescaling_ * dens(c, 0) / visc(c, 0); });
+      KOKKOS_LAMBDA(const int c) { res(c, 0) = rescaling * dens(c, 0) / visc(c, 0); });
   }
 
   if (results[0]->hasComponent("boundary_face"))

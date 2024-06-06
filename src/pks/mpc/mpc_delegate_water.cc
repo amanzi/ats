@@ -92,13 +92,14 @@ MPCDelegateWater::ModifyCorrection_WaterFaceLimiter(double h,
     }
 
     auto domain_Pu_f = Pu->getSubVector(i_domain_)->getData()->viewComponent(face_entity, false);
+    double face_limiter(face_limiter_);
 
     Kokkos::parallel_reduce(
       "MPCDelegateWater::ModifyCorrection_WaterFaceLimiter",
       domain_Pu_f.extent(0),
       KOKKOS_LAMBDA(const int& f, int& l_modified) {
-        if (std::abs(domain_Pu_f(f, 0)) > face_limiter_) {
-          domain_Pu_f(f, 0) = domain_Pu_f(f, 0) > 0. ? face_limiter_ : -face_limiter_;
+        if (fabs(domain_Pu_f(f, 0)) > face_limiter) {
+          domain_Pu_f(f, 0) = domain_Pu_f(f, 0) > 0. ? face_limiter : -face_limiter;
           l_modified++;
         }
       },
@@ -137,6 +138,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
   const auto domain_u_f = domain_u->viewComponent(face_entity, false);
   auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  double cap_size(cap_size_);
 
   // Approach 2
   double damp = 1.;
@@ -150,25 +152,25 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
           double p_old = domain_u_f(f, 0);
           double p_Pu = domain_Pu_f(f, 0);
           double p_new = p_old - p_Pu;
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
-            double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
+            double my_damp = ((patm + cap_size) - p_old) / (p_new - p_old);
             if (my_damp < l_damp) l_damp = my_damp;
           }
         },
         Kokkos::Min<double>(damp));
     } else {
-      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh();
       Kokkos::parallel_reduce(
         "MPCDelegateWater::ModifyCorrection_WaterSpurtDamp",
         ncells_surf,
         KOKKOS_LAMBDA(const int& cs, double& l_damp) {
           AmanziMesh::Entity_ID f =
-            AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+            AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parent_ents(cs));
           double p_old = domain_u_f(f, 0);
           double p_Pu = domain_Pu_f(f, 0);
           double p_new = p_old - p_Pu;
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
-            double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
+            double my_damp = ((patm + cap_size) - p_old) / (p_new - p_old);
             if (my_damp < l_damp) l_damp = my_damp;
           }
         },
@@ -218,6 +220,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
   const auto domain_u_f = domain_u->viewComponent(face_entity, false);
   auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  double cap_size(cap_size_);
 
   // Approach 3
   int n_modified = 0;
@@ -232,15 +235,15 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
           double p_old = domain_u_f(f, 0);
           double p_Pu = domain_Pu_f(f, 0);
           double p_new = p_old - p_Pu / damp;
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
-            double p_corrected = p_old - (patm + cap_size_);
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
+            double p_corrected = p_old - (patm + cap_size);
             domain_Pu_f(f, 0) = p_corrected;
 
             l_modified++;
 
           } else if ((p_new < patm) && (p_old > patm)) {
             // strange attempt to kick NKA when it goes back under?
-            // double p_corrected = p_old - (patm - cap_size_);
+            // double p_corrected = p_old - (patm - cap_size);
             // domain_Pu_f(f,0) = p_corrected;
             l_modified++;
           }
@@ -248,26 +251,27 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
         n_modified);
 
     } else if (face_entity == "boundary_face") {
-      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh();
+
       Kokkos::parallel_reduce(
         "MPCDelegateWater::ModifyCorrection_WaterSpurtCap",
         ncells_surf,
         KOKKOS_LAMBDA(const int& cs, int& l_modified) {
           AmanziMesh::Entity_ID f =
-            AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+            AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parent_ents(cs));
 
           double p_old = domain_u_f(f, 0);
           double p_Pu = domain_Pu_f(f, 0);
           double p_new = p_old - p_Pu / damp;
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
-            double p_corrected = p_old - (patm + cap_size_);
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
+            double p_corrected = p_old - (patm + cap_size);
             domain_Pu_f(f, 0) = p_corrected;
 
             l_modified++;
 
           } else if ((p_new < patm) && (p_old > patm)) {
             // strange attempt to kick NKA when it goes back under?
-            // double p_corrected = p_old - (patm - cap_size_);
+            // double p_corrected = p_old - (patm - cap_size);
             // domain_Pu_f(f,0) = p_corrected;
             l_modified++;
           }
@@ -297,6 +301,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
   const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  double cap_size(cap_size_);
 
   // Approach 2
   double damp = 1.;
@@ -307,8 +312,8 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtDamp(double h,
       KOKKOS_LAMBDA(const int& c, double& l_damp) {
         double p_old = domain_p_c(c, 0);
         double p_new = p_old - domain_Pu_c(c, 0);
-        if ((p_new > patm + cap_size_) && (p_old < patm)) {
-          double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+        if ((p_new > patm + cap_size) && (p_old < patm)) {
+          double my_damp = ((patm + cap_size) - p_old) / (p_new - p_old);
           if (my_damp < l_damp) l_damp = my_damp;
         }
       },
@@ -345,6 +350,7 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h,
   const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  double cap_size(cap_size_);
 
   // Approach 3
   int n_modified = 0;
@@ -355,8 +361,8 @@ MPCDelegateWater::ModifyCorrection_SaturatedSpurtCap(double h,
       KOKKOS_LAMBDA(const int& c, int& l_modified) {
         double p_old = domain_p_c(c, 0);
         double p_new = p_old - domain_Pu_c(c, 0) / damp;
-        if ((p_new > patm + cap_size_) && (p_old < patm)) {
-          domain_Pu_c(c, 0) = p_old - (patm + cap_size_);
+        if ((p_new > patm + cap_size) && (p_old < patm)) {
+          domain_Pu_c(c, 0) = p_old - (patm + cap_size);
           l_modified++;
         }
       },
@@ -384,6 +390,7 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
   const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  double cap_size(cap_size_);
 
   // Approach 2
   double damp = 1.;
@@ -394,8 +401,8 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtDamp(double h,
       KOKKOS_LAMBDA(const int& c, double& l_damp) {
         double p_old = domain_p_c(c, 0);
         double p_new = p_old - domain_Pu_c(c, 0);
-        if ((p_new < patm - cap_size_) && (p_old >= patm)) {
-          double my_damp = ((patm - cap_size_) - p_old) / (p_new - p_old);
+        if ((p_new < patm - cap_size) && (p_old >= patm)) {
+          double my_damp = ((patm - cap_size) - p_old) / (p_new - p_old);
           if (my_damp < l_damp) l_damp = my_damp;
         }
       },
@@ -432,6 +439,7 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h,
   const auto domain_p_c = u->getSubVector(i_domain_)->getData()->viewComponent("cell", false);
   Teuchos::RCP<CompositeVector> domain_Pu = Pu->getSubVector(i_domain_)->getData();
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
+  double cap_size(cap_size_);
 
   // Approach 3
   int n_modified = 0;
@@ -442,8 +450,8 @@ MPCDelegateWater::ModifyCorrection_DesaturatedSpurtCap(double h,
       KOKKOS_LAMBDA(const int& c, int& l_modified) {
         double p_old = domain_p_c(c, 0);
         double p_new = p_old - domain_Pu_c(c, 0) / damp;
-        if ((p_new < patm - cap_size_) && (p_old >= patm)) {
-          domain_Pu_c(c, 0) = p_old - (patm - cap_size_);
+        if ((p_new < patm - cap_size) && (p_old >= patm)) {
+          domain_Pu_c(c, 0) = p_old - (patm - cap_size);
           l_modified++;
         }
       },
@@ -482,6 +490,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
     auto surf_u_c = u->getSubVector(i_surf_)->getData()->viewComponent("cell", false);
     Teuchos::RCP<CompositeVector> domain_u = u->getSubVector(i_domain_)->getData();
     auto domain_u_f = domain_u->viewComponent(face_entity, false);
+    double cap_size(cap_size_);
 
     int ncells_surf = surf_u_c.extent(0);
     if (face_entity == "face") {
@@ -495,7 +504,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
 
           if (pnew > 0) {
             if (dp > pnew) {
-              surf_u_c(c, 0) = patm + cap_size_;
+              surf_u_c(c, 0) = patm + cap_size;
               domain_u_f(f, 0) = surf_u_c(c, 0);
 
             } else if (pold > 0 && dp > pold) {
@@ -505,11 +514,11 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
           }
         });
     } else {
-      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh().get();
       Kokkos::parallel_for(
         "MPCDelegateWater::ModifyPredictor_Heuristic", ncells_surf, KOKKOS_LAMBDA(const int& c) {
           AmanziMesh::Entity_ID f =
-            AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(c));
+            AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parent_ents(c));
 
           double dp = surf_u_c(c, 0) - surf_u_prev_c(c, 0);
           double pnew = surf_u_c(c, 0) - patm;
@@ -517,7 +526,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
 
           if (pnew > 0) {
             if (dp > pnew) {
-              surf_u_c(c, 0) = patm + cap_size_;
+              surf_u_c(c, 0) = patm + cap_size;
               domain_u_f(f, 0) = surf_u_c(c, 0);
 
             } else if (pold > 0 && dp > pold) {
@@ -565,6 +574,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
     Teuchos::RCP<CompositeVector> domain_pnew = u->getSubVector(i_domain_)->getData();
     auto domain_pnew_f = domain_pnew->viewComponent(face_entity, false);
     auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+    double cap_size(cap_size_);
 
     double damp = 1.;
     if (face_entity == "face") {
@@ -575,9 +585,9 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           AmanziMesh::Entity_ID f = parent_ents(cs);
           double p_old = domain_pold_f(f, 0);
           double p_new = domain_pnew_f(f, 0);
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
             // first over
-            double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+            double my_damp = ((patm + cap_size) - p_old) / (p_new - p_old);
             l_damp = std::min(l_damp, my_damp);
           } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
             // second over
@@ -587,18 +597,18 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
         },
         Kokkos::Min<double>(damp));
     } else {
-      const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+      const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh();
       Kokkos::parallel_reduce(
         "MPCDelegateWater::ModifyPredictor_WaterSpurtDamp",
         ncells_surf,
         KOKKOS_LAMBDA(const int& cs, double& l_damp) {
           AmanziMesh::Entity_ID f =
-            AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
+            AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parent_ents(cs));
           double p_old = domain_pold_f(f, 0);
           double p_new = domain_pnew_f(f, 0);
-          if ((p_new > patm + cap_size_) && (p_old < patm)) {
+          if ((p_new > patm + cap_size) && (p_old < patm)) {
             // first over
-            double my_damp = ((patm + cap_size_) - p_old) / (p_new - p_old);
+            double my_damp = ((patm + cap_size) - p_old) / (p_new - p_old);
             l_damp = std::min(l_damp, my_damp);
           } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
             // second over
@@ -629,12 +639,12 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           ncells_surf,
           KOKKOS_LAMBDA(const int& cs) {
             AmanziMesh::Entity_ID f = parent_ents(cs);
-            double p_old = domain_pold_f(f, 0); // THIS WAS A BUG!!!!!!!!!!!!!!!!!!!!!!!!!
+            double p_old = domain_pold_f(f, 0);
             double p_new = domain_pnew_f(f, 0);
             p_new = (p_new - p_old) / damp + p_old;
-            if ((p_new > patm + cap_size_) && (p_old < patm)) {
+            if ((p_new > patm + cap_size) && (p_old < patm)) {
               // first over
-              double new_value = patm + cap_size_;
+              double new_value = patm + cap_size;
               domain_pnew_f(f, 0) = new_value;
               surf_pnew_c(cs, 0) = new_value;
             } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {
@@ -647,19 +657,19 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
             }
           });
       } else {
-        const AmanziMesh::Mesh* sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh().get();
+        const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh();
         Kokkos::parallel_for(
           "MPCDelegateWater::ModifyPredictor_WaterSpurtDamp2",
           ncells_surf,
           KOKKOS_LAMBDA(const int& cs) {
             AmanziMesh::Entity_ID f =
-              AmanziMesh::getFaceOnBoundaryBoundaryFace(*sub_mesh, parent_ents(cs));
-            double p_old = domain_pold_f(f, 0); // THIS WAS A BUG!!!!!!!!!!!!!!!!!!!!!!!!!
+              AmanziMesh::getFaceOnBoundaryBoundaryFace(sub_mesh, parent_ents(cs));
+            double p_old = domain_pold_f(f, 0);
             double p_new = domain_pnew_f(f, 0);
             p_new = (p_new - p_old) / damp + p_old;
-            if ((p_new > patm + cap_size_) && (p_old < patm)) {
+            if ((p_new > patm + cap_size) && (p_old < patm)) {
               // first over
-              double new_value = patm + cap_size_;
+              double new_value = patm + cap_size;
               domain_pnew_f(f, 0) = new_value;
               surf_pnew_c(cs, 0) = new_value;
             } else if ((p_old > patm) && (p_new - p_old > p_old - patm)) {

@@ -26,8 +26,8 @@ class ManningConductivityModel {
  public:
   explicit ManningConductivityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist);
 
-  double Conductivity(double depth, double slope, double coef);
-  double DConductivityDDepth(double depth, double slope, double coef);
+  double Conductivity(double depth, double slope, double coef) const;
+  double DConductivityDDepth(double depth, double slope, double coef) const;
 
  protected:
   double slope_regularization_;

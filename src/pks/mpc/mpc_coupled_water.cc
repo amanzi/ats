@@ -398,11 +398,12 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
     auto res_surf_cell = res2->getSubVector(1)->getData()->viewComponent("cell", false);
     const auto u_surf_cell = u->getSubVector(1)->getData()->viewComponent("cell", false);
     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::NEXT);
+    const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
 
     Kokkos::parallel_for(
       "MPCCoupledWater::ErrorNorm", u_surf_cell.extent(0), KOKKOS_LAMBDA(const int& c) {
         if (u_surf_cell(c, 0) > p_atm) {
-          auto f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, c);
+          auto f = mc_surf.getEntityParent(AmanziMesh::Entity_kind::CELL, c);
           res_surf_cell(c, 0) = res_face(f, 0);
           res_face(f, 0) = 0.;
         }

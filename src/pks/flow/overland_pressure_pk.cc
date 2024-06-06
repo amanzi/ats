@@ -607,11 +607,11 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
 
-    const AmanziMesh::Mesh* mesh = u.getMesh().get();
+    const AmanziMesh::Mesh& mesh = *u.getMesh();
 
     Kokkos::parallel_for(
       "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
-        auto f = getBoundaryFaceFace(*mesh, bf);
+        auto f = getBoundaryFaceFace(mesh, bf);
         if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
           u_f(bf, 0) = bc_value(f) - elev_f(f, 0);
         }
@@ -773,17 +773,18 @@ OverlandPressureFlow::ModifyCorrection(double h,
 
     auto du_c = du->getData()->viewComponent("cell", false);
     const auto u_c = u->getData()->viewComponent("cell", false);
+    double patm_limit(patm_limit_);
 
     Kokkos::parallel_reduce(
       "OverlandFlowPressure::ModifyPredictor 'limit correction when crossing atmospheric pressure "
       "[Pa]'",
       du_c.extent(0),
       KOKKOS_LAMBDA(const int& c, int& count) {
-        if ((u_c(c, 0) < patm) && (u_c(c, 0) - du_c(c, 0) > patm + patm_limit_)) {
-          du_c(c, 0) = u_c(c, 0) - (patm + patm_limit_);
+        if ((u_c(c, 0) < patm) && (u_c(c, 0) - du_c(c, 0) > patm + patm_limit)) {
+          du_c(c, 0) = u_c(c, 0) - (patm + patm_limit);
           count++;
-        } else if ((u_c(c, 0) > patm) && (u_c(c, 0) - du_c(c, 0) < patm - patm_limit_)) {
-          du_c(c, 0) = u_c(c, 0) - (patm - patm_limit_);
+        } else if ((u_c(c, 0) > patm) && (u_c(c, 0) - du_c(c, 0) < patm - patm_limit)) {
+          du_c(c, 0) = u_c(c, 0) - (patm - patm_limit);
           count++;
         }
       },
@@ -822,13 +823,14 @@ OverlandPressureFlow::ModifyCorrection(double h,
     for (const auto& comp : *du->getData()) {
       auto du_c = du->getData()->viewComponent("cell", false);
       const auto u_c = u->getData()->viewComponent("cell", false);
+      double p_limit(p_limit_);
 
       Kokkos::parallel_reduce(
         "OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'",
         du_c.extent(0),
         KOKKOS_LAMBDA(const int& c, int& count) {
-          if (std::abs(du_c(c, 0)) > p_limit_) {
-            du_c(c, 0) = ((du_c(c, 0) > 0) - (du_c(c, 0) < 0)) * p_limit_;
+          if (fabs(du_c(c, 0)) > p_limit_) {
+            du_c(c, 0) = ((du_c(c, 0) > 0) - (du_c(c, 0) < 0)) * p_limit;
             count++;
           }
         },

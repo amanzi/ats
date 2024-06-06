@@ -73,7 +73,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
   // pull out vectors
   {
-    const AmanziMesh::Mesh* mesh = face_coef.getMesh().get();
+    const AmanziMesh::Mesh& m = *face_coef.getMesh();
     const auto flux_v = flux.viewComponent("face", false);
     auto coef_faces = face_coef.viewComponent("face", false);
     const auto coef_cells = cell_coef.viewComponent("cell", true);
@@ -86,9 +86,11 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
     // Determine the face coefficient of local faces.
     // These parameters may be key to a smooth convergence rate near zero flux.
+    double flow_eps = flux_eps_;
+
     Kokkos::parallel_for(
       "upwind_flux_split_denominator", nfaces_local, KOKKOS_LAMBDA(const int& f) {
-        auto fcells = mesh->getFaceCells(f);
+        auto fcells = m.getFaceCells(f);
 
         double denominator = 0.0;
         double coefs[2] = { 0., 0. };
@@ -99,7 +101,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
         int uw = -1, dw = -1;
         int c0 = fcells(0);
         int orientation = 0;
-        mesh->getFaceNormal(f, c0, &orientation);
+        m.getFaceNormal(f, c0, &orientation);
         if (flux_v(f, 0) * orientation > 0) {
           uw = c0;
           if (fcells.size() == 2) dw = fcells(1);
@@ -118,7 +120,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           coefs[1] = coef_cells(dw, 0) * denominator;
 
           // weighted by path length
-          weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          weight[1] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(dw));
           weight[0] = weight[1];
 
         } else if (dw == -1) {
@@ -130,7 +132,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           coefs[1] = coef_cells(uw, 0) * denominator; // downwind boundary face not defined always
           //coefs[1] = coef_faces(f,0) * denominator;
 
-          weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
+          weight[0] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(uw));
           weight[1] = weight[0];
 
         } else {
@@ -145,8 +147,8 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           coefs[1] = coef_cells(dw, 0) * denom[1];
 
           // harmonic mean of the denominator
-          weight[0] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(uw));
-          weight[1] = AmanziGeometry::norm(mesh->getFaceCentroid(f) - mesh->getCellCentroid(dw));
+          weight[0] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(uw));
+          weight[1] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(dw));
           AMANZI_ASSERT(denom[0] > 0);
           AMANZI_ASSERT(denom[1] > 0);
           AMANZI_ASSERT(weight[0] > 0);
@@ -154,8 +156,6 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           denominator = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
           AMANZI_ASSERT(denominator > 0);
         }
-
-        double flow_eps = flux_eps_;
 
         // Determine the coefficient
         AMANZI_ASSERT(denominator > 0);

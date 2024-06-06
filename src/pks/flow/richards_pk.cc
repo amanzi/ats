@@ -605,13 +605,15 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       }
 
       AMANZI_ASSERT(mesh_->columns.num_columns_owned >= 0);
+      auto& m = *mesh_;
+
       Kokkos::parallel_for(
         "Richards::InitializeHydrostatic cells",
-        mesh_->columns.num_columns_owned,
+        m.columns.num_columns_owned,
         KOKKOS_LAMBDA(const int col) {
-          const auto& col_cells = mesh_->columns.getCells(col);
-          const auto& col_faces = mesh_->columns.getFaces(col);
-          double z_wt = mesh_->getFaceCentroid(col_faces(0))[z_index] + head_wt;
+          const auto& col_cells = m.columns.getCells(col);
+          const auto& col_faces = m.columns.getFaces(col);
+          double z_wt = m.getFaceCentroid(col_faces(0))[z_index] + head_wt;
 
           if (has_faces) {
             pres_f(col_faces(0), 0) = p_atm + rho * g * head_wt;
@@ -621,9 +623,9 @@ Richards::InitializeHydrostatic_(const Tag& tag)
           for (int lcv_c = 0; lcv_c != col_cells.size(); ++lcv_c) {
             AmanziMesh::Entity_ID c = col_cells(lcv_c);
             AmanziMesh::Entity_ID f = col_faces(lcv_c + 1);
-            pres_c(c, 0) = p_atm + rho * g * (z_wt - mesh_->getCellCentroid(c)[z_index]);
+            pres_c(c, 0) = p_atm + rho * g * (z_wt - m.getCellCentroid(c)[z_index]);
             if (has_faces) {
-              pres_f(f, 0) = p_atm + rho * g * (z_wt - mesh_->getFaceCentroid(f)[z_index]);
+              pres_f(f, 0) = p_atm + rho * g * (z_wt - m.getFaceCentroid(f)[z_index]);
               touched(f) = 1;
             }
           }
@@ -636,10 +638,11 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       {
         auto pres_c = pres->viewComponent("cell", false);
         auto pres_f = pres->viewComponent("face", false);
+        auto& m = *mesh_;
         Kokkos::parallel_for(
           "Richards::InitializeHydrostatic faces", pres_f.extent(0), KOKKOS_LAMBDA(const int f) {
             if (!touched(f)) {
-              const auto& f_cells = mesh_->getFaceCells(f);
+              const auto& f_cells = m.getFaceCells(f);
               if (f_cells.size() == 1) {
                 // boundary face, use the cell value as the water table is
                 // assumed to parallel the cell structure
