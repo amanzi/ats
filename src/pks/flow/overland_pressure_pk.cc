@@ -829,7 +829,7 @@ OverlandPressureFlow::ModifyCorrection(double h,
         "OverlandFlowPressure::ModifyPredictor 'allow no negative ponded depths'",
         du_c.extent(0),
         KOKKOS_LAMBDA(const int& c, int& count) {
-          if (fabs(du_c(c, 0)) > p_limit_) {
+          if (fabs(du_c(c, 0)) > p_limit) {
             du_c(c, 0) = ((du_c(c, 0) > 0) - (du_c(c, 0) < 0)) * p_limit;
             count++;
           }

@@ -172,15 +172,15 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
 
   std::string getType() const override { return eval_type; }
 
- protected:
-  static const std::string eval_type;
-
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
+
+ protected:
+  static const std::string eval_type;
 
   // need a custom EnsureCompatibility as some vectors cross meshes.
   virtual void EnsureCompatibility_ToDeps_(State& S) override;

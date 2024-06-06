@@ -123,12 +123,12 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
         } else {
           // Parameterization of a linear scaling between upwind and downwind.
           double param = std::abs(flux_v(f, 0)) / (2 * flow_eps) + 0.5;
-          if (!(param >= 0.5) || !(param <= 1.0)) {
-            std::cout << "BAD FLUX! on face " << f << std::endl;
-            std::cout << "  flux = " << flux_v(f, 0) << std::endl;
-            std::cout << "  param = " << param << std::endl;
-            std::cout << "  flow_eps = " << flow_eps << std::endl;
-          }
+          // if (!(param >= 0.5) || !(param <= 1.0)) {
+          //   std::cout << "BAD FLUX! on face " << f << std::endl;
+          //   std::cout << "  flux = " << flux_v(f, 0) << std::endl;
+          //   std::cout << "  param = " << param << std::endl;
+          //   std::cout << "  flow_eps = " << flow_eps << std::endl;
+          // }
 
           AMANZI_ASSERT(param >= 0.5);
           AMANZI_ASSERT(param <= 1.0);

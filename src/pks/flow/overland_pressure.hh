@@ -214,8 +214,6 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   // -- builds the upwinded conductivity
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
-  void
-  ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev);
 
   // physical methods
   // -- diffusion term
@@ -226,6 +224,10 @@ class OverlandPressureFlow : public PK_PhysicalBDF_Default {
   void AddSourceTerms_(const Teuchos::Ptr<CompositeVector>& g);
 
   void test_ApplyPreconditioner(double t, Teuchos::RCP<const TreeVector> up, double h);
+
+ public: // methods calling lambdas that should be protected...
+  void
+  ApplyDirichletBCs_(const Operators::BCs& bcs, CompositeVector& u, const CompositeVector& elev);
 
  protected:
   friend class Amanzi::MPCSurfaceSubsurfaceDirichletCoupler;

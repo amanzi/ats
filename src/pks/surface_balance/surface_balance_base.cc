@@ -157,9 +157,6 @@ SurfaceBalanceBase::FunctionalResidual(double t_old,
   // pointer-copy temperature into state and update any auxilary data
   moveSolutionToState(*u_new, tag_next_);
 
-  bool debug = false;
-  if (vo_->os_OK(Teuchos::VERB_EXTREME)) debug = true;
-
   if (vo_->os_OK(Teuchos::VERB_HIGH)) {
     *vo_->os() << "----------------------------------------------------------------" << std::endl
                << "Residual calculation: t0 = " << t_old << " t1 = " << t_new << " h = " << dt

@@ -332,9 +332,7 @@ class Richards : public PK_PhysicalBDF_Default {
   // -- builds tensor K, along with faced-based Krel if needed by the rel-perm method
   virtual bool UpdatePermeabilityData_(const Tag& tag);
   virtual bool UpdatePermeabilityDerivativeData_(const Tag& tag);
-
   // virtual void UpdateVelocity_(const Tag& tag);
-  virtual void InitializeHydrostatic_(const Tag& tag);
 
   // physical methods
   // -- diffusion term
@@ -355,6 +353,10 @@ class Richards : public PK_PhysicalBDF_Default {
   virtual bool ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u);
 
   // virtual void PreconWC_(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<TreeVector> Pu);
+
+ public: // methods calling lambdas that should be protected...
+  virtual void InitializeHydrostatic_(const Tag& tag);
+
 
  protected:
   // control switches

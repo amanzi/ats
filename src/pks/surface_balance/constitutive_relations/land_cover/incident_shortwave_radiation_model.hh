@@ -222,7 +222,7 @@ slopeGeometry(double slope, double aspect, double alpha, double phi_sun)
       Fraction of the full incident sun on a flat surface.
     */
 KOKKOS_INLINE_FUNCTION
-std::pair<double, double>
+Kokkos::pair<double, double>
 geometricRadiationFactors(double slope, double aspect, int doy, double hour, double lat)
 {
 #ifdef ASSERT_VALID_INPUT
@@ -245,7 +245,7 @@ geometricRadiationFactors(double slope, double aspect, int doy, double hour, dou
   double fac_flat = flatGeometry(alpha, phi_sun);
   double slope_r = std::atan(slope);
   double fac_slope = slopeGeometry(slope_r, aspect, alpha, phi_sun);
-  return std::make_pair(fac_slope, fac_flat);
+  return Kokkos::make_pair(fac_slope, fac_flat);
 }
 
 /*

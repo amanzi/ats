@@ -53,7 +53,6 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
   RootingDepthFractionEvaluator(const RootingDepthFractionEvaluator& other) = default;
   virtual Teuchos::RCP<Evaluator> Clone() const override;
 
- protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
@@ -61,6 +60,7 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
 
+ protected:
   virtual bool
   IsDifferentiableWRT(const State& S, const Key& wrt_key, const Tag& wrt_tag) const override
   {

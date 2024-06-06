@@ -54,7 +54,6 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
   OverlandConductivityEvaluator(const OverlandConductivityEvaluator& other) = default;
   Teuchos::RCP<Evaluator> Clone() const override;
 
- protected:
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
   virtual void EvaluatePartialDerivative_(const State& S,
@@ -62,6 +61,7 @@ class OverlandConductivityEvaluator : public EvaluatorSecondaryMonotypeCV {
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
 
+ protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
   static const std::string eval_type;

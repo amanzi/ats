@@ -58,13 +58,13 @@ class RelativeHydraulicConductivityEvaluator
 
   std::string getType() const override { return eval_type; }
 
- protected:
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& results) override;
   virtual void EvaluatePartialDerivative_(const State& S,
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& results) override;
 
+ protected:
   virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  protected:

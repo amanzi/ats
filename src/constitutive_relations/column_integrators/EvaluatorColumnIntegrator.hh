@@ -39,13 +39,6 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
 
   std::string getType() const override { return eval_type; }
 
- protected:
-  static const std::string eval_type;
-
-  // Implements custom EC to use dependencies from subsurface for surface
-  // vector.
-  virtual void EnsureCompatibility_ToDeps_(State& S) override;
-
   // Required methods from EvaluatorSecondaryMonotypeCV
   virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
 
@@ -53,6 +46,13 @@ class EvaluatorColumnIntegrator : public EvaluatorSecondaryMonotypeCV {
                                           const Key& wrt_key,
                                           const Tag& wrt_tag,
                                           const std::vector<CompositeVector*>& result) override;
+
+ protected:
+  static const std::string eval_type;
+
+  // Implements custom EC to use dependencies from subsurface for surface
+  // vector.
+  virtual void EnsureCompatibility_ToDeps_(State& S) override;
 
  private:
   static Utils::RegisteredFactory<Evaluator, EvaluatorColumnIntegrator<Parser, Integrator>> reg_;

@@ -117,10 +117,11 @@ RelativeHydraulicConductivityEvaluator::EvaluatePartialDerivative_(
     auto res = results[0]->viewComponent("cell", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
     auto krel = S.Get<CompositeVector>(krel_key_).viewComponent("cell", false);
+    double rescaling(rescaling_);
 
     Kokkos::parallel_for(
       "relativepermeabilityevaluator: deriv wrt dens", res.extent(0), KOKKOS_LAMBDA(const int c) {
-        res(c, 0) = rescaling_ * krel(c, 0) / visc(c, 0);
+        res(c, 0) = rescaling * krel(c, 0) / visc(c, 0);
       });
 
   } else if (wrt == visc_key_) {
