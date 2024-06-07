@@ -1,0 +1,46 @@
+Checkpoint
+##############
+ Manages checkpoint/restart capability.
+
+A user may request periodic dumps of ATS Checkpoint Data in the
+`"checkpoint`" sublist.  The user has no explicit control over the
+content of these files, but has the guarantee that the ATS run will be
+reproducible (with accuracies determined by machine round errors and
+randomness due to execution in a parallel computing environment).
+Therefore, output controls for Checkpoint Data are limited to file
+name generation and writing frequency, by numerical cycle number.
+Unlike `"visualization`", there is only one `"checkpoint`" list for
+all domains/meshes.
+
+.. _checkpoint-spec:
+.. admonition:: checkpoint-spec
+
+    * `"file name base`" ``[string]`` **"checkpoint"**
+    * `"file name digits`" ``[int]`` **5**
+    * `"single file checkpoint`" ``[bool]`` **true** If true, writes all
+      checkpoint to one file.  If false, uses a subdirectory with one file per
+      mesh.  false is required if meshes exist on other communicators than
+      MPI_COMM_WORLD, but this is toggled if the code detects that this is
+      necessary.
+
+    INCLUDES:
+    - ``[io-event-spec]`` An IOEvent_ spec
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="checkpoint">
+    <Parameter name="cycles start period stop" type="Array(int)" value="{0, 100, -1}" />
+    <Parameter name="cycles" type="Array(int)" value="{999, 1001}" />
+    <Parameter name="times start period stop 0" type="Array(double)" value="{0.0, 10.0, 100.0}"/>
+    <Parameter name="times start period stop 1" type="Array(double)" value="{100.0, 25.0, -1.0}"/>
+    <Parameter name="times" type="Array(double)" value="{101.0, 303.0, 422.0}"/>
+  </ParameterList>
+
+In this example, checkpoint files are written when the cycle number is
+a multiple of 100, every 10 seconds for the first 100 seconds, and
+every 25 seconds thereafter, along with times 101, 303, and 422.  Files will be written in the form: `"checkpoint00000.h5`".
+
+
+  

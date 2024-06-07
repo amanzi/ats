@@ -1,0 +1,481 @@
+Region
+######
+ A geometric or discrete subdomain of the full domain.
+
+Regions are geometrical constructs used to define subsets of
+the computational domain in order to specify the problem to be solved, and the
+output desired. Regions may represents zero-, one-, two- or three-dimensional
+subsets of physical space.  For a three-dimensional problem, the simulation
+domain will be a three-dimensional region bounded by a set of two-dimensional
+regions.  If the simulation domain is N-dimensional, the boundary conditions
+must be specified over a set of regions are (N-1)-dimensional.
+
+
+.. warning:: Surface files contain labeled triangulated face sets.  The user is
+    responsible for ensuring that the intersections with other surfaces in the
+    problem, including the boundaries, are *exact* (*i.e.* that surface
+    intersections are *watertight* where applicable), and that the surfaces are
+    contained within the computational domain.  If nodes in the surface fall
+    outside the domain, the elements they define are ignored.
+
+    Examples of surface files are given in the *Exodus II* file format here.
+
+.. warning:: Region names must NOT be repeated.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList>  <!-- parent list -->
+     <ParameterList name="regions">
+       <ParameterList name="TOP SECTION">
+         <ParameterList name="region: box">
+           <Parameter name="low coordinate" type="Array(double)" value="{2, 3, 5}"/>
+           <Parameter name="high coordinate" type="Array(double)" value="{4, 5, 8}"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="MIDDLE SECTION">
+         <ParameterList name="region: box">
+           <Parameter name="low coordinate" type="Array(double)" value="{2, 3, 3}"/>
+           <Parameter name="high coordinate" type="Array(double)" value="{4, 5, 5}"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="BOTTOM SECTION">
+         <ParameterList name="region: box">
+           <Parameter name="low coordinate" type="Array(double)" value="{2, 3, 0}"/>
+           <Parameter name="high coordinate" type="Array(double)" value="{4, 5, 3}"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="INFLOW SURFACE">
+         <ParameterList name="region: labeled set">
+           <Parameter name="label"  type="string" value="sideset_2"/>
+           <Parameter name="file"   type="string" value="F_area_mesh.exo"/>
+           <Parameter name="format" type="string" value="Exodus II"/>
+           <Parameter name="entity" type="string" value="face"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="OUTFLOW PLANE">
+         <ParameterList name="region: plane">
+           <Parameter name="point" type="Array(double)" value="{0.5, 0.5, 0.5}"/>
+           <Parameter name="normal" type="Array(double)" value="{0, 0, 1}"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="BLOODY SAND">
+         <ParameterList name="region: color function">
+           <Parameter name="file" type="string" value="F_area_col.txt"/>
+           <Parameter name="value" type="int" value="25"/>
+         </ParameterList>
+       </ParameterList>
+       <ParameterList name="FLUX PLANE">
+         <ParameterList name="region: polygon">
+           <Parameter name="number of points" type="int" value="5"/>
+           <Parameter name="points" type="Array(double)" value="{-0.5, -0.5, -0.5,
+                                                                  0.5, -0.5, -0.5,
+                                                                  0.8, 0.0, 0.0,
+                                                                  0.5,  0.5, 0.5,
+                                                                 -0.5, 0.5, 0.5}"/>
+          </ParameterList>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+
+In this example, *TOP SECTION*, *MIDDLE SECTION* and *BOTTOM SECTION*
+are three box-shaped volumetric regions. *INFLOW SURFACE* is a
+surface region defined in an Exodus II-formatted labeled set
+file and *OUTFLOW PLANE* is a planar region. *BLOODY SAND* is a volumetric
+region defined by the value 25 in color function file.
+
+
+
+
+.. contents:: **Region Types**
+   :local:
+
+
+All
+===
+ A region consisting of all entities on a mesh.
+
+No parameters required.
+
+``[region-all-spec]``
+
+   * `"empty`" ``[bool]`` **True** This is simply here to avoid issues with
+     empty lists.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="domain">  <!-- parent list -->
+     <ParameterList name="region: all">
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Box
+===
+ RegionBox: a rectangular region in space, defined by two corners
+
+List *region: box* defines a region bounded by coordinate-aligned
+planes. Boxes are allowed to be of zero thickness in only one
+direction in which case they are equivalent to planes.
+
+.. _region-box-spec:
+.. admonition:: region-box-spec
+
+    * `"low coordinate`" ``[Array(double)]`` Location of the boundary point with the lowest coordinates.
+    * `"high coordinate`" ``[Array(double)]`` Location of the boundary points with the highest coordinates.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="WELL">  <!-- parent list -->
+     <ParameterList name="region: box">
+       <Parameter name="low coordinate" type="Array(double)" value="{-5.0,-5.0, -5.0}"/>
+       <Parameter name="high coordinate" type="Array(double)" value="{5.0, 5.0,  5.0}"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Plane
+=====
+ RegionPlane: A planar (infinite) region in space, defined by a point and a normal.
+
+List *region: plane* defines a plane using a point lying on the plane and normal to the plane.
+
+.. _region-plane-spec:
+.. admonition:: region-plane-spec
+
+    * `"normal`" ``[Array(double)]`` Normal to the plane.
+    * `"point`" ``[Array(double)]`` Point in space.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="TOP_SECTION"> <!-- parent list -->
+     <ParameterList name="region: plane">
+       <Parameter name="point" type="Array(double)" value="{2, 3, 5}"/>
+       <Parameter name="normal" type="Array(double)" value="{1, 1, 0}"/>
+       <ParameterList name="expert parameters">
+         <Parameter name="tolerance" type="double" value="1.0e-05"/>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Labeled Set
+===========
+ RegionLabeledSet: A region defined by a set of mesh entities in a mesh file
+
+The list *region: labeled set* defines a named set of mesh entities
+existing in an input mesh file. This is the same file that contains
+the computational mesh. The name of the entity set is given
+by *label*.  For example, a mesh file in the Exodus II
+format can be processed to tag cells, faces and/or nodes with
+specific labels, using a variety of external tools. Regions based
+on such sets are assigned a user-defined label for Amanzi, which may
+or may not correspond to the original label in the exodus file.
+Note that the file used to express this labeled set may be in any
+Amanzi-supported mesh format (the mesh format is specified in the
+parameters for this option).  The *entity* parameter may be
+necessary to specify a unique set.  For example, an Exodus file
+requires *cell*, *face* or *node* as well as a label (which is
+an integer).  The resulting region will have the dimensionality
+associated with the entities in the indicated set.
+
+.. _region-labeled-set-spec:
+.. admonition:: region-labeled-set-spec
+
+    * `"label`" ``[string]`` Set per label defined in the mesh file.
+    * `"file`" ``[string]`` File name.
+    * `"format`" ``[string]`` Currently, we only support mesh files in the "Exodus II" format.
+    * `"entity`" ``[string]`` Type of the mesh object (cell, face, etc).
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="AQUIFER">
+     <ParameterList name="region: labeled set">
+       <Parameter name="entity" type="string" value="cell"/>
+       <Parameter name="file" type="string" value="porflow4_4.exo"/>
+       <Parameter name="format" type="string" value="Exodus II"/>
+       <Parameter name="label" type="string" value="1"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Function Color
+==============
+ RegionFunctionColor: A region defined by the value of an indicator function in a file.
+
+The list *region: color function* defines a region based a specified integer
+color, *value*, in a structured color function file, *file*.  The format of
+the color function file is given below in the "Tabulated function file format"
+section. As shown in the file, the color values may be specified at the nodes
+or cells of the color function grid. A computational cell is assigned the
+'color' of the data grid cell containing its cell centroid (cell-based colors)
+or the data grid nearest its cell-centroid (node-based colors). Computational
+cells sets are then built from all cells with the specified color *Value*.
+
+In order to avoid, gaps and overlaps in specifying materials, it is strongly
+recommended that regions be defined using a single color function file.
+
+.. _region-color-function-spec:
+.. admonition:: region-color-function-spec
+
+    * `"file`" ``[string]`` File name containing color function.
+    * `"value`" ``[int]`` Color that defines the set in the tabulated function file.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="SOIL_TOP">
+     <ParameterList name="region: color function">
+       <Parameter name="file" type="string" value="geology_resamp_2D.tf3"/>
+       <Parameter name="value" type="int" value="1"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Point
+=====
+ RegionPoint: a point in space.
+
+List *region: point* defines a point in space.
+This region consists of cells containing this point.
+
+.. _region-point-spec:
+.. admonition:: region-point-spec
+
+    * `"coordinate`" ``[Array(double)]`` Location of point in space.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="DOWN_WIND150"> <!-- parent list defining the name -->
+     <ParameterList name="region: point">
+       <Parameter name="coordinate" type="Array(double)" value="{-150.0, 0.0, 0.0}"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Logical
+=======
+ RegionLogical: A region defined by a logical operation on one or two other regions
+
+The list *region: logical* defines logical operations on regions allow for
+more advanced region definitions. At this time the logical region allows for
+logical operations on a list of regions.  *union* and *intersection* are
+self-evident. In the case of *subtraction*, subtraction is performed from the
+first region in the list.  The *complement* is a special case in that it is
+the only case that operates on single region, and returns the complement to it
+within the domain ENTIRE_DOMAIN.  Currently, multi-region booleans are not
+supported in the same expression.
+
+.. _region-logical-spec:
+.. admonition:: region-logical-spec
+
+    * `"operation`" ``[string]`` defines operation on the list of regions.
+      One of: `"union`", `"intersect`", `"subtract`", `"complement`"
+    * `"regions`" ``[Array(string)]`` specifies the list of involved regions.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="LOWER_LAYERs">
+    <ParameterList name="region: logical">
+      <Parameter name="operation" type="string" value="union"/>
+      <Parameter name="regions" type="Array(string)" value="{Middle1, Middle2, Bottom}"/>
+    </ParameterList>
+  </ParameterList>
+
+
+
+
+Polygon
+=======
+ RegionPolygon: A closed polygonal segment of a plane.
+
+The list *region: polygon* defines a polygonal region on which mesh faces and
+nodes can be queried. NOTE that one cannot ask for cells in a polygonal surface
+region. In 2D, the polygonal region is a line and is specified by 2 points.
+In 3D, the polygonal region is specified by an arbitrary number of points.
+In both cases the point coordinates are given as a linear array. The polygon
+can be non-convex.
+
+This provides a set of faces with a normal for computing flux.
+
+The polygonal surface region can be queried for a normal. In 2D, the normal is
+defined as [Vy,-Vx] where [Vx,Vy] is the vector from point 1 to point 2.
+In 3D, the normal of the polygon is defined by the order in which points
+are specified.
+
+``[region-polygon-spec]``
+
+* `"number of points`" ``[int]`` Number of polygon points.
+
+* `"points`" ``[Array(double)]`` Point coordinates in a linear array.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="XY_PENTAGON">
+     <ParameterList name="region: polygon">
+       <Parameter name="number of points" type="int" value="5"/>
+       <Parameter name="points" type="Array(double)" value="{-0.5, -0.5, -0.5,
+                                                              0.5, -0.5, -0.5,
+                                                              0.8, 0.0, 0.0,
+                                                              0.5,  0.5, 0.5,
+                                                             -0.5, 0.5, 0.5}"/>
+       <ParameterList name="expert parameters">
+         <Parameter name="tolerance" type="double" value="1.0e-3"/>
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Enumerated
+==========
+ RegionEnumerated: A region enumerated as a list of IDs.
+
+List *region: enumerated set* defines a set of mesh entities via the list
+of input global ids. Note that global ids are not defined correctly when
+parallel mesh is created on a fly.
+
+.. _region-enumerated-spec:
+.. admonition:: region-enumerated-spec
+
+    * `"entity`" ``[string]`` Type of the mesh object.  One of: `"cell`", `"face`", `"edge`", `"node`"
+    * `"entity gids`" ``[Array(int)]`` List of the global IDs of the entities.
+
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="WELL"> <!-- parent list -->
+     <ParameterList name="region: enumerated set">
+       <Parameter name="entity" type="string" value="face"/>
+       <Parameter name="entity gids" type="Array(int)" value="{1, 12, 23, 34}"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Boundary
+========
+ RegionBoundary:  A region consisting of all entities on the domain boundary
+
+List *region: boundary* defines a set of all boundary faces.
+Using this definition, faces located on the domain boundary are extracted.
+
+.. _region-boundary-spec:
+.. admonition:: region-boundary-spec
+
+    * `"entity`" ``[string]`` Type of the mesh object.  Unclear whether this is
+      used or can be other things than `"face`"?
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="DOMAIN_BOUNDARY"> <!-- parent list names the region -->
+     <ParameterList name="region: boundary">
+       <Parameter name="entity" type="string" value="face"/>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+Box Volume Fractions
+====================
+ RegionBoxVolumeFractions: A rectangular region in space, defined by two corner points and normals to sides.
+
+List *region: box volume fraction* defines a region bounded by a box *not*
+aligned with coordinate axes.
+Boxes are allowed to be of zero thickness in only one direction in which case
+they are equivalent to rectangles on a plane or segments on a line.
+
+.. _region-box-volume-fractions-spec:
+.. admonition:: region-box-volume-fractions-spec
+
+    * `"corner coordinate`" ``[Array(double)]`` Location of one box corner.
+    * `"opposite corner coordinate`" ``[Array(double)]`` Location of the opposite box corner.
+    * `"normals`" ``[Array(double)]`` Normals to sides in a linear array. Default is columns of
+      the identity matrix. The normals may be scaled arbitrarily but must be orthogonal to
+      one another and form the right coordinate frame.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="BASIN">  <!-- parent list -->
+     <ParameterList name="region: box volume fractions">
+       <Parameter name="corner coordinate" type="Array(double)" value="{-1.0,-1.0, 1.0}"/>
+       <Parameter name="opposite corner coordinate" type="Array(double)" value="{1.0, 1.0, 1.0}"/>
+       <Parameter name="normals" type="Array(double)" value="{1.0, 0.0, 0.0
+                                                              0.0, 2.0, 0.0,
+                                                              0.0, 0.0, 3.0}"/>
+     </ParameterList>
+   </ParameterList>
+
+This example defines a degenerate box, a square on a surface *z=1*.
+
+ 
+
+
+Line Segment
+============
+ RegionLineSegment: A line segment, defined by two points in space.
+
+List *region: line segment* desribes a region defined by a line
+segment. This region is a set of cells which intersect with a line
+segment.  The line segment is allowed to intersect with one or more cells. Zero length
+line segments are allowed. The line segment is defined by its ends
+points.
+
+.. _region-line-segment-spec:
+.. admonition:: region-line-segment-spec
+
+    * `"end coordinate`" ``[Array(double)]`` Location of one end of a line
+      segment.
+    * `"opposite end coordinate`" ``[Array(double)]`` Location of the opposite
+      end of a line segment.
+
+Example:
+
+.. code-block:: xml
+
+   <ParameterList name="WELL"> <!-- parent list -->
+      <ParameterList name="region: line segment">
+        <Parameter name="end coordinate" type="Array(double)" value="{497542.44, 5393755.77, 0.0}"/>
+        <Parameter name="opposite end coordinate" type="Array(double)" value="{497542.44, 5393755.77, 100.0}"/>
+      </ParameterList>
+    </ParameterList>
+
+
+

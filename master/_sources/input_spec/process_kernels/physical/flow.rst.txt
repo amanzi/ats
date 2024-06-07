@@ -1,0 +1,382 @@
+Flow PKs
+--------
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
+
+Richards PK
+^^^^^^^^^^^
+ Two-phase, variable density Richards equation.
+
+Solves Richards equation:
+
+.. math::
+  \frac{\partial \Theta}{\partial t} - \nabla \cdot \frac{k_r n_l}{\mu} K ( \nabla p + \rho g \hat{z} ) = Q_w
+
+.. _richards-spec:
+.. admonition:: richards-spec
+
+   * `"domain`" ``[string]`` **"domain"**  Defaults to the subsurface mesh.
+
+   * `"primary variable key`" ``[string]`` The primary variable associated with
+     this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+     must be provided by the user.
+
+   * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal
+     flux.  See `Flow-specific Boundary Conditions`_
+
+   * `"permeability type`" ``[string]`` **scalar** This controls the
+     number of values needed to specify the absolute permeability.
+     One of:
+
+     - `"scalar`" Requires one scalar value.
+     - `"horizontal and vertical`" Requires two values, horizontal
+       then vertical.
+     - `"diagonal tensor`" Requires dim values: {xx, yy} or {xx, yy,
+       zz}
+     - `"full tensor`". (Note symmetry is required.)  Either {xx, yy,
+       xy} or {xx,yy,zz,xy,xz,yz}.
+
+   * `"water retention evaluator`" ``[wrm-evaluator-spec]`` The water
+     retention curve.  This needs to go away, and should get moved to
+     State.
+
+   IF
+
+   * `"source term`" ``[bool]`` **false** Is there a source term?
+
+   THEN
+
+   * `"source key`" ``[string]`` **DOMAIN-water_source** Typically not
+     set, as the default is good. ``[mol s^-1]``
+   * `"source term is differentiable`" ``[bool]`` **true** Can the
+     source term be differentiated with respect to the primary
+     variable?
+   * `"explicit source term`" ``[bool]`` **false** Apply the source
+     term from the previous time step.
+
+   END
+
+   Math and solver algorithm options:
+
+   * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion
+     operator, see PDE_Diffusion_.
+
+   * `"diffusion preconditioner`" ``[pde-diffusion-spec]``
+     **optional** The inverse of the diffusion operator.  See
+     PDE_Diffusion_.  Typically this is only needed to set Jacobian
+     options, as all others probably should match those in
+     `"diffusion`", and default to those values.
+
+   * `"surface rel perm strategy`" ``[string]`` **none** Approach for
+     specifying the relative permeabiilty on the surface face.
+     `"clobber`" is frequently used for cases where a surface rel
+     perm will be provided.  One of:
+
+     - `"none`" : use the upwind direction to determine whether to
+       use the boundary face or internal cell
+     - `"clobber`" : always use the boundary face rel perm
+     - `"max`" : use the max of the boundary face and internal cell
+       values
+     - `"unsaturated`" : Uses the boundary face when the internal
+       cell is not saturated.
+
+   * `"relative permeability method`" ``[string]`` **upwind with Darcy
+     flux** Relative permeability is defined on cells, but must be
+     calculated on faces to multiply a flux.  There are several
+     methods commonly used.  Note these can significantly change
+     answers -- you don't want to change these unless you know what
+     they mean.  One of:
+
+     - `"upwind with Darcy flux`" First-order upwind method that is
+       most common
+     - `"upwind with gravity`" Upwinds according to the gravitational
+       flux direction
+     - `"cell centered`" This corresponds to the harmonic mean, and is
+       most accurate if the problem is always wet, but has issues
+       when it is dry.
+     - `"arithmetic mean`" Face value is the mean of the neighboring
+       cells.  Not a good method.
+
+   Globalization and other process-based hacks:
+
+   * `"modify predictor with consistent faces`" ``[bool]`` **false** In a
+     face+cell diffusion discretization, this modifies the predictor to make
+     sure that faces, which are a DAE, are consistent with the predicted cells
+     (i.e. face fluxes from each sides match).
+
+   * `"modify predictor for flux BCs`" ``[bool]`` **false** Infiltration into
+     dry ground can be hard on solvers -- this tries to do the local nonlinear
+     problem to ensure that face pressures are consistent with the
+     prescribed flux in a predictor.
+
+   * `"modify predictor via water content`" ``[bool]`` **false** Modifies the
+     predictor using the method of Krabbenhoft [??] paper.  Effectively does a
+     change of variables, extrapolating not in pressure but in water content,
+     then takes the smaller of the two extrapolants.
+
+   * `"max valid change in saturation in a time step [-]`" ``[double]`` **-1**
+     Rejects timesteps whose max saturation change is greater than this value.
+     This can be useful to ensure temporally resolved solutions.  Usually a
+     good value is 0.1 or 0.2.
+
+   * `"max valid change in ice saturation in a time step [-]`" ``[double]``
+     **-1** Rejects timesteps whose max ice saturation change is greater than
+     this value.  This can be useful to ensure temporally resolved solutions.
+     Usually a good value is 0.1 or 0.2.
+
+   * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+     this limits an iterate's max pressure change to this value.  Not usually
+     helpful.
+
+   * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+     If > 0, this limits an iterate's max pressure change
+     to this value when they cross atmospheric pressure.  Not usually helpful.
+
+   Discretization / operators / solver controls:
+
+   * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+     The inverse of the accumulation operator.  See PDE_Accumulation_.
+     Typically not provided by users, as defaults are correct.
+
+   * `"absolute error tolerance`" ``[double]`` **2750.0** in units of [mol].
+
+   * `"compute boundary values`" ``[bool]`` **false** Used to include boundary
+     face unknowns on discretizations that are cell-only (e.g. FV).  This can
+     be useful for surface flow or other wierd boundary conditions.  Usually
+     provided by MPCs that need them.
+
+   Physics control:
+
+   * `"permeability rescaling`" ``[double]`` **1e7** Typically 1e7 or order
+     :math:`sqrt(K)` is about right.  This rescales things to stop from
+     multiplying by small numbers (permeability) and then by large number
+     (:math:`\rho / \mu`).
+
+   IF
+
+   * `"coupled to surface via flux`" ``[bool]`` **false** If true, apply
+     surface boundary conditions from an exchange flux.  Note, if this is a
+     coupled problem, it is probably set by the MPC.  No need for a user to
+     set it.
+
+   THEN
+
+   * `"surface-subsurface flux key`" ``[string]`` **DOMAIN-surface_subsurface_flux**
+
+   END
+
+   * `"coupled to surface via head`" ``[bool]`` **false** If true, apply
+     surface boundary conditions from the surface pressure (Dirichlet).
+
+
+
+
+Permafrost Flow PK
+^^^^^^^^^^^^^^^^^^
+ A three-phase, thermal Richard's equation with water, water vapor, and ice for permafrost applications.
+
+Note that the only difference between permafrost and richards is in
+constitutive relations -- the WRM changes to provide three saturations,
+while the water content changes to account for water in ice phase.  As these
+are now drop-in field evaluators, there is very little to change in the PK.
+
+In the future, this should not even need a different PK.
+
+.. _permafrost-spec:
+.. admonition:: permafrost-spec
+
+    * `"saturation ice key`" ``[string]`` **"DOMAIN-saturation_ice"** volume fraction of the ice phase (only when relevant) ``[-]`` Typically the default is correct.
+
+    INCLUDES:
+
+    - ``[richards-spec]`` See `Richards PK`_
+
+
+
+Overland Flow PK
+^^^^^^^^^^^^^^^^
+ Overland flow using the diffusion wave equation.
+
+Solves the diffusion wave equation for overland flow with pressure as a primary variable:
+
+.. math::
+  \frac{\partial \Theta}{\partial t} - \nabla n_l k \nabla h(p) = Q_w
+
+
+.. _overland-pressure-spec:
+.. admonition:: overland-pressure-spec
+
+    Keys name variables:
+
+    * `"domain`" ``[string]`` **"surface"**  Defaults to the extracted surface mesh.
+
+    * `"primary variable`" ``[string]`` The primary variable associated with
+      this PK, typically `"DOMAIN-pressure`" Note there is no default -- this
+      must be provided by the user.
+
+    * `"boundary conditions`" ``[list]`` Defaults to Neuman, 0 normal flux.
+
+    * `"overland conductivity evaluator`" ``[list]``
+      See `Overland Conductivity Evaluator`_.
+
+    IF
+
+    * `"source term`" ``[bool]`` **false** Is there a source term?
+
+    THEN
+
+    * `"source key`" ``[string]`` **DOMAIN-water_source** Typically
+      not set, as the default is good. ``[m s^-1]`` or ``[mol s^-1]``
+    * `"water source in meters`" ``[bool]`` **true** Is the source term in ``[m s^-1]``?
+    * `"source term is differentiable`" ``[bool]`` **true** Can the source term
+      be differentiated with respect to the primary variable?
+
+    END
+
+    Math and solver algorithm options:
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` The (forward) diffusion operator,
+      see PDE_Diffusion_.
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` **optional** The
+      inverse of the diffusion operator.  See PDE_Diffusion_.  Typically this
+      is only needed to set Jacobian options, as all others probably should
+      match those in `"diffusion`", and default to those values.
+
+    * `"absolute error tolerance`" ``[double]`` **550.** Defaults to 1 cm of
+      water.  A small, but significant, amount of water.
+
+    * `"limit correction to pressure change [Pa]`" ``[double]`` **-1** If > 0,
+      this limits an iterate's max pressure change to this value.  Not usually
+      helpful.
+
+    * `"limit correction to pressure change when crossing atmospheric [Pa]`" ``[double]`` **-1**
+      If > 0, this limits an iterate's max pressure change
+      to this value when they cross atmospheric pressure.  Not usually helpful.
+
+    * `"allow no negative ponded depths`" ``[bool]`` **false** Modifies all
+      correction updates to ensure only positive ponded depth is allowed.
+
+    * `"min ponded depth for velocity calculation`" ``[double]`` **1.e-2** For
+      ponded depth below this height, declare the velocity 0.
+
+    * `"min ponded depth for tidal bc`" ``[double]`` **0.02** Control on the
+      tidal boundary condition.  TODO: This should live in the BC spec?
+
+    INCLUDES:
+
+    - ``[pk-physical-bdf-default-spec]`` A `PK: Physical and BDF`_ spec.
+
+    Everything below this point is usually not provided by the user, but are
+    documented here for completeness.
+
+    Keys name variables:
+
+    * `"conserved quantity key`" ``[string]`` **DOMAIN-water_content** Typically
+      not set, as the default is good. ``[mol]``
+    * `"elevation key`" ``[string]`` **DOMAIN-elevation** Typically
+      not set, as the default is good. ``[mol]``
+    * `"slope magnitude key`" ``[string]`` **DOMAIN-slope_magnitude** Typically
+      not set, as the default is good. ``[mol]``
+
+    Algorithmic parameters:
+
+    * `"coupled to subsurface via flux`" ``[bool]`` **false** Set by MPC.
+    * `"coupled to subsurface via head`" ``[bool]`` **false** Set by MPC.
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` **optional**
+      The inverse of the accumulation operator.  See PDE_Accumulation_.
+      Typically not provided by users, as defaults are correct.
+
+    EVALUATORS:
+
+    - `"conserved quantity`"
+    - `"water content`"
+    - `"cell volume`"
+    - `"surface_subsurface_flux`"
+    - `"elevation`"
+    - `"slope magnitude`"
+    - `"overland_conductivity`"
+    - `"ponded_depth`"
+    - `"pres_elev`"
+    - `"source`"
+
+
+.. todo:
+    Nearly all variable name roots are hard-coded here, this should get updated.
+
+
+
+
+Overland Flow with Ice
+^^^^^^^^^^^^^^^^^^^^^^
+ Two-phase overland flow equation.
+
+This modifies the diffusion wave equation for overland flow that includes
+freeze-thaw processes.  This class could completely go away, but it does some
+error checking on the input file to make sure freeze-thaw processes are done
+correctly.  In the future this service should be done by a preprocessor
+generating the input file, and this class would go away.
+
+.. _icy-overland-spec:
+.. admonition:: icy-overland-spec
+
+    INCLUDES:
+
+    - ``[overland-pressure-spec]`` See `Overland Flow PK`_.
+
+
+
+
+Snow Distribution PK
+^^^^^^^^^^^^^^^^^^^^
+ Preferential distribution of snow precip in low-lying areas.
+
+This PK is a heuristic PK that distributes incoming snow precipitation using a
+diffusion wave equation.  Think of it as an analogue to overland flow -- it
+effectively ensures that new snow "flows downhill," due to a uniformly random
+direction and strength wind, and lands on the lowest lying areas.
+
+Tweaking the snow-manning_coefficient lets you play with how uniform the snow
+layer ends up.  Most of the parameters are set by your snow precipitation input
+data interval.  The details of this are a bit tricky mathematically, and it may
+take some fiddling with parameters to do this correctly if your data is not
+daily (which all defaults are set for).
+
+.. _snow-distribution-spec:
+.. admonition:: snow-distribution-spec
+
+    * `"distribution time`" ``[double]`` **86400.** Interval of snow precip input dataset. `[s]`
+    * `"precipitation function`" ``[function-spec]`` Snow precipitation function, see Functions_.
+
+    * `"diffusion`" ``[pde-diffusion-spec]`` Diffusion drives the distribution.
+      Typically we use finite volume here.  See PDE_Diffusion_
+
+    * `"diffusion preconditioner`" ``[pde-diffusion-spec]`` Inverse of the
+      above.  Likely only Jacobian term options are needed here, as the others
+      default to the same as the `"diffusion`" list.  See PDE_Diffusion_.
+
+    * `"inverse`" ``[inverse-typed-spec]`` Inverse_ method for the solve.
+
+    Not typically provided by the user, defaults are good:
+
+    * `"accumulation preconditioner`" ``[pde-accumulation-spec]`` See PDE_Accumulation_.
+
+
+.. todo::
+    For this PK, all variable root names are hard-coded.  This should get changed.
+
+
+
+

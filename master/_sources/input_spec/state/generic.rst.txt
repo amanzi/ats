@@ -1,0 +1,147 @@
+Generic evaluators
+------------------
+
+These evaluators take arguments to allow the user to provide custom
+functions via the input spec.
+
+Additive
+^^^^^^^^
+ A generic evaluator for summing a collection of fields.
+
+.. _additive-evaluator-spec:
+.. admonition:: additive-evaluator-spec
+   * `"constant shift`" ``[double]`` **0** A constant value to add to the sum.
+
+   * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
+
+   * `"DEPENDENCY coefficient`" ``[double]`` **1.0** A multiple for each dependency in
+     the list below.
+
+   ONE OF
+
+   * `"dependencies`" ``[Array(string)]`` The things to sum.
+
+   OR
+
+   * `"evaluator dependency suffixes`" ``[Array(string)]``
+
+   END
+
+
+
+
+Multiplicative
+^^^^^^^^^^^^^^
+ A generic evaluator for multiplying a collection of fields.
+
+.. _multiplicative-evaluator-spec:
+.. admonition:: multiplicative-evaluator-spec
+   * `"coefficient`" ``[double]`` **1** A constant prefix to the product.
+
+   * `"enforce positivity`" ``[bool]`` **false** If true, max the result with 0.
+
+   * `"DEPENDENCY dof`" ``[double]`` **0** Degree of Freedom for each given
+     dependency to use in the multiplication.  NOTE, this should only be
+     provided if the dependency has more than 1 DoF -- if it just has one
+     leaving this blank results in better error checking than providing the
+     value 0 manually.
+
+   ONE OF
+
+   * `"dependencies`" ``[Array(string)]`` The fields to multiply.
+
+   OR
+
+   * `"evaluator dependency suffixes`" ``[Array(string)]``
+
+   END
+
+
+
+
+Column summation
+^^^^^^^^^^^^^^^^
+ Sums a subsurface field vertically only a surface field.
+
+Simple vertical sum of all cells below each surface cell.  Note that their are
+options for including volume factors (multiply by subsurface cell volume, sum,
+divide by surface cell area) and density (useful for the most common use case
+of summing fluxes onto the surface and converting to m/s instead of mol/m^2/s).
+
+
+.. _column-sum-evaluator-spec:
+.. admonition:: column-sum-evaluator-spec
+
+   * `"include volume factor`" ``[bool]`` **true** In summing, multiply the
+     summand subsurface cell volume, then divide the sum by the surface cell
+     area.  Useful for converting volumetric fluxes to total fluxes.
+
+   * `"divide by density`" ``[bool]`` **true** Divide the summand by density.
+     Useful for converting molar fluxes to volumetric fluxes
+     (e.g. transpiration).
+
+   * `"column domain name`" ``[string]`` **domain** The domain of the
+     subsurface mesh.  Note this defaults to a sane thing based on the
+     variable's domain (typically "surface" or "surface_column:\*") and is
+     rarely set by the user.
+
+   KEYS:
+
+   - `"summed`" The summand, defaults to the root suffix of the calculated variable.
+   - `"cell volume`" Defaults to domain's cell volume.
+   - `"surface cell volume`" Defaults to surface domain's cell volume.
+   - `"molar density`" Defaults to domain's molar_density_liquid.
+
+
+
+
+Top cell
+^^^^^^^^
+
+
+Arbitrary function
+^^^^^^^^^^^^^^^^^^
+
+Uses functions to evaluate arbitrary algebraic functions of its dependencies.
+
+For example, one might write a dependency:
+
+  VARNAME = 0.2 * DEP1 - DEP2 + 3
+
+`"evaluator type`" = `"secondary variable from function`"
+
+.. _secondary-variable-from-function-evaluator-spec:
+.. admonition:: secondary-variable-from-function-evaluator-spec
+
+   ONE OF
+
+   * `"functions`" ``[composite-vector-function-spec-list]`` Note this is used
+     for multiple Degress of Freedom.
+
+   OR
+
+   * `"function`" ``[composite-vector-function-spec]`` Used for a single degree
+     of freedom.
+
+   END
+
+Example:
+
+.. code:: xml
+
+   <ParameterList name="VARNAME">
+     <Parameter name="field evaluator type" type="string" value="algebraic variable from function"/>
+     <Parameter name="evaluator dependencies" type="Array{string}" value="{DEP1, DEP2}"/>
+     <ParameterList name="function">
+       <ParameterList name="function-linear">
+         <Parameter name="x0" type="Array(double)" value="{0.0,0.0}" />
+         <Parameter name="y0" type="double" value="3." />
+         <Parameter name="gradient" type="Array(double)" value="{0.2, -1}" />
+       </ParameterList>
+     </ParameterList>
+   </ParameterList>
+
+
+
+
+

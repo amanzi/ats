@@ -1,0 +1,105 @@
+Canopy evaluators
+-----------------
+
+Interception
+^^^^^^^^^^^^
+ Partitions water between interception and throughfall, combining throughfall with drainage.
+
+Based on CLM 4.5 and Lawrence et al 2007, interception is given by:
+
+.. math::
+   I = (P_{rain} + P_{snow}) * \alpha * (1 - exp(-.5(LAI)))
+
+Throughfall is given by:
+
+.. math::
+   T = (P_{rain} + P_{snow}) - I
+
+Drainage is provided as input here, as a total drainage from the canopy.  The
+phase of this drainage is assumed to match the phase of the precipitation.  So
+if it is raining, drainage is rain, while if it is 50/50 rain and snow,
+drainage is also 50/50 rain and snow.  If total precipitation is 0, then
+drainage is partitioned by air temperature (above 0C --> all rain, otherwise
+all snow).  This evaluator partitions the drainage and sums it with throughfall
+to compute the total source, in each phase, to the layer below the canopy (snow
+and/or ground surface).
+
+.. _interception-fraction-evaluator-spec:
+.. admonition:: interception-fraction-evaluator-spec
+
+   * `"interception fraction parameters`" ``[interception-fraction-model-spec]``
+
+   MY KEYS:
+   - `"interception`" **DOMAIN-interception**
+   - `"throughfall and drainage rain`" **DOMAIN-throughfall_drainage_rain**
+   - `"throughfall and drainage snow`" **DOMAIN-throughfall_drainage_snow**
+
+   KEYS:
+   - `"area index`" **DOMAIN-area_index**
+   - `"precipitation rain`" **DOMAIN_SURFACE-precipitation_rain**
+   - `"precipitation snow`" **DOMAIN_SNOW-precipitation**
+   - `"drainage`" **DOMAIN-drainage**
+   - `"air temperature`" **DOMAIN_SURFACE-air_temperature**
+
+
+
+ Fraction of incoming water that is intercepted.
+
+Based on CLM 4.5 and Lawrence et al 2007:
+
+.. math::
+  f_I = \alpha * (1 - exp(-.5 LAI)))
+
+The interception fraction is everything here after the precip.
+
+.. _interception-fraction-model-spec:
+.. admonition:: interception-fraction-model-spec
+
+   * `"leaf area interception fraction [-]`" ``[double]`` **0.25** The alpha
+      term, this describes the fraction of leaf area that intercepts water.
+
+
+
+
+Drainage
+^^^^^^^^
+ Drainage rate from the canopy to the lower layers.
+
+A simple model based on relaxation from current water content to a saturated water content.
+
+.. code::
+
+          |
+          | source
+          V
+         /   \
+      I /     \
+       V       |
+   --Theta--    | T
+       ^       |
+       | D     |
+       V       V
+   -- -- -- -- -- -- --
+
+
+This is the model for drainage D.
+
+Drainage is given by:
+
+.. math::
+   D = max(0, \frac{(\Theta - \Theta_sat)}{\tau})
+
+.. _drainage-evaluator-spec:
+.. admonition:: drainage-evaluator-spec
+
+   * `"drainage timescale [s]`" ``[double]`` **864** Timescale over which drainage occurs.
+   * `"saturated specific water content [m^3 H2O / m^2 leaf area]`" ``[double]`` **1e-4**
+      The thickness of the wetting surface -- determines maximum canopy water storage.\
+
+   KEYS:
+   - "area index"
+   - "water equivalent"
+
+
+
+

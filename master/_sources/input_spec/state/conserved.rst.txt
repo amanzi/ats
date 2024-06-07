@@ -1,0 +1,326 @@
+Conserved quantities
+--------------------
+
+Nearly all ATS process kernels are conservation equations, where there
+is a formal conserved quantity, that, upon convergence, is conserved
+to tolerance.  These are always an "extensive" quantity.
+
+Water content in ATS is always measured on ``[mol]`` and therefore
+includes a factor of the cell volume.  Energy in ATS is always
+measured in ``[MJ]``.  Unlike nearly all other variables, this is not
+SI, and is done so because this makes for fairly evenly balanced
+equations between a coupled flow and energy problem.
+
+Richards Equation water content (liquid only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Richards water content evaluator: the standard form as a function of liquid saturation.
+
+.. math::
+  \Theta = n s \phi V
+
+Specified with evaluator type: `"richards water content`"
+
+.. _field-evaluator-type-richards-water-content-spec:
+.. admonition:: field-evaluator-type-richards-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"saturation liquid`"
+   - `"cell volume`"
+
+
+
+
+Liquid+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+ Water content for liquid + water vapor.
+
+.. math::
+  \Theta = (n_l s_l + n_g s_g \omega) \phi V
+
+
+Specified with evaluator type: `"liquid+gas water content`"
+
+.. _field-evaluator-type-liquid-gas-water-content-spec:
+.. admonition:: field-evaluator-type-liquid-gas-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"molar density gas`"
+   - `"saturation liquid`"
+   - `"saturation gas`"
+   - `"mol frac gas`"
+   - `"cell volume`"
+
+
+
+
+Liquid+Ice water content
+^^^^^^^^^^^^^^^^^^^^^^^^
+ Water content for liquid + water vapor.
+
+.. math::
+  \Theta = (n_l s_l + n_i s_i) \phi V
+
+
+Specified with evaluator type: `"liquid+ice water content`"
+
+.. _field-evaluator-type-liquid-ice-water-content-spec:
+.. admonition:: field-evaluator-type-liquid-ice-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"molar density ice`"
+   - `"saturation liquid`"
+   - `"saturation ice`"
+   - `"cell volume`"
+
+
+
+
+Liquid+Ice+Gas water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Three phase water content: vapor, liquid, and ice.
+
+.. math::
+  \Theta = (n_l s_l + n_i s_i + n_g s_g \omega_g ) \phi V
+
+Specified with evaluator type: `"three phase water content`"
+
+.. _field-evaluator-type-three-phase-water-content-spec:
+.. admonition:: field-evaluator-type-three-phase-water-content-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`"
+   - `"molar density liquid`"
+   - `"saturation liquid`"
+   - `"molar density ice`"
+   - `"saturation ice`"
+   - `"molar density gas`"
+   - `"saturation gas`"
+   - `"molar fraction gas`"
+   - `"cell volume`"
+
+
+
+
+Surface water content
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Snow or canopy water content
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Most other water contents can be formed as `Multiplicative`_
+evaluators.  See below for a few examples:
+
+Multiplicative evalutator for `snow-water_content`:
+
+.. code-block:: xml
+
+      <ParameterList name="snow-water_content" type="ParameterList">
+        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
+        <Parameter name="evaluator dependencies" type="Array(string)" value="{snow-cell_volume, snow-water_equivalent, surface-molar_density_liquid}" />
+        <Parameter name="units" type="string" value="mol" />
+      </ParameterList>
+
+Multiplicative evaluator for `canopy-water_content`:
+
+.. code-block:: xml
+
+      <ParameterList name="canopy-water_content" type="ParameterList">
+        <Parameter name="field evaluator type" type="string" value="multiplicative evaluator" />
+        <Parameter name="evaluator dependencies" type="Array(string)" value="{canopy-cell_volume, canopy-water_equivalent, surface-molar_density_liquid}" />
+        <Parameter name="units" type="string" value="mol" />
+      </ParameterList>
+
+Richards energy
+^^^^^^^^^^^^^^^
+ Energy content evaluator for a standard Richards equation's water content.
+
+Energy associated with a soil and pore-water system, in [KJ]
+
+.. math::
+  E = V * ( \phi u_l s_l n_l + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"richards energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+Note that this ignores energy in the gas phase.
+
+.. _field-evaluator-type-richards-energy-spec:
+.. admonition:: field-evaluator-type-richards-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
+
+Liquid+Gas energy
+^^^^^^^^^^^^^^^^^
+ Energy content evaluator for a standard Richards equation, including energy in the gas phase.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"liquid+gas energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+.. _field-evaluator-type-liquid-gas-energy-spec:
+.. admonition:: field-evaluator-type-liquid-gas-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density gas`" [mol m^-3]
+   - `"saturation gas`" [-]
+   - `"internal energy gas`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
+
+Liquid+Ice energy
+^^^^^^^^^^^^^^^^^
+ Energy content evaluator for a two-phase system, including energy in an ice phase.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_i s_i n_i)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"liquid+ice energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+Note that this ignores energy in the gas phase.
+
+.. _field-evaluator-type-liquid-ice-energy-spec:
+.. admonition:: field-evaluator-type-liquid-ice-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"saturation ice`" [-]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
+
+Liquid+Ice+Gas energy
+^^^^^^^^^^^^^^^^^^^^^
+ Energy content evaluator for a three-phase, gas, liquid, ice system including the surrounding soil.
+
+Calculates energy, in [KJ], via the equation:
+
+.. math::
+  E = V * ( \phi (u_l s_l n_l + u_i s_i n_i + u_g s_g n_g)  + (1-\phi_0) u_r \rho_r )
+
+Specified with evaluator type: `"three phase energy`"
+
+Note this equation assumes that porosity is compressible, but is based on the
+uncompressed rock grain density (not bulk density).  This means that porosity
+is the base, uncompressible value when used with the energy in the grain, but
+the larger, compressible value when used with the energy in the water.
+
+.. _field-evaluator-type-three-phase-energy-spec:
+.. admonition:: field-evaluator-type-three-phase-energy-spec
+
+   DEPENDENCIES:
+
+   - `"porosity`" The porosity, including any compressibility. [-]
+   - `"base porosity`" The uncompressed porosity (note this may be the same as
+     porosity for incompressible cases) [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"saturation liquid`" [-]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"saturation ice`" [-]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"molar density gas`" [mol m^-3]
+   - `"saturation gas`" [-]
+   - `"internal energy gas`" [KJ mol^-1]
+   - `"density rock`" Units may be either [kg m^-3] or [mol m^-3]
+   - `"internal energy rock`" Units may be either [KJ kg^-1] or [KJ mol^-1],
+     but must be consistent with the above density.
+   - `"cell volume`" [m^3]
+
+
+
+
+Surface water+ice energy
+^^^^^^^^^^^^^^^^^^^^^^^^
+ Energy content for a surface water, partially frozen system.
+
+The energy associated with ponded water, in [KJ], given by:
+
+.. math::
+  E = V * ( \eta h u_l n_l + (1 - \eta) h u_i n_i )
+
+Specified with evaluator type: `"surface ice energy`"
+
+.. _field-evaluator-type-surface-ice-energy-spec:
+.. admonition:: field-evaluator-type-surface-ice-energy-spec
+
+   DEPENDENCIES:
+
+   - `"ponded depth`"  Height of water above the land surface [m]
+   - `"unfrozen fraction`"  The fraction of unfrozen water ranges from 0 to 1. [-]
+   - `"molar density liquid`" [mol m^-3]
+   - `"internal energy liquid`" [KJ mol^-1]
+   - `"molar density ice`" [mol m^-3]
+   - `"internal energy ice`" [KJ mol^-1]
+   - `"cell volume`" [m^2]
+
+
+
+
