@@ -3,10 +3,10 @@
         "name": "1.5 (stable)",
         "version": "1.5",
         "url": "https://amanzi.github.io/ats/v1.5/",
-        "preferred": "1.5",
+        "preferred": "1.5"
     },
     {
         "version": "master",
-        "url": "https://amanzi.github.io/ats/master/",
-    },
+        "url": "https://amanzi.github.io/ats/master/"
+    }
 ]
