@@ -1,0 +1,564 @@
+Nonlinear Solver
+================
+.. _Solver:
+   
+ A factory for creating nonlinear solvers.
+
+Nonlinear solvers are used within implicit time integration schemes to drive
+the residual to zero and thereby solve for the primary variable at the new
+time.
+
+.. _solver-typed-spec:
+.. admonition:: solver-typed-spec
+
+    * `"solver type`" ``[string]`` Type of the solver.  One of:
+
+      - `"Newton`" See `Solver: Newton and Inexact Newton`_
+      - `"JFNK`" See `Solver: Jacobian-Free Newton Krylov`_
+      - `"line search`" See `Solver: Newton with Line Search`_
+      - `"continuation`" See `Solver: Nonlinear Continuation`_
+      - `"nka`" See `Solver: Nonlinear Krylov Acceleration`_
+      - `"aa`" See `Solver: Anderson Acceleration`_
+      - `"nka line search`" See `Solver: NKA with Line Search`"
+      - `"nka_ls_ats`" See `Solver: NKA with Line Search, ATS`_
+      - `"nka_bt_ats`" See `Solver: NKA with backtracking, ATS`_
+      - `"nox`" See `Solver: NOX`_
+
+    * `"_solver_type_ parameters`" ``[_solver_type_-spec]`` A sublist containing
+      parameters specific to the type.
+
+.. warning::
+
+    `"JFNK`", `"line search`", and `"continuation`" methods have not been
+    beaten on as much as other methods.  `"nka_ls_ats`" is somewhat deprecated
+    and probably shouldn't be used.  Prefer `"nka`" for simple problems,
+    `"nka_bt_ats`" for freeze-thaw problems or other problems with strong
+    nonlinearities, and `"Newton`" when you have a good Jacobian.  While
+    `"nox`" hasn't been used extensively, it may be quite useful.
+
+
+
+
+
+
+Solver: Newton and Inexact Newton
+---------------------------------
+ Straightforward Newton/Inexact Newton solver.
+
+The classical Newton method works well for cases where Jacobian is available
+and corresponds to a stable (e.g. upwind) discretization.  The inexact Newton
+methods work for cases where the discrete Jacobian is either not available, or
+not stable, or computationally expensive. The discrete Jacobian is replaced by
+a stable approximation of the continuum Jacobian. The choice between exact and
+inexact is not made by the Solver, but instead by the PK.  Both use the
+ApplyPreconditioner() method -- if this applies the true Jacobian, then the
+method is Newton.  If it applies an appoximation, it is inexact Newton.
+
+.. _solver-newton-spec:
+.. admonition:: solver-newton-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"monitor`" ``[string]`` **monitor update** specifies control of the
+      nonlinear residual. The available options are `"monitor update`" and
+      `"monitor residual`".
+
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+
+    * `"max du growth factor`" ``[double]`` **1.e5** allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"make one iteration`" ``[bool]`` **false** require at least one iteration
+      to be performed before declaring success. This options makes any effect
+      only when `"monitor residual`" is choose.
+
+    * `"modify correction`" ``[bool]`` **true** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"stagnation iteration check`" ``[int]`` **8** determines the number of
+      iterations before the stagnation check is turned on. The stagnation
+      happens when the current l2-error exceeds the initial l2-error.
+
+ 
+
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+ Decorator for using a Solver with JFNK as the preconditioner.
+
+Jacobian-Free Newton Krylov uses a finite difference scheme to approximate the
+action of the Jacobian matrix, then uses a Krylov method (which only needs the
+action of the Jacobian and not the Jacobian itself) to calculate the action of
+the inverse of the Jacobian, thereby providing a Newton-like update.  As the
+linear Krylov scheme converges to the inverse action, the nonlinear solution
+converges to the same solution as a true Newton method.
+
+This implementation simply replaces a SolverFnBase's ApplyPreconditioner() with
+a new ApplyPreconditioner() which uses the Krylov method with the action of the
+forward operator to (hopefully) improve, relative to the supplied approximate
+inverse, the estimate of the inverse.
+
+.. _solver-jfnk-spec:
+.. admonition:: solver-jfnk-spec
+
+    * `"nonlinear solver`" ``[solver-typed-spec]`` The outer nonlinear solver to use.
+
+    * `"inverse`" ``[inverse-typed-spec]`` The Krylov method to use.
+
+    * `"JF matrix parameters`" ``[jf-matrix-spec]`` See jf-matrix-spec_
+
+.. code-block:: xml
+
+  <Parameter name="solver type" type="string" value="JFNK"/>
+  <ParameterList name="JFNK parameters">
+    <Parameter name="typical solution value" type="double" value="1.0"/>
+
+    <ParameterList name="JF matrix parameters">
+      <Parameter name="finite difference epsilon" type="double" value="1.0e-8"/>
+      <Parameter name="method for epsilon" type="string" value="Knoll-Keyes L2"/>
+    </ParameterList>
+
+    <ParameterList name="nonlinear solver">
+      <Parameter name="nonlinear tolerance" type="double" value="1.0e-05"/>
+      <Parameter name="diverged tolerance" type="double" value="1.0e+10"/>
+      <Parameter name="limit iterations" type="int" value="20"/>
+      <Parameter name="max divergent iterations" type="int" value="3"/>
+    </ParameterList>
+
+    <ParameterList name="linear operator">
+      <Parameter name="iterative method" type="string" value="gmres"/>
+      <ParameterList name="gmres parameters">
+        ...
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+  </ParameterList>
+
+
+
+
+
+The Jacobian-Free Matrix operator, which is used to estimate the action of the
+Jacobian.
+
+A variety of methods are available for choosing the epsilon used to approximate
+the action of the Jacobian.  They are documented in Knoll & Keyes 2004 paper.
+
+
+..todo:: Document these
+
+.. _jf-matrix-spec:
+.. admonition:: jf-matrix-spec
+
+    * `"typical solution value`" ``[double]`` **100** Used in relative action
+      approximations. OPTION NOT IMPLEMENTED
+
+    * `"finite difference epsilon`" ``[double]`` **1.e-8** defines the base finite
+      difference epsilon.
+
+    * `"method for epsilon`" ``[string]`` defines a method for calculating finite
+      difference epsilon. Available option is "Knoll-Keyes", "Knoll-Keyes L2",
+      "Brown-Saad".  See Knoll
+
+
+
+
+Solver: Newton with Line Search
+-------------------------------
+ Line search on the provided correction as a solver.
+
+Line Search accepts a correction from the Jacobian, then uses a
+process to attempt to minimize or at least ensure a reduction in the residual
+while searching *in that direction*, but not necessarily with the same
+magnitude, as the provided correction.  The scalar multiple of the search
+direction is given by :math:`\alpha`.
+
+This globalization recognizes that a true inverse Jacobian is a local
+measurement of the steepest descent direction, and so while the direction is
+guaranteed to be the direction which best reduces the residual, it may not
+provide the correct magnitude.
+
+The algorithm is a reimplementation based on PETSc SNES type BT, which in turn
+is from Numerical Methods for Unconstrained Optimization and Nonlinear
+Equations by Dennis & Schnabel, pg 325.
+
+Note, this always monitors the residual.
+
+.. _solver-line-search-spec:
+.. admonition:: solver-line-search-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **50** defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+      Set to a negative value to ignore this check.
+
+    * `"max error growth factor`" ``[double]`` **1.e5** defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"modify correction`" ``[bool]`` **false** allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10**
+
+    * `"min valid alpha`" ``[double]`` **0**
+
+    * `"max valid alpha`" ``[double]`` **10.**
+
+    * `"max line search iterations`" ``[int]`` **10**
+
+ 
+
+
+Solver: Nonlinear Continuation
+------------------------------
+ A very simple nonlinear continuation method.
+
+Continuation methods are useful when the nonlinearity can be controlled by a
+single simple parameter.  In this method, the nonlinear problem is solved with
+a less-nonlinear value of the parameter, and the solution of that is used as
+the initial guess to solve a harder problem.  As each successive problem is
+solved, the continuation parameter is changed closer and closer to the true
+value.
+
+Few if any PKs support this method currently -- it requires the PK to provide more
+interface about how to update the continuation parameter.
+
+.. _solver-continuation-spec:
+.. admonition:: solver-continuation-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"number of continuation steps`" ``[int]`` **5** How many steps to take
+      from initial parameter to final parameter.
+
+    * `"inner solver`" ``[solver-typed-spec]`` A Solver_, used at each step.
+
+
+
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+ Nonlinear Krylov Acceleration as a nonlinear solver.
+
+Uses the Nonlinear Krylov acceleration method of Carlson and Miller to do
+effectively a multivariant secant method, accelerating the solution of a
+nonlinear solve.  This method can be significantly faster than Newton,
+especially with an approximate Jacobian.
+
+  Calef et al. "Nonlinear Krylov acceleration applied to a discrete ordinates
+  formulation of the k-eigenvalue problem." JCP 238 (2013): 188-209.
+
+  N. N. Carlson, K. Miller, Design and application of a gradient-weighted
+  moving finite element code II: In two dimensions, SIAM J. Sci.  Comput. 19
+  (3) (1998) 766–798.
+
+
+.. _solver-nka-spec:
+.. admonition:: solver-nka-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"monitor`" ``[string]`` **monitor update** Specifies control of the
+      nonlinear residual. The available options are `"monitor update`",
+      `"monitor residual`", `"monitor preconditioned residual`", `"monitor l2
+      residual`", and `"monitor preconditioned l2 residual`".
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+      Set to a negative value to ignore this check.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative l2 (little l) norm of
+      the solution increment is above this value, the solver is terminated.
+      Set to a negative value to ignore this check.
+
+    * `"diverged pc tolerance`" ``[double]`` **1e10** Defines another way to
+      identify divergence of the solver. If the relative maximum norm of the
+      solution increment (with respect to the initial increment) is above this
+      value, the solver is terminated.
+      Set to a negative value to ignore this check.
+
+    * `"diverged residual tolerance`" ``[double]`` **1e10** Defines another way
+      to identify divergence of the solver. If the relative l2 norm of the
+      residual (with respect to the initial residual) is above this value, the
+      solver is terminated.  Set to a negative value to ignore this check.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max error growth factor`" ``[double]`` **1e5** Defines another way to
+      identify divergence pattern on earlier iterations. If the PK-specific
+      error changes drastically on two consecutive iterations, the solver is
+      terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"make one iteration`" ``[bool]`` **false** require at least one iteration
+      to be performed before declaring success. This options makes any effect
+      only when `"monitor residual`" is choose.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+ 
+
+
+Solver: Anderson Acceleration
+-----------------------------
+ Anderson acceleration as a nonlinear solver.
+
+This is a variation of the GMRES solver for nonlinear problems.
+
+.. _solver-aa-spec:
+.. admonition:: solver-aa-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+      Set to a negative value to ignore this check.
+
+    * `"diverged l2 tolerance`" ``[double]`` **1.e10** Defines another way to
+      identify divergence of the solver. If the relative L2 norm of the
+      solution increment is above this value, the solver is terminated.
+      Set to a negative value to ignore this check.
+
+    * `"max du growth factor`" ``[double]`` **1e5** Allows the solver to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment changes drastically on two consecutive iterations,
+      the solver is terminated.
+
+    * `"max divergent iterations`" ``[int]`` **3** Defines another way to
+      identify divergence pattern on earlier iterations. If the maximum norm of
+      the solution increment grows on too many consecutive iterations, the
+      solver is terminated.
+
+    * `"max aa vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"modify correction`" ``[bool]`` **false** Allows a PK to modify the
+      solution increment. One example is a physics-based clipping of extreme
+      solution values.
+
+    * `"relaxation parameter`" ``[double]`` **1** Damping factor for increment.
+
+ 
+
+
+Solver: NKA with Line Search
+----------------------------
+ NKA nonlinear solver with a line-search based on a Brendt minimization algorithm.
+
+Does NKA, then checks if that correction has reduced the residual by at least a
+tolerance.  If not, this uses a Brendt minimization algorithm to try and find
+an :math:`\alpha` that minimizes the reduction in the residual.
+
+Note, this always monitors the residual.
+
+.. _solver-nka-ls-spec:
+.. admonition solver-nka-ls-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack tolerance`" ``[double]`` **0.** If the default update reduces
+      the residual by at least this much, line search is not performed.
+
+    * `"accuracy of line search minimum [bits]`" ``[int]`` **10** Convergence criteria on Brendt algorithm.
+
+    * `"min valid alpha`" ``[double]`` **0** Lower bound on Brendt algorithm.
+
+    * `"max valid alpha`" ``[double]`` **10.** Upper bound on Brendt algorithm.
+
+    * `"max line search iterations`" ``[int]`` **10** Max iterations for the Brendt algorithm.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+
+
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+ Nonlinear solve using NKA with a heuristic based backtracking.
+
+Whereas line search uses a formal minimization method, backtracking simply uses
+a heuristic multiplier on :math:`\alpha` to find a correction that sufficiently
+reduces the residual.  This can be significantly faster than the full
+minimization problem, and finding the true minimum may not be as important as
+simply doing better and going on to the next nonlinear iteration.
+
+This is the workhorse for hard ATS problems, as it is usually rather efficient,
+even in problems where the linear solve results in a correction that is way too
+large (e.g. for steep nonlinearities such as phase change).
+
+Note this always monitors the residual, and the correction is always modified.
+
+.. _solver-nka-bt-ats-spec:
+.. admonition:: solver-nka-bt-ats-spec
+
+    * `"nonlinear tolerance`" ``[double]`` **1.e-6** Defines the required error
+      tolerance. The error is calculated by a PK.
+
+    * `"limit iterations`" ``[int]`` **20** Defines the maximum allowed number
+      of iterations.
+
+    * `"diverged tolerance`" ``[double]`` **1.e10** Defines the error level
+      indicating divergence of the solver. The error is calculated by a PK.
+      Set to a negative value to ignore this check.
+
+    * `"nka lag iterations`" ``[int]`` **0** Delays the NKA acceleration, but
+      updates the Krylov space.
+
+    * `"max nka vectors`" ``[int]`` **10** Defines the maximum number of
+      consecutive vectors used for a local space.
+
+    * `"nka vector tolerance`" ``[double]`` **0.05** Defines the minimum
+      allowed orthogonality between vectors in the local space. If a new vector
+      does not satisfy this requirement, the space is modified.
+
+    * `"backtrack tolerance`" ``[double]`` **0.** Require a reduction of at
+      least this much in the residual norm before accepting a correction.
+
+    * `"backtrack factor`" ``[double]`` **0.5** Multiply the correction by this
+      factor each backtracking step.  Note, should be in (0, 1)
+
+    * `"backtrack monitor`" ``[string]`` **monitor either** What norm is
+      checked to determine whether backtracking has improved the residual or
+      not?  One of `"monitor enorm`", `"monitor L2 residual`", or `'monitor
+      either`"
+
+    * `"backtrack max steps`" ``[int]`` **10** Controls how many multiples of
+      the backtrack factor are applied before declaring failure.
+
+    * `"backtrack max total steps`" ``[int]`` **1e6** Controls how many total
+      backtrack steps may be taken before declaring failure.
+
+    * `"backtrack lag iterations`" ``[int]`` **0** Delay requiring a reduction
+      in residual for this many nonlinear iterations.
+
+    * `"backtrack last iteration`" ``[int]`` **1e6** Stop requiring a
+      reductiontion in residual after this many nonlinear iterations.
+
+    * `"backtrack fail on bad search direction`" ``[bool]`` **false** If
+      backtracking for the full number of "backtrack max steps" is taken, and
+      the residual norm has still not be reduced suffiently, this determines
+      the behavior.  If true, the solver declares failure.  If false, it takes
+      the bad step anyway and hopes to recover in later iterates.
+
+    IF
+
+    * `"Anderson mixing`" ``[bool]`` **false** If true, use Anderson mixing instead of NKA.
+
+    THEN
+
+    * `"relaxation parameter`" ``[double]`` **0.7** The relaxation parameter
+      for Anderson mixing.
+
+    END
+
+
+
+
+Solver: NOX
+----------------------------------
+ Calls Nox nonlinear solvers/JFNK.
+
+The interface to Trilinos NOX solver is as follows:
+
+.. code-block:: xml
+
+  <Parameter name="solver type" type="string" value="nox"/>
+    <ParameterList name="nox parameters">
+      <Parameter name="typical solution value" type="double" value="1.0"/>
+
+      <ParameterList name="JF matrix parameters">
+        <Parameter name="finite difference epsilon" type="double" value="1.0e-8"/>
+        <Parameter name="method for epsilon" type="string" value="Knoll-Keyes L2"/>
+      </ParameterList>
+
+      <ParameterList name="nonlinear solver">
+        <Parameter name="solver type" type="string" value="Newton"/>
+        <ParameterList name="Newton parameters">
+          ...
+        </ParameterList>
+      </ParameterList>
+
+      <ParameterList name="linear operator">
+        <Parameter name="iterative method" type="string" value="gmres"/>
+        <ParameterList name="gmres parameters">
+          ...
+        </ParameterList>
+      </ParameterList>
+    </ParameterList>
+  </ParameterList>
+
+
+

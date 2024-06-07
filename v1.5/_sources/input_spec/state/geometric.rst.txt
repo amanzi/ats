@@ -1,0 +1,119 @@
+Geometric evaluators
+--------------------
+
+Evaluators that capture various aspects of the mesh geometry.
+
+SurfaceElevation
+^^^^^^^^^^^^^^^^^^
+ Evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
+
+`"evaluator type`" = `"meshed elevation`"
+
+Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h z|``
+
+.. _meshed-elevation-evaluator-spec:
+.. admonition:: meshed-elevation-evaluator-spec
+
+   * `"parent domain name`" ``[string]`` **SUBSURFACE_DOMAIN** Domain name of the parent
+     mesh, which is the 3D version of this domain.  Attempts to generate an
+     intelligent default by stripping "surface" from this domain.
+   * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
+     elevation changes in time, and adds the `"deformation`" dependency.
+
+   MY KEYS:
+
+   - `"elevation`" **DOMAIN-elevation** Name the elevation variable. [m]
+   - `"slope magnitude`" **DOMAIN-slope_magnitude** Name the elevation variable. [-]
+
+   KEYS:
+
+   - `"deformation`" **optional** If `"dynamic mesh`" == True, this is required
+     to tell when the mesh has been deformed.
+
+
+
+
+Elevation of a Column
+^^^^^^^^^^^^^^^^^^^^^
+ ElevationEvaluatorColumn: evaluates the elevation (z-coordinate) and slope magnitude of a mesh.
+
+Evaluates elevation, slope, and aspect of the "surface_star" mesh of the Arctic
+Intermediate Scale Model (ISM).
+
+Evaluates the z-coordinate and the magnitude of the slope :math:``|\nambla_h
+z|`` Note that this is evaluator is different from both the standard elevation
+evaluator, which would take elevation/slope/aspect from the parent 3D mesh, and
+from the standard "single cell" column mesh elevation, which can do the same.
+Instead, it is a mix of:
+
+- elevation is aggregated from the column meshes' top faces
+
+- slope is calculated using a cell-neighbor differencing scheme.  Unlike 3D
+  meshes, in the ISM, we deform columns of cells and so do not have faces.
+  Therefore, we use all neighboring cells to compute an average normal for the
+  cell, and use that to compute slope and aspect.
+
+- aspect is set to 0.  It could easily be calculated using the same normal as
+  the slope algorithm, but is not done currently.
+
+`"evaluator type`" = `"elevation column`"
+
+.. _column-elevation-evaluator-spec:
+.. admonition:: column-elevation-evaluator-spec
+
+   * `"elevation key`" ``[string]`` **elevation** Name the elevation variable. [m]
+   * `"slope magnitude key`" ``[string]`` **slope_magnitude** Name the elevation
+     variable. [-]
+   * `"dynamic mesh`" ``[bool]`` **false** Lets the evaluator know that the
+     elevation changes in time, and adds the `"deformation`" and
+     `"base_porosity`" dependencies.
+   * `"parent domain name`" ``[string]`` **DOMAIN** Domain name of the parent
+     mesh, which is the 3D version of this domain.  In the columnar meshes the
+     surface elevation and slope are assigned based on the columns and not the
+     base 3D domain.
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="surface_star-elevation">
+    <Parameter name="evaluator type" type="string" value="column elevation"/>
+  </ParameterList>
+
+
+
+
+Depth Evaluator
+^^^^^^^^^^^^^^^
+ Computes depth, positive downward relative to the surface, of mesh cells.
+
+Computes cell depths only.
+
+Note that two algorithms for computing the depth are available:
+
+`"cell centroid`" uses the cell centroid, as computed by the Mesh, directly.
+
+`"mean face centroid`" is the default, as the cell centroid can have problems
+in the case of non-planar faces.  Instead, it uses the mean of the above and
+below face centroids in place of the face centroid, with the implicit
+assumption that dz is uniform (e.g. this is an extruded mesh).
+
+`"evaluator type`" = `"depth`"
+
+.. _depth-evaluator-spec:
+.. admonition:: depth-evaluator-spec
+
+   * `"algorithm`" ``[string]`` **mean face centroid** Valid is `"mean face centroid`"
+     and `"cell centroid`", see above.
+
+ 
+
+
+Cell Volume evaluator
+^^^^^^^^^^^^^^^^^^^^^
+
+
+Deforming Cell Volume evaluator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
