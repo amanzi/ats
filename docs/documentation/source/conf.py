@@ -74,16 +74,20 @@ html_logo = "_static/images/logo_full.png"
 html_title = "Amanzi-ATS"
 
 html_sidebars = {
-    "**" : ["sidebar-nav-bs.html",
+    "**" : ["version-switcher",
+            "sidebar-nav-bs.html",
             "page-toc.html",
             ]
 }
 
 html_theme_options = {
-  "secondary_sidebar_items": []
+    "secondary_sidebar_items": [],
+    "switcher": {
+        "json_url": "https://amanzi.github.io/ats/master/_static/versions.json",
+        "version_match": 'v1.5',
+    },
+#    "navbar_start" : ["navbar-logo", ],
 }
-
-
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
