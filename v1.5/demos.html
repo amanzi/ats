@@ -45,11 +45,17 @@
     <script src="_static/doctools.js"></script>
     <script src="_static/sphinx_highlight.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'demos';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.15.3';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://amanzi.github.io/ats/master/_static/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'v1.5';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner = false;
+        </script>
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
     <script src="_static/main.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Richards’ Equation, steady state" href="ats_demos/01_richards_steadystate/richards_steadystate.html" />
+    <link rel="next" title="ATS Input Specification" href="input_spec/index.html" />
     <link rel="prev" title="Amanzi-ATS" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -278,31 +284,33 @@ document.write(`
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button id="pst-version-switcher-button-2"
+      type="button"
+      class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle"
+      data-bs-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-controls="pst-version-switcher-list-2"
+      aria-label="Version switcher list"
+    >
+      Choose version  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div id="pst-version-switcher-list-2"
+      class="version-switcher__menu dropdown-menu list-group-flush py-0"
+      role="listbox" aria-labelledby="pst-version-switcher-button-2">
+      <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        <div class="sidebar-primary-item">
 <nav class="bd-docs-nav bd-links"
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/01_richards_steadystate/richards_steadystate.html">Richards’ Equation, steady state</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/02_richards/richards.html">Richards’ Equation, transient problems</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/03_surface_water/surface_water.html">Surface Water Runoff</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/04_integrated_hydro/integrated_hydro.html">Integrated Hydrology</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/05_ecohydrology/ecohydrology.html">Temperate Ecohydrology</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/06_arctic_hydrology/arctic_hydrology.html">Arctic Permafrost Modeling</a></li>
-</ul>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.html">Integrated Hydrology and Reactive Transport</a></li>
-</ul>
-</div>
+  <div class="bd-toc-item navbar-nav"></div>
 </nav></div>
         <div class="sidebar-primary-item">
 <div
@@ -400,9 +408,6 @@ that repository in its <a class="reference external" href="https://github.com/am
 <section id="richards-equation-steady-state">
 <h2>Richards Equation: Steady state<a class="headerlink" href="#richards-equation-steady-state" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/01_richards_steadystate/richards_steadystate.html">Richards’ Equation, steady state</a></li>
-</ul>
 </div>
 <p>This shows examples of solving Richards equation to steadystate.
 Typically this is used to establish a water column that satisfies
@@ -411,9 +416,6 @@ hydrostatic balance.</p>
 <section id="richards-equation-transient">
 <h2>Richards Equation: Transient<a class="headerlink" href="#richards-equation-transient" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/02_richards/richards.html">Richards’ Equation, transient problems</a></li>
-</ul>
 </div>
 <p>Transient problems show a variety of variably saturated cases, and
 demonstrate seepage faces and other common boundary conditions for the
@@ -422,9 +424,6 @@ flow of water in a porous media.</p>
 <section id="surface-water">
 <h2>Surface Water<a class="headerlink" href="#surface-water" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/03_surface_water/surface_water.html">Surface Water Runoff</a></li>
-</ul>
 </div>
 <p>Overland flow is solved through a diffusion wave equation.  This
 demonstrates that as a standalone capability, solving surface water
@@ -434,9 +433,6 @@ forcing.</p>
 <section id="integrated-hydrology">
 <h2>Integrated Hydrology<a class="headerlink" href="#integrated-hydrology" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/04_integrated_hydro/integrated_hydro.html">Integrated Hydrology</a></li>
-</ul>
 </div>
 <p>Integrated hydrology brings the previous two examples together,
 solving both surface and subsurface flow of water.</p>
@@ -444,9 +440,6 @@ solving both surface and subsurface flow of water.</p>
 <section id="ecohydrology">
 <h2>Ecohydrology<a class="headerlink" href="#ecohydrology" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/05_ecohydrology/ecohydrology.html">Temperate Ecohydrology</a></li>
-</ul>
 </div>
 <p>Ecohydrogy brings in the effects of other ecological processes, here
 loosely used to include all surface processes like evaporation,
@@ -456,9 +449,6 @@ even simplified biogeochemistry processes for a full carbon cycle.</p>
 <section id="arctic-hydrology">
 <h2>Arctic Hydrology<a class="headerlink" href="#arctic-hydrology" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/06_arctic_hydrology/arctic_hydrology.html">Arctic Permafrost Modeling</a></li>
-</ul>
 </div>
 <p>ATS was originally developed as an Arctic hydrology simulator.  It
 includes state-of-the art constitutive models and numerical methods
@@ -478,9 +468,6 @@ both the surface and subsurface, and even in frozen environments.
 <section id="integrated-hydrology-and-reactive-transport">
 <h2>Integrated hydrology and Reactive Transport<a class="headerlink" href="#integrated-hydrology-and-reactive-transport" title="Permalink to this heading">#</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.html">Integrated Hydrology and Reactive Transport</a></li>
-</ul>
 </div>
 <p>ATS is unique in the its ability to simulate reactive transport in integrated
 hydrology problems. In other words, it is capable of simulating muticomponent
@@ -510,11 +497,11 @@ coupling approach, and levering powerful, external geochemical engines
       </div>
     </a>
     <a class="right-next"
-       href="ats_demos/01_richards_steadystate/richards_steadystate.html"
+       href="input_spec/index.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Richards’ Equation, steady state</p>
+        <p class="prev-next-title">ATS Input Specification</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
