@@ -48,8 +48,9 @@ extensions = [
     'sphinx.ext.viewcode',
 #    'sphinx.ext.githubpages',
 #    'sphinx.ext.napoleon',
+#    'nbsphinx',
+    'myst_nb',
     'sphinxcontrib.jquery',
-    'nbsphinx',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,6 +83,8 @@ html_theme_options = {
   "secondary_sidebar_items": []
 }
 
+
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -97,6 +100,10 @@ html_js_files = [
     'https://cdn.datatables.net/2.0.8/js/dataTables.js',
     'main.js',
 ]
+
+
+
+nb_execution_excludepatterns = ['IHMIP_units.ipynb', 'mesh_gen.ipynb']
 
 
 
