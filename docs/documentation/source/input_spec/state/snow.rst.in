@@ -1,0 +1,13 @@
+Snow evaluators
+---------------
+
+Evaluators used for solving snowpack and/or snow redistribution laterally.
+
+SnowSurfacePotential
+^^^^^^^^^^^^^^^^^^^^^^
+{ snow_skin_potential_evaluator }
+
+Snow Melt Rate
+^^^^^^^^^^^^^^
+{ snow_meltrate_evaluator }
+

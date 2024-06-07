@@ -1,0 +1,49 @@
+State
+#####
+{ State }
+
+State consists of two sublists, one for evaluators and the other for
+atomic constants.  The latter is currently called `"initial
+conditions`", which is a terrible name which must be fixed.
+
+Evaluators are individual terms used to build up a PK or MPCs.  Each
+term represents a variable in the equation, and can consist of primary
+variables (those that are solved for by a PK solver), independent
+variables (those that have no dependent variables but are provided by
+the user as data), and secondary variables (those that are functions
+of other variables).  Note that all three may be variable in space
+and/or time.
+
+Example:
+
+.. code-block:: xml
+                
+  <ParameterList name="state">
+    <ParameterList name="field evaluators">
+      ...
+    </ParameterList>
+    <ParameterList name="initial conditions">
+      ...
+    </ParameterList>
+  </ParameterList>
+
+
+.. toctree::
+   :caption: List of Evaluators
+   :maxdepth: 1
+
+   primary
+   independent
+   secondary
+   conserved
+   subsurface_flow
+   surface_flow
+   thermo
+   eos
+   seb
+   snow
+   canopy
+   bgc
+   multiscale
+   geometric
+   generic

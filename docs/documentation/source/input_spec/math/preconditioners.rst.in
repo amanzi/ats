@@ -1,0 +1,26 @@
+Preconditioners
+===============
+.. _Preconditioner:
+
+{ Preconditioner }
+
+Identity
+--------
+{ PreconditionerIdentity }
+
+Diagonal
+--------
+{ PreconditionerDiagonal }
+
+Block ILU
+---------
+{ PreconditionerIfpack }
+
+Boomer AMG and Euclid
+----------------------
+{ PreconditionerHypre }
+
+ML (Trilinos AMG)
+-----------------
+{ PreconditionerML }
+

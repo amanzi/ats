@@ -1,0 +1,25 @@
+Geometric evaluators
+--------------------
+
+Evaluators that capture various aspects of the mesh geometry.
+
+SurfaceElevation
+^^^^^^^^^^^^^^^^^^
+{ meshed_elevation_evaluator }
+
+Elevation of a Column
+^^^^^^^^^^^^^^^^^^^^^
+{ elevation_evaluator_column }
+
+Depth Evaluator
+^^^^^^^^^^^^^^^
+{ depth_evaluator }
+
+Cell Volume evaluator
+^^^^^^^^^^^^^^^^^^^^^
+{ EvaluatorCellVolume }
+
+Deforming Cell Volume evaluator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ EvaluatorDeformingCellVolume }
+

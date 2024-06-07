@@ -1,0 +1,46 @@
+Nonlinear Solver
+================
+.. _Solver:
+   
+{ SolverFactory }
+
+Solver: Newton and Inexact Newton
+---------------------------------
+{ SolverNewton }
+
+Solver: Jacobian-Free Newton Krylov
+-----------------------------------
+{ SolverJFNK }
+{ MatrixJF }
+
+Solver: Newton with Line Search
+-------------------------------
+{ SolverLS }
+
+Solver: Nonlinear Continuation
+------------------------------
+{ SolverContinuation }
+
+Solver: Nonlinear Krylov Acceleration
+-------------------------------------
+{ SolverNKA }
+
+Solver: Anderson Acceleration
+-----------------------------
+{ SolverAA }
+
+Solver: NKA with Line Search
+----------------------------
+{ SolverNKA_LS }
+
+Solver: NKA with Line Search, ATS
+---------------------------------
+{ SolverNKA_LS_ATS }
+
+Solver: NKA with backtracking, ATS
+----------------------------------
+{ SolverNKA_BT_ATS }
+
+Solver: NOX
+----------------------------------
+{ SolverNox }

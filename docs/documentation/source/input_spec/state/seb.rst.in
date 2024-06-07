@@ -1,0 +1,118 @@
+Surface energy balance evaluators
+---------------------------------
+
+Evaluators used to solve the fluxes to and from the atmosphere and
+between layers of the surface.  Typically in ATS these calculate
+evapotranspiration.
+
+Area Fractions
+^^^^^^^^^^^^^^
+
+Frequently, the surface of a grid cell is split across at least two
+"subgrid components," for instance snow covered and bare ground.  This
+"subgrid" model allows smooth transitions between fully snow-covered
+and fully bare ground.
+
+These area fractions often get included as area-weights in calculating
+full-cell quantities.
+
+Two-component model
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ area_fractions_twocomponent_evaluator }
+
+Three-component model
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ area_fractions_threecomponent_evaluator }
+
+Three-component model, with microtopography
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ area_fractions_threecomponent_microtopography_evaluator }
+
+
+Potential Evapotranspiration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Models of potential evapotranspiration approximate the difference in
+vapor pressure between the atmosphere and the soil as a function of
+available energy, allowing the calculation of the max flux of ET that
+the atmosphere could accept.  This can then be limited based on water
+availability, etc.
+
+Priestley-Taylor Potential Evapotranspiration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ pet_priestley_taylor_evaluator }
+
+Downregulation and limiters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Given a potential, the actual ET is often limited by available water
+(or nutrients or other quantities).  These evaluators are used to
+limit, downregulate, distribute, or otherwise move a potential to an
+actual ET.
+
+Transpiration Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ transpiration_distribution_evaluator }
+
+Rooting Depth Fraction
+~~~~~~~~~~~~~~~~~~~~~~
+{ rooting_depth_fraction_evaluator }
+
+Plant Wilting Point
+~~~~~~~~~~~~~~~~~~~
+{ plant_wilting_factor_evaluator }
+
+Soil Resistance
+^^^^^^^^^^^^^^^
+{ evaporation_downregulation_evaluator }
+
+
+Radiation Balance Terms
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Often a balance of incoming and outgoing short and longwave radiations
+are required to determine the energy available to go into latent heat,
+and therefore potential evapotranspiration.
+
+Note that incoming shortwave radiation is typically a user-provided
+meterological forcing dataset.
+
+Radiation Balance
+~~~~~~~~~~~~~~~~~
+{ radiation_balance_evaluator }
+
+Canopy Radiation Balance
+~~~~~~~~~~~~~~~~~~~~~~~~
+{ canopy_radiation_evaluator }
+
+Surface Albedo
+~~~~~~~~~~~~~~
+
+Note that albedo is also a multiple subgrid component model, like
+surface balance.
+
+{ albedo_twocomponent_evaluator }
+
+{ albedo_threecomponent_evaluator }
+
+Incident Shortwave Radiation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ incident_shortwave_radiation_evaluator }
+{ incident_shortwave_radiation_model }
+
+Longwave Radiation
+~~~~~~~~~~~~~~~~~~
+{ longwave_evaluator }
+
+Full Surface Energy Balance Models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Finally, in addition to the potential-based models above, a few
+full-physics model are available.  These are often based on older,
+monolithic models.
+
+Bare Soil Surface Energy Balance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ seb_twocomponent_evaluator }
+
+{ seb_threecomponent_evaluator }
+

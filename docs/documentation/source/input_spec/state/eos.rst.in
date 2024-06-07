@@ -1,0 +1,71 @@
+Equations of State
+------------------
+
+The density of water can be specified in many ways, depending upon
+phase and problem of interest.  Options are available from the
+simplest (constant value) to functions of just temperature,
+temperature and pressure, and temperature/pressure/concentration
+(e.g. salinity).
+
+Note that density includes both molar and mass-based values.  Most
+density evaluators can provide either, or do provide both, the
+difference being simply a factor of the molecular mass of water.
+
+Finally, nearly all (except the constant value) equations of state use
+a common set of models which accept all of temperature, pressure, and
+concentration.  Many of these models ignore one or the other, so it
+should be preferred (but is not necessary) to choose the right model
+for a given evaluator.  Choosing a model that uses fewer of
+these than the evaluator provides is valid, but it is inefficient.
+Choosing a model that uses more than the evaluator provides will
+result in an error.
+
+Constant Value
+^^^^^^^^^^^^^^
+
+Like any quantity, a density can simply be a constant value, at which
+point it is not a secondary variable but an independent variable.
+
+.. code-block:: xml
+
+      <ParameterList name="surface-molar_density_liquid" type="ParameterList">
+        <Parameter name="field evaluator type" type="string" value="independent variable constant" />
+        <Parameter name="value" type="double" value="55000" />
+        <Parameter name="units" type="string" value="mol m^-3" />
+      </ParameterList>
+
+Standard Equation of State
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ eos_evaluator }
+
+Models
+^^^^^^
+
+Constant EOS
+~~~~~~~~~~~~
+{ eos_constant }
+
+Linear EOS
+~~~~~~~~~~
+{ eos_linear }
+
+Ideal Gas
+~~~~~~~~~
+{ eos_ideal_gas }
+
+EOS of Water
+~~~~~~~~~~~~
+{ eos_water }
+
+EOS of Ice
+~~~~~~~~~~
+{ eos_ice }
+
+EOS of Vapor in Air
+~~~~~~~~~~~~~~~~~~~
+{ eos_vapor_in_gas }
+
+EOS of Saltwater
+~~~~~~~~~~~~~~~~
+{ eos_sw }
+

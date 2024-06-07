@@ -1,0 +1,96 @@
+Subsurface flow evaluators
+--------------------------
+
+Assorted evaluators used for subsurface flow processes,
+including water retention curves, compressible pore space, relative
+permeability, and their frozen equivalents.
+
+Many of these evaluators show up in nearly all ATS simulations, as
+subsurface flow of water is the core process underlying all of ATS
+physics.  For real examples, see `ats-demos <https://github.com/amanzi/ats-demos>`_
+
+Capillary pressure
+^^^^^^^^^^^^^^^^^^
+{ pc_liquid_evaluator }
+
+Capillary pressure of liquid on ice
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ pc_ice_evaluator }
+
+Water Retention Model and Relative Permeability
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ wrm_evaluator }
+{ wrm_partition }
+{ rel_perm_evaluator }
+
+Van Genuchten Model
+~~~~~~~~~~~~~~~~~~~
+{ wrm_van_genuchten }
+
+Linear  Model
+~~~~~~~~~~~~~~~~~~~
+{ wrm_linear_system }
+
+Water Retention Model for Freeze-Thaw
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ wrm_permafrost_evaluator }
+
+Original Implicit model
+~~~~~~~~~~~~~~~~~~~~~~~
+{ wrm_implicit_permafrost_model }
+
+Freezing point depression model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ wrm_fpd_permafrost_model }
+
+Freezing point depression, smoothed model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{ wrm_fpd_smoothed_permafrost_model }
+
+Interfrost model
+~~~~~~~~~~~~~~~~
+{ wrm_interfrost_permafrost_model }
+
+Sutra-ICE model
+~~~~~~~~~~~~~~~
+{ wrm_sutra_permafrost_model }
+
+Compressible porosity
+^^^^^^^^^^^^^^^^^^^^^
+{ compressible_porosity_evaluator }
+
+Standard model
+~~~~~~~~~~~~~~
+{ compressible_porosity_model }
+
+Exponential model
+~~~~~~~~~~~~~~~~~
+{ compressible_porosity_leijnse_model }
+
+
+Viscosity of water
+^^^^^^^^^^^^^^^^^^
+
+Two main viscosity models are commonly used -- a constant and one
+which is temperature-dependent.  The viscosity of water is strongly
+temperature dependent, so it is highly recommended to use that one if
+the problem is nonisothermal.
+
+Constant
+~~~~~~~~
+Like any quantity, a viscosity can simply be a constant value, at which
+point it is not a secondary variable but an independent variable.
+
+.. code-block:: xml
+
+      <ParameterList name="viscosity_liquid" type="ParameterList">
+        <Parameter name="field evaluator type" type="string" value="independent variable constant" />
+        <Parameter name="value" type="double" value="8.9e-4" />
+        <Parameter name="units" type="string" value="Pa s" />
+      </ParameterList>
+
+Nonisothermal
+~~~~~~~~~~~~~
+{ viscosity_evaluator }
+{ viscosity_water }
+

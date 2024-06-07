@@ -77,7 +77,12 @@ def parseTemplate(filename):
 
     missed_keys = []
     parsed = string.Formatter().parse(template)
-    keys = [par[1] for par in parsed if par[1] is not None]
+    try:
+        keys = [par[1] for par in parsed if par[1] is not None]
+    except ValueError as err:
+        for par in parsed:
+            print(par[1])
+        keys = [par[1] for par in parsed if par[1] is not None]
 
     template_dict = dict()
     for key in keys:
@@ -95,5 +100,9 @@ def parseTemplate(filename):
         
 
 if __name__ == "__main__":
-    parseTemplate(sys.argv[-1].strip(".in"))
+    fname = sys.argv[-1]
+    if fname.endswith('.in'):
+        fname = fname[:-3]
+
+    parseTemplate(fname)
 
