@@ -1,0 +1,87 @@
+Snow evaluators
+---------------
+
+Evaluators used for solving snowpack and/or snow redistribution laterally.
+
+SnowSurfacePotential
+^^^^^^^^^^^^^^^^^^^^^^
+ Computes the potential surface upon which snow redistribution acts.
+
+Snow distribution moves snow precipitation around to ensure that low-lying
+areas fill up first.  This represents a potential field driving movement of
+snow precip, so defines what we mean by low-lying.
+
+.. math::
+    h + z + h_{{snow}} + dt * P_{{snow}}
+
+`"evaluator type`" = `"snow skin potential`"
+
+.. _snow-skin-potential-evaluator-spec:
+.. admonition:: snow-skin-potential-evaluator-spec
+
+   * `"dt factor [s]`" ``[double]`` A free-parameter factor for providing a
+     time scale for diffusion of snow precipitation into low-lying areas.
+     Typically on the order of 1e4-1e7. This timestep times the wave speed of
+     snow provides an approximate length of how far snow precip can travel.
+     Extremely tunable! [s]
+
+   KEYS:
+
+   - `"ponded depth`" **SURFACE_DOMAIN-ponded_depth** [m]
+   - `"snow depth`" **DOMAIN-depth** [m]
+   - `"precipitation snow`" **DOMAIN-precipitation** [m s^-1]
+   - `"elevation`" **SURFACE_DOMAIN-elevation** [m]
+
+
+Example:
+
+.. code-block:: xml
+
+  <ParameterList name="snow_skin_potential" type="ParameterList">
+    <Parameter name="evaluator type" type="string" value="snow skin potential" />
+    <Parameter name="dt factor [s]" type="double" value="864000.0" />
+  </ParameterList>
+
+
+
+
+Snow Melt Rate
+^^^^^^^^^^^^^^
+ Evaluates snow melt via USDA - Natural Resources Conservation Service model
+
+From:  National Engineering Handbook (NEH) part 630, Chapter 11
+
+Snow melt rate is given by:
+
+.. math::
+   SM = H(T_{snow}^{expected} - 273.15) R
+
+where :math:`R` is the snow melt rate per degree-day and
+:math:`T_{snow}^{expected}` is the expected snow temperature, which is
+typically given by :math:`T_{snow}^{expected} = T_{air} - \Delta`, where
+:math:`\Delta` is the expected air-snow temperature difference [C] (note this
+is NOT prescribed here -- the user must supply the expected snow temperature
+via an evalutor).
+
+Note that the Heaviside function is used to ensure this is only active when the
+expected snow temperature is above 0 C.
+
+Then, a linear transition factor is applied to ensure that this goes to zero as
+the snow SWE goes to zero.  That factor is 1 at the snow transition depth, and
+0 when snow SWE is 0.  This uses LandCover for the snow_ground_transition
+parameter.
+
+.. _snow-meltrate-evaluator-spec:
+.. admonition:: snow-meltrate-evaluator-spec
+
+   * `"snow melt rate [mm day^-1 C^-1]`" ``[double]`` **2.74**
+     the melt rate per degree-day, above 0 C, e.g. :math:`R` above.
+
+   KEYS:
+
+   - `"snow water equivalent`" **DOMAIN-water_equivalent**
+   - `"expected snow temperature`"  **DOMAIN-expected_temperature**
+
+
+
+
