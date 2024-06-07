@@ -77,7 +77,7 @@ Richards Equation: Steady state
 .. toctree::
    :maxdepth: 1
    
-   ats_demos/01_richards_steadystate/richards_steadystate.ipynb
+   01_richards_steadystate/richards_steadystate.ipynb
 
 This shows examples of solving Richards equation to steadystate.
 Typically this is used to establish a water column that satisfies
@@ -90,7 +90,7 @@ Richards Equation: Transient
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/02_richards/richards.ipynb
+   02_richards/richards.ipynb
 
 Transient problems show a variety of variably saturated cases, and
 demonstrate seepage faces and other common boundary conditions for the
@@ -103,7 +103,7 @@ Surface Water
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/03_surface_water/surface_water.ipynb
+   03_surface_water/surface_water.ipynb
 
 Overland flow is solved through a diffusion wave equation.  This
 demonstrates that as a standalone capability, solving surface water
@@ -117,7 +117,7 @@ Integrated Hydrology
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/04_integrated_hydro/integrated_hydro.ipynb
+   04_integrated_hydro/integrated_hydro.ipynb
 
 Integrated hydrology brings the previous two examples together,
 solving both surface and subsurface flow of water.
@@ -129,7 +129,7 @@ Ecohydrology
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/05_ecohydrology/ecohydrology.ipynb
+   05_ecohydrology/ecohydrology.ipynb
 
 Ecohydrogy brings in the effects of other ecological processes, here
 loosely used to include all surface processes like evaporation,
@@ -143,7 +143,7 @@ Arctic Hydrology
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/06_arctic_hydrology/arctic_hydrology.ipynb
+   06_arctic_hydrology/arctic_hydrology.ipynb
 
 ATS was originally developed as an Arctic hydrology simulator.  It
 includes state-of-the art constitutive models and numerical methods
@@ -158,7 +158,7 @@ Reactive Transport
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/07_reactive_transport/reactive_transport.ipynb 
+   07_reactive_transport/reactive_transport.ipynb 
 
 ATS's sister code Amanzi was designed for solving problems of reactive
 transport.  Interoperability of ATS and Amanzi allows ATS to leverage
@@ -172,7 +172,7 @@ Integrated hydrology and Reactive Transport
 .. toctree::
    :maxdepth: 1
 
-   ats_demos/13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.ipynb
+   13_integrated_hydro_reactive_transport/integrated_hydro_reactive_transport.ipynb
 
 ATS is unique in the its ability to simulate reactive transport in integrated
 hydrology problems. In other words, it is capable of simulating muticomponent
