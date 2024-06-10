@@ -24,9 +24,9 @@ copyright = '202X, jointly shared by contributor institutions'
 author = 'Ethan Coon'
 
 # The short X.Y version
-version = '1.4'
+version = 'dev'
 # The full version, including alpha/beta/rc tags
-release = '1.4'
+release = 'dev'
 
 
 # -- General configuration ---------------------------------------------------
@@ -68,19 +68,24 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 #html_theme = 'sphinx_book_theme'
-html_theme = 'pydata_sphinx_theme'
-
-html_logo = "_static/images/logo_full.png"
+html_theme = "pydata_sphinx_theme"
 html_title = "Amanzi-ATS"
+html_favicon = "_static/images/favicon.ico"
 
 html_sidebars = {
-    "**" : ["version-switcher",
+    "**" : ["version",
+            "version-switcher",
             "sidebar-nav-bs.html",
             "page-toc.html",
             ]
 }
 
 html_theme_options = {
+    "logo": {
+        "alt_text": "Amanzi-ATS documentation -- Home",
+        "image_light": "_static/images/logo_full.png",
+        "image_dark": "_static/images/logo_full.png", # todo -- make a dark logo!
+    },
     "secondary_sidebar_items": [],
     "switcher": {
         "json_url": "https://raw.githubusercontent.com/amanzi/ats/master/docs/documentation/source/_static/versions.json",
