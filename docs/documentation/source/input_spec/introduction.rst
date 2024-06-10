@@ -81,14 +81,15 @@ as expected.
 
 A variable name looks like one of:
 
-- SUFFIX
-- DOMAIN-SUFFIX
-- DOMAIN_SET:ID-SUFFIX
+- ROOT_NAME
+- DOMAIN-ROOT_NAME
+- DOMAIN_SET:ID-ROOT_NAME
 
 where:
 
-- When DOMAIN is supplied, it is the "default" mesh, called `"domain`"
-  in the mesh list, and otherwise is the name of the mesh (e.g. `"surface`").
+- When DOMAIN is not supplied, it is implied to be the "default" mesh,
+  called `"domain`" in the mesh list.  Otherwise the domain name is
+  the same as the mesh name (e.g. `"surface`").
 - DOMAIN_SET:ID is itself a DOMAIN, where the set defines the
   collection as a whole (from the mesh list) and the ID is defined by
   an index across the collection, e.g. `"column:4`"
@@ -108,7 +109,7 @@ the `"water_content`" variable on the `"surface`" domain with respect
 to the `"pressure`" on the same domain.
 
 As a result of these conventions, none of the above individual strings,
-(suffixes, domains, domain sets, or IDs) can contain any of the
+(root names, domains, domain sets, or IDs) can contain any of the
 following reserved characters: `:`, `-`, `|`, `@`.
   
 

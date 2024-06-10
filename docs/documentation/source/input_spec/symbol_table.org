@@ -1,5 +1,5 @@
 #+OPTIONS: ^:nil
-| Variable Name (SUFFIX)                   | Symbol               | Description                                                                      | Units                                               | Process |
+| Variable Root Name                       | Symbol               | Description                                                                      | Units                                               | Process |
 |------------------------------------------+----------------------+----------------------------------------------------------------------------------+-----------------------------------------------------+---------|
 | coordinate, centroid                     | $x$, $y$, $z$        | spatial coordinates                                                              | $[m]$                                               |         |
 | time                                     | $t$                  | time variable                                                                    | $[s]$                                               |         |
