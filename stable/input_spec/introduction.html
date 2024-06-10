@@ -285,6 +285,8 @@ document.write(`
   </div>
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><!-- This will display the version of the docs -->
+Version 1.5</div>
         <div class="sidebar-primary-item">
 <script>
 document.write(`
@@ -513,14 +515,15 @@ these conventions or things like visualization scripts may not behave
 as expected.</p>
 <p>A variable name looks like one of:</p>
 <ul class="simple">
-<li><p>SUFFIX</p></li>
-<li><p>DOMAIN-SUFFIX</p></li>
-<li><p>DOMAIN_SET:ID-SUFFIX</p></li>
+<li><p>ROOT_NAME</p></li>
+<li><p>DOMAIN-ROOT_NAME</p></li>
+<li><p>DOMAIN_SET:ID-ROOT_NAME</p></li>
 </ul>
 <p>where:</p>
 <ul class="simple">
-<li><p>When DOMAIN is supplied, it is the “default” mesh, called <cite>“domain</cite>”
-in the mesh list, and otherwise is the name of the mesh (e.g. <cite>“surface</cite>”).</p></li>
+<li><p>When DOMAIN is not supplied, it is implied to be the “default” mesh,
+called <cite>“domain</cite>” in the mesh list.  Otherwise the domain name is
+the same as the mesh name (e.g. <cite>“surface</cite>”).</p></li>
 <li><p>DOMAIN_SET:ID is itself a DOMAIN, where the set defines the
 collection as a whole (from the mesh list) and the ID is defined by
 an index across the collection, e.g. <cite>“column:4</cite>”</p></li>
@@ -538,14 +541,14 @@ e.g. <cite>“dsurface-water_content|dsurface-pressure</cite>” is the derivati
 the <cite>“water_content</cite>” variable on the <cite>“surface</cite>” domain with respect
 to the <cite>“pressure</cite>” on the same domain.</p>
 <p>As a result of these conventions, none of the above individual strings,
-(suffixes, domains, domain sets, or IDs) can contain any of the
+(root names, domains, domain sets, or IDs) can contain any of the
 following reserved characters: <cite>:</cite>, <cite>-</cite>, <cite>|</cite>, <cite>&#64;</cite>.</p>
 </section>
 <section id="name-and-symbol-index">
 <h2>Name and Symbol Index<a class="headerlink" href="#name-and-symbol-index" title="Permalink to this heading">#</a></h2>
 <div class="pst-scrollable-table-container"><table class="datatable table">
 <thead>
-<tr class="row-odd"><th class="head"><p>Variable Name (SUFFIX)</p></th>
+<tr class="row-odd"><th class="head"><p>Variable Root Name</p></th>
 <th class="head"><p>Symbol</p></th>
 <th class="head"><p>Description</p></th>
 <th class="head"><p>Units</p></th>
