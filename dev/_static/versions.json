@@ -6,7 +6,7 @@
         "preferred": "1.5"
     },
     {
-        "version": "master",
-        "url": "https://amanzi.github.io/ats/master/"
+        "version": "dev",
+        "url": "https://amanzi.github.io/ats/dev/"
     }
 ]
