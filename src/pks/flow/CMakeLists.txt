@@ -123,6 +123,10 @@ generate_evaluators_registration_header(
     set(ats_flow_test_link_libs pks state mesh_factory mesh data_structures mesh_functions functions
                               ${UnitTest_LIBRARIES})
 
+    if(ENABLE_CUDA OR ENABLE_UVM)
+      set(ats_flow_test_link_libs ${ats_flow_test_link_libs} "-lnvToolsExt")
+    endif()
+
     add_amanzi_test(ats_flow_relations ats_flow_relations
      KIND int
      SOURCE test/Main.cc test/ats_flow_relations.cc
