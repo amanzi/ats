@@ -41,6 +41,7 @@ actual work.
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
+#include "MeshInfo.hh"
 #include "IO.hh"
 #include "GeometricModel.hh"
 #include "Checkpoint.hh"
@@ -50,6 +51,7 @@ actual work.
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
 #include "pk_helpers.hh"
+
 
 #include "ats_mesh_factory.hh"
 
@@ -168,6 +170,16 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         analysis.RegionAnalysis();
         analysis.OutputBCs();
       }
+
+      std::string plist_name = "mesh info " + mesh->first;
+      // in the case of just a domain mesh, we want to allow no name.
+      if ((mesh->first == "domain") && !plist_->isSublist(plist_name)) { plist_name = "mesh info"; }
+      if (plist_->isSublist(plist_name)) {
+        auto& mesh_info_list = plist_->sublist(plist_name);
+        Teuchos::RCP<Amanzi::MeshInfo> mesh_info =
+          Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
+        mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
+      }      
     }
 
     // create the observations
