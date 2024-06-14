@@ -106,11 +106,6 @@ set(ats_link_libs
   ats_column_integrator
   )
 
-if(ENABLE_CUDA OR ENABLE_UVM)
-  set(ats_link_libs ${ats_link_libs} "-lnvToolsExt")
-endif()
-
-
 # note, we can be inclusive here, because if they aren't enabled,
 # these won't be defined and will result in empty strings.
 set(tpl_link_libs
