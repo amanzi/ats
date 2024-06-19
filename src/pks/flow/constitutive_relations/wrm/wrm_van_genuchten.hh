@@ -56,6 +56,7 @@ namespace Flow {
 namespace Relations {
 
 enum class RelPermFunction_kind { MUALEM, BURDINE };
+const static double FLOW_WRM_TOLERANCE = 1e-10;
 
 
 class WRMVanGenuchten {
@@ -63,17 +64,92 @@ class WRMVanGenuchten {
   static const std::string eval_type;
 
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
-  KOKKOS_FUNCTION WRMVanGenuchten(const WRMVanGenuchten& other) = default;
-  KOKKOS_INLINE_FUNCTION ~WRMVanGenuchten() = default;
 
   // required methods from the base class
-  KOKKOS_FUNCTION double k_relative(double saturation) const;
-  KOKKOS_FUNCTION double d_k_relative(double saturation) const;
-  KOKKOS_FUNCTION double saturation(double pc) const;
-  KOKKOS_FUNCTION double d_saturation(double pc) const;
-  KOKKOS_FUNCTION double capillaryPressure(double saturation) const;
-  KOKKOS_FUNCTION double d_capillaryPressure(double saturation) const;
-  KOKKOS_FUNCTION double residualSaturation() const { return sr_; }
+  KOKKOS_INLINE_FUNCTION double k_relative(double s) const {
+    if (s <= s0_) {
+      double se = (s - sr_) / (1 - sr_);
+      if (function_ == RelPermFunction_kind::MUALEM) {
+        return Kokkos::pow(se, l_) * Kokkos::pow(1.0 - Kokkos::pow(1.0 - Kokkos::pow(se, 1.0 / m_), m_), 2.0);
+      } else {
+        return se * se * (1.0 - Kokkos::pow(1.0 - Kokkos::pow(se, 1.0 / m_), m_));
+      }
+    } else if (s == 1.0) {
+      return 1.0;
+    } else {
+      return fit_kr_(s);
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double d_k_relative(double s) const {
+    if (s <= s0_) {
+      double se = (s - sr_) / (1 - sr_);
+
+      double x = Kokkos::pow(se, 1.0 / m_);
+      if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
+      if (fabs(x) < FLOW_WRM_TOLERANCE) return 0.0;
+
+      double y = Kokkos::pow(1.0 - x, m_);
+      double dkdse;
+      if (function_ == RelPermFunction_kind::MUALEM)
+        dkdse = (1.0 - y) * (l_ * (1.0 - y) + 2 * x * y / (1.0 - x)) * Kokkos::pow(se, l_ - 1.0);
+      else
+        dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
+
+      return dkdse / (1 - sr_);
+
+    } else if (s == 1.0) {
+      return 0.0;
+    } else {
+      return fit_kr_.Derivative(s);
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double saturation(double pc) const {
+    if (pc > pc0_) {
+      return Kokkos::pow(1.0 + Kokkos::pow(alpha_ * pc, n_), -m_) * (1.0 - sr_) + sr_;
+    } else if (pc <= 0.) {
+      return 1.0;
+    } else {
+      return fit_s_(pc);
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double d_saturation(double pc) const {
+    if (pc > pc0_) {
+      return -m_ * n_ * Kokkos::pow(1.0 + Kokkos::pow(alpha_ * pc, n_), -m_ - 1.0) *
+        Kokkos::pow(alpha_ * pc, n_ - 1) * alpha_ * (1.0 - sr_);
+    } else if (pc <= 0.) {
+      return 0.0;
+    } else {
+      return fit_s_.Derivative(pc);
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double capillaryPressure(double s) const {
+    double se = (s - sr_) / (1.0 - sr_);
+    se = Kokkos::min(se, 1.0);
+    se = Kokkos::max(se, 1.e-40);
+    if (se < 1.e-8) {
+      return Kokkos::pow(se, -1.0 / (m_ * n_)) / alpha_;
+    } else {
+      return (Kokkos::pow(Kokkos::pow(se, -1.0 / m_) - 1.0, 1 / n_)) / alpha_;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double d_capillaryPressure(double s) const {
+    double se = (s - sr_) / (1.0 - sr_);
+    se = Kokkos::min(se, 1.0);
+    se = Kokkos::max(se, 1.e-40);
+    if (se < 1.e-8) {
+      return -1.0 / (m_ * n_ * alpha_) * Kokkos::pow(se, -1.0 / (m_ * n_) - 1.) / (1.0 - sr_);
+    } else {
+      return -1.0 / (m_ * n_ * alpha_) * Kokkos::pow(Kokkos::pow(se, -1.0 / m_) - 1.0, 1 / n_ - 1.0) *
+        Kokkos::pow(se, -1.0 / m_ - 1.0) / (1.0 - sr_);
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION double residualSaturation() const { return sr_; }
 
  private:
   double m_; // van Genuchten parameters: m, n, alpha
@@ -91,6 +167,8 @@ class WRMVanGenuchten {
 };
 
 inline const std::string WRMVanGenuchten::eval_type = "van Genuchten";
+
+
 
 } // namespace Relations
 } // namespace Flow
