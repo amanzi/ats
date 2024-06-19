@@ -118,7 +118,7 @@ class SnowMeltRateModel {
       res_(i, 0) = melt_rate_ * (exp_temp_(i, 0) - 273.15);
 
       if (swe_(i, 0) < land_cover_.snow_transition_depth) {
-        res_(i, 0) *= std::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
+        res_(i, 0) *= Kokkos::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
       }
 
     } else {
@@ -132,7 +132,7 @@ class SnowMeltRateModel {
     if (exp_temp_(i, 0) > 273.15) {
       res_(i, 0) = melt_rate_;
       if (swe_(i, 0) < land_cover_.snow_transition_depth) {
-        res_(i, 0) *= std::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
+        res_(i, 0) *= Kokkos::max(0., swe_(i, 0) / land_cover_.snow_transition_depth);
       }
     } else {
       res_(i, 0) = 0.0;

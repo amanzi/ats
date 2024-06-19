@@ -9,6 +9,8 @@
 */
 
 #include <cmath>
+#include "Kokkos_MathematicalFunctions.hpp"
+
 #include "dbc.hh"
 #include "errors.hh"
 #include "Spline.hh"
@@ -106,15 +108,16 @@ WRMVanGenuchten::WRMVanGenuchten(Teuchos::ParameterList& plist)
 * The original curve is regulized on interval (s0, 1) using the
 * Hermite interpolant of order 3. Formulas (3.11)-(3.12).
 ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::k_relative(double s) const
 {
   if (s <= s0_) {
     double se = (s - sr_) / (1 - sr_);
     if (function_ == RelPermFunction_kind::MUALEM) {
-      return pow(se, l_) * pow(1.0 - pow(1.0 - pow(se, 1.0 / m_), m_), 2.0);
+      return Kokkos::pow(se, l_) * Kokkos::pow(1.0 - Kokkos::pow(1.0 - Kokkos::pow(se, 1.0 / m_), m_), 2.0);
     } else {
-      return se * se * (1.0 - pow(1.0 - pow(se, 1.0 / m_), m_));
+      return se * se * (1.0 - Kokkos::pow(1.0 - Kokkos::pow(se, 1.0 / m_), m_));
     }
   } else if (s == 1.0) {
     return 1.0;
@@ -127,20 +130,21 @@ WRMVanGenuchten::k_relative(double s) const
 /* ******************************************************************
  * D Relative permeability / D capillary pressure pc.
  ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::d_k_relative(double s) const
 {
   if (s <= s0_) {
     double se = (s - sr_) / (1 - sr_);
 
-    double x = pow(se, 1.0 / m_);
+    double x = Kokkos::pow(se, 1.0 / m_);
     if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
     if (fabs(x) < FLOW_WRM_TOLERANCE) return 0.0;
 
-    double y = pow(1.0 - x, m_);
+    double y = Kokkos::pow(1.0 - x, m_);
     double dkdse;
     if (function_ == RelPermFunction_kind::MUALEM)
-      dkdse = (1.0 - y) * (l_ * (1.0 - y) + 2 * x * y / (1.0 - x)) * pow(se, l_ - 1.0);
+      dkdse = (1.0 - y) * (l_ * (1.0 - y) + 2 * x * y / (1.0 - x)) * Kokkos::pow(se, l_ - 1.0);
     else
       dkdse = (2 * (1.0 - y) + x / (1.0 - x)) * se;
 
@@ -157,11 +161,12 @@ WRMVanGenuchten::d_k_relative(double s) const
 /* ******************************************************************
  * Saturation formula (3.5)-(3.6).
  ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::saturation(double pc) const
 {
   if (pc > pc0_) {
-    return std::pow(1.0 + std::pow(alpha_ * pc, n_), -m_) * (1.0 - sr_) + sr_;
+    return Kokkos::pow(1.0 + Kokkos::pow(alpha_ * pc, n_), -m_) * (1.0 - sr_) + sr_;
   } else if (pc <= 0.) {
     return 1.0;
   } else {
@@ -173,12 +178,13 @@ WRMVanGenuchten::saturation(double pc) const
 /* ******************************************************************
  * Derivative of the saturation formula w.r.t. capillary pressure.
  ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::d_saturation(double pc) const
 {
   if (pc > pc0_) {
-    return -m_ * n_ * std::pow(1.0 + std::pow(alpha_ * pc, n_), -m_ - 1.0) *
-           std::pow(alpha_ * pc, n_ - 1) * alpha_ * (1.0 - sr_);
+    return -m_ * n_ * Kokkos::pow(1.0 + Kokkos::pow(alpha_ * pc, n_), -m_ - 1.0) *
+           Kokkos::pow(alpha_ * pc, n_ - 1) * alpha_ * (1.0 - sr_);
   } else if (pc <= 0.) {
     return 0.0;
   } else {
@@ -189,16 +195,17 @@ WRMVanGenuchten::d_saturation(double pc) const
 /* ******************************************************************
  * Pressure as a function of saturation.
  ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::capillaryPressure(double s) const
 {
   double se = (s - sr_) / (1.0 - sr_);
-  se = std::min<double>(se, 1.0);
-  se = std::max<double>(se, 1.e-40);
+  se = Kokkos::min(se, 1.0);
+  se = Kokkos::max(se, 1.e-40);
   if (se < 1.e-8) {
-    return std::pow(se, -1.0 / (m_ * n_)) / alpha_;
+    return Kokkos::pow(se, -1.0 / (m_ * n_)) / alpha_;
   } else {
-    return (std::pow(std::pow(se, -1.0 / m_) - 1.0, 1 / n_)) / alpha_;
+    return (Kokkos::pow(Kokkos::pow(se, -1.0 / m_) - 1.0, 1 / n_)) / alpha_;
   }
 }
 
@@ -206,17 +213,18 @@ WRMVanGenuchten::capillaryPressure(double s) const
 /* ******************************************************************
  * Derivative of pressure formulat w.r.t. saturation.
  ****************************************************************** */
+KOKKOS_FUNCTION
 double
 WRMVanGenuchten::d_capillaryPressure(double s) const
 {
   double se = (s - sr_) / (1.0 - sr_);
-  se = std::min<double>(se, 1.0);
-  se = std::max<double>(se, 1.e-40);
+  se = Kokkos::min(se, 1.0);
+  se = Kokkos::max(se, 1.e-40);
   if (se < 1.e-8) {
-    return -1.0 / (m_ * n_ * alpha_) * std::pow(se, -1.0 / (m_ * n_) - 1.) / (1.0 - sr_);
+    return -1.0 / (m_ * n_ * alpha_) * Kokkos::pow(se, -1.0 / (m_ * n_) - 1.) / (1.0 - sr_);
   } else {
-    return -1.0 / (m_ * n_ * alpha_) * std::pow(std::pow(se, -1.0 / m_) - 1.0, 1 / n_ - 1.0) *
-           std::pow(se, -1.0 / m_ - 1.0) / (1.0 - sr_);
+    return -1.0 / (m_ * n_ * alpha_) * Kokkos::pow(Kokkos::pow(se, -1.0 / m_) - 1.0, 1 / n_ - 1.0) *
+           Kokkos::pow(se, -1.0 / m_ - 1.0) / (1.0 - sr_);
   }
 }
 

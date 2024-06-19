@@ -106,8 +106,8 @@ class SoilResistanceSakaguckiZengModel {
     if (sat_gas_(c, 0) == 0.) {
       r_soil = 0.; // ponded water
     } else {
-      double vp_diffusion = 2.2e-5 * pow(poro_(c, 0), 2) * pow(1 - sr_, 2 + 3 * b_);
-      double L_Rsoil = d_ * (exp(pow(sat_gas_(c, 0), 5)) - 1) / (exp(1) - 1);
+      double vp_diffusion = 2.2e-5 * Kokkos::pow(poro_(c, 0), 2) * Kokkos::pow(1 - sr_, 2 + 3 * b_);
+      double L_Rsoil = d_ * (Kokkos::exp(Kokkos::pow(sat_gas_(c, 0), 5)) - 1) / (Kokkos::exp(1) - 1);
       r_soil = L_Rsoil / vp_diffusion;
     }
     res_(sc, 0) = r_soil;

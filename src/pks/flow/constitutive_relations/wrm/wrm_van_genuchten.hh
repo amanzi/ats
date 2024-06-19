@@ -63,15 +63,17 @@ class WRMVanGenuchten {
   static const std::string eval_type;
 
   explicit WRMVanGenuchten(Teuchos::ParameterList& plist);
+  KOKKOS_FUNCTION WRMVanGenuchten(const WRMVanGenuchten& other) = default;
+  KOKKOS_INLINE_FUNCTION ~WRMVanGenuchten() = default;
 
   // required methods from the base class
-  double k_relative(double saturation) const;
-  double d_k_relative(double saturation) const;
-  double saturation(double pc) const;
-  double d_saturation(double pc) const;
-  double capillaryPressure(double saturation) const;
-  double d_capillaryPressure(double saturation) const;
-  double residualSaturation() const { return sr_; }
+  KOKKOS_FUNCTION double k_relative(double saturation) const;
+  KOKKOS_FUNCTION double d_k_relative(double saturation) const;
+  KOKKOS_FUNCTION double saturation(double pc) const;
+  KOKKOS_FUNCTION double d_saturation(double pc) const;
+  KOKKOS_FUNCTION double capillaryPressure(double saturation) const;
+  KOKKOS_FUNCTION double d_capillaryPressure(double saturation) const;
+  KOKKOS_FUNCTION double residualSaturation() const { return sr_; }
 
  private:
   double m_; // van Genuchten parameters: m, n, alpha
