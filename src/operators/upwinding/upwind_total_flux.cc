@@ -78,7 +78,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
 
     int nfaces_local = coef_faces.extent(0);
     bool has_cells = face_coef.hasComponent("cell");
-    CompositeVector::cMultiVectorView_type<> face_cell_coef;
+    CompositeVector::cView_type face_cell_coef;
     if (has_cells) face_cell_coef = face_coef.viewComponent("cell", true);
 
     Kokkos::parallel_for(

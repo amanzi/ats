@@ -68,7 +68,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
     auto face_coef_f = face_coef.viewComponent("face", false);
     const auto overlap_c = overlap.viewComponent("cell", true);
     const auto potential_c = potential.viewComponent("cell", true);
-    CompositeVector::cMultiVectorView_type<> potential_f;
+    CompositeVector::cView_type potential_f;
     if (potential.hasComponent("face")) potential_f = potential.viewComponent("face", false);
     const auto cell_coef_c = cell_coef.viewComponent("cell", true);
 

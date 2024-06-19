@@ -25,8 +25,8 @@ namespace Flow {
 bool
 PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
 {
-  auto u_f = u->viewComponent<Amanzi::DefaultHost>("face", false);
-  auto markers_f = bc_markers_->viewComponent<Amanzi::DefaultHost>("face", false);
+  auto u_f = u->viewComponent<MemSpace_kind::HOST>("face", false);
+  auto markers_f = bc_markers_->viewComponent<MemSpace_kind::HOST>("face", false);
 
   int nfaces = u_f.extent(0);
   for (auto& region_wrm : wrms_) {

@@ -106,8 +106,8 @@ namespace SurfaceBalance {
 namespace Relations {
 
 struct SoilPlantFluxFunctor {
-  using cView_type = BlockVector<double>::cMultiVectorView_type<Amanzi::DefaultDevice>;
-  using View_type = BlockVector<double>::MultiVectorView_type<Amanzi::DefaultDevice>;
+  using cView_type = BlockVector<double>::cView_type;
+  using View_type = BlockVector<double>::View_type;
 
   KOKKOS_INLINE_FUNCTION
   SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc,

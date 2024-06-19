@@ -61,7 +61,7 @@ struct ParserColumnSum {
 
 class IntegratorColumnSum {
  public:
-  using cView_type = BlockVector<double>::cMultiVectorView_type<Amanzi::DefaultDevice>;
+  using cView_type = BlockVector<double>::cView_type;
 
   IntegratorColumnSum(Teuchos::ParameterList& plist,
                       std::vector<cView_type>& deps,

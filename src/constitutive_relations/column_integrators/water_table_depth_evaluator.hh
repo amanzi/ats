@@ -38,7 +38,7 @@ struct ParserWaterTableDepth {
 
 class IntegratorWaterTableDepth {
  public:
-  using cView_type = BlockVector<double>::cMultiVectorView_type<Amanzi::DefaultDevice>;
+  using cView_type = BlockVector<double>::cView_type;
 
   IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
                             std::vector<cView_type>& deps,
