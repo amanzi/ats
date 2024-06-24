@@ -80,6 +80,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
     bool has_cells = face_coef.hasComponent("cell");
     CompositeVector::cView_type face_cell_coef;
     if (has_cells) face_cell_coef = face_coef.viewComponent("cell", true);
+    double flow_eps = flux_eps_;
 
     Kokkos::parallel_for(
       "upwind_total_flux", nfaces_local, KOKKOS_LAMBDA(const int& f) {
@@ -96,7 +97,7 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
           dw = c0;
           if (fcells.size() == 2) uw = fcells(1);
         }
-        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        assert(!((uw == -1) && (dw == -1)));
 
         // Determine the face coefficient of local faces.
         double coefs[2];
@@ -115,14 +116,12 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
           coefs[1] = coef_cells(dw, 0);
         }
 
-        double flow_eps = flux_eps_;
-
         // Determine the coefficient
-        if (std::abs(flux_v(f, 0)) >= flow_eps) {
+        if (Kokkos::abs(flux_v(f, 0)) >= flow_eps) {
           coef_faces(f, 0) = coefs[0];
         } else {
           // Parameterization of a linear scaling between upwind and downwind.
-          double param = std::abs(flux_v(f, 0)) / (2 * flow_eps) + 0.5;
+          double param = Kokkos::abs(flux_v(f, 0)) / (2 * flow_eps) + 0.5;
           // if (!(param >= 0.5) || !(param <= 1.0)) {
           //   std::cout << "BAD FLUX! on face " << f << std::endl;
           //   std::cout << "  flux = " << flux_v(f, 0) << std::endl;
@@ -130,8 +129,8 @@ UpwindTotalFlux::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
           //   std::cout << "  flow_eps = " << flow_eps << std::endl;
           // }
 
-          AMANZI_ASSERT(param >= 0.5);
-          AMANZI_ASSERT(param <= 1.0);
+          assert(param >= 0.5);
+          assert(param <= 1.0);
 
           coef_faces(f, 0) = coefs[0] * param + coefs[1] * (1. - param);
         }
