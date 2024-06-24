@@ -86,8 +86,8 @@ class WRMVanGenuchten {
       double se = (s - sr_) / (1 - sr_);
 
       double x = Kokkos::pow(se, 1.0 / m_);
-      if (fabs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
-      if (fabs(x) < FLOW_WRM_TOLERANCE) return 0.0;
+      if (Kokkos::abs(1.0 - x) < FLOW_WRM_TOLERANCE) return 0.0;
+      if (Kokkos::abs(x) < FLOW_WRM_TOLERANCE) return 0.0;
 
       double y = Kokkos::pow(1.0 - x, m_);
       double dkdse;
