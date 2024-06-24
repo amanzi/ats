@@ -71,10 +71,10 @@ PredictorDelegateBCFlux::CreateFunctor_(AmanziMesh::Entity_ID f,
   Kokkos::View<double*, Amanzi::DefaultHost> lambda("lambda", faces.size());
 
   // collect physics
-  const auto& pres_f = pres->viewComponent("face", false);
-  const auto& pres_c = pres->viewComponent("cell", false);
+  const auto& pres_f = pres->viewComponent<MemSpace_kind::HOST>("face", false);
+  const auto& pres_c = pres->viewComponent<MemSpace_kind::HOST>("cell", false);
   const auto& rhs_f = matrix_->global_operator()->rhs()->viewComponent("face", false);
-  const auto& bc_values = bc_values_->viewComponent("face", false);
+  const auto& bc_values = bc_values_->viewComponent<MemSpace_kind::HOST>("face", false);
 
   // unscale the Aff for my cell with rel perm
   double Krel = wrm->getModel().k_relative(wrm->getModel().saturation(101325. - pres_f(f, 0)));
@@ -125,7 +125,7 @@ PredictorDelegateBCFlux::CalculateLambda_(AmanziMesh::Entity_ID f,
   Teuchos::RCP<FluxBCFunctor> func = CreateFunctor_(f, c, wrm, pres);
 
   // -- convergence criteria
-  const auto& bc_values = bc_values_->viewComponent("face", false);
+  const auto& bc_values = bc_values_->viewComponent<MemSpace_kind::HOST>("face", false);
   double eps = std::max(1.e-4 * std::abs(bc_values(f, 0)), 1.e-8);
   int max_it = 100;
   int actual_it(max_it);
