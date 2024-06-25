@@ -73,14 +73,14 @@ PredictorDelegateBCFlux::CreateFunctor_(AmanziMesh::Entity_ID f,
   // collect physics
   const auto& pres_f = pres->viewComponent<MemSpace_kind::HOST>("face", false);
   const auto& pres_c = pres->viewComponent<MemSpace_kind::HOST>("cell", false);
-  const auto& rhs_f = matrix_->global_operator()->rhs()->viewComponent("face", false);
+  const auto& rhs_f = matrix_->global_operator()->rhs()->viewComponent<MemSpace_kind::HOST>("face", false);
   const auto& bc_values = bc_values_->viewComponent<MemSpace_kind::HOST>("face", false);
 
   // unscale the Aff for my cell with rel perm
   double Krel = wrm->getModel().k_relative(wrm->getModel().saturation(101325. - pres_f(f, 0)));
 
   // fill the arrays
-  const auto& Aff_g = matrix_->local_op()->A.at(c);
+  const auto Aff_g = matrix_->local_op()->A.at_host(c);
   for (unsigned int i = 0; i != faces.size(); ++i) {
     Aff(i) = Aff_g(n, i) / Krel;
     lambda(i) = pres_f(faces(i), 0);
