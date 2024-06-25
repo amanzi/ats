@@ -54,7 +54,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   // initialize the cell coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
+  const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
   AmanziMesh::Entity_ID_List cells;
   std::vector<int> dirs;
   double eps = 1.e-16;

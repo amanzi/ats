@@ -17,7 +17,7 @@
 #include "upwind_total_flux.hh"
 #include "upwind_flux_harmonic_mean.hh"
 #include "upwind_flux_split_denominator.hh"
-#include "upwind_elevation_stabilized.hh"
+//#include "upwind_elevation_stabilized.hh"
 #include "upwind_flux_fo_cont.hh"
 #include "upwind_cell_centered.hh"
 
@@ -85,38 +85,38 @@ Create(Teuchos::ParameterList& oplist,
     return Teuchos::rcp(new UpwindFluxSplitDenominator(
       pkname, tag, flux, slope, manning_coef, flux_eps, slope_regularization));
 
-  } else if (model_type == "manning elevation stabilized") {
-    Key slope = Keys::readKey(oplist, domain, "slope", "slope_magnitude");
-    Key manning_coef = Keys::readKey(oplist, domain, "coefficient", "manning_coefficient");
-    Key ponded_depth = Keys::readKey(oplist, domain, "ponded depth", "ponded_depth");
-    Key elev = Keys::readKey(oplist, domain, "elevation", "elevation");
-    Key dens = Keys::readKey(oplist, domain, "molar density liquid", "molar_density_liquid");
-    double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
-    double manning_exp = oplist.get<double>("Manning exponent", 2.0 / 3);
+  // } else if (model_type == "manning elevation stabilized") {
+  //   Key slope = Keys::readKey(oplist, domain, "slope", "slope_magnitude");
+  //   Key manning_coef = Keys::readKey(oplist, domain, "coefficient", "manning_coefficient");
+  //   Key ponded_depth = Keys::readKey(oplist, domain, "ponded depth", "ponded_depth");
+  //   Key elev = Keys::readKey(oplist, domain, "elevation", "elevation");
+  //   Key dens = Keys::readKey(oplist, domain, "molar density liquid", "molar_density_liquid");
+  //   double slope_regularization = oplist.get<double>("slope regularization epsilon", 1.e-2);
+  //   double manning_exp = oplist.get<double>("Manning exponent", 2.0 / 3);
 
-    S.Require<CompositeVector, CompositeVectorSpace>(slope, tag)
-      .SetGhosted()
-      ->SetMesh(S.GetMesh(domain))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(elev, tag)
-      .SetGhosted()
-      ->SetMesh(S.GetMesh(domain))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag)
-      .SetGhosted()
-      ->SetMesh(S.GetMesh(domain))
-      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
-    // add boundary face components?
+  //   S.Require<CompositeVector, CompositeVectorSpace>(slope, tag)
+  //     .SetGhosted()
+  //     ->SetMesh(S.GetMesh(domain))
+  //     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  //   S.Require<CompositeVector, CompositeVectorSpace>(elev, tag)
+  //     .SetGhosted()
+  //     ->SetMesh(S.GetMesh(domain))
+  //     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  //   S.Require<CompositeVector, CompositeVectorSpace>(manning_coef, tag)
+  //     .SetGhosted()
+  //     ->SetMesh(S.GetMesh(domain))
+  //     ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
+  //   // add boundary face components?
 
-    return Teuchos::rcp(new UpwindElevationStabilized(pkname,
-                                                      tag,
-                                                      slope,
-                                                      manning_coef,
-                                                      ponded_depth,
-                                                      elev,
-                                                      dens,
-                                                      slope_regularization,
-                                                      manning_exp));
+  //   return Teuchos::rcp(new UpwindElevationStabilized(pkname,
+  //                                                     tag,
+  //                                                     slope,
+  //                                                     manning_coef,
+  //                                                     ponded_depth,
+  //                                                     elev,
+  //                                                     dens,
+  //                                                     slope_regularization,
+  //                                                     manning_exp));
 
   } else if (model_type == "manning ponded depth passthrough") {
     Key slope = Keys::readKey(oplist, domain, "slope", "slope_magnitude");

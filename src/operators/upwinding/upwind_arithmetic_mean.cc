@@ -58,7 +58,7 @@ UpwindArithmeticMean::CalculateCoefficientsOnFaces(const CompositeVector& cell_c
 
   // communicate ghosted cells
   cell_coef.scatterMasterToGhosted(cell_component);
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
+  const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
   {
     auto face_coef_f = face_coef.viewComponent(face_component, false);
     auto cell_coef_c = cell_coef.viewComponent(cell_component, true);

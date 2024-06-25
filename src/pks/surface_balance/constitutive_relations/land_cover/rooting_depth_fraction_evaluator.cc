@@ -72,12 +72,12 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
   auto surf_cv = S.Get<CompositeVector>(surf_cv_key_, tag).viewComponent("cell", false);
   auto result_v = result[0]->viewComponent("cell", false);
 
-  AmanziMesh::Mesh& subsurf_mesh = *S.GetMesh(domain_sub_);
-  AmanziMesh::Mesh& surf_mesh = *S.GetMesh(domain_surf_);
+  auto surf_mesh_host = S.GetMesh(domain_surf_);
+  const AmanziMesh::MeshCache& subsurf_mesh = S.GetMesh(domain_sub_)->getCache();
 
   for (const auto& lc : land_cover_) {
     const LandCover& lc_pars = lc.second;
-    auto lc_ids = surf_mesh.getSetEntities(
+    auto lc_ids = surf_mesh_host->getSetEntities<MemSpace_kind::DEVICE>(
       lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     Kokkos::parallel_for(

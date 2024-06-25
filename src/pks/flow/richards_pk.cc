@@ -604,8 +604,8 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Kokkos::deep_copy(touched, 0);
       }
 
-      AMANZI_ASSERT(mesh_->columns.num_columns_owned >= 0);
-      auto& m = *mesh_;
+      AMANZI_ASSERT(mesh_->columns->num_columns_owned >= 0);
+      const auto& m = mesh_->getCache();
 
       Kokkos::parallel_for(
         "Richards::InitializeHydrostatic cells",
@@ -1004,9 +1004,8 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
                           "WRM evaluator of type \"wrm van Genuchten\"");
       Exceptions::amanzi_throw(msg);
     }
-    auto mesh_on_host = AmanziMesh::onMemHost(mesh_);
     flux_predictor_ = Teuchos::rcp(new PredictorDelegateBCFlux(
-      S_, mesh_on_host, matrix_diff_, wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
+      S_, mesh_, matrix_diff_, wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
   }
 
   UpdatePermeabilityData_(tag_next_);

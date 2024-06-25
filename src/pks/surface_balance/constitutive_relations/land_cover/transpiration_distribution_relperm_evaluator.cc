@@ -16,7 +16,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
-                                           const AmanziMesh::Mesh::cEntity_ID_View& cells_of_col_,
+                                           const AmanziMesh::MeshCache::cEntity_ID_View& cells_of_col_,
                                            const LandCover& lc_,
                                            const cView_type& soil_pc_,
                                            const cView_type& soil_kr_,
@@ -220,11 +220,11 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
   auto trans_v = result[0]->viewComponent("cell", false);
   auto plant_pc_v = result[1]->viewComponent("cell", false);
 
-  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
-  auto& surf_mesh = *S.GetMesh(domain_surf_);
+  auto surf_mesh = S.GetMesh(domain_surf_);
+  const AmanziMesh::MeshCache& subsurf_mesh = S.GetMesh(domain_sub_)->getCache();
 
   for (const auto& region_lc : land_cover_) {
-    auto lc_ids = surf_mesh.getSetEntities(
+    auto lc_ids = surf_mesh->getSetEntities<MemSpace_kind::DEVICE>(
       region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     const LandCover& lc_pars = region_lc.second;
     double krp(krp_), c0(c0_), rho(rho_), tol(tol_);

@@ -30,7 +30,7 @@ PredictorDelegateBCFlux::ModifyPredictor(const Teuchos::Ptr<CompositeVector>& u)
 
   int nfaces = u_f.extent(0);
   for (auto& region_wrm : wrms_) {
-    auto rfaces = mesh_->getSetEntities(
+    auto rfaces = mesh_->getSetEntities<MemSpace_kind::HOST>(
       region_wrm.first, AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::OWNED);
 
     for (AmanziMesh::Entity_ID f : rfaces) {

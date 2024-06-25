@@ -493,7 +493,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
     // for each subdomain, create a referencing map, a map from subdomain to reference mesh
     std::vector<std::string> subdomains;
     std::vector<int> lids;
-    std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> reference_maps;
+    std::map<std::string, AmanziMesh::MeshCache::cEntity_ID_View> reference_maps;
 
     // if aliased, we deal with domain sets specially
     std::string alias_target;
@@ -501,7 +501,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
     // create the subdomains, indexed over entities
     for (const auto& region : regions) {
       auto region_ents =
-        indexing_parent_mesh->getSetEntities(region, entity_kind, AmanziMesh::Parallel_kind::OWNED);
+        indexing_parent_mesh->getSetEntities<MemSpace_kind::HOST>(region, entity_kind, AmanziMesh::Parallel_kind::OWNED);
       const auto& map = indexing_parent_mesh->getMap(entity_kind, false);
 
       for (const AmanziMesh::Entity_ID& lid : region_ents) {
@@ -577,7 +577,7 @@ createDomainSetIndexed(const std::string& mesh_name_pristine,
         auto reference_maps = ref_domain_set->getSubdomainMaps();
 
         // these maps are all indexed by the target name, update to the aliased name.
-        std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> new_reference_maps;
+        std::map<std::string, AmanziMesh::MeshCache::cEntity_ID_View> new_reference_maps;
         for (const auto& key_val : reference_maps) {
           KeyTriple old_ds;
           Keys::splitDomainSet(key_val.first, old_ds);
@@ -634,7 +634,7 @@ createDomainSetRegions(const std::string& mesh_name_pristine,
     // for each subdomain, create a referencing map, a map from subdomain to reference mesh
     std::vector<std::string> subdomains;
     std::vector<int> lids;
-    std::map<std::string, AmanziMesh::Mesh::cEntity_ID_View> reference_maps;
+    std::map<std::string, AmanziMesh::MeshCache::cEntity_ID_View> reference_maps;
 
     // create the subdomains, indexed over entities
     for (const auto& subdomain : regions) {
@@ -751,7 +751,7 @@ checkVerifyMesh(Teuchos::ParameterList& mesh_plist, Teuchos::RCP<const AmanziMes
 
     if (rank == 0) std::cout << "Verifying mesh with Mesh Audit..." << std::endl;
     if (num_procs == 1) {
-      AmanziMesh::MeshAudit mesh_auditor(mesh);
+      AmanziMesh::MeshAuditCache mesh_auditor(mesh, mesh->getCache());
       int status = mesh_auditor.Verify();
       if (status == 0) {
         std::cout << "Mesh Audit confirms that mesh is ok" << std::endl;
@@ -768,7 +768,7 @@ checkVerifyMesh(Teuchos::ParameterList& mesh_plist, Teuchos::RCP<const AmanziMes
         std::cout << "Writing Mesh Audit output to " << ofile.str() << ", etc." << std::endl;
 
       int ierr = 0, aerr = 0;
-      AmanziMesh::MeshAudit mesh_auditor(mesh, ofs);
+      AmanziMesh::MeshAuditCache mesh_auditor(mesh, mesh->getCache(), ofs);
       int status = mesh_auditor.Verify(); // check the mesh
       if (status != 0) ierr = 1;
 

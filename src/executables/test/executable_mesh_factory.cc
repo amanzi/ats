@@ -95,7 +95,7 @@ SUITE(ATS_MESH_FACTORY)
 
     // validate the mesh?
     auto& domain = *S->GetMesh("domain");
-    auto ncells = domain.ncells_owned;
+    auto ncells = domain.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     std::stringstream str;
     str << "Created a DOMAIN mesh with " << ncells << " cells" << std::endl;
     parallel_print(comm, str.str());
@@ -154,7 +154,7 @@ SUITE(ATS_MESH_FACTORY)
     // check the right sizes of the upstream mesh
     if (has_upstream) {
       auto& up_mesh = *S->GetMesh("watershed:upstream");
-      int ncells_upstream = up_mesh.ncells_owned;
+      int ncells_upstream = up_mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       int ncells_upstream_g;
       Teuchos::reduceAll(
         *up_mesh.getComm(), Teuchos::REDUCE_SUM, 1, &ncells_upstream, &ncells_upstream_g);

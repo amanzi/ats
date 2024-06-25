@@ -607,11 +607,10 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
 
-    const AmanziMesh::Mesh& mesh = *u.getMesh();
-
+    const AmanziMesh::MeshCache& mesh = u.getMesh()->getCache();
     Kokkos::parallel_for(
       "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
-        auto f = getBoundaryFaceFace(mesh, bf);
+        auto f = mesh.getBoundaryFaceFace(bf);
         if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
           u_f(bf, 0) = bc_value(f) - elev_f(f, 0);
         }

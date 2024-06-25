@@ -38,7 +38,7 @@ class PredictorDelegateBCFlux {
 
   PredictorDelegateBCFlux(
     const Teuchos::RCP<const State>& S_next,
-    const Teuchos::RCP<const AmanziMesh::MeshHost>& mesh,
+    const Teuchos::RCP<const AmanziMesh::Mesh>& mesh,
     const Teuchos::RCP<Operators::PDE_Diffusion>& matrix,
     const std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>>& wrms,
     const Teuchos::RCP<const CompositeVector_<int>> bc_markers,
@@ -120,7 +120,7 @@ class PredictorDelegateBCFlux {
 
  protected:
   Teuchos::RCP<const State> S_next_;
-  Teuchos::RCP<const AmanziMesh::MeshHost> mesh_;
+  Teuchos::RCP<const AmanziMesh::Mesh> mesh_;
   Teuchos::RCP<Operators::PDE_Diffusion> matrix_;
   std::vector<std::pair<std::string, Teuchos::RCP<WRMModel_type>>> wrms_;
   Teuchos::RCP<const CompositeVector_<int>> bc_markers_;

@@ -210,7 +210,7 @@ Coordinator::initialize()
       if (S_->IsDeformableMesh(mesh->first) && !S_->IsAliasedMesh(mesh->first)) {
         Amanzi::Key node_key = Amanzi::Keys::getKey(mesh->first, "vertex_coordinates");
         copyVectorToMeshCoordinates(S_->Get<Amanzi::CompositeVector>(node_key, Amanzi::Tags::NEXT),
-                                    *Amanzi::AmanziMesh::onMemHost(mesh->second.first));
+                                    *mesh->second.first);
       }
     }
   }
@@ -511,7 +511,7 @@ Coordinator::advance()
         Teuchos::RCP<const Amanzi::CompositeVector> vc_vec =
           S_->GetPtr<Amanzi::CompositeVector>(node_key, Amanzi::Tags::DEFAULT);
         vc_vec->scatterMasterToGhosted();
-        copyVectorToMeshCoordinates(*vc_vec, *Amanzi::AmanziMesh::onMemHost(mesh->second.first));
+        copyVectorToMeshCoordinates(*vc_vec, *mesh->second.first);
       }
     }
   }

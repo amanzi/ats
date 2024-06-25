@@ -78,8 +78,9 @@ class SoilResistanceSakaguckiZengModel {
     sat_gas_ = deps[0];
     poro_ = deps[1];
 
-    mesh_surf_ = *s.GetMesh(Keys::getDomain(my_key_.first));
-    mesh_sub_ = *mesh_surf_.getParentMesh();
+    auto mesh = s.GetMesh(Keys::getDomain(my_key_.first));
+    mesh_surf_ = mesh->getCache();
+    mesh_sub_ = mesh->getParentMesh()->getCache();
   }
 
   void freeViews()
@@ -125,7 +126,7 @@ class SoilResistanceSakaguckiZengModel {
 
   double sr_, b_, d_;
 
-  AmanziMesh::Mesh mesh_surf_, mesh_sub_;
+  AmanziMesh::MeshCache mesh_surf_, mesh_sub_;
 };
 
 

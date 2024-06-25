@@ -73,7 +73,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
   // pull out vectors
   {
-    const AmanziMesh::Mesh& m = *face_coef.getMesh();
+    const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
     const auto flux_v = flux.viewComponent("face", false);
     auto coef_faces = face_coef.viewComponent("face", false);
     const auto coef_cells = cell_coef.viewComponent("cell", true);
