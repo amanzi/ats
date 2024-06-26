@@ -108,7 +108,7 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
           dw = c0;
           if (fcells.size() == 2) uw = fcells(1);
         }
-        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        assert(!((uw == -1) && (dw == -1)));
 
         double denominator = 0.0;
         // uw coef

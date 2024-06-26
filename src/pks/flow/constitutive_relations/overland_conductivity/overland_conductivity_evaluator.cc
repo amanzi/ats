@@ -73,7 +73,7 @@ OverlandConductivityEvaluator::Evaluate_(const State& S,
   // not-cells.  These vectors are used in a wierd way on boundary faces,
   // getting the internal cell and using that.  This currently cannot be used
   // on any other components than "cell" and "boundary_face".
-  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
+  const AmanziMesh::MeshCache& mesh = result[0]->getMesh()->getCache();
   const ManningConductivityModel& model = *model_;
 
   for (const auto& comp : *result[0]) {
@@ -113,7 +113,7 @@ OverlandConductivityEvaluator::EvaluatePartialDerivative_(
   Teuchos::RCP<const CompositeVector> coef = S.GetPtr<CompositeVector>(coef_key_, tag);
   Teuchos::RCP<const CompositeVector> dens = S.GetPtr<CompositeVector>(dens_key_, tag);
 
-  const AmanziMesh::Mesh& mesh = *result[0]->getMesh();
+  const AmanziMesh::MeshCache& mesh = result[0]->getMesh()->getCache();
   const ManningConductivityModel& model = *model_;
 
   if (wrt_key == mobile_depth_key_) {

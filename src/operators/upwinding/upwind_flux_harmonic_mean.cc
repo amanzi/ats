@@ -62,6 +62,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
     const auto flux_v = flux.viewComponent("face", false);
     auto coef_faces = face_coef.viewComponent("face", false);
     const auto coef_cells = cell_coef.viewComponent("cell", true);
+    double flow_eps = flux_eps_;
 
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for(
@@ -96,11 +97,10 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           coefs[1] = coef_cells(dw, 0);
         }
 
-        AMANZI_ASSERT(!(coefs[0] < 0.0) || (coefs[1] < 0.0));
+        assert(!(coefs[0] < 0.0) || (coefs[1] < 0.0));
 
         // Determine the size of the overlap region, a smooth transition region
         // near zero flux
-        double flow_eps = flux_eps_;
 
         // Fixed coefficient in the scaling of the arithmetic mean
         double amean_order_of_supression = 15.0;

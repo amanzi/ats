@@ -185,8 +185,8 @@ MPCCoupledWater::FunctionalResidual(double t_old,
     auto g_surf = g->getSubVector(1)->getData()->viewComponent("cell", false);
 
     // take off the face area factor to allow it to be used as boundary condition
-    const AmanziMesh::Mesh& mc = *domain_mesh_;
-    const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
+    const AmanziMesh::MeshCache& mc = domain_mesh_->getCache();
+    const AmanziMesh::MeshCache& mc_surf = surf_mesh_->getCache();
     Kokkos::parallel_for(
       "MPCCoupledWater::FunctionalResidual copy to BC",
       g_surf.extent(0),

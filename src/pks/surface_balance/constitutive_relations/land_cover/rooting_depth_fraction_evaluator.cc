@@ -37,7 +37,7 @@ KOKKOS_INLINE_FUNCTION
 double
 RootingDepthFractionEvaluator::computeIntegralRootFunc(double z, double alpha, double beta) const
 {
-  return -0.5 * (std::exp(-alpha * z) + std::exp(-beta * z));
+  return -0.5 * (Kokkos::exp(-alpha * z) + Kokkos::exp(-beta * z));
 }
 
 

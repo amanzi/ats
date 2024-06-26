@@ -61,8 +61,8 @@ RelativeHydraulicConductivityEvaluator::Evaluate_(const State& S,
     const auto& surf_kr_vec = S.Get<CompositeVector>(surf_krel_key_);
     auto surf_kr = surf_kr_vec.viewComponent("cell", false);
     auto res_bf = results[0]->viewComponent("boundary_face", false);
-    const auto& mesh = *results[0]->getMesh();
-    const auto& surf_mesh = *surf_kr_vec.getMesh();
+    const AmanziMesh::MeshCache& mesh = results[0]->getMesh()->getCache();
+    const AmanziMesh::MeshCache& surf_mesh = surf_kr_vec.getMesh()->getCache();
     Kokkos::parallel_for(
       "RelativeHydraulicConductivityEvaluator: surf kr to kr",
       surf_kr.extent(0),

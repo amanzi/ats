@@ -638,7 +638,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       {
         auto pres_c = pres->viewComponent("cell", false);
         auto pres_f = pres->viewComponent("face", false);
-        auto& m = *mesh_;
+        const AmanziMesh::MeshCache& m = mesh_->getCache();
         Kokkos::parallel_for(
           "Richards::InitializeHydrostatic faces", pres_f.extent(0), KOKKOS_LAMBDA(const int f) {
             if (!touched(f)) {
