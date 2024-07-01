@@ -165,7 +165,7 @@ Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double 
     // old capability
     //mass_solutes_exact_[i] += VV_SoluteVolumeChangePerSecond(i) * dT_MPC;
     double mass_solute(0.0);
-    for (int c = 0; c < ncells_owned; c++) {
+    for (int c = 0; c < tcc_next.MyLength(); c++) {
       double vol = mesh_->getCellVolume(c);
       mass_solute += (*ws_)[0][c] * (*phi_)[0][c] * tcc_next[i][c] * vol * (*mol_dens_)[0][c];
     }
@@ -190,11 +190,13 @@ Transport_ATS::VV_PrintSoluteExtrema(const Epetra_MultiVector& tcc_next, double 
 void
 Transport_ATS::VV_CheckInfluxBC() const
 {
+  int nfaces_all =
+    mesh_->getNumEntities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_kind::ALL);
   int number_components = tcc->ViewComponent("cell")->NumVectors();
-  std::vector<int> influx_face(nfaces_wghost);
+  std::vector<int> influx_face(nfaces_all);
 
   for (int i = 0; i < number_components; i++) {
-    influx_face.assign(nfaces_wghost, 0);
+    influx_face.assign(nfaces_all, 0);
 
     for (int m = 0; m < bcs_.size(); m++) {
       std::vector<int>& tcc_index = bcs_[m]->tcc_index();
@@ -274,7 +276,7 @@ Transport_ATS::VV_CheckTracerBounds(Epetra_MultiVector& tracer,
 {
   Epetra_MultiVector& tcc_prev = *tcc->ViewComponent("cell");
 
-  for (int c = 0; c < ncells_owned; c++) {
+  for (int c = 0; c < tcc_prev.MyLength(); c++) {
     double value = tracer[component][c];
     if (value < lower_bound - tol || value > upper_bound + tol) {
       std::cout << "Transport_ATS: tracer violates bounds" << std::endl;
@@ -317,7 +319,7 @@ Transport_ATS::VV_SoluteVolumeChangePerSecond(int idx_tracer)
 
           int c2 = (*downwind_cell_)[f];
 
-          if (f < nfaces_owned && c2 >= 0) {
+          if (f < flux_->MyLength() && c2 >= 0) {
             double u = fabs((*flux_)[0][f]);
             volume += u * values[i];
           }
@@ -355,11 +357,15 @@ Transport_ATS::CalculateLpErrors(AnalyticFunction f,
 double
 Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c, int i)
 {
+  // populating solid quantity
+  Epetra_MultiVector& solid_qty = 
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
+
   double mass_solute(0.0);
-  for (int c = 0; c < ncells_owned; c++) {
+  for (int c = 0; c < solid_qty.MyLength(); c++) {
     double vol = mesh_->getCellVolume(c);
     mass_solute += (*ws_next)[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * (*mol_dens_next)[0][c] +
-                   (*solid_qty_)[i][c];
+                   solid_qty[i][c];
   }
   //mass_solute /= units_.concentration_factor();
 
@@ -376,12 +382,15 @@ Transport_ATS::ComputeSolute(const Epetra_MultiVector& tcc_c,
                              const Epetra_MultiVector& den,
                              int i)
 {
+  // populating solid quantity
+  Epetra_MultiVector& solid_qty = 
+    *S_->GetW<CompositeVector>(solid_residue_mass_key_, tag_next_, name_).ViewComponent("cell", false);
+
   double mass_solute(0.0);
-  for (int c = 0; c < ncells_owned; c++) {
+  for (int c = 0; c < solid_qty.MyLength(); c++) {
     double vol = mesh_->getCellVolume(c);
-    mass_solute += ws[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * den[0][c] + (*solid_qty_)[i][c];
+    mass_solute += ws[0][c] * (*phi_)[0][c] * tcc_c[i][c] * vol * den[0][c] + solid_qty[i][c];
   }
-  //mass_solute /= units_.concentration_factor();
 
   double tmp1 = mass_solute;
   mesh_->getComm()->SumAll(&tmp1, &mass_solute, 1);
