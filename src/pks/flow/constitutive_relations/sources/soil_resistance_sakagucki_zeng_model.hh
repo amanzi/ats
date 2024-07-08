@@ -81,7 +81,7 @@ class SoilResistanceSakaguckiZengModel {
     sat_gas_ = deps[0];
     poro_ = deps[1];
 
-    auto mesh = s.GetMesh(my_key_.first);
+    auto mesh = s.GetMesh(Keys::getDomain(my_key_.first));
     mesh_surf_ = mesh->getCache();
     mesh_sub_ = mesh->getParentMesh()->getCache();
   }
