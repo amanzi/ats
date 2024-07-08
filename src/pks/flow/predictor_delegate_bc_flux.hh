@@ -81,6 +81,9 @@ class PredictorDelegateBCFlux {
         patm_(patm)
     {}
 
+    // NOTE: this is not actually valid on device, but is decorated anyway to
+    // silence warnings.
+    KOKKOS_INLINE_FUNCTION
     double operator()(double face_p) const
     {
       lambda_(face_index_) = face_p;

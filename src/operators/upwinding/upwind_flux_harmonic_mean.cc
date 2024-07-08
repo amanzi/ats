@@ -80,7 +80,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           dw = c0;
           if (fcells.size() == 2) uw = fcells(1);
         }
-        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        assert(!((uw == -1) && (dw == -1)));
 
         double coefs[2];
         // uw coef

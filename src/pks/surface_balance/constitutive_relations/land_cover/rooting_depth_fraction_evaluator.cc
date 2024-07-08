@@ -33,14 +33,6 @@ RootingDepthFractionEvaluator::Clone() const
 }
 
 
-KOKKOS_INLINE_FUNCTION
-double
-RootingDepthFractionEvaluator::computeIntegralRootFunc(double z, double alpha, double beta) const
-{
-  return -0.5 * (Kokkos::exp(-alpha * z) + Kokkos::exp(-beta * z));
-}
-
-
 // Initialize by setting up dependencies
 void
 RootingDepthFractionEvaluator::InitializeFromPlist_()
@@ -81,18 +73,18 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
       lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
     Kokkos::parallel_for(
-      "RootingDepthFractionEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_CLASS_LAMBDA(const int j) {
+      "RootingDepthFractionEvaluator::Evaluate", lc_ids.extent(0), KOKKOS_LAMBDA(const int j) {
         AmanziMesh::Entity_ID sc = lc_ids(j);
         double depth = 0.;
         double total = 0.;
 
-        double at_max = 1.0 + computeIntegralRootFunc(lc_pars.rooting_depth_max,
+        double at_max = 1.0 + Impl::computeIntegralRootFunc(lc_pars.rooting_depth_max,
                                                       lc_pars.rooting_profile_alpha,
                                                       lc_pars.rooting_profile_beta);
         const auto& col_cells = subsurf_mesh.columns.getCells(sc);
         int i = 0;
         for (auto c : col_cells) {
-          result_v(c, 0) = -computeIntegralRootFunc(
+          result_v(c, 0) = -Impl::computeIntegralRootFunc(
                              depth, lc_pars.rooting_profile_alpha, lc_pars.rooting_profile_beta) /
                            at_max;
           depth += cv(c, 0) / surf_cv(sc, 0);
@@ -101,13 +93,13 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
           if (depth <= lc_pars.rooting_depth_max) {
             if (i == (col_cells.size())) {
               // max depth is bigger than the domain, remainder goes in the bottom-most cell
-              result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+              result_v(c, 0) += Impl::computeIntegralRootFunc(lc_pars.rooting_depth_max,
                                                         lc_pars.rooting_profile_alpha,
                                                         lc_pars.rooting_profile_beta) /
                                 at_max;
               total += result_v(c, 0);
             } else {
-              result_v(c, 0) += computeIntegralRootFunc(depth,
+              result_v(c, 0) += Impl::computeIntegralRootFunc(depth,
                                                         lc_pars.rooting_profile_alpha,
                                                         lc_pars.rooting_profile_beta) /
                                 at_max;
@@ -115,7 +107,7 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
             }
           } else {
             // max depth stops in this cell, just compute to there
-            result_v(c, 0) += computeIntegralRootFunc(lc_pars.rooting_depth_max,
+            result_v(c, 0) += Impl::computeIntegralRootFunc(lc_pars.rooting_depth_max,
                                                       lc_pars.rooting_profile_alpha,
                                                       lc_pars.rooting_profile_beta) /
                               at_max;

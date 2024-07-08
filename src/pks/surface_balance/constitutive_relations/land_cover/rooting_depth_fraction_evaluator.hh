@@ -72,8 +72,6 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
 
   void InitializeFromPlist_();
 
-  double computeIntegralRootFunc(double z, double alpha, double beta) const;
-
   std::string getType() const override { return eval_type; }
 
  protected:
@@ -90,6 +88,17 @@ class RootingDepthFractionEvaluator : public EvaluatorSecondaryMonotypeCV {
  private:
   static Utils::RegisteredFactory<Evaluator, RootingDepthFractionEvaluator> reg_;
 };
+
+
+namespace Impl {
+
+KOKKOS_INLINE_FUNCTION
+double computeIntegralRootFunc(double z, double alpha, double beta) {
+  return -0.5 * (Kokkos::exp(-alpha * z) + Kokkos::exp(-beta * z));
+}
+
+}
+
 
 } // namespace Relations
 } // namespace SurfaceBalance

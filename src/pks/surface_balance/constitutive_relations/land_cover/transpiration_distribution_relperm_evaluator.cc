@@ -310,7 +310,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh
   CompositeVectorSpace dep_fac;
-  dep_fac.SetMesh(S.GetMesh(domain_sub_))->AddComponent("cell", AmanziMesh::CELL, 1);
+  dep_fac.SetMesh(S.GetMesh(domain_sub_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_pc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_kr_key_, tag).Update(dep_fac);
@@ -318,7 +318,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // -- next those on the surface mesh
   CompositeVectorSpace surf_fac;
-  surf_fac.SetMesh(S.GetMesh(domain_surf_))->AddComponent("cell", AmanziMesh::CELL, 1);
+  surf_fac.SetMesh(S.GetMesh(domain_surf_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(potential_trans_key_, tag).Update(surf_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(sa_key_, tag).Update(surf_fac);
 
