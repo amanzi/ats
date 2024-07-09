@@ -44,7 +44,6 @@ copySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
   } else if (sub.hasComponent("boundary_face")) {
     AMANZI_ASSERT(false); // not yet implemented, but could be
   }
-  Kokkos::fence();
 }
 
 void

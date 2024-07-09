@@ -630,7 +630,6 @@ Richards::InitializeHydrostatic_(const Tag& tag)
             }
           }
         });
-      Kokkos::fence();
     }
 
     if (has_faces) {
