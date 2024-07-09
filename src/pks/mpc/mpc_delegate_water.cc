@@ -137,7 +137,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtDamp(double h,
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
   const auto domain_u_f = domain_u->viewComponent(face_entity, false);
-  auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto parent_ents = surf_mesh->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
   double cap_size(cap_size_);
 
   // Approach 2
@@ -221,7 +221,7 @@ MPCDelegateWater::ModifyCorrection_WaterSpurtCap(double h,
   auto domain_Pu_c = domain_Pu->viewComponent("cell", false);
   auto domain_Pu_f = domain_Pu->viewComponent(face_entity, false);
   const auto domain_u_f = domain_u->viewComponent(face_entity, false);
-  auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto parent_ents = surf_mesh->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
   double cap_size(cap_size_);
 
   // Approach 3
@@ -475,7 +475,7 @@ MPCDelegateWater::ModifyPredictor_Heuristic(double h, const Teuchos::RCP<TreeVec
       *vo_->os() << "  MPCWaterCoupler: Modifying predictor with water heuristic" << std::endl;
 
     Teuchos::RCP<const AmanziMesh::Mesh> surf_mesh = u->getSubVector(i_surf_)->getData()->getMesh();
-    auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+    auto parent_ents = surf_mesh->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
     const double& patm = S_->Get<double>("atmospheric_pressure", Tags::DEFAULT);
 
     std::string face_entity;
@@ -579,7 +579,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
 
     Teuchos::RCP<CompositeVector> domain_pnew = u->getSubVector(i_domain_)->getData();
     auto domain_pnew_f = domain_pnew->viewComponent(face_entity, false);
-    auto parent_ents = surf_mesh->getEntityParents(AmanziMesh::Entity_kind::CELL);
+    auto parent_ents = surf_mesh->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
     double cap_size(cap_size_);
 
     double damp = 1.;
