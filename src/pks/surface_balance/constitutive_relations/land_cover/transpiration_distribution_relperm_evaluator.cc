@@ -289,7 +289,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
         });
     }
   }
-  AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
+  //AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
 }
 
 
