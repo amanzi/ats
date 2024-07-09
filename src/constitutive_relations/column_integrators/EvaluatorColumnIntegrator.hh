@@ -137,7 +137,7 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
       // for each column, loop over cells calling the integrator until stop is
       // requested or the column is complete
       AmanziGeometry::Point val(0., 0.);
-      auto col_cell = mesh.columns.getCells(col);
+      auto col_cell = mesh.columns.getCells<MemSpace_kind::DEVICE>(col);
       for (int i = 0; i != col_cell.size(); ++i) {
         bool completed = integrator.scan(col, col_cell[i], val);
         if (completed) break;

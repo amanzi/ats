@@ -343,8 +343,8 @@ SUITE(ATS_MESH_FACTORY)
     int ncells_per_column = num_cells / set_size;
     for (int col = 0; col != set_size; ++col) {
       // check that columns were made correctly
-      CHECK_EQUAL(ncells_per_column, S->GetMesh("domain")->columns.getCells(col).size());
-      CHECK_EQUAL(ncells_per_column + 1, S->GetMesh("domain")->columns.getFaces(col).size());
+      CHECK_EQUAL(ncells_per_column, S->GetMesh("domain")->columns->getCells<MemSpace_kind::HOST>(col).size());
+      CHECK_EQUAL(ncells_per_column + 1, S->GetMesh("domain")->columns->getFaces<MemSpace_kind::HOST>(col).size());
 
       // column mesh
       std::string col_name = Keys::getDomainInSet(
@@ -373,7 +373,7 @@ SUITE(ATS_MESH_FACTORY)
         ds->doImport(subdomain, vec_l, vec2);
 
         // fill via column
-        for (const auto& c : S->GetMesh("domain")->columns.getCells(col)) {
+        for (const auto& c : S->GetMesh("domain")->columns->getCells<MemSpace_kind::HOST>(col)) {
           vec1.replaceLocalValue(c, 0, index);
         }
         col++;

@@ -81,7 +81,7 @@ RootingDepthFractionEvaluator::Evaluate_(const State& S,
         double at_max = 1.0 + Impl::computeIntegralRootFunc(lc_pars.rooting_depth_max,
                                                       lc_pars.rooting_profile_alpha,
                                                       lc_pars.rooting_profile_beta);
-        const auto& col_cells = subsurf_mesh.columns.getCells(sc);
+        const auto& col_cells = subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc);
         int i = 0;
         for (auto c : col_cells) {
           result_v(c, 0) = -Impl::computeIntegralRootFunc(

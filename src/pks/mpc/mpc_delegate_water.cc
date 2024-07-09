@@ -598,7 +598,7 @@ MPCDelegateWater::ModifyPredictor_WaterSpurtDamp(double h, const Teuchos::RCP<Tr
           },
           Kokkos::Min<double>(damp));
       } else {
-        const AmanziMesh::Mesh& sub_mesh = *u->getSubVector(i_domain_)->getData()->getMesh();
+        const AmanziMesh::MeshCache& sub_mesh = u->getSubVector(i_domain_)->getData()->getMesh()->getCache();
         Kokkos::parallel_reduce(
           "MPCDelegateWater::ModifyPredictor_WaterSpurtDamp",
           ncells_surf,

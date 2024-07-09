@@ -282,7 +282,9 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
             func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
 
           } else {
-            for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c, 0) = 0.; }
+            for (auto c : subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc)) {
+              trans_v(c, 0) = 0.;
+            }
           }
         });
     }

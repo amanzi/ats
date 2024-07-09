@@ -605,14 +605,14 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       }
 
       AMANZI_ASSERT(mesh_->columns->num_columns_owned >= 0);
-      const auto& m = mesh_->getCache();
+      const AmanziMesh::MeshCache& m = mesh_->getCache();
 
       Kokkos::parallel_for(
         "Richards::InitializeHydrostatic cells",
         m.columns.num_columns_owned,
         KOKKOS_LAMBDA(const int col) {
-          const auto& col_cells = m.columns.getCells(col);
-          const auto& col_faces = m.columns.getFaces(col);
+          const auto& col_cells = m.columns.getCells<MemSpace_kind::DEVICE>(col);
+          const auto& col_faces = m.columns.getFaces<MemSpace_kind::DEVICE>(col);
           double z_wt = m.getFaceCentroid(col_faces(0))[z_index] + head_wt;
 
           if (has_faces) {
@@ -630,6 +630,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
             }
           }
         });
+      Kokkos::fence();
     }
 
     if (has_faces) {
@@ -642,7 +643,7 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Kokkos::parallel_for(
           "Richards::InitializeHydrostatic faces", pres_f.extent(0), KOKKOS_LAMBDA(const int f) {
             if (!touched(f)) {
-              const auto& f_cells = m.getFaceCells(f);
+              auto f_cells = m.getFaceCells(f);
               if (f_cells.size() == 1) {
                 // boundary face, use the cell value as the water table is
                 // assumed to parallel the cell structure
