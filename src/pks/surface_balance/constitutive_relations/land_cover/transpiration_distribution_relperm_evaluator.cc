@@ -22,11 +22,13 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
                                            const cView_type& soil_kr_,
                                            const cView_type& f_root_,
                                            const cView_type& pet_,
+                                           const cView_type& rho_,
+                                           const cView_type& nliq_,
+                                           const cView_type& visc_,
                                            const cView_type& cv_,
                                            const cView_type& sa_,
-                                           double c0_,
+                                           double K_,
                                            double krp_,
-                                           double rho_,
                                            double g_)
   : sc(sc_),
     cells_of_col(cells_of_col_),
@@ -35,11 +37,14 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
     soil_pc(soil_pc_),
     f_root(f_root_),
     pet(pet_),
+    rho(rho_),
+    nliq(nliq_),
+    visc(visc_),
     cv(cv_),
     sa(sa_),
-    c0(c0_),
+    K(K_),
     krp(krp_),
-    rho_g(rho_ * g_)
+    g(g_)
 {}
 
 
@@ -51,40 +56,8 @@ SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
 double
 SoilPlantFluxFunctor::operator()(double plant_pc) const
 {
-  double beta = computeTranspirationReductionFunction(plant_pc);
-  double total_trans = 0.;
-
-  // root pc is given by plant pc (assumed at the surface) - hydrostatic
-  double root_pc = plant_pc;
-  double sa_col = sa(sc, 0) * 2.0;
-  for (auto c : cells_of_col) {
-    double dz_on_2 = cv(c, 0) / sa_col;
-
-    // top half-cell, note g is negative
-    root_pc += rho_g * dz_on_2;
-
-    // compute flux
-    total_trans += computeSoilPlantFlux(root_pc, c);
-
-    // bottom half-cell
-    root_pc += rho_g * dz_on_2;
-  }
-  return beta * pet(sc, 0) - total_trans;
-}
-
-
-// beta in left hand side
-double
-SoilPlantFluxFunctor::computeTranspirationReductionFunction(double plant_pc) const
-{
-  if (plant_pc <= lc.stomata_open_capillary_pressure) {
-    return 1.0;
-  } else if (plant_pc >= lc.stomata_closed_capillary_pressure) {
-    return 0.0;
-  } else {
-    return (plant_pc - lc.stomata_closed_capillary_pressure) /
-           (lc.stomata_open_capillary_pressure - lc.stomata_closed_capillary_pressure);
-  }
+  double total_trans = computeSoilPlantFluxes(plant_pc);
+  return pet(sc, 0) - total_trans;
 }
 
 
@@ -92,29 +65,32 @@ SoilPlantFluxFunctor::computeTranspirationReductionFunction(double plant_pc) con
 double
 SoilPlantFluxFunctor::computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const
 {
-  double kr = (root_pc > soil_pc(c, 0)) ? soil_kr(c, 0) : krp;
-  return -c0 * f_root(c, 0) * kr * (soil_pc(c, 0) - root_pc);
+  double kr = (root_pc > soil_pc(c, 0)) ? soil_kr(c, 0) : (krp * nliq(c,0) / visc(c,0));
+  return -K * f_root(c, 0) * kr * (soil_pc(c, 0) - root_pc);
 }
 
 
 // all right hand sides
-void
-SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, const View_type& res) const
+double
+SoilPlantFluxFunctor::computeSoilPlantFluxes(double plant_pc, const View_type* res) const
 {
+  double total_trans = 0.;
   double root_pc = plant_pc;
-  double sa_col = sa(sc, 0) * 2.0;
   for (auto c : cells_of_col) {
-    double dz_on_2 = cv(c, 0) / sa_col;
+    double Mg_dz_on_2 = rho(c,0) * g * cv(c,0) / (sa(sc,0) * 2);
 
     // top half-cell
-    root_pc += rho_g * dz_on_2;
+    root_pc += Mg_dz_on_2;
 
     // compute flux
-    res(c, 0) = computeSoilPlantFlux(root_pc, c) * sa(sc, 0) / cv(c, 0);
+    double local_trans = computeSoilPlantFlux(root_pc, c);
+    total_trans += local_trans;
+    if (res) (*res)(c,0) = local_trans * sa(sc,0) / cv(c,0);
 
     // bottom half-cell
-    root_pc += rho_g * dz_on_2;
+    root_pc += Mg_dz_on_2;
   }
+  return total_trans;
 }
 
 
@@ -152,9 +128,6 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   tol_ = plist_->get<double>("tolerance", 1.e-12);
   nits_ = plist_->get<int>("maximum number of iterations", 100);
 
-  // note this should probably not include salinity, etc?
-  rho_ = plist_->get<double>("water density in plant [kg m^-3]", 1000.);
-
   // my_keys_.front() will always (for now?) be transpiration...
   Key plant_pc_key =
     Keys::readKey(*plist_, domain_surf_, "plant capillary pressure", "capillary_pressure_plant");
@@ -175,6 +148,18 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
   f_root_key_ = Keys::readKey(*plist_, domain_sub_, "plant rooting fraction", "root_fraction");
   dependencies_.insert(KeyTag{ f_root_key_, tag });
 
+  // dependency: liquid molar density
+  rho_key_ = Keys::readKey(*plist_, domain_sub_, "mass density", "mass_density_liquid");
+  dependencies_.insert(KeyTag{ rho_key_, tag });
+
+  // dependency: liquid molar density
+  nliq_key_ = Keys::readKey(*plist_, domain_sub_, "molar density", "molar_density_liquid");
+  dependencies_.insert(KeyTag{ nliq_key_, tag });
+
+  // dependency: viscosity
+  visc_key_ = Keys::readKey(*plist_, domain_sub_, "viscosity", "viscosity");
+  dependencies_.insert(KeyTag{ visc_key_, tag });
+
   // dependency: cv, sa
   cv_key_ = Keys::readKey(*plist_, domain_sub_, "cell volume", "cell_volume");
   dependencies_.insert(KeyTag{ cv_key_, tag });
@@ -186,14 +171,12 @@ TranspirationDistributionRelPermEvaluator::InitializeFromPlist_()
     Keys::readKey(*plist_, domain_surf_, "potential transpiration", "potential_transpiration_mols");
   dependencies_.insert(KeyTag{ potential_trans_key_, tag });
 
-  // c0, maximal trans rate
-  c0_ = plist_->get<double>("total maximal conductance [mol m^-2 s^-1 MPa^-1]", 10.) *
-        1.e-6; // per MPa --> per Pa
-  krp_ = plist_->get<double>("plant relative conductance [-]", 0.);
+  // K, maximal trans rate
+  K_ = plist_->get<double>("plant permeability per m [m]", 1.e-12); // ? what is the equivalent?
+  krp_ = plist_->get<double>("plant relative conductance [-]", 0.); // 1 = redistribution, 0 = none
 
   land_cover_ =
-    getLandCoverMap(plist_->sublist("model parameters"),
-                    { "stomata_closed_capillary_pressure", "stomata_open_capillary_pressure" });
+    getLandCoverMap(plist_->sublist("model parameters"), { "maximum_xylem_capillary_pressure" });
 }
 
 
@@ -207,11 +190,16 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
   auto soil_pc = S.Get<CompositeVector>(soil_pc_key_, tag).viewComponent("cell", false);
   auto soil_kr = S.Get<CompositeVector>(soil_kr_key_, tag).viewComponent("cell", false);
   auto f_root = S.Get<CompositeVector>(f_root_key_, tag).viewComponent("cell", false);
+  auto rho = S.Get<CompositeVector>(rho_key_, tag).viewComponent("cell", false);
+  auto nliq = S.Get<CompositeVector>(nliq_key_, tag).viewComponent("cell", false);
+  auto visc = S.Get<CompositeVector>(visc_key_, tag).viewComponent("cell", false);
   auto cv = S.Get<CompositeVector>(cv_key_, tag).viewComponent("cell", false);
   auto sa = S.Get<CompositeVector>(sa_key_, tag).viewComponent("cell", false);
 
   const auto& gravity = S.Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT);
   double g = gravity[gravity.dim() - 1];
+
+  double perm_scale = S.Get<double>("permeability_rescaling", Tags::DEFAULT);
 
   // on the surface
   auto potential_trans =
@@ -227,7 +215,7 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
     auto lc_ids = surf_mesh->getSetEntities<MemSpace_kind::DEVICE>(
       region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     const LandCover& lc_pars = region_lc.second;
-    double krp(krp_), c0(c0_), rho(rho_), tol(tol_);
+    double krp(krp_), K(K_), tol(tol_);
 
     if (lc_ids.size() > 0) {
       int nits(nits_);
@@ -245,42 +233,53 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
                     soil_kr,
                     f_root,
                     potential_trans,
+                    rho,
+                    nliq,
+                    visc,
                     cv,
                     sa,
-                    c0,
+                    K * perm_scale,
                     krp,
-                    rho,
                     g);
 
-            // bracket the root -- linear to the left of 1, log to the right of 1
-            Kokkos::pair<double, double> ab;
-            if (func(0.) > 0.) {
-              ab.first = 0.;
-              ab.second = 1.e4;
-              while (func(ab.second) > 0) {
-                ab.first = ab.second;
-                ab.second *= 10;
-                assert(ab.second < 1.e14); // failed to bracket root
-              }
+            // compute the flux at max pc
+            double pc_plant_max = lc_pars.maximum_xylem_capillary_pressure;
+            double total_trans = func.computeSoilPlantFluxes(pc_plant_max, &trans_v);
+            if (total_trans <= potential_trans(sc,0)) {
+              // insufficient water
+              plant_pc_v(sc,0) = pc_plant_max;
             } else {
-              ab.second = 0.;
-              ab.first = -1.e4;
-              while (func(ab.first) < 0) {
-                ab.second = ab.first;
-                ab.first *= 10;
-                assert(ab.first > -1.e14); // failed to bracket root
+              // sufficient water -- solve for plant_pc
+
+              // bracket the root -- linear to the left of 1, log to the right of 1
+              Kokkos::pair<double, double> ab;
+              if (func(0.) > 0.) {
+                ab.first = 0.;
+                ab.second = 1.e4;
+                while (func(ab.second) > 0) {
+                  ab.first = ab.second;
+                  ab.second *= 10;
+                  assert(ab.second < 1.e14); // failed to bracket root
+                }
+              } else {
+                ab.second = 0.;
+                ab.first = -1.e4;
+                while (func(ab.first) < 0) {
+                  ab.second = ab.first;
+                  ab.first *= 10;
+                  assert(ab.first > -1.e14); // failed to bracket root
+                }
               }
+
+              // compute the plant capillary pressure using a root-finder
+              int itrs = nits;
+              plant_pc_v(sc, 0) =
+                Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol, &itrs);
+              assert(itrs > 0 && itrs <= nits);
+
+              // compute the distributed transpiration fluxes for each grid cell
+              func.computeSoilPlantFluxes(plant_pc_v(sc, 0), &trans_v);
             }
-
-            // compute the plant capillary pressure using a root-finder
-            int itrs = nits;
-            plant_pc_v(sc, 0) =
-              Amanzi::Utils::findRootBrent(func, ab.first, ab.second, tol, &itrs);
-            assert(itrs > 0 && itrs <= nits);
-
-            // compute the distributed transpiration fluxes for each grid cell
-            func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
-
           } else {
             for (auto c : subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc)) {
               trans_v(c, 0) = 0.;
@@ -316,6 +315,9 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_pc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_kr_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(rho_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(nliq_key_, tag).Update(dep_fac);
+  S.Require<CompositeVector, CompositeVectorSpace>(visc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(cv_key_, tag).Update(dep_fac);
 
   // -- next those on the surface mesh
@@ -326,6 +328,9 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // gravity
   S.Require<AmanziGeometry::Point>("gravity", Tags::NEXT);
+
+  // perm rescling
+  S.Require<double>("permeability_rescaling", Tags::DEFAULT);
 }
 
 

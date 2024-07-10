@@ -52,6 +52,9 @@ same region-based partitioning.
       function of capillary pressure, between these two values.  Note that
       these should be positive! [Pa]
 
+    * `"maximum xylem capillary pressure [Pa]`" ``[double]`` **NaN**
+      Maximum capillary pressure at the plant collar before the plant starts to close stomata.
+
     * `"leaf on time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
        begin transpiring.  Note that -1 implies evergreen. [doy]
     * `"leaf off time [doy]`" ``[double]``  **NaN** Day of year, relative to time 0, when leaves
@@ -132,6 +135,8 @@ struct LandCover {
   // parameters in the transpiration reduction function
   double stomata_closed_capillary_pressure;
   double stomata_open_capillary_pressure;
+
+  double maximum_xylem_capillary_pressure;
 
   // manning's coef
   double mannings_n;

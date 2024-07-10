@@ -117,11 +117,13 @@ struct SoilPlantFluxFunctor {
                        const cView_type& soil_kr,
                        const cView_type& f_root,
                        const cView_type& pet,
+                       const cView_type& rho,
+                       const cView_type& nliq,
+                       const cView_type& visc,
                        const cView_type& cv,
                        const cView_type& sa,
-                       double c0,
+                       double K,
                        double krp,
-                       double rho,
                        double g);
 
   // error function used for rootfinder
@@ -133,7 +135,7 @@ struct SoilPlantFluxFunctor {
   double computeSoilPlantFlux(double root_pc, AmanziMesh::Entity_ID c) const;
 
   KOKKOS_INLINE_FUNCTION
-  void computeSoilPlantFluxes(double root_pc, const View_type& trans) const;
+  double computeSoilPlantFluxes(double root_pc, const View_type* trans = nullptr) const;
 
   // beta in left hand side
   KOKKOS_INLINE_FUNCTION
@@ -144,9 +146,12 @@ struct SoilPlantFluxFunctor {
   cView_type soil_kr;
   cView_type f_root;
   cView_type pet;
+  cView_type rho;
+  cView_type nliq;
+  cView_type visc;
   cView_type cv;
   cView_type sa;
-  double c0, krp, rho_g;
+  double K, krp, g;
 
   AmanziMesh::Entity_ID sc;
   AmanziMesh::MeshCache::cEntity_ID_View cells_of_col;
@@ -199,10 +204,13 @@ class TranspirationDistributionRelPermEvaluator : public EvaluatorSecondaryMonot
   Key soil_kr_key_;
   Key f_root_key_;
   Key potential_trans_key_;
+  Key rho_key_;
+  Key nliq_key_;
+  Key visc_key_;
   Key sa_key_;
   Key cv_key_;
 
-  double c0_;
+  double K_;
   double krp_;
   double rho_;
 

@@ -56,6 +56,7 @@ Richards::Richards(const Comm_ptr_type& comm,
     jacobian_lag_(0),
     iter_(0),
     iter_counter_time_(0.),
+    perm_scale_(1.),
     fixed_kr_(false)
 {}
 
@@ -70,6 +71,10 @@ Richards::modifyParameterList()
   // set a default absolute tolerance
   if (!plist_->isParameter("absolute error tolerance"))
     plist_->set("absolute error tolerance", .5 * .1 * 55000.); // phi * s * nl
+
+  // scaling for permeability for better "nondimensionalization"
+  double perm_scale = plist_->get<double>("permeability rescaling", 1.e7);
+  S_->ConstantsList().sublist("permeability_rescaling").set<double>("value", perm_scale);
 
   PK_PhysicalBDF_Default::modifyParameterList();
 }
@@ -102,12 +107,6 @@ Richards::parseParameterList()
 
   if (S_->IsDeformableMesh(domain_))
     deform_key_ = Keys::readKey(*plist_, domain_, "deformation indicator", "base_porosity");
-
-  // scaling for permeability for better "nondimensionalization"
-  perm_scale_ = plist_->get<double>("permeability rescaling", 1.e7);
-  S_->GetEvaluatorList(coef_key_).set<double>("permeability rescaling", perm_scale_);
-  S_->GetEvaluatorList(perm_key_).set<double>("rescaling factor", perm_scale_);
-
 
   // source terms
   is_source_term_ = plist_->get<bool>("source term", false);
@@ -209,6 +208,8 @@ Richards::SetupRichardsFlow_()
   // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
   if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
+  S_->Require<double>("permeability_rescaling", Tags::DEFAULT);
+
   //
   // Diffusion Operators
   // ------------------------------------------------------------------
@@ -253,6 +254,9 @@ Richards::SetupRichardsFlow_()
   clobber_boundary_flux_dir_ =
     plist_->get<bool>("clobber boundary flux direction for upwinding", false);
   AMANZI_ASSERT(clobber_boundary_flux_dir_ == false);
+
+  // is dynamic mesh?  If so, get a key for indicating when the mesh has changed.
+  if (!deform_key_.empty()) S_->RequireEvaluator(deform_key_, tag_next_);
 
   // what upwinding method to use
   std::string method_name =
