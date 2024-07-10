@@ -54,9 +54,6 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   // initialize the cell coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
 
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
-  AmanziMesh::Entity_ID_List cells;
-  std::vector<int> dirs;
   double eps = 1.e-16;
 
   // communicate ghosted cells
@@ -65,6 +62,7 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
   overlap.scatterMasterToGhosted("cell");
 
   {
+    const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
     auto face_coef_f = face_coef.viewComponent("face", false);
     const auto overlap_c = overlap.viewComponent("cell", true);
     const auto potential_c = potential.viewComponent("cell", true);
@@ -108,8 +106,8 @@ UpwindPotentialDifference::CalculateCoefficientsOnFaces(const CompositeVector& c
             } else {
               param = (potential_c(cells[1], 0) - potential_c(cells[0], 0)) / (2 * flow_eps) + 0.5;
             }
-            AMANZI_ASSERT(param >= 0.0);
-            AMANZI_ASSERT(param <= 1.0);
+            assert(param >= 0.0);
+            assert(param <= 1.0);
             face_coef_f(f, 0) =
               cell_coef_c(cells[1], 0) * param + cell_coef_c(cells[0], 0) * (1. - param);
           }

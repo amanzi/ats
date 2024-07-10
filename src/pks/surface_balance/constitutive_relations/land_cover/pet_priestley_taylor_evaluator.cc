@@ -87,7 +87,7 @@ PETPriestleyTaylorEvaluator::Evaluate_(const State& S, const std::vector<Composi
     auto res = result[0]->viewComponent("cell", false);
 
     for (const auto& lc : land_cover_) {
-      auto lc_ids = mesh->getSetEntities(
+      auto lc_ids = mesh->getSetEntities<MemSpace_kind::DEVICE>(
         lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
 
       double alpha = 0.;

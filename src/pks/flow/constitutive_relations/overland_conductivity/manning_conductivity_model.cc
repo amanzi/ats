@@ -27,25 +27,6 @@ ManningConductivityModel::ManningConductivityModel(
   depth_max_ = plist->get<double>("maximum ponded depth [m]", 1.e8);
 }
 
-double
-ManningConductivityModel::Conductivity(double depth, double slope, double coef) const
-{
-  if (depth <= 0.) return 0.;
-  double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));
-  return std::pow(std::min(depth, depth_max_), manning_exp_) / scaling;
-}
-
-double
-ManningConductivityModel::DConductivityDDepth(double depth, double slope, double coef) const
-{
-  if (depth <= 0.) return 0.;
-  double scaling = coef * std::sqrt(std::max(slope, slope_regularization_));
-  if (depth > depth_max_) {
-    return 0.;
-  } else {
-    return manning_exp_ * std::pow(depth, manning_exp_ - 1) / scaling;
-  }
-}
 
 } // namespace Relations
 } // namespace Flow

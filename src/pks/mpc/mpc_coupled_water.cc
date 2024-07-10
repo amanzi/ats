@@ -121,17 +121,15 @@ MPCCoupledWater::setup()
     const auto& surf_cell_map = surf_mesh_->getMap(AmanziMesh::Entity_kind::CELL, false);
 
     std::vector<AmanziMesh::Entity_ID> surf_debug_cells;
-    auto mesh_on_host = AmanziMesh::onMemHost(domain_mesh_);
-    auto surf_mesh_on_host = AmanziMesh::onMemHost(surf_mesh_);
 
     for (int sc = 0; sc != ncells_surf; ++sc) {
-      int f = surf_mesh_on_host->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
+      int f = surf_mesh_->getEntityParent(AmanziMesh::Entity_kind::CELL, sc);
       auto c = AmanziMesh::getFaceOnBoundaryInternalCell(*domain_mesh_, f);
 
-      auto c_gid = mesh_on_host->getEntityGID(AmanziMesh::Entity_kind::CELL, c);
+      auto c_gid = domain_mesh_->getEntityGID(AmanziMesh::Entity_kind::CELL, c);
       if (std::find(debug_cells.begin(), debug_cells.end(), c_gid) != debug_cells.end())
         surf_debug_cells.emplace_back(
-          surf_mesh_on_host->getEntityGID(AmanziMesh::Entity_kind::CELL, sc));
+          surf_mesh_->getEntityGID(AmanziMesh::Entity_kind::CELL, sc));
     }
     if (surf_debug_cells.size() > 0) surf_db_->add_cells(surf_debug_cells);
   }
@@ -187,8 +185,8 @@ MPCCoupledWater::FunctionalResidual(double t_old,
     auto g_surf = g->getSubVector(1)->getData()->viewComponent("cell", false);
 
     // take off the face area factor to allow it to be used as boundary condition
-    const AmanziMesh::Mesh& mc = *domain_mesh_;
-    const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
+    const AmanziMesh::MeshCache& mc = domain_mesh_->getCache();
+    const AmanziMesh::MeshCache& mc_surf = surf_mesh_->getCache();
     Kokkos::parallel_for(
       "MPCCoupledWater::FunctionalResidual copy to BC",
       g_surf.extent(0),
@@ -398,7 +396,7 @@ MPCCoupledWater::ErrorNorm(Teuchos::RCP<const TreeVector> u, Teuchos::RCP<const 
     auto res_surf_cell = res2->getSubVector(1)->getData()->viewComponent("cell", false);
     const auto u_surf_cell = u->getSubVector(1)->getData()->viewComponent("cell", false);
     double p_atm = S_->Get<double>("atmospheric_pressure", Tags::NEXT);
-    const AmanziMesh::Mesh& mc_surf = *surf_mesh_;
+    const AmanziMesh::MeshCache& mc_surf = surf_mesh_->getCache();
 
     Kokkos::parallel_for(
       "MPCCoupledWater::ErrorNorm", u_surf_cell.extent(0), KOKKOS_LAMBDA(const int& c) {

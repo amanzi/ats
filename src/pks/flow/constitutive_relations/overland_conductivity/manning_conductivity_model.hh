@@ -16,6 +16,7 @@
 #ifndef AMANZI_FLOWRELATIONS_MANNING_CONDUCTIVITY_MODEL_
 #define AMANZI_FLOWRELATIONS_MANNING_CONDUCTIVITY_MODEL_
 
+#include "Kokkos_Core.hpp"
 #include "Teuchos_ParameterList.hpp"
 
 namespace Amanzi {
@@ -26,8 +27,23 @@ class ManningConductivityModel {
  public:
   explicit ManningConductivityModel(const Teuchos::RCP<Teuchos::ParameterList>& plist);
 
-  double Conductivity(double depth, double slope, double coef) const;
-  double DConductivityDDepth(double depth, double slope, double coef) const;
+  KOKKOS_INLINE_FUNCTION
+  double Conductivity(double depth, double slope, double coef) const {
+    if (depth <= 0.) return 0.;
+    double scaling = coef * Kokkos::sqrt(Kokkos::max(slope, slope_regularization_));
+    return Kokkos::pow(Kokkos::min(depth, depth_max_), manning_exp_) / scaling;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  double DConductivityDDepth(double depth, double slope, double coef) const {
+    if (depth <= 0.) return 0.;
+    double scaling = coef * Kokkos::sqrt(Kokkos::max(slope, slope_regularization_));
+    if (depth > depth_max_) {
+      return 0.;
+    } else {
+      return manning_exp_ * Kokkos::pow(depth, manning_exp_ - 1) / scaling;
+    }
+  }
 
  protected:
   double slope_regularization_;

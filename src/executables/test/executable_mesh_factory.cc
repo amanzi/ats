@@ -95,7 +95,7 @@ SUITE(ATS_MESH_FACTORY)
 
     // validate the mesh?
     auto& domain = *S->GetMesh("domain");
-    auto ncells = domain.ncells_owned;
+    auto ncells = domain.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     std::stringstream str;
     str << "Created a DOMAIN mesh with " << ncells << " cells" << std::endl;
     parallel_print(comm, str.str());
@@ -154,7 +154,7 @@ SUITE(ATS_MESH_FACTORY)
     // check the right sizes of the upstream mesh
     if (has_upstream) {
       auto& up_mesh = *S->GetMesh("watershed:upstream");
-      int ncells_upstream = up_mesh.ncells_owned;
+      int ncells_upstream = up_mesh.getNumEntities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
       int ncells_upstream_g;
       Teuchos::reduceAll(
         *up_mesh.getComm(), Teuchos::REDUCE_SUM, 1, &ncells_upstream, &ncells_upstream_g);
@@ -343,8 +343,8 @@ SUITE(ATS_MESH_FACTORY)
     int ncells_per_column = num_cells / set_size;
     for (int col = 0; col != set_size; ++col) {
       // check that columns were made correctly
-      CHECK_EQUAL(ncells_per_column, S->GetMesh("domain")->columns.getCells(col).size());
-      CHECK_EQUAL(ncells_per_column + 1, S->GetMesh("domain")->columns.getFaces(col).size());
+      CHECK_EQUAL(ncells_per_column, S->GetMesh("domain")->columns->getCells<MemSpace_kind::HOST>(col).size());
+      CHECK_EQUAL(ncells_per_column + 1, S->GetMesh("domain")->columns->getFaces<MemSpace_kind::HOST>(col).size());
 
       // column mesh
       std::string col_name = Keys::getDomainInSet(
@@ -373,7 +373,7 @@ SUITE(ATS_MESH_FACTORY)
         ds->doImport(subdomain, vec_l, vec2);
 
         // fill via column
-        for (const auto& c : S->GetMesh("domain")->columns.getCells(col)) {
+        for (const auto& c : S->GetMesh("domain")->columns->getCells<MemSpace_kind::HOST>(col)) {
           vec1.replaceLocalValue(c, 0, index);
         }
         col++;

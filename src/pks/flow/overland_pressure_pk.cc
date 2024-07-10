@@ -161,7 +161,7 @@ OverlandPressureFlow::setup()
   PKHelpers::requireAtNext(conserved_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   //    and at the current time, where it is a copy evaluator
   PKHelpers::requireAtCurrent(conserved_key_, tag_current_, *S_, name_);
@@ -170,7 +170,7 @@ OverlandPressureFlow::setup()
   PKHelpers::requireAtNext(molar_dens_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
 
   SetupOverlandFlow_();
   SetupPhysicalEvaluators_();
@@ -332,7 +332,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
 
     PKHelpers::requireAtNext(source_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   //
@@ -348,7 +348,7 @@ OverlandPressureFlow::SetupOverlandFlow_()
     ss_flux_key_ = Keys::readKey(*plist_, domain_, "surface-subsurface flux", "subsurface_flux");
     PKHelpers::requireAtNext(ss_flux_key_, tag_next_, *S_)
       .SetMesh(mesh_)
-      ->AddComponent("cell", AmanziMesh::CELL, 1);
+      ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   }
 
   //
@@ -358,25 +358,25 @@ OverlandPressureFlow::SetupOverlandFlow_()
   S_->Require<CompositeVector, CompositeVectorSpace>(key_, tag_next_, name_)
     .Update(*matrix_->getRangeMap())
     ->SetGhosted()
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // potential may not actually need cells, but for debugging and sanity's sake, we require them
   PKHelpers::requireAtNext(potential_key_, tag_next_, *S_)
     .Update(*matrix_->getRangeMap())
     ->SetGhosted()
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 
   // flux
   PKHelpers::requireAtNext(flux_key_, tag_next_, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("face", AmanziMesh::FACE, 1);
+    ->SetComponent("face", AmanziMesh::Entity_kind::FACE, 1);
 
   // velocity for diagnostics
   PKHelpers::requireAtNext(velocity_key_, Tags::NEXT, *S_, name_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->SetComponent("cell", AmanziMesh::CELL, 3);
+    ->SetComponent("cell", AmanziMesh::Entity_kind::CELL, 3);
 };
 
 
@@ -390,7 +390,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   PKHelpers::requireAtNext(wc_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     wc_bar_key_, tag_next_, key_, tag_next_);
 
@@ -404,7 +404,7 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   PKHelpers::requireAtNext(pd_bar_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S_->RequireDerivative<CompositeVector, CompositeVectorSpace>(
     pd_bar_key_, tag_next_, key_, tag_next_);
 
@@ -412,8 +412,8 @@ OverlandPressureFlow::SetupPhysicalEvaluators_()
   PKHelpers::requireAtNext(cond_key_, tag_next_, *S_)
     .SetMesh(mesh_)
     ->SetGhosted()
-    ->AddComponent("cell", AmanziMesh::CELL, 1)
-    ->AddComponent("boundary_face", AmanziMesh::BOUNDARY_FACE, 1);
+    ->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1)
+    ->AddComponent("boundary_face", AmanziMesh::Entity_kind::BOUNDARY_FACE, 1);
 }
 
 
@@ -607,11 +607,10 @@ OverlandPressureFlow::ApplyDirichletBCs_(const Operators::BCs& bcs,
     auto bc_value = bcs.bc_value();
     auto bc_model = bcs.bc_model();
 
-    const AmanziMesh::Mesh& mesh = *u.getMesh();
-
+    const AmanziMesh::MeshCache& mesh = u.getMesh()->getCache();
     Kokkos::parallel_for(
       "applyDirichletBCs", u_f.extent(0), KOKKOS_LAMBDA(const int& bf) {
-        auto f = getBoundaryFaceFace(mesh, bf);
+        auto f = mesh.getBoundaryFaceFace(bf);
         if (bc_model(f) == Operators::OPERATOR_BC_DIRICHLET) {
           u_f(bf, 0) = bc_value(f) - elev_f(f, 0);
         }
@@ -649,8 +648,8 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
   //   std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
 
-  //   int ncells_owned = mesh_->num_entities(AmanziMesh::CELL, AmanziMesh::Parallel_type::OWNED);
-  //   int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  //   int ncells_owned = mesh_->num_entities(AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_type::OWNED);
+  //   int nfaces_owned = mesh_->num_entities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_type::OWNED);
   //   for (const auto& bc : *bc_zero_gradient_) {
   //     int f = bc.first;
 
@@ -680,7 +679,7 @@ OverlandPressureFlow::FixBCsForOperator_(const Tag& tag,
 
   //   std::vector<WhetStone::DenseMatrix>& Aff = diff_op->local_op()->matrices;
   //   double gz = -(S_->Get<AmanziGeometry::Point>("gravity", Tags::DEFAULT))[2];
-  //   int nfaces_owned = mesh_->num_entities(AmanziMesh::FACE, AmanziMesh::Parallel_type::OWNED);
+  //   int nfaces_owned = mesh_->num_entities(AmanziMesh::Entity_kind::FACE, AmanziMesh::Parallel_type::OWNED);
 
   //   for (const auto& bc : *bc_tidal_) {
   //     int f = bc.first;

@@ -49,7 +49,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
                                                      CompositeVector& face_coef,
                                                      const Teuchos::Ptr<Debugger>& db) const
 {
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
+  const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -62,6 +62,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
     const auto flux_v = flux.viewComponent("face", false);
     auto coef_faces = face_coef.viewComponent("face", false);
     const auto coef_cells = cell_coef.viewComponent("cell", true);
+    double flow_eps = flux_eps_;
 
     int nfaces_local = coef_faces.extent(0);
     Kokkos::parallel_for(
@@ -79,7 +80,7 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           dw = c0;
           if (fcells.size() == 2) uw = fcells(1);
         }
-        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        assert(!((uw == -1) && (dw == -1)));
 
         double coefs[2];
         // uw coef
@@ -96,11 +97,10 @@ UpwindFluxHarmonicMean::CalculateCoefficientsOnFaces(const CompositeVector& cell
           coefs[1] = coef_cells(dw, 0);
         }
 
-        AMANZI_ASSERT(!(coefs[0] < 0.0) || (coefs[1] < 0.0));
+        assert(!(coefs[0] < 0.0) || (coefs[1] < 0.0));
 
         // Determine the size of the overlap region, a smooth transition region
         // near zero flux
-        double flow_eps = flux_eps_;
 
         // Fixed coefficient in the scaling of the arithmetic mean
         double amean_order_of_supression = 15.0;

@@ -23,6 +23,7 @@
 #include "StateDefs.hh"
 #include "State.hh"
 #include "Mesh.hh"
+#include "MeshHelpers.hh"
 
 namespace Amanzi {
 namespace Flow {
@@ -31,21 +32,21 @@ namespace Relations {
 template <class cView_type, class View_type>
 class SoilResistanceSakaguckiZengModel {
  public:
+  static const int n_results = 1;
   static const int n_dependencies = 2;
   static const bool provides_derivatives = false;
   static const std::string eval_type;
 
   explicit SoilResistanceSakaguckiZengModel(const Teuchos::RCP<Teuchos::ParameterList>& plist)
   {
-    Tag tag(plist->get<std::string>("tag"));
-    my_key_ = { Keys::cleanPListName(*plist), tag };
+    my_key_ = { Keys::cleanPListName(*plist), Tag{ plist->get<std::string>("tag") } };
 
     Key domain = Keys::getDomain(my_key_.first);
     Key domain_sub = Keys::readDomainHint(*plist, domain, "surface", "domain");
 
     // dependencies
-    sat_gas_key_ = Keys::readKeyTag(*plist, domain_sub, "gas saturation", "saturation_gas", tag);
-    poro_key_ = Keys::readKeyTag(*plist, domain_sub, "porosity", "porosity", tag);
+    sat_gas_key_ = Keys::readKeyTag(*plist, domain_sub, "gas saturation", "saturation_gas", my_key_.second);
+    poro_key_ = Keys::readKeyTag(*plist, domain_sub, "porosity", "porosity", my_key_.second);
 
     Teuchos::ParameterList& model_list = plist->sublist("model parameters");
     d_ = model_list.get<double>("dessicated zone thickness [m]", 0.1);
@@ -73,13 +74,16 @@ class SoilResistanceSakaguckiZengModel {
   void
   setViews(const std::vector<cView_type>& deps, const std::vector<View_type>& res, const State& s)
   {
-    res_ = res[0];
+    AMANZI_ASSERT(deps.size() == n_dependencies);
+    AMANZI_ASSERT(res.size() == n_results);
 
+    res_ = res[0];
     sat_gas_ = deps[0];
     poro_ = deps[1];
 
-    mesh_surf_ = *s.GetMesh(Keys::getDomain(my_key_.first));
-    mesh_sub_ = *mesh_surf_.getParentMesh();
+    auto mesh = s.GetMesh(Keys::getDomain(my_key_.first));
+    mesh_surf_ = mesh->getCache();
+    mesh_sub_ = mesh->getParentMesh()->getCache();
   }
 
   void freeViews()
@@ -95,7 +99,13 @@ class SoilResistanceSakaguckiZengModel {
       my_key_,
     };
   }
-  KeyTagVector getDependencies() const { return { sat_gas_key_, poro_key_ }; }
+
+  KeyTagVector getDependencies() const
+  {
+    return {
+      sat_gas_key_, poro_key_
+    };
+  }
 
   KOKKOS_INLINE_FUNCTION void operator()(const int sc) const
   {
@@ -120,12 +130,13 @@ class SoilResistanceSakaguckiZengModel {
   View_type res_;
   cView_type poro_, sat_gas_;
 
-  KeyTag my_key_;
-  KeyTag sat_gas_key_, poro_key_;
-
   double sr_, b_, d_;
 
-  AmanziMesh::Mesh mesh_surf_, mesh_sub_;
+  AmanziMesh::MeshCache mesh_surf_;
+  AmanziMesh::MeshCache mesh_sub_;
+
+  KeyTag my_key_;
+  KeyTag sat_gas_key_, poro_key_;
 };
 
 

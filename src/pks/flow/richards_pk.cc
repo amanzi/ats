@@ -604,15 +604,15 @@ Richards::InitializeHydrostatic_(const Tag& tag)
         Kokkos::deep_copy(touched, 0);
       }
 
-      AMANZI_ASSERT(mesh_->columns.num_columns_owned >= 0);
-      auto& m = *mesh_;
+      AMANZI_ASSERT(mesh_->columns->num_columns_owned >= 0);
+      const AmanziMesh::MeshCache& m = mesh_->getCache();
 
       Kokkos::parallel_for(
         "Richards::InitializeHydrostatic cells",
         m.columns.num_columns_owned,
         KOKKOS_LAMBDA(const int col) {
-          const auto& col_cells = m.columns.getCells(col);
-          const auto& col_faces = m.columns.getFaces(col);
+          const auto& col_cells = m.columns.getCells<MemSpace_kind::DEVICE>(col);
+          const auto& col_faces = m.columns.getFaces<MemSpace_kind::DEVICE>(col);
           double z_wt = m.getFaceCentroid(col_faces(0))[z_index] + head_wt;
 
           if (has_faces) {
@@ -638,11 +638,11 @@ Richards::InitializeHydrostatic_(const Tag& tag)
       {
         auto pres_c = pres->viewComponent("cell", false);
         auto pres_f = pres->viewComponent("face", false);
-        auto& m = *mesh_;
+        const AmanziMesh::MeshCache& m = mesh_->getCache();
         Kokkos::parallel_for(
           "Richards::InitializeHydrostatic faces", pres_f.extent(0), KOKKOS_LAMBDA(const int f) {
             if (!touched(f)) {
-              const auto& f_cells = m.getFaceCells(f);
+              auto f_cells = m.getFaceCells(f);
               if (f_cells.size() == 1) {
                 // boundary face, use the cell value as the water table is
                 // assumed to parallel the cell structure
@@ -1004,9 +1004,8 @@ Richards::ModifyPredictorFluxBCs_(double h, Teuchos::RCP<TreeVector> u)
                           "WRM evaluator of type \"wrm van Genuchten\"");
       Exceptions::amanzi_throw(msg);
     }
-    auto mesh_on_host = AmanziMesh::onMemHost(mesh_);
     flux_predictor_ = Teuchos::rcp(new PredictorDelegateBCFlux(
-      S_, mesh_on_host, matrix_diff_, wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
+      S_, mesh_, matrix_diff_, wrm_eval_as_wrm->getModels(), bcs.model(), bcs.value()));
   }
 
   UpdatePermeabilityData_(tag_next_);

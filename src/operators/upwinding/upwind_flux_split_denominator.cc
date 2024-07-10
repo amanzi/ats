@@ -73,7 +73,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
   // pull out vectors
   {
-    const AmanziMesh::Mesh& m = *face_coef.getMesh();
+    const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
     const auto flux_v = flux.viewComponent("face", false);
     auto coef_faces = face_coef.viewComponent("face", false);
     const auto coef_cells = cell_coef.viewComponent("cell", true);
@@ -113,8 +113,8 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
         // uw coef
         if (uw == -1) {
           denominator =
-            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
-          AMANZI_ASSERT(denominator > 0);
+            manning_coef_v(dw, 0) * Kokkos::sqrt(Kokkos::max(slope_v(dw, 0), slope_regularization));
+          assert(denominator > 0);
 
           coefs[0] = coef_faces(f, 0) * denominator;
           coefs[1] = coef_cells(dw, 0) * denominator;
@@ -125,8 +125,8 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
 
         } else if (dw == -1) {
           denominator =
-            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
-          AMANZI_ASSERT(denominator > 0);
+            manning_coef_v(uw, 0) * Kokkos::sqrt(Kokkos::max(slope_v(uw, 0), slope_regularization));
+          assert(denominator > 0);
 
           coefs[0] = coef_cells(uw, 0) * denominator;
           coefs[1] = coef_cells(uw, 0) * denominator; // downwind boundary face not defined always
@@ -136,12 +136,12 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           weight[1] = weight[0];
 
         } else {
-          AMANZI_ASSERT(manning_coef_v(uw, 0) > 0);
-          AMANZI_ASSERT(manning_coef_v(dw, 0) > 0);
+          assert(manning_coef_v(uw, 0) > 0);
+          assert(manning_coef_v(dw, 0) > 0);
           denom[0] =
-            manning_coef_v(uw, 0) * std::sqrt(std::max(slope_v(uw, 0), slope_regularization));
+            manning_coef_v(uw, 0) * Kokkos::sqrt(Kokkos::max(slope_v(uw, 0), slope_regularization));
           denom[1] =
-            manning_coef_v(dw, 0) * std::sqrt(std::max(slope_v(dw, 0), slope_regularization));
+            manning_coef_v(dw, 0) * Kokkos::sqrt(Kokkos::max(slope_v(dw, 0), slope_regularization));
 
           coefs[0] = coef_cells(uw, 0) * denom[0];
           coefs[1] = coef_cells(dw, 0) * denom[1];
@@ -149,17 +149,17 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
           // harmonic mean of the denominator
           weight[0] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(uw));
           weight[1] = AmanziGeometry::norm(m.getFaceCentroid(f) - m.getCellCentroid(dw));
-          AMANZI_ASSERT(denom[0] > 0);
-          AMANZI_ASSERT(denom[1] > 0);
-          AMANZI_ASSERT(weight[0] > 0);
-          AMANZI_ASSERT(weight[1] > 0);
+          assert(denom[0] > 0);
+          assert(denom[1] > 0);
+          assert(weight[0] > 0);
+          assert(weight[1] > 0);
           denominator = (weight[0] + weight[1]) / (weight[0] / denom[0] + weight[1] / denom[1]);
-          AMANZI_ASSERT(denominator > 0);
+          assert(denominator > 0);
         }
 
         // Determine the coefficient
-        AMANZI_ASSERT(denominator > 0);
-        AMANZI_ASSERT(coefs[0] >= 0 && coefs[1] >= 0);
+        assert(denominator > 0);
+        assert(coefs[0] >= 0 && coefs[1] >= 0);
         if (coefs[1] > coefs[0]) {
           // downwind ponded depth is larger
           if ((coefs[0] != 0.0)) {
@@ -170,7 +170,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
             // harmonic mean of zero is zero
             coef_faces(f, 0) = 0.0;
           }
-        } else if (std::abs(flux_v(f, 0)) >= flow_eps) {
+        } else if (Kokkos::abs(flux_v(f, 0)) >= flow_eps) {
           // upwind ponded depth is larger, flux potential is nonzero
           // arithmetic mean (smoothly stays nonzero as downwind coef approches zero)
           coef_faces(f, 0) =
@@ -178,7 +178,7 @@ UpwindFluxSplitDenominator::CalculateCoefficientsOnFaces(const CompositeVector& 
         } else {
           // upwind ponded depth is larger, flux potential approaches zero
           // smoothly vary between harmonic and arithmetic means
-          double param = std::abs(flux_v(f, 0)) / flow_eps;
+          double param = Kokkos::abs(flux_v(f, 0)) / flow_eps;
           double amean = (weight[0] * coefs[0] + weight[1] * coefs[1]) / (weight[0] + weight[1]);
           double hmean = 0.0;
           if ((coefs[0] != 0.0) && (coefs[1] != 0.0))

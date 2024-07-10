@@ -70,7 +70,7 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
                                                         CompositeVector& face_coef,
                                                         const Teuchos::Ptr<Debugger>& db) const
 {
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
+  const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -138,7 +138,10 @@ UpwindElevationStabilized::CalculateCoefficientsOnFaces(const CompositeVector& s
           // boundary face
           weight[1] = weight[0];
           denom[1] = denom[0];
+
+          // NOTE: THIS CURRENTLY BREAKS THINGS>>> not sure how to deal with this
           int bf = AmanziMesh::getFaceOnBoundaryBoundaryFace(m, f);
+          // END NOTE
           pres_elev[1] = pd_bf(bf, 0) + elev_bf(bf, 0);
           elev[1] = elev_bf(bf, 0);
           dens[1] = dens[0];

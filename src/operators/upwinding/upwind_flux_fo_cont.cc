@@ -65,7 +65,7 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
                                                CompositeVector& face_coef,
                                                const Teuchos::Ptr<Debugger>& db) const
 {
-  const AmanziMesh::Mesh& m = *face_coef.getMesh();
+  const AmanziMesh::MeshCache& m = face_coef.getMesh()->getCache();
 
   // initialize the face coefficients
   if (face_coef.hasComponent("cell")) { face_coef.getComponent("cell", true)->putScalar(1.0); }
@@ -108,7 +108,7 @@ UpwindFluxFOCont::CalculateCoefficientsOnFaces(const CompositeVector& cell_coef,
           dw = c0;
           if (fcells.size() == 2) uw = fcells(1);
         }
-        AMANZI_ASSERT(!((uw == -1) && (dw == -1)));
+        assert(!((uw == -1) && (dw == -1)));
 
         double denominator = 0.0;
         // uw coef

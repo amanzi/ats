@@ -16,7 +16,7 @@ namespace MPCHelpers {
 void
 copySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
 {
-  auto parents = surf.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto parents = surf.getMesh()->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
   auto surf_c = surf.viewComponent("cell", false);
   if (sub.hasComponent("face")) {
     auto sub_f = sub.viewComponent("face", false);
@@ -33,7 +33,7 @@ copySurfaceToSubsurface(const CompositeVector& surf, CompositeVector& sub)
 void
 copySubsurfaceToSurface(const CompositeVector& sub, CompositeVector& surf)
 {
-  auto parents = surf.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto parents = surf.getMesh()->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
   auto surf_c = surf.viewComponent("cell", false);
   if (sub.hasComponent("face")) {
     auto sub_f = sub.viewComponent("face", false);
@@ -53,7 +53,7 @@ mergeSubsurfaceAndSurfacePressure(const CompositeVector& h_prev,
 {
   double p_atm = 101325.; // get from state?
 
-  auto parents = surf_p.getMesh()->getEntityParents(AmanziMesh::Entity_kind::CELL);
+  auto parents = surf_p.getMesh()->getEntityParents<MemSpace_kind::DEVICE>(AmanziMesh::Entity_kind::CELL);
   auto surf_p_c = surf_p.viewComponent("cell", false);
   auto h_c = h_prev.viewComponent("cell", false);
   if (sub_p.hasComponent("face")) {

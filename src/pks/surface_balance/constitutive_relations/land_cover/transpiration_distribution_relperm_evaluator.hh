@@ -111,7 +111,7 @@ struct SoilPlantFluxFunctor {
 
   KOKKOS_INLINE_FUNCTION
   SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc,
-                       const AmanziMesh::Mesh::cEntity_ID_View& cells_of_col,
+                       const AmanziMesh::MeshCache::cEntity_ID_View& cells_of_col,
                        const LandCover& lc,
                        const cView_type& soil_pc,
                        const cView_type& soil_kr,
@@ -149,7 +149,7 @@ struct SoilPlantFluxFunctor {
   double c0, krp, rho_g;
 
   AmanziMesh::Entity_ID sc;
-  AmanziMesh::Mesh::cEntity_ID_View cells_of_col;
+  AmanziMesh::MeshCache::cEntity_ID_View cells_of_col;
 };
 
 

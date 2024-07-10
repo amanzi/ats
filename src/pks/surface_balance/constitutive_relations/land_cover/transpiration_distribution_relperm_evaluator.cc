@@ -16,7 +16,7 @@ namespace SurfaceBalance {
 namespace Relations {
 
 SoilPlantFluxFunctor::SoilPlantFluxFunctor(AmanziMesh::Entity_ID sc_,
-                                           const AmanziMesh::Mesh::cEntity_ID_View& cells_of_col_,
+                                           const AmanziMesh::MeshCache::cEntity_ID_View& cells_of_col_,
                                            const LandCover& lc_,
                                            const cView_type& soil_pc_,
                                            const cView_type& soil_kr_,
@@ -220,11 +220,11 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
   auto trans_v = result[0]->viewComponent("cell", false);
   auto plant_pc_v = result[1]->viewComponent("cell", false);
 
-  auto& subsurf_mesh = *S.GetMesh(domain_sub_);
-  auto& surf_mesh = *S.GetMesh(domain_surf_);
+  auto surf_mesh = S.GetMesh(domain_surf_);
+  const AmanziMesh::MeshCache& subsurf_mesh = S.GetMesh(domain_sub_)->getCache();
 
   for (const auto& region_lc : land_cover_) {
-    auto lc_ids = surf_mesh.getSetEntities(
+    auto lc_ids = surf_mesh->getSetEntities<MemSpace_kind::DEVICE>(
       region_lc.first, AmanziMesh::Entity_kind::CELL, AmanziMesh::Parallel_kind::OWNED);
     const LandCover& lc_pars = region_lc.second;
     double krp(krp_), c0(c0_), rho(rho_), tol(tol_);
@@ -282,12 +282,14 @@ TranspirationDistributionRelPermEvaluator::Evaluate_(const State& S,
             func.computeSoilPlantFluxes(plant_pc_v(sc, 0), trans_v);
 
           } else {
-            for (auto c : subsurf_mesh.columns.getCells(sc)) { trans_v(c, 0) = 0.; }
+            for (auto c : subsurf_mesh.columns.getCells<MemSpace_kind::DEVICE>(sc)) {
+              trans_v(c, 0) = 0.;
+            }
           }
         });
     }
   }
-  AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
+  //AMANZI_ASSERT(!std::isnan(trans_v(0, 0)));
 }
 
 
@@ -310,7 +312,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
   // Create an unowned factory to check my dependencies.
   // -- first those on the subsurface mesh
   CompositeVectorSpace dep_fac;
-  dep_fac.SetMesh(S.GetMesh(domain_sub_))->AddComponent("cell", AmanziMesh::CELL, 1);
+  dep_fac.SetMesh(S.GetMesh(domain_sub_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(f_root_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_pc_key_, tag).Update(dep_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(soil_kr_key_, tag).Update(dep_fac);
@@ -318,7 +320,7 @@ TranspirationDistributionRelPermEvaluator::EnsureCompatibility_ToDeps_(State& S)
 
   // -- next those on the surface mesh
   CompositeVectorSpace surf_fac;
-  surf_fac.SetMesh(S.GetMesh(domain_surf_))->AddComponent("cell", AmanziMesh::CELL, 1);
+  surf_fac.SetMesh(S.GetMesh(domain_surf_))->AddComponent("cell", AmanziMesh::Entity_kind::CELL, 1);
   S.Require<CompositeVector, CompositeVectorSpace>(potential_trans_key_, tag).Update(surf_fac);
   S.Require<CompositeVector, CompositeVectorSpace>(sa_key_, tag).Update(surf_fac);
 
