@@ -7,6 +7,7 @@ set(ats_column_integrator_src_files
   ColumnSumEvaluator.cc
   activelayer_average_temp_evaluator.cc  
   water_table_depth_evaluator.cc
+  perched_water_table_depth_evaluator.cc
   thaw_depth_evaluator.cc
   )
 
@@ -16,6 +17,7 @@ set(ats_column_integrator_inc_files
   ColumnSumEvaluator.hh
   activelayer_average_temp_evaluator.hh
   water_table_depth_evaluator.hh
+  perched_water_table_depth_evaluator.hh
   thaw_depth_evaluator.hh
   )
 

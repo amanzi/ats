@@ -22,6 +22,7 @@ Clients should provide a struct functor that does the actual work, and returns
 
 #include "Factory.hh"
 #include "EvaluatorSecondaryMonotype.hh"
+#include <math.h>
 
 namespace Amanzi {
 namespace Relations {
@@ -130,20 +131,63 @@ EvaluatorColumnIntegrator<Parser, Integrator>::Evaluate_(
   for (int col = 0; col != res.MyLength(); ++col) {
     // for each column, loop over cells calling the integrator until stop is
     // requested or the column is complete
-    AmanziGeometry::Point val(0., 0.);
+    AmanziGeometry::Point val(0., 0., NAN);
     auto col_cell = mesh->columns.getCells(col);
-    for (int i = 0; i != col_cell.size(); ++i) {
-      bool completed = integrator.scan(col, col_cell[i], val);
-      if (completed) break;
+    double h_top = mesh->getCellCentroid(col_cell[0])[2]
+        + mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2;
+    double h_bot = mesh->getCellCentroid(col_cell[col_cell.size() - 1])[2]
+        - mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
+    double h_end, h_half0, h_half1;
+
+    if (plist_.get<std::string>("evaluator type") == "water table depth") {
+      h_end = mesh->getCellCentroid(col_cell[0])[2]; // default at top centroid
+      h_half0 = mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
+      h_half1 = mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2 * (-1);
+      for (int i = col_cell.size() - 1; i >= 0; --i) { // loop from bottom up looking for the 1st unsaturated cell 
+        bool completed = integrator.scan(col, col_cell[i], val);
+        if (completed) {
+          h_end = mesh->getCellCentroid(col_cell[i])[2]; // the first unsaturated cell centroid from bottom up
+          break;
+        }
+      }
+    } else {
+      h_end = mesh->getCellCentroid(col_cell[col_cell.size() - 1])[2]; // default at bottom centroid
+      h_half0 = mesh->getCellVolume(col_cell[0]) * integrator.coefficient(col) / 2 * (-1);
+      h_half1 = mesh->getCellVolume(col_cell[col_cell.size() - 1]) * integrator.coefficient(col) / 2;
+      for (int i = 0; i != col_cell.size(); ++i) { // loop from top down looking for the first saturated cell
+        bool completed = integrator.scan(col, col_cell[i], val);
+        if (completed) {
+          h_end = mesh->getCellCentroid(col_cell[i])[2]; // the first saturated cell centroid from top down
+          break;
+        }
+      }
     }
 
+    // If water table or perched water table, use val[2] to track centroid,
+    // use val[1], val[0] to track cell pressure or volume determined by 
+    // using interpolation or not. If other evaluators, no change, 
     // val[1] is typically e.g. cell volume, but can be 0 to indicate no
     // denominator.  Coefficient provides a hook for column-wide multiples
     // (e.g. 1/surface area).
-    if (val[1] > 0.)
+    if (plist_.get<std::string>("evaluator type") == "perched water table depth" ||
+        plist_.get<std::string>("evaluator type") == "water table depth") {
+      if (std::isnan(val[2])) { // completed at first loop cell
+        res[0][col] = h_top - h_end + h_half0;
+      } else if (val[2] == h_end) { // fail to find satisfied cell util end of loop 
+        res[0][col] = h_top - val[2] + h_half1;
+      } else {
+        if (plist_.get<bool>("determined by pressure interpolation")) {
+          res[0][col] = (val[2] - h_end) * (101325. - val[1]) / (val[0] - val[1]) 
+                      + (h_top - val[2]);
+        } else {
+          res[0][col] = h_top - val[2] + integrator.coefficient(col) * val[1] / 2;
+        }
+      }
+    } else if (val[1] > 0) {
       res[0][col] = integrator.coefficient(col) * val[0] / val[1];
-    else
+    } else {
       res[0][col] = integrator.coefficient(col) * val[0];
+    }
   }
 }
 

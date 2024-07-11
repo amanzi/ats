@@ -33,15 +33,15 @@ Computes the depth to a saturated water table.
 namespace Amanzi {
 namespace Relations {
 
-struct ParserWaterTableDepth {
-  ParserWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
+struct ParserPerchedWaterTableDepth {
+  ParserPerchedWaterTableDepth(Teuchos::ParameterList& plist, const KeyTag& key_tag);
   KeyTagSet dependencies;
 };
 
 
-class IntegratorWaterTableDepth {
+class IntegratorPerchedWaterTableDepth {
  public:
-  IntegratorWaterTableDepth(Teuchos::ParameterList& plist,
+  IntegratorPerchedWaterTableDepth(Teuchos::ParameterList& plist,
                             std::vector<const Epetra_MultiVector*>& deps,
                             const AmanziMesh::Mesh* mesh);
   int scan(AmanziMesh::Entity_ID col, AmanziMesh::Entity_ID c, AmanziGeometry::Point& p);
@@ -56,8 +56,8 @@ class IntegratorWaterTableDepth {
   bool is_interp_;
 };
 
-using WaterTableDepthEvaluator =
-  EvaluatorColumnIntegrator<ParserWaterTableDepth, IntegratorWaterTableDepth>;
+using PerchedWaterTableDepthEvaluator =
+  EvaluatorColumnIntegrator<ParserPerchedWaterTableDepth, IntegratorPerchedWaterTableDepth>;
 
 
 } //namespace Relations
