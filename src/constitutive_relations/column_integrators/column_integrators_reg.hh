@@ -11,6 +11,7 @@
 #include "activelayer_average_temp_evaluator.hh"
 #include "thaw_depth_evaluator.hh"
 #include "water_table_depth_evaluator.hh"
+#include "perched_water_table_depth_evaluator.hh"
 
 
 namespace Amanzi {
