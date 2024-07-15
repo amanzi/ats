@@ -70,8 +70,9 @@ class EvaluatorBCPondedDepth
 
   virtual void EnsureCompatibility(State& S) override;
 
- protected:
   virtual void Update_(State& S) override;
+
+ protected:
   virtual void UpdateDerivative_(State& S, const Key& wrt_key, const Tag& wrt_tag) override {
     AMANZI_ASSERT(false);
   }
