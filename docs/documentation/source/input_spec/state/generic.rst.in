@@ -1,0 +1,26 @@
+Generic evaluators
+------------------
+
+These evaluators take arguments to allow the user to provide custom
+functions via the input spec.
+
+Additive
+^^^^^^^^
+{ AdditiveEvaluator }
+
+Multiplicative
+^^^^^^^^^^^^^^
+{ MultiplicativeEvaluator }
+
+Column summation
+^^^^^^^^^^^^^^^^
+{ ColumnSumEvaluator }
+
+Top cell
+^^^^^^^^
+{ top_cells_surface_evaluator }
+
+Arbitrary function
+^^^^^^^^^^^^^^^^^^
+{ EvaluatorSecondaryMonotypeFromFunction }
+

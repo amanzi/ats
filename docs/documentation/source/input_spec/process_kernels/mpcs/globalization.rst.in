@@ -1,0 +1,24 @@
+Globalization Delegates
+=======================
+
+Globalization is the art of convincing a solver to find the solution.
+Remember -- physics typically cares very little about *how* you get to
+a solution, only that you get there.  If you can guess or otherwise
+find the solution physically, without doing fancy math, go for it!
+These delegates are handy utility classes which are used by MPCs to
+effeciently leverage physics understanding in the mathematical solvers
+to nudge the solver in the direction of a reasonable solution, or to
+keep a solver from going off into a part of space which is totally
+unphysical.  These can often make the difference between converging
+and not converging.
+
+Much of the efficiency of ATS comes from these delegates, and more of
+them are always welcome contributions.
+
+Coupled Water Globalization Delegate
+------------------------------------
+{ mpc_delegate_water }
+
+EWC Globalization Delegate
+--------------------------
+{ mpc_delegate_ewc }

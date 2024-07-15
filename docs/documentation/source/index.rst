@@ -1,14 +1,9 @@
-.. ATS documentation master file, created by
-   sphinx-quickstart on Thu Mar 12 14:16:05 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Advanced Terrestrial Simulator
-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Amanzi-ATS
+$$$$$$$$$$$$$
 
 .. image:: _static/images/coweeta.png
 
-The Advanced Terrestrial Simulator is a code for solving ecosystem-based, integrated, distributed hydrology.
+Amanzi-ATS is a code for solving ecosystem-based, integrated, distributed hydrology.
 
 Capabilities are largely based on solving various forms of Richards equation, coupled to a surface flow equation, along with the needed sources and sinks for ecosystem and climate models. This can (but need not) include thermal processes (especially ice for frozen soils), evapotranspiration, surface energy balances, snow, biogeochemistry, plant dynamics, deformation, transport, and much more.
 
@@ -51,6 +46,8 @@ Additionally, consider citing one or more of the below, depending upon the appli
 
 **Multiphysics Modeling:** Coon, Ethan T., J. David Moulton, and Scott L. Painter. "Managing complexity in simulations of land surface and near-surface processes." Environmental modelling & software 78 (2016): 134-149. `DOI <https://doi.org/10.1016/j.envsoft.2015.12.017>`_
 
+You may also be interested in pursing the list of `all peer-reviewed literature using ATS <https://amanzi.github.io/references/>`_.
+
 
 Wiki
 %%%%
@@ -58,17 +55,13 @@ Wiki
 Please see our `Wiki Page <https://github.com/amanzi/ats/wiki>`_ for frequently asked questions and a Developer's Guide.
 
 
+User Guide
+%%%%%%%%%%
+
 .. toctree::
-   :maxdepth: 2
-   :caption: User Guide:
+   :maxdepth: 1
 
    demos
-   input_spec
+   input_spec/index
 
 
-Indices and tables
-%%%%%%%%%%%%%%%%%%
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

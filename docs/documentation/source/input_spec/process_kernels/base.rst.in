@@ -1,0 +1,24 @@
+Base PKs
+========
+There are several types of PKs, and each PK has its own valid input
+spec.  However, there are three main types of PKs, from which nearly
+all PKs derive.  Note that none of these are true PKs and cannot stand
+alone.
+
+PK base class
+-------------
+{ PK }
+
+PK: Physical
+------------
+{ pk_physical_default }
+
+
+PK: BDF
+-------
+{ pk_bdf_default }
+
+PK: Physical and BDF
+--------------------
+{ pk_physical_bdf_default }
+

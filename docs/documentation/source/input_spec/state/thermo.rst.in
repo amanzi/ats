@@ -1,0 +1,79 @@
+Thermodynamic evaluators
+-------------------------
+
+Internal energy, enthalpy, thermal conductivity, etc used for both
+surface and subsurface transport of energy.
+
+Internal energy
+^^^^^^^^^^^^^^^
+{ iem_evaluator }
+
+Linear
+~~~~~~
+{ iem_linear }
+
+Quadratic
+~~~~~~~~~
+{ iem_quadratic }
+
+Water Vapor
+~~~~~~~~~~~
+{ iem_water_vapor_evaluator }
+{ iem_water_vapor }
+
+Enthalpy
+~~~~~~~~
+{ enthalpy_evaluator }
+
+Thermal Conductivity, two phases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ thermal_conductivity_twophase_evaluator }
+
+Wet-Dry Model
+~~~~~~~~~~~~~
+{ thermal_conductivity_twophase_wetdry }
+
+Peters-Lidard Model
+~~~~~~~~~~~~~~~~~~~
+{ thermal_conductivity_twophase_peterslidard }
+
+Thermal Conductivity, three phases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ thermal_conductivity_threephase_evaluator }
+
+Wet-Dry Model
+~~~~~~~~~~~~~
+{ thermal_conductivity_threephase_wetdry }
+
+Peters-Lidard Model
+~~~~~~~~~~~~~~~~~~~
+{ thermal_conductivity_threephase_peterslidard }
+
+Volume-averaged Model
+~~~~~~~~~~~~~~~~~~~~~
+{ thermal_conductivity_threephase_volume_averaged }
+
+Sutra-ICE model
+~~~~~~~~~~~~~~~~~~~
+{ thermal_conductivity_threephase_sutra_hacked }
+
+Thermal Conductivity, Surface
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ thermal_conductivity_surface_evaluator }
+
+Advected Energy Source
+^^^^^^^^^^^^^^^^^^^^^^
+{ advected_energy_source_evaluator }
+
+Active Layer Averaged Temperature
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ activelayer_average_temp_evaluator }
+
+Water Table
+^^^^^^^^^^^
+{ water_table_depth_evaluator }
+
+Thaw Depth
+^^^^^^^^^^
+{ thaw_depth_evaluator }
+

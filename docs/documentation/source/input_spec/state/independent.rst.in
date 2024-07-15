@@ -1,0 +1,22 @@
+Independent Variables
+---------------------
+
+Independent variables are variables which do not depend upon other
+dependent variables but are provided as data by the user.  Examples
+include material properties, forcing datasets, etc.  These can be
+provided in a few forms:
+
+.. _EvaluatorIndependentConstant:
+
+Independent Variable Constant
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ EvaluatorIndependentConstant }
+
+Independent Variable From Function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ EvaluatorIndependentFunction }
+
+Independent Variable From File
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ EvaluatorIndependentFromFile }
+

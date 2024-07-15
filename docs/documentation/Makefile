@@ -27,7 +27,7 @@ sphinx_help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 worktree:
-	cd build && git worktree add html gh-pages
+	cd deploy && git worktree add html gh-pages
 
 html:
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -38,14 +38,20 @@ pdf:
 input_spec:
 	$(MAKE) -C source/input_spec clean rst
 
+deploy_master:
+	cp -r build/html/* deploy/html/dev/
+
 deploy:
-	cd build/html && \
+	cd deploy/html && \
 	git add --all && \
 	git commit -m "Deployment to gh-pages" && \
 	git push origin gh-pages
 
 clean:
-	rm -rf build/html/*
+	rm -rf build/html
+
+allclean:
+	rm -rf build/*
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).

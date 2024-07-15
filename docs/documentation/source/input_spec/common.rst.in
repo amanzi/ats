@@ -1,0 +1,137 @@
+Shared Specs
+############
+
+
+Initial Conditions
+==================
+
+Initial condition specs are used in three places:
+
+* In the `"initial conditions`" sublist of state, in which the value
+  of atomic constants are provided (not really initial conditions and
+  should be renamed).  These atomic values are not controlled by
+  evaluators, and are not included in the DaG.
+
+* Within the PK_ spec which describes the initial condition of primary variables (true
+  initial conditions).
+
+* In :ref:`Independent Variable Constant`
+
+The first may be of multiple types of data, while the latter two are
+nearly always fields on a mesh (e.g. CompositeVectors).  The specific
+available options for initializing various data in state differ by
+data type.
+
+{ Data_Helpers }
+
+Boundary Conditions
+====================
+
+{ bc_factory }
+
+Flow-specific Boundary Conditions
+----------------------------------
+
+{ flow_bc_factory }
+
+Transport-specific Boundary Conditions
+--------------------------------------
+
+{ TransportBoundaryFunction_Alquimia }
+
+
+Energy-specific Boundary Conditions
+-----------------------------------
+
+{ energy_bc_factory }
+
+
+Functions
+=========
+
+{ Function }
+
+It is straightforward to add new functions as needed.
+
+Constant Function
+-------------------------
+{ FunctionConstant }  
+
+Tabular Function
+-------------------------
+{ FunctionTabular }
+
+Smooth step Function
+-------------------------
+{ FunctionSmoothStep }
+
+Polynomial Function
+-------------------------
+{ FunctionPolynomial }  
+
+Multi-variable linear Function
+------------------------------
+{ FunctionLinear }  
+
+Separable Function
+------------------
+{ FunctionSeparable }
+
+Additive Function
+------------------
+{ FunctionAdditive }
+
+Multiplicative Function
+--------------------------
+{ FunctionMultiplicative }
+
+Composition Function
+--------------------------
+{ FunctionComposition }
+
+Piecewise Bilinear Function
+---------------------------
+{ FunctionBilinear }
+
+Distance Function
+-----------------
+{ FunctionDistance }
+
+Monomial Function
+-----------------
+{ FunctionMonomial }
+
+Standard Math Function
+----------------------
+{ FunctionStandardMath }
+
+
+
+PDE_Advection
+-------------
+
+{ PDE_Advection }
+
+{ PDE_AdvectionUpwind }
+
+
+Field Initializers
+==================
+
+Fields, also known by their underlying datatype, the CompositeVector,
+can be initialized in a variety of ways.  These are used in a variety
+of places as generic capability.
+
+Function Initialization
+-----------------------
+.. _CompositeVectorFunction:
+
+{ CompositeVectorFunctionFactory }
+
+Column File Initialization
+--------------------------
+{ ColumnMeshFunction }
+
+Exodus File Initialization
+--------------------------
+{ IO }

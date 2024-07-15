@@ -277,9 +277,12 @@ class RegressionTest(object):
         else:
             if self._np is not None:
                 if self._mpiexec:
-                    command.append(self._mpiexec)
-                    command.append("-np")
-                    command.append(self._np)
+                    command.append(str(self._mpiexec['mpiexec']))
+                    if self._mpiexec['mpiexec_global_args'] is not None and \
+                       self._mpiexec['mpiexec_global_args'] != '':
+                        command.append(str(self._mpiexec['mpiexec_global_args']))
+                    command.append(str(self._mpiexec['mpiexec_numprocs_flag']))
+                    command.append(str(self._np))
                 else:
                     # parallel test, but don't have mpiexec, we mark the
                     # test as skipped and bail....
@@ -289,6 +292,12 @@ class RegressionTest(object):
                     print(message, file=testlog)
                     status.skipped = 1
                     return None
+            else:
+                if self._mpiexec and self._mpiexec['always_mpiexec']:
+                    command.append(str(self._mpiexec['mpiexec']))
+                    command.append(str(self._mpiexec['mpiexec_global_args']))
+                    command.append(str(self._mpiexec['mpiexec_numprocs_flag']))
+                    command.append('1')
 
         # Setting CWD for current test
         test_directory = os.getcwd()
@@ -920,9 +929,15 @@ class RegressionTestManager(object):
 
     """
 
-    def __init__(self, executable=None, mpiexec=None, suffix=None):
+    def __init__(self,
+                 executable=None,
+                 mpiexec_opts=None,
+                 suffix=None):
         self._executable = executable
-        self._mpiexec = mpiexec
+        if mpiexec_opts is None or mpiexec_opts['mpiexec'] is None:
+            self._mpiexec = None
+        else:
+            self._mpiexec = mpiexec_opts
         self._version = version(executable)
         self._debug = False
         self._file_status = TestStatus()
@@ -1477,10 +1492,10 @@ def check_for_executable(options, testlog):
 
     else:
         # absolute path to the executable
-        if ( "metsi/ats" in options.executable[0] ):
-            executable=check_for_docker_image(options.executable[0])
+        if "metsi/ats" in options.executable:
+            executable = check_for_docker_image(options.executable)
         else:
-            executable = os.path.abspath(options.executable[0])
+            executable = os.path.abspath(options.executable)
             # is it a valid file?
             if not os.path.isfile(executable):
                 raise RuntimeError("ERROR: executable is not a valid file: "
@@ -1516,8 +1531,7 @@ def check_for_mpiexec(options, testlog):
         except IOError:
             mpiexec = None
     else:
-        # mpiexec = os.path.abspath(options.mpiexec[0])
-        mpiexec = options.mpiexec[0]
+        mpiexec = options.mpiexec
 
     if mpiexec is not None:
         # check that we can use it
@@ -1534,7 +1548,17 @@ def check_for_mpiexec(options, testlog):
         print(message, file=sys.stdout)
         print(message, file=testlog)
 
-    return mpiexec
+    if mpiexec is None:
+        return None
+    else:
+        mpiexec_opts = dict(mpiexec=mpiexec,
+                            mpiexec_global_args=options.mpiexec_global_args,
+                            always_mpiexec=options.always_mpiexec)
+        if options.mpiexec_numprocs_flag is None:
+            mpiexec_opts['mpiexec_numprocs_flag'] = '-n'
+        else:
+            mpiexec_opts['mpiexec_numprocs_flag'] = options.mpiexec_numprocs_flag
+        return mpiexec_opts
 
 
 def summary_report_by_file(report, outfile):

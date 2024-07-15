@@ -1,0 +1,144 @@
+Physical PKs
+============
+Physical PKs are the physical capability implemented within ATS.
+
+Flow PKs
+--------
+
+Flow PKs describe the conservation of mass of water as it flows both
+above and below-ground.  Subsurface flow PKs are based on 3D Richards
+equation, which describes variably saturated flow in porous media.
+Minor variations to this include the incorporation of freeze-thaw
+processes.  Surface flow PKs are based on a diffusion wave equation
+and Manning's model for sheet flow.  Variations to this also include
+the incorporation of freeze-thaw processes.  Finally we include in
+flow a "snow distribution" algorithm which takes as input
+precipitation and applies it based on the existing surface level
+(elevation + water + snowpack), thereby "filling in" low-lying areas
+preferentially.  This makes for more accurate snowpacks at fine
+scales.
+
+Richards PK
+^^^^^^^^^^^
+{ richards }
+
+Permafrost Flow PK
+^^^^^^^^^^^^^^^^^^
+{ permafrost }
+
+Overland Flow PK
+^^^^^^^^^^^^^^^^
+{ overland_pressure }
+
+Overland Flow with Ice
+^^^^^^^^^^^^^^^^^^^^^^
+{ icy_overland }
+
+Snow Distribution PK
+^^^^^^^^^^^^^^^^^^^^
+{ snow_distribution }
+
+
+Transport PK
+------------
+
+The Transport PK describes the conservation of mass of components transported
+with water as it flows. The transport PK is based on the advection-diffusion 
+equation, applies to one or more components that are dissolved in the aqueous 
+phase, and is currently used in both surface and subsurface compartments. 
+The key difference between surface and subsurface transport is in capturing 
+the volume of water. In the subsurface, the volume of water is set by the 
+porosity and saturation of the porous medium, while in the surface it is set 
+by the ponded depth.
+
+{transport_ats}
+
+Energy PKs
+-----------
+
+Energy PKs describe the conservation of energy as it is advected and
+diffuses both above and below-ground.  Both surface and subsurface
+energy equations are based on a simple advection-diffusion equation,
+and include variants with and without freeze-thaw processes.
+
+Energy Base PK
+^^^^^^^^^^^^^^
+{ energy_base }
+
+Two-Phase subsurface Energy PK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_two_phase }
+
+Three-Phase subsurface Energy PK
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_three_phase }
+
+Overland energy with Ice
+^^^^^^^^^^^^^^^^^^^^^^^^
+{ energy_surface_ice }
+
+
+
+Surface Energy Balance PKs
+------------------------------
+
+Integrated hydrology is not much use without significant process
+complexity in source terms coming from the ecohydrologic environment.
+These include straightforward sources, like precipitation, but also
+more complicated ones such as evaporation and transpiration.
+
+These terms are almost always tied up in a surface energy balance --
+evaporation and transpiration are driven by vapor pressure gradients
+between the atmosphere and the surface (either snow, ponded water,
+soil, or leaf).  Solving a surface energy balance often requires
+providing a bunch of terms, including radiated energy, conducted
+energy, latent and sensible heat models, etc.
+
+ATS currently has several approaches to calculating these -- see
+`ats-demos <https://github.com/amanzi/ats-demos>`_ examples on
+ecohydrology for a more in-depth discussion.
+
+Balance Equation
+^^^^^^^^^^^^^^^^
+{ surface_balance_base }
+
+
+Snow Balance Equation
+^^^^^^^^^^^^^^^^^^^^^
+{ surface_balance_implicit_subgrid }
+
+Biogeochemistry
+---------------
+
+To accurately predict watershed ecohydrology, a carbon cycle model is
+needed to predict transpiration.  By simulating a carbon cycle, we are
+able to predict the rate of photosynthesis as a function of space and
+time, and photosynthesis governs root water uptake.  Currently only
+one big-leaf model is available, but ongoing work is wrapping a
+generalized Common/Colorado Land Model based on that developed within
+the ParFlow team, and another ongoing project is working on wrapping
+kernels from E3SM's Land Model.
+
+Biogeochemistry -- Monolithic Version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ bgc_simple }
+
+
+
+Deformation
+-------------
+
+The unstructured mesh framework we use provides the opportunity to
+include deformation of the mesh.  This deformation can be done in two
+ways -- either node coordinate changes are provided, or volumetric
+changes are provided, and the code attempts to iterate toward a global
+coordinate change that satisfies these volumetric changes.  The latter
+can be somewhat fragile for large deformation, but it does allow
+simple deformation such as small, somewhat uniform subsidence.  The
+volumetric deformation PK below does this based on a volumetric change
+given by loss of bulk ice.
+
+Volumetric Deformation
+^^^^^^^^^^^^^^^^^^^^^^
+{ volumetric_deformation }
+
