@@ -55,7 +55,7 @@ void
 RelativeHydraulicConductivityEvaluator::Evaluate_(const State& S,
                                                   const std::vector<CompositeVector*>& results)
 {
-  *results[0] = S.Get<CompositeVector>(krel_key_);
+  results[0]->assign(S.Get<CompositeVector>(krel_key_));
   if (use_surface_relperm_) {
     const auto& surf_kr_vec = S.Get<CompositeVector>(surf_krel_key_);
     auto surf_kr = surf_kr_vec.viewComponent("cell", false);
@@ -124,7 +124,7 @@ RelativeHydraulicConductivityEvaluator::EvaluatePartialDerivative_(
 
   } else if (wrt == visc_key_) {
     auto res = results[0]->viewComponent("cell", false);
-    auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("boundary_face", false);
+    auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("cell", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
     auto krel = S.Get<CompositeVector>(krel_key_).viewComponent("cell", false);
 
@@ -137,7 +137,7 @@ RelativeHydraulicConductivityEvaluator::EvaluatePartialDerivative_(
 
   } else if (wrt == krel_key_) {
     auto res = results[0]->viewComponent("cell", false);
-    auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("boundary_face", false);
+    auto dens = S.Get<CompositeVector>(dens_key_).viewComponent("cell", false);
     auto visc = S.Get<CompositeVector>(visc_key_).viewComponent("cell", false);
 
     Kokkos::parallel_for(
