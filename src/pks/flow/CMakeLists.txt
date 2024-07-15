@@ -15,9 +15,7 @@ include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/porosi
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/wrm)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
 include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/overland_conductivity)
-# include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/elevation)
-# include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/sources)
-# include_directories(${ATS_SOURCE_DIR}/src/constitutive_relations/eos)
+include_directories(${ATS_SOURCE_DIR}/src/pks/flow/constitutive_relations/boundary_conditions)
 
 
 set(ats_flow_src_files
@@ -25,6 +23,7 @@ set(ats_flow_src_files
   constitutive_relations/wrm/relative_hydraulic_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.cc
   constitutive_relations/overland_conductivity/manning_conductivity_model.cc
+  constitutive_relations/boundary_conditions/EvaluatorBCPondedDepth.cc
   predictor_delegate_bc_flux.cc
   richards_pk.cc
   richards_ti.cc
@@ -60,8 +59,9 @@ set(ats_flow_inc_files
   constitutive_relations/overland_conductivity/overland_conductivity_evaluator.hh
   constitutive_relations/sources/soil_resistance_sakagucki_zeng_model.hh
   constitutive_relations/sources/soil_resistance_sakagucki_zeng_evaluator.hh
-  predictor_delegate_bc_flux.hh
+  constitutive_relations/boundary_conditions/EvaluatorBCPondedDepth.hh
 
+  predictor_delegate_bc_flux.hh
   richards.hh
   richards_steadystate.hh
   overland_pressure.hh
@@ -108,6 +108,8 @@ register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/wrm/flow_
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/sources/flow_relations_sources_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
 register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/overland_conductivity/flow_relations_overland_conductivity_reg.hh"
+  LISTNAME ATS_FLOW_RELATIONS_REG)
+register_abs_evaluator_with_factory(HEADERFILE "constitutive_relations/boundary_conditions/flow_relations_boundary_conditions_reg.hh"
   LISTNAME ATS_FLOW_RELATIONS_REG)
 
 generate_evaluators_registration_header(

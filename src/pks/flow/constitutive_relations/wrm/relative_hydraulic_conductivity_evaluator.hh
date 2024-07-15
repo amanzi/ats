@@ -75,8 +75,6 @@ class RelativeHydraulicConductivityEvaluator
 
   KeyTag dens_key_, visc_key_, krel_key_;
 
-  double rescaling_;
-
  private:
   // registration in the evaluator factory
   static Utils::RegisteredFactory<Evaluator, RelativeHydraulicConductivityEvaluator> reg_;

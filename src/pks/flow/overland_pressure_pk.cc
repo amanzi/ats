@@ -132,11 +132,17 @@ OverlandPressureFlow::parseParameterList()
         .set<std::string>("function list name", "water flux")
         .set<std::string>("function inner list name", "outward water flux [mol m^-1 s^-1]");
       bcs_found.emplace_back(bc_flux_name);
+    } else if (bc_sublist.first == "ponded depth") {
+      // -- Dirichlet with value of this ponded depth + mesh elevation
+      auto bc_pd_name = Keys::getKey(domain_, name_ + "_bcs_ponded_depth");
+      Teuchos::ParameterList& bc_pd_list = S_->GetEvaluatorList(bc_pd_name);
+      bc_pd_list.set("ponded depth", bc_plist->sublist("ponded depth"));
+      bc_pd_list.set<std::string>("evaluator type", "flow BC ponded depth");
+      bcs_found.emplace_back(bc_pd_name);
     }
     // Need to add:
-    //  - ponded depth
+    //  - seepage face head
     //  - zero gradient
-    //  - seepage face
     //  - critical depth
     //  - ???
   }
