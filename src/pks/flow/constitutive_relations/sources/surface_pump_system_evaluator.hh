@@ -52,29 +52,46 @@ class SurfPumpEvaluator : public EvaluatorSecondaryMonotypeCV {
     // instead.
     return false;
   }
-  
+
  protected:
-  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override;
+
+  virtual void EnsureCompatibility_Structure_(State& S) override;
+
+  // note, we override Update here because we are working around the fact that
+  // this is not really a Monotype evaluator, but also evaluates a flag
+  // (pump_on).  Therefore we must override Update to get the non-const flag
+  // from State prior to calling Evaluate_.
+  virtual void Update_(State& S) override;
+
+  // Two Evaluates are implemented here -- one is the one that accepts the
+  // flag, the other is the one required by the EvaluatorSecondaryMonotypeCV
+  // API, which is just empty and throws an error.
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result, int& pump_on);
+
+  virtual void Evaluate_(const State& S, const std::vector<CompositeVector*>& result) override {
+    AMANZI_ASSERT(false);
+  }
   virtual void EvaluatePartialDerivative_(const State& S,
                                         const Key& wrt_key,
                                         const Tag& wrt_tag,
                                         const std::vector<CompositeVector*>& result) override{};
 
  protected:
-  Key domain_;
   Key cv_key_;
   Key pd_key_;
-  Key  liq_den_key_;
+  Key liq_den_key_;
   Key wc_key_;
   Key pe_key_;
-  // Key  gate_func_key_;
+
+  Key pump_on_key_;
+
   std::string pump_outlet_region_;
   std::string pump_inlet_region_;
   std::string on_off_region_;
   double max_elev_pumpline_;
   double stage_on_;
-  double stage_off_; 
-  bool pump_on;
+  double stage_off_;
+
   Teuchos::RCP<Function> Q_pump_;
 
  private:
