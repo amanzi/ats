@@ -445,6 +445,7 @@ def update(xml, transpiration_distribution=False, frozen_krel=False,
            soil_res='Sakagucki-Zeng'):
     """generic update calls all needed things"""
     mafic_to_cap_pres(xml)
+    replace_string_in_name(xml, "rooting_depth_fraction", "root_fraction")
     retype_evaluator(xml, "rooting depth fraction", "root fraction")
     surface_temp(xml)
 
