@@ -45,15 +45,15 @@ ImperviousInterceptionEvaluator::Evaluate_(const State& S, const std::vector<Com
   const auto& imp_frac = *S.Get<CompositeVector>(imp_frac_key_, tag).ViewComponent("cell", false);
   const auto& imp_rec_id = *S.Get<CompositeVector>(imp_rec_id_key_, tag).ViewComponent("cell", false);
 
-  if (importer_ == Teuchos::null) {
-    // target map is the destination/receiving ID
-    std::vector<AmanziMesh::Entity_ID> target_id(src.MyLength());
-    for (int c = 0; c != src.MyLength(); ++c) {
-      target_id[c] = (AmanziMesh::Entity_ID) imp_rec_id[0][c];
-    }
-    Epetra_BlockMap target_map(-1, target_id.size(), target_id.data(), 1, 0, src.Comm());
-    importer_ = Teuchos::rcp(new Epetra_Import(target_map, src.Map()));
-  }
+  // if (importer_ == Teuchos::null) {
+  //   // target map is the destination/receiving ID
+  //   std::vector<AmanziMesh::Entity_ID> target_id(src.MyLength());
+  //   for (int c = 0; c != src.MyLength(); ++c) {
+  //     target_id[c] = (AmanziMesh::Entity_ID) imp_rec_id[0][c];
+  //   }
+  //   Epetra_BlockMap target_map(-1, target_id.size(), target_id.data(), 1, 0, src.Comm());
+  //   importer_ = Teuchos::rcp(new Epetra_Import(target_map, src.Map()));
+  // }
 
   Epetra_MultiVector& modified_src = *result[0]->ViewComponent("cell", false);
   Epetra_MultiVector diverted_water(modified_src.Map(), 1);
@@ -65,11 +65,31 @@ ImperviousInterceptionEvaluator::Evaluate_(const State& S, const std::vector<Com
     modified_src[0][c] = imp_rec_id[0][c] < 0 ? cv[0][c] * src[0][c] : cv[0][c] * (1 - imp_frac[0][c]) * src[0][c];
   }
 
-  // then sum diverted into modified
-  modified_src.Import(diverted_water, *importer_, Add);
+  // // then sum diverted into modified
+  // modified_src.Import(diverted_water, *importer_, Add);
+
+  for (int c = 0; c != diverted_water.MyLength(); ++c) {
+      int rec_index = static_cast<int>(imp_rec_id[0][c]);  // Explicit cast to integer
+      if (rec_index > -1) {
+          modified_src[0][rec_index] += diverted_water[0][c];
+      }
+  }
 
   // lastly divide by the local cell volume
-  modified_src.ReciprocalMultiply(1., modified_src, cv, 0.);
+  modified_src.ReciprocalMultiply(1., cv, modified_src, 0.);
+
+  // check if the total original and modified sources are the same
+  double total_src = 0.0;
+  double total_modified_src = 0.0;
+
+  for (int c = 0; c != src.MyLength(); ++c) {
+    total_src += cv[0][c] * src[0][c];
+    total_modified_src += cv[0][c] * modified_src[0][c];
+  }
+
+  assert(std::abs(total_src - total_modified_src) < 1e-6 && "Total volumes differ between original and modified sources"); 
+  // replace with ATS way of error message or exception
+
 }
 
 } // namespace Relations
