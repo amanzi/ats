@@ -41,6 +41,7 @@ actual work.
 #include "TimeStepManager.hh"
 #include "Visualization.hh"
 #include "VisualizationDomainSet.hh"
+#include "MeshInfo.hh"
 #include "IO.hh"
 #include "GeometricModel.hh"
 #include "Checkpoint.hh"
@@ -50,6 +51,7 @@ actual work.
 #include "TreeVector.hh"
 #include "PK_Factory.hh"
 #include "pk_helpers.hh"
+
 
 #include "ats_mesh_factory.hh"
 
@@ -168,7 +170,16 @@ Coordinator::Coordinator(const Teuchos::RCP<Teuchos::ParameterList>& plist,
         analysis.RegionAnalysis();
         analysis.OutputBCs();
       }
+
+      // writes cellcentroids in global ordering
+      if (plist_->sublist("mesh").sublist(mesh->first).isSublist("mesh info")){
+        auto& mesh_info_list = plist_->sublist("mesh").sublist(mesh->first).sublist("mesh info");
+        Teuchos::RCP<Amanzi::MeshInfo> mesh_info =
+          Teuchos::rcp(new Amanzi::MeshInfo(mesh_info_list, *S_));
+        mesh_info->WriteMeshCentroids(mesh->first, *(mesh->second.first));
+      }      
     }
+
 
     // create the observations
     Teuchos::ParameterList& observation_plist = plist_->sublist("observations");
