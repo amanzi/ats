@@ -139,6 +139,11 @@ OverlandPressureFlow::parseParameterList()
       bc_pd_list.set("ponded depth", bc_plist->sublist("ponded depth"));
       bc_pd_list.set<std::string>("evaluator type", "flow BC ponded depth");
       bcs_found.emplace_back(bc_pd_name);
+    } else {
+      Errors::Message msg;
+      msg << "Invalid overland_pressure PK boundary condition: \"" << bc_sublist.first << "\", valid are"
+          << "\"water level\", \"water flux\", or \"ponded depth\".";
+      Exceptions::amanzi_throw(msg);
     }
     // Need to add:
     //  - seepage face head
