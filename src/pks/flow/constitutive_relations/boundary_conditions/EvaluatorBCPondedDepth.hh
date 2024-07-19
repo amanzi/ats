@@ -70,6 +70,7 @@ class EvaluatorBCPondedDepth
 
   virtual void EnsureCompatibility(State& S) override;
 
+  // not protected because it calls kernels
   virtual void Update_(State& S) override;
 
  protected:
