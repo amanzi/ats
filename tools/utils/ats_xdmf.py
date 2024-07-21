@@ -15,7 +15,7 @@ def valid_data_filename(domain, format=None):
     fname = format.format(domain)
     fname = fname.replace('__', '_')
     return fname
-    
+
 def valid_mesh_filename(domain, format=None):
     """Argparse validator for an HDF5 mesh filename formatter"""
     if format is None:
@@ -82,7 +82,7 @@ class VisFile:
         self.d = h5py.File(self.fname,'r')
         self.loadTimes()
         self.map = None
-        
+
     def __enter__(self):
         return self
 
@@ -91,6 +91,10 @@ class VisFile:
 
     def close(self):
         self.d.close()
+
+    def search(self, string):
+        """Search for string in list of variables."""
+        return [k for k in self.d.keys() if string in k]
 
     def loadTimes(self):
         """(Re-)loads the list of cycles and times."""
@@ -125,7 +129,7 @@ class VisFile:
             assert(max(inds) < len(self.cycles))
             self.cycles = [self.cycles[i] for i in inds]
             self.times = np.array([self.times[i] for i in inds])
-        
+
     def filterCycles(self, cycles):
         """Filter the vis file based on cycles.
 
@@ -198,7 +202,7 @@ class VisFile:
     def _get(self, vname, cycle):
         """Private get: assumes vname is fully resolved, and does not deal with maps."""
         return self.d[vname][cycle][:,0]
-    
+
     def get(self, vname, cycle):
         """Access a data member.
 
@@ -208,7 +212,7 @@ class VisFile:
           Base variable name, e.g. 'pressure'
         cycle : int
           Cycle to access.
-        
+
         Returns
         -------
         value : np.array
@@ -220,7 +224,7 @@ class VisFile:
             return val
         else:
             return reorder(val, self.map)
-        return 
+        return
 
     def getArray(self, vname):
         """Access an array of all cycle values.
@@ -241,8 +245,8 @@ class VisFile:
             return val
         else:
             return reorder(val, self.map)
-            
-    
+
+
     def loadMesh(self, cycle=None, order=None, shape=None, columnar=False, round=5):
         """Load and reorder centroids and volumes of mesh.
 
@@ -266,7 +270,7 @@ class VisFile:
         if order is None and shape is None and not columnar:
             self.map = None
             self.centroids = centroids
-       
+
         else:
             self.centroids, self.map = structuredOrdering(centroids, order, shape, columnar)
 
@@ -285,7 +289,7 @@ class VisFile:
     def getMeshPolygons(self, edgecolor='k', cmap='jet', linewidth=1):
         polygons = matplotlib.collections.PolyCollection(self.polygon_coordinates, edgecolor=edgecolor, cmap=cmap, linewidths=linewidth)
         return polygons
-    
+
 
 elem_type = {5:'QUAD',
              8:'PRISM',
@@ -296,9 +300,6 @@ elem_type = {5:'QUAD',
 
 def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
     """Reads a mesh nodal coordinates and connectivity.
-
-    Note this only currently works for fixed structure meshes, i.e. not
-    arbitrary polyhedra.
 
     Parameters
     ----------
@@ -313,13 +314,13 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
     Returns
     -------
     elemtype : str
-      One of 'QUAD', 'PRISM', 'HEX', or 'TRIANGLE' if typed mesh, or 'MIXED' if mesh has more than one types including 'NSIDED' and 'NFACED' 
+      One of 'QUAD', 'PRISM', 'HEX', or 'TRIANGLE' if typed mesh, or 'MIXED' if
+      mesh has more than one types including 'NSIDED' and 'NFACED'
     coords : np.ndarray
       2D nodal coordinate array.  Shape is (n_nodes, dimension).
-    conn : np.ndarray
-      2D connection array.  Shape is (n_elem, n_nodes_per_elem + 1), where the
-      0th entry in each row is the element type enum, and the remainder of the
-      entries are the indices into the nodal array.
+    conn : list[np.1darray]
+      List of length n_elem, each entry is a list of the nodal indices of that
+      element.
 
     """
     with h5py.File(os.path.join(directory, filename), 'r') as dat:
@@ -328,8 +329,7 @@ def meshXYZ(directory=".", filename="ats_vis_mesh.h5", key=None):
 
         mesh = dat[key]['Mesh']
         elem_conn = mesh['MixedElements'][:,0]
-        coords = coords = mesh['Nodes'][:]
-        #coords = dict(zip(mesh['NodeMap'][:,0], mesh['Nodes'][:]))
+        coords = mesh['Nodes'][:]
         elem_type, conns = read_conn(elem_conn)
 
     return elem_type, coords, conns
@@ -341,7 +341,7 @@ def meshElemPolygons(etype, coords, conn):
         raise RuntimeError("Only works for Hexs")
 
     y_mean = np.array([c[1] for c in coords]).mean()
-    
+
     coords2 = np.array([[coords[i][0::2] for i in c[1:] if coords[i][1] > y_mean] for c in conn])
     try:
         assert coords2.shape[2] == 2
@@ -372,9 +372,6 @@ def meshElemPolygons(etype, coords, conn):
 def meshElemCentroids(directory=".", filename="ats_vis_mesh.h5", key=None, round=5):
     """Reads and calculates mesh element centroids.
 
-    Note this only currently works for fixed structure meshes, i.e. not
-    arbitrary polyhedra.
-
     Parameters
     ----------
     directory : str, optional
@@ -397,11 +394,11 @@ def meshElemCentroids(directory=".", filename="ats_vis_mesh.h5", key=None, round
     elem_type, coords, conn = meshXYZ(directory, filename, key)
     centroids = np.zeros((len(conn),3),'d')
     for i,elem in enumerate(conn):
-        elem_coords = np.array([coords[gid] for gid in elem[1:]])
+        elem_coords = np.array([coords[gid] for gid in elem])
         elem_z = np.mean(elem_coords, axis=0)
         centroids[i,:] = elem_z
     return np.round(centroids, round)
-    
+
 
 def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     """Reorders coordinates in a natural ordering for structured meshes.
@@ -434,10 +431,10 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
       The re-ordered coordinates, shape (n_coordinates, dimension).
     map : np.ndarray(int)
       Indices of the new coordinates in the old array.  If shape is
-      not provided, this is a 1D array and 
+      not provided, this is a 1D array and
         ordered_coordinates[i] == coordinates[map[i]]
       If shape is provided or guess_shape is True, this is a
-      len(shape)+1-D array and: 
+      len(shape)+1-D array and:
         ordered_coordinates[i,...,k] == coordinates[map[i,...,k]]
 
     Examples
@@ -453,13 +450,13 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     x.  Both input and output are of shape (2000, 3), but the output
     is sorted with each column appearing sequentially and the
     z-dimension fastest-varying.  map is of shape (2000,).
-    
+
       > ordered_centroids, map = structuredOrdering(centroids, ['z',])
 
     Do the same, but this time reshape into a 2D array.  Now the
     ordered_centroids are of shape (100, 20, 3), and the map is of
     shape (100, 20).
-    
+
       > ordered_centroids, map = structuredOrdering(centroids, ['z',], [20,])
 
     Do the same as above, but detect the shape.  This works only
@@ -480,8 +477,8 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
     """
     if columnar:
         order = ['x', 'y', 'z',]
-        
-    
+
+
     # Surely there is a cleaner way to do this in numpy?
     # The current approach packs, sorts, and unpacks.
     if (coordinates.shape[1] == 3):
@@ -498,7 +495,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
         ordered_coordinates = np.array([coords_a['x'], coords_a['y'], coords_a['z']]).transpose()
     else:
         ordered_coordinates = np.array([coords_a['x'], coords_a['y']]).transpose()
-        
+
     if columnar:
         # try to guess the shape based on new-found contiguity
         n_cells_in_column = 0
@@ -507,7 +504,7 @@ def structuredOrdering(coordinates, order=None, shape=None, columnar=False):
               np.allclose(xy, ordered_coordinates[n_cells_in_column,0:2], 0., 1.e-5):
             n_cells_in_column += 1
         shape = [n_cells_in_column,]
-     
+
 
     if shape is not None:
         new_shape = (-1,) + tuple(shape)
@@ -528,7 +525,7 @@ def reorder(data, map):
     Parameters
     ----------
     data : np.ndarray
-      The data, i.e. provided by VisFile.get() or VisFile.getArray() 
+      The data, i.e. provided by VisFile.get() or VisFile.getArray()
     map : np.ndarray
       A reordering of indices to remap the data based on a map
       returned by structuredOrdering()
@@ -580,14 +577,14 @@ def read_conn(elem_conn):
         conns.append(conn)
     if len(set(etypes)) == 1:
         elem_type = set(etypes).pop()
-    else: 
+    else:
         elem_type = 'MIXED'
     return elem_type, conns
 
 
 def read_element_dirty(elem_conn, i):
     """Reads the element at location i,
-    
+
     returns etype, nodeids, new_i
 
     Note this is called dirty because it does not _properly_ deal with
@@ -627,7 +624,7 @@ def read_polyhedron_element_dirty(elem_conn, i):
         (fnodes, i) = read_polygon_element(elem_conn, i)
         elem_nodes = elem_nodes.union(fnodes)
     return list(elem_nodes), i
-    
-        
-    
+
+
+
 
